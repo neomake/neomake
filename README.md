@@ -1,0 +1,64 @@
+
+# Neomake
+
+A plugin for asynchronous `:make` using [Neovim's](http://neovim.org/)
+job-control functionality. It is inspired by the excellent vim plugins
+[Syntastic](https://github.com/scrooloose/syntastic) and
+[Dispatch](https://github.com/tpope/vim-dispatch).
+
+## How to use (basic)
+
+Just set your `makeprg` and `errorformat` as normal, and run:
+
+```
+:Neomake
+```
+
+The make command will be run in an asynchronous job. The results will be
+populated in the window's location list as the job runs. Run `:lopen` to see
+the whole list.
+
+## How to use (advanced)
+
+Taking a page from the book of syntastic, you can configure "makers" (called
+"checkers" in syntastic) for different filetypes. Here is an example
+configuration:
+
+```
+let g:neomake_javascript_jshint_maker = {
+    \ 'args': ['--verbose'],
+    \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
+    \ }
+let g:neomake_javascript_enabled_makers = ['jshint']
+```
+
+If the string `'%:p'` shows up anywhere in the `'args'` list, it will be
+`expand()`ed to the full path of the current file in place. Otherwise, the full
+path to the file will be `add()`ed to the end of the list. You can customize
+the program that is called by adding an `'exe'` property which should be a
+string (defaults to the name of the maker).
+
+Makers currently provided by neomake are:
+
+Javascript:
+
+- jshint
+
+Python:
+
+- pep8
+- pyflakes
+- pylint
+
+If you find this plugin useful, please contribute your maker recipes to the
+repository! Check out `autoload/neovim/makers/*.vim` to see how that is
+currently done.
+
+## Issues
+
+- Currently neomake add a sign for every item added to the location list. Any
+  signs already at a loclist location will be removed before neomake adds one.
+  This feature and it's destructive nature should probably be controlled by
+  settings.
+- The signs symbols should be configurable and should match the background of
+  the sign area. Not sure how to do the background part myself.
