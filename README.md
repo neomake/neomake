@@ -38,6 +38,10 @@ path to the file will be `add()`ed to the end of the list. You can customize
 the program that is called by adding an `'exe'` property which should be a
 string (defaults to the name of the maker).
 
+Once you have created your makers, run `:Neomake` as normal. Configuring a 
+filetype to use makers will currently cause the `makeprg` to be ignored (this
+should be remedied).
+
 Makers currently provided by neomake are:
 
 Javascript:
@@ -62,3 +66,6 @@ currently done.
   settings.
 - The signs symbols should be configurable and should match the background of
   the sign area. Not sure how to do the background part myself.
+- Since makers operate on the current buffer and makeprgs potentially operate 
+  on the whole project, there should be a way to use both. Currently configuring 
+  makers for a filetype will cause neomake to ignore the makeprg.
