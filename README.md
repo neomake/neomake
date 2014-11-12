@@ -38,7 +38,8 @@ path to the file will be `add()`ed to the end of the list. You can customize
 the program that is called by adding an `'exe'` property which should be a
 string (defaults to the name of the maker).
 
-Once you have created your makers, run `:Neomake` as normal. Configuring a 
+Once you have created your makers, run `:Neomake` as normal. Run 
+`:Neomake <checker-name>` to run only a single checker. Configuring a 
 filetype to use makers will currently cause the `makeprg` to be ignored (this
 should be remedied).
 
