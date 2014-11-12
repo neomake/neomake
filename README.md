@@ -56,7 +56,7 @@ Python:
 - pylint
 
 If you find this plugin useful, please contribute your maker recipes to the
-repository! Check out `autoload/neovim/makers/*.vim` to see how that is
+repository! Check out `autoload/neomake/makers/*.vim` to see how that is
 currently done.
 
 ## Issues
