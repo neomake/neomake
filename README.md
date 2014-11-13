@@ -14,6 +14,14 @@ Just set your `makeprg` and `errorformat` as normal, and run:
 :Neomake
 ```
 
+Here's an example of how to run neomake on every write:
+
+```
+if has('nvim')
+    autocmd BufWritePost *.py,*.js NeomakeFile
+endif
+```
+
 The make command will be run in an asynchronous job. The results will be
 populated in the window's location list as the job runs. Run `:lopen` to see
 the whole list.
