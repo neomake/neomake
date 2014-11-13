@@ -18,7 +18,7 @@ Here's an example of how to run neomake on every write:
 
 ```
 if has('nvim')
-    autocmd BufWritePost *.py,*.js NeomakeFile
+    autocmd BufWritePost *.py,*.js Neomake
 endif
 ```
 
