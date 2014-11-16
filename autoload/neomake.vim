@@ -237,6 +237,7 @@ endfunction
 
 function! s:AddExprCallback(maker) abort
     let file_mode = get(a:maker, 'file_mode')
+    let place_signs = get(g:, 'neomake_place_signs', 1)
     if file_mode
         let loclist = getloclist(0)
 
@@ -253,28 +254,30 @@ function! s:AddExprCallback(maker) abort
             let b:neomake_errors[entry.lnum] = get(b:neomake_errors, entry.lnum, [])
             call add(b:neomake_errors[entry.lnum], entry)
 
-            if !exists('l:signs')
-                let l:signs = neomake#GetSignsInBuffer(entry.bufnr)
-                let sign_id = l:signs.max_id + 1
-            endif
-            let s = sign_id
-            let sign_id += 1
-            let type = entry.type ==# 'E' ? 'neomake_err' : 'neomake_warn'
-
-            let l:signs.by_line[entry.lnum] = get(l:signs.by_line, entry.lnum, [])
-            call add(l:signs.by_line[entry.lnum], {'id': s, 'line': entry.lnum, 'name': type})
-            exe 'sign place '.s.' line='.entry.lnum.' name='.type.' buffer='.entry.bufnr
-            call add(b:neomake_signs, s)
-            let placed_sign = 1
-
-            " Replace all existing signs for this line, so that ours appears
-            " on top
-            for existing in get(l:signs.by_line, entry.lnum, [])
-                if existing.name !=# 'neomake_err'
-                    exe 'sign unplace '.existing.id.' buffer='.entry.bufnr
-                    exe 'sign place '.existing.id.' line='.existing.line.' name='.existing.name.' buffer='.entry.bufnr
+            if place_signs
+                if !exists('l:signs')
+                    let l:signs = neomake#GetSignsInBuffer(entry.bufnr)
+                    let sign_id = l:signs.max_id + 1
                 endif
-            endfor
+                let s = sign_id
+                let sign_id += 1
+                let type = entry.type ==# 'E' ? 'neomake_err' : 'neomake_warn'
+
+                let l:signs.by_line[entry.lnum] = get(l:signs.by_line, entry.lnum, [])
+                call add(l:signs.by_line[entry.lnum], {'id': s, 'line': entry.lnum, 'name': type})
+                exe 'sign place '.s.' line='.entry.lnum.' name='.type.' buffer='.entry.bufnr
+                call add(b:neomake_signs, s)
+                let placed_sign = 1
+
+                " Replace all existing signs for this line, so that ours appears
+                " on top
+                for existing in get(l:signs.by_line, entry.lnum, [])
+                    if existing.name !=# 'neomake_err'
+                        exe 'sign unplace '.existing.id.' buffer='.entry.bufnr
+                        exe 'sign place '.existing.id.' line='.existing.line.' name='.existing.name.' buffer='.entry.bufnr
+                    endif
+                endfor
+            endif
         endwhile
         if placed_sign
             redraw!
@@ -335,6 +338,8 @@ function! neomake#MakeHandler(...) abort
         endif
     else
         call s:CleanJobinfo(jobinfo)
+        " Show the current line's error
+        call neomake#CursorMoved()
     endif
 endfunction
 
