@@ -6,7 +6,12 @@ job-control functionality. It is inspired by the excellent vim plugins
 [Syntastic](https://github.com/scrooloose/syntastic) and
 [Dispatch](https://github.com/tpope/vim-dispatch).
 
-This is alpha quality software. The APIs haven't totally levelled out yet, and things may break and change often until they do. That said, I'm using it daily (but also hacking on it as it breaks). Feel free to let me know what works / doesn't work for you!
+**This plugin also works in ordinary vim, but without the asynchronous benefits.**
+
+This is alpha quality software. The APIs haven't totally levelled out yet, and
+things may break and change often until they do. That said, I'm using it daily
+(but also hacking on it as it breaks). Feel free to let me know what works /
+doesn't work for you!
 
 ## How to use (basic)
 
@@ -66,18 +71,3 @@ Python:
 If you find this plugin useful, please contribute your maker recipes to the
 repository! Check out `autoload/neomake/makers/*.vim` to see how that is
 currently done.
-
-## Issues
-
-- Currently neomake add a sign for every item added to the location list. ~~Any
-  signs already at a loclist location will be removed before neomake adds
-  one.~~ Instead of removing signs that aren't its own, neomake now removes
-  them and adds them back once it creates a sign. This allows neomake to put
-  its signs on top of the stack without destroying the signs and messing up
-  other plugins. This feature ~~and it's destructive nature~~ should probably
-  be controlled by settings.
-- The signs symbols should be configurable and should match the background of
-  the sign area. Not sure how to do the background part myself.
-- Since makers operate on the current buffer and makeprgs potentially operate 
-  on the whole project, there should be a way to use both. Currently configuring 
-  makers for a filetype will cause neomake to ignore the makeprg.
