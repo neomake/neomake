@@ -31,8 +31,8 @@ function! s:JobStart(make_id, name, exe, ...) abort
         else
             let program = a:exe
         endif
-        call neomake#MakeHandler([a:make_id, 'stdout', system(program)])
-        call neomake#MakeHandler([a:make_id, 'exit', ''])
+        call neomake#MakeHandler([a:make_id, 'stdout', split(system(program), '\r\?\n', 1)])
+        call neomake#MakeHandler([a:make_id, 'exit', []])
         return 0
     endif
 endfunction
@@ -307,12 +307,9 @@ function! neomake#MakeHandler(...) abort
     endif
     let jobinfo = s:jobs[job_data[0]]
     let maker = jobinfo.maker
-    let jobinfo['leftovers'] = get(jobinfo, 'leftovers', '')
     if index(['stdout', 'stderr'], job_data[1]) >= 0
         let jobinfo['last_stream'] = job_data[1]
-        let data = jobinfo.leftovers . job_data[2]
-        let lines = split(data, '\r\n\|\r\|\n', 1)
-        let jobinfo['leftovers'] = lines[-1]
+        let lines = job_data[2]
 
         if len(lines) > 1
             if has_key(maker, 'errorformat')
@@ -320,7 +317,7 @@ function! neomake#MakeHandler(...) abort
                 let &errorformat = maker.errorformat
             endif
 
-            let addexpr_suffix = 'lines[:-2] | call s:AddExprCallback(maker)'
+            let addexpr_suffix = 'lines | call s:AddExprCallback(maker)'
             if get(maker, 'file_mode')
                 exe s:WinBufDo(jobinfo.winnr, jobinfo.bufnr, 'laddexpr '.addexpr_suffix)
             else
@@ -332,9 +329,6 @@ function! neomake#MakeHandler(...) abort
             endif
         endif
     else
-        if len(jobinfo.leftovers)
-            call neomake#MakeHandler([job_data[0], jobinfo.last_stream, "\n"])
-        endif
         call s:CleanJobinfo(jobinfo)
     endif
 endfunction
