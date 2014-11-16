@@ -8,7 +8,9 @@ command! NeomakeProject call neomake#Make(
     \ {'enabled_makers': neomake#GetEnabledMakers()})
 command! NeomakeListJobs call neomake#ListJobs()
 
-augroup neomake
-    autocmd!
-    au JobActivity neomake* call neomake#MakeHandler()
-augroup END
+if has('nvim')
+    augroup neomake
+        autocmd!
+        au JobActivity neomake* call neomake#MakeHandler()
+    augroup END
+endif

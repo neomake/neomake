@@ -12,7 +12,30 @@ function! neomake#ListJobs() abort
     endfor
 endfunction
 
-function! s:MakeJobFromMaker(jobname, maker) abort
+function! s:JobStart(make_id, name, exe, ...) abort
+    let has_args = a:0 && type(a:1) == type([])
+    if has('nvim')
+        if has_args
+            let exe = a:exe
+            let args = a:1
+        else
+            let exe = &shell
+            let args = ['-c', a:exe]
+        endif
+        return jobstart(a:name, exe, args)
+    else
+        if has_args
+            let program = a:exe.' '.join(map(a:1, 'shellescape(v:val)'))
+        else
+            let program = a:exe
+        endif
+        call neomake#MakeHandler([a:make_id, 'stdout', system(program)])
+        call neomake#MakeHandler([a:make_id, 'exit', ''])
+        return 0
+    endif
+endfunction
+
+function! s:MakeJobFromMaker(make_id, jobname, maker) abort
     if has_key(a:maker, 'args')
         let args = copy(a:maker.args)
     else
@@ -30,7 +53,7 @@ function! s:MakeJobFromMaker(jobname, maker) abort
         call add(args, a:maker.makepath)
     endif
 
-    return jobstart(a:jobname, a:maker.exe, args)
+    return s:JobStart(a:make_id, a:jobname, a:maker.exe, args)
 endfunction
 
 function! s:GetMakerKey(maker) abort
@@ -38,36 +61,46 @@ function! s:GetMakerKey(maker) abort
 endfunction
 
 function! neomake#MakeJob(...) abort
-    let jobname = 'neomake_' . s:make_id
+    let make_id = s:make_id
     let s:make_id += 1
-    let jobinfo = {}
+    let jobinfo = {
+        \ 'name': 'neomake_'.make_id,
+        \ 'winnr': winnr(),
+        \ 'bufnr': bufnr('%'),
+        \ }
+    if !has('nvim')
+        let jobinfo.id = make_id
+        let s:jobs[make_id] = jobinfo
+    endif
     if a:0 && len(a:1)
         let maker = a:1
-        let jobname .= '_'.maker.name
-        let job = s:MakeJobFromMaker(jobname, maker)
+        let jobinfo.name .= '_'.maker.name
+        let jobinfo.maker = maker
+        let job = s:MakeJobFromMaker(make_id, jobinfo.name, maker)
     else
         let maker = {}
-        let job = jobstart(jobname, &shell, ['-c', &makeprg])
+        let jobinfo.maker = maker
+        let job = s:JobStart(make_id, jobinfo.name, &makeprg)
     endif
-    let jobinfo['maker'] = maker
 
-    if job == 0
-        throw 'Job table is full or invalid arguments given'
-    elseif job == -1
-        throw 'Non executable given'
-    endif
-    let jobinfo['name'] = jobname
-    let jobinfo['winnr'] = winnr()
-    let jobinfo['bufnr'] = bufnr('%')
-    let jobinfo['id'] = job
+    " Async setup that only affects neovim
+    if has('nvim')
+        if job == 0
+            throw 'Job table is full or invalid arguments given'
+        elseif job == -1
+            throw 'Non executable given'
+        endif
 
-    let s:jobs[job] = jobinfo
-    let maker_key = s:GetMakerKey(maker)
-    if has_key(s:jobs_by_maker, maker_key)
-        call jobstop(s:jobs_by_maker[maker_key].id)
-        call s:CleanJobinfo(s:jobs_by_maker[maker_key])
+        let jobinfo.id = job
+        let s:jobs[job] = jobinfo
+
+        let maker_key = s:GetMakerKey(maker)
+        if has_key(s:jobs_by_maker, maker_key)
+            call jobstop(s:jobs_by_maker[maker_key].id)
+            call s:CleanJobinfo(s:jobs_by_maker[maker_key])
+        endif
+        let s:jobs_by_maker[maker_key] = jobinfo
     endif
-    let s:jobs_by_maker[maker_key] = jobinfo
 endfunction
 
 function! neomake#GetMaker(name, makepath, ...) abort
@@ -177,14 +210,23 @@ function! s:WinBufDo(winnr, bufnr, action) abort
          \ 'if winnr() !=# '.old_winnr.' | '.old_winnr.'wincmd w | endif'
 endfunction
 
-function! s:GetSignsInBuffer(bufnr) abort
-    let signs = {}
-    redir => signs_txt | exe 'sign place buffer='.a:bufnr | redir END
+function! neomake#GetSignsInBuffer(bufnr) abort
+    let signs = {
+        \ 'by_line': {},
+        \ 'max_id': 0,
+        \ }
+    redir => signs_txt | silent exe 'sign place buffer='.a:bufnr | redir END
     for s in split(signs_txt, '\n')
-        if s =~# 'name='
-            let ln = 0 + substitute(s, '.*line=\(\d\+\).*', '\1', '')
-            let id = 0 + substitute(s, '.*id=\(\d\+\).*', '\1', '')
-            let signs[ln] = id
+        if s =~# 'id='
+            let result = {}
+            let parts = split(s, '\s\+')
+            for part in parts
+                let [key, val] = split(part, '=')
+                let result[key] = val =~# '\d\+' ? 0 + val : val
+            endfor
+            let signs.by_line[result.line] = get(signs.by_line, result.line, [])
+            call add(signs.by_line[result.line], result)
+            let signs.max_id = max([signs.max_id, result.id])
         endif
     endfor
     return signs
@@ -196,6 +238,7 @@ function! s:AddExprCallback(maker) abort
         let b:neomake_loclist_nr = get(b:, 'neomake_loclist_nr', 0)
         let loclist = getloclist(0)
 
+        let sign_id = 1
         let placed_sign = 0
         while b:neomake_loclist_nr < len(loclist)
             let entry = loclist[b:neomake_loclist_nr]
@@ -203,17 +246,30 @@ function! s:AddExprCallback(maker) abort
             if !entry.valid
                 continue
             endif
-            let s = s:sign_id
-            let s:sign_id += 1
+            if !exists('l:signs')
+                let l:signs = neomake#GetSignsInBuffer(entry.bufnr)
+                let sign_id = l:signs.max_id + 1
+            endif
+            let s = sign_id
+            let sign_id += 1
             let type = entry.type ==# 'E' ? 'neomake_err' : 'neomake_warn'
+
+            let l:signs.by_line[entry.lnum] = get(l:signs.by_line, entry.lnum, [])
+            call add(l:signs.by_line[entry.lnum], {'id': s, 'line': entry.lnum, 'name': type})
             exe 'sign place '.s.' line='.entry.lnum.' name='.type.' buffer='.entry.bufnr
             call add(b:neomake_signs, s)
             let placed_sign = 1
+
+            " Replace all existing signs for this line, so that ours appears
+            " on top
+            for existing in get(l:signs.by_line, entry.lnum, [])
+                if existing.name !=# 'neomake_err'
+                    exe 'sign unplace '.existing.id.' buffer='.entry.bufnr
+                    exe 'sign place '.existing.id.' line='.existing.line.' name='.existing.name.' buffer='.entry.bufnr
+                endif
+            endfor
         endwhile
         if placed_sign
-            if exists('*g:NeomakeSignPlaceCallback')
-                call g:NeomakeSignPlaceCallback()
-            endif
             redraw!
         endif
     endif
@@ -243,6 +299,9 @@ function! neomake#MakeHandler(...) abort
         let job_data = a:1
     else
         let job_data = v:job_data
+    endif
+    if !has_key(s:jobs, job_data[0])
+        return
     endif
     let jobinfo = s:jobs[job_data[0]]
     let maker = jobinfo.maker
