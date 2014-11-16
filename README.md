@@ -69,10 +69,31 @@ currently done.
 
 ## Issues
 
-- Currently neomake add a sign for every item added to the location list. Any
-  signs already at a loclist location will be removed before neomake adds one.
-  This feature and it's destructive nature should probably be controlled by
+- Currently neomake add a sign for every item added to the location list. ~~Any
+  signs already at a loclist location will be removed before neomake adds
+  one.~~ This bit of bad behavior was removed because (surprise!) it caused
+  issues with gitgutter (and probably any plugin which uses signs). This
+  feature ~~and it's destructive nature~~ should probably be controlled by
   settings.
+
+  Now that we are no longer removing signs from other plugins, there are
+  problems getting neomake's signs to show up. An example is gitgutter, which
+  will add signs on write. The result is that signs don't appear for any new or
+  changed lines (gitgutter's signs can get there first since it is a synchronous
+  plugin). Personally, I want to see errors on lines I add right away, so
+  letting gitgutter's signs show up in this scenario isn't ideal. For this
+  reason, you have the option to create a signs callback function:
+
+  ```
+  function! g:NeomakeSignPlaceCallback()
+      " Toggle gitgutter on and off so neomake signs appear on top
+      GitGutterToggle
+      GitGutterToggle
+  endfunction
+  ```
+
+  This function will be called each time we place signs in a buffer. Let me
+  know if any of you know of a smarter way to handle this case.
 - The signs symbols should be configurable and should match the background of
   the sign area. Not sure how to do the background part myself.
 - Since makers operate on the current buffer and makeprgs potentially operate 
