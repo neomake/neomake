@@ -174,6 +174,7 @@ function! neomake#Make(options) abort
 
     if file_mode
         let b:neomake_loclist_nr = 0
+        let b:neomake_errors = {}
         " Remove any signs we placed before
         let b:neomake_signs = get(b:, 'neomake_signs', [])
         for s in b:neomake_signs
@@ -237,7 +238,6 @@ endfunction
 function! s:AddExprCallback(maker) abort
     let file_mode = get(a:maker, 'file_mode')
     if file_mode
-        let b:neomake_loclist_nr = get(b:, 'neomake_loclist_nr', 0)
         let loclist = getloclist(0)
 
         let sign_id = 1
@@ -248,6 +248,11 @@ function! s:AddExprCallback(maker) abort
             if !entry.valid
                 continue
             endif
+
+            " Track all errors by line
+            let b:neomake_errors[entry.lnum] = get(b:neomake_errors, entry.lnum, [])
+            call add(b:neomake_errors[entry.lnum], entry)
+
             if !exists('l:signs')
                 let l:signs = neomake#GetSignsInBuffer(entry.bufnr)
                 let sign_id = l:signs.max_id + 1
@@ -331,4 +336,60 @@ function! neomake#MakeHandler(...) abort
     else
         call s:CleanJobinfo(jobinfo)
     endif
+endfunction
+
+" This comes straight out of syntastic.
+"print as much of a:msg as possible without "Press Enter" prompt appearing
+function! neomake#WideMessage(msg) " {{{2
+    let old_ruler = &ruler
+    let old_showcmd = &showcmd
+
+    "This is here because it is possible for some error messages to
+    "begin with \n which will cause a "press enter" prompt.
+    let msg = substitute(a:msg, "\n", "", "g")
+
+    "convert tabs to spaces so that the tabs count towards the window
+    "width as the proper amount of characters
+    let chunks = split(msg, "\t", 1)
+    let msg = join(map(chunks[:-2], 'v:val . repeat(" ", &tabstop - s:_width(v:val) % &tabstop)'), '') . chunks[-1]
+    let msg = strpart(msg, 0, &columns - 1)
+
+    set noruler noshowcmd
+    redraw
+
+    echo msg
+
+    let &ruler = old_ruler
+    let &showcmd = old_showcmd
+endfunction " }}}2
+
+function! neomake#CursorMoved() abort
+    if !get(g:, 'neomake_echo_current_error', 1)
+        return
+    endif
+
+    if !empty(get(b:, 'neomake_last_echoed_error', {}))
+        unlet b:neomake_last_echoed_error
+        echo ''
+    endif
+
+    let errors = get(b:, 'neomake_errors', {})
+    if empty(errors)
+        return
+    endif
+
+    let ln = line('.')
+    let ln_errors = get(errors, ln, [])
+    if empty(ln_errors)
+        return
+    endif
+
+    let b:neomake_last_echoed_error = ln_errors[0]
+    for error in ln_errors
+        if error.type ==# 'E'
+            let b:neomake_last_echoed_error = error
+            break
+        endif
+    endfor
+    call neomake#WideMessage(b:neomake_last_echoed_error.text)
 endfunction
