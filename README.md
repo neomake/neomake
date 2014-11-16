@@ -19,9 +19,7 @@ Just set your `makeprg` and `errorformat` as normal, and run:
 Here's an example of how to run neomake on every write:
 
 ```
-if has('nvim')
-    autocmd BufWritePost *.py,*.js Neomake
-endif
+autocmd BufWritePost *.py,*.js Neomake
 ```
 
 The make command will be run in an asynchronous job. The results will be
