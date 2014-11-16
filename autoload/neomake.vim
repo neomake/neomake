@@ -274,7 +274,6 @@ function! neomake#MakeHandler(...) abort
         if len(jobinfo.leftovers)
             call neomake#MakeHandler([job_data[0], jobinfo.last_stream, "\n"])
         endif
-        call neomake#MakeHandler([])
         call s:CleanJobinfo(jobinfo)
     endif
 endfunction
