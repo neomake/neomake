@@ -6,6 +6,8 @@ job-control functionality. It is inspired by the excellent vim plugins
 [Syntastic](https://github.com/scrooloose/syntastic) and
 [Dispatch](https://github.com/tpope/vim-dispatch).
 
+This is alpha quality software. The APIs haven't totally levelled out yet, and things may break and change often until they do. That said, I'm using it daily (but also hacking on it as it breaks). Feel free to let me know what works / doesn't work for you!
+
 ## How to use (basic)
 
 Just set your `makeprg` and `errorformat` as normal, and run:
