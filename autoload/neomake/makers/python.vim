@@ -22,10 +22,10 @@ endfunction
 function! neomake#makers#python#pyflakes()
     return {
         \ 'errorformat':
-            \ '%E%f:%l: could not compile,'.
+            \ '%E%f:%l: could not compile,' .
             \ '%-Z%p^,'.
-            \ '%E%f:%l:%c: %m,'.
-            \ '%E%f:%l: %m,'.
+            \ '%E%f:%l:%c: %m,' .
+            \ '%E%f:%l: %m,' .
             \ '%-G%.%#',
         \ }
 endfunction
