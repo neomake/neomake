@@ -1,3 +1,5 @@
+scriptencoding utf-8
+
 sign define neomake_err text=✖
 sign define neomake_warn text=⚠
 
