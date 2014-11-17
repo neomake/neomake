@@ -323,10 +323,9 @@ function! neomake#MakeHandler(...) abort
     let jobinfo = s:jobs[job_data[0]]
     let maker = jobinfo.maker
     if index(['stdout', 'stderr'], job_data[1]) >= 0
-        let jobinfo['last_stream'] = job_data[1]
         let lines = job_data[2]
 
-        if len(lines) > 1
+        if len(lines) > 0
             if has_key(maker, 'errorformat')
                 let olderrformat = &errorformat
                 let &errorformat = maker.errorformat
