@@ -14,6 +14,12 @@ function! neomake#ListJobs() abort
     endfor
 endfunction
 
+function! s:DebugMessage(msg)
+    if get(g:, 'neomake_verbose')
+        echom msg
+    endif
+endfunction
+
 function! s:JobStart(make_id, name, exe, ...) abort
     let has_args = a:0 && type(a:1) == type([])
     if has('nvim')
@@ -24,6 +30,7 @@ function! s:JobStart(make_id, name, exe, ...) abort
             let exe = &shell
             let args = ['-c', a:exe]
         endif
+        call s:DebugMessage('Starting: '.exe.' '.join(args, ' '))
         return jobstart(a:name, exe, args)
     else
         if has_args
