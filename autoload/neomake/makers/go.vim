@@ -7,7 +7,7 @@ function! neomake#makers#go#go()
     return {
         \ 'args': [
             \ 'build',
-            \ '-o', '/dev/null'
+            \ '-o', neomake#DevNull()
         \ ],
         \ 'errorformat':
             \ '%W%f:%l: warning: %m,' .
