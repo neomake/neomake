@@ -60,7 +60,7 @@ Once you have created your makers, run `:Neomake` as normal. Run
 filetype to use makers will currently cause the `makeprg` to be ignored (this
 should be remedied).
 
-Makers currently provided by neomake are:
+Makers provided by neomake as of this writing are:
 
 Javascript:
 
@@ -71,6 +71,17 @@ Python:
 - pep8
 - pyflakes
 - pylint
+
+Go:
+
+- go
+- golint
+
+Ruby
+
+- rubocop
+
+Since this list may be out of date, look in [autoload/neomake/makers](https://github.com/benekastah/neomake/tree/master/autoload/neomake/makers) for all supported makers.
 
 If you find this plugin useful, please contribute your maker recipes to the
 repository! Check out `autoload/neomake/makers/*.vim` to see how that is
