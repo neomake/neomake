@@ -404,3 +404,16 @@ function! neomake#CursorMoved() abort
     endfor
     call neomake#WideMessage(b:neomake_last_echoed_error.text)
 endfunction
+
+" This comes straight out of syntastic.
+function! neomake#IsRunningWindows()
+    return has('win16') || has('win32') || has('win64')
+endfunction
+
+" This comes straight out of syntastic.
+function! neomake#DevNull()
+    if neomake#IsRunningWindows()
+        return 'NUL'
+    endif
+    return '/dev/null'
+endfunction
