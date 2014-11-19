@@ -13,10 +13,6 @@ things may break and change often until they do. That said, I'm using it daily
 (but also hacking on it as it breaks). Feel free to let me know what works /
 doesn't work for you!
 
----
-
-**PSA:** I have opened an [issue in syntastic](https://github.com/scrooloose/syntastic/issues/1253) to take what I've learned here and move it into syntastic. Go +1 that if you think it's a good idea. If they don't bite, I'll continue maintaining this project. Otherwise, I think it makes sense to use syntastic instead (once the features available here are available in syntastic).
-
 ## How to use (basic)
 
 Just set your `makeprg` and `errorformat` as normal, and run:
