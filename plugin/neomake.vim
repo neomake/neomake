@@ -1,11 +1,26 @@
-command! Neomake NeomakeFile
-command! NeomakeFile call neomake#Make({
-    \ 'enabled_makers': neomake#GetEnabledMakers(&ft),
-    \ 'ft': &ft,
-    \ 'file_mode': 1,
-    \ })
-command! NeomakeProject call neomake#Make(
-    \ {'enabled_makers': neomake#GetEnabledMakers()})
+function! s:NeomakeCommand(file_mode, enabled_makers)
+    if a:file_mode
+        call neomake#Make({
+            \ 'enabled_makers': len(a:enabled_makers) ?
+                \ a:enabled_makers :
+                \ neomake#GetEnabledMakers(&ft),
+            \ 'ft': &ft,
+            \ 'file_mode': 1,
+            \ })
+    else
+        call neomake#Make({
+            \ 'enabled_makers': len(a:enabled_makers) ?
+                \ a:enabled_makers :
+                \ neomake#GetEnabledMakers()
+            \ })
+    endif
+endfunction
+
+command! -nargs=* -bang Neomake call s:NeomakeCommand('<bang>' !=# '!', [<f-args>])
+" These commands are available for clarity
+command! -nargs=* NeomakeProject Neomake! <args>
+command! -nargs=* NeomakeFile Neomake <args>
+
 command! NeomakeListJobs call neomake#ListJobs()
 
 augroup neomake
