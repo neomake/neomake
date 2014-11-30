@@ -37,3 +37,22 @@ function! neomake#utils#DevNull()
     endif
     return '/dev/null'
 endfunction
+
+let s:available_makers = {}
+function neomake#utils#MakerIsAvailable(ft, maker_name) abort
+    if a:maker_name ==# 'makeprg'
+        " makeprg refers to the actual makeprg, which we don't need to check
+        " for our purposes
+        return 1
+    endif
+    if !has_key(s:available_makers, a:maker_name)
+        let maker = neomake#GetMaker(a:maker_name, '', a:ft)
+        call system('which '.shellescape(maker.exe))
+        let s:available_makers[a:maker_name] = !v:shell_error
+    endif
+    return s:available_makers[a:maker_name]
+endfunction
+
+function! neomake#utils#AvailableMakers(ft, makers) abort
+    return filter(copy(a:makers), 'neomake#utils#MakerIsAvailable(a:ft, v:val)')
+endfunction

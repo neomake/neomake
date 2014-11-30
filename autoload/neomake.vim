@@ -161,10 +161,18 @@ function! neomake#GetEnabledMakers(...) abort
     if type(enabled_makers) == type(0)
         unlet enabled_makers
         try
-            let enabled_makers = eval('neomake#makers#'.ft.'#EnabledMakers()')
+            let default_makers = eval('neomake#makers#'.ft.'#EnabledMakers()')
         catch /^Vim\%((\a\+)\)\=:E117/
             return default
-            let enabled_makers = default
+        finally
+            let enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
+            if !len(enabled_makers)
+                echom 'None of the default '.ft.' makers ('
+                            \ .join(default_makers, ', ').',) are available on '.
+                            \ 'your system. Install one of them or configure your '.
+                            \ 'own makers.'
+                return default
+            endif
         endtry
     endif
     return enabled_makers
