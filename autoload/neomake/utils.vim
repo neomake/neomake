@@ -1,3 +1,5 @@
+" vim: ts=4 sw=4 et
+
 " This comes straight out of syntastic.
 "print as much of a:msg as possible without "Press Enter" prompt appearing
 function! neomake#utils#WideMessage(msg) " {{{2

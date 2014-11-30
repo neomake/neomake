@@ -1,3 +1,4 @@
+" vim: ts=4 sw=4 et
 scriptencoding utf-8
 
 sign define neomake_err text=✖
