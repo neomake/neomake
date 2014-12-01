@@ -1,0 +1,120 @@
+*neomake.txt*	For Vim version 7.4 and Neovim	Last change: 2014 Nov 20
+
+    _/      _/                                                _/               ~
+   _/_/    _/    _/_/      _/_/    _/_/_/  _/_/      _/_/_/  _/  _/      _/_/  ~
+  _/  _/  _/  _/_/_/_/  _/    _/  _/    _/    _/  _/    _/  _/_/      _/_/_/_/ ~
+ _/    _/_/  _/        _/    _/  _/    _/    _/  _/    _/  _/  _/    _/        ~
+_/      _/    _/_/_/    _/_/    _/    _/    _/    _/_/_/  _/    _/    _/_/_/   ~
+
+        Runs make tasks and syntax checkers asynchronously (for neovim)
+                         and simply (for all the vims)!
+
+==============================================================================
+CONTENTS                                                      *neomake-contents*
+
+1. Introduction                                           |neomake-introduction|
+2. Commands                                                   |neomake-commands|
+3. Configuration                                         |neomake-configuration|
+
+==============================================================================
+1. Introduction                                           *neomake-introduction*
+
+Neomake leverages neovim's |job-control| feature where available to run
+programs like syntax checkers asynchronously. Where job control is not
+available, it resorts to a synchronous |system()| call, making it possible to
+run this plugin in both vim and neovim. This plugin is heavily inspired by
+fantastic vim plugins such as syntastic and dispatch.
+
+==============================================================================
+2. Commands                                                   *neomake-commands*
+
+                                         *neomake-:Neomake* *neomake-:NeomakeFile*
+:Neomake [makers]       Run a make command with the current file as input. If
+                        no makers are specified, the default makers for the
+                        current |filetype| are used. See |neomake-configuration|
+                        for more on makers.
+
+                                     *neomake-:Neomake!* *neomake-:NeomakeProject*
+:Neomake! [makers]      Run a make command with no file as input. If no makers
+                        are specified, the default top-level makers will be
+                        used. If no default top-level makers exist, |makeprg|
+                        will be used.
+
+==============================================================================
+3. Configuration                                         *neomake-configuration*
+
+If you just want an easy way to run |:make| asynchronously, you're all set.
+Just set your |makeprg| and |errorformat| as usual, and run |:Neomake!|. If
+you want more, read on.
+
+Makers                                                          *neomake-makers*
+A maker is an object that tells neomake how to run a job for you. A maker may
+be run with a file as input (great for linting), or with no file as input
+(great for building, project-level tasks).
+
+Here is a sample maker definition: >
+    let g:neomake_make_maker = {
+        \ 'exe': 'make',
+        \ 'args': ['--build'],
+        \ 'errorformat': '%f:%l:%c: %m',
+        \ }
+    " Use the maker like this:
+    :Neomake! make
+<
+In the above example, the exe argument isn't strictly necessary, since neomake
+uses the name of the maker as the default value for it.  If you want it to be
+usable on an individual file, you should also include the filtype in the name: >
+    let g:neomake_c_lint_maker = {
+        \ 'exe': 'lint',
+        \ 'args': ['--option', 'x'],
+        \ 'errorformat': '%f:%l:%c: %m',
+        \ }
+    " Use this maker from a c file:
+    :Neomake lint
+    " Or use it on the whole project:
+    :Neomake! c_lint
+<
+                                     *neomake-{{makepath}}* *neomake-!!makepath!!*
+You may need to configure the order of the arguments for a file-enabled
+checker: >
+    let g:neomake_c_lint_maker = {
+        \ 'exe': 'lint',
+        \ 'args': ['{{makepath}}', '--option', 'x'],
+        \ 'errorformat': '%f:%l:%c: %m',
+        \ }
+<
+In the above example, |{{makepath}}| will expand to the name of the file you
+are running it from. |!!makepath!!| will also work, in case |{{makepath}}| is
+inappropriate for some reason.
+
+Global Options                                                 *neomake-options*
+
+*g:neomake_<ft>_enabled_makers*
+This setting will tell neomake which makers to use by default for the given
+filetype. Filetypes that have already have makers should have a default list
+of makers already. Example: >
+    let g:neomake_python_enabled_makers = ['pep8', 'pylint']
+<
+*g:neomake_enabled_makers*
+This setting will tell neomake which makers to use by default when not
+operating on a single file. This effectively defaults to: >
+    let g:neomake_enabled_makers = ['makeprg']
+<
+*g:neomake_place_signs*
+This setting will tell neomake whether to place signs by errors recognized
+from the |errorformat|. Defaults to 1.
+
+*g:neomake_open_list*
+This setting will open the |loclist| or |quickfix| list (depending on whether
+it is operating on a file) when adding entries. Defaults to 0.
+
+*g:neomake_echo_current_error*
+This setting will echo the error for the line your cursor is on, if any.
+Defaults to 1.
+
+*g:neomake_verbose*
+Controls how verbose neomake should be. Currently it is a boolean and defaults
+to 0 (and limits very few messages at the time of this writing). Over time
+there may be multiple log levels.
+
+vim: ft=help tw=78

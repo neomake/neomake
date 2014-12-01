@@ -194,14 +194,9 @@ function! neomake#Make(options) abort
         if name ==# 'makeprg'
             call neomake#MakeJob()
         else
-            if !get(a:options, 'no_makepath')
-                if file_mode
-                    let makepath = expand('%')
-                else
-                    let makepath = getcwd()
-                endif
-            else
-                let makepath = ''
+            let makepath = ''
+            if file_mode
+                let makepath = expand('%')
             endif
             let maker = neomake#GetMaker(name, makepath, ft)
             let maker['file_mode'] = file_mode
@@ -344,6 +339,11 @@ function! neomake#MakeHandler(...) abort
         endif
     else
         call s:CleanJobinfo(jobinfo)
+        if has_key(maker, 'name')
+            echom 'Neomake: '.maker.name.' complete'
+        else
+            echom 'Neomake: make complete'
+        endif
         " Show the current line's error
         call neomake#CursorMoved()
     endif
