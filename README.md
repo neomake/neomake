@@ -13,23 +13,15 @@ things may break and change often until they do. That said, I'm using it daily
 (but also hacking on it as it breaks). Feel free to let me know what works /
 doesn't work for you!
 
----
-
-**PSA:** I have opened an [issue in syntastic](https://github.com/scrooloose/syntastic/issues/1253) to take what I've learned here and move it into syntastic. Go +1 that if you think it's a good idea. If they don't bite, I'll continue maintaining this project. Otherwise, I think it makes sense to use syntastic instead (once the features available here are available in syntastic).
-
 ## How to use (basic)
 
 Just set your `makeprg` and `errorformat` as normal, and run:
 
-```
-:Neomake
-```
+    :Neomake
 
 Here's an example of how to run neomake on every write:
 
-```
-autocmd BufWritePost *.py,*.js Neomake
-```
+    autocmd BufWritePost *.py,*.js Neomake
 
 The make command will be run in an asynchronous job. The results will be
 populated in the window's location list as the job runs. Run `:lopen` to see
@@ -41,13 +33,11 @@ Taking a page from the book of syntastic, you can configure "makers" (called
 "checkers" in syntastic) for different filetypes. Here is an example
 configuration:
 
-```
-let g:neomake_javascript_jshint_maker = {
-    \ 'args': ['--verbose'],
-    \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
-    \ }
-let g:neomake_javascript_enabled_makers = ['jshint']
-```
+    let g:neomake_javascript_jshint_maker = {
+        \ 'args': ['--verbose'],
+        \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
+        \ }
+    let g:neomake_javascript_enabled_makers = ['jshint']
 
 If the string `'%:p'` shows up anywhere in the `'args'` list, it will be
 `expand()`ed to the full path of the current file in place. Otherwise, the full
@@ -64,6 +54,7 @@ Makers provided by neomake as of this writing are:
 
 Javascript:
 
+- eslint
 - jshint
 
 Python:

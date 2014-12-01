@@ -1,3 +1,5 @@
+" vim: ts=4 sw=4 et
+
 function! s:NeomakeCommand(file_mode, enabled_makers)
     if a:file_mode
         call neomake#Make({

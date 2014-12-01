@@ -1,3 +1,4 @@
+" vim: ts=4 sw=4 et
 scriptencoding utf-8
 
 sign define neomake_err text=✖
@@ -14,12 +15,6 @@ function! neomake#ListJobs() abort
     endfor
 endfunction
 
-function! s:DebugMessage(msg)
-    if get(g:, 'neomake_verbose')
-        echom msg
-    endif
-endfunction
-
 function! s:JobStart(make_id, name, exe, ...) abort
     let has_args = a:0 && type(a:1) == type([])
     if has('nvim')
@@ -30,7 +25,7 @@ function! s:JobStart(make_id, name, exe, ...) abort
             let exe = &shell
             let args = ['-c', a:exe]
         endif
-        call s:DebugMessage('Starting: '.exe.' '.join(args, ' '))
+        call neomake#utils#DebugMessage('Starting: '.exe.' '.join(args, ' '))
         return jobstart(a:name, exe, args)
     else
         if has_args
@@ -160,10 +155,18 @@ function! neomake#GetEnabledMakers(...) abort
     if type(enabled_makers) == type(0)
         unlet enabled_makers
         try
-            let enabled_makers = eval('neomake#makers#'.ft.'#EnabledMakers()')
+            let default_makers = eval('neomake#makers#'.ft.'#EnabledMakers()')
         catch /^Vim\%((\a\+)\)\=:E117/
             return default
-            let enabled_makers = default
+        finally
+            let enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
+            if !len(enabled_makers)
+                echom 'None of the default '.ft.' makers ('
+                            \ .join(default_makers, ', ').',) are available on '.
+                            \ 'your system. Install one of them or configure your '.
+                            \ 'own makers.'
+                return default
+            endif
         endtry
     endif
     return enabled_makers
@@ -220,6 +223,7 @@ function! neomake#GetSignsInBuffer(bufnr) abort
         \ 'by_line': {},
         \ 'max_id': 0,
         \ }
+    call neomake#utils#DebugMessage('executing: sign place buffer='.a:bufnr)
     redir => signs_txt | silent exe 'sign place buffer='.a:bufnr | redir END
     for s in split(signs_txt, '\n')
         if s =~# 'id='
@@ -248,6 +252,10 @@ function! s:AddExprCallback(maker) abort
         while b:neomake_loclist_nr < len(loclist)
             let entry = loclist[b:neomake_loclist_nr]
             let b:neomake_loclist_nr += 1
+
+            if !entry.bufnr
+                continue
+            endif
             if !entry.valid
                 continue
             endif

@@ -1,3 +1,11 @@
+" vim: ts=4 sw=4 et
+
+function! neomake#utils#DebugMessage(msg)
+    if get(g:, 'neomake_verbose')
+        echom a:msg
+    endif
+endfunction
+
 " This comes straight out of syntastic.
 "print as much of a:msg as possible without "Press Enter" prompt appearing
 function! neomake#utils#WideMessage(msg) " {{{2
@@ -34,4 +42,23 @@ function! neomake#utils#DevNull()
         return 'NUL'
     endif
     return '/dev/null'
+endfunction
+
+let s:available_makers = {}
+function neomake#utils#MakerIsAvailable(ft, maker_name) abort
+    if a:maker_name ==# 'makeprg'
+        " makeprg refers to the actual makeprg, which we don't need to check
+        " for our purposes
+        return 1
+    endif
+    if !has_key(s:available_makers, a:maker_name)
+        let maker = neomake#GetMaker(a:maker_name, '', a:ft)
+        call system('which '.shellescape(maker.exe))
+        let s:available_makers[a:maker_name] = !v:shell_error
+    endif
+    return s:available_makers[a:maker_name]
+endfunction
+
+function! neomake#utils#AvailableMakers(ft, makers) abort
+    return filter(copy(a:makers), 'neomake#utils#MakerIsAvailable(a:ft, v:val)')
 endfunction
