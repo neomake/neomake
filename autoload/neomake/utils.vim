@@ -1,5 +1,11 @@
 " vim: ts=4 sw=4 et
 
+function! neomake#utils#DebugMessage(msg)
+    if get(g:, 'neomake_verbose')
+        echom a:msg
+    endif
+endfunction
+
 " This comes straight out of syntastic.
 "print as much of a:msg as possible without "Press Enter" prompt appearing
 function! neomake#utils#WideMessage(msg) " {{{2

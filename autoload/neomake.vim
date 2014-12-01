@@ -15,12 +15,6 @@ function! neomake#ListJobs() abort
     endfor
 endfunction
 
-function! s:DebugMessage(msg)
-    if get(g:, 'neomake_verbose')
-        echom msg
-    endif
-endfunction
-
 function! s:JobStart(make_id, name, exe, ...) abort
     let has_args = a:0 && type(a:1) == type([])
     if has('nvim')
@@ -31,7 +25,7 @@ function! s:JobStart(make_id, name, exe, ...) abort
             let exe = &shell
             let args = ['-c', a:exe]
         endif
-        call s:DebugMessage('Starting: '.exe.' '.join(args, ' '))
+        call neomake#utils#DebugMessage('Starting: '.exe.' '.join(args, ' '))
         return jobstart(a:name, exe, args)
     else
         if has_args
@@ -234,6 +228,7 @@ function! neomake#GetSignsInBuffer(bufnr) abort
         \ 'by_line': {},
         \ 'max_id': 0,
         \ }
+    call neomake#utils#DebugMessage('executing: sign place buffer='.a:bufnr)
     redir => signs_txt | silent exe 'sign place buffer='.a:bufnr | redir END
     for s in split(signs_txt, '\n')
         if s =~# 'id='
@@ -262,6 +257,10 @@ function! s:AddExprCallback(maker) abort
         while b:neomake_loclist_nr < len(loclist)
             let entry = loclist[b:neomake_loclist_nr]
             let b:neomake_loclist_nr += 1
+
+            if !entry.bufnr
+                continue
+            endif
             if !entry.valid
                 continue
             endif

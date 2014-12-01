@@ -17,15 +17,11 @@ doesn't work for you!
 
 Just set your `makeprg` and `errorformat` as normal, and run:
 
-```
-:Neomake
-```
+    :Neomake
 
 Here's an example of how to run neomake on every write:
 
-```
-autocmd BufWritePost *.py,*.js Neomake
-```
+    autocmd BufWritePost *.py,*.js Neomake
 
 The make command will be run in an asynchronous job. The results will be
 populated in the window's location list as the job runs. Run `:lopen` to see
@@ -37,13 +33,11 @@ Taking a page from the book of syntastic, you can configure "makers" (called
 "checkers" in syntastic) for different filetypes. Here is an example
 configuration:
 
-```
-let g:neomake_javascript_jshint_maker = {
-    \ 'args': ['--verbose'],
-    \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
-    \ }
-let g:neomake_javascript_enabled_makers = ['jshint']
-```
+    let g:neomake_javascript_jshint_maker = {
+        \ 'args': ['--verbose'],
+        \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
+        \ }
+    let g:neomake_javascript_enabled_makers = ['jshint']
 
 If the string `'%:p'` shows up anywhere in the `'args'` list, it will be
 `expand()`ed to the full path of the current file in place. Otherwise, the full
@@ -60,6 +54,7 @@ Makers provided by neomake as of this writing are:
 
 Javascript:
 
+- eslint
 - jshint
 
 Python:
