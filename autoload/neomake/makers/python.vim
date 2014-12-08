@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#python#EnabledMakers()
-    return ['pylint', 'pyflakes', 'pep8', 'python']
+    return ['python', 'pep8', 'pyflakes', 'pylint']
 endfunction
 
 function! neomake#makers#python#pylint()
