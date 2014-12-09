@@ -1,8 +1,4 @@
 " vim: ts=4 sw=4 et
-scriptencoding utf-8
-
-sign define neomake_err text=✖
-sign define neomake_warn text=⚠
 
 let s:make_id = 1
 let s:jobs = {}
@@ -173,6 +169,19 @@ function! neomake#GetEnabledMakers(...) abort
 endfunction
 
 function! neomake#Make(options) abort
+    if get(g:, 'neomake_place_signs', 1)
+        try
+            silent sign list neomake_err
+        catch /^Vim\%((\a\+)\)\=:E155/
+            call neomake#utils#RedefineErrorSign()
+        endtry
+        try
+            silent sign list neomake_warn
+        catch /^Vim\%((\a\+)\)\=:E155/
+            call neomake#utils#RedefineWarningSign()
+        endtry
+    endif
+
     let ft = get(a:options, 'ft', '')
     let enabled_makers = get(a:options, 'enabled_makers', ['makeprg'])
     let file_mode = get(a:options, 'file_mode')
@@ -218,27 +227,49 @@ function! s:WinBufDo(winnr, bufnr, action) abort
          \ 'if winnr() !=# '.old_winnr.' | '.old_winnr.'wincmd w | endif'
 endfunction
 
-function! neomake#GetSignsInBuffer(bufnr) abort
+function! neomake#GetSigns(...) abort
     let signs = {
         \ 'by_line': {},
         \ 'max_id': 0,
         \ }
-    call neomake#utils#DebugMessage('executing: sign place buffer='.a:bufnr)
-    redir => signs_txt | silent exe 'sign place buffer='.a:bufnr | redir END
+    if a:0
+        let opts = a:1
+    else
+        let opts = {}
+    endif
+    let place_cmd = 'sign place'
+    for attr in keys(opts)
+        if attr ==# 'file' || attr ==# 'buffer'
+            let place_cmd .= ' '.attr.'='.opts[attr]
+        endif
+    endfor
+    call neomake#utils#DebugMessage('executing: '.place_cmd)
+    redir => signs_txt | silent exe place_cmd | redir END
+    let fname_pattern = 'Signs for \(.*\):'
     for s in split(signs_txt, '\n')
-        if s =~# 'id='
+        if s =~# fname_pattern
+            " This should always happen first, so don't define outside loop
+            let fname = substitute(s, fname_pattern, '\1', '')
+        elseif s =~# 'id='
             let result = {}
             let parts = split(s, '\s\+')
             for part in parts
                 let [key, val] = split(part, '=')
                 let result[key] = val =~# '\d\+' ? 0 + val : val
             endfor
-            let signs.by_line[result.line] = get(signs.by_line, result.line, [])
-            call add(signs.by_line[result.line], result)
-            let signs.max_id = max([signs.max_id, result.id])
+            let result.file = fname
+            if !has_key(opts, 'name') || opts.name ==# result.name
+                let signs.by_line[result.line] = get(signs.by_line, result.line, [])
+                call add(signs.by_line[result.line], result)
+                let signs.max_id = max([signs.max_id, result.id])
+            endif
         endif
     endfor
     return signs
+endfunction
+
+function! neomake#GetSignsInBuffer(bufnr) abort
+    return neomake#GetSigns({'buffer': a:bufnr})
 endfunction
 
 function! s:AddExprCallback(maker) abort

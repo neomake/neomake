@@ -15,6 +15,7 @@ CONTENTS                                                      *neomake-contents*
 1. Introduction                                           |neomake-introduction|
 2. Commands                                                   |neomake-commands|
 3. Configuration                                         |neomake-configuration|
+4. Functions                                                 |neomake-functions|
 
 ==============================================================================
 1. Introduction                                           *neomake-introduction*
@@ -100,10 +101,6 @@ This setting will tell neomake which makers to use by default when not
 operating on a single file. This effectively defaults to: >
     let g:neomake_enabled_makers = ['makeprg']
 <
-*g:neomake_place_signs*
-This setting will tell neomake whether to place signs by errors recognized
-from the |errorformat|. Defaults to 1.
-
 *g:neomake_open_list*
 This setting will open the |loclist| or |quickfix| list (depending on whether
 it is operating on a file) when adding entries. Defaults to 0.
@@ -117,4 +114,36 @@ Controls how verbose neomake should be. Currently it is a boolean and defaults
 to 0 (and limits very few messages at the time of this writing). Over time
 there may be multiple log levels.
 
+*g:neomake_place_signs*
+This setting will tell neomake whether to place signs by errors recognized
+from the |errorformat|. Defaults to 1.
+
+*g:neomake_error_sign* *g:neomake_warning_sign*
+These options allow you to control the appearance of the signs that are
+placed beside errors and warnings respectively. These are dictionaries that
+represent the parameters provided by |sign-define|. Here is an example
+definition: >
+    let g:neomake_error_sign = {
+        \ 'text': 'E>',
+        \ 'texthl': 'ErrorMsg',
+        \ }
+<
+See the |:highlight| command to list the highlight groups available to you or
+create new ones.
+
+==============================================================================
+4. Functions                                                 *neomake-functions*
+
+This list is non-exhaustive at the moment, but you may find some of these
+functions useful.
+
+*neomake#utils#RedefineErrorSign* *neomake#utils#RedefineWarningSign*
+These functions define the error sign and the warning sign respectively. They
+optionally take a dictionary in the same format as |g:neomake_error_sign|. If
+no such dictionary is provided, the default values will be used. These
+functions may be useful if somehow |:Neomake| is being invoked before you
+define |g:neomake_error_sign|. >
+    let g:neomake_error_sign = {'text': 'D:'}
+    call neomake#utils#RedefineErrorSign()
+<
 vim: ft=help tw=78

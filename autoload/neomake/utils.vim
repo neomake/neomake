@@ -1,4 +1,5 @@
 " vim: ts=4 sw=4 et
+scriptencoding utf-8
 
 function! neomake#utils#DebugMessage(msg)
     if get(g:, 'neomake_verbose')
@@ -61,4 +62,46 @@ endfunction
 
 function! neomake#utils#AvailableMakers(ft, makers) abort
     return filter(copy(a:makers), 'neomake#utils#MakerIsAvailable(a:ft, v:val)')
+endfunction
+
+" This line intentionally ends with a space
+sign define neomake_invisible text=\ 
+
+function! neomake#utils#RedefineSign(name, opts)
+    let signs = neomake#GetSigns({'name': a:name})
+    for lnum in keys(signs.by_line)
+        for sign in signs.by_line[lnum]
+            exe 'sign place '.sign.id.' name=neomake_invisible file='.sign.file
+        endfor
+    endfor
+
+    let sign_define = 'sign define '.a:name
+    for attr in keys(a:opts)
+        let sign_define .= ' '.attr.'='.a:opts[attr]
+    endfor
+    exe sign_define
+
+    for lnum in keys(signs.by_line)
+        for sign in signs.by_line[lnum]
+            exe 'sign place '.sign.id.' name='.a:name.' file='.sign.file
+        endfor
+    endfor
+endfunction
+
+function! neomake#utils#RedefineErrorSign(...)
+    if a:0
+        let opts = a:1
+    else
+        let opts = get(g:, 'neomake_error_sign', {'text': '✖'})
+    endif
+    call neomake#utils#RedefineSign('neomake_err', opts)
+endfunction
+
+function! neomake#utils#RedefineWarningSign(...)
+    if a:0
+        let opts = a:1
+    else
+        let opts = get(g:, 'neomake_warning_sign', {'text': '⚠'})
+    endif
+    call neomake#utils#RedefineSign('neomake_warn', opts)
 endfunction
