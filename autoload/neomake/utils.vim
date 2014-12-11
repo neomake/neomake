@@ -89,19 +89,25 @@ function! neomake#utils#RedefineSign(name, opts)
 endfunction
 
 function! neomake#utils#RedefineErrorSign(...)
+    let default_opts = {'text': '✖'}
+    let opts = {}
     if a:0
-        let opts = a:1
-    else
-        let opts = get(g:, 'neomake_error_sign', {'text': '✖'})
+        call extend(opts, a:1)
+    elseif exists('g:neomake_error_sign')
+        call extend(opts, g:neomake_error_sign)
     endif
+    call extend(opts, default_opts, 'keep')
     call neomake#utils#RedefineSign('neomake_err', opts)
 endfunction
 
 function! neomake#utils#RedefineWarningSign(...)
+    let default_opts = {'text': '⚠'}
+    let opts = {}
     if a:0
-        let opts = a:1
-    else
-        let opts = get(g:, 'neomake_warning_sign', {'text': '⚠'})
+        call extend(opts, a:1)
+    elseif exists('g:neomake_warning_sign')
+        call extend(opts, g:neomake_warning_sign)
     endif
+    call extend(opts, default_opts, 'keep')
     call neomake#utils#RedefineSign('neomake_warn', opts)
 endfunction
