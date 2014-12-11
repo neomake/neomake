@@ -3,7 +3,6 @@
 let s:make_id = 1
 let s:jobs = {}
 let s:jobs_by_maker = {}
-let s:sign_id = 7500
 
 function! neomake#ListJobs() abort
     for jobinfo in values(s:jobs)
@@ -195,11 +194,11 @@ function! neomake#Make(options) abort
         let b:neomake_loclist_nr = 0
         let b:neomake_errors = {}
         " Remove any signs we placed before
-        let b:neomake_signs = get(b:, 'neomake_signs', [])
-        for s in b:neomake_signs
-            exe 'sign unplace '.s
+        let b:neomake_signs = get(b:, 'neomake_signs', {})
+        for ln in keys(b:neomake_signs)
+            exe 'sign unplace '.b:neomake_signs[ln]
         endfor
-        let b:neomake_signs = []
+        let b:neomake_signs = {}
     endif
 
     for name in enabled_makers
@@ -305,15 +304,19 @@ function! s:AddExprCallback(maker) abort
                 let type = entry.type ==# 'E' ? 'neomake_err' : 'neomake_warn'
 
                 let l:signs.by_line[entry.lnum] = get(l:signs.by_line, entry.lnum, [])
-                call add(l:signs.by_line[entry.lnum], {'id': s, 'line': entry.lnum, 'name': type})
-                exe 'sign place '.s.' line='.entry.lnum.' name='.type.' buffer='.entry.bufnr
-                call add(b:neomake_signs, s)
+                if !has_key(b:neomake_signs, entry.lnum)
+                    exe 'sign place '.s.' line='.entry.lnum.' name='.type.' buffer='.entry.bufnr
+                    let b:neomake_signs[entry.lnum] = s
+                elseif type ==# 'neomake_err'
+                    " Upgrade this sign to an error
+                    exe 'sign place '.b:neomake_signs[entry.lnum].' name='.type.' buffer='.entry.bufnr
+                endif
                 let placed_sign = 1
 
                 " Replace all existing signs for this line, so that ours appears
                 " on top
                 for existing in get(l:signs.by_line, entry.lnum, [])
-                    if existing.name !=# 'neomake_err'
+                    if existing.name !~# 'neomake_'
                         exe 'sign unplace '.existing.id.' buffer='.entry.bufnr
                         exe 'sign place '.existing.id.' line='.existing.line.' name='.existing.name.' buffer='.entry.bufnr
                     endif
