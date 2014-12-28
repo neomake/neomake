@@ -205,12 +205,24 @@ function! neomake#Make(options) abort
         if name ==# 'makeprg'
             call neomake#MakeJob()
         else
+            let tempfile = 0
+            let tempsuffix = ''
             let makepath = ''
             if file_mode
                 let makepath = expand('%')
+                if get(g:, 'neomake_make_modified', 0) && &mod
+                    let tempfile = 1
+                    let tempsuffix = '.'.neomake#utils#Random().'.neomake.tmp'
+                    let makepath .= tempsuffix
+                    exe 'w '.makepath
+                endif
             endif
             let maker = neomake#GetMaker(name, makepath, ft)
             let maker['file_mode'] = file_mode
+            if tempfile
+                let maker['tempfile'] = makepath
+                let maker['tempsuffix'] = tempsuffix
+            endif
             call neomake#MakeJob(maker)
         endif
     endfor
@@ -341,7 +353,14 @@ function! s:AddExprCallback(maker) abort
 endfunction
 
 function! s:CleanJobinfo(jobinfo) abort
-    let maker_key = s:GetMakerKey(a:jobinfo.maker)
+    let maker = a:jobinfo.maker
+    if has_key(maker, 'tempfile')
+        let rmResult = neomake#utils#RemoveFile(maker.tempfile)
+        if !rmResult
+            echoerr 'Failed to remove temporary file '.maker.tempfile
+        endif
+    endif
+    let maker_key = s:GetMakerKey(maker)
     if has_key(s:jobs_by_maker, maker_key)
         unlet s:jobs_by_maker[maker_key]
     endif
@@ -360,7 +379,12 @@ function! neomake#MakeHandler(...) abort
     let jobinfo = s:jobs[job_data[0]]
     let maker = jobinfo.maker
     if index(['stdout', 'stderr'], job_data[1]) >= 0
-        let lines = job_data[2]
+        if has_key(maker, 'tempsuffix')
+            let pattern = substitute(maker.tempsuffix, '\.', '\.', 'g')
+            let lines = map(copy(job_data[2]), 'substitute(v:val, pattern, "", "g")')
+        else
+            let lines = job_data[2]
+        endif
 
         if len(lines) > 0
             if has_key(maker, 'errorformat')

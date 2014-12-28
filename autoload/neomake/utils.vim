@@ -57,6 +57,30 @@ function! neomake#utils#Exists(exe) abort
     return !v:shell_error
 endfunction
 
+function! neomake#utils#Random() abort
+    if neomake#utils#IsRunningWindows()
+        let cmd = 'Echo %RANDOM%'
+    else
+        let cmd = 'echo $RANDOM'
+    endif
+    let answer = 0 + system(cmd)
+    if v:shell_error
+        " If complaints come up about this, consider using python
+        throw "Can't generate random number for this platform"
+    endif
+    return answer
+endfunction
+
+function! neomake#utils#RemoveFile(f) abort
+    if neomake#utils#IsRunningWindows()
+        let cmd = 'del'
+    else
+        let cmd = 'rm'
+    endif
+    call system(cmd.' '.shellescape(a:f))
+    return !v:shell_error
+endfunction
+
 let s:available_makers = {}
 function neomake#utils#MakerIsAvailable(ft, maker_name) abort
     if a:maker_name ==# 'makeprg'
