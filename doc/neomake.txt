@@ -146,4 +146,21 @@ define |g:neomake_error_sign|. >
     let g:neomake_error_sign = {'text': 'D:'}
     call neomake#utils#RedefineErrorSign()
 <
+                                                            *neomake-statusline*
+*neomake#statusline#LoclistStatus* *neomake#statusline#QflistStatus*
+These functions return text for your |statusline|. They each take an optional
+first argument, which is the prefix text that will be shown if errors or
+warnings exist. Example usage: >
+    set statusline+=\ %#ErrorMsg#%{neomake#statusline#QflistStatus('qf:\ ')}
+<
+The result of this will be something like 'qf: E:1, W:2' if there are errors
+or warnings and the empty string otherwise.
+
+*neomake#statusline#LoclistCounts* *neomake#statusline#QflistCounts*
+These functions get the counts of errors by error type for the |location-list|
+and the |quickfix| respectively. The return value is something like this: >
+    {'E': 2, 'W': 1, 'x': 5}
+<Where 'E', 'W' and 'x' are error types. Empty error types are ignored for
+now.
+
 vim: ft=help tw=78
