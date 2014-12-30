@@ -1,10 +1,33 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
-function! neomake#utils#DebugMessage(msg)
-    if get(g:, 'neomake_verbose')
+function! neomake#utils#LogMessage(level, msg) abort
+    let verbose = get(g:, 'neomake_verbose', 1)
+    if verbose >= a:level
+        if a:level ==# 0
+            echohl ErrorMsg
+        endif
         echom a:msg
+        if a:level ==# 0
+            echohl None
+        endif
     endif
+endfunction
+
+function! neomake#utils#ErrorMessage(msg) abort
+    call neomake#utils#LogMessage(0, a:msg)
+endfunction
+
+function! neomake#utils#QuietMessage(msg) abort
+    call neomake#utils#LogMessage(1, a:msg)
+endfunction
+
+function! neomake#utils#LoudMessage(msg) abort
+    call neomake#utils#LogMessage(2, a:msg)
+endfunction
+
+function! neomake#utils#DebugMessage(msg) abort
+    call neomake#utils#LogMessage(3, a:msg)
 endfunction
 
 " This comes straight out of syntastic.

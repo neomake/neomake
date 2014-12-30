@@ -110,9 +110,14 @@ This setting will echo the error for the line your cursor is on, if any.
 Defaults to 1.
 
 *g:neomake_verbose*
-Controls how verbose neomake should be. Currently it is a boolean and defaults
-to 0 (and limits very few messages at the time of this writing). Over time
-there may be multiple log levels.
+Controls how verbose neomake should be. Neomake log levels are as follows:
+    0 - Errors only
+    1 - Quiet message (default -- should only log one message at a time)
+    2 - Loud message (may log multiple messages at once, making the screen
+        shift momentarily)
+    3 - Debug information, normally relevant only to people who develop
+        neomake.
+Each log level includes all the levels before it.
 
 *g:neomake_place_signs*
 This setting will tell neomake whether to place signs by errors recognized

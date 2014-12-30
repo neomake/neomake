@@ -20,7 +20,7 @@ function! s:JobStart(make_id, name, exe, ...) abort
             let exe = &shell
             let args = ['-c', a:exe]
         endif
-        call neomake#utils#DebugMessage('Starting: '.exe.' '.join(args, ' '))
+        call neomake#utils#LoudMessage('Starting: '.exe.' '.join(args, ' '))
         return jobstart(a:name, exe, args)
     else
         if has_args
@@ -157,10 +157,10 @@ function! neomake#GetEnabledMakers(...) abort
 
         let enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
         if !len(enabled_makers)
-            echom 'None of the default '.ft.' makers ('
+            call neomake#utils#ErrorMessage('None of the default '.ft.' makers ('
                         \ .join(default_makers, ', ').',) are available on '.
                         \ 'your system. Install one of them or configure your '.
-                        \ 'own makers.'
+                        \ 'own makers.')
             return default
         endif
     endif
@@ -214,7 +214,7 @@ function! neomake#Make(options) abort
                     let tempfile = 1
                     let tempsuffix = '.'.neomake#utils#Random().'.neomake.tmp'
                     let makepath .= tempsuffix
-                    exe 'w '.makepath
+                    exe 'w !cat > '.shellescape(makepath)
                 endif
             endif
             let maker = neomake#GetMaker(name, makepath, ft)
@@ -406,9 +406,9 @@ function! neomake#MakeHandler(...) abort
     else
         call s:CleanJobinfo(jobinfo)
         if has_key(maker, 'name')
-            echom 'Neomake: '.maker.name.' complete'
+            call neomake#utils#QuietMessage('Neomake: '.maker.name.' complete')
         else
-            echom 'Neomake: make complete'
+            call neomake#utils#QuietMessage('Neomake: make complete')
         endif
         " Show the current line's error
         call neomake#CursorMoved()
