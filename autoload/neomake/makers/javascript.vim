@@ -18,3 +18,7 @@ function! neomake#makers#javascript#eslint()
         \ '%W%f: line %l\, col %c\, Warning - %m'
         \ }
 endfunction
+
+function! neomake#makers#javascript#jsxhint()
+    return neomake#makers#javascript#jshint()
+endfunction
