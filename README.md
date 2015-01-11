@@ -52,21 +52,27 @@ should be remedied).
 
 Makers provided by neomake as of this writing are:
 
+Coffeescript:
+
+- coffeelint
+
+Go:
+
+- go
+- golint
+
 Javascript:
 
 - eslint
 - jshint
+- jsxhint
 
 Python:
 
 - pep8
 - pyflakes
 - pylint
-
-Go:
-
-- go
-- golint
+- python
 
 Ruby
 
