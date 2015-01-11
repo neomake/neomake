@@ -109,6 +109,11 @@ it is operating on a file) when adding entries. Defaults to 0.
 This setting will echo the error for the line your cursor is on, if any.
 Defaults to 1.
 
+*g:neomake_make_modified*
+Setting this to 1 allows neomake to check unsaved changes. Set to 0 by
+default. This setting does nothing when running |:Neomake!| (in other words,
+it is only active when running |:Neomake|).
+
 *g:neomake_verbose*
 Controls how verbose neomake should be. Neomake log levels are as follows:
     0 - Errors only
