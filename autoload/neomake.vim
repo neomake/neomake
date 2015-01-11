@@ -201,6 +201,7 @@ function! neomake#Make(options) abort
         let b:neomake_signs = {}
     endif
 
+    let serialize = get(g:, 'neomake_serialize')
     for name in enabled_makers
         if name ==# 'makeprg'
             call neomake#MakeJob()
@@ -223,7 +224,15 @@ function! neomake#Make(options) abort
                 let maker['tempfile'] = makepath
                 let maker['tempsuffix'] = tempsuffix
             endif
+            if serialize && len(enabled_makers) > 1
+                let next_opts = copy(a:options)
+                let next_opts['enabled_makers'] = enabled_makers[1:]
+                let maker['next'] = next_opts
+            endif
             call neomake#MakeJob(maker)
+        endif
+        if serialize
+            break
         endif
     endfor
 endfunction
@@ -412,6 +421,13 @@ function! neomake#MakeHandler(...) abort
         endif
         " Show the current line's error
         call neomake#CursorMoved()
+
+        " TODO when neovim implements getting the exit status of a job, add
+        " option to only run next checkers if this one succeeded.
+        if has_key(maker, 'next')
+            call neomake#utils#DebugMessage('Neomake: next makers ['.join(maker.next.enabled_makers, ', ').']')
+            call neomake#Make(maker.next)
+        endif
     endif
 endfunction
 
