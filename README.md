@@ -74,7 +74,7 @@ Python:
 - pylint
 - python
 
-Ruby
+Ruby:
 
 - rubocop
 
