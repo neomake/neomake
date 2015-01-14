@@ -20,8 +20,8 @@ Just set your `makeprg` and `errorformat` as normal, and run:
     :Neomake!
     
 If your makeprg can take a filename as an input, then you can run `:Neomake`
-to pass the current file as the first argument. Otherwise, it is simply invoked
-in vim's current directory with no arguments.
+(no exclamation point) to pass the current file as the first argument. 
+Otherwise, it is simply invoked in vim's current directory with no arguments.
 
 Here's an example of how to run neomake on every write:
 
