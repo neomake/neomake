@@ -28,8 +28,9 @@ Here's an example of how to run neomake on the current file on every write:
     autocmd BufWritePost *.py,*.js Neomake
 
 The make command will be run in an asynchronous job. The results will be
-populated in the window's location list as the job runs. Run `:lopen` to see
-the whole list.
+populated in the window's quickfix list for `:Neomake!` and the location
+list for `:Neomake` as the job runs. Run `:copen` or `:lopen` to see the
+whole list.
 
 ## How to use (advanced)
 
