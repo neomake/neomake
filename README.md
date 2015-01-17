@@ -44,7 +44,8 @@ configuration:
         \ }
     let g:neomake_javascript_enabled_makers = ['jshint']
 
-It is critical that makers follow this naming convention:
+For use with the `:Neomake` command (makers that run on an individual file), it
+is critical that makers follow this naming convention:
 
     g:neomake_{ language }_{ makername }_maker
 
