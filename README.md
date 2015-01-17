@@ -44,6 +44,16 @@ configuration:
         \ }
     let g:neomake_javascript_enabled_makers = ['jshint']
 
+For use with the `:Neomake` command (makers that run on an individual file), it
+is critical that makers follow this naming convention:
+
+    g:neomake_{ language }_{ makername }_maker
+
+Where `{ language }` is replaced with the name of the language, and `{ makername
+}` is replaced with the name that you want your maker to have. If your maker
+does not follow this convention, neomake will not be able to see it, and you
+will get an error message like `{ makername } not found`.
+
 If the string `'%:p'` shows up anywhere in the `'args'` list, it will be
 `expand()`ed to the full path of the current file in place. Otherwise, the full
 path to the file will be `add()`ed to the end of the list. You can customize
