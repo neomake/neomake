@@ -18,9 +18,9 @@ doesn't work for you!
 Just set your `makeprg` and `errorformat` as normal, and run:
 
     :Neomake!
-    
+
 If your makeprg can take a filename as an input, then you can run `:Neomake`
-(no exclamation point) to pass the current file as the first argument. 
+(no exclamation point) to pass the current file as the first argument.
 Otherwise, it is simply invoked in vim's current directory with no arguments.
 
 Here's an example of how to run neomake on the current file on every write:
@@ -60,8 +60,8 @@ path to the file will be `add()`ed to the end of the list. You can customize
 the program that is called by adding an `'exe'` property which should be a
 string (defaults to the name of the maker).
 
-Once you have created your makers, run `:Neomake` as normal. Run 
-`:Neomake <checker-name>` to run only a single checker. Configuring a 
+Once you have created your makers, run `:Neomake` as normal. Run
+`:Neomake <checker-name>` to run only a single checker. Configuring a
 filetype to use makers will currently cause the `makeprg` to be ignored (this
 should be remedied).
 
@@ -92,6 +92,10 @@ Python:
 Ruby:
 
 - rubocop
+
+C:
+
+- clang
 
 C++:
 
