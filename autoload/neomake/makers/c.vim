@@ -18,3 +18,22 @@ function! neomake#makers#c#clang()
             \ '%f:%l: %m',
         \ }
 endfunction
+
+function! neomake#makers#c#gcc()
+    return {
+        \ 'exe': 'clang',
+        \ 'args': ['-fsyntax-only'],
+        \ 'errorformat':
+            \ '%-G%f:%s:,' .
+            \ '%-G%f:%l: %#error: %#(Each undeclared identifier is reported only%.%#,' .
+            \ '%-G%f:%l: %#error: %#for each function it appears%.%#,' .
+            \ '%-GIn file included%.%#,' .
+            \ '%-G %#from %f:%l\,,' .
+            \ '%f:%l:%c: %trror: %m,' .
+            \ '%f:%l:%c: %tarning: %m,' .
+            \ '%f:%l:%c: %m,' .
+            \ '%f:%l: %trror: %m,' .
+            \ '%f:%l: %tarning: %m,'.
+            \ '%f:%l: %m',
+        \ }
+endfunction
