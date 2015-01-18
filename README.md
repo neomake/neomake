@@ -17,15 +17,20 @@ doesn't work for you!
 
 Just set your `makeprg` and `errorformat` as normal, and run:
 
-    :Neomake
+    :Neomake!
+    
+If your makeprg can take a filename as an input, then you can run `:Neomake`
+(no exclamation point) to pass the current file as the first argument. 
+Otherwise, it is simply invoked in vim's current directory with no arguments.
 
-Here's an example of how to run neomake on every write:
+Here's an example of how to run neomake on the current file on every write:
 
     autocmd BufWritePost *.py,*.js Neomake
 
 The make command will be run in an asynchronous job. The results will be
-populated in the window's location list as the job runs. Run `:lopen` to see
-the whole list.
+populated in the window's quickfix list for `:Neomake!` and the location
+list for `:Neomake` as the job runs. Run `:copen` or `:lopen` to see the
+whole list.
 
 ## How to use (advanced)
 
@@ -38,6 +43,16 @@ configuration:
         \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
         \ }
     let g:neomake_javascript_enabled_makers = ['jshint']
+
+For use with the `:Neomake` command (makers that run on an individual file), it
+is critical that makers follow this naming convention:
+
+    g:neomake_{ language }_{ makername }_maker
+
+Where `{ language }` is replaced with the name of the language, and `{ makername
+}` is replaced with the name that you want your maker to have. If your maker
+does not follow this convention, neomake will not be able to see it, and you
+will get an error message like `{ makername } not found`.
 
 If the string `'%:p'` shows up anywhere in the `'args'` list, it will be
 `expand()`ed to the full path of the current file in place. Otherwise, the full
@@ -77,6 +92,14 @@ Python:
 Ruby:
 
 - rubocop
+
+C:
+
+- clang
+
+C++:
+
+- clang++
 
 Since this list may be out of date, look in [autoload/neomake/makers](https://github.com/benekastah/neomake/tree/master/autoload/neomake/makers) for all supported makers.
 
