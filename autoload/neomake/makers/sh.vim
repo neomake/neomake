@@ -6,7 +6,7 @@ endfunction
 
 function! neomake#makers#sh#shellcheck()
     return {
-        \ 'args': ['-f gcc'],
+        \ 'args': ['-fgcc'],
         \ 'errorformat':
             \ '%f:%l:%c: %trror: %m,' .
             \ '%f:%l:%c: %tarning: %m,' .
