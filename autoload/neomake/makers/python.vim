@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#python#EnabledMakers()
-    return ['python', 'pep8', 'pyflakes', 'pylint']
+    return ['python', 'pep8', 'pyflakes', 'pylint', 'flake8']
 endfunction
 
 function! neomake#makers#python#pylint()
@@ -17,6 +17,16 @@ function! neomake#makers#python#pylint()
             \ '%A%f:(%l): %m,' .
             \ '%-Z%p^%.%#,' .
             \ '%-G%.%#',
+        \ }
+endfunction
+
+function! neomake#makers#python#flake8()
+    return {
+        \ 'errorformat':
+            \ '%E%f:%l: could not compile,%-Z%p^,' .
+            \ '%A%f:%l:%c: %t%n %m,' .
+            \ '%A%f:%l: %t%n %m,' .
+            \ '%-G%.%#'
         \ }
 endfunction
 
