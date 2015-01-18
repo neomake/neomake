@@ -93,6 +93,10 @@ Ruby:
 
 - rubocop
 
+C:
+
+- clang
+
 C++:
 
 - clang++
