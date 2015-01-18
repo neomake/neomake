@@ -89,6 +89,7 @@ Jsx:
 Python:
 
 - pep8
+- flake8
 - pyflakes
 - pylint
 - python
