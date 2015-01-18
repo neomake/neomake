@@ -1,7 +1,20 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#python#EnabledMakers()
-    return ['python', 'pep8', 'pyflakes', 'pylint', 'flake8']
+    if exists('s:python_makers')
+        return s:python_makers
+    endif
+
+    let makers = ['python']
+    if neomake#utils#Exists('flake8')
+        add(makers, 'flake8')
+    else
+        extend(makers, ['pep8', 'pyflakes'])
+    endif
+    add(makers, 'pylint')  " Last because it is the slowest
+
+    let s:python_makers = makers
+    return makers
 endfunction
 
 function! neomake#makers#python#pylint()
