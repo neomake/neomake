@@ -1,7 +1,20 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#python#EnabledMakers()
-    return ['python', 'pep8', 'pyflakes', 'pylint']
+    if exists('s:python_makers')
+        return s:python_makers
+    endif
+
+    let makers = ['python']
+    if neomake#utils#Exists('flake8')
+        call add(makers, 'flake8')
+    else
+        call extend(makers, ['pep8', 'pyflakes'])
+    endif
+    call add(makers, 'pylint')  " Last because it is the slowest
+
+    let s:python_makers = makers
+    return makers
 endfunction
 
 function! neomake#makers#python#pylint()
@@ -17,6 +30,16 @@ function! neomake#makers#python#pylint()
             \ '%A%f:(%l): %m,' .
             \ '%-Z%p^%.%#,' .
             \ '%-G%.%#',
+        \ }
+endfunction
+
+function! neomake#makers#python#flake8()
+    return {
+        \ 'errorformat':
+            \ '%E%f:%l: could not compile,%-Z%p^,' .
+            \ '%A%f:%l:%c: %t%n %m,' .
+            \ '%A%f:%l: %t%n %m,' .
+            \ '%-G%.%#'
         \ }
 endfunction
 
