@@ -5,6 +5,7 @@ let s:jobs = {}
 let s:jobs_by_maker = {}
 
 function! neomake#ListJobs() abort
+    call neomake#utils#DebugMessage('call neomake#ListJobs()')
     for jobinfo in values(s:jobs)
         echom jobinfo.id.' '.jobinfo.name
     endfor
@@ -215,6 +216,7 @@ function! neomake#Make(options) abort
                     let tempfile = 1
                     let tempsuffix = '.'.neomake#utils#Random().'.neomake.tmp'
                     let makepath .= tempsuffix
+                    " TODO Make this cross platform
                     silent exe 'w !cat > '.shellescape(makepath)
                     neomake#utils#LoudMessage('Neomake: wrote temp file '.makepath)
                 endif
@@ -367,7 +369,7 @@ function! s:CleanJobinfo(jobinfo) abort
     if has_key(maker, 'tempfile')
         let rmResult = neomake#utils#RemoveFile(maker.tempfile)
         if !rmResult
-            echoerr 'Failed to remove temporary file '.maker.tempfile
+            call neomake#utils#ErrorMessage('Failed to remove temporary file '.maker.tempfile)
         endif
     endif
     let maker_key = s:GetMakerKey(maker)
@@ -416,9 +418,9 @@ function! neomake#MakeHandler(...) abort
     else
         call s:CleanJobinfo(jobinfo)
         if has_key(maker, 'name')
-            call neomake#utils#QuietMessage('Neomake: '.maker.name.' complete')
+            call neomake#utils#QuietMessage(maker.name.' complete')
         else
-            call neomake#utils#QuietMessage('Neomake: make complete')
+            call neomake#utils#QuietMessage('make complete')
         endif
         " Show the current line's error
         call neomake#CursorMoved()
@@ -426,7 +428,7 @@ function! neomake#MakeHandler(...) abort
         " TODO when neovim implements getting the exit status of a job, add
         " option to only run next checkers if this one succeeded.
         if has_key(maker, 'next')
-            call neomake#utils#DebugMessage('Neomake: next makers ['.join(maker.next.enabled_makers, ', ').']')
+            call neomake#utils#DebugMessage('next makers ['.join(maker.next.enabled_makers, ', ').']')
             call neomake#Make(maker.next)
         endif
     endif
@@ -439,7 +441,7 @@ function! neomake#CursorMoved() abort
 
     if !empty(get(b:, 'neomake_last_echoed_error', {}))
         unlet b:neomake_last_echoed_error
-        echo ''
+        echon ''
     endif
 
     let errors = get(b:, 'neomake_errors', {})

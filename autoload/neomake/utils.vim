@@ -3,14 +3,23 @@ scriptencoding utf-8
 
 function! neomake#utils#LogMessage(level, msg) abort
     let verbose = get(g:, 'neomake_verbose', 1)
+    let logfile = get(g:, 'neomake_logfile')
+    let msg ='Neomake: '.a:msg
     if verbose >= a:level
         if a:level ==# 0
             echohl ErrorMsg
         endif
-        echom a:msg
+        echom msg
         if a:level ==# 0
             echohl None
         endif
+    endif
+    if type(logfile) ==# type('') && len(logfile)
+        " TODO make this cross platform
+        let date = substitute(system('date'), '\n$', '', '')
+        call system(
+            \ 'cat >> '.shellescape(logfile),
+            \ date.' Log level '.a:level.': '.msg."\n")
     endif
 endfunction
 
@@ -49,6 +58,7 @@ function! neomake#utils#WideMessage(msg) " {{{2
     set noruler noshowcmd
     redraw
 
+    call neomake#utils#DebugMessage('WideMessage echo '.msg)
     echo msg
 
     let &ruler = old_ruler
@@ -81,6 +91,7 @@ function! neomake#utils#Exists(exe) abort
 endfunction
 
 function! neomake#utils#Random() abort
+    call neomake#utils#DebugMessage('Calling neomake#utils#Random')
     if neomake#utils#IsRunningWindows()
         let cmd = 'Echo %RANDOM%'
     else
