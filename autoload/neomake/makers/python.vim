@@ -7,11 +7,11 @@ function! neomake#makers#python#EnabledMakers()
 
     let makers = ['python']
     if neomake#utils#Exists('flake8')
-        add(makers, 'flake8')
+        call add(makers, 'flake8')
     else
-        extend(makers, ['pep8', 'pyflakes'])
+        call extend(makers, ['pep8', 'pyflakes'])
     endif
-    add(makers, 'pylint')  " Last because it is the slowest
+    call add(makers, 'pylint')  " Last because it is the slowest
 
     let s:python_makers = makers
     return makers
