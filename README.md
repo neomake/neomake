@@ -82,6 +82,10 @@ Javascript:
 - jshint
 - jsxhint
 
+Jsx:
+
+- jsxhint
+
 Python:
 
 - pep8

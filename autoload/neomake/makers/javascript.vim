@@ -20,5 +20,5 @@ function! neomake#makers#javascript#eslint()
 endfunction
 
 function! neomake#makers#javascript#jsxhint()
-    return neomake#makers#javascript#jshint()
+    return neomake#makers#jsx#jshint()
 endfunction

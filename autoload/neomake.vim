@@ -216,6 +216,7 @@ function! neomake#Make(options) abort
                     let tempsuffix = '.'.neomake#utils#Random().'.neomake.tmp'
                     let makepath .= tempsuffix
                     silent exe 'w !cat > '.shellescape(makepath)
+                    neomake#utils#LoudMessage('Neomake: wrote temp file '.makepath)
                 endif
             endif
             let maker = neomake#GetMaker(name, makepath, ft)
