@@ -101,10 +101,12 @@ Ruby:
 C:
 
 - clang
+- gcc
 
 C++:
 
 - clang++
+- g++
 
 sh:
 
