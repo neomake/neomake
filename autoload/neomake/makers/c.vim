@@ -1,13 +1,11 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#c#EnabledMakers()
-    let makers = []
     if neomake#utils#Exists('clang')
-        call add(makers, 'clang')
+        return ['clang']
     else
-        call add(makers, 'gcc')
+        return ['gcc']
     end
-    return makers
 endfunction
 
 function! neomake#makers#c#clang()
