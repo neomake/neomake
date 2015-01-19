@@ -416,11 +416,17 @@ function! neomake#MakeHandler(...) abort
             endif
         endif
     else
+        let status = get(v:job_data, 2, 0)
         call s:CleanJobinfo(jobinfo)
         if has_key(maker, 'name')
-            call neomake#utils#QuietMessage(maker.name.' complete')
+            let msg = maker.name.' complete'
         else
-            call neomake#utils#QuietMessage('make complete')
+            let msg = 'make complete'
+        endif
+        if status !=# 0
+            call neomake#utils#ErrorMessage(msg.' with error status '.status)
+        else
+            call neomake#utils#QuietMessage(msg)
         endif
         " Show the current line's error
         call neomake#CursorMoved()
@@ -428,8 +434,13 @@ function! neomake#MakeHandler(...) abort
         " TODO when neovim implements getting the exit status of a job, add
         " option to only run next checkers if this one succeeded.
         if has_key(maker, 'next')
-            call neomake#utils#DebugMessage('next makers ['.join(maker.next.enabled_makers, ', ').']')
-            call neomake#Make(maker.next)
+            let next_makers = '['.join(maker.next.enabled_makers, ', ').']'
+            if status !=# 0
+                call neomake#utils#LoudMessage('Aborting next makers '.next_makers)
+            else
+                call neomake#utils#DebugMessage('next makers '.next_makers)
+                call neomake#Make(maker.next)
+            endif
         endif
     endif
 endfunction
