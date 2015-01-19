@@ -28,13 +28,13 @@ command! NeomakeListJobs call neomake#ListJobs()
 augroup neomake
     autocmd!
     if has('nvim')
-        au JobActivity neomake* call neomake#MakeHandler()
+        autocmd JobActivity neomake* call neomake#MakeHandler()
     endif
 augroup END
 
 function! NeomakeEchoCurrentErrorEnable()
     call NeomakeEchoCurrentErrorDisable()
-    au neomake CursorMoved * call neomake#CursorMoved()
+    autocmd neomake CursorMoved * call neomake#CursorMoved()
 endfunction
 
 function! NeomakeEchoCurrentErrorDisable()

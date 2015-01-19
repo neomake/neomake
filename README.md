@@ -1,4 +1,3 @@
-
 # Neomake
 
 A plugin for asynchronous `:make` using [Neovim's](http://neovim.org/)
@@ -25,7 +24,7 @@ Otherwise, it is simply invoked in vim's current directory with no arguments.
 
 Here's an example of how to run neomake on the current file on every write:
 
-    autocmd BufWritePost *.py,*.js Neomake
+    autocmd! BufWritePost *.py,*.js Neomake
 
 The make command will be run in an asynchronous job. The results will be
 populated in the window's quickfix list for `:Neomake!` and the location
@@ -68,26 +67,21 @@ should be remedied).
 Makers provided by neomake as of this writing are:
 
 Coffeescript:
-
 - coffeelint
 
 Go:
-
 - go
 - golint
 
 Javascript:
-
 - eslint
 - jshint
 - jsxhint
 
 Jsx:
-
 - jsxhint
 
 Python:
-
 - pep8
 - flake8
 - pyflakes
@@ -95,25 +89,20 @@ Python:
 - python
 
 Ruby:
-
 - rubocop
 
 C:
-
 - clang
 - gcc
 
 C++:
-
 - clang++
 - g++
 
 sh:
-
 - shellcheck
 
 zsh:
-
 - shellcheck
 
 Since this list may be out of date, look in [autoload/neomake/makers](https://github.com/benekastah/neomake/tree/master/autoload/neomake/makers) for all supported makers.

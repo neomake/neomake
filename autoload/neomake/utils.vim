@@ -67,7 +67,7 @@ endfunction " }}}2
 
 " This comes straight out of syntastic.
 function! neomake#utils#IsRunningWindows()
-    return has('win16') || has('win32') || has('win64')
+    return has('win32') || has('win64')
 endfunction
 
 " This comes straight out of syntastic.
