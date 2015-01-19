@@ -5,11 +5,11 @@ function! neomake#makers#python#EnabledMakers()
         return s:python_makers
     endif
 
-    let makers = ['python']
+    let makers = ['python', 'frosted']
     if neomake#utils#Exists('flake8')
         call add(makers, 'flake8')
     else
-        call extend(makers, ['pep8', 'frosted', 'pyflakes'])
+        call extend(makers, ['pep8', 'pyflakes'])
     endif
     call add(makers, 'pylint')  " Last because it is the slowest
 
