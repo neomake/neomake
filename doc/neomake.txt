@@ -112,7 +112,8 @@ Defaults to 1.
 *g:neomake_make_modified*
 Setting this to 1 allows neomake to check unsaved changes. Set to 0 by
 default. This setting does nothing when running |:Neomake!| (in other words,
-it is only active when running |:Neomake|).
+it is only active when running |:Neomake|). This feature is not yet cross
+platform.
 
 *g:neomake_serialize*
 Setting this to 1 tells neomake to run each enabled maker one after the other.
@@ -129,6 +130,13 @@ Controls how verbose neomake should be. Neomake log levels are as follows:
     3 - Debug information, normally relevant only to people who develop
         neomake.
 Each log level includes all the levels before it.
+
+*g:neomake_logfile*
+Specify a logfile where all log messages will be logged. The setting
+|g:neomake_verbose| does not influence which messages will be logged to file,
+making it possible to reduce the number of messages you see in your editor
+without losing that information should you need it. Mainly for people hacking
+on neomake itself. This feature is not yet cross-platform.
 
 *g:neomake_place_signs*
 This setting will tell neomake whether to place signs by errors recognized
