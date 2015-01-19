@@ -9,7 +9,7 @@ function! neomake#makers#python#EnabledMakers()
     if neomake#utils#Exists('flake8')
         call add(makers, 'flake8')
     else
-        call extend(makers, ['pep8', 'pyflakes'])
+        call extend(makers, ['pep8', 'frosted', 'pyflakes'])
     endif
     call add(makers, 'pylint')  " Last because it is the slowest
 
@@ -73,5 +73,19 @@ function! neomake#makers#python#python()
             \ "    print('%s:%s:%s: %s' % (err.filename, err.lineno, err.offset, err.msg))"
         \ ],
         \ 'errorformat': '%E%f:%l:%c: %m',
+        \ }
+endfunction
+
+function! neomake#makers#python#frosted()
+    return {
+        \ 'args': [
+            \ '-vb'
+        \ ],
+        \ 'errorformat':
+            \ '%f:%l:%c:%t%n:%s:%m,' .
+            \ '%f:%l:%c:%m,' .
+            \ '%E%f:%l: %m,' .
+            \ '%-Z%p^,' .
+            \ '%-G%.%#'
         \ }
 endfunction
