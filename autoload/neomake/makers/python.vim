@@ -5,7 +5,7 @@ function! neomake#makers#python#EnabledMakers()
         return s:python_makers
     endif
 
-    let makers = ['python']
+    let makers = ['python', 'frosted']
     if neomake#utils#Exists('flake8')
         call add(makers, 'flake8')
     else
@@ -73,5 +73,19 @@ function! neomake#makers#python#python()
             \ "    print('%s:%s:%s: %s' % (err.filename, err.lineno, err.offset, err.msg))"
         \ ],
         \ 'errorformat': '%E%f:%l:%c: %m',
+        \ }
+endfunction
+
+function! neomake#makers#python#frosted()
+    return {
+        \ 'args': [
+            \ '-vb'
+        \ ],
+        \ 'errorformat':
+            \ '%f:%l:%c:%t%n:%s:%m,' .
+            \ '%f:%l:%c:%m,' .
+            \ '%E%f:%l: %m,' .
+            \ '%-Z%p^,' .
+            \ '%-G%.%#'
         \ }
 endfunction
