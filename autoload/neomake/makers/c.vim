@@ -25,7 +25,7 @@ endfunction
 
 function! neomake#makers#c#gcc()
     return {
-        \ 'exe': 'clang',
+        \ 'exe': 'gcc',
         \ 'args': ['-fsyntax-only'],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
