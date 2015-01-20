@@ -32,4 +32,5 @@ function! neomake#makers#rust#rustc()
         \ }
 endfunction
 
+"TODO: when #47 is fulfiled, update this to be cleaner
 let g:neomake_cargo_maker = neomake#makers#rust#cargo()
