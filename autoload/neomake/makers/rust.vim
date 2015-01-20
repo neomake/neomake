@@ -20,7 +20,7 @@ endfunction
 
 function! neomake#makers#rust#rustc()
     return {
-        \ 'args': ['-o /dev/null'],
+        \ 'args': ['-o', neomake#utils#DevNull()],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
             \ '%f:%l:%c: %trror: %m,' .
