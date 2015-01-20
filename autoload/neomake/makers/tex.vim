@@ -14,3 +14,11 @@ function! neomake#makers#tex#chktex()
             \ '%-G%.%#'
         \ }
 endfunction
+
+function! neomake#makers#tex#lacheck()
+    return {
+        \ 'errorformat':
+            \ '%-G** %f:,' .
+            \ '%E"%f"\, line %l: %m'
+        \ }
+endfunction
