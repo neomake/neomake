@@ -4,6 +4,7 @@ function! neomake#makers#rust#EnabledMakers()
     return ['rustc']
 endfunction
 
+"TODO: when #47 is fulfiled, add this as a `Neomake!` maker for rust
 function! neomake#makers#rust#cargo()
     return {
         \ 'args': ['build'],
@@ -31,6 +32,3 @@ function! neomake#makers#rust#rustc()
             \ '%f:%l: %m',
         \ }
 endfunction
-
-"TODO: when #47 is fulfiled, update this to be cleaner
-let g:neomake_cargo_maker = neomake#makers#rust#cargo()
