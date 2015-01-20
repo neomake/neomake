@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#rust#EnabledMakers()
-    return ['cargo']
+    return ['rustc']
 endfunction
 
 function! neomake#makers#rust#cargo()
@@ -31,3 +31,5 @@ function! neomake#makers#rust#rustc()
             \ '%f:%l: %m',
         \ }
 endfunction
+
+let g:neomake_cargo_maker = neomake#makers#rust#cargo()
