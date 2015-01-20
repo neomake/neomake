@@ -10,7 +10,6 @@ endfunction
 
 function! neomake#makers#c#clang()
     return {
-        \ 'exe': 'clang',
         \ 'args': ['-fsyntax-only'],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
@@ -25,7 +24,6 @@ endfunction
 
 function! neomake#makers#c#gcc()
     return {
-        \ 'exe': 'gcc',
         \ 'args': ['-fsyntax-only'],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
