@@ -1,7 +1,11 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#tex#EnabledMakers()
-    return ['chktex']
+    if neomake#utils#Exists('chktex')
+        return ['chktex']
+    else
+        return ['lacheck']
+    end
 endfunction
 
 function! neomake#makers#tex#chktex()
