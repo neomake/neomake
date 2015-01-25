@@ -398,6 +398,15 @@ function! neomake#MakeHandler(...) abort
             let lines = job_data[2]
         endif
 
+        if has_key(maker, 'mapexpr')
+            let lines = map(copy(lines), maker.mapexpr)
+        endif
+
+        for line in lines
+            call neomake#utils#DebugMessage(
+                \ get(maker, 'name', 'make').' '.job_data[1].': '.line)
+        endfor
+
         if len(lines) > 0
             if has_key(maker, 'errorformat')
                 let olderrformat = &errorformat
