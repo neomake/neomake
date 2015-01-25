@@ -30,7 +30,7 @@ function! s:JobStart(make_id, name, exe, ...) abort
             let program = a:exe
         endif
         call neomake#MakeHandler([a:make_id, 'stdout', split(system(program), '\r\?\n', 1)])
-        call neomake#MakeHandler([a:make_id, 'exit', []])
+        call neomake#MakeHandler([a:make_id, 'exit', v:shell_error])
         return 0
     endif
 endfunction
@@ -416,7 +416,7 @@ function! neomake#MakeHandler(...) abort
             endif
         endif
     else
-        let status = get(v:job_data, 2, 0)
+        let status = get(job_data, 2, 0)
         call s:CleanJobinfo(jobinfo)
         if has_key(maker, 'name')
             let msg = maker.name.' complete'
@@ -435,7 +435,7 @@ function! neomake#MakeHandler(...) abort
         " option to only run next checkers if this one succeeded.
         if has_key(maker, 'next')
             let next_makers = '['.join(maker.next.enabled_makers, ', ').']'
-            if status !=# 0
+            if get(g:, 'neomake_serialize_abort_on_error') && status !=# 0
                 call neomake#utils#LoudMessage('Aborting next makers '.next_makers)
             else
                 call neomake#utils#DebugMessage('next makers '.next_makers)

@@ -121,6 +121,10 @@ This is a good way to ensure messages don't get mixed up. When Neovim's
 |job-control| feature implements a way to get the exit status of a job, an
 option will be added to stop after the first failing job as well.
 
+*g:neomake_serialize_abort_on_error*
+Setting this to 1 tells neomake to abort after the first error status is
+encountered. This setting only works when |g:neomake_serialize| is on.
+
 *g:neomake_verbose*
 Controls how verbose neomake should be. Neomake log levels are as follows:
     0 - Errors only
