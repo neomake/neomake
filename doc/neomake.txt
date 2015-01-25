@@ -75,6 +75,14 @@ usable on an individual file, you should also include the filtype in the name: >
     " Or use it on the whole project:
     :Neomake! c_lint
 <
+                                                     *neomake-makers-processing*
+Sometimes a maker's output may require some processing. For this, there is the
+optional mapexpr property that you can define on a maker object. It will be
+passed directly into |map| as the expr argument like so: >
+    call map(lines, maker.mapexpr)
+<This allows you to manipulate the lines as needed. Currently this is called
+on stdout and stderr lines alike.
+
                                      *neomake-{{makepath}}* *neomake-!!makepath!!*
 You may need to configure the order of the arguments for a file-enabled
 checker: >
