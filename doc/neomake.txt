@@ -83,6 +83,20 @@ passed directly into |map| as the expr argument like so: >
 <This allows you to manipulate the lines as needed. Currently this is called
 on stdout and stderr lines alike.
 
+                                                  *neomake-makers-buffer_output*
+Some makers with multiline error messages have issues (depending on how they
+flush their output). If multiline errorformats seem to work inconsistently for
+a maker, try setting buffer_output to 1: >
+    let g:neomake_ft_test_maker = {
+        \ 'exe': 'some-maker',
+        \ 'errorformat': '%EError,%Cline %l,%Z%m',
+        \ 'buffer_output': 1
+        \ }
+<
+This tells the maker only to process output when either the output type
+changes (from stderr to stout or vice versa) or at the end of the job. Your
+results will take longer, but multiline error messages should parse properly.
+
                                      *neomake-{{makepath}}* *neomake-!!makepath!!*
 You may need to configure the order of the arguments for a file-enabled
 checker: >
