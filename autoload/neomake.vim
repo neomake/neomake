@@ -127,12 +127,15 @@ function! neomake#GetMaker(name, makepath, ...) abort
         endtry
     endif
     let maker = copy(maker)
-    let maker['makepath'] = a:makepath
+    let maker.makepath = a:makepath
     if !has_key(maker, 'exe')
-        let maker['exe'] = a:name
+        let maker.exe = a:name
     endif
-    let maker['name'] = a:name
-    let maker['ft'] = ft
+    if !has_key(maker, 'buffer_output')
+        let maker.buffer_output = 0
+    endif
+    let maker.name = a:name
+    let maker.ft = ft
     return maker
 endfunction
 
@@ -379,6 +382,28 @@ function! s:CleanJobinfo(jobinfo) abort
     call remove(s:jobs, a:jobinfo.id)
 endfunction
 
+function! s:ProcessJobOutput(jobinfo, maker, lines) abort
+    call neomake#utils#DebugMessage(get(a:maker, 'name', 'makeprg').' processing '.
+                                    \ len(a:lines).' lines of output')
+    if len(a:lines) > 0
+        if has_key(a:maker, 'errorformat')
+            let olderrformat = &errorformat
+            let &errorformat = a:maker.errorformat
+        endif
+
+        let addexpr_suffix = 'a:lines | call s:AddExprCallback(a:maker)'
+        if get(a:maker, 'file_mode')
+            exe s:WinBufDo(a:jobinfo.winnr, a:jobinfo.bufnr, 'laddexpr '.addexpr_suffix)
+        else
+            exe 'caddexpr '.addexpr_suffix
+        endif
+
+        if exists('olderrformat')
+            let &errorformat = olderrformat
+        endif
+    endif
+endfunction
+
 function! neomake#MakeHandler(...) abort
     if a:0
         let job_data = a:1
@@ -390,7 +415,8 @@ function! neomake#MakeHandler(...) abort
     endif
     let jobinfo = s:jobs[job_data[0]]
     let maker = jobinfo.maker
-    if index(['stdout', 'stderr'], job_data[1]) >= 0
+    let event_type = job_data[1]
+    if index(['stdout', 'stderr'], event_type) >= 0
         if has_key(maker, 'tempsuffix')
             let pattern = substitute(maker.tempsuffix, '\.', '\.', 'g')
             let lines = map(copy(job_data[2]), 'substitute(v:val, pattern, "", "g")')
@@ -404,27 +430,31 @@ function! neomake#MakeHandler(...) abort
 
         for line in lines
             call neomake#utils#DebugMessage(
-                \ get(maker, 'name', 'make').' '.job_data[1].': '.line)
+                \ get(maker, 'name', 'makeprg').' '.event_type.': '.line)
         endfor
+        call neomake#utils#DebugMessage(
+            \ get(maker, 'name', 'makeprg').' '.event_type.' done.')
 
-        if len(lines) > 0
-            if has_key(maker, 'errorformat')
-                let olderrformat = &errorformat
-                let &errorformat = maker.errorformat
-            endif
-
-            let addexpr_suffix = 'lines | call s:AddExprCallback(maker)'
-            if get(maker, 'file_mode')
-                exe s:WinBufDo(jobinfo.winnr, jobinfo.bufnr, 'laddexpr '.addexpr_suffix)
+        if maker.buffer_output
+            let last_event_type = get(jobinfo, 'event_type', event_type)
+            let jobinfo.event_type = event_type
+            if last_event_type ==# event_type
+                if has_key(jobinfo, 'lines')
+                    call extend(jobinfo.lines, lines)
+                else
+                    let jobinfo.lines = lines
+                endif
             else
-                exe 'caddexpr '.addexpr_suffix
+                call s:ProcessJobOutput(jobinfo, maker, jobinfo.lines)
+                let jobinfo.lines = lines
             endif
-
-            if exists('olderrformat')
-                let &errorformat = olderrformat
-            endif
+        else
+            call s:ProcessJobOutput(jobinfo, maker, lines)
         endif
     else
+        if has_key(jobinfo, 'lines')
+            call s:ProcessJobOutput(jobinfo, maker, jobinfo.lines)
+        endif
         let status = get(job_data, 2, 0)
         call s:CleanJobinfo(jobinfo)
         if has_key(maker, 'name')
