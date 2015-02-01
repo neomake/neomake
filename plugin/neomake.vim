@@ -30,6 +30,8 @@ augroup neomake
     if has('nvim')
         autocmd JobActivity neomake* call neomake#MakeHandler()
     endif
+
+    autocmd BufEnter,CursorHold * call neomake#ProcessCurrentBuffer()
 augroup END
 
 function! NeomakeEchoCurrentErrorEnable()

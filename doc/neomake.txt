@@ -213,4 +213,14 @@ and the |quickfix| respectively. The return value is something like this: >
 <Where 'E', 'W' and 'x' are error types. Empty error types are ignored for
 now.
 
+*neomake#ProcessCurrentBuffer*
+This is the function that takes the job output and puts it into the loclist or
+qflist, adds signs, etc. Currently, if you stay in the buffer you called
+|:Neomake| from, this will happen as the job output comes in. However, if you go
+to a different buffer, neomake will wait until you return to that buffer for
+the job output to be processed. Currently, that will happen on |BufEnter| and
+|CursorHold|. You can also call this function directly if you need to force
+it. This function is not currently used for |:Neomake!|, which always
+processes its output as it arrives.
+
 vim: ft=help tw=78

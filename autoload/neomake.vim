@@ -1,8 +1,10 @@
 " vim: ts=4 sw=4 et
+scriptencoding utf-8
 
 let s:make_id = 1
 let s:jobs = {}
 let s:jobs_by_maker = {}
+let s:job_output_by_buffer = {}
 
 function! neomake#ListJobs() abort
     call neomake#utils#DebugMessage('call neomake#ListJobs()')
@@ -130,9 +132,6 @@ function! neomake#GetMaker(name, makepath, ...) abort
     let maker.makepath = a:makepath
     if !has_key(maker, 'exe')
         let maker.exe = a:name
-    endif
-    if !has_key(maker, 'buffer_output')
-        let maker.buffer_output = 0
     endif
     let maker.name = a:name
     let maker.ft = ft
@@ -382,7 +381,7 @@ function! s:CleanJobinfo(jobinfo) abort
     call remove(s:jobs, a:jobinfo.id)
 endfunction
 
-function! s:ProcessJobOutput(jobinfo, maker, lines) abort
+function! s:ProcessJobOutput(maker, lines) abort
     call neomake#utils#DebugMessage(get(a:maker, 'name', 'makeprg').' processing '.
                                     \ len(a:lines).' lines of output')
     if len(a:lines) > 0
@@ -391,16 +390,53 @@ function! s:ProcessJobOutput(jobinfo, maker, lines) abort
             let &errorformat = a:maker.errorformat
         endif
 
-        let addexpr_suffix = 'a:lines | call s:AddExprCallback(a:maker)'
         if get(a:maker, 'file_mode')
-            exe s:WinBufDo(a:jobinfo.winnr, a:jobinfo.bufnr, 'laddexpr '.addexpr_suffix)
+            laddexpr a:lines
         else
-            exe 'caddexpr '.addexpr_suffix
+            caddexpr a:lines
         endif
+        call s:AddExprCallback(a:maker)
 
         if exists('olderrformat')
             let &errorformat = olderrformat
         endif
+    endif
+endfunction
+
+function! neomake#ProcessCurrentBuffer() abort
+    let buf = bufnr('%')
+    if has_key(s:job_output_by_buffer, buf)
+        for output in s:job_output_by_buffer[buf]
+            call s:ProcessJobOutput(output.maker, output.lines)
+        endfor
+        unlet s:job_output_by_buffer[buf]
+    endif
+endfunction
+
+function! s:RegisterJobOutput(jobinfo, maker, lines) abort
+    if get(a:maker, 'file_mode')
+        let output = {
+            \ 'maker': a:maker,
+            \ 'lines': a:lines
+            \ }
+        if has_key(s:job_output_by_buffer, a:jobinfo.bufnr)
+            call add(s:job_output_by_buffer[a:jobinfo.bufnr], output)
+        else
+            let s:job_output_by_buffer[a:jobinfo.bufnr] = [output]
+        endif
+
+        " Process the buffer on demand if we can
+        if bufnr('%') ==# a:jobinfo.bufnr
+            call neomake#ProcessCurrentBuffer()
+        endif
+        if &ft ==# 'qf'
+            " Process the previous window if we are in a qf window.
+            normal p
+            call neomake#ProcessCurrentBuffer()
+            normal p
+        endif
+    else
+        call s:ProcessJobOutput(a:maker, a:lines)
     endif
 endfunction
 
@@ -435,7 +471,7 @@ function! neomake#MakeHandler(...) abort
         call neomake#utils#DebugMessage(
             \ get(maker, 'name', 'makeprg').' '.event_type.' done.')
 
-        if maker.buffer_output
+        if get(maker, 'buffer_output')
             let last_event_type = get(jobinfo, 'event_type', event_type)
             let jobinfo.event_type = event_type
             if last_event_type ==# event_type
@@ -445,15 +481,15 @@ function! neomake#MakeHandler(...) abort
                     let jobinfo.lines = lines
                 endif
             else
-                call s:ProcessJobOutput(jobinfo, maker, jobinfo.lines)
+                call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines)
                 let jobinfo.lines = lines
             endif
         else
-            call s:ProcessJobOutput(jobinfo, maker, lines)
+            call s:RegisterJobOutput(jobinfo, maker, lines)
         endif
     else
         if has_key(jobinfo, 'lines')
-            call s:ProcessJobOutput(jobinfo, maker, jobinfo.lines)
+            call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines)
         endif
         let status = get(job_data, 2, 0)
         call s:CleanJobinfo(jobinfo)
@@ -470,8 +506,6 @@ function! neomake#MakeHandler(...) abort
         " Show the current line's error
         call neomake#CursorMoved()
 
-        " TODO when neovim implements getting the exit status of a job, add
-        " option to only run next checkers if this one succeeded.
         if has_key(maker, 'next')
             let next_makers = '['.join(maker.next.enabled_makers, ', ').']'
             if get(g:, 'neomake_serialize_abort_on_error') && status !=# 0
