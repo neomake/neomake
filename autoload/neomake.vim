@@ -343,14 +343,6 @@ function! s:AddExprCallback(maker) abort
             redraw!
         endif
     endif
-
-    if get(g:, 'neomake_open_list')
-        if file_mode
-            lwindow
-        else
-            cwindow
-        endif
-    endif
 endfunction
 
 function! s:CleanJobinfo(jobinfo) abort
@@ -477,6 +469,15 @@ function! neomake#MakeHandler(...) abort
     else
         if has_key(jobinfo, 'lines')
             call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines)
+        endif
+        " TODO This used to open up as the list was populated, but it caused
+        " some issues with s:AddExprCallback.
+        if get(g:, 'neomake_open_list')
+            if get(maker, 'file_mode')
+                lwindow
+            else
+                cwindow
+            endif
         endif
         let status = get(job_data, 2, 0)
         call s:CleanJobinfo(jobinfo)
