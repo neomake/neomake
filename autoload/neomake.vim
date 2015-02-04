@@ -418,9 +418,9 @@ function! s:RegisterJobOutput(jobinfo, maker, lines) abort
         endif
         if &ft ==# 'qf'
             " Process the previous window if we are in a qf window.
-            normal p
+            wincmd p
             call neomake#ProcessCurrentBuffer()
-            normal p
+            wincmd p
         endif
     else
         call s:ProcessJobOutput(a:maker, a:lines)
