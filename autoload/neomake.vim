@@ -242,16 +242,6 @@ function! neomake#Make(options) abort
     endfor
 endfunction
 
-function! s:WinBufDo(winnr, bufnr, action) abort
-    let old_winnr = winnr()
-    let old_bufnr = bufnr('%')
-    return 'if winnr() !=# '.a:winnr.' | '.a:winnr.'wincmd w | endif | '.
-         \ 'if bufnr("%") !=# '.a:bufnr.' | '.a:bufnr.'b | endif | '.
-         \ a:action.' | '.
-         \ 'if bufnr("%") !=# '.old_bufnr.' | '.old_bufnr.'b | endif | '.
-         \ 'if winnr() !=# '.old_winnr.' | '.old_winnr.'wincmd w | endif'
-endfunction
-
 function! neomake#GetSigns(...) abort
     let signs = {
         \ 'by_line': {},
@@ -355,14 +345,11 @@ function! s:AddExprCallback(maker) abort
     endif
 
     if get(g:, 'neomake_open_list')
-        let old_w = winnr()
         if file_mode
             lwindow
         else
             cwindow
         endif
-        " s:WinBufDo doesn't work right if we change windows on it.
-        exe old_w.'wincmd w'
     endif
 endfunction
 
