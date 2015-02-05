@@ -1,17 +1,17 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#javascript#EnabledMakers()
+function! neomake#makers#ft#javascript#EnabledMakers()
     return ['jshint', 'eslint']
 endfunction
 
-function! neomake#makers#javascript#jshint()
+function! neomake#makers#ft#javascript#jshint()
     return {
         \ 'args': ['--verbose'],
         \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
         \ }
 endfunction
 
-function! neomake#makers#javascript#eslint()
+function! neomake#makers#ft#javascript#eslint()
     return {
         \ 'args': ['-f', 'compact'],
         \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
@@ -19,6 +19,6 @@ function! neomake#makers#javascript#eslint()
         \ }
 endfunction
 
-function! neomake#makers#javascript#jsxhint()
-    return neomake#makers#jsx#jshint()
+function! neomake#makers#ft#javascript#jsxhint()
+    return neomake#makers#ft#jsx#jshint()
 endfunction

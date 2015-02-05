@@ -1,6 +1,6 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#python#EnabledMakers()
+function! neomake#makers#ft#python#EnabledMakers()
     if exists('s:python_makers')
         return s:python_makers
     endif
@@ -17,7 +17,7 @@ function! neomake#makers#python#EnabledMakers()
     return makers
 endfunction
 
-function! neomake#makers#python#pylint()
+function! neomake#makers#ft#python#pylint()
     return {
         \ 'args': [
             \ '-f', 'text',
@@ -33,7 +33,7 @@ function! neomake#makers#python#pylint()
         \ }
 endfunction
 
-function! neomake#makers#python#flake8()
+function! neomake#makers#ft#python#flake8()
     return {
         \ 'errorformat':
             \ '%E%f:%l: could not compile,%-Z%p^,' .
@@ -43,7 +43,7 @@ function! neomake#makers#python#flake8()
         \ }
 endfunction
 
-function! neomake#makers#python#pyflakes()
+function! neomake#makers#ft#python#pyflakes()
     return {
         \ 'errorformat':
             \ '%E%f:%l: could not compile,' .
@@ -54,13 +54,13 @@ function! neomake#makers#python#pyflakes()
         \ }
 endfunction
 
-function! neomake#makers#python#pep8()
+function! neomake#makers#ft#python#pep8()
     return {
         \ 'errorformat': '%f:%l:%c: %m',
         \ }
 endfunction
 
-function! neomake#makers#python#python()
+function! neomake#makers#ft#python#python()
     return {
         \ 'args': [ '-c',
             \ "from __future__ import print_function\n" .
@@ -76,7 +76,7 @@ function! neomake#makers#python#python()
         \ }
 endfunction
 
-function! neomake#makers#python#frosted()
+function! neomake#makers#ft#python#frosted()
     return {
         \ 'args': [
             \ '-vb'

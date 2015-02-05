@@ -1,10 +1,10 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#sh#EnabledMakers()
+function! neomake#makers#ft#sh#EnabledMakers()
     return ['shellcheck']
 endfunction
 
-function! neomake#makers#sh#shellcheck()
+function! neomake#makers#ft#sh#shellcheck()
     return {
         \ 'args': ['-fgcc'],
         \ 'errorformat':

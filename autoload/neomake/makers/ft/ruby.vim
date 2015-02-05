@@ -1,10 +1,10 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ruby#EnabledMakers()
+function! neomake#makers#ft#ruby#EnabledMakers()
     return ['rubocop']
 endfunction
 
-function! neomake#makers#ruby#rubocop()
+function! neomake#makers#ft#ruby#rubocop()
     return {
         \ 'args': ['--format', 'emacs'],
         \ 'errorformat': '%f:%l:%c: %t: %m'

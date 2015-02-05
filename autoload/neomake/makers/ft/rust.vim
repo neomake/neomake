@@ -1,11 +1,11 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#rust#EnabledMakers()
+function! neomake#makers#ft#rust#EnabledMakers()
     return ['rustc']
 endfunction
 
 "TODO: when #47 is fulfiled, add this as a `Neomake!` maker for rust
-function! neomake#makers#rust#cargo()
+function! neomake#makers#ft#rust#cargo()
     return {
         \ 'args': ['build'],
         \ 'errorformat':
@@ -19,7 +19,7 @@ function! neomake#makers#rust#cargo()
         \ }
 endfunction
 
-function! neomake#makers#rust#rustc()
+function! neomake#makers#ft#rust#rustc()
     return {
         \ 'args': ['-o', neomake#utils#DevNull()],
         \ 'errorformat':

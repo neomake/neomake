@@ -1,10 +1,10 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#go#EnabledMakers()
+function! neomake#makers#ft#go#EnabledMakers()
     return ['go', 'golint']
 endfunction
 
-function! neomake#makers#go#go()
+function! neomake#makers#ft#go#go()
     return {
         \ 'args': [
             \ 'build',
@@ -19,7 +19,7 @@ function! neomake#makers#go#go()
         \ }
 endfunction
 
-function! neomake#makers#go#golint()
+function! neomake#makers#ft#go#golint()
     return {
         \ 'errorformat':
             \ '%f:%l:%c: %m,' .

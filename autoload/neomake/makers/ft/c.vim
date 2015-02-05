@@ -1,6 +1,6 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#c#EnabledMakers()
+function! neomake#makers#ft#c#EnabledMakers()
     if neomake#utils#Exists('clang')
         return ['clang']
     else
@@ -8,7 +8,7 @@ function! neomake#makers#c#EnabledMakers()
     end
 endfunction
 
-function! neomake#makers#c#clang()
+function! neomake#makers#ft#c#clang()
     return {
         \ 'args': ['-fsyntax-only'],
         \ 'errorformat':
@@ -22,7 +22,7 @@ function! neomake#makers#c#clang()
         \ }
 endfunction
 
-function! neomake#makers#c#gcc()
+function! neomake#makers#ft#c#gcc()
     return {
         \ 'args': ['-fsyntax-only'],
         \ 'errorformat':

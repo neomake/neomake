@@ -1,9 +1,9 @@
 
-function! neomake#makers#haskell#EnabledMakers()
+function! neomake#makers#ft#haskell#EnabledMakers()
     return ['ghcmod', 'hlint']
 endfunction
 
-function! neomake#makers#haskell#ghcmod()
+function! neomake#makers#ft#haskell#ghcmod()
     " This filters out newlines, which is what neovim gives us instead of the
     " null bytes that ghc-mod sometimes spits out.
     let mapexpr = 'substitute(v:val, "\n", "", "g")'
@@ -23,7 +23,7 @@ function! neomake#makers#haskell#ghcmod()
         \ }
 endfunction
 
-function! neomake#makers#haskell#hlint()
+function! neomake#makers#ft#haskell#hlint()
     return {
         \ 'errorformat':
             \ '%E%f:%l:%v: Error: %m,' .

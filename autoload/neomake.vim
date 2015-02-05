@@ -120,7 +120,7 @@ function! neomake#GetMaker(name, makepath, ...) abort
         unlet maker
         try
             if len(ft)
-                let maker = eval('neomake#makers#'.ft.'#'.a:name.'()')
+                let maker = eval('neomake#makers#ft#'.ft.'#'.a:name.'()')
             else
                 let maker = {}
             endif
@@ -153,7 +153,7 @@ function! neomake#GetEnabledMakers(...) abort
     if type(enabled_makers) == type(0)
         unlet enabled_makers
         try
-            let default_makers = eval('neomake#makers#'.ft.'#EnabledMakers()')
+            let default_makers = eval('neomake#makers#ft#'.ft.'#EnabledMakers()')
         catch /^Vim\%((\a\+)\)\=:E117/
             return default
         endtry
