@@ -122,7 +122,7 @@ function! neomake#GetMaker(name, makepath, ...) abort
             if len(ft)
                 let maker = eval('neomake#makers#ft#'.ft.'#'.a:name.'()')
             else
-                let maker = {}
+                let maker = eval('neomake#makers#'.a:name.'#'.a:name.'()')
             endif
         catch /^Vim\%((\a\+)\)\=:E117/
             let maker = {}

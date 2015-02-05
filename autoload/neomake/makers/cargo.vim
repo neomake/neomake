@@ -1,12 +1,8 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#rust#EnabledMakers()
-    return ['rustc']
-endfunction
-
-function! neomake#makers#ft#rust#rustc()
+function! neomake#makers#cargo#cargo()
     return {
-        \ 'args': ['-o', neomake#utils#DevNull()],
+        \ 'args': ['build'],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
             \ '%f:%l:%c: %trror: %m,' .
