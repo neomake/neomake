@@ -111,22 +111,26 @@ function! neomake#GetMaker(name, makepath, ...) abort
     else
         let ft = ''
     endif
-    if len(ft)
-        let maker = get(g:, 'neomake_'.ft.'_'.a:name.'_maker')
+    if type(a:name) == type({})
+        let maker = a:name
     else
-        let maker = get(g:, 'neomake_'.a:name.'_maker')
-    endif
-    if type(maker) == type(0)
-        unlet maker
-        try
-            if len(ft)
-                let maker = eval('neomake#makers#ft#'.ft.'#'.a:name.'()')
-            else
-                let maker = eval('neomake#makers#'.a:name.'#'.a:name.'()')
-            endif
-        catch /^Vim\%((\a\+)\)\=:E117/
-            let maker = {}
-        endtry
+        if len(ft)
+            let maker = get(g:, 'neomake_'.ft.'_'.a:name.'_maker')
+        else
+            let maker = get(g:, 'neomake_'.a:name.'_maker')
+        endif
+        if type(maker) == type(0)
+            unlet maker
+            try
+                if len(ft)
+                    let maker = eval('neomake#makers#ft#'.ft.'#'.a:name.'()')
+                else
+                    let maker = eval('neomake#makers#'.a:name.'#'.a:name.'()')
+                endif
+            catch /^Vim\%((\a\+)\)\=:E117/
+                let maker = {}
+            endtry
+        endif
     endif
     let maker = copy(maker)
     let maker.makepath = a:makepath
