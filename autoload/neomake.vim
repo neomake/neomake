@@ -16,15 +16,13 @@ endfunction
 function! s:JobStart(make_id, name, exe, ...) abort
     let has_args = a:0 && type(a:1) == type([])
     if has('nvim')
-        if has_args
-            let exe = a:exe
-            let args = a:1
+        if !has_args
+            let args = []
         else
-            let exe = &shell
-            let args = ['-c', a:exe]
+            let args = a:1
         endif
-        call neomake#utils#LoudMessage('Starting: '.exe.' '.join(args, ' '))
-        return jobstart(a:name, exe, args)
+        call neomake#utils#LoudMessage('Starting: '.a:exe.' '.join(args, ' '))
+        return jobstart(a:name, a:exe, args)
     else
         if has_args
             let program = a:exe.' '.join(map(a:1, 'shellescape(v:val)'))
@@ -37,7 +35,25 @@ function! s:JobStart(make_id, name, exe, ...) abort
     endif
 endfunction
 
-function! s:MakeJobFromMaker(make_id, jobname, maker) abort
+function! s:GetMakerKey(maker) abort
+    return has_key(a:maker, 'name') ? a:maker.name.' ft='.a:maker.ft : 'makeprg'
+endfunction
+
+function! neomake#MakeJob(maker) abort
+    let make_id = s:make_id
+    let s:make_id += 1
+    let jobinfo = {
+        \ 'name': 'neomake_'.make_id,
+        \ 'winnr': winnr(),
+        \ 'bufnr': bufnr('%'),
+        \ }
+    if !has('nvim')
+        let jobinfo.id = make_id
+        let s:jobs[make_id] = jobinfo
+    endif
+    let jobinfo.name .= '_'.a:maker.name
+    let jobinfo.maker = a:maker
+
     if has_key(a:maker, 'args')
         let args = copy(a:maker.args)
     else
@@ -55,35 +71,7 @@ function! s:MakeJobFromMaker(make_id, jobname, maker) abort
         call add(args, a:maker.makepath)
     endif
 
-    return s:JobStart(a:make_id, a:jobname, a:maker.exe, args)
-endfunction
-
-function! s:GetMakerKey(maker) abort
-    return has_key(a:maker, 'name') ? a:maker.name.' ft='.a:maker.ft : 'makeprg'
-endfunction
-
-function! neomake#MakeJob(...) abort
-    let make_id = s:make_id
-    let s:make_id += 1
-    let jobinfo = {
-        \ 'name': 'neomake_'.make_id,
-        \ 'winnr': winnr(),
-        \ 'bufnr': bufnr('%'),
-        \ }
-    if !has('nvim')
-        let jobinfo.id = make_id
-        let s:jobs[make_id] = jobinfo
-    endif
-    if a:0 && len(a:1)
-        let maker = a:1
-        let jobinfo.name .= '_'.maker.name
-        let jobinfo.maker = maker
-        let job = s:MakeJobFromMaker(make_id, jobinfo.name, maker)
-    else
-        let maker = {}
-        let jobinfo.maker = maker
-        let job = s:JobStart(make_id, jobinfo.name, &makeprg)
-    endif
+    let job = s:JobStart(make_id, jobinfo.name, a:maker.exe, args)
 
     " Async setup that only affects neovim
     if has('nvim')
@@ -96,7 +84,7 @@ function! neomake#MakeJob(...) abort
         let jobinfo.id = job
         let s:jobs[job] = jobinfo
 
-        let maker_key = s:GetMakerKey(maker)
+        let maker_key = s:GetMakerKey(a:maker)
         if has_key(s:jobs_by_maker, maker_key)
             call jobstop(s:jobs_by_maker[maker_key].id)
             call s:CleanJobinfo(s:jobs_by_maker[maker_key])
@@ -114,7 +102,9 @@ function! neomake#GetMaker(name, makepath, ...) abort
     if type(a:name) == type({})
         let maker = a:name
     else
-        if len(ft)
+        if a:name ==# 'makeprg'
+            let maker = neomake#utils#MakerFromCommand(&shell, &makeprg)
+        elseif len(ft)
             let maker = get(g:, 'neomake_'.ft.'_'.a:name.'_maker')
         else
             let maker = get(g:, 'neomake_'.a:name.'_maker')
@@ -143,7 +133,6 @@ function! neomake#GetMaker(name, makepath, ...) abort
 endfunction
 
 function! neomake#GetEnabledMakers(...) abort
-    let default = ['makeprg']
     if a:0 && type(a:1) == type('')
         let ft = a:1
     else
@@ -152,14 +141,14 @@ function! neomake#GetEnabledMakers(...) abort
     if len(ft)
         let enabled_makers = get(g:, 'neomake_'.ft.'_enabled_makers')
     else
-        let enabled_makers = get(g:, 'neomake_enabled_makers', default)
+        let enabled_makers = get(g:, 'neomake_enabled_makers')
     endif
     if type(enabled_makers) == type(0)
         unlet enabled_makers
         try
             let default_makers = eval('neomake#makers#ft#'.ft.'#EnabledMakers()')
         catch /^Vim\%((\a\+)\)\=:E117/
-            return default
+            return []
         endtry
 
         let enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
@@ -168,29 +157,28 @@ function! neomake#GetEnabledMakers(...) abort
                         \ .join(default_makers, ', ').',) are available on '.
                         \ 'your system. Install one of them or configure your '.
                         \ 'own makers.')
-            return default
+            return []
         endif
     endif
     return enabled_makers
 endfunction
 
 function! neomake#Make(options) abort
-    if get(g:, 'neomake_place_signs', 1)
-        try
-            silent sign list neomake_err
-        catch /^Vim\%((\a\+)\)\=:E155/
-            call neomake#utils#RedefineErrorSign()
-        endtry
-        try
-            silent sign list neomake_warn
-        catch /^Vim\%((\a\+)\)\=:E155/
-            call neomake#utils#RedefineWarningSign()
-        endtry
-    endif
+    call neomake#utils#DefineSigns()
 
     let ft = get(a:options, 'ft', '')
-    let enabled_makers = get(a:options, 'enabled_makers', ['makeprg'])
     let file_mode = get(a:options, 'file_mode')
+
+    let enabled_makers = get(a:options, 'enabled_makers', [])
+    if !len(enabled_makers)
+        if file_mode
+            call neomake#utils#DebugMessage('Nothing to make: no enabled makers')
+            return
+        else
+            let enabled_makers = ['makeprg']
+        endif
+    endif
+
     if file_mode
         lgetexpr ''
     else
@@ -210,36 +198,34 @@ function! neomake#Make(options) abort
 
     let serialize = get(g:, 'neomake_serialize')
     for name in enabled_makers
-        if name ==# 'makeprg'
-            call neomake#MakeJob()
-        else
-            let tempfile = 0
-            let tempsuffix = ''
-            let makepath = ''
-            if file_mode
-                let makepath = expand('%')
-                if get(g:, 'neomake_make_modified', 0) && &mod
-                    let tempfile = 1
-                    let tempsuffix = '.'.neomake#utils#Random().'.neomake.tmp'
-                    let makepath .= tempsuffix
-                    " TODO Make this cross platform
-                    silent exe 'w !cat > '.shellescape(makepath)
-                    neomake#utils#LoudMessage('Neomake: wrote temp file '.makepath)
-                endif
+        let tempfile = 0
+        let tempsuffix = ''
+        let makepath = ''
+        if file_mode
+            let makepath = expand('%')
+            if get(g:, 'neomake_make_modified', 0) && &mod
+                let tempfile = 1
+                let tempsuffix = '.'.neomake#utils#Random().'.neomake.tmp'
+                let makepath .= tempsuffix
+                " TODO Make this cross platform
+                silent exe 'w !cat > '.shellescape(makepath)
+                neomake#utils#LoudMessage('Neomake: wrote temp file '.makepath)
             endif
-            let maker = neomake#GetMaker(name, makepath, ft)
-            let maker['file_mode'] = file_mode
-            if tempfile
-                let maker['tempfile'] = makepath
-                let maker['tempsuffix'] = tempsuffix
-            endif
-            if serialize && len(enabled_makers) > 1
-                let next_opts = copy(a:options)
-                let next_opts['enabled_makers'] = enabled_makers[1:]
-                let maker['next'] = next_opts
-            endif
-            call neomake#MakeJob(maker)
         endif
+        let maker = neomake#GetMaker(name, makepath, ft)
+        let maker.file_mode = file_mode
+        if tempfile
+            let maker.tempfile = makepath
+            let maker.tempsuffix = tempsuffix
+        endif
+        if serialize && len(enabled_makers) > 1
+            let next_opts = copy(a:options)
+            let next_opts.enabled_makers = enabled_makers[1:]
+            let maker.next = next_opts
+        endif
+        call neomake#MakeJob(maker)
+        " If we are serializing makers, stop after the first one. The
+        " remaining makers will be processed in turn when this one is done.
         if serialize
             break
         endif

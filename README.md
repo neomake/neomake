@@ -7,6 +7,11 @@ job-control functionality. It is inspired by the excellent vim plugins
 
 **This plugin also works in ordinary vim, but without the asynchronous benefits.**
 
+This is alpha quality software. The APIs haven't totally levelled out yet, and
+things may break and change often until they do. That said, I'm using it daily
+(but also hacking on it as it breaks). Feel free to let me know what works /
+doesn't work for you!
+
 ## How to use (basic)
 
 Just set your `makeprg` and `errorformat` as normal, and run:
@@ -19,7 +24,7 @@ Otherwise, it is simply invoked in vim's current directory with no arguments.
 
 Here's an example of how to run neomake on the current file on every write:
 
-    autocmd! BufWritePost *.py,*.js Neomake
+    autocmd! BufWritePost * Neomake
 
 The make command will be run in an asynchronous job. The results will be
 populated in the window's quickfix list for `:Neomake!` and the location

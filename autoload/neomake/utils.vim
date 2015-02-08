@@ -115,8 +115,23 @@ function! neomake#utils#RemoveFile(f) abort
     return !v:shell_error
 endfunction
 
+function! neomake#utils#MakerFromCommand(shell, command) abort
+    let shell_name = split(a:shell, '/')[-1]
+    if index(['sh', 'csh', 'ash', 'bash', 'dash', 'ksh', 'pdksh', 'mksh', 'zsh'],
+            \shell_name) >= 0
+        let args = ['-c', a:command]
+    else
+        " TODO Windows support (at least)
+        throw "Shell not recognized; can't build command"
+    endif
+    return {
+        \ 'exe': a:shell,
+        \ 'args': args
+        \ }
+endfunction
+
 let s:available_makers = {}
-function neomake#utils#MakerIsAvailable(ft, maker_name) abort
+function! neomake#utils#MakerIsAvailable(ft, maker_name) abort
     if a:maker_name ==# 'makeprg'
         " makeprg refers to the actual makeprg, which we don't need to check
         " for our purposes
@@ -133,8 +148,8 @@ function! neomake#utils#AvailableMakers(ft, makers) abort
     return filter(copy(a:makers), 'neomake#utils#MakerIsAvailable(a:ft, v:val)')
 endfunction
 
-" This line intentionally ends with a space
-sign define neomake_invisible text=\ 
+" This command intentionally ends with a space
+exe 'sign define neomake_invisible text=\ '
 
 function! neomake#utils#RedefineSign(name, opts)
     let signs = neomake#GetSigns({'name': a:name})
@@ -179,4 +194,13 @@ function! neomake#utils#RedefineWarningSign(...)
     endif
     call extend(opts, default_opts, 'keep')
     call neomake#utils#RedefineSign('neomake_warn', opts)
+endfunction
+
+let s:signs_defined = 0
+function! neomake#utils#DefineSigns()
+    if !s:signs_defined
+        let s:signs_defined = 1
+        call neomake#utils#RedefineErrorSign()
+        call neomake#utils#RedefineWarningSign()
+    endif
 endfunction
