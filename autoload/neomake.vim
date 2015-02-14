@@ -209,7 +209,7 @@ function! neomake#Make(options) abort
                 let makepath .= tempsuffix
                 " TODO Make this cross platform
                 silent exe 'w !cat > '.shellescape(makepath)
-                neomake#utils#LoudMessage('Neomake: wrote temp file '.makepath)
+                call neomake#utils#LoudMessage('Neomake: wrote temp file '.makepath)
             endif
         endif
         let maker = neomake#GetMaker(name, makepath, ft)
