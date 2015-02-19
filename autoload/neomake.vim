@@ -153,7 +153,7 @@ function! neomake#GetEnabledMakers(...) abort
 
         let enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
         if !len(enabled_makers)
-            call neomake#utils#ErrorMessage('None of the default '.ft.' makers ('
+            call neomake#utils#DebugMessage('None of the default '.ft.' makers ('
                         \ .join(default_makers, ', ').',) are available on '.
                         \ 'your system. Install one of them or configure your '.
                         \ 'own makers.')
