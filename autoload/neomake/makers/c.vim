@@ -10,7 +10,7 @@ endfunction
 
 function! neomake#makers#c#clang()
     return {
-        \ 'args': ['-fsyntax-only'],
+        \ 'args': ['-fsyntax-only', '-Wall', '-Wextra'],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
             \ '%f:%l:%c: %trror: %m,' .
@@ -24,7 +24,7 @@ endfunction
 
 function! neomake#makers#c#gcc()
     return {
-        \ 'args': ['-fsyntax-only'],
+        \ 'args': ['-fsyntax-only', '-Wall', '-Wextra'],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
             \ '%-G%f:%l: %#error: %#(Each undeclared identifier is reported only%.%#,' .
