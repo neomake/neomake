@@ -1,10 +1,10 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#coffee#EnabledMakers()
+function! neomake#makers#ft#coffee#EnabledMakers()
     return ['coffeelint']
 endfunction
 
-function! neomake#makers#coffee#coffeelint()
+function! neomake#makers#ft#coffee#coffeelint()
     return {
         \ 'args': ['--reporter=csv'],
         \ 'errorformat': '%f\,%l\,%\d%#\,%trror\,%m,' .

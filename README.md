@@ -24,7 +24,7 @@ Otherwise, it is simply invoked in vim's current directory with no arguments.
 
 Here's an example of how to run neomake on the current file on every write:
 
-    autocmd! BufWritePost *.py,*.js Neomake
+    autocmd! BufWritePost * Neomake
 
 The make command will be run in an asynchronous job. The results will be
 populated in the window's quickfix list for `:Neomake!` and the location

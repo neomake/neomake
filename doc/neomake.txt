@@ -75,6 +75,28 @@ usable on an individual file, you should also include the filtype in the name: >
     " Or use it on the whole project:
     :Neomake! c_lint
 <
+                                                     *neomake-makers-processing*
+Sometimes a maker's output may require some processing. For this, there is the
+optional mapexpr property that you can define on a maker object. It will be
+passed directly into |map| as the expr argument like so: >
+    call map(lines, maker.mapexpr)
+<This allows you to manipulate the lines as needed. Currently this is called
+on stdout and stderr lines alike.
+
+                                                  *neomake-makers-buffer_output*
+Some makers with multiline error messages have issues (depending on how they
+flush their output). If multiline errorformats seem to work inconsistently for
+a maker, try setting buffer_output to 1: >
+    let g:neomake_ft_test_maker = {
+        \ 'exe': 'some-maker',
+        \ 'errorformat': '%EError,%Cline %l,%Z%m',
+        \ 'buffer_output': 1
+        \ }
+<
+This tells the maker only to process output when either the output type
+changes (from stderr to stout or vice versa) or at the end of the job. Your
+results will take longer, but multiline error messages should parse properly.
+
                                      *neomake-{{makepath}}* *neomake-!!makepath!!*
 You may need to configure the order of the arguments for a file-enabled
 checker: >
@@ -120,6 +142,10 @@ Setting this to 1 tells neomake to run each enabled maker one after the other.
 This is a good way to ensure messages don't get mixed up. When Neovim's
 |job-control| feature implements a way to get the exit status of a job, an
 option will be added to stop after the first failing job as well.
+
+*g:neomake_serialize_abort_on_error*
+Setting this to 1 tells neomake to abort after the first error status is
+encountered. This setting only works when |g:neomake_serialize| is on.
 
 *g:neomake_verbose*
 Controls how verbose neomake should be. Neomake log levels are as follows:
@@ -186,5 +212,15 @@ and the |quickfix| respectively. The return value is something like this: >
     {'E': 2, 'W': 1, 'x': 5}
 <Where 'E', 'W' and 'x' are error types. Empty error types are ignored for
 now.
+
+*neomake#ProcessCurrentBuffer*
+This is the function that takes the job output and puts it into the loclist or
+qflist, adds signs, etc. Currently, if you stay in the buffer you called
+|:Neomake| from, this will happen as the job output comes in. However, if you go
+to a different buffer, neomake will wait until you return to that buffer for
+the job output to be processed. Currently, that will happen on |BufEnter| and
+|CursorHold|. You can also call this function directly if you need to force
+it. This function is not currently used for |:Neomake!|, which always
+processes its output as it arrives.
 
 vim: ft=help tw=78
