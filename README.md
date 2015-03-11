@@ -78,6 +78,9 @@ Javascript:
 - jshint
 - jsxhint
 
+JSON:
+- jsonlint
+
 Jsx:
 - jsxhint
 
