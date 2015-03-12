@@ -207,8 +207,9 @@ function! neomake#Make(options) abort
                 let tempfile = 1
                 let tempsuffix = '.'.neomake#utils#Random().'.neomake.tmp'
                 let makepath .= tempsuffix
-                " TODO Make this cross platform
-                silent exe 'w !cat > '.shellescape(makepath)
+                let escapedpath = fnameescape(makepath)
+                noautocmd silent exe 'keepalt w! '.escapedpath
+                noautocmd silent exe 'bwipeout '.escapedpath
                 call neomake#utils#LoudMessage('Neomake: wrote temp file '.makepath)
             endif
         endif
