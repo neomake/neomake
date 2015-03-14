@@ -202,7 +202,7 @@ function! neomake#Make(options) abort
         let tempsuffix = ''
         let makepath = ''
         if file_mode
-            let makepath = expand('%')
+            let makepath = expand('%:p')
             if get(g:, 'neomake_make_modified', 0) && &mod
                 let tempfile = 1
                 let tempsuffix = '.'.neomake#utils#Random().'.neomake.tmp'
