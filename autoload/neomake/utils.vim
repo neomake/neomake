@@ -39,6 +39,25 @@ function! neomake#utils#DebugMessage(msg) abort
     call neomake#utils#LogMessage(3, a:msg)
 endfunction
 
+function! neomake#utils#Stringify(obj) abort
+    if type(a:obj) == type([])
+        let ls = map(copy(a:obj), 'neomake#utils#Stringify(v:val)')
+        return '['.join(ls, ', ').']'
+    elseif type(a:obj) == type({})
+        let ls = []
+        for key in keys(a:obj)
+            call add(ls, key.': '.neomake#utils#Stringify(a:obj[key]))
+        endfor
+        return '{'.join(ls, ', ').'}'
+    else
+        return ''.a:obj
+    endif
+endfunction
+
+function neomake#utils#DebugObject(msg, obj) abort
+    call neomake#utils#DebugMessage(a:msg.' '.neomake#utils#Stringify(a:obj))
+endfunction
+
 " This comes straight out of syntastic.
 "print as much of a:msg as possible without "Press Enter" prompt appearing
 function! neomake#utils#WideMessage(msg) " {{{2

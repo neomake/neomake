@@ -49,7 +49,10 @@ function! neomake#MakeJob(maker) abort
         \ }
     if !has('nvim')
         let jobinfo.id = make_id
-        let s:jobs[make_id] = jobinfo
+        if !has('nvim')
+            " Assign this before neomake#MakeHandler gets run synchronously
+            let s:jobs[make_id] = jobinfo
+        endif
     endif
     let jobinfo.name .= '_'.a:maker.name
     let jobinfo.maker = a:maker
