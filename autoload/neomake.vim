@@ -468,10 +468,11 @@ function! neomake#MakeHandler(...) abort
         " TODO This used to open up as the list was populated, but it caused
         " some issues with s:AddExprCallback.
         if get(g:, 'neomake_open_list')
+            let height = get(g:, 'neomake_list_height', 10)
             if get(maker, 'file_mode')
-                lwindow
+                exe "lwindow ".height
             else
-                cwindow
+                exe "cwindow ".height
             endif
         endif
         let status = get(job_data, 2, 0)
