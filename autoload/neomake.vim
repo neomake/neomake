@@ -297,7 +297,7 @@ function! s:AddExprCallback(maker) abort
 
             " On the first valid error identified by a maker,
             " clear the existing signs in the buffer
-            if !b:neomake_signs_cleared
+            if !exists("b:neomake_signs_cleared") || !b:neomake_signs_cleared
                 call neomake#ClearSignsAndErrors()
             endif
 
@@ -489,7 +489,7 @@ function! neomake#MakeHandler(...) abort
 
         " If signs were not cleared before this point, then the maker did not return
         " any errors, so all signs must be removed
-        if !b:neomake_signs_cleared
+        if !exists("b:neomake_signs_cleared") || !b:neomake_signs_cleared
             call neomake#ClearSignsAndErrors()
         endif
 
