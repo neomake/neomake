@@ -190,13 +190,11 @@ function! neomake#Make(options) abort
 
     if file_mode
         let b:neomake_loclist_nr = 0
-        let b:neomake_errors = {}
-        " Remove any signs we placed before
-        let b:neomake_signs = get(b:, 'neomake_signs', {})
-        for ln in keys(b:neomake_signs)
-            exe 'sign unplace '.b:neomake_signs[ln]
-        endfor
-        let b:neomake_signs = {}
+        " Mark that the signs must be removed on the first error returned by
+        " the maker.
+        " Signs are not deleted when the maker execution starts
+        " because some makers take a long time to return their first result.
+        let b:neomake_signs_cleared = 0
     endif
 
     let serialize = get(g:, 'neomake_serialize')
@@ -210,8 +208,9 @@ function! neomake#Make(options) abort
                 let tempfile = 1
                 let tempsuffix = '.'.neomake#utils#Random().'.neomake.tmp'
                 let makepath .= tempsuffix
-                " TODO Make this cross platform
-                silent exe 'w !cat > '.shellescape(makepath)
+                let escapedpath = fnameescape(makepath)
+                noautocmd silent exe 'keepalt w! '.escapedpath
+                noautocmd silent exe 'bwipeout '.escapedpath
                 call neomake#utils#LoudMessage('Neomake: wrote temp file '.makepath)
             endif
         endif
@@ -297,6 +296,12 @@ function! s:AddExprCallback(maker) abort
             endif
             if !entry.valid
                 continue
+            endif
+
+            " On the first valid error identified by a maker,
+            " clear the existing signs in the buffer
+            if !exists("b:neomake_signs_cleared") || !b:neomake_signs_cleared
+                call neomake#ClearSignsAndErrors()
             endif
 
             " Track all errors by line
@@ -466,10 +471,11 @@ function! neomake#MakeHandler(...) abort
         " TODO This used to open up as the list was populated, but it caused
         " some issues with s:AddExprCallback.
         if get(g:, 'neomake_open_list')
+            let height = get(g:, 'neomake_list_height', 10)
             if get(maker, 'file_mode')
-                lwindow
+                exe "lwindow ".height
             else
-                cwindow
+                exe "cwindow ".height
             endif
         endif
         let status = get(job_data, 2, 0)
@@ -484,6 +490,13 @@ function! neomake#MakeHandler(...) abort
         else
             call neomake#utils#QuietMessage(msg)
         endif
+
+        " If signs were not cleared before this point, then the maker did not return
+        " any errors, so all signs must be removed
+        if !exists("b:neomake_signs_cleared") || !b:neomake_signs_cleared
+            call neomake#ClearSignsAndErrors()
+        endif
+
         " Show the current line's error
         call neomake#CursorMoved()
 
@@ -497,6 +510,16 @@ function! neomake#MakeHandler(...) abort
             endif
         endif
     endif
+endfunction
+
+function! neomake#ClearSignsAndErrors() abort
+    let b:neomake_signs = get(b:, 'neomake_signs', {})
+    for ln in keys(b:neomake_signs)
+        exe 'sign unplace '.b:neomake_signs[ln]
+    endfor
+    let b:neomake_signs = {}
+    let b:neomake_signs_cleared = 1
+    let b:neomake_errors = {}
 endfunction
 
 function! neomake#CursorMoved() abort

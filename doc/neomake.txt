@@ -127,6 +127,10 @@ operating on a single file. This effectively defaults to: >
 This setting will open the |loclist| or |quickfix| list (depending on whether
 it is operating on a file) when adding entries. Defaults to 0.
 
+*g:neomake_list_height*
+The height of the |loclist| or |quickfix| list opened by neomake.
+Defaults to 10.
+
 *g:neomake_echo_current_error*
 This setting will echo the error for the line your cursor is on, if any.
 Defaults to 1.
