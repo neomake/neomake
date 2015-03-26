@@ -1,3 +1,9 @@
+" vim: ts=4 sw=4 et
+
+if exists('g:neomake_airline') && g:neomake_airline == 0
+    finish
+endif
+
 let s:spc = g:airline_symbols.space
 
 function! airline#extensions#neomake#apply(...)
