@@ -82,7 +82,6 @@ function! neomake#makers#ft#python#frosted()
             \ '-vb'
         \ ],
         \ 'errorformat':
-            \ '%f:%l:%c:%t%n:%s:%m,' .
             \ '%f:%l:%c:%m,' .
             \ '%E%f:%l: %m,' .
             \ '%-Z%p^,' .
