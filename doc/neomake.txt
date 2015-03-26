@@ -185,6 +185,10 @@ definition: >
 See the |:highlight| command to list the highlight groups available to you or
 create new ones.
 
+*g:neomake_airline*
+Shows the ouput returned by |neomake#statusline#LoclistStatus| in the warning
+section of the vim-airline |statusline|. Defaults to 1.
+
 ==============================================================================
 4. Functions                                                 *neomake-functions*
 
