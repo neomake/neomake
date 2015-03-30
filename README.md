@@ -12,6 +12,8 @@ things may break and change often until they do. That said, I'm using it daily
 (but also hacking on it as it breaks). Feel free to let me know what works /
 doesn't work for you!
 
+The minimum Neovim version supported by Neomake is `NVIM 0.0.0-alpha+201503292107` (commit `960b9108c`).
+
 ## How to use (basic)
 
 Just set your `makeprg` and `errorformat` as normal, and run:
