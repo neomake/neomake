@@ -13,24 +13,28 @@ function! neomake#ListJobs() abort
     endfor
 endfunction
 
-function! s:JobStart(make_id, name, exe, ...) abort
+function! s:JobStart(make_id, exe, ...) abort
+    let argv = [a:exe]
     let has_args = a:0 && type(a:1) == type([])
     if has('nvim')
-        if !has_args
-            let args = []
-        else
-            let args = a:1
+        if has_args
+            let argv = argv + a:1
         endif
-        call neomake#utils#LoudMessage('Starting: '.a:exe.' '.join(args, ' '))
-        return jobstart(a:name, a:exe, args)
+        call neomake#utils#LoudMessage('Starting: '.join(argv, ' '))
+        let opts = {
+            \ 'on_stdout': function('neomake#MakeHandler'),
+            \ 'on_stderr': function('neomake#MakeHandler'),
+            \ 'on_exit': function('neomake#MakeHandler')
+            \ }
+        return jobstart(argv, opts)
     else
         if has_args
             let program = a:exe.' '.join(map(a:1, 'shellescape(v:val)'))
         else
             let program = a:exe
         endif
-        call neomake#MakeHandler([a:make_id, 'stdout', split(system(program), '\r\?\n', 1)])
-        call neomake#MakeHandler([a:make_id, 'exit', v:shell_error])
+        call neomake#MakeHandler(a:make_id, split(system(program), '\r\?\n', 1), 'stdout')
+        call neomake#MakeHandler(a:make_id, v:shell_error, 'exit')
         return 0
     endif
 endfunction
@@ -49,12 +53,9 @@ function! neomake#MakeJob(maker) abort
         \ }
     if !has('nvim')
         let jobinfo.id = make_id
-        if !has('nvim')
-            " Assign this before neomake#MakeHandler gets run synchronously
-            let s:jobs[make_id] = jobinfo
-        endif
+        " Assign this before neomake#MakeHandler gets run synchronously
+        let s:jobs[make_id] = jobinfo
     endif
-    let jobinfo.name .= '_'.a:maker.name
     let jobinfo.maker = a:maker
 
     if has_key(a:maker, 'args')
@@ -74,7 +75,7 @@ function! neomake#MakeJob(maker) abort
         call add(args, a:maker.makepath)
     endif
 
-    let job = s:JobStart(make_id, jobinfo.name, a:maker.exe, args)
+    let job = s:JobStart(make_id, a:maker.exe, args)
 
     " Async setup that only affects neovim
     if has('nvim')
@@ -417,24 +418,18 @@ function! s:RegisterJobOutput(jobinfo, maker, lines) abort
     endif
 endfunction
 
-function! neomake#MakeHandler(...) abort
-    if a:0
-        let job_data = a:1
-    else
-        let job_data = v:job_data
-    endif
-    if !has_key(s:jobs, job_data[0])
+function! neomake#MakeHandler(job_id, data, event_type) abort
+    if !has_key(s:jobs, a:job_id)
         return
     endif
-    let jobinfo = s:jobs[job_data[0]]
+    let jobinfo = s:jobs[a:job_id]
     let maker = jobinfo.maker
-    let event_type = job_data[1]
-    if index(['stdout', 'stderr'], event_type) >= 0
+    if index(['stdout', 'stderr'], a:event_type) >= 0
         if has_key(maker, 'tempsuffix')
             let pattern = substitute(maker.tempsuffix, '\.', '\.', 'g')
-            let lines = map(copy(job_data[2]), 'substitute(v:val, pattern, "", "g")')
+            let lines = map(copy(a:data), 'substitute(v:val, pattern, "", "g")')
         else
-            let lines = job_data[2]
+            let lines = a:data
         endif
 
         if has_key(maker, 'mapexpr')
@@ -443,15 +438,15 @@ function! neomake#MakeHandler(...) abort
 
         for line in lines
             call neomake#utils#DebugMessage(
-                \ get(maker, 'name', 'makeprg').' '.event_type.': '.line)
+                \ get(maker, 'name', 'makeprg').' '.a:event_type.': '.line)
         endfor
         call neomake#utils#DebugMessage(
-            \ get(maker, 'name', 'makeprg').' '.event_type.' done.')
+            \ get(maker, 'name', 'makeprg').' '.a:event_type.' done.')
 
         if get(maker, 'buffer_output')
-            let last_event_type = get(jobinfo, 'event_type', event_type)
-            let jobinfo.event_type = event_type
-            if last_event_type ==# event_type
+            let last_event_type = get(jobinfo, 'event_type', a:event_type)
+            let jobinfo.event_type = a:event_type
+            if last_event_type ==# a:event_type
                 if has_key(jobinfo, 'lines')
                     call extend(jobinfo.lines, lines)
                 else
@@ -464,7 +459,7 @@ function! neomake#MakeHandler(...) abort
         else
             call s:RegisterJobOutput(jobinfo, maker, lines)
         endif
-    else
+    elseif a:event_type ==# 'exit'
         if has_key(jobinfo, 'lines')
             call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines)
         endif
@@ -478,7 +473,7 @@ function! neomake#MakeHandler(...) abort
                 exe "cwindow ".height
             endif
         endif
-        let status = get(job_data, 2, 0)
+        let status = a:data
         call s:CleanJobinfo(jobinfo)
         if has_key(maker, 'name')
             let msg = maker.name.' complete'
@@ -486,7 +481,7 @@ function! neomake#MakeHandler(...) abort
             let msg = 'make complete'
         endif
         if status !=# 0
-            call neomake#utils#ErrorMessage(msg.' with error status '.status)
+            call neomake#utils#QuietMessage(msg.' with exit code '.status)
         else
             call neomake#utils#QuietMessage(msg)
         endif
