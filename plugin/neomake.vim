@@ -27,7 +27,7 @@ command! NeomakeListJobs call neomake#ListJobs()
 
 augroup neomake
     autocmd!
-    autocmd BufEnter,CursorHold * call neomake#ProcessCurrentBuffer()
+    autocmd BufWinEnter,CursorHold * call neomake#ProcessCurrentBuffer()
 augroup END
 
 function! NeomakeEchoCurrentErrorEnable()
