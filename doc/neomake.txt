@@ -195,7 +195,7 @@ section of the vim-airline |statusline|. Defaults to 1.
 This list is non-exhaustive at the moment, but you may find some of these
 functions useful.
 
-*neomake#utils#RedefineErrorSign* *neomake#utils#RedefineWarningSign*
+*neomake#signs#RedefineErrorSign* *neomake#signs#RedefineWarningSign*
 These functions define the error sign and the warning sign respectively. They
 optionally take a dictionary in the same format as |g:neomake_error_sign|. If
 no such dictionary is provided, the default values will be used. These
