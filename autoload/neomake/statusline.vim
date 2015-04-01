@@ -2,8 +2,9 @@
 function! s:getListCounts(list, buf) abort
     let counts = {}
     for err in a:list
-        if len(err.type) && (!a:buf || err.bufnr ==# a:buf)
-            let counts[err.type] = get(counts, err.type, 0) + 1
+        let type = toupper(err.type)
+        if len(type) && (!a:buf || err.bufnr ==# a:buf)
+            let counts[type] = get(counts, type, 0) + 1
         endif
     endfor
     return counts
