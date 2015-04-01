@@ -18,10 +18,16 @@ function! s:NeomakeCommand(file_mode, enabled_makers)
     endif
 endfunction
 
+function! s:NeomakeSh(...)
+    call neomake#Make({'sh_command': join(a:000, ' ')})
+endfunction
+
 command! -nargs=* -bang Neomake call s:NeomakeCommand('<bang>' !=# '!', [<f-args>])
 " These commands are available for clarity
 command! -nargs=* NeomakeProject Neomake! <args>
 command! -nargs=* NeomakeFile Neomake <args>
+
+command! -nargs=+ NeomakeSh call s:NeomakeSh(<f-args>)
 
 command! NeomakeListJobs call neomake#ListJobs()
 

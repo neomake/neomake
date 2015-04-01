@@ -131,7 +131,9 @@ function! neomake#GetMaker(name, makepath, ...) abort
     if !has_key(maker, 'exe')
         let maker.exe = a:name
     endif
-    let maker.name = a:name
+    if !has_key(maker, 'name')
+        let maker.name = a:name
+    endif
     let maker.ft = ft
     " Only relevant if file_mode is used
     let maker.winnr = winnr()
@@ -179,7 +181,13 @@ function! neomake#Make(options, ...) abort
     let file_mode = get(a:options, 'file_mode')
 
     let enabled_makers = get(a:options, 'enabled_makers', [])
-    if !len(enabled_makers)
+    let sh_command = get(a:options, 'sh_command', '')
+    if len(sh_command)
+        let custom_maker = neomake#utils#MakerFromCommand(&shell, sh_command)
+        let custom_maker.name = 'sh: '.sh_command
+        let enabled_makers =  [custom_maker]
+    endif
+    if !len(enabled_makers) 
         if file_mode
             call neomake#utils#DebugMessage('Nothing to make: no enabled makers')
             return
