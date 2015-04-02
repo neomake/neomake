@@ -18,10 +18,19 @@ function! s:NeomakeCommand(file_mode, enabled_makers)
     endif
 endfunction
 
+function! s:NeomakeSh(sh_command)
+    let custom_maker = neomake#utils#MakerFromCommand(&shell, a:sh_command)
+    let custom_maker.name = 'sh: '.a:sh_command
+    let enabled_makers =  [custom_maker]
+    call neomake#Make({'enabled_makers': enabled_makers})
+endfunction
+
 command! -nargs=* -bang Neomake call s:NeomakeCommand('<bang>' !=# '!', [<f-args>])
 " These commands are available for clarity
 command! -nargs=* NeomakeProject Neomake! <args>
 command! -nargs=* NeomakeFile Neomake <args>
+
+command! -nargs=+ NeomakeSh call s:NeomakeSh(<q-args>)
 
 command! NeomakeListJobs call neomake#ListJobs()
 

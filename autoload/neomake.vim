@@ -131,7 +131,9 @@ function! neomake#GetMaker(name, makepath, ...) abort
     if !has_key(maker, 'exe')
         let maker.exe = a:name
     endif
-    let maker.name = a:name
+    if !has_key(maker, 'name')
+        let maker.name = a:name
+    endif
     let maker.ft = ft
     " Only relevant if file_mode is used
     let maker.winnr = winnr()
