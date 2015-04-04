@@ -69,6 +69,7 @@ function! neomake#signs#PlaceSign(existing_signs, entry) abort
     let a:existing_signs.by_line[a:entry.lnum] = get(a:existing_signs.by_line,
                                                    \ a:entry.lnum, [])
     let s:placed_signs[a:entry.bufnr] = get(s:placed_signs, a:entry.bufnr, {})
+    let new_sign = 0
     if !has_key(s:placed_signs[a:entry.bufnr], a:entry.lnum)
         let sign_id = a:existing_signs.max_id + 1
         let a:existing_signs.max_id = sign_id
@@ -76,6 +77,7 @@ function! neomake#signs#PlaceSign(existing_signs, entry) abort
                                       \ ' name='.type.
                                       \ ' buffer='.a:entry.bufnr
         let s:placed_signs[a:entry.bufnr][a:entry.lnum] = sign_id
+        let new_sign = 1
     elseif type ==# 'neomake_err'
         " Upgrade this sign to an error
         let sign_id = s:placed_signs[a:entry.bufnr][a:entry.lnum]
@@ -89,15 +91,17 @@ function! neomake#signs#PlaceSign(existing_signs, entry) abort
         exe cmd
     endif
 
-    " Replace all existing signs for this line, so that ours appear on top
-    for existing in get(a:existing_signs.by_line, a:entry.lnum, [])
-        if existing.name !~# 'neomake_'
-            exe 'sign unplace '.existing.id.' buffer='.a:entry.bufnr
-            exe 'sign place '.existing.id.' line='.existing.line.
-                                        \ ' name='.existing.name.
-                                        \ ' buffer='.a:entry.bufnr
-        endif
-    endfor
+    if new_sign
+        " Replace all existing signs for this line, so that ours appear on top
+        for existing in get(a:existing_signs.by_line, a:entry.lnum, [])
+            if existing.name !~# 'neomake_'
+                exe 'sign unplace '.existing.id.' buffer='.a:entry.bufnr
+                exe 'sign place '.existing.id.' line='.existing.line.
+                                            \ ' name='.existing.name.
+                                            \ ' buffer='.a:entry.bufnr
+            endif
+        endfor
+    endif
 endfunction
 
 function! neomake#signs#CleanOldSigns() abort
