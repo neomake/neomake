@@ -401,16 +401,8 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         endif
         let status = a:data
         call s:CleanJobinfo(jobinfo)
-        if has_key(maker, 'name')
-            let msg = maker.name.' complete'
-        else
-            let msg = 'make complete'
-        endif
-        if status !=# 0
-            call neomake#utils#QuietMessage(msg.' with exit code '.status)
-        else
-            call neomake#utils#QuietMessage(msg)
-        endif
+        call neomake#utils#QuietMessage(get(maker, 'name', 'make').
+                                      \ ' complete with exit code '.status)
 
         " If signs were not cleared before this point, then the maker did not return
         " any errors, so all signs must be removed
