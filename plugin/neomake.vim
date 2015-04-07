@@ -25,10 +25,10 @@ function! s:NeomakeSh(sh_command)
     call neomake#Make({'enabled_makers': enabled_makers})
 endfunction
 
-command! -nargs=* -bang Neomake call s:NeomakeCommand('<bang>' !=# '!', [<f-args>])
+command! -nargs=* -bang -bar Neomake call s:NeomakeCommand(<bang>1, [<f-args>])
 " These commands are available for clarity
-command! -nargs=* NeomakeProject Neomake! <args>
-command! -nargs=* NeomakeFile Neomake <args>
+command! -nargs=* -bar NeomakeProject Neomake! <args>
+command! -nargs=* -bar NeomakeFile Neomake <args>
 
 command! -nargs=+ NeomakeSh call s:NeomakeSh(<q-args>)
 
@@ -37,18 +37,5 @@ command! NeomakeListJobs call neomake#ListJobs()
 augroup neomake
     autocmd!
     autocmd BufWinEnter,CursorHold * call neomake#ProcessCurrentBuffer()
+    autocmd CursorMoved * call neomake#CursorMoved()
 augroup END
-
-function! NeomakeEchoCurrentErrorEnable()
-    call NeomakeEchoCurrentErrorDisable()
-    autocmd neomake CursorMoved * call neomake#CursorMoved()
-endfunction
-
-function! NeomakeEchoCurrentErrorDisable()
-    autocmd! neomake CursorMoved
-endfunction
-
-if get(g:, 'neomake_echo_current_error', 1)
-    " Call after creating the neomake augroup
-    call NeomakeEchoCurrentErrorEnable()
-endif
