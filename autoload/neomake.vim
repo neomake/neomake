@@ -58,22 +58,12 @@ function! neomake#MakeJob(maker) abort
     endif
     let jobinfo.maker = a:maker
 
-    if has_key(a:maker, 'args')
-        let args = copy(a:maker.args)
-    else
-        let args = []
+    let args = copy(get(a:maker, 'args', []))
+    let append_file = a:maker.file_mode && index(args, '%:p')
+    if append_file
+        call add(args, '%:p')
     endif
-
-    " Add makepath to args
-    let makepathIdx = index(args, '{{makepath}}')
-    if makepathIdx < 0
-        let makepathIdx = index(args, '!!makepath!!')
-    endif
-    if makepathIdx >= 0
-        let args[makepathIdx] = a:maker.makepath
-    elseif len(a:maker.makepath)
-        call add(args, a:maker.makepath)
-    endif
+    call map(args, 'expand(v:val)')
 
     let job = s:JobStart(make_id, a:maker.exe, args)
 
@@ -92,7 +82,7 @@ function! neomake#MakeJob(maker) abort
     endif
 endfunction
 
-function! neomake#GetMaker(name, makepath, ...) abort
+function! neomake#GetMaker(name, ...) abort
     if a:0
         let ft = a:1
     else
@@ -122,7 +112,6 @@ function! neomake#GetMaker(name, makepath, ...) abort
         endif
     endif
     let maker = copy(maker)
-    let maker.makepath = a:makepath
     if !has_key(maker, 'exe')
         let maker.exe = a:name
     endif
@@ -197,11 +186,7 @@ function! neomake#Make(options) abort
 
     let serialize = get(g:, 'neomake_serialize')
     for name in enabled_makers
-        let makepath = ''
-        if file_mode
-            let makepath = expand('%:p')
-        endif
-        let maker = neomake#GetMaker(name, makepath, ft)
+        let maker = neomake#GetMaker(name, ft)
         let maker.file_mode = file_mode
         let maker_key = s:GetMakerKey(maker)
         if has_key(s:jobs_by_maker, maker_key)

@@ -62,6 +62,15 @@ Here is a sample maker definition: >
     " Use the maker like this:
     :Neomake! make
 <
+All 'args' will be |expand()|ed: >
+    let g:neomake_lint_maker = {
+        \ 'exe': 'lint',
+        \ 'args': ['%:p'],
+        \ }
+<
+Running "|:Neomake!| lint" from file.txt would cause "lint /path/to/file.txt" to
+be run.
+
 In the above example, the exe argument isn't strictly necessary, since neomake
 uses the name of the maker as the default value for it.  If you want it to be
 usable on an individual file, you should also include the filtype in the name: >
@@ -75,6 +84,20 @@ usable on an individual file, you should also include the filtype in the name: >
     " Or use it on the whole project:
     :Neomake! c_lint
 <
+                                     *neomake-{{makepath}}* *neomake-!!makepath!!*
+When running a maker on a file with |:Neomake|, you may want to control where
+in the 'args' list the file's path will appear. To do this, insert '%:p' in
+the 'args' list. {{makepath}} and !!makepath!! are no longer used for this,
+but will be retained in the docs for discoverability: >
+    let g:neomake_c_lint_maker = {
+        \ 'exe': 'lint',
+        \ 'args': ['%:p', '--option', 'x'],
+        \ 'errorformat': '%f:%l:%c: %m',
+        \ }
+<
+This will cause "lint /path/to/file.c --option x" to be run instead of
+"lint --option x /path/to/file.c".
+
                                                      *neomake-makers-processing*
 Sometimes a maker's output may require some processing. For this, there is the
 optional mapexpr property that you can define on a maker object. It will be
@@ -96,19 +119,6 @@ a maker, try setting buffer_output to 1: >
 This tells the maker only to process output when either the output type
 changes (from stderr to stout or vice versa) or at the end of the job. Your
 results will take longer, but multiline error messages should parse properly.
-
-                                     *neomake-{{makepath}}* *neomake-!!makepath!!*
-You may need to configure the order of the arguments for a file-enabled
-checker: >
-    let g:neomake_c_lint_maker = {
-        \ 'exe': 'lint',
-        \ 'args': ['{{makepath}}', '--option', 'x'],
-        \ 'errorformat': '%f:%l:%c: %m',
-        \ }
-<
-In the above example, |{{makepath}}| will expand to the name of the file you
-are running it from. |!!makepath!!| will also work, in case |{{makepath}}| is
-inappropriate for some reason.
 
 Global Options                                                 *neomake-options*
 

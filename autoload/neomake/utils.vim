@@ -125,10 +125,12 @@ function! neomake#utils#Random() abort
 endfunction
 
 function! neomake#utils#MakerFromCommand(shell, command) abort
+    let command = substitute(a:command, '%\(:[a-z]\)*',
+                           \ '\=expand(submatch(0))', 'g')
     let shell_name = split(a:shell, '/')[-1]
     if index(['sh', 'csh', 'ash', 'bash', 'dash', 'ksh', 'pdksh', 'mksh', 'zsh'],
             \shell_name) >= 0
-        let args = ['-c', a:command]
+        let args = ['-c', command]
     else
         " TODO Windows support (at least)
         throw "Shell not recognized; can't build command"
