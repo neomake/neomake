@@ -87,12 +87,7 @@ function! neomake#MakeJob(maker) abort
 
         let jobinfo.id = job
         let s:jobs[job] = jobinfo
-
         let maker_key = s:GetMakerKey(a:maker)
-        if has_key(s:jobs_by_maker, maker_key)
-            call jobstop(s:jobs_by_maker[maker_key].id)
-            call s:CleanJobinfo(s:jobs_by_maker[maker_key])
-        endif
         let s:jobs_by_maker[maker_key] = jobinfo
     endif
 endfunction
@@ -171,10 +166,7 @@ function! neomake#GetEnabledMakers(...) abort
     return enabled_makers
 endfunction
 
-function! neomake#Make(options, ...) abort
-    " It is a continuation if it is a subsequent maker and we are in serialize
-    " mode
-    let continuation = a:0 && a:1
+function! neomake#Make(options) abort
     call neomake#signs#DefineSigns()
 
     let ft = get(a:options, 'ft', '')
@@ -196,7 +188,7 @@ function! neomake#Make(options, ...) abort
         cgetexpr ''
     endif
 
-    if !continuation
+    if !get(a:options, 'continuation')
         " Only do this if we have one or more enabled makers
         call neomake#signs#Reset()
         let s:neomake_list_nr = 0
@@ -214,21 +206,34 @@ function! neomake#Make(options, ...) abort
                 let tempfile = 1
                 let tempsuffix = '.'.neomake#utils#Random().'.neomake.tmp'
                 let makepath .= tempsuffix
-                let escapedpath = fnameescape(makepath)
-                noautocmd silent exe 'keepalt w! '.escapedpath
-                noautocmd silent exe 'bwipeout '.escapedpath
-                call neomake#utils#LoudMessage('Neomake: wrote temp file '.makepath)
             endif
         endif
         let maker = neomake#GetMaker(name, makepath, ft)
         let maker.file_mode = file_mode
+        let maker_key = s:GetMakerKey(maker)
+        if has_key(s:jobs_by_maker, maker_key)
+            let jobinfo = s:jobs_by_maker[maker_key]
+            let jobinfo.maker.next = copy(a:options)
+            try
+                call jobstop(jobinfo.id)
+            catch /^Vim\%((\a\+)\)\=:E900/
+                " Ignore invalid job id errors. Happens when the job is done,
+                " but on_exit hasn't been called yet.
+            endtry
+            break
+        endif
         if tempfile
+            let escapedpath = fnameescape(makepath)
+            noautocmd silent exe 'keepalt w! '.escapedpath
+            noautocmd silent exe 'bwipeout '.escapedpath
+            call neomake#utils#LoudMessage('Neomake: wrote temp file '.makepath)
             let maker.tempfile = makepath
             let maker.tempsuffix = tempsuffix
         endif
         if serialize && len(enabled_makers) > 1
             let next_opts = copy(a:options)
             let next_opts.enabled_makers = enabled_makers[1:]
+            let next_opts.continuation = 1
             let maker.next = next_opts
         endif
         call neomake#MakeJob(maker)
@@ -417,7 +422,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
                 call neomake#utils#LoudMessage('Aborting next makers '.next_makers)
             else
                 call neomake#utils#DebugMessage('next makers '.next_makers)
-                call neomake#Make(maker.next, 1)
+                call neomake#Make(maker.next)
             endif
         endif
     endif
