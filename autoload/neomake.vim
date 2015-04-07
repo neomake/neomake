@@ -197,16 +197,9 @@ function! neomake#Make(options) abort
 
     let serialize = get(g:, 'neomake_serialize')
     for name in enabled_makers
-        let tempfile = 0
-        let tempsuffix = ''
         let makepath = ''
         if file_mode
             let makepath = expand('%:p')
-            if get(g:, 'neomake_make_modified', 0) && &mod
-                let tempfile = 1
-                let tempsuffix = '.'.neomake#utils#Random().'.neomake.tmp'
-                let makepath .= tempsuffix
-            endif
         endif
         let maker = neomake#GetMaker(name, makepath, ft)
         let maker.file_mode = file_mode
@@ -221,14 +214,6 @@ function! neomake#Make(options) abort
                 " but on_exit hasn't been called yet.
             endtry
             break
-        endif
-        if tempfile
-            let escapedpath = fnameescape(makepath)
-            noautocmd silent exe 'keepalt w! '.escapedpath
-            noautocmd silent exe 'bwipeout '.escapedpath
-            call neomake#utils#LoudMessage('Neomake: wrote temp file '.makepath)
-            let maker.tempfile = makepath
-            let maker.tempsuffix = tempsuffix
         endif
         if serialize && len(enabled_makers) > 1
             let next_opts = copy(a:options)
@@ -276,12 +261,6 @@ endfunction
 
 function! s:CleanJobinfo(jobinfo) abort
     let maker = a:jobinfo.maker
-    if has_key(maker, 'tempfile')
-        let rmResult = neomake#utils#RemoveFile(maker.tempfile)
-        if !rmResult
-            call neomake#utils#ErrorMessage('Failed to remove temporary file '.maker.tempfile)
-        endif
-    endif
     let maker_key = s:GetMakerKey(maker)
     if has_key(s:jobs_by_maker, maker_key)
         unlet s:jobs_by_maker[maker_key]
@@ -356,13 +335,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
     let jobinfo = s:jobs[a:job_id]
     let maker = jobinfo.maker
     if index(['stdout', 'stderr'], a:event_type) >= 0
-        if has_key(maker, 'tempsuffix')
-            let pattern = substitute(maker.tempsuffix, '\.', '\.', 'g')
-            let lines = map(copy(a:data), 'substitute(v:val, pattern, "", "g")')
-        else
-            let lines = a:data
-        endif
-
+        let lines = a:data
         if has_key(maker, 'mapexpr')
             let lines = map(copy(lines), maker.mapexpr)
         endif

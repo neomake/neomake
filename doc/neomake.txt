@@ -135,12 +135,6 @@ Defaults to 10.
 This setting will echo the error for the line your cursor is on, if any.
 Defaults to 1.
 
-*g:neomake_make_modified*
-Setting this to 1 allows neomake to check unsaved changes. Set to 0 by
-default. This setting does nothing when running |:Neomake!| (in other words,
-it is only active when running |:Neomake|). This feature is not yet cross
-platform.
-
 *g:neomake_serialize*
 Setting this to 1 tells neomake to run each enabled maker one after the other.
 This is a good way to ensure messages don't get mixed up. When Neovim's

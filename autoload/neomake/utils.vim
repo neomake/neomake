@@ -124,16 +124,6 @@ function! neomake#utils#Random() abort
     return answer
 endfunction
 
-function! neomake#utils#RemoveFile(f) abort
-    if neomake#utils#IsRunningWindows()
-        let cmd = 'del'
-    else
-        let cmd = 'rm'
-    endif
-    call system(cmd.' '.shellescape(a:f))
-    return !v:shell_error
-endfunction
-
 function! neomake#utils#MakerFromCommand(shell, command) abort
     let shell_name = split(a:shell, '/')[-1]
     if index(['sh', 'csh', 'ash', 'bash', 'dash', 'ksh', 'pdksh', 'mksh', 'zsh'],
