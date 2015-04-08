@@ -44,7 +44,8 @@ fantastic vim plugins such as syntastic and dispatch.
                                                             *neomake-:NeomakeSh*
 :NeomakeSh {command}    Run {command} in a shell (according to 'shell'). The
                         command output will be loaded in the quickfix list when
-                        the job is complete.
+                        the job is complete. Example:
+                        :NeomakeSh find . -name '*.pyc'
 
 ==============================================================================
 3. Configuration                                         *neomake-configuration*
