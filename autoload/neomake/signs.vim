@@ -6,7 +6,9 @@ function! neomake#signs#Reset() abort
         call neomake#signs#CleanOldSigns()
     endif
     let s:last_placed_signs = get(s:, 'placed_signs', {})
+    let s:last_modified_signs = get(s:, 'modified_signs', {})
     let s:placed_signs = {}
+    let s:modified_signs = {}
 endfunction
 call neomake#signs#Reset()
 
@@ -95,10 +97,9 @@ function! neomake#signs#PlaceSign(existing_signs, entry) abort
         " Replace all existing signs for this line, so that ours appear on top
         for existing in get(a:existing_signs.by_line, a:entry.lnum, [])
             if existing.name !~# 'neomake_'
-                exe 'sign unplace '.existing.id.' buffer='.a:entry.bufnr
-                exe 'sign place '.existing.id.' line='.existing.line.
-                                            \ ' name='.existing.name.
-                                            \ ' buffer='.a:entry.bufnr
+                let s:modified_signs[a:entry.bufnr] = get(s:modified_signs, a:entry.bufnr, [])
+                call add(s:modified_signs[a:entry.bufnr], existing)
+                exe 'sign place '.existing.id.' name=neomake_invisible buffer='.a:entry.bufnr
             endif
         endfor
     endif
@@ -113,7 +114,14 @@ function! neomake#signs#CleanOldSigns() abort
             exe cmd
         endfor
     endfor
+    for buf in keys(s:last_modified_signs)
+        for sign in s:last_modified_signs[buf]
+            " We changed the sign's name, so change it back
+            exe 'sign place '.sign.id.' name='.sign.name.' buffer='.buf
+        endfor
+    endfor
     let s:last_placed_signs = {}
+    let s:last_modified_signs = {}
 endfunction
 
 function! neomake#signs#PlaceVisibleSigns() abort
@@ -137,8 +145,7 @@ function! neomake#signs#PlaceVisibleSigns() abort
     endif
 endfunction
 
-" This command intentionally ends with a space
-exe 'sign define neomake_invisible text=\ '
+exe 'sign define neomake_invisible'
 
 function! neomake#signs#RedefineSign(name, opts)
     let signs = neomake#signs#GetSigns({'name': a:name})
