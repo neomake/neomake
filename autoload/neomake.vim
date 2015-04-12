@@ -377,8 +377,11 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         endif
         let status = a:data
         call s:CleanJobinfo(jobinfo)
-        call neomake#utils#QuietMessage(get(maker, 'name', 'make').
-                                      \ ' complete with exit code '.status)
+        if has('nvim')
+            " Only report completion for neovim, since it is asynchronous
+            call neomake#utils#QuietMessage(get(maker, 'name', 'make').
+                                          \ ' complete with exit code '.status)
+        endif
 
         " If signs were not cleared before this point, then the maker did not return
         " any errors, so all signs must be removed
