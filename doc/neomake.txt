@@ -128,6 +128,14 @@ results will take longer, but multiline error messages should parse properly.
 
 Global Options                                                 *neomake-options*
 
+*g:neomake_<name>_maker* *g:neomake_<ft>_<name>_maker*
+Define a new filetype or project-level maker. See |neomake-makers|.
+
+*g:neomake_<name>_<property>* *g:neomake_<ft>_<name>_<property>*
+Configure a property for a prexisting maker where property is one of 'exe',
+'args', 'errorformat' or 'buffer_output'. Example: >
+    let g:neomake_javascript_jshint_exe = './myjshint'
+<
 *g:neomake_<ft>_enabled_makers*
 This setting will tell neomake which makers to use by default for the given
 filetype. Filetypes that have already have makers should have a default list

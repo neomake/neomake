@@ -58,7 +58,7 @@ function! neomake#MakeJob(maker) abort
     endif
     let jobinfo.maker = a:maker
 
-    let args = copy(get(a:maker, 'args', []))
+    let args = a:maker.args
     let append_file = a:maker.file_mode && index(args, '%:p')
     if append_file
         call add(args, '%:p')
@@ -112,12 +112,25 @@ function! neomake#GetMaker(name, ...) abort
         endif
     endif
     let maker = copy(maker)
-    if !has_key(maker, 'exe')
-        let maker.exe = a:name
-    endif
-    if !has_key(maker, 'name')
-        let maker.name = a:name
-    endif
+    let defaults = {
+        \ 'exe': a:name,
+        \ 'args': [],
+        \ 'errorformat': '',
+        \ 'buffer_output': 0,
+        \ }
+    for key in keys(defaults)
+        if len(ft)
+            let config_var = 'neomake_'.ft.'_'.a:name.'_'.key
+        else
+            let config_var = 'neomake_'.a:name.'_'.key
+        endif
+        if has_key(g:, config_var)
+            let maker[key] = copy(get(g:, config_var))
+        elseif !has_key(maker, key)
+            let maker[key] = defaults[key]
+        endif
+    endfor
+    let maker.name = a:name
     let maker.ft = ft
     " Only relevant if file_mode is used
     let maker.winnr = winnr()
@@ -332,7 +345,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         call neomake#utils#DebugMessage(
             \ get(maker, 'name', 'makeprg').' '.a:event_type.' done.')
 
-        if get(maker, 'buffer_output')
+        if maker.buffer_output
             let last_event_type = get(jobinfo, 'event_type', a:event_type)
             let jobinfo.event_type = a:event_type
             if last_event_type ==# a:event_type
