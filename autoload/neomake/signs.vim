@@ -106,7 +106,9 @@ function! neomake#signs#PlaceSign(existing_signs, entry) abort
 endfunction
 
 function! neomake#signs#CleanOldSigns() abort
-    call neomake#utils#DebugObject('Cleaning old signs:', s:last_placed_signs)
+    if !empty(s:last_placed_signs)
+        call neomake#utils#DebugObject('Cleaning old signs:', s:last_placed_signs)
+    endif
     for buf in keys(s:last_placed_signs)
         for ln in keys(s:last_placed_signs[buf])
             let cmd = 'sign unplace '.s:last_placed_signs[buf][ln]
