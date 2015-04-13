@@ -66,6 +66,8 @@ function! neomake#MakeJob(maker) abort
     call map(args, 'expand(v:val)')
 
     let job = s:JobStart(make_id, a:maker.exe, args)
+    let jobinfo.start = localtime()
+    let jobinfo.last_register = 0
 
     " Async setup that only affects neovim
     if has('nvim')
@@ -346,21 +348,23 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         call neomake#utils#DebugMessage(
             \ get(maker, 'name', 'makeprg').' '.a:event_type.' done.')
 
-        if maker.buffer_output
-            let last_event_type = get(jobinfo, 'event_type', a:event_type)
-            let jobinfo.event_type = a:event_type
-            if last_event_type ==# a:event_type
-                if has_key(jobinfo, 'lines')
-                    call extend(jobinfo.lines, lines)
-                else
-                    let jobinfo.lines = lines
-                endif
-            else
-                call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines)
-                let jobinfo.lines = lines
-            endif
+        " Register job output. Buffer registering of output for long running
+        " jobs.
+        let last_event_type = get(jobinfo, 'event_type', a:event_type)
+        let jobinfo.event_type = a:event_type
+        if has_key(jobinfo, 'lines')
+            call extend(jobinfo.lines, lines)
         else
-            call s:RegisterJobOutput(jobinfo, maker, lines)
+            let jobinfo.lines = lines
+        endif
+        let now = localtime()
+        if (!maker.buffer_output || last_event_type !=# a:event_type) ||
+                \ (last_event_type !=# a:event_type ||
+                \  now - jobinfo.start < 1 ||
+                \  now - jobinfo.last_register > 3)
+            call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines)
+            unlet jobinfo.lines
+            let jobinfo.last_register = now
         endif
     elseif a:event_type ==# 'exit'
         if has_key(jobinfo, 'lines')
