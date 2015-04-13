@@ -1,21 +1,36 @@
 
-function! s:getListCounts(list, buf) abort
-    let counts = {}
-    for err in a:list
-        let type = toupper(err.type)
-        if len(type) && (!a:buf || err.bufnr ==# a:buf)
-            let counts[type] = get(counts, type, 0) + 1
-        endif
-    endfor
-    return counts
+function! s:setCount(counts, item, buf) abort
+    let type = toupper(a:item.type)
+    if len(type) && (!a:buf || a:item.bufnr ==# a:buf)
+        let a:counts[type] = get(a:counts, type, 0) + 1
+    endif
+endfunction
+
+function! neomake#statusline#ResetCounts() abort
+    let s:qflist_counts = {}
+    let s:loclist_counts = {}
+endfunction
+call neomake#statusline#ResetCounts()
+
+function! neomake#statusline#AddLoclistCount(win, buf, item) abort
+    let s:loclist_counts[a:win] = get(s:loclist_counts, a:win, {})
+    let s:loclist_counts[a:win][a:buf] = get(s:loclist_counts[a:win], a:buf, {})
+    call s:setCount(s:loclist_counts[a:win][a:buf], a:item, a:buf)
+endfunction
+
+function! neomake#statusline#AddQflistCount(item) abort
+    call s:setCount(s:qflist_counts, a:item, 0)
 endfunction
 
 function! neomake#statusline#LoclistCounts() abort
-    return s:getListCounts(getloclist(winnr()), bufnr('%'))
+    let win = winnr()
+    let buf = bufnr('%')
+    let s:loclist_counts[win] = get(s:loclist_counts, win, {})
+    return get(s:loclist_counts[win], buf, {})
 endfunction
 
 function! neomake#statusline#QflistCounts() abort
-    return s:getListCounts(getqflist(), 0)
+    return s:qflist_counts
 endfunction
 
 function! s:showErrWarning(counts, prefix)

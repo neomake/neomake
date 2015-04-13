@@ -170,6 +170,7 @@ endfunction
 
 function! neomake#Make(options) abort
     call neomake#signs#DefineSigns()
+    call neomake#statusline#ResetCounts()
 
     let ft = get(a:options, 'ft', '')
     let file_mode = get(a:options, 'file_mode')
