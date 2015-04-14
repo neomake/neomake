@@ -104,6 +104,9 @@ C++:
 - clang++
 - g++
 
+D:
+- dmd
+
 sh:
 - shellcheck
 
