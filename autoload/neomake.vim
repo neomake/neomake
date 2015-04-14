@@ -240,8 +240,17 @@ function! s:AddExprCallback(maker) abort
         let entry = list[s:neomake_list_nr]
         let s:neomake_list_nr += 1
 
+        if entry.valid && !file_mode
+            call neomake#statusline#AddQflistCount(entry)
+        endif
+
         if !entry.bufnr || !entry.valid
             continue
+        endif
+
+        if file_mode
+            call neomake#statusline#AddLoclistCount(
+                \ a:maker.winnr, entry.bufnr, entry)
         endif
 
         " On the first valid error identified by a maker,
