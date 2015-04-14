@@ -16,10 +16,7 @@ function! neomake#utils#LogMessage(level, msg) abort
     endif
     if type(logfile) ==# type('') && len(logfile)
         let date = strftime("%Y-%m-%dT%H:%M:%S%z")
-        " TODO make this cross platform
-        call system(
-            \ 'cat >> '.shellescape(logfile),
-            \ date.' Log level '.a:level.': '.msg."\n")
+        call writefile([date.' Log level '.a:level.': '.msg], logfile, 'a')
     endif
 endfunction
 

@@ -13,6 +13,8 @@ things may break and change often until they do. That said, I'm using it daily
 doesn't work for you!
 
 The minimum Neovim version supported by Neomake is `NVIM 0.0.0-alpha+201503292107` (commit `960b9108c`).
+The minimum Vim version supported by Neomake is 7.4.503 (although if you don't
+use `g:neomake_logfile` older versions will probably work fine as well).
 
 ## How to use (basic)
 
