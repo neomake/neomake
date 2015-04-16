@@ -30,7 +30,7 @@ function! neomake#signs#GetSigns(...) abort
     endfor
     call neomake#utils#DebugMessage('executing: '.place_cmd)
     let curlang=v:lang
-    language messages en_US.UTF8
+    language messages C.UTF-8
     redir => signs_txt | silent exe place_cmd | redir END
     silent exe "language messages ".curlang
     let fname_pattern = 'Signs for \(.*\):'
