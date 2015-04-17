@@ -29,10 +29,20 @@ function! neomake#signs#GetSigns(...) abort
         endif
     endfor
     call neomake#utils#DebugMessage('executing: '.place_cmd)
+
+    " Try to switch to an english locale to parse the signs text
+    " TODO find a way to get signs without parsing if possible
     let curlang=v:lang
-    silent! language messages en_US.ISO_8859-1
+    for locale in ['en_US.ISO_8859-1', 'en_US.ISO8859-1', 'en_US.UTF8', 'en_US.utf8']
+        try
+            silent exe 'language messages '.locale
+            break
+        catch /^Vim\%((\a\+)\)\=:E197/
+        endtry
+    endfor
     redir => signs_txt | silent exe place_cmd | redir END
     silent exe "language messages ".curlang
+
     let fname_pattern = 'Signs for \(.*\):'
     for s in split(signs_txt, '\n')
         if s =~# fname_pattern
