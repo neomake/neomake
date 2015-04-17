@@ -33,7 +33,8 @@ function! neomake#signs#GetSigns(...) abort
     " Try to switch to an english locale to parse the signs text
     " TODO find a way to get signs without parsing if possible
     let curlang=v:lang
-    for locale in ['en_US.ISO_8859-1', 'en_US.ISO8859-1', 'en_US.UTF8', 'en_US.utf8']
+    for locale in ['en_US.ISO_8859-1', 'en_US.ISO8859-1', 'en_US.UTF8',
+                 \ 'en_US.utf8', 'en_US.UTF-8', 'en_US.utf-8']
         try
             silent exe 'language messages '.locale
             break
