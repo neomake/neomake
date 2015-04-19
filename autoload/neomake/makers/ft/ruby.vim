@@ -7,8 +7,17 @@ endfunction
 function! neomake#makers#ft#ruby#rubocop()
     return {
         \ 'args': ['--format', 'emacs'],
-        \ 'errorformat': '%f:%l:%c: %t: %m'
+        \ 'errorformat': '%f:%l:%c: %t: %m',
+        \ 'postprocess': function('neomake#makers#ft#ruby#RubocopEntryProcess')
         \ }
+endfunction
+
+function! neomake#makers#ft#ruby#RubocopEntryProcess(entry)
+    if a:entry.type ==# 'F'
+        let a:entry.type = 'E'
+    elseif a:entry.type !=# 'W' && a:entry.type !=# 'E'
+        let a:entry.type = 'W'
+    endif
 endfunction
 
 function neomake#makers#ft#ruby#mri()

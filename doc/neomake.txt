@@ -105,13 +105,29 @@ This will cause "lint /path/to/file.c --option x" to be run instead of
 "lint --option x /path/to/file.c".
 
                                                      *neomake-makers-processing*
-Sometimes a maker's output may require some processing. For this, there is the
-optional mapexpr property that you can define on a maker object. It will be
-passed directly into |map| as the expr argument like so: >
+You can define two optional properties on a maker object to process the maker
+output: 'mapexpr' is applied to the maker output before any processing, and
+'postprocess' is applied to the quickfix or location list entry.
+
+The 'mapexpr' property will be passed directly into |map| as the expr argument like so: >
     call map(lines, maker.mapexpr)
-<This allows you to manipulate the lines as needed. Currently this is called
+<where 'lines' contains the maker output.
+This allows you to manipulate the lines as needed. Currently this is called
 on stdout and stderr lines alike.
 
+The 'postprocess' property is a function reference that will be applied to the
+entry in the location or quickfix list.
+Example: change the entry type to a warning. >
+    function SetWarningType(entry)
+        a:entry.type = 'W'
+    endfunction
+    let g:neomake_c_lint_maker = {
+        \ 'exe': 'lint',
+        \ 'args': ['--option', 'x'],
+        \ 'errorformat': '%f:%l:%c: %m',
+        \ 'postprocess': function('SetWarningType')
+        \ }
+<
                                                   *neomake-makers-buffer_output*
 Some makers with multiline error messages have issues (depending on how they
 flush their output). If multiline errorformats seem to work inconsistently for

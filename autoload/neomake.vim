@@ -240,6 +240,11 @@ function! s:AddExprCallback(maker) abort
         let entry = list[s:neomake_list_nr]
         let s:neomake_list_nr += 1
 
+        if has_key(a:maker, 'postprocess')
+            let Func = a:maker.postprocess
+            call Func(entry)
+        end
+
         if entry.valid && !file_mode
             call neomake#statusline#AddQflistCount(entry)
         endif
