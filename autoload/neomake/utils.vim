@@ -146,7 +146,7 @@ function! neomake#utils#MakerIsAvailable(ft, maker_name) abort
         return 1
     endif
     if !has_key(s:available_makers, a:maker_name)
-        let maker = neomake#GetMaker(a:maker_name, '', a:ft)
+        let maker = neomake#GetMaker(a:maker_name, a:ft)
         let s:available_makers[a:maker_name] = neomake#utils#Exists(maker.exe)
     endif
     return s:available_makers[a:maker_name]
