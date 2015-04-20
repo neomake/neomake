@@ -7,69 +7,11 @@ function! neomake#signs#Reset() abort
     endif
     let s:last_placed_signs = get(s:, 'placed_signs', {})
     let s:last_modified_signs = get(s:, 'modified_signs', {})
+    let s:sign_id = 5000
     let s:placed_signs = {}
     let s:modified_signs = {}
 endfunction
 call neomake#signs#Reset()
-
-function! neomake#signs#GetSigns(...) abort
-    let signs = {
-        \ 'by_line': {},
-        \ 'max_id': 0,
-        \ }
-    if a:0
-        let opts = a:1
-    else
-        let opts = {}
-    endif
-    let place_cmd = 'sign place'
-    for attr in keys(opts)
-        if attr ==# 'file' || attr ==# 'buffer'
-            let place_cmd .= ' '.attr.'='.opts[attr]
-        endif
-    endfor
-    call neomake#utils#DebugMessage('executing: '.place_cmd)
-
-    " Try to switch to an english locale to parse the signs text
-    " TODO find a way to get signs without parsing if possible
-    let curlang=v:lang
-    for locale in ['en_US.ISO_8859-1', 'en_US.ISO8859-1', 'en_US.UTF8',
-                 \ 'en_US.utf8', 'en_US.UTF-8', 'en_US.utf-8']
-        try
-            silent exe 'language messages '.locale
-            break
-        catch /^Vim\%((\a\+)\)\=:E197/
-        endtry
-    endfor
-    redir => signs_txt | silent exe place_cmd | redir END
-    silent exe "language messages ".curlang
-
-    let fname_pattern = 'Signs for \(.*\):'
-    for s in split(signs_txt, '\n')
-        if s =~# fname_pattern
-            " This should always happen first, so don't define outside loop
-            let fname = substitute(s, fname_pattern, '\1', '')
-        elseif s =~# 'id='
-            let result = {}
-            let parts = split(s, '\s\+')
-            for part in parts
-                let [key, val] = split(part, '=')
-                let result[key] = val =~# '\d\+' ? 0 + val : val
-            endfor
-            let result.file = fname
-            if !has_key(opts, 'name') || opts.name ==# result.name
-                let signs.by_line[result.line] = get(signs.by_line, result.line, [])
-                call add(signs.by_line[result.line], result)
-                let signs.max_id = max([signs.max_id, result.id])
-            endif
-        endif
-    endfor
-    return signs
-endfunction
-
-function! neomake#signs#GetSignsInBuffer(bufnr) abort
-    return neomake#signs#GetSigns({'buffer': a:bufnr})
-endfunction
 
 function! neomake#signs#RegisterSign(entry) abort
     let s:sign_queue[a:entry.bufnr] = get(s:sign_queue, a:entry.bufnr, {})
@@ -79,21 +21,17 @@ function! neomake#signs#RegisterSign(entry) abort
     endif
 endfunction
 
-function! neomake#signs#PlaceSign(existing_signs, entry) abort
+function! neomake#signs#PlaceSign(entry) abort
     let type = a:entry.type ==# 'E' ? 'neomake_err' : 'neomake_warn'
 
-    let a:existing_signs.by_line[a:entry.lnum] = get(a:existing_signs.by_line,
-                                                   \ a:entry.lnum, [])
     let s:placed_signs[a:entry.bufnr] = get(s:placed_signs, a:entry.bufnr, {})
-    let new_sign = 0
     if !has_key(s:placed_signs[a:entry.bufnr], a:entry.lnum)
-        let sign_id = a:existing_signs.max_id + 1
-        let a:existing_signs.max_id = sign_id
+        let sign_id = s:sign_id
+        let s:sign_id += 1
         let cmd = 'sign place '.sign_id.' line='.a:entry.lnum.
                                       \ ' name='.type.
                                       \ ' buffer='.a:entry.bufnr
         let s:placed_signs[a:entry.bufnr][a:entry.lnum] = sign_id
-        let new_sign = 1
     elseif type ==# 'neomake_err'
         " Upgrade this sign to an error
         let sign_id = s:placed_signs[a:entry.bufnr][a:entry.lnum]
@@ -105,17 +43,6 @@ function! neomake#signs#PlaceSign(existing_signs, entry) abort
     if len(cmd)
         call neomake#utils#DebugMessage('Placing sign: '.cmd)
         exe cmd
-    endif
-
-    if new_sign
-        " Replace all existing signs for this line, so that ours appear on top
-        for existing in get(a:existing_signs.by_line, a:entry.lnum, [])
-            if existing.name !~# 'neomake_'
-                let s:modified_signs[a:entry.bufnr] = get(s:modified_signs, a:entry.bufnr, [])
-                call add(s:modified_signs[a:entry.bufnr], existing)
-                exe 'sign place '.existing.id.' name=neomake_invisible buffer='.a:entry.bufnr
-            endif
-        endfor
     endif
 endfunction
 
@@ -149,10 +76,7 @@ function! neomake#signs#PlaceVisibleSigns() abort
     let botline = line('w$')
     for ln in range(topline, botline)
         if has_key(s:sign_queue[buf], ln)
-            if !exists('l:signs')
-                let l:signs = neomake#signs#GetSignsInBuffer(buf)
-            endif
-            call neomake#signs#PlaceSign(l:signs, s:sign_queue[buf][ln])
+            call neomake#signs#PlaceSign(s:sign_queue[buf][ln])
             unlet s:sign_queue[buf][ln]
         endif
     endfor
@@ -164,22 +88,17 @@ endfunction
 exe 'sign define neomake_invisible'
 
 function! neomake#signs#RedefineSign(name, opts)
-    let signs = neomake#signs#GetSigns({'name': a:name})
-    for lnum in keys(signs.by_line)
-        for sign in signs.by_line[lnum]
-            exe 'sign place '.sign.id.' name=neomake_invisible file='.sign.file
-        endfor
-    endfor
-
     let sign_define = 'sign define '.a:name
     for attr in keys(a:opts)
         let sign_define .= ' '.attr.'='.a:opts[attr]
     endfor
     exe sign_define
 
-    for lnum in keys(signs.by_line)
-        for sign in signs.by_line[lnum]
-            exe 'sign place '.sign.id.' name='.a:name.' file='.sign.file
+    for buf in keys(s:placed_signs)
+        for ln in keys(s:placed_signs[buf])
+            let sign_id = s:placed_signs[buf][ln]
+            exe 'sign place '.sign_id.' name=neomake_invisible buffer='.buf
+            exe 'sign place '.sign_id.' name='.a:name.' buffer='.buf
         endfor
     endfor
 endfunction
