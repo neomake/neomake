@@ -6,7 +6,6 @@ function! neomake#signs#Reset() abort
         call neomake#signs#CleanOldSigns()
     endif
     let s:last_placed_signs = get(s:, 'placed_signs', {})
-    let s:last_modified_signs = get(s:, 'modified_signs', {})
     let s:sign_id = 5000
     let s:placed_signs = {}
     let s:modified_signs = {}
@@ -57,14 +56,7 @@ function! neomake#signs#CleanOldSigns() abort
             exe cmd
         endfor
     endfor
-    for buf in keys(s:last_modified_signs)
-        for sign in s:last_modified_signs[buf]
-            " We changed the sign's name, so change it back
-            exe 'sign place '.sign.id.' name='.sign.name.' buffer='.buf
-        endfor
-    endfor
     let s:last_placed_signs = {}
-    let s:last_modified_signs = {}
 endfunction
 
 function! neomake#signs#PlaceVisibleSigns() abort
