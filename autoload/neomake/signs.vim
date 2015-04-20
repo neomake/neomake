@@ -8,7 +8,6 @@ function! neomake#signs#Reset() abort
     let s:last_placed_signs = get(s:, 'placed_signs', {})
     let s:sign_id = 5000
     let s:placed_signs = {}
-    let s:modified_signs = {}
 endfunction
 call neomake#signs#Reset()
 
