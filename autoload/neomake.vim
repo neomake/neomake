@@ -84,29 +84,29 @@ function! neomake#MakeJob(maker) abort
     endif
 endfunction
 
-function! neomake#GetMaker(name, ...) abort
+function! neomake#GetMaker(maker_id, ...) abort
     if a:0
         let ft = a:1
     else
         let ft = ''
     endif
-    if type(a:name) == type({})
-        let maker = a:name
+    if type(a:maker_id) == type({})
+        let maker = a:maker_id
     else
-        if a:name ==# 'makeprg'
+        if a:maker_id ==# 'makeprg'
             let maker = neomake#utils#MakerFromCommand(&shell, &makeprg)
         elseif len(ft)
             let maker = get(g:, 'neomake_'.ft.'_'.a:name.'_maker')
         else
-            let maker = get(g:, 'neomake_'.a:name.'_maker')
+            let maker = get(g:, 'neomake_'.a:maker_id.'_maker')
         endif
         if type(maker) == type(0)
             unlet maker
             try
                 if len(ft)
-                    let maker = eval('neomake#makers#ft#'.ft.'#'.a:name.'()')
+                    let maker = eval('neomake#makers#ft#'.ft.'#'.a:maker_id.'()')
                 else
-                    let maker = eval('neomake#makers#'.a:name.'#'.a:name.'()')
+                    let maker = eval('neomake#makers#'.a:maker_id.'#'.a:maker_id.'()')
                 endif
             catch /^Vim\%((\a\+)\)\=:E117/
                 let maker = {}
@@ -115,16 +115,16 @@ function! neomake#GetMaker(name, ...) abort
     endif
     let maker = copy(maker)
     let defaults = {
-        \ 'exe': a:name,
+        \ 'exe': a:maker_id,
         \ 'args': [],
-        \ 'errorformat': '',
+        \ 'errorformat': '%E',
         \ 'buffer_output': 0,
         \ }
     for key in keys(defaults)
         if len(ft)
-            let config_var = 'neomake_'.ft.'_'.a:name.'_'.key
+            let config_var = 'neomake_'.ft.'_'.maker.name.'_'.key
         else
-            let config_var = 'neomake_'.a:name.'_'.key
+            let config_var = 'neomake_'.maker.name.'_'.key
         endif
         if has_key(g:, config_var)
             let maker[key] = copy(get(g:, config_var))
@@ -132,7 +132,9 @@ function! neomake#GetMaker(name, ...) abort
             let maker[key] = defaults[key]
         endif
     endfor
-    let maker.name = a:name
+    if !has_key(maker, 'name')
+        let maker.name = a:maker_id
+    endif
     let maker.ft = ft
     " Only relevant if file_mode is used
     let maker.winnr = winnr()
