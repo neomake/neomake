@@ -114,10 +114,13 @@ function! neomake#GetMaker(maker_id, ...) abort
         endif
     endif
     let maker = copy(maker)
+    if !has_key(maker, 'name')
+        let maker.name = a:maker_id
+    endif
     let defaults = {
         \ 'exe': a:maker_id,
         \ 'args': [],
-        \ 'errorformat': '%E',
+        \ 'errorformat': '',
         \ 'buffer_output': 0,
         \ }
     for key in keys(defaults)
@@ -132,9 +135,6 @@ function! neomake#GetMaker(maker_id, ...) abort
             let maker[key] = defaults[key]
         endif
     endfor
-    if !has_key(maker, 'name')
-        let maker.name = a:maker_id
-    endif
     let maker.ft = ft
     " Only relevant if file_mode is used
     let maker.winnr = winnr()
@@ -289,7 +289,7 @@ function! s:ProcessJobOutput(maker, lines) abort
     call neomake#utils#DebugMessage(get(a:maker, 'name', 'makeprg').' processing '.
                                     \ len(a:lines).' lines of output')
     if len(a:lines) > 0
-        if has_key(a:maker, 'errorformat')
+        if len(a:maker.errorformat)
             let olderrformat = &errorformat
             let &errorformat = a:maker.errorformat
         endif
