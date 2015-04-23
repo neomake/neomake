@@ -202,13 +202,10 @@ function! neomake#Make(options) abort
             let buf = bufnr('%')
             let win = winnr()
             call neomake#signs#Reset(buf)
-            let s:cleared_current_errors = get(s:, 'cleared_current_errors', {})
-            let s:cleared_current_errors[buf] = 0
             let s:loclist_nr = get(s:, 'loclist_nr', {})
             let s:loclist_nr[win] = 0
         else
             call neomake#signs#ResetAllBuffers()
-            let s:cleared_current_errors = {}
             let s:qflist_nr = 0
         endif
     endif
@@ -461,19 +458,16 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
 endfunction
 
 function! s:CleanAllSignsAndErrors()
-    for buf in keys(s:cleared_current_errors)
+    for buf in keys(s:current_errors)
         call s:CleanSignsAndErrors(buf)
     endfor
 endfunction
 
 function! s:CleanSignsAndErrors(bufnr)
     call neomake#signs#CleanOldSigns(a:bufnr)
-    if has_key(s:cleared_current_errors, a:bufnr) && !s:cleared_current_errors[a:bufnr]
-        let errors = get(s:, 'current_errors', {})
-        if has_key(errors, a:bufnr)
-            unlet s:current_errors[a:bufnr]
-        endif
-        let s:cleared_current_errors[a:bufnr] = 1
+    let current_errors = get(s:, 'current_errors', {})
+    if has_key(current_errors, a:bufnr)
+        unlet s:current_errors[a:bufnr]
     endif
 endfunction
 
