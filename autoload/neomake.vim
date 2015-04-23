@@ -199,13 +199,13 @@ function! neomake#Make(options) abort
     if !get(a:options, 'continuation')
         " Only do this if we have one or more enabled makers
         if file_mode
-            let bufnr = bufnr('%')
-            let winnr = winnr()
-            call neomake#signs#Reset(bufnr)
+            let buf = bufnr('%')
+            let win = winnr()
+            call neomake#signs#Reset(buf)
             let s:cleared_current_errors = get(s:, 'cleared_current_errors', {})
-            let s:cleared_current_errors[bufnr] = 0
+            let s:cleared_current_errors[buf] = 0
             let s:loclist_nr = get(s:, 'loclist_nr', {})
-            let s:loclist_nr[winnr] = 0
+            let s:loclist_nr[win] = 0
         else
             call neomake#signs#ResetAllBuffers()
             let s:cleared_current_errors = {}
@@ -461,8 +461,8 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
 endfunction
 
 function! s:CleanAllSignsAndErrors()
-    for bufnr in keys(s:cleared_current_errors)
-        call s:CleanSignsAndErrors(bufnr)
+    for buf in keys(s:cleared_current_errors)
+        call s:CleanSignsAndErrors(buf)
     endfor
 endfunction
 

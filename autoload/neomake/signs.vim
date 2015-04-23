@@ -4,8 +4,8 @@ function! neomake#signs#ResetAllBuffers() abort
     let s:sign_queue = {}
     let s:placed_signs = get(s:, 'placed_signs', {})
     if exists('s:last_placed_signs')
-        for bufnr in keys(s:last_placed_signs)
-            call neomake#signs#Reset(bufnr)
+        for buf in keys(s:last_placed_signs)
+            call neomake#signs#Reset(buf)
         endfor
     endif
     let s:last_placed_signs = {}
