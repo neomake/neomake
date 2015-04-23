@@ -60,7 +60,7 @@ function! neomake#signs#PlaceSign(entry) abort
 endfunction
 
 function! neomake#signs#CleanOldSigns(bufnr) abort
-    if !has_key(s:last_placed_signs, a:bufnr) || empty(s:last_placed_signs[a:bufnr])
+    if !has_key(s:last_placed_signs, a:bufnr)
         return
     endif
     call neomake#utils#DebugObject('Cleaning old signs in buffer '.a:bufnr.': ', s:last_placed_signs)
