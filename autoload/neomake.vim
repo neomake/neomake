@@ -84,29 +84,29 @@ function! neomake#MakeJob(maker) abort
     endif
 endfunction
 
-function! neomake#GetMaker(maker_id, ...) abort
+function! neomake#GetMaker(name_or_maker, ...) abort
     if a:0
         let ft = a:1
     else
         let ft = ''
     endif
-    if type(a:maker_id) == type({})
-        let maker = a:maker_id
+    if type(a:name_or_maker) == type({})
+        let maker = a:name_or_maker
     else
-        if a:maker_id ==# 'makeprg'
+        if a:name_or_maker ==# 'makeprg'
             let maker = neomake#utils#MakerFromCommand(&shell, &makeprg)
         elseif len(ft)
-            let maker = get(g:, 'neomake_'.ft.'_'.a:maker_id.'_maker')
+            let maker = get(g:, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
         else
-            let maker = get(g:, 'neomake_'.a:maker_id.'_maker')
+            let maker = get(g:, 'neomake_'.a:name_or_maker.'_maker')
         endif
         if type(maker) == type(0)
             unlet maker
             try
                 if len(ft)
-                    let maker = eval('neomake#makers#ft#'.ft.'#'.a:maker_id.'()')
+                    let maker = eval('neomake#makers#ft#'.ft.'#'.a:name_or_maker.'()')
                 else
-                    let maker = eval('neomake#makers#'.a:maker_id.'#'.a:maker_id.'()')
+                    let maker = eval('neomake#makers#'.a:name_or_maker.'#'.a:name_or_maker.'()')
                 endif
             catch /^Vim\%((\a\+)\)\=:E117/
                 let maker = {}
@@ -115,10 +115,10 @@ function! neomake#GetMaker(maker_id, ...) abort
     endif
     let maker = copy(maker)
     if !has_key(maker, 'name')
-        let maker.name = a:maker_id
+        let maker.name = a:name_or_maker
     endif
     let defaults = {
-        \ 'exe': a:maker_id,
+        \ 'exe': maker.name,
         \ 'args': [],
         \ 'errorformat': '',
         \ 'buffer_output': 0,
