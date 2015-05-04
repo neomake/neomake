@@ -122,6 +122,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         \ 'args': [],
         \ 'errorformat': &errorformat,
         \ 'buffer_output': 0,
+        \ 'remove_invalid_entries': 1
         \ }
     for key in keys(defaults)
         if len(ft)
@@ -237,6 +238,7 @@ function! s:AddExprCallback(maker) abort
     let file_mode = get(a:maker, 'file_mode')
     let place_signs = get(g:, 'neomake_place_signs', 1)
     let list = file_mode ? getloclist(a:maker.winnr) : getqflist()
+    let list_modified = 0
 
     while s:neomake_list_nr < len(list)
         let entry = list[s:neomake_list_nr]
@@ -247,11 +249,20 @@ function! s:AddExprCallback(maker) abort
             call Func(entry)
         end
 
-        if entry.valid && !file_mode
+        if !entry.valid
+            if a:maker.remove_invalid_entries
+                let s:neomake_list_nr -= 1
+                call remove(list, s:neomake_list_nr)
+                let list_modified = 1
+            endif
+            continue
+        endif
+
+        if !file_mode
             call neomake#statusline#AddQflistCount(entry)
         endif
 
-        if !entry.bufnr || !entry.valid
+        if !entry.bufnr
             continue
         endif
 
@@ -274,6 +285,15 @@ function! s:AddExprCallback(maker) abort
             call neomake#signs#RegisterSign(entry)
         endif
     endwhile
+
+    if list_modified
+        if file_mode
+            call setloclist(a:maker.winnr, list, 'r')
+        else
+            call setqflist(list, 'r')
+        endif
+    endif
+
 endfunction
 
 function! s:CleanJobinfo(jobinfo) abort
