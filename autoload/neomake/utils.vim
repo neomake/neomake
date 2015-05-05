@@ -121,7 +121,7 @@ function! neomake#utils#Random() abort
     return answer
 endfunction
 
-function! neomake#utils#MakerFromCommand(shell, command) abort
+function! neomake#utils#MakerFromCommand(shell, command, errorformat) abort
     let command = substitute(a:command, '%\(:[a-z]\)*',
                            \ '\=expand(submatch(0))', 'g')
     let shell_name = split(a:shell, '/')[-1]
@@ -134,7 +134,8 @@ function! neomake#utils#MakerFromCommand(shell, command) abort
     endif
     return {
         \ 'exe': a:shell,
-        \ 'args': args
+        \ 'args': args,
+        \ 'errorformat': a:errorformat
         \ }
 endfunction
 

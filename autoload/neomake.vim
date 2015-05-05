@@ -94,7 +94,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         let maker = a:name_or_maker
     else
         if a:name_or_maker ==# 'makeprg'
-            let maker = neomake#utils#MakerFromCommand(&shell, &makeprg)
+            let maker = neomake#utils#MakerFromCommand(&shell, &makeprg, &errorformat)
         elseif len(ft)
             let maker = get(g:, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
         else
