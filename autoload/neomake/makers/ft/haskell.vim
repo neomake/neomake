@@ -1,6 +1,22 @@
 
 function! neomake#makers#ft#haskell#EnabledMakers()
-    return ['ghcmod', 'hlint']
+    return ['ghcmod', 'hdevtools', 'hlint']
+endfunction
+
+function! neomake#makers#ft#haskell#hdevtools()
+    return {
+        \ 'exe': 'hdevtools',
+        \ 'args': ['check'],
+        \ 'errorformat':
+            \ '%-G%\s%#,' .
+            \ '%f:%l:%c:%trror: %m,' .
+            \ '%f:%l:%c:%tarning: %m,'.
+            \ '%f:%l:%c: %trror: %m,' .
+            \ '%f:%l:%c: %tarning: %m,' .
+            \ '%f:%l:%c:%m,' .
+            \ '%E%f:%l:%c:,' .
+            \ '%Z%m'
+        \ }
 endfunction
 
 function! neomake#makers#ft#haskell#ghcmod()
