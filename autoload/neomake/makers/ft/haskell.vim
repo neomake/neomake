@@ -8,14 +8,14 @@ function! neomake#makers#ft#haskell#hdevtools()
         \ 'exe': 'hdevtools',
         \ 'args': ['check'],
         \ 'errorformat':
-            \ '%-G%\s%#,' .
-            \ '%f:%l:%c:%trror: %m,' .
-            \ '%f:%l:%c:%tarning: %m,'.
-            \ '%f:%l:%c: %trror: %m,' .
-            \ '%f:%l:%c: %tarning: %m,' .
-            \ '%f:%l:%c:%m,' .
-            \ '%E%f:%l:%c:,' .
-            \ '%Z%m'
+            \ '%-Z %#,'.
+            \ '%W%f:%l:%v: Warning: %m,'.
+            \ '%W%f:%l:%v: Warning:,'.
+            \ '%E%f:%l:%v: %m,'.
+            \ '%E%>%f:%l:%v:,'.
+            \ '%+C  %#%m,'.
+            \ '%W%>%f:%l:%v:,'.
+            \ '%+C  %#%tarning: %m,'
         \ }
 endfunction
 
