@@ -113,7 +113,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             endtry
         endif
     endif
-    let maker = copy(maker)
+    let maker = deepcopy(maker)
     if !has_key(maker, 'name')
         let maker.name = a:name_or_maker
     endif
