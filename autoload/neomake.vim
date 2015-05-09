@@ -120,7 +120,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     let defaults = {
         \ 'exe': maker.name,
         \ 'args': [],
-        \ 'errorformat': '',
+        \ 'errorformat': &errorformat,
         \ 'buffer_output': 0,
         \ }
     for key in keys(defaults)
@@ -289,10 +289,8 @@ function! s:ProcessJobOutput(maker, lines) abort
     call neomake#utils#DebugMessage(get(a:maker, 'name', 'makeprg').' processing '.
                                     \ len(a:lines).' lines of output')
     if len(a:lines) > 0
-        if len(a:maker.errorformat)
-            let olderrformat = &errorformat
-            let &errorformat = a:maker.errorformat
-        endif
+        let olderrformat = &errorformat
+        let &errorformat = a:maker.errorformat
 
         if get(a:maker, 'file_mode')
             laddexpr a:lines
@@ -301,9 +299,7 @@ function! s:ProcessJobOutput(maker, lines) abort
         endif
         call s:AddExprCallback(a:maker)
 
-        if exists('olderrformat')
-            let &errorformat = olderrformat
-        endif
+        let &errorformat = olderrformat
     endif
 endfunction
 
