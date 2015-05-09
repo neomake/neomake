@@ -6,7 +6,7 @@ endfunction
 function! neomake#makers#ft#haskell#hdevtools()
     return {
         \ 'exe': 'hdevtools',
-        \ 'args': ['check'],
+        \ 'args': ['check', '-g-Wall'],
         \ 'errorformat':
             \ '%-Z %#,'.
             \ '%W%f:%l:%v: Warning: %m,'.
