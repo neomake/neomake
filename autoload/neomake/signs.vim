@@ -1,54 +1,83 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#signs#ResetAllBuffers() abort
-    let s:sign_queue = {}
-    let s:placed_signs = get(s:, 'placed_signs', {})
-    if exists('s:last_placed_signs')
-        for buf in keys(s:last_placed_signs)
-            call neomake#signs#Reset(buf)
-        endfor
-    endif
-    let s:last_placed_signs = {}
-    let s:neomake_sign_id = {}
+function! s:InitSigns() abort
+    let s:sign_queue = {
+        \ 'project': {},
+        \ 'file': {}
+        \ }
+    let s:last_placed_signs = {
+        \ 'project': {},
+        \ 'file': {}
+        \ }
+    let s:placed_signs = {
+        \ 'project': {},
+        \ 'file': {}
+        \ }
+    let s:sign_queue = {
+        \ 'project': {},
+        \ 'file': {}
+        \ }
+    let s:neomake_sign_id = {
+        \ 'project': {},
+        \ 'file': {}
+        \ }
 endfunction
-call neomake#signs#ResetAllBuffers()
+call s:InitSigns()
 
-function! neomake#signs#Reset(bufnr) abort
-    let s:sign_queue[a:bufnr] = {}
-    if exists('s:last_placed_signs')
-        call neomake#signs#CleanOldSigns(a:bufnr)
-    endif
-    let s:placed_signs = get(s:, 'placed_signs', {})
-    let s:last_placed_signs[a:bufnr] = get(s:placed_signs, a:bufnr, {})
-    let s:placed_signs[a:bufnr] = {}
-    if has_key(s:neomake_sign_id, a:bufnr)
-        unlet s:neomake_sign_id[a:bufnr]
+" Reset signs placed by a :Neomake! call
+" (resettting signs means the current signs will be deleted on the next call to ResetProject)
+function! neomake#signs#ResetProject() abort
+    let s:sign_queue.project = {}
+    for buf in keys(s:placed_signs.project)
+        call neomake#signs#CleanOldSigns(buf, 'project')
+        call neomake#signs#Reset(buf, 'project')
+    endfor
+    let s:neomake_sign_id.project = {}
+endfunction
+
+" Reset signs placed by a :Neomake call in a buffer
+function! neomake#signs#ResetFile(bufnr) abort
+    let s:sign_queue.file[a:bufnr] = {}
+    call neomake#signs#CleanOldSigns(a:bufnr, 'file')
+    call neomake#signs#Reset(a:bufnr, 'file')
+    if has_key(s:neomake_sign_id.file, a:bufnr)
+        unlet s:neomake_sign_id.file[a:bufnr]
     endif
 endfunction
 
-function! neomake#signs#RegisterSign(entry) abort
-    let s:sign_queue[a:entry.bufnr] = get(s:sign_queue, a:entry.bufnr, {})
-    let existing = get(s:sign_queue[a:entry.bufnr], a:entry.lnum, {})
+function! neomake#signs#Reset(bufnr, type) abort
+    if has_key(s:placed_signs[a:type], a:bufnr)
+        let s:last_placed_signs[a:type][a:bufnr] = s:placed_signs[a:type][a:bufnr]
+        unlet s:placed_signs[a:type][a:bufnr]
+    endif
+endfunction
+
+" type may be either 'file' or 'project'
+function! neomake#signs#RegisterSign(entry, type) abort
+    let s:sign_queue[a:type][a:entry.bufnr] = get(s:sign_queue[a:type], a:entry.bufnr, {})
+    let existing = get(s:sign_queue[a:type][a:entry.bufnr], a:entry.lnum, {})
     if empty(existing) || a:entry.type ==# 'E' && existing.type !=# 'E'
-        let s:sign_queue[a:entry.bufnr][a:entry.lnum] = a:entry
+        let s:sign_queue[a:type][a:entry.bufnr][a:entry.lnum] = a:entry
     endif
 endfunction
 
-function! neomake#signs#PlaceSign(entry) abort
-    let type = a:entry.type ==# 'E' ? 'neomake_err' : 'neomake_warn'
+" type may be either 'file' or 'project'
+function! neomake#signs#PlaceSign(entry, type) abort
+    let sign_type = a:entry.type ==# 'E' ? 'neomake_err' : 'neomake_warn'
 
-    let s:placed_signs[a:entry.bufnr] = get(s:placed_signs, a:entry.bufnr, {})
-    if !has_key(s:placed_signs[a:entry.bufnr], a:entry.lnum)
-        let sign_id = get(s:neomake_sign_id, a:entry.bufnr, 5000)
-        let s:neomake_sign_id[a:entry.bufnr] = sign_id + 1
+    let s:placed_signs[a:type][a:entry.bufnr] = get(s:placed_signs[a:type], a:entry.bufnr, {})
+    if !has_key(s:placed_signs[a:type][a:entry.bufnr], a:entry.lnum)
+        let default = a:type ==# 'file' ? 5000 : 7000
+        let sign_id = get(s:neomake_sign_id[a:type], a:entry.bufnr, default)
+        let s:neomake_sign_id[a:type][a:entry.bufnr] = sign_id + 1
         let cmd = 'sign place '.sign_id.' line='.a:entry.lnum.
-                                      \ ' name='.type.
+                                      \ ' name='.sign_type.
                                       \ ' buffer='.a:entry.bufnr
-        let s:placed_signs[a:entry.bufnr][a:entry.lnum] = sign_id
+        let s:placed_signs[a:type][a:entry.bufnr][a:entry.lnum] = sign_id
     elseif type ==# 'neomake_err'
         " Upgrade this sign to an error
-        let sign_id = s:placed_signs[a:entry.bufnr][a:entry.lnum]
-        let cmd =  'sign place '.sign_id.' name='.type.' buffer='.a:entry.bufnr
+        let sign_id = s:placed_signs[a:type][a:entry.bufnr][a:entry.lnum]
+        let cmd =  'sign place '.sign_id.' name='.sign_type.' buffer='.a:entry.bufnr
     else
         let cmd = ''
     endif
@@ -59,35 +88,45 @@ function! neomake#signs#PlaceSign(entry) abort
     endif
 endfunction
 
-function! neomake#signs#CleanOldSigns(bufnr) abort
-    if !has_key(s:last_placed_signs, a:bufnr)
+function! neomake#signs#CleanAllOldSigns(type) abort
+    call neomake#utils#DebugObject("Removing signs", s:last_placed_signs)
+    for buf in keys(s:last_placed_signs[a:type])
+        call neomake#signs#CleanOldSigns(buf, a:type)
+    endfor
+endfunction
+
+" type may be either 'file' or 'project'
+function! neomake#signs#CleanOldSigns(bufnr, type) abort
+    if !has_key(s:last_placed_signs[a:type], a:bufnr)
         return
     endif
-    call neomake#utils#DebugObject('Cleaning old signs in buffer '.a:bufnr.': ', s:last_placed_signs)
-    for ln in keys(s:last_placed_signs[a:bufnr])
-        let cmd = 'sign unplace '.s:last_placed_signs[a:bufnr][ln].' buffer='.a:bufnr
+    call neomake#utils#DebugObject('Cleaning old signs in buffer '.a:bufnr.': ', s:last_placed_signs[a:type])
+    for ln in keys(s:last_placed_signs[a:type][a:bufnr])
+        let cmd = 'sign unplace '.s:last_placed_signs[a:type][a:bufnr][ln].' buffer='.a:bufnr
         call neomake#utils#DebugMessage('Unplacing sign: '.cmd)
         exe cmd
     endfor
-    unlet s:last_placed_signs[a:bufnr]
+    unlet s:last_placed_signs[a:type][a:bufnr]
 endfunction
 
 function! neomake#signs#PlaceVisibleSigns() abort
-    let buf = bufnr('%')
-    if !has_key(s:sign_queue, buf)
-        return
-    endif
-    let topline = line('w0')
-    let botline = line('w$')
-    for ln in range(topline, botline)
-        if has_key(s:sign_queue[buf], ln)
-            call neomake#signs#PlaceSign(s:sign_queue[buf][ln])
-            unlet s:sign_queue[buf][ln]
+    for type in ['file', 'project']
+        let buf = bufnr('%')
+        if !has_key(s:sign_queue[type], buf)
+            return
+        endif
+        let topline = line('w0')
+        let botline = line('w$')
+        for ln in range(topline, botline)
+            if has_key(s:sign_queue[type][buf], ln)
+                call neomake#signs#PlaceSign(s:sign_queue[type][buf][ln], type)
+                unlet s:sign_queue[type][buf][ln]
+            endif
+        endfor
+        if empty(s:sign_queue[type][buf])
+            unlet s:sign_queue[type][buf]
         endif
     endfor
-    if empty(s:sign_queue[buf])
-        unlet s:sign_queue[buf]
-    endif
 endfunction
 
 exe 'sign define neomake_invisible'

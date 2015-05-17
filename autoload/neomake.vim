@@ -5,6 +5,10 @@ let s:make_id = 1
 let s:jobs = {}
 let s:jobs_by_maker = {}
 let s:job_output_by_buffer = {}
+let s:current_errors = {
+    \ 'project': {},
+    \ 'file': {}
+    \ }
 
 function! neomake#ListJobs() abort
     call neomake#utils#DebugMessage('call neomake#ListJobs()')
@@ -201,11 +205,11 @@ function! neomake#Make(options) abort
         if file_mode
             let buf = bufnr('%')
             let win = winnr()
-            call neomake#signs#Reset(buf)
+            call neomake#signs#ResetFile(buf)
             let s:loclist_nr = get(s:, 'loclist_nr', {})
             let s:loclist_nr[win] = 0
         else
-            call neomake#signs#ResetAllBuffers()
+            call neomake#signs#ResetProject()
             let s:qflist_nr = 0
         endif
     endif
@@ -247,6 +251,7 @@ function! s:AddExprCallback(maker) abort
     let list = file_mode ? getloclist(a:maker.winnr) : getqflist()
     let list_modified = 0
     let index = file_mode ? s:loclist_nr[a:maker.winnr] : s:qflist_nr
+    let maker_type = file_mode ? 'file' : 'project'
 
     while index < len(list)
         let entry = list[index]
@@ -280,18 +285,21 @@ function! s:AddExprCallback(maker) abort
         endif
 
         " On the first valid error identified by a maker,
-        " clear the existing signs in the buffer
-        call s:CleanSignsAndErrors(entry.bufnr)
+        " clear the existing signs
+        if file_mode
+            call neomake#CleanFileSignsAndErrors(entry.bufnr)
+        else
+            call neomake#CleanProjectSignsAndErrors()
+        endif
 
         " Track all errors by buffer and line
-        let s:current_errors = get(s:, 'current_errors', {})
-        let s:current_errors[entry.bufnr] = get(s:current_errors, entry.bufnr, {})
-        let s:current_errors[entry.bufnr][entry.lnum] = get(
-            \ s:current_errors[entry.bufnr], entry.lnum, [])
-        call add(s:current_errors[entry.bufnr][entry.lnum], entry)
+        let s:current_errors[maker_type][entry.bufnr] = get(s:current_errors[maker_type], entry.bufnr, {})
+        let s:current_errors[maker_type][entry.bufnr][entry.lnum] = get(
+            \ s:current_errors[maker_type][entry.bufnr], entry.lnum, [])
+        call add(s:current_errors[maker_type][entry.bufnr][entry.lnum], entry)
 
         if place_signs
-            call neomake#signs#RegisterSign(entry)
+            call neomake#signs#RegisterSign(entry, maker_type)
         endif
     endwhile
 
@@ -437,9 +445,9 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         " If signs were not cleared before this point, then the maker did not return
         " any errors, so all signs must be removed
         if maker.file_mode
-            call s:CleanSignsAndErrors(jobinfo.bufnr)
+            call neomake#CleanFileSignsAndErrors(jobinfo.bufnr)
         else
-            call s:CleanAllSignsAndErrors()
+            call neomake#CleanProjectSignsAndErrors()
         endif
 
         " Show the current line's error
@@ -457,17 +465,21 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
     endif
 endfunction
 
-function! s:CleanAllSignsAndErrors()
-    for buf in keys(s:current_errors)
-        call s:CleanSignsAndErrors(buf)
+function! neomake#CleanProjectSignsAndErrors() abort
+    for buf in keys(s:current_errors.project)
+        call neomake#CleanErrors(buf, 'project')
     endfor
+    call neomake#signs#CleanAllOldSigns('project')
 endfunction
 
-function! s:CleanSignsAndErrors(bufnr)
-    call neomake#signs#CleanOldSigns(a:bufnr)
-    let current_errors = get(s:, 'current_errors', {})
-    if has_key(current_errors, a:bufnr)
-        unlet s:current_errors[a:bufnr]
+function! neomake#CleanFileSignsAndErrors(bufnr) abort
+    call neomake#CleanErrors(a:bufnr, 'file')
+    call neomake#signs#CleanOldSigns(a:bufnr, 'file')
+endfunction
+
+function! neomake#CleanErrors(bufnr, type) abort
+    if has_key(s:current_errors[a:type], a:bufnr)
+        unlet s:current_errors[a:type][a:bufnr]
     endif
 endfunction
 
