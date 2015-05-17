@@ -77,6 +77,12 @@ Go:
 - go
 - golint
 
+Haskell:
+- hlint
+- ghc-mod
+- hdevtools
+- cabal
+
 Javascript:
 - eslint
 - jshint
