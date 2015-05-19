@@ -86,31 +86,43 @@ endfunction
 
 function! neomake#GetMaker(name_or_maker, ...) abort
     if a:0
-        let ft = a:1
+        let real_ft = a:1
+        let fts = neomake#utils#GetSortedFiletypes(real_ft)
     else
-        let ft = ''
+        let fts = []
     endif
     if type(a:name_or_maker) == type({})
         let maker = a:name_or_maker
     else
         if a:name_or_maker ==# 'makeprg'
             let maker = neomake#utils#MakerFromCommand(&shell, &makeprg)
-        elseif len(ft)
-            let maker = get(g:, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
+        elseif len(fts)
+            for ft in fts
+                let maker = get(g:, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
+                if type(maker) == type({})
+                    break
+                endif
+            endfor
         else
             let maker = get(g:, 'neomake_'.a:name_or_maker.'_maker')
         endif
         if type(maker) == type(0)
             unlet maker
-            try
-                if len(ft)
-                    let maker = eval('neomake#makers#ft#'.ft.'#'.a:name_or_maker.'()')
-                else
+            if len(fts)
+                for ft in fts
+                    try
+                        let maker = eval('neomake#makers#ft#'.ft.'#'.a:name_or_maker.'()')
+                        break
+                    catch /^Vim\%((\a\+)\)\=:E117/
+                    endtry
+                endfor
+            else
+                try
                     let maker = eval('neomake#makers#'.a:name_or_maker.'#'.a:name_or_maker.'()')
-                endif
-            catch /^Vim\%((\a\+)\)\=:E117/
-                let maker = {}
-            endtry
+                catch /^Vim\%((\a\+)\)\=:E117/
+                    let maker = {}
+                endtry
+            endif
         endif
     endif
     let maker = deepcopy(maker)
@@ -125,8 +137,13 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         \ 'remove_invalid_entries': 1
         \ }
     for key in keys(defaults)
-        if len(ft)
-            let config_var = 'neomake_'.ft.'_'.maker.name.'_'.key
+        if len(fts)
+            for ft in fts
+                let config_var = 'neomake_'.ft.'_'.maker.name.'_'.key
+                if has_key(g:, config_var)
+                    break
+                endif
+            endfor
         else
             let config_var = 'neomake_'.maker.name.'_'.key
         endif
@@ -136,41 +153,42 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             let maker[key] = defaults[key]
         endif
     endfor
-    let maker.ft = ft
+    let maker.ft = real_ft
     " Only relevant if file_mode is used
     let maker.winnr = winnr()
     return maker
 endfunction
 
 function! neomake#GetEnabledMakers(...) abort
-    if a:0 && type(a:1) == type('')
-        let ft = a:1
-    else
-        let ft = ''
+    if !a:0 || type(a:1) !=# type('')
+        " If we have no filetype, our job isn't complicated.
+        return get(g:, 'neomake_enabled_makers', [])
     endif
-    if len(ft)
-        let enabled_makers = get(g:, 'neomake_'.ft.'_enabled_makers')
-    else
-        let enabled_makers = get(g:, 'neomake_enabled_makers')
-    endif
-    if type(enabled_makers) == type(0)
-        unlet enabled_makers
-        try
-            let default_makers = eval('neomake#makers#ft#'.ft.'#EnabledMakers()')
-        catch /^Vim\%((\a\+)\)\=:E117/
-            return []
-        endtry
 
-        let enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
-        if !len(enabled_makers)
-            call neomake#utils#DebugMessage('None of the default '.ft.' makers ('
-                        \ .join(default_makers, ', ').',) are available on '.
-                        \ 'your system. Install one of them or configure your '.
-                        \ 'own makers.')
-            return []
+    " If a filetype was passed, get the makers that are enabled for each of
+    " the filetypes represented.
+    let union = {}
+    let fts = neomake#utils#GetSortedFiletypes(a:1)
+    for ft in fts
+        let varname = 'neomake_'.ft.'_enabled_makers'
+        let fnname = 'neomake#makers#ft#'.ft.'#EnabledMakers'
+        if exists(varname)
+            let enabled_makers = get(g:, varname)
+        else
+            try
+                let default_makers = eval(fnname . '()')
+            catch /^Vim\%((\a\+)\)\=:E117/
+                let default_makers = []
+            endtry
+            let enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
         endif
-    endif
-    return enabled_makers
+        for maker_name in enabled_makers
+            let union[maker_name] = get(union, maker_name, 0) + 1
+        endfor
+    endfor
+
+    let l = len(fts)
+    return filter(keys(union), 'union[v:val] ==# l')
 endfunction
 
 function! neomake#Make(options) abort
