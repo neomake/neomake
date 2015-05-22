@@ -74,7 +74,7 @@ function! neomake#signs#PlaceSign(entry, type) abort
                                       \ ' name='.sign_type.
                                       \ ' buffer='.a:entry.bufnr
         let s:placed_signs[a:type][a:entry.bufnr][a:entry.lnum] = sign_id
-    elseif type ==# 'neomake_err'
+    elseif sign_type ==# 'neomake_err'
         " Upgrade this sign to an error
         let sign_id = s:placed_signs[a:type][a:entry.bufnr][a:entry.lnum]
         let cmd =  'sign place '.sign_id.' name='.sign_type.' buffer='.a:entry.bufnr
