@@ -483,8 +483,10 @@ function! neomake#CleanOldProjectSignsAndErrors() abort
 endfunction
 
 function! neomake#CleanOldFileSignsAndErrors(bufnr) abort
-    if has_key(s:current_errors['file'], a:bufnr) && get(s:need_errors_cleaning['file'], a:bufnr, 0)
-        unlet s:current_errors['file'][a:bufnr]
+    if get(s:need_errors_cleaning['file'], a:bufnr, 0)
+        if has_key(s:current_errors['file'], a:bufnr)
+            unlet s:current_errors['file'][a:bufnr]
+        endif
         unlet s:need_errors_cleaning['file'][a:bufnr]
         call neomake#utils#DebugMessage("File-level errors cleaned in buffer ".a:bufnr)
     endif
