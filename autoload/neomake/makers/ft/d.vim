@@ -39,7 +39,7 @@ function! s:UpdateDub()
 endfunction
 
 function! neomake#makers#ft#d#dmd()
-    let l:args = ['-c', '-o-', s:UpdateDub()]
+    let l:args = ['-c', '-o-', '-vcolumns', s:UpdateDub()]
     "Updating dub paths each make might be slow?
     if exists("g:neomake_d_dmd_args_conf")
         call add(l:args, '-conf=' . expand(g:neomake_d_dmd_args_conf))
@@ -49,8 +49,7 @@ function! neomake#makers#ft#d#dmd()
     return {
         \ 'args': l:args,
         \ 'errorformat':
-        \     '%-G%f:%s:,%f(%l): %m,' .
-        \     '%f:%l: %m',
+        \     '%f(%l\,%c): %m,'
         \ }
 endfunction
 
