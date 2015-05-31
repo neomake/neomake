@@ -113,7 +113,7 @@ function! neomake#signs#PlaceVisibleSigns() abort
     for type in ['file', 'project']
         let buf = bufnr('%')
         if !has_key(s:sign_queue[type], buf)
-            return
+            continue
         endif
         let topline = line('w0')
         let botline = line('w$')
