@@ -1,10 +1,23 @@
 " vim: ts=4 sw=4 et
 
+function! neomake#makers#ft#jsx#SupersetOf()
+    return 'javascript'
+endfunction
+
 function! neomake#makers#ft#jsx#EnabledMakers()
-    return ['jsxhint']
+    return ['jshint', 'eslint']
+endfunction
+
+function! neomake#makers#ft#jsx#jshint()
+    let maker = neomake#makers#ft#javascript#jshint()
+    let maker.exe = 'jsxhint'
+    return maker
 endfunction
 
 function! neomake#makers#ft#jsx#jsxhint()
-    " This will still call jsxhint, just using all the normal jshint options
-    return neomake#makers#ft#javascript#jshint()
+    return neomake#makers#ft#jsx#jshint()
+endfunction
+
+function! neomake#makers#ft#jsx#eslint()
+    return neomake#makers#ft#javascript#eslint()
 endfunction
