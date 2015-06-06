@@ -38,26 +38,45 @@ function! s:UpdateDub()
     return l:dub_incs
 endfunction
 
-function! neomake#makers#ft#d#dmd()
-    let l:args = ['-c', '-o-', s:UpdateDub()]
+"GDC does not adhere to dmd's flags or output, but to GCC's.
+"This is for LDC and dmd only.
+function! s:DmdStyleMaker(...)
     "Updating dub paths each make might be slow?
-    if exists("g:neomake_d_dmd_args_conf")
-        call add(l:args, '-conf=' . expand(g:neomake_d_dmd_args_conf))
-    else "Try some sensible defaults.
-        let l:args += ['-wi', '-debug']
-    endif
+    let l:args = ['-c', '-o-', '-vcolumns', s:UpdateDub()] + a:000
     return {
         \ 'args': l:args,
         \ 'errorformat':
-        \     '%-G%f:%s:,%f(%l): %m,' .
-        \     '%f:%l: %m',
+        \     '%f(%l\,%c): %trror: %m,' .
+        \     '%f(%l): %trror: %m,'
         \ }
 endfunction
 
+function! neomake#makers#ft#d#dmd()
+    if exists("g:neomake_d_dmd_args_conf")
+        return s:DmdStyleMaker('-conf=' . expand(g:neomake_d_dmd_args_conf))
+    endif
+    return s:DmdStyleMaker()
+endfunction
+
 function! neomake#makers#ft#d#ldmd()
-    return neomake#makers#ft#d#dmd()
+    return s:DmdStyleMaker()
 endfunction
 
 function! neomake#makers#ft#d#gdmd()
-    return neomake#makers#ft#d#dmd()
+    let l:args = ['-c', '-o-', '-fsyntax-only', s:UpdateDub()]
+    return {
+        \ 'args': l:args,
+        \ 'errorformat':
+            \ '%-G%f:%s:,' .
+            \ '%-G%f:%l: %#error: %#(Each undeclared identifier is reported only%.%#,' .
+            \ '%-G%f:%l: %#error: %#for each function it appears%.%#,' .
+            \ '%-GIn file included%.%#,' .
+            \ '%-G %#from %f:%l\,,' .
+            \ '%f:%l:%c: %trror: %m,' .
+            \ '%f:%l:%c: %tarning: %m,' .
+            \ '%f:%l:%c: %m,' .
+            \ '%f:%l: %trror: %m,' .
+            \ '%f:%l: %tarning: %m,'.
+            \ '%f:%l: %m',
+        \ }
 endfunction
