@@ -170,6 +170,7 @@ function! neomake#GetEnabledMakers(...) abort
     let union = {}
     let fts = neomake#utils#GetSortedFiletypes(a:1)
     for ft in fts
+        let ft = substitute(ft, '\W', '_', 'g')
         let varname = 'g:neomake_'.ft.'_enabled_makers'
         let fnname = 'neomake#makers#ft#'.ft.'#EnabledMakers'
         if exists(varname)
