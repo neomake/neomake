@@ -98,6 +98,7 @@ Python:
 - pep8
 - flake8
 - pyflakes
+- pylama
 - pylint
 - python
 
