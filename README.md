@@ -132,6 +132,9 @@ Tex/Latex:
 Scala:
 - scalac
 
+TypeScript:
+- tsc
+
 Erlang:
 - erlc
 
