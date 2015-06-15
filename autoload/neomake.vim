@@ -73,6 +73,12 @@ function! neomake#MakeJob(maker) abort
     endif
     call map(args, 'expand(v:val)')
 
+    if has_key(a:maker, 'cwd')
+        let old_wd = getcwd()
+        let cwd = expand(a:maker.cwd, 1)
+        exe 'cd' fnameescape(cwd)
+    endif
+
     let job = s:JobStart(make_id, a:maker.exe, args)
     let jobinfo.start = localtime()
     let jobinfo.last_register = 0
@@ -89,6 +95,10 @@ function! neomake#MakeJob(maker) abort
         let s:jobs[job] = jobinfo
         let maker_key = s:GetMakerKey(a:maker)
         let s:jobs_by_maker[maker_key] = jobinfo
+    endif
+
+    if has_key(a:maker, 'cwd')
+        exe 'cd' fnameescape(old_wd)
     endif
 endfunction
 
