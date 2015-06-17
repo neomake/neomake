@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#typescript#EnabledMakers()
-    return ['tsc']
+    return ['tsc', 'tslint']
 endfunction
 
 function! neomake#makers#ft#typescript#tsc()
@@ -14,5 +14,14 @@ function! neomake#makers#ft#typescript#tsc()
             \ '%E%f %#(%l\,%c): %m,' .
             \ '%Eerror %m,' .
             \ '%C%\s%\+%m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#typescript#tslint()
+    return {
+        \ 'args': [
+            \ '-f', '%:p', '--format verbose'
+        \ ],
+        \ 'errorformat': '%f[%l\, %c]: %m'
         \ }
 endfunction
