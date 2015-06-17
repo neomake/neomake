@@ -280,6 +280,7 @@ function! s:AddExprCallback(maker) abort
 
     while index < len(list)
         let entry = list[index]
+        let entry.maker_name = has_key(a:maker, 'name') ? a:maker.name : 'makeprg'
         let index += 1
 
         if has_key(a:maker, 'postprocess')
@@ -545,7 +546,8 @@ function! neomake#EchoCurrentError() abort
             break
         endif
     endfor
-    call neomake#utils#WideMessage(s:neomake_last_echoed_error.text)
+    let message = s:neomake_last_echoed_error.maker_name.': '.s:neomake_last_echoed_error.text
+    call neomake#utils#WideMessage(message)
 endfunction
 
 function! neomake#CursorMoved() abort
