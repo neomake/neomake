@@ -1,13 +1,20 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#javascript#EnabledMakers()
-    return ['jshint', 'eslint']
+    return ['jshint', 'jscs', 'eslint']
 endfunction
 
 function! neomake#makers#ft#javascript#jshint()
     return {
         \ 'args': ['--verbose'],
         \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
+        \ }
+endfunction
+
+function! neomake#makers#ft#javascript#jscs()
+    return {
+        \ 'args': ['--no-color', '--reporter', 'inline'],
+        \ 'errorformat': '%f: line %l\, col %c\, %m',
         \ }
 endfunction
 
