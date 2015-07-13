@@ -454,10 +454,15 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         " some issues with s:AddExprCallback.
         if get(g:, 'neomake_open_list')
             let height = get(g:, 'neomake_list_height', 10)
+            let open_val = g:neomake_open_list
+            let win_val = winnr()
             if get(maker, 'file_mode')
                 exe "lwindow ".height
             else
                 exe "cwindow ".height
+            endif
+            if open_val == 2 && win_val != winnr()
+                wincmd p
             endif
         endif
         let status = a:data
