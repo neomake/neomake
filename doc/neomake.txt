@@ -149,6 +149,15 @@ property to 0 to keep all the maker output in the list:
     let g:neomake_ft_maker_remove_invalid_entries = 0
 <
 
+                                                            *neomake-makers-cwd*
+The working directory used to run a maker can be changed by setting its 'cwd'
+property: >
+        let g:neomake_my_example_maker = {
+        \ 'exe': 'pwd',
+        \ 'cwd': '%:p:h'
+        \ }
+<
+
 Global Options                                                 *neomake-options*
 
 *g:neomake_<name>_maker* *g:neomake_<ft>_<name>_maker*
