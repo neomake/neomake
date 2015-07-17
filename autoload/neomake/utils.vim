@@ -68,7 +68,7 @@ function! neomake#utils#WideMessage(msg) " {{{2
     "convert tabs to spaces so that the tabs count towards the window
     "width as the proper amount of characters
     let chunks = split(msg, "\t", 1)
-    let msg = join(map(chunks[:-2], 'v:val . repeat(" ", &tabstop - s:_width(v:val) % &tabstop)'), '') . chunks[-1]
+    let msg = join(map(chunks[:-2], 'v:val . repeat(" ", &tabstop - strwidth(v:val) % &tabstop)'), '') . chunks[-1]
     let msg = strpart(msg, 0, &columns - 1)
 
     set noruler noshowcmd
