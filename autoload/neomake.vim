@@ -559,3 +559,12 @@ function! neomake#CursorMoved() abort
     call neomake#signs#PlaceVisibleSigns()
     call neomake#EchoCurrentError()
 endfunction
+
+function! neomake#CompleteMakers(ArgLead, CmdLine, CursorPos)
+    if a:ArgLead =~ '[^A-Za-z0-9]'
+        return []
+    else
+        return filter(neomake#GetEnabledMakers(&ft),
+                    \ "v:val =~? '^".a:ArgLead."'")
+    endif
+endfunction

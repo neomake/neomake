@@ -26,12 +26,12 @@ function! s:NeomakeSh(sh_command)
     call neomake#Make({'enabled_makers': enabled_makers})
 endfunction
 
-command! -nargs=* -bang -bar Neomake call s:NeomakeCommand(<bang>1, [<f-args>])
+command! -nargs=* -bang -bar -complete=customlist,neomake#CompleteMakers Neomake call s:NeomakeCommand(<bang>1, [<f-args>])
 " These commands are available for clarity
-command! -nargs=* -bar NeomakeProject Neomake! <args>
-command! -nargs=* -bar NeomakeFile Neomake <args>
+command! -nargs=* -bar -complete=customlist,neomake#CompleteMakers NeomakeProject Neomake! <args>
+command! -nargs=* -bar -complete=customlist,neomake#CompleteMakers NeomakeFile Neomake <args>
 
-command! -nargs=+ NeomakeSh call s:NeomakeSh(<q-args>)
+command! -nargs=+ -complete=shellcmd NeomakeSh call s:NeomakeSh(<q-args>)
 
 command! NeomakeListJobs call neomake#ListJobs()
 
