@@ -25,3 +25,10 @@ function! neomake#makers#ft#javascript#eslint()
         \ '%W%f: line %l\, col %c\, Warning - %m'
         \ }
 endfunction
+
+function! neomake#makers#ft#javascript#flow()
+    return {
+        \ 'args': ['check', '--one-line'],
+        \ 'errorformat': '%f:%l:%c\,%n: %m',
+        \ }
+endfunction

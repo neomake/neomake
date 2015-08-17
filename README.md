@@ -88,6 +88,7 @@ Javascript:
 - jscs
 - jshint
 - jsxhint
+- flow
 
 JSON:
 - jsonlint
