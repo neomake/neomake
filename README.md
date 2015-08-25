@@ -132,6 +132,7 @@ Tex/Latex:
 
 Scala:
 - scalac
+- scalastyle
 
 TypeScript:
 - tsc
