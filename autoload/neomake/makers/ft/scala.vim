@@ -3,6 +3,7 @@ function! neomake#makers#ft#scala#EnabledMakers()
     let makers = ['scalac']
     if neomake#utils#Exists('scalastyle')
         call add(makers, 'scalastyle')
+    endif
     return makers
 endfunction
 
