@@ -20,7 +20,7 @@ endfunction
 function! neomake#makers#ft#typescript#tslint()
     return {
         \ 'args': [
-            \ '-f', '%:p', '--format verbose'
+            \ '%:p', '--format verbose'
         \ ],
         \ 'errorformat': '%f[%l\, %c]: %m'
         \ }
