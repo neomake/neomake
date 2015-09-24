@@ -20,7 +20,7 @@ function! neomake#makers#ft#ruby#RubocopEntryProcess(entry)
     endif
 endfunction
 
-function neomake#makers#ft#ruby#mri()
+function! neomake#makers#ft#ruby#mri()
     let errorformat = '%-G%\m%.%#warning: %\%%(possibly %\)%\?useless use of == in void context,'
     let errorformat .= '%-G%\%.%\%.%\%.%.%#,'
     let errorformat .=
