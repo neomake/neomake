@@ -1,7 +1,8 @@
 " vim: ts=4 sw=4 et
 function! neomake#makers#ft#scala#EnabledMakers()
-    let makers = get(g:, 'neomake_scala_fast', 0) ? ['fsc'] : ['scalac']
-    if neomake#utils#Exists('scalastyle') && get(g:, 'neomake_scala_style', 1)
+    " use let g:neomake_scala_enabled_makers = ['fsc','scalastyle'] for fsc
+    let makers = ['scalac']
+    if neomake#utils#Exists('scalastyle')
         call add(makers, 'scalastyle')
     endif
     return makers
@@ -18,6 +19,7 @@ function! neomake#makers#ft#scala#fsc()
             \ '%-G%.%#'
         \ }
 endfunction
+
 function! neomake#makers#ft#scala#scalac()
     return {
         \ 'args': [
