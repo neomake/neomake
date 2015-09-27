@@ -26,6 +26,12 @@ function! neomake#makers#ft#javascript#eslint()
         \ }
 endfunction
 
+function! neomake#makers#ft#javascript#standard()
+    return {
+        \ 'errorformat': '  %f:%l:%c: %m'
+        \ }
+endfunction
+
 function! neomake#makers#ft#javascript#flow()
     " Replace "\n" by space.
     let mapexpr = 'substitute(v:val, "\\\\n", " ", "g")'
