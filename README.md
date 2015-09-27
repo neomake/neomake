@@ -85,6 +85,7 @@ Haskell:
 
 Javascript:
 - eslint
+- standard
 - jscs
 - jshint
 - jsxhint
