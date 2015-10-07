@@ -83,6 +83,9 @@ Haskell:
 - hdevtools
 - cabal
 
+Java:
+- javac
+
 Javascript:
 - eslint
 - standard
