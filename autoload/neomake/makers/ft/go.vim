@@ -10,6 +10,7 @@ function! neomake#makers#ft#go#go()
             \ 'build',
             \ '-o', neomake#utils#DevNull()
         \ ],
+        \ 'append_file': 0,
         \ 'errorformat':
             \ '%W%f:%l: warning: %m,' .
             \ '%E%f:%l:%c:%m,' .
