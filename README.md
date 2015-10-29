@@ -59,9 +59,10 @@ will get an error message like `{ makername } not found`.
 
 If the string `'%:p'` shows up anywhere in the `'args'` list, it will be
 `expand()`ed to the full path of the current file in place. Otherwise, the full
-path to the file will be `add()`ed to the end of the list. You can customize
-the program that is called by adding an `'exe'` property which should be a
-string (defaults to the name of the maker).
+path to the file will be `add()`ed to the end of the list, unless the maker's
+`'append_file'` option is set to 0. You can customize the program that is
+called by adding an `'exe'` property which should be a string (defaults to the
+name of the maker).
 
 Once you have created your makers, run `:Neomake` as normal. Run
 `:Neomake <checker-name>` to run only a single checker. Configuring a

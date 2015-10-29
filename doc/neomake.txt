@@ -104,6 +104,18 @@ but will be retained in the docs for discoverability: >
 This will cause "lint /path/to/file.c --option x" to be run instead of
 "lint --option x /path/to/file.c".
 
+The file path can be excluded from the argument list entirely by setting the
+'append_file' argument to 0. >
+    let g:neomake_c_lint_maker = {
+        \ 'exe': 'lint',
+        \ 'args': ['--option', 'x'],
+        \ 'append_file': 0,
+        \ 'errorformat': '%f:%l:%c: %m',
+        \ }
+<
+This can be useful for makers that are filetype dependent but are typically
+run on an whole project rather than a specific file.
+
                                                      *neomake-makers-processing*
 You can define two optional properties on a maker object to process the maker
 output: 'mapexpr' is applied to the maker output before any processing, and
