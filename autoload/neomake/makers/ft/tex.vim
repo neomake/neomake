@@ -23,6 +23,15 @@ function! neomake#makers#ft#tex#lacheck()
         \ }
 endfunction
 
+function! neomake#makers#ft#tex#rubber()
+    return {
+        \ 'args': ['--pdf', '-f', '--warn=all'],
+        \ 'errorformat':
+            \ '%f:%l: %m,' .
+            \ '%f: %m'
+        \ }
+endfunction
+
 function! neomake#makers#ft#tex#rubberinfo()
     return {
         \ 'exe': 'rubber-info',
