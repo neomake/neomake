@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#tex#EnabledMakers()
-    return ['chktex', 'lacheck']
+    return ['chktex', 'lacheck', 'rubberinfo']
 endfunction
 
 function! neomake#makers#ft#tex#chktex()
@@ -20,5 +20,23 @@ function! neomake#makers#ft#tex#lacheck()
         \ 'errorformat':
             \ '%-G** %f:,' .
             \ '%E"%f"\, line %l: %m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#tex#rubber()
+    return {
+        \ 'args': ['--pdf', '-f', '--warn=all'],
+        \ 'errorformat':
+            \ '%f:%l: %m,' .
+            \ '%f: %m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#tex#rubberinfo()
+    return {
+        \ 'exe': 'rubber-info',
+        \ 'errorformat':
+            \ '%f:%l: %m,' .
+            \ '%f: %m'
         \ }
 endfunction
