@@ -63,7 +63,15 @@ endfunction
 
 " type may be either 'file' or 'project'
 function! neomake#signs#PlaceSign(entry, type) abort
-    let sign_type = a:entry.type ==# 'E' ? 'neomake_err' : 'neomake_warn'
+    if a:entry.type ==# 'W'
+        let sign_type = 'neomake_warn'
+    elseif a:entry.type ==# 'I'
+        let sign_type = 'neomake_info'
+    elseif a:entry.type ==# 'M'
+        let sign_type = 'neomake_msg'
+    else
+        let sign_type = 'neomake_err'
+    endif
 
     let s:placed_signs[a:type][a:entry.bufnr] = get(s:placed_signs[a:type], a:entry.bufnr, {})
     if !has_key(s:placed_signs[a:type][a:entry.bufnr], a:entry.lnum)
@@ -171,11 +179,38 @@ function! neomake#signs#RedefineWarningSign(...)
     call neomake#signs#RedefineSign('neomake_warn', opts)
 endfunction
 
+function! neomake#signs#RedefineMessageSign(...)
+    let default_opts = {'text': '➤'}
+    let opts = {}
+    if a:0
+        call extend(opts, a:1)
+    elseif exists('g:neomake_message_sign')
+        call extend(opts, g:neomake_message_sign)
+    endif
+    call extend(opts, default_opts, 'keep')
+    call neomake#signs#RedefineSign('neomake_msg', opts)
+endfunction
+
+function! neomake#signs#RedefineInformationalSign(...)
+    let default_opts = {'text': 'ℹ'}
+    let opts = {}
+    if a:0
+        call extend(opts, a:1)
+    elseif exists('g:neomake_informational_sign')
+        call extend(opts, g:neomake_informational_sign)
+    endif
+    call extend(opts, default_opts, 'keep')
+    call neomake#signs#RedefineSign('neomake_info', opts)
+endfunction
+
+
 let s:signs_defined = 0
 function! neomake#signs#DefineSigns()
     if !s:signs_defined
         let s:signs_defined = 1
         call neomake#signs#RedefineErrorSign()
         call neomake#signs#RedefineWarningSign()
+        call neomake#signs#RedefineInformationalSign()
+        call neomake#signs#RedefineMessageSign()
     endif
 endfunction
