@@ -271,6 +271,9 @@ function! neomake#Make(options) abort
             let next_opts.continuation = 1
             let maker.next = next_opts
         endif
+        if has_key(a:options, 'exit_callback')
+            let maker.exit_callback = a:options.exit_callback
+        endif
         call neomake#MakeJob(maker)
         " If we are serializing makers, stop after the first one. The
         " remaining makers will be processed in turn when this one is done.
@@ -476,6 +479,19 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
             endif
         endif
         let status = a:data
+        if has_key(maker, 'exit_callback')
+            try
+                let callback_dict = { 'status': status,
+                                    \ 'name': maker.name,
+                                    \ 'has_next': has_key(maker, 'next') }
+                if type(maker.exit_callback) == type('')
+                    let ExitCallback = function(maker.exit_callback)
+                else
+                    let ExitCallback = maker.exit_callback
+                endif
+                call ExitCallback(callback_dict)
+            endtry
+        endif
         call s:CleanJobinfo(jobinfo)
         if has('nvim')
             " Only report completion for neovim, since it is asynchronous
@@ -577,4 +593,29 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, CursorPos)
         return filter(neomake#GetEnabledMakers(&ft),
                     \ "v:val =~? '^".a:ArgLead."'")
     endif
+endfunction
+
+function! neomake#WithCallback(file_mode, enabled_makers, ...)
+    let options = a:0 ? { 'exit_callback': a:1 } : {}
+    if a:file_mode
+        let options.enabled_makers = len(a:enabled_makers) ?
+                    \ a:enabled_makers :
+                    \ neomake#GetEnabledMakers(&ft)
+        let options.ft = &ft
+        let options.file_mode = 1
+    else
+        let options.enabled_makers = len(a:enabled_makers) ?
+                    \ a:enabled_makers :
+                    \ neomake#GetEnabledMakers()
+    endif
+    call neomake#Make(options)
+endfunction
+
+function! neomake#ShWithCallback(sh_command, ...)
+    let options = a:0 ? { 'exit_callback': a:1 } : {}
+    let custom_maker = neomake#utils#MakerFromCommand(&shell, a:sh_command)
+    let custom_maker.name = 'sh: '.a:sh_command
+    let custom_maker.remove_invalid_entries = 0
+    let options.enabled_makers =  [custom_maker]
+    call neomake#Make(options)
 endfunction
