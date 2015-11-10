@@ -158,14 +158,16 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         if len(fts)
             for ft in fts
                 let config_var = 'neomake_'.ft.'_'.maker.name.'_'.key
-                if has_key(g:, config_var)
+                if has_key(g:, config_var) || has_key(b:, config_var)
                     break
                 endif
             endfor
         else
             let config_var = 'neomake_'.maker.name.'_'.key
         endif
-        if has_key(g:, config_var)
+        if has_key(b:, config_var)
+            let maker[key] = copy(get(b:, config_var))
+        elseif has_key(g:, config_var)
             let maker[key] = copy(get(g:, config_var))
         elseif !has_key(maker, key)
             let maker[key] = defaults[key]
