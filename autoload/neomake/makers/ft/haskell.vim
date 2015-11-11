@@ -33,7 +33,7 @@ function! neomake#makers#ft#haskell#ghcmod()
             \ '%f:%l:%c:%tarning: %m,'.
             \ '%f:%l:%c: %trror: %m,' .
             \ '%f:%l:%c: %tarning: %m,' .
-            \ '%f:%l:%c:%m,' .
+            \ '%E%f:%l:%c:%m,' .
             \ '%E%f:%l:%c:,' .
             \ '%Z%m'
         \ }
