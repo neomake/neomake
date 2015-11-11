@@ -19,3 +19,8 @@ function! neomake#makers#ft#cpp#gcc()
     let maker.exe = 'g++'
     return maker
 endfunction
+
+function! neomake#makers#ft#cpp#clangtidy()
+    let maker = neomake#makers#ft#c#clangtidy()
+    return maker
+endfunction

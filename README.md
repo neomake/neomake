@@ -115,10 +115,12 @@ Ruby:
 C:
 - clang
 - gcc
+- clang-tidy
 
 C++:
 - clang++
 - g++
+- clang-tidy
 
 D:
 - dmd
