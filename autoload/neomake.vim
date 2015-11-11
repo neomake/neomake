@@ -443,7 +443,10 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         let last_event_type = get(jobinfo, 'event_type', a:event_type)
         let jobinfo.event_type = a:event_type
         if has_key(jobinfo, 'lines')
-            call extend(jobinfo.lines, lines)
+            " As per https://github.com/neovim/neovim/issues/3555
+            let jobinfo.lines = jobinfo.lines[:-2]
+                        \ + [jobinfo.lines[-1] . get(lines, 0, '')]
+                        \ + lines[1:]
         else
             let jobinfo.lines = lines
         endif
