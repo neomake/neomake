@@ -126,9 +126,6 @@ D:
 sh:
 - shellcheck
 
-zsh:
-- shellcheck
-
 Rust:
 - rustc
 
