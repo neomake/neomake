@@ -47,6 +47,14 @@ fantastic vim plugins such as syntastic and dispatch.
                         the job is complete. Example:
                         :NeomakeSh find . -name '*.pyc'
 
+                                                      *neomake-:NeomakeListJobs*
+:NeomakeListJobs        List all running jobs in the format: >
+                        job_id job_name
+<
+                                                     *neomake-:NeomakeCancelJob*
+:NeomakeCancelJob *{job_id}*
+                        Sends a 'jobstop' to *job_id* which terminates the job.
+
 ==============================================================================
 3. Configuration                                         *neomake-configuration*
 
@@ -257,6 +265,43 @@ section of the vim-airline |statusline|. Defaults to 1.
 
 This list is non-exhaustive at the moment, but you may find some of these
 functions useful.
+
+*neomake#Make(filemode,* *makers[,* *callback])*
+This function is called by |:Neomake(!)| command. It runs all the *makers*
+specified, in order. If *filemode* is 1, then the current file is used as input
+to the makers. |neomake#Make| returns an array of the job ids that it creates
+via 'jobstart'; you can potentially cancel these jobs with |neomake#CancelJob|.
+
+It also accepts a third, optional *callback* argument that
+is called when the command exits.  The *callback* is given the following
+dictionary as its sole argument: >
+    { 'status': <exit status of maker>,
+    \ 'name': <maker name>,
+    \ 'has_next': <true if another maker follows, false otherwise> }
+
+*neomake#Sh(command[,* *callback])*
+This function is called by the |:NeomakeSh| command. It runs the specified
+shell *command* according to 'shell'. |neomake#Sh| returns the single job id
+that it creates via 'jobstart'; you can potentially cancel this job with
+|neomake#CancelJob|.
+
+It also accepts a second, optional
+*callback* argument that is called when the command exits. The *callback* is
+given the following dictionary as its sole argument: >
+    { 'status': <exit status of command>,
+    \ 'name': 'sh: <command>',
+    \ 'has_next': false }
+
+*neomake#ListJobs*
+Invoked via |:NeomakeListJobs|. Echoes a list of running jobs in the format
+(job_id, job_name).
+
+*neomake#CancelJob*
+Invoked via |:NeomakeCancelJob|. Sends a 'jobstop' to the job id specified.
+Will trigger *callback* if it was specified when the job was started.
+Example: >
+    let job_id = neomake#Sh("bash -c 'while true; do sleep 1; done'")
+    call neomake#CancelJob(job_id)
 
 *neomake#signs#RedefineErrorSign* *neomake#signs#RedefineWarningSign*
 These functions define the error sign and the warning sign respectively. They
