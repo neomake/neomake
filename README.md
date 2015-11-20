@@ -110,7 +110,9 @@ Python:
 - python
 
 Ruby:
+- mri
 - rubocop
+- reek
 
 C:
 - clang
