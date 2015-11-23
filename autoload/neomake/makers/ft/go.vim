@@ -27,3 +27,15 @@ function! neomake#makers#ft#go#golint()
             \ '%-G%.%#'
         \ }
 endfunction
+
+function! neomake#makers#ft#go#gometalinter()
+    return {
+        \ 'args': ['-t', '%:p:h'],
+        \ 'append_file': 0,
+        \ 'errorformat':
+            \ '%E%f:%l:%c:error: %m,' .
+            \ '%E%f:%l::error: %m,' .
+            \ '%W%f:%l:%c:warning: %m,' .
+            \ '%W%f:%l::warning: %m'
+        \ }
+endfunction
