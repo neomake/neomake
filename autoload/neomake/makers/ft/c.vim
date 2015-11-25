@@ -46,20 +46,12 @@ function! neomake#makers#ft#c#gcc()
         \ }
 endfunction
 
+" The -p option followed by the path to the build directory should be set in
+" the maker's arguments. That directory should contain the compile command
+" database (compile_commands.json).
 function! neomake#makers#ft#c#clangtidy()
-    " Default arguments.
-    let l:args = []
-
-    " Add user-defined arguments if some are set.
-    " The -p option followed by the path to the build directory is expected.
-    " That directory should contain the compile command database
-    " (compile_commands.json).
-    if exists("g:neomake_c_clangtidy_args_conf")
-        let l:args += g:neomake_c_clangtidy_args_conf
-    endif
     return {
         \ 'exe': 'clang-tidy',
-        \ 'args': l:args,
         \ 'errorformat':
             \ '%E%f:%l:%c: fatal error: %m,' .
             \ '%E%f:%l:%c: error: %m,' .
