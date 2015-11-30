@@ -77,6 +77,7 @@ Coffeescript:
 Go:
 - go
 - golint
+- go vet
 
 Haskell:
 - hlint
