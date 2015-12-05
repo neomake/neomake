@@ -71,7 +71,14 @@ function! neomake#MakeJob(maker) abort
     if append_file
         call add(args, '%:p')
     endif
-    call map(args, 'expand(v:val)')
+    function! s:expandIfValid(arg) abort
+        if expand(a:arg) != ""
+            return expand(a:arg)
+        else
+            return a:arg
+        endif
+    endfunction
+    call map(args, 's:expandIfValid(v:val)')
 
     if has_key(a:maker, 'cwd')
         let old_wd = getcwd()
