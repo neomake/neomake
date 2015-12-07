@@ -9,7 +9,9 @@ function! neomake#makers#ft#tsx#EnabledMakers()
 endfunction
 
 function! neomake#makers#ft#tsx#tsc()
-    return neomake#makers#ft#typescript#tsc()
+    let config = neomake#makers#ft#typescript#tsc()
+    let config.args = config.args + ['--jsx', 'preserve']
+    return config
 endfunction
 
 function! neomake#makers#ft#tsx#tslint()
