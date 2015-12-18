@@ -43,8 +43,15 @@ function! neomake#makers#ft#python#flake8()
             \ '%E%f:%l: could not compile,%-Z%p^,' .
             \ '%A%f:%l:%c: %t%n %m,' .
             \ '%A%f:%l: %t%n %m,' .
-            \ '%-G%.%#'
+            \ '%-G%.%#',
+        \ 'postprocess': function('neomake#makers#ft#python#Flake8EntryProcess')
         \ }
+endfunction
+
+function! neomake#makers#ft#python#Flake8EntryProcess(entry)
+    if a:entry.type ==# 'F'
+        let a:entry.type = 'E'
+    endif
 endfunction
 
 function! neomake#makers#ft#python#pyflakes()
