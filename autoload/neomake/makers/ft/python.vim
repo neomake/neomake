@@ -6,14 +6,18 @@ function! neomake#makers#ft#python#EnabledMakers()
     endif
 
     let makers = ['python', 'frosted']
+
     if neomake#utils#Exists('pylama')
         call add(makers, 'pylama')
     else
+        call add(makers, 'pep257')
+
         if neomake#utils#Exists('flake8')
             call add(makers, 'flake8')
         else
             call extend(makers, ['pep8', 'pyflakes'])
         endif
+
         call add(makers, 'pylint')  " Last because it is the slowest
     endif
 
@@ -61,6 +65,12 @@ endfunction
 function! neomake#makers#ft#python#pep8()
     return {
         \ 'errorformat': '%f:%l:%c: %m',
+        \ }
+endfunction
+
+function! neomake#makers#ft#python#pep257()
+    return {
+        \ 'errorformat': '%f:%l %m,%m',
         \ }
 endfunction
 
