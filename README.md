@@ -112,6 +112,7 @@ Python:
 
 Ruby:
 - mri
+- jruby
 - rubocop
 - reek
 
