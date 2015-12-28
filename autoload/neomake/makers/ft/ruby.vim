@@ -39,6 +39,23 @@ function! neomake#makers#ft#ruby#mri()
         \ }
 endfunction
 
+function! neomake#makers#ft#ruby#jruby()
+    let errorformat =
+        \ '%-GSyntax OK for %f,'.
+        \ '%ESyntaxError in %f:%l: syntax error\, %m,'.
+        \ '%Z%p^,'.
+        \ '%W%f:%l: warning: %m,'.
+        \ '%Z%p^,'.
+        \ '%W%f:%l: %m,'.
+        \ '%-C%.%#'
+
+    return {
+        \ 'exe': 'jruby',
+        \ 'args': ['-c', '-T1', '-w'],
+        \ 'errorformat': errorformat
+        \ }
+endfunction
+
 function! neomake#makers#ft#ruby#reek()
     return {
         \ 'args': ['--format', 'text', '--single-line'],
