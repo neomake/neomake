@@ -45,7 +45,7 @@ function! neomake#makers#ft#javascript#flow()
     let mapexpr = 'substitute(v:val, "\\\\n", " ", "g")'
     return {
         \ 'args': ['check', '--one-line'],
-        \ 'errorformat': '%f:%l:%c\,%n: %m',
+        \ 'errorformat': '%f:%l %m',
         \ 'mapexpr': mapexpr,
         \ }
 endfunction
