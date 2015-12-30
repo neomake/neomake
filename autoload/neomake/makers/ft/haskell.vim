@@ -42,6 +42,7 @@ endfunction
 function! neomake#makers#ft#haskell#hlint()
     return {
         \ 'errorformat':
+            \ 'hlint: In file %f at line %l:%m,' .
             \ '%E%f:%l:%v: Error: %m,' .
             \ '%W%f:%l:%v: Warning: %m,' .
             \ '%C%m'
