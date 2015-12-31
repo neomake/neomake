@@ -40,12 +40,3 @@ augroup neomake
     autocmd BufWinEnter,CursorHold * call neomake#ProcessCurrentBuffer()
     autocmd CursorMoved * call neomake#CursorMoved()
 augroup END
-
-let s:sign_bg =
-            \ " ctermbg=".synIDattr(synIDtrans(hlID("SignColumn")), "bg", "cterm") .
-            \ " guibg=" . synIDattr(synIDtrans(hlID("SignColumn")), "bg", "gui")
-exe "hi NeomakeErrorDefault         ctermfg=red    guifg =red" . s:sign_bg
-exe "hi NeomakeWarningDefault       ctermfg=yellow guifg =yellow" . s:sign_bg
-exe "hi NeomakeInformationalDefault ctermfg=blue   guifg =blue" . s:sign_bg
-exe "hi NeomakeMessageDefault       ctermfg=green  guifg =green" . s:sign_bg
-unlet s:sign_bg

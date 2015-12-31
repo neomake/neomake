@@ -156,7 +156,7 @@ function! neomake#signs#RedefineSign(name, opts)
 endfunction
 
 function! neomake#signs#RedefineErrorSign(...)
-    let default_opts = {'text': '✖', 'texthl': 'NeomakeErrorDefault'}
+    let default_opts = {'text': '✖'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
@@ -168,7 +168,7 @@ function! neomake#signs#RedefineErrorSign(...)
 endfunction
 
 function! neomake#signs#RedefineWarningSign(...)
-    let default_opts = {'text': '⚠', 'texthl': 'NeomakeWarningDefault'}
+    let default_opts = {'text': '⚠'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
@@ -180,7 +180,7 @@ function! neomake#signs#RedefineWarningSign(...)
 endfunction
 
 function! neomake#signs#RedefineMessageSign(...)
-    let default_opts = {'text': '➤', 'texthl': 'NeomakeMessageDefault'}
+    let default_opts = {'text': '➤'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
@@ -192,7 +192,7 @@ function! neomake#signs#RedefineMessageSign(...)
 endfunction
 
 function! neomake#signs#RedefineInformationalSign(...)
-    let default_opts = {'text': 'ℹ', 'texthl': 'NeomakeInformationalDefault'}
+    let default_opts = {'text': 'ℹ'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
