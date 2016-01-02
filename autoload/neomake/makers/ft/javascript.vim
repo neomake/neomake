@@ -41,11 +41,17 @@ function! neomake#makers#ft#javascript#standard()
 endfunction
 
 function! neomake#makers#ft#javascript#flow()
-    " Replace "\n" by space.
-    let mapexpr = 'substitute(v:val, "\\\\n", " ", "g")'
+    " Multi-line Vim
+    " \ 'errorformat': '%CFile %m%.%#,%AFile "%f"\, line %l\, characters %c-%.%#,%+G%m,%Z%m,%-G%.%#'
+
+    " Single-line Vim - Long
+    " 'errorformat': '%CFile %m%.%#,%AFile "%f"\, line %l\, characters %c-%.%#,%C%m,%Z%m,%-G%.%#'
+
+    " Single-line Vim - Short
+    " \ 'errorformat': '%CFile %.%#,%AFile "%f"\, line %l\, characters %c-%.%#,%C%m,%Z%m,%-G%.%#'
+
     return {
-        \ 'args': ['check', '--one-line'],
-        \ 'errorformat': '%f:%l:%c\,%n: %m',
-        \ 'mapexpr': mapexpr,
+        \ 'args': ['--from=vim'],
+        \ 'errorformat': '%CFile %.%#,%AFile "%f"\, line %l\, characters %c-%.%#,%C%m,%Z%m'
         \ }
 endfunction
