@@ -41,15 +41,6 @@ function! neomake#makers#ft#javascript#standard()
 endfunction
 
 function! neomake#makers#ft#javascript#flow()
-    " Multi-line Vim
-    " \ 'errorformat': '%CFile %m%.%#,%AFile "%f"\, line %l\, characters %c-%.%#,%+G%m,%Z%m,%-G%.%#'
-
-    " Single-line Vim - Long
-    " 'errorformat': '%CFile %m%.%#,%AFile "%f"\, line %l\, characters %c-%.%#,%C%m,%Z%m,%-G%.%#'
-
-    " Single-line Vim - Short
-    " \ 'errorformat': '%CFile %.%#,%AFile "%f"\, line %l\, characters %c-%.%#,%C%m,%Z%m,%-G%.%#'
-
     return {
         \ 'args': ['--from=vim'],
         \ 'errorformat': '%CFile %.%#,%AFile "%f"\, line %l\, characters %c-%.%#,%C%m,%Z%m'
