@@ -13,7 +13,7 @@ endfunction
 
 function! neomake#makers#ft#javascript#jscs()
     return {
-        \ 'args': ['--no-color', '--reporter', 'inline'],
+        \ 'args': ['--no-colors', '--reporter', 'inline'],
         \ 'errorformat': '%f: line %l\, col %c\, %m',
         \ }
 endfunction
