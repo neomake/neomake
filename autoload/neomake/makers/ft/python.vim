@@ -53,16 +53,14 @@ endfunction
 function! neomake#makers#ft#python#Flake8EntryProcess(entry)
     if a:entry.type ==# 'F'  " PyFlake errors
         let type = 'E'
-    elseif a:entry.type ==# 'E' && a:entry.nr >= 900  " PEP8 runtime errors (E901, E902)
-        let type = 'E'
     elseif a:entry.type ==# 'E' || a:entry.type ==# 'W'  " PEP8 errors & warnings
         let type = 'W'
     elseif a:entry.type ==# 'N' || a:entry.type ==# 'D'  " Naming (PEP8) & docstring (PEP257) conventions
         let type = 'W'
-    elseif a:entry.type ==# 'C' || a:entry.type ==# 'T'  " McCabe complexity & todo notes
+    elseif a:entry.type ==# 'C' || a:entry.type ==# 'T'  " mccabe complexity & todo notes
         let type = 'I'
     else
-        let type = ''
+        let type = 0
     endif
     let a:entry.type = type
 endfunction
