@@ -10,12 +10,10 @@ function! neomake#makers#ft#python#EnabledMakers()
     if neomake#utils#Exists('pylama')
         call add(makers, 'pylama')
     else
-        call add(makers, 'pep257')
-
         if neomake#utils#Exists('flake8')
             call add(makers, 'flake8')
         else
-            call extend(makers, ['pep8', 'pyflakes'])
+            call extend(makers, ['pep257', 'pep8', 'pyflakes'])
         endif
 
         call add(makers, 'pylint')  " Last because it is the slowest
@@ -53,9 +51,18 @@ function! neomake#makers#ft#python#flake8()
 endfunction
 
 function! neomake#makers#ft#python#Flake8EntryProcess(entry)
-    if a:entry.type ==# 'F'
-        let a:entry.type = 'E'
+    if a:entry.type ==# 'F'  " PyFlake errors
+        let type = 'E'
+    elseif a:entry.type ==# 'E' || a:entry.type ==# 'W'  " PEP8 errors & warnings
+        let type = 'W'
+    elseif a:entry.type ==# 'N' || a:entry.type ==# 'D'  " Naming (PEP8) & docstring (PEP257) conventions
+        let type = 'W'
+    elseif a:entry.type ==# 'C' || a:entry.type ==# 'T'  " mccabe complexity & todo notes
+        let type = 'I'
+    else
+        let type = 0
     endif
+    let a:entry.type = type
 endfunction
 
 function! neomake#makers#ft#python#pyflakes()
