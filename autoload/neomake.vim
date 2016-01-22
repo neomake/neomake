@@ -21,6 +21,13 @@ function! neomake#ListJobs() abort
     endfor
 endfunction
 
+function! neomake#CancelJob(job_id) abort
+    if !has_key(s:jobs, a:job_id)
+        return
+    endif
+    call jobstop(a:job_id)
+endfunction
+
 function! s:JobStart(make_id, exe, ...) abort
     let argv = [a:exe]
     let has_args = a:0 && type(a:1) == type([])
@@ -100,6 +107,8 @@ function! neomake#MakeJob(maker) abort
     if has_key(a:maker, 'cwd')
         exe 'cd' fnameescape(old_wd)
     endif
+
+    return jobinfo.id
 endfunction
 
 function! neomake#GetMaker(name_or_maker, ...) abort
@@ -212,7 +221,7 @@ function! neomake#GetEnabledMakers(...) abort
     return filter(keys(union), 'union[v:val] ==# l')
 endfunction
 
-function! neomake#Make(options) abort
+function! s:Make(options) abort
     call neomake#signs#DefineSigns()
     call neomake#statusline#ResetCounts()
 
@@ -252,6 +261,7 @@ function! neomake#Make(options) abort
     endif
 
     let serialize = get(g:, 'neomake_serialize')
+    let job_ids = []
     for name in enabled_makers
         let maker = neomake#GetMaker(name, ft)
         let maker.file_mode = file_mode
@@ -273,13 +283,18 @@ function! neomake#Make(options) abort
             let next_opts.continuation = 1
             let maker.next = next_opts
         endif
-        call neomake#MakeJob(maker)
+        if has_key(a:options, 'exit_callback')
+            let maker.exit_callback = a:options.exit_callback
+        endif
+        let job_id = neomake#MakeJob(maker)
+        call add(job_ids, job_id)
         " If we are serializing makers, stop after the first one. The
         " remaining makers will be processed in turn when this one is done.
         if serialize
             break
         endif
     endfor
+    return job_ids
 endfunction
 
 function! s:AddExprCallback(maker) abort
@@ -481,6 +496,20 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
             endif
         endif
         let status = a:data
+        if has_key(maker, 'exit_callback')
+            let callback_dict = { 'status': status,
+                                \ 'name': maker.name,
+                                \ 'has_next': has_key(maker, 'next') }
+            if type(maker.exit_callback) == type('')
+                let ExitCallback = function(maker.exit_callback)
+            else
+                let ExitCallback = maker.exit_callback
+            endif
+            try
+                call ExitCallback(callback_dict)
+            catch /^Vim\%((\a\+)\)\=:E117/
+            endtry
+        endif
         call s:CleanJobinfo(jobinfo)
         if has('nvim')
             " Only report completion for neovim, since it is asynchronous
@@ -582,4 +611,29 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, CursorPos)
         return filter(neomake#GetEnabledMakers(&ft),
                     \ "v:val =~? '^".a:ArgLead."'")
     endif
+endfunction
+
+function! neomake#Make(file_mode, enabled_makers, ...)
+    let options = a:0 ? { 'exit_callback': a:1 } : {}
+    if a:file_mode
+        let options.enabled_makers = len(a:enabled_makers) ?
+                    \ a:enabled_makers :
+                    \ neomake#GetEnabledMakers(&ft)
+        let options.ft = &ft
+        let options.file_mode = 1
+    else
+        let options.enabled_makers = len(a:enabled_makers) ?
+                    \ a:enabled_makers :
+                    \ neomake#GetEnabledMakers()
+    endif
+    return s:Make(options)
+endfunction
+
+function! neomake#Sh(sh_command, ...)
+    let options = a:0 ? { 'exit_callback': a:1 } : {}
+    let custom_maker = neomake#utils#MakerFromCommand(&shell, a:sh_command)
+    let custom_maker.name = 'sh: '.a:sh_command
+    let custom_maker.remove_invalid_entries = 0
+    let options.enabled_makers =  [custom_maker]
+    return s:Make(options)[0]
 endfunction
