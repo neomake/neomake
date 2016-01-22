@@ -57,10 +57,10 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry)
         let type = 'W'
     elseif a:entry.type ==# 'N' || a:entry.type ==# 'D'  " Naming (PEP8) & docstring (PEP257) conventions
         let type = 'W'
-    elseif a:entry.type ==# 'C' || a:entry.type ==# 'T'  " mccabe complexity & todo notes
+    elseif a:entry.type ==# 'C' || a:entry.type ==# 'T'  " McCabe complexity & todo notes
         let type = 'I'
     else
-        let type = 0
+        let type = ''
     endif
     let a:entry.type = type
 endfunction
