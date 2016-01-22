@@ -63,11 +63,11 @@ endfunction
 
 " type may be either 'file' or 'project'
 function! neomake#signs#PlaceSign(entry, type) abort
-    if a:entry.type ==# 'W'
+    if a:entry.type ==? 'W'
         let sign_type = 'neomake_warn'
-    elseif a:entry.type ==# 'I'
+    elseif a:entry.type ==? 'I'
         let sign_type = 'neomake_info'
-    elseif a:entry.type ==# 'M'
+    elseif a:entry.type ==? 'M'
         let sign_type = 'neomake_msg'
     else
         let sign_type = 'neomake_err'
