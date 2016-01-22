@@ -128,6 +128,10 @@ C++:
 - g++
 - clang-tidy
 
+CSS:
+- csslint
+- stylelint
+
 D:
 - dmd
 
