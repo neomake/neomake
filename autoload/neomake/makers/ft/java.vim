@@ -5,15 +5,15 @@ if exists('g:neomake_java_javac_maker')
     finish
 endif
 
+function! s:getClasspath() abort
+    return '.'
+endfunction
 let g:neomake_java_javac_option =
             \get(g:,'neomake_java_javac_option','-Xlint')
 let g:neomake_java_javac_outputdir =
             \get(g:,'neomake_java_javac_outputdir','.')
 let g:neomake_java_javac_classpath =
             \get(g:,'neomake_java_javac_classpath',s:getClasspath())
-function! s:getClasspath() abort
-    return '.'
-endfunction
 
 
 function! neomake#makers#ft#java#EnabledMakers()
@@ -24,8 +24,8 @@ function! neomake#makers#ft#java#javac()
     return {
                 \ 'args':[
                 \g:neomake_java_javac_option,
-                \'-cp '.g:neomake_java_javac_classpath,
-                \'-d '.g:neomake_java_javac_outputdir
+                \'-cp',g:neomake_java_javac_classpath,
+                \'-d',g:neomake_java_javac_outputdir
                 \],
                 \ 'errorformat':
                 \ '%E%f:%l: error: %m,'.
