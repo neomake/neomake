@@ -534,7 +534,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
                 call neomake#utils#LoudMessage('Aborting next makers '.next_makers)
             else
                 call neomake#utils#DebugMessage('next makers '.next_makers)
-                call neomake#Make(maker.next)
+                call s:Make(maker.next)
             endif
         endif
     endif
