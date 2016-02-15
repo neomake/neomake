@@ -22,7 +22,7 @@ endfunction
 
 function! neomake#makers#ft#rust#rustc() abort
     return {
-                \ 'args': ['-Z', 'no-trans'],
+                \ 'args': ['-Z', 'parse-only'],
                 \ 'errorformat':
                 \ '%-G%f:%s:,' .
                 \ '%f:%l:%c: %trror: %m,' .
