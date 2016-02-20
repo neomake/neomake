@@ -36,7 +36,25 @@ function! neomake#makers#ft#python#pylint()
             \ '%A%f:(%l): %m,' .
             \ '%-Z%p^%.%#,' .
             \ '%-G%.%#',
+        \ 'postprocess': function('neomake#makers#ft#python#PylintEntryProcess')
         \ }
+endfunction
+
+function! neomake#makers#ft#python#PylintEntryProcess(entry)
+    if a:entry.type ==# 'F'  " Fatal error which prevented further processing
+        let type = 'E'
+    elseif a:entry.type ==# 'E'  " Error for important programming issues
+        let type = 'E'
+    elseif a:entry.type ==# 'W'  " Warning for stylistic or minor programming issues
+        let type = 'W'
+    elseif a:entry.type ==# 'R'  " Refactor suggestion
+        let type = 'W'
+    elseif a:entry.type ==# 'C'  " Convention violation
+        let type = 'W'
+    else
+        let type = ''
+    endif
+    let a:entry.type = type
 endfunction
 
 function! neomake#makers#ft#python#flake8()
@@ -81,7 +99,17 @@ endfunction
 function! neomake#makers#ft#python#pep8()
     return {
         \ 'errorformat': '%f:%l:%c: %m',
+        \ 'postprocess': function('neomake#makers#ft#python#Pep8EntryProcess')
         \ }
+endfunction
+
+function! neomake#makers#ft#python#Pep8EntryProcess(entry)
+    if a:entry.text =~ '^E9'  " PEP8 runtime errors (E901, E902)
+        let type = 'E'
+    else  " Everything else is a warning
+        let type = 'W'
+    endif
+    let a:entry.type = type
 endfunction
 
 function! neomake#makers#ft#python#pep257()
