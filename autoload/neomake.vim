@@ -44,7 +44,11 @@ function! s:JobStart(make_id, exe, ...) abort
         return jobstart(argv, opts)
     else
         if has_args
-            let program = a:exe.' '.join(map(a:1, 'shellescape(v:val)'))
+            if neomake#utils#IsRunningWindows()
+                let program = a:exe.' '.join(map(a:1, 'v:val'))
+            else
+                let program = a:exe.' '.join(map(a:1, 'shellescape(v:val)'))
+            endif
         else
             let program = a:exe
         endif
@@ -78,7 +82,13 @@ function! neomake#MakeJob(maker) abort
     if append_file
         call add(args, '%:p')
     endif
-    call map(args, 'expand(v:val)')
+
+    if neomake#utils#IsRunningWindows()
+        " Don't expand &shellcmdflag argument of cmd.exe
+        call map(args, 'v:val !=? &shellcmdflag ? expand(v:val) : v:val')
+    else
+        call map(args, 'expand(v:val)')
+    endif
 
     if has_key(a:maker, 'cwd')
         let old_wd = getcwd()
