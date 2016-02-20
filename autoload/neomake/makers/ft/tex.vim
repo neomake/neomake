@@ -41,3 +41,11 @@ function! neomake#makers#ft#tex#rubberinfo()
             \ '%f: %m'
         \ }
 endfunction
+
+function! neomake#makers#ft#tex#latexrun()
+    return {
+        \ 'args': ['--color', 'never'],
+        \ 'errorformat':
+            \ '%f:%l: %m'
+        \ }
+endfunction
