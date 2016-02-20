@@ -122,6 +122,7 @@ C:
 - clang
 - gcc
 - clang-tidy
+- checkpatch
 
 C++:
 - clang++
