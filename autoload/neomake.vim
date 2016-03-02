@@ -398,7 +398,20 @@ function! s:ProcessJobOutput(maker, lines) abort
         let &errorformat = a:maker.errorformat
 
         if get(a:maker, 'file_mode')
+            " Go to window if it's not current.
+            if winnr() != a:maker.winnr
+                let cur_window = winnr()
+                let prev_window = winnr('#')
+                exec a:maker.winnr.'wincmd w'
+            endif
+
             laddexpr a:lines
+
+            " Restore window.
+            if exists('l:prev_window')
+                exec prev_window.'wincmd w'
+                exec cur_window.'wincmd w'
+            endif
         else
             caddexpr a:lines
         endif
@@ -497,11 +510,38 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
             let open_val = g:neomake_open_list
             let win_val = winnr()
             if get(maker, 'file_mode')
+                " Go to job's window if it is not current.
+                " This uses window-local variables, because window numbers
+                " might change when opening the location list window.
+                if win_val != maker.winnr
+                    call setwinvar(0, 'neomake_cur_window_'.jobinfo.id, 1)
+                    call setwinvar(winnr('#'), 'neomake_prev_window_'.jobinfo.id, 1)
+                    exec maker.winnr.'wincmd w'
+                endif
+
                 exe "lwindow ".height
+
+                " Restore window state, first for 'winnr("#")'.
+                if win_val != maker.winnr
+                    for w in range(1, winnr('$'))
+                        if getwinvar(w, 'neomake_prev_window_'.jobinfo.id)
+                            exec w.'wincmd w'
+                            exec 'unlet w:neomake_prev_window_'.jobinfo.id
+                            break
+                        endif
+                    endfor
+                    for w in range(1, winnr('$'))
+                        if getwinvar(w, 'neomake_cur_window_'.jobinfo.id)
+                            exec w.'wincmd w'
+                            exec 'unlet w:neomake_cur_window_'.jobinfo.id
+                            break
+                        endif
+                    endfor
+                endif
             else
                 exe "cwindow ".height
             endif
-            if open_val == 2 && win_val != winnr()
+            if open_val == 2 && win_val == maker.winnr && win_val != winnr()
                 wincmd p
             endif
         endif
