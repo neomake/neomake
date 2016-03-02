@@ -206,7 +206,8 @@ function! neomake#GetEnabledMakers(...) abort
 
     " If a filetype was passed, get the makers that are enabled for each of
     " the filetypes represented.
-    let union = {}
+    let makers = []
+    let makers_count = {}
     let fts = neomake#utils#GetSortedFiletypes(a:1)
     for ft in fts
         let ft = substitute(ft, '\W', '_', 'g')
@@ -223,12 +224,17 @@ function! neomake#GetEnabledMakers(...) abort
             let enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
         endif
         for maker_name in enabled_makers
-            let union[maker_name] = get(union, maker_name, 0) + 1
+            let c = get(makers_count, maker_name, 0)
+            let makers_count[maker_name] = c + 1
+            " Add each maker only once, but keep the order.
+            if c == 0
+                let makers += [maker_name]
+            endif
         endfor
     endfor
 
     let l = len(fts)
-    return filter(keys(union), 'union[v:val] ==# l')
+    return filter(makers, 'makers_count[v:val] ==# l')
 endfunction
 
 function! s:Make(options) abort
