@@ -5,7 +5,7 @@ function! neomake#makers#ft#cpp#EnabledMakers()
         return ['clang']
     else
         return ['gcc']
-    end
+    endif
 endfunction
 
 function! neomake#makers#ft#cpp#clang()
