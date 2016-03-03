@@ -1,0 +1,19 @@
+language: python
+
+cache:
+  pip: true
+  directories:
+    - /tmp/vimlint
+    - /tmp/vimlparser
+    - /tmp/vint
+
+# Don't reinstall dependencies if they have been cached
+install:
+  - '[ -d /tmp/vimlint ] || git clone https://github.com/syngan/vim-vimlint /tmp/vimlint'
+  - '[ -d /tmp/vimlparser ] || git clone https://github.com/ynkdir/vim-vimlparser /tmp/vimlparser'
+  - '[ -d /tmp/vint/bin ] || virtualenv /tmp/vint && source /tmp/vint/bin/activate'
+  - 'vint --version || pip install vim-vint'
+
+script:
+  - sh /tmp/vimlint/bin/vimlint.sh -l /tmp/vimlint -p /tmp/vimlparser -v $TRAVIS_BUILD_DIR
+  - vint --error $TRAVIS_BUILD_DIR
