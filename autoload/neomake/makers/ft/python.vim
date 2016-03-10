@@ -26,9 +26,9 @@ endfunction
 function! neomake#makers#ft#python#pylint()
     return {
         \ 'args': [
-            \ '-f', 'text',
+            \ '--output-format=text',
             \ '--msg-template="{path}:{line}:{column}:{C}: [{symbol}] {msg}"',
-            \ '-r', 'n'
+            \ '--reports=no'
         \ ],
         \ 'errorformat':
             \ '%A%f:%l:%c:%t: %m,' .
