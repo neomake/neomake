@@ -329,7 +329,7 @@ function! s:AddExprCallback(maker) abort
         if has_key(a:maker, 'postprocess')
             let Func = a:maker.postprocess
             call Func(entry)
-        end
+        endif
 
         if !entry.valid
             if a:maker.remove_invalid_entries

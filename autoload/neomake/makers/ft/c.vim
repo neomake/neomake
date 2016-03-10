@@ -10,7 +10,7 @@ function! neomake#makers#ft#c#EnabledMakers()
         endif
     else
         call add(makers, 'gcc')
-    end
+    endif
     call add(makers, 'checkpatch')
     return makers
 endfunction
