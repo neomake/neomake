@@ -5,6 +5,14 @@ function! neomake#makers#ft#vim#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#vim#vint() abort
+    if has('nvim')
+        return {
+            \ 'args': ['--style-problem', '--enable-neovim'],
+            \ 'errorformat':
+                \ '%f:%l:%c: %m,'
+            \ }
+    endif
+
     return {
         \ 'args': ['--style-problem'],
         \ 'errorformat':
