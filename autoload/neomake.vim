@@ -403,6 +403,12 @@ function! s:ProcessJobOutput(maker, lines) abort
         let olderrformat = &errorformat
         let &errorformat = a:maker.errorformat
 
+        let lines = a:lines
+        if !get(g:, 'neomake_dont_annotate_with_maker_name')
+            let maker_name = has_key(a:maker, 'name') ? a:maker.name : 'makeprg'
+            let lines = map(copy(lines), 'v:val . " [".a:maker.name."]"')
+        endif
+
         if get(a:maker, 'file_mode')
             " Go to window if it's not current.
             if winnr() != a:maker.winnr
@@ -411,7 +417,7 @@ function! s:ProcessJobOutput(maker, lines) abort
                 exec a:maker.winnr.'wincmd w'
             endif
 
-            laddexpr a:lines
+            laddexpr lines
 
             " Restore window.
             if exists('l:prev_window')
@@ -419,7 +425,7 @@ function! s:ProcessJobOutput(maker, lines) abort
                 exec cur_window.'wincmd w'
             endif
         else
-            caddexpr a:lines
+            caddexpr lines
         endif
         call s:AddExprCallback(a:maker)
 
