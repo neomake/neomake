@@ -175,6 +175,9 @@ sh:
 Standard ML:
 - smlnj
 
+Stylus:
+- [stylint](https://rosspatton.github.io/stylint/)
+
 SQL:
 - [sqlint](https://github.com/purcell/sqlint)
 
