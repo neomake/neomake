@@ -31,6 +31,7 @@ endfunction
 function! neomake#makers#ft#go#govet()
     return {
         \ 'exe': 'go',
+        \ 'cwd': '%:p:h',
         \ 'args': ['vet'],
         \ 'append_file': 0,
         \ 'errorformat':
