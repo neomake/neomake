@@ -4,7 +4,6 @@ scriptencoding utf-8
 let s:make_id = 1
 let s:jobs = {}
 let s:jobs_by_maker = {}
-let s:job_output_by_buffer = {}
 let s:current_errors = {
     \ 'project': {},
     \ 'file': {}
@@ -118,6 +117,13 @@ function! neomake#MakeJob(maker) abort
         exe 'cd' fnameescape(old_wd)
     endif
 
+    " Add jobinfo to current window.
+    let win_jobs = gettabwinvar(tabpagenr(), winnr(), 'neomake_jobs', [])
+    if index(win_jobs, jobinfo.id) == -1
+        let win_jobs += [jobinfo.id]
+        call settabwinvar(tabpagenr(), winnr(), 'neomake_jobs', win_jobs)
+    endif
+
     return jobinfo.id
 endfunction
 
@@ -193,8 +199,6 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         endif
     endfor
     let maker.ft = real_ft
-    " Only relevant if file_mode is used
-    let maker.winnr = winnr()
     return maker
 endfunction
 
@@ -237,6 +241,22 @@ function! neomake#GetEnabledMakers(...) abort
     return filter(makers, 'makers_count[v:val] ==# l')
 endfunction
 
+function! s:HandleLoclistQflistDisplay(file_mode)
+    let open_val = get(g:, 'neomake_open_list')
+    if open_val
+        let height = get(g:, 'neomake_list_height', 10)
+        let win_val = winnr()
+        if a:file_mode
+            exe 'lwindow' height
+        else
+            exe 'cwindow' height
+        endif
+        if open_val == 2 && win_val != winnr()
+            wincmd p
+        endif
+    endif
+endfunction
+
 function! s:Make(options) abort
     call neomake#signs#DefineSigns()
     call neomake#statusline#ResetCounts()
@@ -259,6 +279,7 @@ function! s:Make(options) abort
     else
         cgetexpr ''
     endif
+    call s:HandleLoclistQflistDisplay(file_mode)
 
     if !get(a:options, 'continuation')
         " Only do this if we have one or more enabled makers
@@ -316,9 +337,9 @@ endfunction
 function! s:AddExprCallback(maker) abort
     let file_mode = get(a:maker, 'file_mode')
     let place_signs = get(g:, 'neomake_place_signs', 1)
-    let list = file_mode ? getloclist(a:maker.winnr) : getqflist()
+    let list = file_mode ? getloclist(winnr()) : getqflist()
     let list_modified = 0
-    let index = file_mode ? s:loclist_nr[a:maker.winnr] : s:qflist_nr
+    let index = file_mode ? s:loclist_nr[winnr()] : s:qflist_nr
     let maker_type = file_mode ? 'file' : 'project'
 
     while index < len(list)
@@ -350,7 +371,7 @@ function! s:AddExprCallback(maker) abort
 
         if file_mode
             call neomake#statusline#AddLoclistCount(
-                \ a:maker.winnr, entry.bufnr, entry)
+                \ winnr(), entry.bufnr, entry)
         endif
 
         " On the first valid error identified by a maker,
@@ -374,14 +395,14 @@ function! s:AddExprCallback(maker) abort
 
     if list_modified
         if file_mode
-            call setloclist(a:maker.winnr, list, 'r')
+            call setloclist(winnr(), list, 'r')
         else
             call setqflist(list, 'r')
         endif
     endif
 
     if file_mode
-        let s:loclist_nr[a:maker.winnr] = index
+        let s:loclist_nr[winnr()] = index
     else
         let s:qflist_nr = index
     endif
@@ -394,48 +415,57 @@ function! s:CleanJobinfo(jobinfo) abort
         unlet s:jobs_by_maker[maker_key]
     endif
     call remove(s:jobs, a:jobinfo.id)
+
+    " Remove job from its window.
+    let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
+    let jobs = gettabwinvar(t, w, 'neomake_jobs', [])
+    let idx = index(jobs, a:jobinfo.id)
+    if idx != -1
+        call remove(jobs, idx)
+        call settabwinvar(t, w, 'neomake_jobs', jobs)
+    endif
 endfunction
 
 function! s:ProcessJobOutput(maker, lines) abort
     call neomake#utils#DebugMessage(get(a:maker, 'name', 'makeprg').' processing '.
                                     \ len(a:lines).' lines of output')
-    if len(a:lines) > 0
+    if len(a:lines)
         let olderrformat = &errorformat
         let &errorformat = a:maker.errorformat
-
         if get(a:maker, 'file_mode')
-            " Go to window if it's not current.
-            if winnr() != a:maker.winnr
-                let cur_window = winnr()
-                let prev_window = winnr('#')
-                exec a:maker.winnr.'wincmd w'
-            endif
-
             laddexpr a:lines
-
-            " Restore window.
-            if exists('l:prev_window')
-                exec prev_window.'wincmd w'
-                exec cur_window.'wincmd w'
-            endif
         else
             caddexpr a:lines
         endif
         call s:AddExprCallback(a:maker)
-
         let &errorformat = olderrformat
+    endif
+
+    call s:HandleLoclistQflistDisplay(a:maker.file_mode)
+endfunction
+
+function! neomake#ProcessCurrentWindow() abort
+    let outputs = get(w:, 'neomake_jobs_output', [])
+    if len(outputs)
+        unlet w:neomake_jobs_output
+        for output in outputs
+            call s:ProcessJobOutput(output.maker, output.lines)
+        endfor
+        call neomake#signs#PlaceVisibleSigns()
     endif
 endfunction
 
-function! neomake#ProcessCurrentBuffer() abort
-    let buf = bufnr('%')
-    if has_key(s:job_output_by_buffer, buf)
-        for output in s:job_output_by_buffer[buf]
-            call s:ProcessJobOutput(output.maker, output.lines)
+" Get tabnr and winnr for a given job ID.
+function! s:GetTabWinForJob(job_id)
+    for t in [tabpagenr()] + range(1, tabpagenr()-1) + range(tabpagenr()+1, tabpagenr('$'))
+        for w in range(1, tabpagewinnr(t, '$'))
+            if index(gettabwinvar(t, w, 'neomake_jobs', []), a:job_id) != -1
+                return [t, w]
+                break
+            endif
         endfor
-        unlet s:job_output_by_buffer[buf]
-    endif
-    call neomake#signs#PlaceVisibleSigns()
+    endfor
+    return [-1, -1]
 endfunction
 
 function! s:RegisterJobOutput(jobinfo, maker, lines) abort
@@ -444,20 +474,22 @@ function! s:RegisterJobOutput(jobinfo, maker, lines) abort
             \ 'maker': a:maker,
             \ 'lines': a:lines
             \ }
-        if has_key(s:job_output_by_buffer, a:jobinfo.bufnr)
-            call add(s:job_output_by_buffer[a:jobinfo.bufnr], output)
-        else
-            let s:job_output_by_buffer[a:jobinfo.bufnr] = [output]
+
+        let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
+        if w
+            let w_output = gettabwinvar(t, w, 'neomake_jobs_output', [])
+                        \ + [output]
+            call settabwinvar(t, w, 'neomake_jobs_output', w_output)
         endif
 
-        " Process the buffer on demand if we can
-        if bufnr('%') ==# a:jobinfo.bufnr
-            call neomake#ProcessCurrentBuffer()
-        endif
-        if &ft ==# 'qf'
+        " Process the window on demand if we can.
+        let idx_win_job = index(getwinvar(winnr(), 'neomake_jobs', []), a:jobinfo.id)
+        if idx_win_job != -1
+            call neomake#ProcessCurrentWindow()
+        elseif &ft ==# 'qf'
             " Process the previous window if we are in a qf window.
             wincmd p
-            call neomake#ProcessCurrentBuffer()
+            call neomake#ProcessCurrentWindow()
             wincmd p
         endif
     else
@@ -509,48 +541,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         if has_key(jobinfo, 'lines')
             call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines)
         endif
-        " TODO This used to open up as the list was populated, but it caused
-        " some issues with s:AddExprCallback.
-        if get(g:, 'neomake_open_list')
-            let height = get(g:, 'neomake_list_height', 10)
-            let open_val = g:neomake_open_list
-            let win_val = winnr()
-            if get(maker, 'file_mode')
-                " Go to job's window if it is not current.
-                " This uses window-local variables, because window numbers
-                " might change when opening the location list window.
-                if win_val != maker.winnr
-                    call setwinvar(0, 'neomake_cur_window_'.jobinfo.id, 1)
-                    call setwinvar(winnr('#'), 'neomake_prev_window_'.jobinfo.id, 1)
-                    exec maker.winnr.'wincmd w'
-                endif
 
-                exe "lwindow ".height
-
-                " Restore window state, first for 'winnr("#")'.
-                if win_val != maker.winnr
-                    for w in range(1, winnr('$'))
-                        if getwinvar(w, 'neomake_prev_window_'.jobinfo.id)
-                            exec w.'wincmd w'
-                            exec 'unlet w:neomake_prev_window_'.jobinfo.id
-                            break
-                        endif
-                    endfor
-                    for w in range(1, winnr('$'))
-                        if getwinvar(w, 'neomake_cur_window_'.jobinfo.id)
-                            exec w.'wincmd w'
-                            exec 'unlet w:neomake_cur_window_'.jobinfo.id
-                            break
-                        endif
-                    endfor
-                endif
-            else
-                exe "cwindow ".height
-            endif
-            if open_val == 2 && win_val == maker.winnr && win_val != winnr()
-                wincmd p
-            endif
-        endif
         let status = a:data
         if has_key(maker, 'exit_callback')
             let callback_dict = { 'status': status,
