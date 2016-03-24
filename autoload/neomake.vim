@@ -622,6 +622,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
 
         " Show the current line's error
         call neomake#CursorMoved()
+        call neomake#EchoCurrentError()
 
         if has_key(maker, 'next')
             let next_makers = '['.join(maker.next.enabled_makers, ', ').']'
@@ -691,9 +692,14 @@ function! neomake#EchoCurrentError() abort
     call neomake#utils#WideMessage(message)
 endfunction
 
+let s:last_cursormoved = [0, 0]
 function! neomake#CursorMoved() abort
-    call neomake#signs#PlaceVisibleSigns()
-    call neomake#EchoCurrentError()
+    let l:line = line('.')
+    if s:last_cursormoved[0] != l:line && s:last_cursormoved[1] != bufnr('%')
+        let s:last_cursormoved = [l:line, bufnr('%')]
+        call neomake#signs#PlaceVisibleSigns()
+        call neomake#EchoCurrentError()
+    endif
 endfunction
 
 function! neomake#CompleteMakers(ArgLead, ...) abort
