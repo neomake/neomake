@@ -10,7 +10,7 @@ function! neomake#makers#ft#go#go()
             \ 'build',
             \ '-o', neomake#utils#DevNull()
         \ ],
-        \ 'append_file': 0,
+        \ 'append_file': 1,
         \ 'errorformat':
             \ '%W%f:%l: warning: %m,' .
             \ '%E%f:%l:%c:%m,' .
@@ -32,7 +32,7 @@ function! neomake#makers#ft#go#govet()
     return {
         \ 'exe': 'go',
         \ 'args': ['vet'],
-        \ 'append_file': 0,
+        \ 'append_file': 1,
         \ 'errorformat':
             \ '%Evet: %.%\+: %f:%l:%c: %m,' .
             \ '%W%f:%l: %m,' .
