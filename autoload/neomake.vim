@@ -399,7 +399,14 @@ endfunction
 function! s:ProcessJobOutput(maker, lines) abort
     call neomake#utils#DebugMessage(get(a:maker, 'name', 'makeprg').' processing '.
                                     \ len(a:lines).' lines of output')
-    if len(a:lines) > 0
+
+    let lines = a:lines
+    if has_key(a:maker, 'preprocess')
+        let Func = a:maker.preprocess
+        let lines = Func(copy(a:lines))
+    endif
+
+    if len(lines) > 0
         let olderrformat = &errorformat
         let &errorformat = a:maker.errorformat
 
@@ -411,7 +418,7 @@ function! s:ProcessJobOutput(maker, lines) abort
                 exec a:maker.winnr.'wincmd w'
             endif
 
-            laddexpr a:lines
+            laddexpr lines
 
             " Restore window.
             if exists('l:prev_window')
@@ -419,7 +426,7 @@ function! s:ProcessJobOutput(maker, lines) abort
                 exec cur_window.'wincmd w'
             endif
         else
-            caddexpr a:lines
+            caddexpr lines
         endif
         call s:AddExprCallback(a:maker)
 
