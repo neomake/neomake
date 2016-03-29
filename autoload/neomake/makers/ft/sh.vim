@@ -10,6 +10,15 @@ function! neomake#makers#ft#sh#shellcheck()
         \ 'errorformat':
             \ '%f:%l:%c: %trror: %m,' .
             \ '%f:%l:%c: %tarning: %m,' .
-            \ '%f:%l:%c: %tote: %m'
+            \ '%f:%l:%c: %tote: %m',
+        \ 'postprocess':
+            \ function('neomake#makers#ft#sh#ShellcheckEntryProcess')
         \ }
+endfunction
+
+function! neomake#makers#ft#sh#ShellcheckEntryProcess(entry)
+    if a:entry.type ==? 'N'
+        let a:entry.type = 'W'
+    endif
+    return a:entry
 endfunction
