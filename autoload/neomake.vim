@@ -455,6 +455,8 @@ function! s:Make(options, ...) abort
     endif
     call neomake#signs#DefineSigns()
 
+    call neomake#highlights#DefineHighlights()
+
     call neomake#utils#DebugMessage(printf('Running makers: %s',
                 \ string(enabled_makers)), {'make_id': make_id})
 
@@ -542,6 +544,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let maker = a:jobinfo.maker
     let file_mode = get(maker, 'file_mode')
     let place_signs = get(g:, 'neomake_place_signs', 1)
+    let highlight_columns = get(g:, 'neomake_highlight_columns', 1)
     let list = file_mode ? getloclist(0) : getqflist()
     let list_modified = 0
     let counts_changed = 0
@@ -618,6 +621,9 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             else
                 call neomake#signs#RegisterSign(entry, maker_type)
             endif
+        endif
+        if highlight_columns
+            call neomake#highlights#AddHighlight(entry, maker_type)
         endif
     endwhile
 
@@ -709,6 +715,7 @@ function! neomake#ProcessCurrentWindow() abort
         endfor
         call neomake#signs#PlaceVisibleSigns()
     endif
+    call neomake#highlights#ShowHighlights()
 endfunction
 
 " Get tabnr and winnr for a given job ID.
@@ -883,6 +890,7 @@ function! neomake#CleanOldProjectSignsAndErrors() abort
     if s:need_errors_cleaning['project']
         for buf in keys(s:current_errors.project)
             unlet s:current_errors['project'][buf]
+            call neomake#highlights#ResetProject(buf)
         endfor
         let s:need_errors_cleaning['project'] = 0
         call neomake#utils#DebugMessage('All project-level errors cleaned.')
@@ -897,6 +905,7 @@ function! neomake#CleanOldFileSignsAndErrors(...) abort
             unlet s:current_errors['file'][bufnr]
         endif
         unlet s:need_errors_cleaning['file'][bufnr]
+        call neomake#highlights#ResetFile(bufnr)
         call neomake#utils#DebugMessage('File-level errors cleaned in buffer '.bufnr)
     endif
     call neomake#signs#CleanOldSigns(bufnr, 'file')
