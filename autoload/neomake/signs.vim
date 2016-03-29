@@ -56,7 +56,7 @@ endfunction
 function! neomake#signs#RegisterSign(entry, type) abort
     let s:sign_queue[a:type][a:entry.bufnr] = get(s:sign_queue[a:type], a:entry.bufnr, {})
     let existing = get(s:sign_queue[a:type][a:entry.bufnr], a:entry.lnum, {})
-    if empty(existing) || a:entry.type ==# 'E' && existing.type !=# 'E'
+    if empty(existing) || a:entry.type ==? 'E' && existing.type !=? 'E'
         let s:sign_queue[a:type][a:entry.bufnr][a:entry.lnum] = a:entry
     endif
 endfunction
