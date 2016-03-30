@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#sh#EnabledMakers()
-    return ['shellcheck']
+    return ['sh', 'shellcheck']
 endfunction
 
 function! neomake#makers#ft#sh#shellcheck()
@@ -35,4 +35,18 @@ function! neomake#makers#ft#sh#checkbashisms()
             \ '%Wpossible bashism in %f line %l (%m):,%C%.%#,%Z.%#,' .
             \ '%-G%.%#'
         \ }
+endfunction
+
+function! neomake#makers#ft#sh#sh()
+    let l:sh = '/bin/sh'
+    let l:line = getline(1)
+    if l:line =~# '^#!'
+        let l:sh = matchstr(l:line, '^#!\zs\S*\ze')
+    endif
+
+    return {
+        \ 'exe': l:sh,
+        \ 'args': ['-n'],
+        \ 'errorformat': '%f: line %l: %m'
+        \}
 endfunction
