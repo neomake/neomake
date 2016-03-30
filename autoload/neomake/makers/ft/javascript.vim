@@ -44,7 +44,7 @@ function! neomake#makers#ft#javascript#flow()
     " Replace "\n" by space.
     let mapexpr = 'substitute(v:val, "\\\\n", " ", "g")'
     return {
-        \ 'args': ['check', '--old-output-format'],
+        \ 'args': ['--old-output-format'],
         \ 'errorformat': '%f:%l:%c\,%n: %m',
         \ 'mapexpr': mapexpr,
         \ }
