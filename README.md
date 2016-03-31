@@ -170,7 +170,9 @@ Standard ML:
 - smlnj
 
 Markdown:
-- mdl
+- [markdownlint](https://github.com/igorshubovych/markdownlint-cli)
+- [mdl](https://github.com/mivok/markdownlint)
+- [proselint](http://proselint.com)
 
 Pug:
 - [pug-lint](https://github.com/pugjs/pug-lint)

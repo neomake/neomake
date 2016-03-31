@@ -1,5 +1,9 @@
 function! neomake#makers#ft#markdown#EnabledMakers()
-    return ['mdl', 'proselint']
+    if executable('mdl') && executable('markdownlint')
+        return ['mdl', 'proselint']
+    endif
+
+    return ['mdl', 'markdownlint', 'proselint']
 endfunction
 
 function! neomake#makers#ft#markdown#mdl()
@@ -12,5 +16,12 @@ endfunction
 function! neomake#makers#ft#markdown#proselint()
     return {
                 \ 'errorformat': '%f:%l:%c: %m'
+                \ }
+endfunction
+
+function! neomake#makers#ft#markdown#markdownlint()
+    return {
+                \ 'errorformat':
+                \ '%f: %l: %m'
                 \ }
 endfunction
