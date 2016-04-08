@@ -10,7 +10,8 @@ function! neomake#makers#ft#c#EnabledMakers()
         endif
     else
         call add(makers, 'gcc')
-    end
+    endif
+    call add(makers, 'checkpatch')
     return makers
 endfunction
 
@@ -58,5 +59,15 @@ function! neomake#makers#ft#c#clangtidy()
             \ '%W%f:%l:%c: warning: %m,' .
             \ '%-G%\m%\%%(LLVM ERROR:%\|No compilation database found%\)%\@!%.%#,' .
             \ '%E%m',
+        \ }
+endfunction
+
+function! neomake#makers#ft#c#checkpatch()
+    return {
+        \ 'exe': 'checkpatch.pl',
+        \ 'args': ['--no-summary', '--no-tree', '--terse', '--file'],
+        \ 'errorformat':
+            \ '%f:%l: %tARNING: %m,' .
+            \ '%f:%l: %tRROR: %m',
         \ }
 endfunction

@@ -13,7 +13,7 @@ endfunction
 
 function! neomake#makers#ft#javascript#jscs()
     return {
-        \ 'args': ['--no-color', '--reporter', 'inline'],
+        \ 'args': ['--no-colors', '--reporter', 'inline'],
         \ 'errorformat': '%f: line %l\, col %c\, %m',
         \ }
 endfunction
@@ -44,7 +44,7 @@ function! neomake#makers#ft#javascript#flow()
     " Replace "\n" by space.
     let mapexpr = 'substitute(v:val, "\\\\n", " ", "g")'
     return {
-        \ 'args': ['check', '--one-line'],
+        \ 'args': ['check', '--old-output-format'],
         \ 'errorformat': '%f:%l:%c\,%n: %m',
         \ 'mapexpr': mapexpr,
         \ }

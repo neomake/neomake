@@ -37,6 +37,15 @@ function! neomake#makers#ft#tex#rubberinfo()
         \ 'exe': 'rubber-info',
         \ 'errorformat':
             \ '%f:%l: %m,' .
+            \ '%f:%l-%\d%\+: %m,' .
             \ '%f: %m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#tex#latexrun()
+    return {
+        \ 'args': ['--color', 'never'],
+        \ 'errorformat':
+            \ '%f:%l: %m'
         \ }
 endfunction

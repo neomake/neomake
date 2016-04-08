@@ -5,6 +5,13 @@ function! neomake#makers#ft#html#tidy()
                 \ }
 endfunction
 
+function! neomake#makers#ft#html#htmlhint()
+    return {
+                \ 'args': ['--format', 'unix'],
+                \ 'errorformat': '%f:%l:%c: %m',
+                \ }
+endfunction
+
 function! neomake#makers#ft#html#EnabledMakers()
-    return ['tidy']
+    return ['tidy', 'htmlhint']
 endfunction
