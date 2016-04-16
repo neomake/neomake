@@ -25,5 +25,5 @@ function neomake#makers#ft#elixir#mix()
       \ 'exe' : 'mix',
       \ 'args': ['compile.elixir', '%:p:h'],
       \ 'errorformat': '[%t] %. %f:%l:%c %m'
-    }
+      \ }
 endfunction
