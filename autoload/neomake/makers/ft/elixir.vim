@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#elixir#EnabledMakers()
-    return ['elixir']
+    return ['mix']
 endfunction
 
 function! neomake#makers#ft#elixir#elixir()
@@ -23,12 +23,7 @@ endfunction
 function neomake#makers#ft#elixir#mix()
     return {
       \ 'exe' : 'mix',
-      \ 'args': ['compile.elixir', '%:p:h'],
-      \ 'errorformat': '** (%t) %f:%l:%c %m'
+      \ 'args': ['compile.elixir', '--warnings-as-errors'],
+      \ 'errorformat': '** (%t) %f:%l %m'
       \ }
 endfunction
-
-" ** (CompileError) test/models/hashtag_test.exs:2: module Twchat.ModelCase is not loaded and could not be found
-" 'errorformat': ' (%t) %f:%l:%c %m'
-" [F] → web/views/error_helpers.ex:12 There should be no matches in `if` conditions.
-" 'errorformat': '[%t] %. %f:%l:%c %m'
