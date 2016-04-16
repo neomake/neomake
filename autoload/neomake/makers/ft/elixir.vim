@@ -23,7 +23,7 @@ endfunction
 function neomake#makers#ft#elixir#mix()
     return {
       \ 'exe' : 'mix',
-      \ 'args': ['compile', '%:p:h'],
+      \ 'args': ['compile.elixir', '%:p:h'],
       \ 'errorformat': '[%t] %. %f:%l:%c %m'
     }
 endfunction
