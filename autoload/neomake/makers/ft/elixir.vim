@@ -24,6 +24,8 @@ function neomake#makers#ft#elixir#mix()
     return {
       \ 'exe' : 'mix',
       \ 'args': ['compile.elixir', '--warnings-as-errors'],
-      \ 'errorformat': '** (%t) %f:%l %m'
+      \ 'errorformat':
+        \ '** %s %f:%l: %m,' .
+        \ '%f:%l: warning: %m'
       \ }
 endfunction
