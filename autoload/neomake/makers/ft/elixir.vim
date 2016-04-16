@@ -19,3 +19,11 @@ function! neomake#makers#ft#elixir#credo()
       \ 'errorformat': '[%t] %. %f:%l:%c %m'
       \ }
 endfunction
+
+function neomake#makers#ft#elixir#mix()
+    return {
+      \ 'exe' : 'mix',
+      \ 'args': ['compile', '%:p:h'],
+      \ 'errorformat': '[%t] %. %f:%l:%c %m'
+    }
+endfunction
