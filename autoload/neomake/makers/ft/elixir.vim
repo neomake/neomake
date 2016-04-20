@@ -27,7 +27,7 @@ endfunction
 function neomake#makers#ft#elixir#mix()
     return {
       \ 'exe' : 'mix',
-      \ 'args': ['do', 'compile,', 'compile.elixir', '--warnings-as-errors'],
+      \ 'args': ['compile', '--warnings-as-errors'],
       \ 'cwd': getcwd(),
       \ 'errorformat':
         \ '** %s %f:%l: %m,' .
