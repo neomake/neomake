@@ -1,5 +1,9 @@
 " vim: ts=4 sw=4 et
 
+function s:find_mix_file(path)
+    " TODO: Recurse upwards to fix the mix file.
+endfunction
+
 function! neomake#makers#ft#elixir#EnabledMakers()
     return ['mix']
 endfunction
@@ -23,7 +27,8 @@ endfunction
 function neomake#makers#ft#elixir#mix()
     return {
       \ 'exe' : 'mix',
-      \ 'args': ['compile.elixir', '--warnings-as-errors'],
+      \ 'args': ['do', 'compile,', 'compile.elixir', '--warnings-as-errors'],
+      \ 'cwd': getcwd(),
       \ 'errorformat':
         \ '** %s %f:%l: %m,' .
         \ '%f:%l: warning: %m'
