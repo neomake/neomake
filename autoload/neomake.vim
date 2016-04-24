@@ -95,7 +95,7 @@ function! neomake#MakeJob(maker) abort
         let cwd = expand(a:maker.cwd, 1)
         exe 'cd' fnameescape(cwd)
     endif
-
+    call neomake#statusline#SetRunningStatus(winnr(), bufnr('%'), '...')
     let job = s:JobStart(make_id, a:maker.exe, args)
     let jobinfo.start = localtime()
     let jobinfo.last_register = 0
@@ -580,6 +580,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         else
             call neomake#CleanOldProjectSignsAndErrors()
         endif
+        call neomake#statusline#SetRunningStatus(maker.winnr, jobinfo.bufnr, '')
 
         " Show the current line's error
         call neomake#CursorMoved()
