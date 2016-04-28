@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#tex#EnabledMakers()
-    return ['chktex', 'lacheck', 'rubberinfo']
+    return ['chktex', 'lacheck', 'rubberinfo', 'proselint']
 endfunction
 
 function! neomake#makers#ft#tex#chktex()
@@ -47,5 +47,11 @@ function! neomake#makers#ft#tex#latexrun()
         \ 'args': ['--color', 'never'],
         \ 'errorformat':
             \ '%f:%l: %m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#tex#proselint()
+    return {
+        \ 'errorformat': '%f:%l:%c: %m'
         \ }
 endfunction

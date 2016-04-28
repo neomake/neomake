@@ -145,6 +145,8 @@ Rust:
 Tex/Latex:
 - chktex
 - lacheck
+- rubberinfo
+- [proselint](http://proselint.com)
 
 Scala:
 - scalac
