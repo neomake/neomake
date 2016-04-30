@@ -164,6 +164,7 @@ Puppet:
 - puppet-lint
 
 Lua:
+- luac
 - luacheck
 
 Standard ML:
