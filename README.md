@@ -64,7 +64,8 @@ If the string `'%:p'` shows up anywhere in the `'args'` list, it will be
 path to the file will be `add()`ed to the end of the list, unless the maker's
 `'append_file'` option is set to 0. You can customize the program that is
 called by adding an `'exe'` property which should be a string (defaults to the
-name of the maker).
+name of the maker). You may also specify `'cwd'` to determine where the lint
+program will be executed from.
 
 Once you have created your makers, run `:Neomake` as normal. Run
 `:Neomake <checker-name>` to run only a single checker. Configuring a
