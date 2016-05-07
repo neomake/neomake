@@ -17,15 +17,18 @@ if exists('g:neomake_java_javac_maker')
     finish
 endif
 
+let g:neomake_java_javac_option =
+            \get(g:, 'neomake_java_javac_option', '-Xlint')
+let g:neomake_java_javac_outputdir =
+            \get(g:, 'neomake_java_javac_outputdir', '.')
+let g:neomake_java_javac_classpath =
+            \get(g:, 'neomake_java_javac_classpath', '.')
+let g:neomake_java_checkstyle_xml =
+            \get(g:, 'g:neomake_java_checkstyle_xml', '/usr/share/checkstyle/google_checks.xml')
+
 function! s:getClasspath() abort
     return '.'
 endfunction
-let g:neomake_java_javac_option =
-            \get(g:,'neomake_java_javac_option','-Xlint')
-let g:neomake_java_javac_outputdir =
-            \get(g:,'neomake_java_javac_outputdir','.')
-let g:neomake_java_javac_classpath =
-            \get(g:,'neomake_java_javac_classpath',s:getClasspath())
 
 function! neomake#makers#ft#java#EnabledMakers()
     return ['javac', 'checkstyle']
@@ -46,7 +49,7 @@ endfunction
 
 function! neomake#makers#ft#java#checkstyle()
     return {
-        \ 'args': ['-c', '/usr/share/checkstyle/google_checks.xml'],
+        \ 'args': ['-c', g:neomake_java_checkstyle_xml],
             \ 'errorformat':
             \ '[%t%*[^]]] %f:%l:%c: %m [%s]'
          \ }
