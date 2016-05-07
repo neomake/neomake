@@ -41,7 +41,7 @@ let g:neomake_java_gradle_executable =
             \ get(g:, 'neomake_java_gradle_executable', s:is_windows? '.\gradlew.bat' : './gradlew')
 
 let g:neomake_java_javac_options =
-            \ get(g:, 'neomake_java_javac_options', '-Xlint')
+            \ get(g:, 'neomake_java_javac_options', ['-Xlint'])
 
 let g:neomake_java_maven_options =
             \ get(g:, 'neomake_java_maven_options', '')
@@ -114,36 +114,36 @@ function! neomake#makers#ft#java#EnabledMakers()
 endfunction
 
 function! neomake#makers#ft#java#javac()
-    let javac_opts = g:neomake_java_javac_options
+    let javac_opts = extend([], g:neomake_java_javac_options)
 
     let output_dir = ''
     if g:neomake_java_javac_delete_output
         let output_dir = s:tmpdir()
-        let javac_opts .= ' -d ' . s:shescape(output_dir)
+        let javac_opts = extend(javac_opts, ['-d', s:shescape(output_dir)])
     endif
 
     let javac_classpath = ''
 
     if s:has_maven && g:neomake_java_javac_autoload_maven_classpath
         if !g:neomake_java_javac_delete_output
-            let javac_opts .= ' -d ' . s:shescape(s:MavenOutputDirectory())
+            let javac_opts = extend(javac_opts, ['-d', s:shescape(s:MavenOutputDirectory())])
         endif
         let javac_classpath = s:AddToClasspath(javac_classpath, s:GetMavenClasspath())
     endif
 
     if s:has_gradle && g:neomake_java_javac_autoload_gradle_classpath
         if !g:neomake_java_javac_delete_output
-            let javac_opts .= ' -d ' . s:shescape(s:GradleOutputDirectory())
+            let javac_opts = extend(javac_opts, ['-d', s:shescape(s:GradleOutputDirectory())])
         endif
         let javac_classpath = s:AddToClasspath(javac_classpath, s:GetGradleClasspath())
     endif
 
     if javac_classpath !=# ''
-        let javac_opts .= ' -cp ' . s:shescape(expand(javac_classpath, 1))
+        let javac_opts = extend(javac_opts, ['-cp', javac_classpath])
     endif
 
     return {
-        \ 'args': [javac_opts],
+        \ 'args': javac_opts,
         \ 'buffer_output': 1,
         \ 'errorformat':
             \ '%E%f:%l: error: %m,'.
