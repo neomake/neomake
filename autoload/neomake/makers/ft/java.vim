@@ -27,25 +27,29 @@ let g:neomake_java_javac_outputdir =
 let g:neomake_java_javac_classpath =
             \get(g:,'neomake_java_javac_classpath',s:getClasspath())
 
-
 function! neomake#makers#ft#java#EnabledMakers()
-        return ['javac']
+    return ['javac', 'checkstyle']
 endfunction
 
 function! neomake#makers#ft#java#javac()
     return {
-                \ 'args':[
-                \g:neomake_java_javac_option,
-                \'-cp',g:neomake_java_javac_classpath,
-                \'-d',g:neomake_java_javac_outputdir
-                \],
-                \ 'errorformat':
-                \ '%E%f:%l: error: %m,'.
-                \ '%W%f:%l: warning: %m,'.
-                \ '%E%f:%l: %m,'.
-                \ '%Z%p^,'.
-                \ '%-G%.%#'
-                \ }
+        \ 'args': ['-Xlint'],
+        \ 'buffer_output': 1,
+        \ 'errorformat':
+            \ '%E%f:%l: error: %m,'.
+            \ '%W%f:%l: warning: %m,'.
+            \ '%E%f:%l: %m,'.
+            \ '%Z%p^,'.
+            \ '%-G%.%#'
+         \ }
+endfunction
+
+function! neomake#makers#ft#java#checkstyle()
+    return {
+        \ 'args': ['-c', '/usr/share/checkstyle/google_checks.xml'],
+            \ 'errorformat':
+            \ '[%t%*[^]]] %f:%l:%c: %m [%s]'
+         \ }
 endfunction
 
 let g:neomake_java_javac_maker = 1
