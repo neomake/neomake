@@ -175,7 +175,7 @@ function! s:GetMavenProperties() " {{{2
     let pom = s:findFileInParent('pom.xml', expand('%:p:h', 1))
     if s:has_maven && filereadable(pom)
         if !has_key(g:neomake_java_javac_maven_pom_properties, pom)
-            let mvn_cmd = s:shescape(expand(g:syntastic_java_maven_executable), 1) .
+            let mvn_cmd = s:shescape(expand(g:neomake_java_maven_executable, 1)) .
                 \ ' -f ' . s:shescape(pom) .
                 \ ' ' . g:neomake_java_maven_options
             let mvn_is_managed_tag = 1
@@ -210,7 +210,7 @@ function! s:GetMavenClasspath() " {{{2
     let pom = s:findFileInParent('pom.xml', expand('%:p:h', 1))
     if s:has_maven && filereadable(pom)
         if !has_key(g:neomake_java_javac_maven_pom_ftime, pom) || g:neomake_java_javac_maven_pom_ftime[pom] != getftime(pom)
-            let mvn_cmd = s:shescape(expand(g:syntastic_java_maven_executable), 1) .
+            let mvn_cmd = s:shescape(expand(g:neomake_java_maven_executable, 1)) .
                 \ ' -f ' . s:shescape(pom) .
                 \ ' ' . g:neomake_java_maven_options
             let mvn_classpath_output = split(system(mvn_cmd . ' dependency:build-classpath -DincludeScope=test'), "\n")
