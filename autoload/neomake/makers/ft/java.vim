@@ -30,7 +30,7 @@ else
 endif
 let g:neomake_java_checker_home = fnamemodify(expand('<sfile>'), ':p:h:gs?\\?/?')
 
-" customer options
+" custom options
 let g:neomake_java_javac_executable =
             \ get(g:, 'neomake_java_javac_executable', 'javac')
 
@@ -39,6 +39,9 @@ let g:neomake_java_maven_executable =
 
 let g:neomake_java_gradle_executable =
             \ get(g:, 'neomake_java_gradle_executable', s:is_windows? '.\gradlew.bat' : './gradlew')
+
+let g:neomake_java_checkstyle_executable =
+            \ get(g:, 'neomake_java_checkstyle_executable', 'checkstyle')
 
 let g:neomake_java_javac_options =
             \ get(g:, 'neomake_java_javac_options', ['-Xlint'])
@@ -143,24 +146,25 @@ function! neomake#makers#ft#java#javac()
     endif
 
     return {
-        \ 'args': javac_opts,
-        \ 'exe': g:neomake_java_javac_executable,
-        \ 'buffer_output': 1,
-        \ 'errorformat':
-            \ '%E%f:%l: error: %m,'.
-            \ '%W%f:%l: warning: %m,'.
-            \ '%E%f:%l: %m,'.
-            \ '%Z%p^,'.
-            \ '%-G%.%#'
-         \ }
+                \ 'args': javac_opts,
+                \ 'exe': g:neomake_java_javac_executable,
+                \ 'buffer_output': 1,
+                \ 'errorformat':
+                    \ '%E%f:%l: error: %m,'.
+                    \ '%W%f:%l: warning: %m,'.
+                    \ '%E%f:%l: %m,'.
+                    \ '%Z%p^,'.
+                    \ '%-G%.%#'
+                \ }
 endfunction
 
 function! neomake#makers#ft#java#checkstyle()
     return {
-        \ 'args': ['-c', g:neomake_java_checkstyle_xml],
-            \ 'errorformat':
-            \ '[%t%*[^]]] %f:%l:%c: %m [%s]'
-         \ }
+                \ 'args': ['-c', g:neomake_java_checkstyle_xml],
+                \ 'exe': g:neomake_java_checkstyle_executable
+                \ 'errorformat':
+                    \ '[%t%*[^]]] %f:%l:%c: %m [%s]'
+                \ }
 endfunction
 
 function! s:findFileInParent(what, where) abort " {{{2
