@@ -113,7 +113,14 @@ function! s:AddToClasspath(classpath, path)
 endfunction
 
 function! neomake#makers#ft#java#EnabledMakers()
-    return ['javac', 'checkstyle']
+    let makers = []
+    if executable(expand(g:neomake_java_javac_executable, 1))
+        call add(makers, g:neomake_java_javac_executable)
+    endif
+    if executable(expand(g:neomake_java_checkstyle_executable, 1))
+        call add(makers, g:neomake_java_checkstyle_executable)
+    endif
+    return makers
 endfunction
 
 function! neomake#makers#ft#java#javac()
