@@ -1,12 +1,3 @@
-# Looking for a new maintainer
-
-Neomake is working great for me in my daily work, which leaves me without a lot of motivation to continue making improvements and reviewing pull requests (especially when free time is hard to come by). I know that many people want to add new makers and features as well as fix bugs, and I don't get around to reviewing PRs as often as many of you might like. If you think you have the time and motivation to maintain this project, please let me know (and I'll try to respond in a timely manner).
-
-You should agree with this project's main goals:
-
-- Provides a way to asynchronously run jobs against a file or project in neovim.
-- Provides a way to synchronously run the same jobs in vim.
-
 # Neomake
 
 A plugin for asynchronous `:make` using [Neovim's](http://neovim.org/)
