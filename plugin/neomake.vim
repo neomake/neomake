@@ -13,6 +13,6 @@ command! -nargs=1 NeomakeCancelJob call neomake#CancelJob(<args>)
 
 augroup neomake
     autocmd!
-    autocmd BufWinEnter,CursorHold * call neomake#ProcessCurrentBuffer()
+    autocmd WinEnter,CursorHold * call neomake#ProcessCurrentWindow()
     autocmd CursorMoved * call neomake#CursorMoved()
 augroup END
