@@ -59,6 +59,7 @@ endfunction
 
 function! neomake#makers#ft#python#flake8()
     return {
+        \ 'args': ['--format=default'],
         \ 'errorformat':
             \ '%E%f:%l: could not compile,%-Z%p^,' .
             \ '%A%f:%l:%c: %t%n %m,' .
