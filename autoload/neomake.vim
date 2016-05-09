@@ -24,7 +24,7 @@ function! neomake#CancelJob(job_id) abort
     if !has_key(s:jobs, a:job_id)
         return
     endif
-    call jobstop(a:job_id)
+    call jobstop(s:jobs[a:job_id])
 endfunction
 
 function! s:JobStart(make_id, exe, ...) abort
