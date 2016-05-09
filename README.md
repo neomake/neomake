@@ -1,3 +1,5 @@
+**[Maintainers needed!](https://github.com/neomake/neomake)** Contact an organization owner if interested.
+
 # Neomake
 
 A plugin for asynchronous `:make` using [Neovim's](http://neovim.org/)
