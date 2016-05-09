@@ -7,7 +7,7 @@ endfunction
 function! neomake#makers#ft#typescript#tsc()
     return {
         \ 'args': [
-            \ '-m', 'commonjs', '--noEmit'
+            \ '-m', 'commonjs', '--noEmit', '-p', '.;'
         \ ],
         \ 'errorformat':
             \ '%E%f %#(%l\,%c): error %m,' .
