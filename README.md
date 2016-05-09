@@ -114,6 +114,7 @@ Ruby:
 - jruby
 - rubocop
 - reek
+- rubylint
 
 C:
 - clang
