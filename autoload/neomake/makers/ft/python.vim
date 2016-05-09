@@ -7,10 +7,10 @@ function! neomake#makers#ft#python#EnabledMakers()
 
     let makers = ['python', 'frosted']
 
-    if neomake#utils#Exists('pylama')
+    if executable('pylama')
         call add(makers, 'pylama')
     else
-        if neomake#utils#Exists('flake8')
+        if executable('flake8')
             call add(makers, 'flake8')
         else
             call extend(makers, ['pep257', 'pep8', 'pyflakes'])

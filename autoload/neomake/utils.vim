@@ -95,6 +95,7 @@ function! neomake#utils#DevNull()
 endfunction
 
 function! neomake#utils#Exists(exe) abort
+    " DEPRECATED: just use executable() directly.
     return executable(exe)
 endfunction
 
@@ -141,7 +142,7 @@ function! neomake#utils#MakerIsAvailable(ft, maker_name) abort
     endif
     if !has_key(s:available_makers, a:maker_name)
         let maker = neomake#GetMaker(a:maker_name, a:ft)
-        let s:available_makers[a:maker_name] = neomake#utils#Exists(maker.exe)
+        let s:available_makers[a:maker_name] = executable(maker.exe)
     endif
     return s:available_makers[a:maker_name]
 endfunction
