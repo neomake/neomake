@@ -95,15 +95,7 @@ function! neomake#utils#DevNull()
 endfunction
 
 function! neomake#utils#Exists(exe) abort
-    if neomake#utils#IsRunningWindows()
-        " TODO: Apparently XP uses a different utility to where, see
-        " https://github.com/benekastah/neomake/issues/19#issuecomment-65195452
-        let cmd = 'where'
-    else
-        let cmd = 'which'
-    endif
-    call system(cmd.' '.shellescape(a:exe))
-    return !v:shell_error
+    return executable(exe)
 endfunction
 
 function! neomake#utils#Random() abort
