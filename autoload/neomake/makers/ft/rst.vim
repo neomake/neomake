@@ -9,6 +9,7 @@ function! neomake#makers#ft#rst#rstlint()
         \ 'exe': 'rst-lint',
         \ 'errorformat':
             \ '%EERROR %f:%l %m,'.
+            \ '%WWARNING %f:%l %m,'.
             \ '%IINFO %f:%l %m',
         \ }
 endfunction
