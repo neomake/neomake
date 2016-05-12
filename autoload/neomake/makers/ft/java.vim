@@ -350,7 +350,7 @@ fu! s:GetGradleClasspath()
                 else
                     let gradle_cmd = './gradlew'
                 endif
-                call writefile(["allprojects{apply from: '" . g:neomake_javac_checker_home . s:psep ."classpath.gradle'}"], f)
+                call writefile(["allprojects{apply from: '" . g:neomake_java_checker_home . s:psep. 'java'. s:psep. "classpath.gradle'}"], f)
                 let ret = system(gradle_cmd . ' -q -I ' . shellescape(f) . ' classpath' )
                 if v:shell_error == 0
                     let cp = filter(split(ret, "\n"), 'v:val =~ "^CLASSPATH:"')[0][10:]
