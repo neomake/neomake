@@ -53,7 +53,7 @@ let g:neomake_java_javac_classpath =
             \ get(g:, 'neomake_java_javac_classpath', '')
 
 let g:neomake_java_javac_outputdir =
-            \ get(g:, 'neomake_java_javac_outputdir', '.')
+            \ get(g:, 'neomake_java_javac_outputdir', '')
 
 let g:neomake_java_checkstyle_xml =
             \ get(g:, 'g:neomake_java_checkstyle_xml', '/usr/share/checkstyle/google_checks.xml')
@@ -67,14 +67,8 @@ let g:neomake_java_javac_autoload_maven_classpath =
 let g:neomake_java_javac_autoload_gradle_classpath =
             \ get(g:, 'neomake_java_javac_autoload_gradle_classpath', 1)
 
-let g:neomake_java_javac_config_file_enabled =
-            \ get(g:, 'neomake_java_javac_config_file_enabled', 0)
-
-let g:neomake_java_javac_config_file =
-            \ get(g:, 'neomake_java_javac_config_file', '.neomake_javac_config')
-
-let g:neomake_java_javac_custom_classpath_command =
-            \ get(g:, 'neomake_java_javac_custom_classpath_command', '')
+let g:neomake_java_javac_autoload_eclipse_classpath =
+            \ get(g:, 'neomake_java_javac_autoload_eclipse_classpath', 1)
 
 let g:neomake_java_javac_maven_pom_ftime =
             \ get(g:, 'neomake_java_javac_maven_pom_ftime', {})
@@ -93,8 +87,36 @@ let s:has_maven = executable(expand(g:neomake_java_maven_executable, 1))
 let s:has_gradle = executable(expand(g:neomake_java_gradle_executable, 1))
 
 function! s:tmpdir()
-    "TODO
-    return '.'
+    let tempdir = ''
+
+    if (has('unix') || has('mac')) && executable('mktemp') && !has('win32unix')
+        " TODO: option "-t" to mktemp(1) is not portable
+        let tmp = $TMPDIR !=# '' ? $TMPDIR : $TMP !=# '' ? $TMP : '/tmp'
+        let out = split(system('mktemp -q -d ' . tmp . '/neomake-java-' . getpid() . '-XXXXXXXX'), "\n")
+        if v:shell_error == 0 && len(out) == 1
+            let tempdir = out[0]
+        endif
+    endif
+
+    if tempdir ==# ''
+        if has('win32') || has('win64')
+            let tempdir = $TEMP . s:psep . 'neomake-java-' . getpid()
+        elseif has('win32unix')
+            let tempdir = substitute(system('cygpath -m ' . s:shescape('/neomake-java-'  . getpid())), "\n", '', 'g')
+        elseif $TMPDIR !=# ''
+            let tempdir = $TMPDIR . '/neomake-java-' . getpid()
+        else
+            let tempdir = '/tmp/neomake-java-' . getpid()
+        endif
+
+        try
+            call mkdir(tempdir, 'p', 0700)
+        catch /\m^Vim\%((\a\+)\)\=:E739/
+            let tempdir = '.'
+        endtry
+    endif
+
+    return tempdir
 endfunction
 
 function! s:ClassSep() " {{{2
@@ -110,6 +132,21 @@ function! s:AddToClasspath(classpath, path)
         return a:classpath
     endif
     return (a:classpath !=# '') ? a:classpath . s:ClassSep() . a:path : a:path
+endfunction
+
+function! s:ReadClassPathFile(classpathFile)
+    let cp = ''
+    let file = g:neomake_java_checker_home. s:psep. 'java'. s:psep.  'classpath.py'
+    if has('python')
+        execute "pyfile" file
+        py import vim
+        py vim.command("let cp = '%s'" % os.pathsep.join(ReadClasspathFile(vim.eval('a:classpathFile'))).replace('\\', '/'))
+    else has('python3')
+        execute "py3file" file
+        py3 import vim
+        py3 vim.command("let cp = '%s'" % os.pathsep.join(ReadClasspathFile(vim.eval('a:classpathFile'))).replace('\\', '/'))
+    endif
+    return cp
 endfunction
 
 function! neomake#makers#ft#java#EnabledMakers()
@@ -148,6 +185,13 @@ function! neomake#makers#ft#java#javac()
         let javac_classpath = s:AddToClasspath(javac_classpath, s:GetGradleClasspath())
     endif
 
+    if has('python') || has('python3')
+        let classpathFile = fnamemodify(findfile('.classpath', escape(expand('.'), '*[]?{}, ') . ';'), ':p')
+        if !empty(classpathFile) && filereadable(classpathFile)
+            let javac_classpath = s:ReadClassPathFile(classpathFile)
+        endif
+    endif
+
     if javac_classpath !=# ''
         let javac_opts = extend(javac_opts, ['-cp', javac_classpath])
     endif
@@ -157,11 +201,11 @@ function! neomake#makers#ft#java#javac()
                 \ 'exe': g:neomake_java_javac_executable,
                 \ 'buffer_output': 1,
                 \ 'errorformat':
-                    \ '%E%f:%l: error: %m,'.
-                    \ '%W%f:%l: warning: %m,'.
-                    \ '%E%f:%l: %m,'.
-                    \ '%Z%p^,'.
-                    \ '%-G%.%#'
+                \ '%E%f:%l: error: %m,'.
+                \ '%W%f:%l: warning: %m,'.
+                \ '%E%f:%l: %m,'.
+                \ '%Z%p^,'.
+                \ '%-G%.%#'
                 \ }
 endfunction
 
@@ -170,7 +214,7 @@ function! neomake#makers#ft#java#checkstyle()
                 \ 'args': ['-c', g:neomake_java_checkstyle_xml],
                 \ 'exe': g:neomake_java_checkstyle_executable,
                 \ 'errorformat':
-                    \ '[%t%*[^]]] %f:%l:%c: %m [%s]'
+                \ '[%t%*[^]]] %f:%l:%c: %m [%s]'
                 \ }
 endfunction
 
@@ -188,8 +232,8 @@ function! s:GetMavenProperties() " {{{2
     if s:has_maven && filereadable(pom)
         if !has_key(g:neomake_java_javac_maven_pom_properties, pom)
             let mvn_cmd = s:shescape(expand(g:neomake_java_maven_executable, 1)) .
-                \ ' -f ' . s:shescape(pom) .
-                \ ' ' . g:neomake_java_maven_options
+                        \ ' -f ' . s:shescape(pom) .
+                        \ ' ' . g:neomake_java_maven_options
             let mvn_is_managed_tag = 1
             let mvn_settings_output = split(system(mvn_cmd . ' help:effective-pom'), "\n")
             let current_path = 'project'
@@ -223,8 +267,8 @@ function! s:GetMavenClasspath() " {{{2
     if s:has_maven && filereadable(pom)
         if !has_key(g:neomake_java_javac_maven_pom_ftime, pom) || g:neomake_java_javac_maven_pom_ftime[pom] != getftime(pom)
             let mvn_cmd = s:shescape(expand(g:neomake_java_maven_executable, 1)) .
-                \ ' -f ' . s:shescape(pom) .
-                \ ' ' . g:neomake_java_maven_options
+                        \ ' -f ' . s:shescape(pom) .
+                        \ ' ' . g:neomake_java_maven_options
             let mvn_classpath_output = split(system(mvn_cmd . ' dependency:build-classpath -DincludeScope=test'), "\n")
             let mvn_classpath = ''
             let class_path_next = 0
@@ -331,11 +375,11 @@ endf
 
 
 function! s:GlobPathList(path, pattern, suf)
-  if has("patch-7.4.279")
-    return globpath(a:path, a:pattern, a:suf, 1)
-  else
-    return split(globpath(a:path, a:pattern, a:suf), "\n")
-  endif
+    if has("patch-7.4.279")
+        return globpath(a:path, a:pattern, a:suf, 1)
+    else
+        return split(globpath(a:path, a:pattern, a:suf), "\n")
+    endif
 endfunction
 let &cpo = s:save_cpo
 unlet s:save_cpo
