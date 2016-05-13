@@ -109,6 +109,9 @@ Python:
 - pylint
 - python
 
+Perl:
+- perlcritic
+
 Ruby:
 - mri
 - jruby
