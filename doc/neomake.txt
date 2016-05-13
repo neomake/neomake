@@ -81,6 +81,11 @@ All 'args' will be |expand()|ed: >
         \ 'exe': 'lint',
         \ 'args': ['%:p'],
         \ }
+
+The 'exe' and 'args' entries can be a function (callback) or a dictionary with
+an expected entry 'fn' (which has to be a function).
+The function has to return a string, and receives no arguments.
+
 <
 Running "|:Neomake!| lint" from file.txt would cause "lint /path/to/file.txt" to
 be run.
