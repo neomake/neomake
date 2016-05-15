@@ -185,6 +185,9 @@ YAML:
 nix:
 - nix-instantiate
 
+SQL:
+- [sqlint](https://github.com/purcell/sqlint)
+
 Since this list may be out of date, look in [autoload/neomake/makers](https://github.com/benekastah/neomake/tree/master/autoload/neomake/makers) for all supported makers.
 
 If you find this plugin useful, please contribute your maker recipes to the
