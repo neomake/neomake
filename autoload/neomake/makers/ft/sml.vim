@@ -5,7 +5,7 @@ function! neomake#makers#ft#sml#EnabledMakers()
 endfunction
 
 " This comes straight out of syntastic.
-function! neomake#makers#ft#sml#smlnj
+function! neomake#makers#ft#sml#smlnj()
     return {
         \ 'exe': 'sml',
         \ 'errorformat':
