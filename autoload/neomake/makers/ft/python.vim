@@ -19,10 +19,6 @@ function! neomake#makers#ft#python#EnabledMakers()
         call add(makers, 'pylint')  " Last because it is the slowest
     endif
 
-    if neomake#utils#Exists('vulture')
-        call add(makers, 'vulture')
-    endif
-
     let s:python_makers = makers
     return makers
 endfunction
@@ -123,12 +119,6 @@ function! neomake#makers#ft#python#pep257()
         \ }
 endfunction
 
-function! neomake#makers#ft#python#vulture()
-    return {
-        \ 'errorformat': '%f:%l: %m',
-        \ }
-endfunction
-
 function! neomake#makers#ft#python#pylama()
     return {
         \ 'args': ['--format', 'pep8'],
@@ -162,5 +152,11 @@ function! neomake#makers#ft#python#frosted()
             \ '%E%f:%l: %m,' .
             \ '%-Z%p^,' .
             \ '%-G%.%#'
+        \ }
+endfunction
+
+function! neomake#makers#ft#python#vulture()
+    return {
+        \ 'errorformat': '%f:%l: %m',
         \ }
 endfunction
