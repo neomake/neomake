@@ -490,10 +490,16 @@ function! s:GetTabWinForJob(job_id)
 endfunction
 
 function! s:RegisterJobOutput(jobinfo, maker, lines) abort
+    if has_key(a:maker, 'mapexpr')
+        let lines = map(copy(a:lines), a:maker.mapexpr)
+    else
+        let lines = copy(a:lines)
+    endif
+
     if get(a:maker, 'file_mode')
         let output = {
             \ 'maker': a:maker,
-            \ 'lines': a:lines
+            \ 'lines': lines
             \ }
 
         let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
@@ -514,7 +520,7 @@ function! s:RegisterJobOutput(jobinfo, maker, lines) abort
             wincmd p
         endif
     else
-        call s:ProcessJobOutput(a:maker, a:lines)
+        call s:ProcessJobOutput(a:maker, lines)
     endif
 endfunction
 
@@ -525,15 +531,8 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
     let jobinfo = s:jobs[a:job_id]
     let maker = jobinfo.maker
     if index(['stdout', 'stderr'], a:event_type) >= 0
-        let lines = a:data
-        if has_key(maker, 'mapexpr')
-            let lines = map(copy(lines), maker.mapexpr)
-        endif
-
-        for line in lines
-            call neomake#utils#DebugMessage(
-                \ get(maker, 'name', 'makeprg').' '.a:event_type.': '.line)
-        endfor
+        call neomake#utils#DebugMessage(
+            \ get(maker, 'name', 'makeprg').' '.a:event_type.': ["'.join(a:data, '", "').'"]')
         call neomake#utils#DebugMessage(
             \ get(maker, 'name', 'makeprg').' '.a:event_type.' done.')
 
@@ -541,25 +540,32 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         " jobs.
         let last_event_type = get(jobinfo, 'event_type', a:event_type)
         let jobinfo.event_type = a:event_type
+
+        " a:data is a List of 'lines' read. Each element *after* the first
+        " element represents a newline
         if has_key(jobinfo, 'lines')
             " As per https://github.com/neovim/neovim/issues/3555
             let jobinfo.lines = jobinfo.lines[:-2]
-                        \ + [jobinfo.lines[-1] . get(lines, 0, '')]
-                        \ + lines[1:]
+                        \ + [jobinfo.lines[-1] . get(a:data, 0, '')]
+                        \ + a:data[1:]
         else
-            let jobinfo.lines = lines
+            let jobinfo.lines = a:data
         endif
+
         let now = localtime()
         if (!maker.buffer_output || last_event_type !=# a:event_type) ||
                 \ (last_event_type !=# a:event_type ||
                 \  now - jobinfo.start < 1 ||
                 \  now - jobinfo.last_register > 3)
-            call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines)
-            unlet jobinfo.lines
+            call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines[:-2])
+            let jobinfo.lines = jobinfo.lines[-1:]
             let jobinfo.last_register = now
         endif
     elseif a:event_type ==# 'exit'
         if has_key(jobinfo, 'lines')
+            if jobinfo.lines[-1] == ''
+                call remove(jobinfo.lines, -1)
+            endif
             call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines)
         endif
 
