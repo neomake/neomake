@@ -200,7 +200,9 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             let maker[key] = defaults[key]
         endif
     endfor
-    let maker.ft = real_ft
+    if exists('real_ft')
+        let maker.ft = real_ft
+    endif
     return maker
 endfunction
 
