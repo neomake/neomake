@@ -141,16 +141,18 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             let maker = neomake#utils#MakerFromCommand(&shell, &makeprg)
         elseif len(fts)
             for ft in fts
-                let maker = get(g:, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
-                if type(maker) == type({})
+                let m = get(g:, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
+                if type(m) == type({})
+                    let maker = m
                     break
                 endif
+                unlet m
             endfor
         else
             let maker = get(g:, 'neomake_'.a:name_or_maker.'_maker')
         endif
-        if type(maker) == type(0)
-            unlet maker
+        if !exists('maker') || type(maker) == type(0)
+            unlet! maker
             if len(fts)
                 for ft in fts
                     try
