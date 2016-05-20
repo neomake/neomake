@@ -1,17 +1,14 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#d#EnabledMakers()
-    "dmd, ldmd, and gdmd all share a common CLI.
-    "Ordered in efficiency of compiler
-    let l:makers = []
-    if neomake#utils#Exists('dmd')
-        call add(l:makers, 'dmd')
-    elseif neomake#utils#Exists('ldmd')
-        call add(l:makers, 'ldmd')
-    elseif neomake#utils#Exists('gdmd')
-        call add(l:makers, 'gdmd')
-    endif
-    return l:makers
+    " dmd, ldmd, and gdmd all share a common CLI.
+    " Ordered in efficiency of compiler
+    for m in ['dmd', 'ldmd', 'gdmd']
+        if executable(m)
+            return [m]
+        endif
+    endfor
+    return []
 endfunction
 
 function! s:findDubRoot()
@@ -28,7 +25,7 @@ function! s:UpdateDub()
     "Add dub directories
     let s:dubImports = []
     let l:tmp_file = s:findDubRoot()
-    if neomake#utils#Exists('dub') && !empty(l:tmp_file)
+    if executable('dub') && !empty(l:tmp_file)
         let l:tmp_dir = fnamemodify(l:tmp_file,':p:h')
         let l:dubCmd = "dub describe --data=import-paths --annotate \
                     \--skip-registry=all --vquiet --data-list --root="

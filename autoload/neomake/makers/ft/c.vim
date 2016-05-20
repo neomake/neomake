@@ -1,16 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#c#EnabledMakers()
-    let makers = []
-    if neomake#utils#Exists('clang')
-        call add(makers, 'clang')
-
-        if neomake#utils#Exists('clang-tidy')
-            call add(makers, 'clangtidy')
-        endif
-    else
-        call add(makers, 'gcc')
-    endif
+    let makers = executable('clang') ? ['clang', 'clangtidy'] : ['gcc']
     call add(makers, 'checkpatch')
     return makers
 endfunction
