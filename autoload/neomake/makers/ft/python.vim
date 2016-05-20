@@ -154,3 +154,9 @@ function! neomake#makers#ft#python#frosted()
             \ '%-G%.%#'
         \ }
 endfunction
+
+function! neomake#makers#ft#python#vulture()
+    return {
+        \ 'errorformat': '%f:%l: %m',
+        \ }
+endfunction
