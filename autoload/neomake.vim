@@ -337,9 +337,9 @@ endfunction
 function! s:AddExprCallback(maker) abort
     let file_mode = get(a:maker, 'file_mode')
     let place_signs = get(g:, 'neomake_place_signs', 1)
-    let list = file_mode ? getloclist(winnr()) : getqflist()
+    let list = file_mode ? getloclist(a:maker.winnr) : getqflist()
     let list_modified = 0
-    let index = file_mode ? s:loclist_nr[winnr()] : s:qflist_nr
+    let index = file_mode ? s:loclist_nr[a:maker.winnr] : s:qflist_nr
     let maker_type = file_mode ? 'file' : 'project'
 
     while index < len(list)
@@ -371,7 +371,7 @@ function! s:AddExprCallback(maker) abort
 
         if file_mode
             call neomake#statusline#AddLoclistCount(
-                \ winnr(), entry.bufnr, entry)
+                \ a:maker.winnr, entry.bufnr, entry)
         endif
 
         " On the first valid error identified by a maker,
@@ -395,14 +395,14 @@ function! s:AddExprCallback(maker) abort
 
     if list_modified
         if file_mode
-            call setloclist(winnr(), list, 'r')
+            call setloclist(a:maker.winnr, list, 'r')
         else
             call setqflist(list, 'r')
         endif
     endif
 
     if file_mode
-        let s:loclist_nr[winnr()] = index
+        let s:loclist_nr[a:maker.winnr] = index
     else
         let s:qflist_nr = index
     endif
@@ -433,6 +433,7 @@ function! s:ProcessJobOutput(maker, lines) abort
         let olderrformat = &errorformat
         let &errorformat = a:maker.errorformat
         if get(a:maker, 'file_mode')
+            let a:maker.winnr = winnr()
             laddexpr a:lines
         else
             caddexpr a:lines
