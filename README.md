@@ -70,8 +70,32 @@ should be remedied).
 
 Makers provided by neomake as of this writing are:
 
+Applescript:
+- osacompile
+
+C:
+- clang
+- gcc
+- clang-tidy
+- checkpatch
+
+C++:
+- clang++
+- g++
+- clang-tidy
+
 Coffeescript:
 - coffeelint
+
+CSS:
+- csslint
+- stylelint
+
+D:
+- dmd
+
+Erlang:
+- erlc
 
 Go:
 - go
@@ -101,6 +125,28 @@ JSON:
 Jsx:
 - jsxhint
 
+Lua:
+- luac
+- luacheck
+
+Markdown:
+- [markdownlint](https://github.com/igorshubovych/markdownlint-cli)
+- [mdl](https://github.com/mivok/markdownlint)
+- [proselint](http://proselint.com)
+
+nix:
+- nix-instantiate
+
+Perl:
+- perlcritic
+
+Pug:
+- [pug-lint](https://github.com/pugjs/pug-lint)
+
+Puppet:
+- puppet
+- puppet-lint
+
 Python:
 - pep8
 - flake8
@@ -109,9 +155,6 @@ Python:
 - pylint
 - python
 
-Perl:
-- perlcritic
-
 Ruby:
 - mri
 - jruby
@@ -119,80 +162,39 @@ Ruby:
 - reek
 - rubylint
 
-C:
-- clang
-- gcc
-- clang-tidy
-- checkpatch
-
-C++:
-- clang++
-- g++
-- clang-tidy
-
-CSS:
-- csslint
-- stylelint
-
-D:
-- dmd
-
-sh:
-- shellcheck
-
 Rust:
 - rustc
-
-Tex/Latex:
-- chktex
-- lacheck
 
 Scala:
 - scalac
 - scalastyle
 
-TypeScript:
-- tsc
-
-Erlang:
-- erlc
-
-Vimscript:
-- vint
-
-Puppet:
-- puppet
-- puppet-lint
-
-Lua:
-- luac
-- luacheck
+sh:
+- shellcheck
 
 Standard ML:
 - smlnj
 
-Markdown:
-- [markdownlint](https://github.com/igorshubovych/markdownlint-cli)
-- [mdl](https://github.com/mivok/markdownlint)
-- [proselint](http://proselint.com)
+SQL:
+- [sqlint](https://github.com/purcell/sqlint)
 
-Pug:
-- [pug-lint](https://github.com/pugjs/pug-lint)
+Tex/Latex:
+- chktex
+- lacheck
+
+TypeScript:
+- tsc
+
+Vimscript:
+- vint
 
 YAML:
 - [yamllint](http://yamllint.readthedocs.org/)
 
-nix:
-- nix-instantiate
-
-Applescript:
-- osacompile
-
-SQL:
-- [sqlint](https://github.com/purcell/sqlint)
-
-Since this list may be out of date, look in [autoload/neomake/makers](https://github.com/benekastah/neomake/tree/master/autoload/neomake/makers) for all supported makers.
+Since this list may be out of date, look at
+[autoload/neomake/makers](https://github.com/benekastah/neomake/tree/master/autoload/neomake/makers)
+for all supported makers.
 
 If you find this plugin useful, please contribute your maker recipes to the
-repository! Check out `autoload/neomake/makers/*.vim` to see how that is
+repository! Check out `autoload/neomake/makers/**/*.vim` to see how that is
 currently done.
