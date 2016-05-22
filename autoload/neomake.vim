@@ -13,6 +13,10 @@ let s:need_errors_cleaning = {
     \ 'file': {}
     \ }
 
+function! neomake#GetJobs() abort
+    return s:jobs
+endfunction
+
 function! neomake#ListJobs() abort
     call neomake#utils#DebugMessage('call neomake#ListJobs()')
     for jobinfo in values(s:jobs)
