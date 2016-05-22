@@ -327,16 +327,14 @@ fu! s:GradleOutputDirectory()
     let items = split(gradle_build, s:psep)
     if len(items)==1
         return join(['build', 'intermediates', 'classes', 'debug'], s:psep)
-    else
-        let outputdir =''
-        for i in items
-            if i != 'build.gradle'
-                let outputdir .= i . s:psep
-            endif
-        endfor
-        return outputdir . join(['build', 'intermediates', 'classes', 'debug'], s:psep)
     endif
-    return '.'
+    let outputdir = ''
+    for i in items
+        if i != 'build.gradle'
+            let outputdir .= i . s:psep
+        endif
+    endfor
+    return outputdir . join(['build', 'intermediates', 'classes', 'debug'], s:psep)
 endf
 
 fu! s:GetGradleClasspath()
@@ -354,8 +352,10 @@ fu! s:GetGradleClasspath()
                 let ret = system(gradle_cmd . ' -q -I ' . shellescape(f) . ' classpath' )
                 if v:shell_error == 0
                     let cp = filter(split(ret, "\n"), 'v:val =~ "^CLASSPATH:"')[0][10:]
-                    if filereadable(getcwd() . sep ."build.gradle")
-                        let out_putdir = s:GlobPathList(getcwd(), join('**','build','intermediates','classes','debug',sep), 0)
+                    if filereadable(getcwd() . s:psep . 'build.gradle')
+                        let out_putdir = s:GlobPathList(getcwd(), join(
+                                    \ ['**', 'build', 'intermediates', 'classes', 'debug'],
+                                    \ s:psep), 0)
                         for classes in out_putdir
                             let cp .= s:ClassSep().classes
                         endfor
