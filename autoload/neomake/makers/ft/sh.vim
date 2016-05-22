@@ -33,7 +33,7 @@ function! neomake#makers#ft#sh#sh()
     if len(shebang)
         let l = split(shebang)
         let exe = l[0]
-        let args = l[1:] + ['n']
+        let args = l[1:] + ['-n']
     else
         let exe = '/bin/sh'
         let args = ['-n']
