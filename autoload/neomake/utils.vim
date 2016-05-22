@@ -96,7 +96,7 @@ endfunction
 
 function! neomake#utils#Exists(exe) abort
     " DEPRECATED: just use executable() directly.
-    return executable(exe)
+    return executable(a:exe)
 endfunction
 
 function! neomake#utils#Random() abort
