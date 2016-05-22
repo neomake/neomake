@@ -15,7 +15,7 @@ function! neomake#utils#LogMessage(level, msg) abort
         endif
     endif
     if type(logfile) ==# type('') && len(logfile)
-        let date = strftime("%Y-%m-%dT%H:%M:%S%z")
+        let date = strftime('%Y-%m-%dT%H:%M:%S%z')
         call writefile([date.' Log level '.a:level.': '.msg], logfile, 'a')
     endif
 endfunction
@@ -51,19 +51,19 @@ function! neomake#utils#Stringify(obj) abort
     endif
 endfunction
 
-function neomake#utils#DebugObject(msg, obj) abort
+function! neomake#utils#DebugObject(msg, obj) abort
     call neomake#utils#DebugMessage(a:msg.' '.neomake#utils#Stringify(a:obj))
 endfunction
 
 " This comes straight out of syntastic.
 "print as much of a:msg as possible without "Press Enter" prompt appearing
-function! neomake#utils#WideMessage(msg) " {{{2
+function! neomake#utils#WideMessage(msg) abort " {{{2
     let old_ruler = &ruler
     let old_showcmd = &showcmd
 
     "This is here because it is possible for some error messages to
     "begin with \n which will cause a "press enter" prompt.
-    let msg = substitute(a:msg, "\n", "", "g")
+    let msg = substitute(a:msg, "\n", '', 'g')
 
     "convert tabs to spaces so that the tabs count towards the window
     "width as the proper amount of characters
@@ -82,12 +82,12 @@ function! neomake#utils#WideMessage(msg) " {{{2
 endfunction " }}}2
 
 " This comes straight out of syntastic.
-function! neomake#utils#IsRunningWindows()
+function! neomake#utils#IsRunningWindows() abort
     return has('win32') || has('win64')
 endfunction
 
 " This comes straight out of syntastic.
-function! neomake#utils#DevNull()
+function! neomake#utils#DevNull() abort
     if neomake#utils#IsRunningWindows()
         return 'NUL'
     endif
@@ -123,7 +123,7 @@ function! neomake#utils#MakerFromCommand(shell, command) abort
         let args = ['-c', command]
     else
         let shell_name = split(a:shell, '\\')[-1]
-        if (shell_name == 'cmd.exe')
+        if (shell_name ==? 'cmd.exe')
             let args = [&shellcmdflag, command]
         endif
     endif
