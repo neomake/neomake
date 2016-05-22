@@ -19,6 +19,9 @@ matrix:
   allow_failures:
     - env: LINT=vimlint
     - env: LINT=vint
+    # There are currently 3 remaining issues with the java maker.
+    # Ref: https://github.com/neomake/neomake/pull/437
+    - env: LINT=vimlint-errors
 
 install:
   - |
