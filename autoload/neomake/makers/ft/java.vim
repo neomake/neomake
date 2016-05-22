@@ -137,14 +137,14 @@ endfunction
 function! s:ReadClassPathFile(classpathFile)
     let cp = ''
     let file = g:neomake_java_checker_home. s:psep. 'java'. s:psep.  'classpath.py'
-    if has('python')
-        execute "pyfile" file
-        py import vim
-        py vim.command("let cp = '%s'" % os.pathsep.join(ReadClasspathFile(vim.eval('a:classpathFile'))).replace('\\', '/'))
-    else has('python3')
+    if has('python3')
         execute "py3file" file
         py3 import vim
         py3 vim.command("let cp = '%s'" % os.pathsep.join(ReadClasspathFile(vim.eval('a:classpathFile'))).replace('\\', '/'))
+    elseif has('python')
+        execute "pyfile" file
+        py import vim
+        py vim.command("let cp = '%s'" % os.pathsep.join(ReadClasspathFile(vim.eval('a:classpathFile'))).replace('\\', '/'))
     endif
     return cp
 endfunction
