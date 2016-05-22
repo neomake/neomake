@@ -29,12 +29,19 @@ function! neomake#makers#ft#sh#checkbashisms()
 endfunction
 
 function! neomake#makers#ft#sh#sh()
-    let l:shebang = matchstr(getline(1), '^#!\s*\zs.*$')
-    let l:sh = l:shebang == '' ? '/bin/sh' : l:shebang
+    let shebang = matchstr(getline(1), '^#!\s*\zs.*$')
+    if len(shebang)
+        let l = split(shebang)
+        let exe = l[0]
+        let args = l[1:] + ['n']
+    else
+        let exe = '/bin/sh'
+        let args = ['-n']
+    endif
 
     return {
-        \ 'exe': l:sh,
-        \ 'args': ['-n'],
+        \ 'exe': exe,
+        \ 'args': args,
         \ 'errorformat': '%f: line %l: %m'
         \}
 endfunction
