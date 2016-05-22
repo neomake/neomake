@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#vim#EnabledMakers() abort
-    return ['vint']
+    return ['vint', 'vimlint']
 endfunction
 
 function! neomake#makers#ft#vim#vint() abort
@@ -15,5 +15,11 @@ function! neomake#makers#ft#vim#vint() abort
     return {
         \ 'args': l:args,
         \ 'errorformat': '%f:%l:%c:%t%*[^:]:%m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#vim#vimlint() abort
+    return {
+        \ 'errorformat': '%f:%l:%c:%t%*[^:]: %m'
         \ }
 endfunction

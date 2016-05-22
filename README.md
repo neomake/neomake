@@ -186,7 +186,19 @@ TypeScript:
 - tsc
 
 Vimscript:
+
 - vint
+- [vimlint](https://github.com/syngan/vim-vimlint)
+
+  It can be installed using npm:
+  [node-vimlint](https://www.npmjs.com/package/vimlint).
+
+  Or you could create a wrapper script ``vimlint`` and add it to your PATH:
+
+  ```sh
+  #!/bin/sh
+  ~/Vcs/vim-vimlint/bin/vimlint.sh -l ~/Vcs/vim-vimlint -p ~/Vcs/vim-vimlparser "$@"
+  ```
 
 YAML:
 - [yamllint](http://yamllint.readthedocs.org/)
