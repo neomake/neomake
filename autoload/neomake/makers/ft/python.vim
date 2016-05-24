@@ -160,3 +160,9 @@ function! neomake#makers#ft#python#vulture()
         \ 'errorformat': '%f:%l: %m',
         \ }
 endfunction
+
+function! neomake#makers#ft#python#mypy()
+    return {
+        \ 'errorformat': '%f:%l: error: %m',
+        \ }
+endfunction
