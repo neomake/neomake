@@ -153,6 +153,7 @@ Python:
 - pyflakes
 - pylama
 - pylint
+- vulture
 - python
 
 Ruby:
