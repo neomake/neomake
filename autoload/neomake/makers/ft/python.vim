@@ -5,7 +5,14 @@ function! neomake#makers#ft#python#EnabledMakers()
         return s:python_makers
     endif
 
-    let makers = ['python', 'frosted']
+    if executable('mypy')
+        let makers = ['mypy']
+    else
+        let makers = ['python']
+    endif
+    if executable('frosted')
+        call add(makers, 'frosted')
+    endif
 
     if executable('pylama')
         call add(makers, 'pylama')
@@ -158,5 +165,11 @@ endfunction
 function! neomake#makers#ft#python#vulture()
     return {
         \ 'errorformat': '%f:%l: %m',
+        \ }
+endfunction
+
+function! neomake#makers#ft#python#mypy()
+    return {
+        \ 'errorformat': '%f:%l: error: %m',
         \ }
 endfunction
