@@ -153,8 +153,8 @@ Python:
 - pyflakes
 - pylama
 - pylint
-- vulture
 - python
+- [vulture](https://bitbucket.org/jendrikseipp/vulture) [not enabled by default]
 
 Ruby:
 - mri
