@@ -1,6 +1,6 @@
 " vim: ts=4 sw=4 et
 
-if exists('g:neomake_airline') && g:neomake_airline == 0
+if get(g:, 'airline#extensions#neomake#enabled', 1) == 0
     finish
 endif
 
