@@ -28,8 +28,6 @@ endfunction
 
 function! neomake#makers#ft#go#golint()
     return {
-        \ 'cwd': '%:h',
-        \ 'mapexpr': 'expand("%:h") . "/" . v:val',
         \ 'errorformat':
             \ '%f:%l:%c: %m,' .
             \ '%-G%.%#'
