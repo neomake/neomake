@@ -1,19 +1,47 @@
 language: python
+python:
+  - "3.4"
 
 cache:
   pip: true
-  directories:
-    - /tmp/vimlint
-    - /tmp/vimlparser
-    - /tmp/vint
+before_cache:
+  # Remove pip's debug log, which is there already with Travis' base image.
+  - rm -f $HOME/.cache/pip/log/debug.log
 
-# Don't reinstall dependencies if they have been cached
+env:
+  matrix:
+    - LINT=vint-errors
+    - LINT=vimlint-errors
+    - LINT=vint
+    - LINT=vimlint
+
+matrix:
+  allow_failures:
+    - env: LINT=vimlint
+    - env: LINT=vint
+    # There are currently 3 remaining issues with the java maker.
+    # Ref: https://github.com/neomake/neomake/pull/437
+    - env: LINT=vimlint-errors
+
 install:
-  - '[ -d /tmp/vimlint ] || git clone https://github.com/syngan/vim-vimlint /tmp/vimlint'
-  - '[ -d /tmp/vimlparser ] || git clone https://github.com/ynkdir/vim-vimlparser /tmp/vimlparser'
-  - '[ -d /tmp/vint/bin ] || virtualenv /tmp/vint && source /tmp/vint/bin/activate'
-  - 'vint --version || pip install vim-vint'
+  - |
+    if [ "${LINT#vimlint}" != "$LINT" ]; then
+      git clone --depth=1 https://github.com/syngan/vim-vimlint /tmp/vimlint
+      git clone --depth=1 https://github.com/ynkdir/vim-vimlparser /tmp/vimlparser
+    elif [ "${LINT#vint}" != "$LINT" ]; then
+      pip install -U pip
+      pip install -U wheel
+      virtualenv /tmp/vint && source /tmp/vint/bin/activate && pip install vim-vint
+    fi
 
 script:
-  - sh /tmp/vimlint/bin/vimlint.sh -l /tmp/vimlint -p /tmp/vimlparser -v $TRAVIS_BUILD_DIR
-  - vint --error $TRAVIS_BUILD_DIR
+  - |
+    if [ "$LINT" = "vimlint" ]; then
+      sh /tmp/vimlint/bin/vimlint.sh -l /tmp/vimlint -p /tmp/vimlparser .
+    elif [ "$LINT" = "vimlint-errors" ]; then
+      sh /tmp/vimlint/bin/vimlint.sh -E -l /tmp/vimlint -p /tmp/vimlparser .
+    elif [ "$LINT" = "vint" ]; then
+      vint .
+    elif [ "$LINT" = "vint-errors" ]; then
+      vint --error .
+    fi

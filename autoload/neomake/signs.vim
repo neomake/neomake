@@ -1,5 +1,7 @@
 " vim: ts=4 sw=4 et
 
+scriptencoding utf-8
+
 function! s:InitSigns() abort
     let s:sign_queue = {
         \ 'project': {},
@@ -97,7 +99,7 @@ function! neomake#signs#PlaceSign(entry, type) abort
 endfunction
 
 function! neomake#signs#CleanAllOldSigns(type) abort
-    call neomake#utils#DebugObject("Removing signs", s:last_placed_signs)
+    call neomake#utils#DebugObject('Removing signs', s:last_placed_signs)
     for buf in keys(s:last_placed_signs[a:type])
         call neomake#signs#CleanOldSigns(buf, a:type)
     endfor
@@ -139,7 +141,7 @@ endfunction
 
 exe 'sign define neomake_invisible'
 
-function! neomake#signs#RedefineSign(name, opts)
+function! neomake#signs#RedefineSign(name, opts) abort
     let sign_define = 'sign define '.a:name
     for attr in keys(a:opts)
         let sign_define .= ' '.attr.'='.a:opts[attr]
@@ -155,7 +157,7 @@ function! neomake#signs#RedefineSign(name, opts)
     endfor
 endfunction
 
-function! neomake#signs#RedefineErrorSign(...)
+function! neomake#signs#RedefineErrorSign(...) abort
     let default_opts = {'text': '✖'}
     let opts = {}
     if a:0
@@ -167,7 +169,7 @@ function! neomake#signs#RedefineErrorSign(...)
     call neomake#signs#RedefineSign('neomake_err', opts)
 endfunction
 
-function! neomake#signs#RedefineWarningSign(...)
+function! neomake#signs#RedefineWarningSign(...) abort
     let default_opts = {'text': '⚠'}
     let opts = {}
     if a:0
@@ -179,7 +181,7 @@ function! neomake#signs#RedefineWarningSign(...)
     call neomake#signs#RedefineSign('neomake_warn', opts)
 endfunction
 
-function! neomake#signs#RedefineMessageSign(...)
+function! neomake#signs#RedefineMessageSign(...) abort
     let default_opts = {'text': '➤'}
     let opts = {}
     if a:0
@@ -191,7 +193,7 @@ function! neomake#signs#RedefineMessageSign(...)
     call neomake#signs#RedefineSign('neomake_msg', opts)
 endfunction
 
-function! neomake#signs#RedefineInformationalSign(...)
+function! neomake#signs#RedefineInformationalSign(...) abort
     let default_opts = {'text': 'ℹ'}
     let opts = {}
     if a:0
@@ -205,7 +207,7 @@ endfunction
 
 
 let s:signs_defined = 0
-function! neomake#signs#DefineSigns()
+function! neomake#signs#DefineSigns() abort
     if !s:signs_defined
         let s:signs_defined = 1
         call neomake#signs#RedefineErrorSign()
