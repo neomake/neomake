@@ -5,7 +5,14 @@ function! neomake#makers#ft#python#EnabledMakers()
         return s:python_makers
     endif
 
-    let makers = ['python', 'frosted']
+    if executable('mypy')
+        let makers = ['mypy']
+    else
+        let makers = ['python']
+    endif
+    if executable('frosted')
+        call add(makers, 'frosted')
+    endif
 
     if executable('pylama')
         call add(makers, 'pylama')
@@ -158,5 +165,14 @@ endfunction
 function! neomake#makers#ft#python#vulture()
     return {
         \ 'errorformat': '%f:%l: %m',
+        \ }
+endfunction
+
+" Because this uses --silent-imports it requires mypy >= 0.4
+" It is annoying for new users to use MyPy without --silent-imports
+function! neomake#makers#ft#python#mypy()
+    return {
+        \ 'args': ['--silent-imports'],
+        \ 'errorformat': '%f:%l: error: %m',
         \ }
 endfunction
