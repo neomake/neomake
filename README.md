@@ -157,6 +157,7 @@ Python:
 - pylint
 - python
 - [vulture](https://bitbucket.org/jendrikseipp/vulture) [not enabled by default]
+- [mypy](http://mypy-lang.org/) [not enabled by default]
 
 Ruby:
 - mri
