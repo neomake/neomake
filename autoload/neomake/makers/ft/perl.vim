@@ -14,7 +14,14 @@ endfunction
 function! neomake#makers#ft#perl#perl() abort
     return { 
          \ 'args' : ['-c', "-X", "-Mwarnings"],
-         \ 'errorformat': '%m at %f line %l%s',
+         \ 'errorformat': '%E%m at %f line %l%s',
+         \ 'postprocess': function('neomake#makers#ft#perl#PerlEntryProcess'),
          \ 'buffer_output': 1
      \}
+endfunction
+
+function! neomake#makers#ft#perl#PerlEntryProcess(entry)
+    let extramsg = substitute(a:entry.pattern, '\^\\V', "", "")
+    let extramsg = substitute(extramsg, '\\\$', "", "")
+    let a:entry.text = a:entry.text . ' ' . extramsg
 endfunction
