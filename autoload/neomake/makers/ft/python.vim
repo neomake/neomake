@@ -160,3 +160,12 @@ function! neomake#makers#ft#python#vulture()
         \ 'errorformat': '%f:%l: %m',
         \ }
 endfunction
+
+" Because this uses --silent-imports it requires mypy >= 0.4
+" It is annoying for new users to use MyPy without --silent-imports
+function! neomake#makers#ft#python#mypy()
+    return {
+        \ 'args': ['--silent-imports'],
+        \ 'errorformat': '%f:%l: error: %m',
+        \ }
+endfunction
