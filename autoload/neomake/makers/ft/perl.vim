@@ -1,6 +1,6 @@
 " vim: ts=4 sw=4 et
-function! neomake#makers#ft#vim#EnabledMakers()
-    return ['perlcritic' ]
+function! neomake#makers#ft#perl#EnabledMakers()
+    return ['perl', 'perlcritic']
 endfunction
 
 function! neomake#makers#ft#perl#perlcritic() abort
@@ -9,4 +9,19 @@ function! neomake#makers#ft#perl#perlcritic() abort
          \ 'errorformat': 
          \ '%f:%l:%c:%m,'
      \}
+endfunction
+
+function! neomake#makers#ft#perl#perl() abort
+    return { 
+         \ 'args' : ['-c', "-X", "-Mwarnings"],
+         \ 'errorformat': '%E%m at %f line %l%s',
+         \ 'postprocess': function('neomake#makers#ft#perl#PerlEntryProcess'),
+         \ 'buffer_output': 1
+     \}
+endfunction
+
+function! neomake#makers#ft#perl#PerlEntryProcess(entry)
+    let extramsg = substitute(a:entry.pattern, '\^\\V', "", "")
+    let extramsg = substitute(extramsg, '\\\$', "", "")
+    let a:entry.text = a:entry.text . ' ' . extramsg
 endfunction
