@@ -9,6 +9,8 @@ endfunction
 function! neomake#statusline#ResetCounts() abort
     let s:qflist_counts = {}
     let s:loclist_counts = {}
+    let s:running_status = {}
+    let g:status = s:running_status
 endfunction
 call neomake#statusline#ResetCounts()
 
@@ -16,6 +18,17 @@ function! neomake#statusline#AddLoclistCount(win, buf, item) abort
     let s:loclist_counts[a:win] = get(s:loclist_counts, a:win, {})
     let s:loclist_counts[a:win][a:buf] = get(s:loclist_counts[a:win], a:buf, {})
     call s:setCount(s:loclist_counts[a:win][a:buf], a:item, a:buf)
+endfunction
+
+function! neomake#statusline#SetRunningStatus(win, buf, status)
+    let s:running_status[a:win] = get(s:running_status, a:win, {})
+    let s:running_status[a:win][a:buf] = get(a:, 'status', '')
+endfunction
+
+function! neomake#statusline#GetRunningStatus()
+    let win = winnr()
+    let buf = bufnr('%')
+    return get(get(s:running_status, win, {}), buf, '')
 endfunction
 
 function! neomake#statusline#AddQflistCount(item) abort
