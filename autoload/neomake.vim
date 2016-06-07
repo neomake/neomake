@@ -576,7 +576,6 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         endif
 
         " Show the current line's error
-        call neomake#CursorMoved()
         call neomake#EchoCurrentError()
 
         if has_key(maker, 'next')
