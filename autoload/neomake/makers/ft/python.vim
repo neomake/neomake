@@ -122,7 +122,7 @@ endfunction
 function! neomake#makers#ft#python#pylama()
     return {
         \ 'args': ['--format', 'pep8'],
-        \ 'errorformat': '%f:%l:%c: %m',
+        \ 'errorformat': '%f:%l:%c: %t%m',
         \ }
 endfunction
 
