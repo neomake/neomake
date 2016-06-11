@@ -228,6 +228,15 @@ function! s:GetHighlight(group, what) abort
 endfunction
 
 
+function! s:hlexists_and_is_not_cleared(group)
+    if !hlexists(a:group)
+        return 1
+    endif
+    redir => hlstatus | exec 'silent hi ' . a:group | redir END
+    return hlstatus !~# 'cleared'
+endfunction
+
+
 function! neomake#signs#DefineHighlights() abort
     let ctermbg = s:GetHighlight('SignColumn', 'bg')
     let guibg = s:GetHighlight('SignColumn', 'bg#')
@@ -239,8 +248,9 @@ function! neomake#signs#DefineHighlights() abort
                 \ 'NeomakeInfoSign': s:GetHighlight('Question', 'fg'),
                 \ 'NeomakeMessageSign':  s:GetHighlight('ModeMsg', 'fg'),
                 \ })
-        if !hlexists(group)
-            exe 'hi '.group.' ctermfg='.fg.' guifg='.fg.' '.bg
+        exe 'hi '.group.'Default ctermfg='.fg.' guifg='.fg.' '.bg
+        if !s:hlexists_and_is_not_cleared(group)
+            exe 'hi link '.group.' '.group.'Default'
         endif
     endfor
 endfunction
