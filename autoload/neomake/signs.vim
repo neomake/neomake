@@ -234,10 +234,11 @@ function! neomake#signs#DefineHighlights() abort
     let bg = 'ctermbg='.ctermbg.' guibg='.guibg
 
     for [group, fg] in items({
-                \ 'NeomakeErrorSign': 'red',
-                \ 'NeomakeWarningSign': 'yellow',
-                \ 'NeomakeInfoSign': 'blue',
-                \ 'NeomakeMessageSign': 'green'})
+                \ 'NeomakeErrorSign': s:GetHighlight('Error', 'bg'),
+                \ 'NeomakeWarningSign': s:GetHighlight('Todo', 'fg'),
+                \ 'NeomakeInfoSign': s:GetHighlight('Question', 'fg'),
+                \ 'NeomakeMessageSign':  s:GetHighlight('ModeMsg', 'fg'),
+                \ })
         if !hlexists(group)
             exe 'hi '.group.' ctermfg='.fg.' guifg='.fg.' '.bg
         endif
