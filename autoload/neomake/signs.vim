@@ -206,28 +206,6 @@ function! neomake#signs#RedefineInformationalSign(...) abort
 endfunction
 
 
-function! s:GetHighlight(group, what) abort
-  let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
-  let what = a:what
-  if reverse
-    if what ==# 'fg'
-      let what = 'bg'
-    elseif what ==# 'bg'
-      let what = 'fg'
-    elseif what ==# 'fg#'
-      let what = 'bg#'
-    elseif what ==# 'bg#'
-      let what = 'fg#'
-    endif
-  endif
-  let val = synIDattr(synIDtrans(hlID(a:group)), what)
-  if val == -1
-    let val = 'NONE'
-  endif
-  return val
-endfunction
-
-
 function! s:hlexists_and_is_not_cleared(group)
     if !hlexists(a:group)
         return 1
@@ -238,15 +216,15 @@ endfunction
 
 
 function! neomake#signs#DefineHighlights() abort
-    let ctermbg = s:GetHighlight('SignColumn', 'bg')
-    let guibg = s:GetHighlight('SignColumn', 'bg#')
+    let ctermbg = neomake#utils#GetHighlight('SignColumn', 'bg')
+    let guibg = neomake#utils#GetHighlight('SignColumn', 'bg#')
     let bg = 'ctermbg='.ctermbg.' guibg='.guibg
 
     for [group, fg] in items({
-                \ 'NeomakeErrorSign': s:GetHighlight('Error', 'bg'),
-                \ 'NeomakeWarningSign': s:GetHighlight('Todo', 'fg'),
-                \ 'NeomakeInfoSign': s:GetHighlight('Question', 'fg'),
-                \ 'NeomakeMessageSign':  s:GetHighlight('ModeMsg', 'fg'),
+                \ 'NeomakeErrorSign': neomake#utils#GetHighlight('Error', 'bg'),
+                \ 'NeomakeWarningSign': neomake#utils#GetHighlight('Todo', 'fg'),
+                \ 'NeomakeInfoSign': neomake#utils#GetHighlight('Question', 'fg'),
+                \ 'NeomakeMessageSign':  neomake#utils#GetHighlight('ModeMsg', 'fg'),
                 \ })
         exe 'hi '.group.'Default ctermfg='.fg.' guifg='.fg.' '.bg
         if !s:hlexists_and_is_not_cleared(group)

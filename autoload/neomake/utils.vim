@@ -173,3 +173,25 @@ function! neomake#utils#GetSortedFiletypes(ft) abort
 
     return sort(split(a:ft, '\.'), function('CompareFiletypes'))
 endfunction
+
+" Get property from highlighting group.
+function! neomake#utils#GetHighlight(group, what) abort
+  let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
+  let what = a:what
+  if reverse
+    if what ==# 'fg'
+      let what = 'bg'
+    elseif what ==# 'bg'
+      let what = 'fg'
+    elseif what ==# 'fg#'
+      let what = 'bg#'
+    elseif what ==# 'bg#'
+      let what = 'fg#'
+    endif
+  endif
+  let val = synIDattr(synIDtrans(hlID(a:group)), what)
+  if val == -1
+    let val = 'NONE'
+  endif
+  return val
+endfunction
