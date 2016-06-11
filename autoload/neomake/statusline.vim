@@ -22,9 +22,12 @@ function! neomake#statusline#AddQflistCount(item) abort
     call s:setCount(s:qflist_counts, a:item, 0)
 endfunction
 
-function! neomake#statusline#LoclistCounts() abort
-    let win = winnr()
-    let buf = bufnr('%')
+function! neomake#statusline#LoclistCounts(...) abort
+    let win = a:0 ? a:1 : winnr()
+    if win ==# 'all'
+      return s:loclist_counts
+    endif
+    let buf = winbufnr(win)
     let s:loclist_counts[win] = get(s:loclist_counts, win, {})
     return get(s:loclist_counts[win], buf, {})
 endfunction
