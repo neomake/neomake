@@ -158,7 +158,7 @@ function! neomake#signs#RedefineSign(name, opts) abort
 endfunction
 
 function! neomake#signs#RedefineErrorSign(...) abort
-    let default_opts = {'text': '✖'}
+    let default_opts = {'text': '✖', 'texthl': 'NeomakeErrorSign'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
@@ -170,7 +170,7 @@ function! neomake#signs#RedefineErrorSign(...) abort
 endfunction
 
 function! neomake#signs#RedefineWarningSign(...) abort
-    let default_opts = {'text': '⚠'}
+    let default_opts = {'text': '⚠', 'texthl': 'NeomakeWarningSign'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
@@ -182,7 +182,7 @@ function! neomake#signs#RedefineWarningSign(...) abort
 endfunction
 
 function! neomake#signs#RedefineMessageSign(...) abort
-    let default_opts = {'text': '➤'}
+    let default_opts = {'text': '➤', 'texthl': 'NeomakeMessageSign'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
@@ -194,7 +194,7 @@ function! neomake#signs#RedefineMessageSign(...) abort
 endfunction
 
 function! neomake#signs#RedefineInformationalSign(...) abort
-    let default_opts = {'text': 'ℹ'}
+    let default_opts = {'text': 'ℹ', 'texthl': 'NeomakeInfoSign'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
@@ -203,6 +203,45 @@ function! neomake#signs#RedefineInformationalSign(...) abort
     endif
     call extend(opts, default_opts, 'keep')
     call neomake#signs#RedefineSign('neomake_info', opts)
+endfunction
+
+
+function! s:GetHighlight(group, what) abort
+  let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
+  let what = a:what
+  if reverse
+    if what ==# 'fg'
+      let what = 'bg'
+    elseif what ==# 'bg'
+      let what = 'fg'
+    elseif what ==# 'fg#'
+      let what = 'bg#'
+    elseif what ==# 'bg#'
+      let what = 'fg#'
+    endif
+  endif
+  let val = synIDattr(synIDtrans(hlID(a:group)), what)
+  if val == -1
+    let val = 'NONE'
+  endif
+  return val
+endfunction
+
+
+function! neomake#signs#DefineHighlights() abort
+    let ctermbg = s:GetHighlight('SignColumn', 'bg')
+    let guibg = s:GetHighlight('SignColumn', 'bg#')
+    let bg = 'ctermbg='.ctermbg.' guibg='.guibg
+
+    for [group, fg] in items({
+                \ 'NeomakeErrorSign': 'red',
+                \ 'NeomakeWarningSign': 'yellow',
+                \ 'NeomakeInfoSign': 'blue',
+                \ 'NeomakeMessageSign': 'green'})
+        if !hlexists(group)
+            exe 'hi '.group.' ctermfg='.fg.' guifg='.fg.' '.bg
+        endif
+    endfor
 endfunction
 
 
