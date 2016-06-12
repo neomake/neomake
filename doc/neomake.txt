@@ -332,8 +332,12 @@ or warnings and the empty string otherwise.
 These functions get the counts of errors by error type for the |location-list|
 and the |quickfix| respectively. The return value is something like this: >
     {'E': 2, 'W': 1, 'x': 5}
-<Where 'E', 'W' and 'x' are error types. Empty error types are ignored for
-now.
+<Where 'E', 'W' and 'x' are error types. Empty error types are ignored for now.
+
+By default, *LoclistCounts* returns the counts for the current buffer (i.e.
+`bufnr("%")`), but you can pass an optional argument: passing a buffer number
+will retrieve the counts for a particular buffer, while passing the string
+`'all'` will return a dictionary of counts for all buffers.
 
 *neomake#ProcessCurrentWindow*
 This is the function that takes the job output and puts it into the loclist or

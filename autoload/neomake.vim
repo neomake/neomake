@@ -281,10 +281,17 @@ endfunction
 
 function! s:Make(options) abort
     call neomake#signs#DefineSigns()
-    call neomake#statusline#ResetCounts()
 
+    let buf = bufnr('%')
+    let win = winnr()
     let ft = get(a:options, 'ft', '')
     let file_mode = get(a:options, 'file_mode')
+
+    if file_mode
+        call neomake#statusline#ResetCountsForBuf(buf)
+    else
+        call neomake#statusline#ResetCounts()
+    endif
 
     let enabled_makers = get(a:options, 'enabled_makers', [])
     if !len(enabled_makers)
@@ -306,8 +313,6 @@ function! s:Make(options) abort
     if !get(a:options, 'continuation')
         " Only do this if we have one or more enabled makers
         if file_mode
-            let buf = bufnr('%')
-            let win = winnr()
             call neomake#signs#ResetFile(buf)
             let s:need_errors_cleaning['file'][buf] = 1
             let s:loclist_nr = get(s:, 'loclist_nr', {})
@@ -391,8 +396,7 @@ function! s:AddExprCallback(maker) abort
         endif
 
         if file_mode
-            call neomake#statusline#AddLoclistCount(
-                \ a:maker.winnr, entry.bufnr, entry)
+            call neomake#statusline#AddLoclistCount(entry.bufnr, entry)
         endif
 
         " On the first valid error identified by a maker,
