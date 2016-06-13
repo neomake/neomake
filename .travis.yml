@@ -10,38 +10,44 @@ before_cache:
 
 env:
   matrix:
-    - LINT=vint-errors
-    - LINT=vimlint-errors
-    - LINT=vint
-    - LINT=vimlint
+    - ENV=testvim
+    - ENV=testnvim
+    - ENV=vint-errors
+    - ENV=vimlint-errors
+    - ENV=vint
+    - ENV=vimlint
 
 matrix:
   allow_failures:
-    - env: LINT=vimlint
-    - env: LINT=vint
+    - env: ENV=vimlint
+    - env: ENV=vint
     # There are currently 3 remaining issues with the java maker.
     # Ref: https://github.com/neomake/neomake/pull/437
-    - env: LINT=vimlint-errors
+    - env: ENV=vimlint-errors
 
 install:
   - |
-    if [ "${LINT#vimlint}" != "$LINT" ]; then
+    if [ "${ENV#vimlint}" != "$ENV" ]; then
       git clone --depth=1 https://github.com/syngan/vim-vimlint /tmp/vimlint
       git clone --depth=1 https://github.com/ynkdir/vim-vimlparser /tmp/vimlparser
-    elif [ "${LINT#vint}" != "$LINT" ]; then
+    elif [ "${ENV#vint}" != "$ENV" ]; then
       pip install -U pip
       pip install -U wheel
       virtualenv /tmp/vint && source /tmp/vint/bin/activate && pip install vim-vint
+    elif [ "$ENV" = "testnvim" ]; then
+      eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
     fi
 
 script:
   - |
-    if [ "$LINT" = "vimlint" ]; then
+    if [ "$ENV" = "vimlint" ]; then
       sh /tmp/vimlint/bin/vimlint.sh -l /tmp/vimlint -p /tmp/vimlparser .
-    elif [ "$LINT" = "vimlint-errors" ]; then
+    elif [ "$ENV" = "vimlint-errors" ]; then
       sh /tmp/vimlint/bin/vimlint.sh -E -l /tmp/vimlint -p /tmp/vimlparser .
-    elif [ "$LINT" = "vint" ]; then
+    elif [ "$ENV" = "vint" ]; then
       vint .
-    elif [ "$LINT" = "vint-errors" ]; then
+    elif [ "$ENV" = "vint-errors" ]; then
       vint --error .
+    else
+      make $ENV
     fi

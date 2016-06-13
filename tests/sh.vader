@@ -1,0 +1,18 @@
+Include: _setup.vader
+
+Execute (Loading errors.sh fixture):
+  e fixtures/errors.sh
+
+Then (Enabled makers should be OK):
+  if executable('shellcheck')
+    AssertEqual neomake#GetEnabledMakers('sh'), ['sh', 'shellcheck']
+  else
+    AssertEqual neomake#GetEnabledMakers('sh'), ['sh']
+  endif
+
+Execute (Running Neomake on errors.sh):
+  e fixtures/errors.sh
+  RunNeomake sh
+
+Then (Should fill the loclist):
+  AssertNotEqual getloclist(0), []

@@ -1,0 +1,7 @@
+" Setup and helpers for all tests.
+
+Execute:
+  let neomake_verbose = 3
+
+  command! -nargs=* RunNeomake Neomake <args>
+    \ | while len(neomake#GetJobs()) | sleep 50m | endwhile
