@@ -7,13 +7,13 @@ VADER?=Vader!
 VIM_ARGS='+$(VADER) *.vader'
 
 testnvim: TEST_VIM:=VADER_OUTPUT_FILE=/dev/stderr nvim --headless
-testnvim: _run_tests
+testnvim: tests/vader
+testnvim:
+	cd tests && HOME=/dev/null $(TEST_VIM) -nNu vimrc -i NONE $(VIM_ARGS)
 	
 testvim: TEST_VIM:=vim -X
-testvim: _run_tests
-
-_run_tests: tests/vader
-_run_tests:
+testvim: tests/vader
+testvim:
 	cd tests && HOME=/dev/null $(TEST_VIM) -nNu vimrc -i NONE $(VIM_ARGS)
 
 tests/vader:
@@ -40,7 +40,7 @@ TESTS:=$(filter-out tests/_%.vader,$(wildcard tests/*.vader))
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 _TESTS_REL_AND_ABS:=$(call uniq,$(abspath $(TESTS)) $(TESTS))
 $(_TESTS_REL_AND_ABS):
-	tests/run $@
+	make test VIM_ARGS='+$(VADER) $(@:tests/%=%)'
 .PHONY: $(_TESTS_REL_AND_ABS)
 
 tags:
