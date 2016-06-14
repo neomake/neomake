@@ -39,9 +39,12 @@ function! neomake#makers#ft#sh#sh()
         let args = ['-n']
     endif
 
+    " NOTE: the format without "line" is used by dash.
     return {
         \ 'exe': exe,
         \ 'args': args,
-        \ 'errorformat': '%f: line %l: %m'
+        \ 'errorformat':
+            \ '%f: line %l: %m,' .
+            \ '%f: %l: %m'
         \}
 endfunction
