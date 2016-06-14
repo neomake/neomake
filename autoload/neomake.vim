@@ -36,7 +36,7 @@ function! s:GetMakerKey(maker) abort
 endfunction
 
 function! s:gettabwinvar(t, w, v, d)
-    " Wrapper aroud gettabwinvar that has no default (Vim in Travis).
+    " Wrapper around gettabwinvar that has no default (Vim in Travis).
     let r = gettabwinvar(a:t, a:w, a:v)
     if r is ''
         unlet r
@@ -46,7 +46,7 @@ function! s:gettabwinvar(t, w, v, d)
 endfunction
 
 function! s:getwinvar(w, v, d)
-    " Wrapper aroud getwinvar that has no default (Vim in Travis).
+    " Wrapper around getwinvar that has no default (Vim in Travis).
     let r = getwinvar(a:w, a:v)
     if r is ''
         unlet r
