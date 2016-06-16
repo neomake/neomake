@@ -263,7 +263,7 @@ function! neomake#GetEnabledMakers(...) abort
     return filter(makers, 'makers_count[v:val] ==# l')
 endfunction
 
-function! s:HandleLoclistQflistDisplay(file_mode)
+function! s:HandleLoclistQflistDisplay(file_mode) abort
     let open_val = get(g:, 'neomake_open_list')
     if open_val
         let height = get(g:, 'neomake_list_height', 10)
@@ -482,7 +482,7 @@ function! neomake#ProcessCurrentWindow() abort
 endfunction
 
 " Get tabnr and winnr for a given job ID.
-function! s:GetTabWinForJob(job_id)
+function! s:GetTabWinForJob(job_id) abort
     for t in [tabpagenr()] + range(1, tabpagenr()-1) + range(tabpagenr()+1, tabpagenr('$'))
         for w in range(1, tabpagewinnr(t, '$'))
             if index(gettabwinvar(t, w, 'neomake_jobs', []), a:job_id) != -1
@@ -618,7 +618,7 @@ function! neomake#CleanOldProjectSignsAndErrors() abort
             unlet s:current_errors['project'][buf]
         endfor
         let s:need_errors_cleaning['project'] = 0
-        call neomake#utils#DebugMessage("All project-level errors cleaned.")
+        call neomake#utils#DebugMessage('All project-level errors cleaned.')
     endif
     call neomake#signs#CleanAllOldSigns('project')
 endfunction
@@ -629,7 +629,7 @@ function! neomake#CleanOldFileSignsAndErrors(bufnr) abort
             unlet s:current_errors['file'][a:bufnr]
         endif
         unlet s:need_errors_cleaning['file'][a:bufnr]
-        call neomake#utils#DebugMessage("File-level errors cleaned in buffer ".a:bufnr)
+        call neomake#utils#DebugMessage('File-level errors cleaned in buffer '.a:bufnr)
     endif
     call neomake#signs#CleanOldSigns(a:bufnr, 'file')
 endfunction
@@ -673,8 +673,8 @@ function! neomake#CursorMoved() abort
     call neomake#EchoCurrentError()
 endfunction
 
-function! neomake#CompleteMakers(ArgLead, ...)
-    if a:ArgLead =~ '[^A-Za-z0-9]'
+function! neomake#CompleteMakers(ArgLead, ...) abort
+    if a:ArgLead =~# '[^A-Za-z0-9]'
         return []
     else
         return filter(neomake#GetEnabledMakers(&filetype),
@@ -682,7 +682,7 @@ function! neomake#CompleteMakers(ArgLead, ...)
     endif
 endfunction
 
-function! neomake#Make(file_mode, enabled_makers, ...)
+function! neomake#Make(file_mode, enabled_makers, ...) abort
     let options = a:0 ? { 'exit_callback': a:1 } : {}
     if a:file_mode
         let options.enabled_makers = len(a:enabled_makers) ?
@@ -698,7 +698,7 @@ function! neomake#Make(file_mode, enabled_makers, ...)
     return s:Make(options)
 endfunction
 
-function! neomake#Sh(sh_command, ...)
+function! neomake#Sh(sh_command, ...) abort
     let options = a:0 ? { 'exit_callback': a:1 } : {}
     let custom_maker = neomake#utils#MakerFromCommand(&shell, a:sh_command)
     let custom_maker.name = 'sh: '.a:sh_command
