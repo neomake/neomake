@@ -15,6 +15,8 @@ augroup neomake
   au!
   au WinEnter,CursorHold * call neomake#ProcessCurrentWindow()
   au CursorMoved * call neomake#CursorMoved()
+  au ColorScheme * call neomake#signs#DefineHighlights()
 augroup END
+call neomake#signs#DefineHighlights()
 
 " vim: sw=2 et

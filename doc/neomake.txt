@@ -249,11 +249,12 @@ on neomake itself. This feature is not yet cross-platform.
 This setting will tell neomake whether to place signs by errors recognized
 from the |errorformat|. Defaults to 1.
 
-*g:neomake_error_sign* *g:neomake_warning_sign*
+*g:neomake_error_sign* *g:neomake_warning_sign* *g:neomake_info_sign*
+*g:neomake_message_sign*
 These options allow you to control the appearance of the signs that are
-placed beside errors and warnings respectively. These are dictionaries that
-represent the parameters provided by |sign-define|. Here is an example
-definition: >
+placed beside messages.
+These are dictionaries that represent the parameters provided by
+|sign-define|. Here is an example definition: >
     let g:neomake_error_sign = {
         \ 'text': 'E>',
         \ 'texthl': 'ErrorMsg',
@@ -261,6 +262,30 @@ definition: >
 <
 See the |:highlight| command to list the highlight groups available to you or
 create new ones.
+
+Neomake uses the following defaults: >
+
+     let g:neomake_error_sign = {'text': '✖', 'texthl': 'NeomakeErrorSign'}
+     let g:neomake_warning_sign = {'text': '⚠', 'texthl': 'NeomakeWarningSign'}
+     let g:neomake_message_sign = {'text': '➤', 'texthl': 'NeomakeMessageSign'}
+     let g:neomake_info_sign = {'text': 'ℹ', 'texthl': 'NeomakeInfoSign'}
+<
+
+Default 'texthl' groups are created with those names, but only if they do not
+exist already.  This allows you to customize them.  This should typically be
+done through the |ColorScheme| autoevent, which applies it after any color
+scheme: >
+
+    augroup my_error_signs
+        au!
+        autocmd ColorScheme *
+            \ hi NeomakeErrorSign ctermfg=white
+            \ hi NeomakeWarningSign ctermfg=yellow
+    augroup END
+<
+You can use `neomake#signs#DefineHighlights` to get e.g. the "bg" from
+"SignColumn".  See `neomake#signs#DefineHighlights` where this is used.
+
 
 *g:neomake_airline*
 Shows the output returned by |neomake#statusline#LoclistStatus| in the warning

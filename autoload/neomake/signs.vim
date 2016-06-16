@@ -158,7 +158,7 @@ function! neomake#signs#RedefineSign(name, opts) abort
 endfunction
 
 function! neomake#signs#RedefineErrorSign(...) abort
-    let default_opts = {'text': '✖'}
+    let default_opts = {'text': '✖', 'texthl': 'NeomakeErrorSign'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
@@ -170,7 +170,7 @@ function! neomake#signs#RedefineErrorSign(...) abort
 endfunction
 
 function! neomake#signs#RedefineWarningSign(...) abort
-    let default_opts = {'text': '⚠'}
+    let default_opts = {'text': '⚠', 'texthl': 'NeomakeWarningSign'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
@@ -182,7 +182,7 @@ function! neomake#signs#RedefineWarningSign(...) abort
 endfunction
 
 function! neomake#signs#RedefineMessageSign(...) abort
-    let default_opts = {'text': '➤'}
+    let default_opts = {'text': '➤', 'texthl': 'NeomakeMessageSign'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
@@ -194,7 +194,7 @@ function! neomake#signs#RedefineMessageSign(...) abort
 endfunction
 
 function! neomake#signs#RedefineInformationalSign(...) abort
-    let default_opts = {'text': 'ℹ'}
+    let default_opts = {'text': 'ℹ', 'texthl': 'NeomakeInfoSign'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
@@ -203,6 +203,34 @@ function! neomake#signs#RedefineInformationalSign(...) abort
     endif
     call extend(opts, default_opts, 'keep')
     call neomake#signs#RedefineSign('neomake_info', opts)
+endfunction
+
+
+function! s:hlexists_and_is_not_cleared(group)
+    if !hlexists(a:group)
+        return 1
+    endif
+    redir => hlstatus | exec 'silent hi ' . a:group | redir END
+    return hlstatus !~# 'cleared'
+endfunction
+
+
+function! neomake#signs#DefineHighlights() abort
+    let ctermbg = neomake#utils#GetHighlight('SignColumn', 'bg')
+    let guibg = neomake#utils#GetHighlight('SignColumn', 'bg#')
+    let bg = 'ctermbg='.ctermbg.' guibg='.guibg
+
+    for [group, fg] in items({
+                \ 'NeomakeErrorSign': neomake#utils#GetHighlight('Error', 'bg'),
+                \ 'NeomakeWarningSign': neomake#utils#GetHighlight('Todo', 'fg'),
+                \ 'NeomakeInfoSign': neomake#utils#GetHighlight('Question', 'fg'),
+                \ 'NeomakeMessageSign':  neomake#utils#GetHighlight('ModeMsg', 'fg'),
+                \ })
+        exe 'hi '.group.'Default ctermfg='.fg.' guifg='.fg.' '.bg
+        if !s:hlexists_and_is_not_cleared(group)
+            exe 'hi link '.group.' '.group.'Default'
+        endif
+    endfor
 endfunction
 
 
