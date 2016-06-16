@@ -1,0 +1,13 @@
+Include: _setup.vader
+
+Execute (Test Neomake on errors.sh):
+  e! fixtures/errors.sh
+
+  if executable('shellcheck')
+    AssertEqual neomake#GetEnabledMakers('sh'), ['sh', 'shellcheck']
+  else
+    AssertEqual neomake#GetEnabledMakers('sh'), ['sh']
+  endif
+
+  RunNeomake sh
+  AssertNotEqual getloclist(0), []

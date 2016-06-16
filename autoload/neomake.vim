@@ -31,38 +31,37 @@ function! neomake#CancelJob(job_id) abort
     call jobstop(s:jobs[a:job_id])
 endfunction
 
-function! s:JobStart(make_id, exe, ...) abort
-    let argv = [a:exe]
-    let has_args = a:0 && type(a:1) == type([])
-    if has('nvim')
-        if has_args
-            let argv = argv + a:1
-        endif
-        call neomake#utils#LoudMessage('Starting: '.join(argv, ' '))
-        let opts = {
-            \ 'on_stdout': function('neomake#MakeHandler'),
-            \ 'on_stderr': function('neomake#MakeHandler'),
-            \ 'on_exit': function('neomake#MakeHandler')
-            \ }
-        return jobstart(argv, opts)
-    else
-        if has_args
-            if neomake#utils#IsRunningWindows()
-                let program = a:exe.' '.join(map(a:1, 'v:val'))
-            else
-                let program = a:exe.' '.join(map(a:1, 'shellescape(v:val)'))
-            endif
-        else
-            let program = a:exe
-        endif
-        call neomake#MakeHandler(a:make_id, split(system(program), '\r\?\n', 1), 'stdout')
-        call neomake#MakeHandler(a:make_id, v:shell_error, 'exit')
-        return 0
-    endif
-endfunction
-
 function! s:GetMakerKey(maker) abort
     return has_key(a:maker, 'name') ? a:maker.name.' ft='.a:maker.ft : 'makeprg'
+endfunction
+
+function! s:gettabwinvar(t, w, v, d)
+    " Wrapper around gettabwinvar that has no default (Vim in Travis).
+    let r = gettabwinvar(a:t, a:w, a:v)
+    if r is ''
+        unlet r
+        let r = a:d
+    endif
+    return r
+endfunction
+
+function! s:getwinvar(w, v, d)
+    " Wrapper around getwinvar that has no default (Vim in Travis).
+    let r = getwinvar(a:w, a:v)
+    if r is ''
+        unlet r
+        let r = a:d
+    endif
+    return r
+endfunction
+
+function! s:AddJobinfoForCurrentWin(job_id)
+    " Add jobinfo to current window.
+    let win_jobs = s:gettabwinvar(tabpagenr(), winnr(), 'neomake_jobs', [])
+    if index(win_jobs, a:job_id) == -1
+        let win_jobs += [a:job_id]
+        call settabwinvar(tabpagenr(), winnr(), 'neomake_jobs', win_jobs)
+    endif
 endfunction
 
 function! neomake#MakeJob(maker) abort
@@ -73,11 +72,6 @@ function! neomake#MakeJob(maker) abort
         \ 'winnr': winnr(),
         \ 'bufnr': bufnr('%'),
         \ }
-    if !has('nvim')
-        let jobinfo.id = make_id
-        " Assign this before neomake#MakeHandler gets run synchronously
-        let s:jobs[make_id] = jobinfo
-    endif
     let jobinfo.maker = a:maker
 
     " Resolve exe/args, which might be a function or dictionary.
@@ -113,36 +107,59 @@ function! neomake#MakeJob(maker) abort
         exe 'cd' fnameescape(cwd)
     endif
 
-    let job = s:JobStart(make_id, exe, args)
-    let jobinfo.start = localtime()
-    let jobinfo.last_register = 0
+    try
+        let has_args = type(args) == type([])
+        if has('nvim')
+            let argv = [exe]
+            if has_args
+                let argv = argv + args
+            endif
+            call neomake#utils#LoudMessage('Starting: '.join(argv, ' '))
+            let opts = {
+                \ 'on_stdout': function('neomake#MakeHandler'),
+                \ 'on_stderr': function('neomake#MakeHandler'),
+                \ 'on_exit': function('neomake#MakeHandler')
+                \ }
+            let job = jobstart(argv, opts)
+            let jobinfo.start = localtime()
+            let jobinfo.last_register = 0
 
-    " Async setup that only affects neovim
-    if has('nvim')
-        if job == 0
-            throw 'Job table is full or invalid arguments given'
-        elseif job == -1
-            throw 'Non executable given'
+            if job == 0
+                throw 'Job table is full or invalid arguments given'
+            elseif job == -1
+                throw 'Non executable given'
+            endif
+
+            let jobinfo.id = job
+            let s:jobs[job] = jobinfo
+            let maker_key = s:GetMakerKey(a:maker)
+            let s:jobs_by_maker[maker_key] = jobinfo
+            call s:AddJobinfoForCurrentWin(jobinfo.id)
+            let r = jobinfo.id
+        else
+            " Vim, synchronously.
+            if has_args
+                if neomake#utils#IsRunningWindows()
+                    let program = exe.' '.join(map(args, 'v:val'))
+                else
+                    let program = exe.' '.join(map(args, 'shellescape(v:val)'))
+                endif
+            else
+                let program = exe
+            endif
+            let jobinfo.id = make_id
+            let s:jobs[make_id] = jobinfo
+            call s:AddJobinfoForCurrentWin(jobinfo.id)
+            call neomake#MakeHandler(make_id, split(system(program), '\r\?\n', 1), 'stdout')
+            call neomake#MakeHandler(make_id, v:shell_error, 'exit')
+            let r = 0
         endif
-
-        let jobinfo.id = job
-        let s:jobs[job] = jobinfo
-        let maker_key = s:GetMakerKey(a:maker)
-        let s:jobs_by_maker[maker_key] = jobinfo
-    endif
-
-    if exists('old_wd')
-        exe 'cd' fnameescape(old_wd)
-    endif
-
-    " Add jobinfo to current window.
-    let win_jobs = gettabwinvar(tabpagenr(), winnr(), 'neomake_jobs', [])
-    if index(win_jobs, jobinfo.id) == -1
-        let win_jobs += [jobinfo.id]
-        call settabwinvar(tabpagenr(), winnr(), 'neomake_jobs', win_jobs)
-    endif
-
-    return jobinfo.id
+    finally
+        if exists('old_wd')
+            exe 'cd' fnameescape(old_wd)
+        endif
+    endtry
+    return r
 endfunction
 
 function! neomake#GetMaker(name_or_maker, ...) abort
@@ -443,7 +460,7 @@ function! s:CleanJobinfo(jobinfo) abort
 
     " Remove job from its window.
     let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
-    let jobs = gettabwinvar(t, w, 'neomake_jobs', [])
+    let jobs = s:gettabwinvar(t, w, 'neomake_jobs', [])
     let idx = index(jobs, a:jobinfo.id)
     if idx != -1
         call remove(jobs, idx)
@@ -485,7 +502,7 @@ endfunction
 function! s:GetTabWinForJob(job_id) abort
     for t in [tabpagenr()] + range(1, tabpagenr()-1) + range(tabpagenr()+1, tabpagenr('$'))
         for w in range(1, tabpagewinnr(t, '$'))
-            if index(gettabwinvar(t, w, 'neomake_jobs', []), a:job_id) != -1
+            if index(s:gettabwinvar(t, w, 'neomake_jobs', []), a:job_id) != -1
                 return [t, w]
             endif
         endfor
@@ -507,14 +524,14 @@ function! s:RegisterJobOutput(jobinfo, maker, lines) abort
             \ }
 
         let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
-        if w
-            let w_output = gettabwinvar(t, w, 'neomake_jobs_output', [])
+        if w != -1
+            let w_output = s:gettabwinvar(t, w, 'neomake_jobs_output', [])
                         \ + [output]
             call settabwinvar(t, w, 'neomake_jobs_output', w_output)
         endif
 
         " Process the window on demand if we can.
-        let idx_win_job = index(getwinvar(winnr(), 'neomake_jobs', []), a:jobinfo.id)
+        let idx_win_job = index(s:getwinvar(winnr(), 'neomake_jobs', []), a:jobinfo.id)
         if idx_win_job != -1
             call neomake#ProcessCurrentWindow()
         elseif &filetype ==# 'qf'

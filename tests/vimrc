@@ -1,0 +1,11 @@
+filetype off
+set runtimepath+=vader
+set runtimepath+=..
+filetype plugin on
+syntax enable
+set hidden
+
+set colorcolumn=75
+
+" Easier for window numbers (incrementing).
+set splitbelow
