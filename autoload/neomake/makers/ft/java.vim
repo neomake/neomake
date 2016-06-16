@@ -169,23 +169,23 @@ function! neomake#makers#ft#java#javac()
         let javac_opts = extend(javac_opts, ['-d', s:shescape(output_dir)])
     endif
 
-    let javac_classpath = ''
+    let javac_classpath = get(g:, 'neomake_java_javac_classpath', '')
 
-    if s:has_maven && g:neomake_java_javac_autoload_maven_classpath
+    if s:has_maven && g:neomake_java_javac_autoload_maven_classpath && empty(javac_classpath)
         if !g:neomake_java_javac_delete_output
             let javac_opts = extend(javac_opts, ['-d', s:shescape(s:MavenOutputDirectory())])
         endif
         let javac_classpath = s:AddToClasspath(javac_classpath, s:GetMavenClasspath())
     endif
 
-    if s:has_gradle && g:neomake_java_javac_autoload_gradle_classpath
+    if s:has_gradle && g:neomake_java_javac_autoload_gradle_classpath && empty(javac_classpath)
         if !g:neomake_java_javac_delete_output
             let javac_opts = extend(javac_opts, ['-d', s:shescape(s:GradleOutputDirectory())])
         endif
         let javac_classpath = s:AddToClasspath(javac_classpath, s:GetGradleClasspath())
     endif
 
-    if has('python') || has('python3')
+    if (has('python') || has('python3')) && empty(javac_classpath)
         let classpathFile = fnamemodify(findfile('.classpath', escape(expand('.'), '*[]?{}, ') . ';'), ':p')
         if !empty(classpathFile) && filereadable(classpathFile)
             let javac_classpath = s:ReadClassPathFile(classpathFile)
