@@ -632,6 +632,16 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
                 call s:Make(maker.next)
             endif
         endif
+
+        let g:neomake_current_maker = maker
+        if exists('#User#NeomakeMakerFinished')
+            if has('patch-7.3.442')
+                doautocmd <nomodeline> User NeomakeMakerFinished
+            else
+                doautocmd User NeomakeMakerFinished
+            endif
+        endif
+        unlet g:neomake_current_maker
     endif
 endfunction
 

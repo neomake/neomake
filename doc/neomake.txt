@@ -16,6 +16,7 @@ CONTENTS                                                      *neomake-contents*
 2. Commands                                                   |neomake-commands|
 3. Configuration                                         |neomake-configuration|
 4. Functions                                                 |neomake-functions|
+5. Autocommands                                               |neomake-autocmds|
 
 ==============================================================================
 1. Introduction                                           *neomake-introduction*
@@ -373,5 +374,17 @@ the job output to be processed. Currently, that will happen on |WinEnter| and
 |CursorHold|. You can also call this function directly if you need to force
 it. This function is not currently used for |:Neomake!|, which always
 processes its output as it arrives.
+
+==============================================================================
+5. Autocommands                                               *neomake-autocmds*
+
+Neomake triggers the *NeomakeMakerFinished* autocommand after a maker is
+finished. This can be used to e.g. update information in your statusline: >
+
+    autocmd User NeomakeMakerFinished call MyNeomakeOpenForErrors()
+<
+`g:neomake_current_maker` will contain a reference to the maker object that
+triggered this event. This contains e.g. the `file_mode` property, which
+allows you distinguish between project or file mode.
 
 vim: ft=help tw=78
