@@ -189,8 +189,12 @@ function! neomake#utils#GetHighlight(group, what) abort
       let what = 'fg#'
     endif
   endif
-  let val = synIDattr(synIDtrans(hlID(a:group)), what)
-  if val == -1
+  if what[-1:] ==# '#'
+      let val = synIDattr(synIDtrans(hlID(a:group)), what, 'gui')
+  else
+      let val = synIDattr(synIDtrans(hlID(a:group)), what, 'cterm')
+  endif
+  if empty(val) || val == -1
     let val = 'NONE'
   endif
   return val

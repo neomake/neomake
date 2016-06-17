@@ -220,13 +220,22 @@ function! neomake#signs#DefineHighlights() abort
     let guibg = neomake#utils#GetHighlight('SignColumn', 'bg#')
     let bg = 'ctermbg='.ctermbg.' guibg='.guibg
 
-    for [group, fg] in items({
-                \ 'NeomakeErrorSign': neomake#utils#GetHighlight('Error', 'bg'),
-                \ 'NeomakeWarningSign': neomake#utils#GetHighlight('Todo', 'fg'),
-                \ 'NeomakeInfoSign': neomake#utils#GetHighlight('Question', 'fg'),
-                \ 'NeomakeMessageSign':  neomake#utils#GetHighlight('ModeMsg', 'fg'),
+    for [group, fgs] in items({
+                \ 'NeomakeErrorSign': [
+                \   neomake#utils#GetHighlight('Error', 'bg'),
+                \   neomake#utils#GetHighlight('Error', 'bg#')],
+                \ 'NeomakeWarningSign': [
+                \   neomake#utils#GetHighlight('Todo', 'fg'),
+                \   neomake#utils#GetHighlight('Todo', 'fg#')],
+                \ 'NeomakeInfoSign': [
+                \   neomake#utils#GetHighlight('Question', 'fg'),
+                \   neomake#utils#GetHighlight('Question', 'fg#')],
+                \ 'NeomakeMessageSign': [
+                \   neomake#utils#GetHighlight('ModeMsg', 'fg'),
+                \   neomake#utils#GetHighlight('ModeMsg', 'fg#')],
                 \ })
-        exe 'hi '.group.'Default ctermfg='.fg.' guifg='.fg.' '.bg
+        let [ctermfg, guifg] = fgs
+        exe 'hi '.group.'Default ctermfg='.ctermfg.' guifg='.guifg.' '.bg
         if !s:hlexists_and_is_not_cleared(group)
             exe 'hi link '.group.' '.group.'Default'
         endif
