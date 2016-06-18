@@ -694,7 +694,7 @@ endfunction
 let s:last_cursormoved = [0, 0]
 function! neomake#CursorMoved() abort
     let l:line = line('.')
-    if s:last_cursormoved[0] != l:line && s:last_cursormoved[1] != bufnr('%')
+    if s:last_cursormoved[0] != l:line || s:last_cursormoved[1] != bufnr('%')
         let s:last_cursormoved = [l:line, bufnr('%')]
         call neomake#signs#PlaceVisibleSigns()
         call neomake#EchoCurrentError()
