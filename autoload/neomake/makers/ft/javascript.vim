@@ -20,7 +20,8 @@ endfunction
 
 function! neomake#makers#ft#javascript#eslint()
     return {
-        \ 'args': ['-f', 'compact'],
+        \ 'pipe': 1,
+        \ 'args': ['-f', 'compact', '--stdin', '--stdin-filename'],
         \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
         \ '%W%f: line %l\, col %c\, Warning - %m'
         \ }
