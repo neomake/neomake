@@ -148,6 +148,12 @@ function! s:MakeJob(make_id, maker) abort
                 let s:jobids_by_makeid[a:make_id] = []
             endif
             call add(s:jobids_by_makeid[a:make_id], jobinfo.id)
+
+            if get(a:maker, 'pipe', 0)
+                call jobsend(job, getline(1, '$'))
+                call jobsend(job, "\n")
+                call jobclose(job, 'stdin')
+            endif
         else
             " Vim, synchronously.
             if has_args
@@ -162,7 +168,15 @@ function! s:MakeJob(make_id, maker) abort
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
             call s:AddJobinfoForCurrentWin(jobinfo.id)
-            call neomake#MakeHandler(job_id, split(system(program), '\r\?\n', 1), 'stdout')
+
+            if get(a:maker, 'pipe', 0)
+                let stdin = join(getline(1,'$'), "\n")."\n"
+                let cmd = system(program, stdin)
+            else
+                let cmd = system(program)
+            endif
+
+            call neomake#MakeHandler(job_id, split(cmd, '\r\?\n', 1), 'stdout')
             call neomake#MakeHandler(job_id, v:shell_error, 'exit')
             let r = 0
         endif
