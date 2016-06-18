@@ -840,7 +840,9 @@ function! neomake#CursorMoved() abort
     let l:line = line('.')
     if s:last_cursormoved[0] != l:line || s:last_cursormoved[1] != bufnr('%')
         let s:last_cursormoved = [l:line, bufnr('%')]
-        call neomake#signs#PlaceVisibleSigns()
+        if !get(g:, 'neomake_place_signs_at_once', 0)
+            call neomake#signs#PlaceVisibleSigns()
+        endif
         call neomake#EchoCurrentError()
     endif
 endfunction

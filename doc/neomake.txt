@@ -299,6 +299,11 @@ You can use `neomake#signs#DefineHighlights` to get e.g. the "bg" from
 Shows the output returned by |neomake#statusline#LoclistStatus| in the warning
 section of the vim-airline |statusline|. Defaults to 1.
 
+*g:neomake_place_signs_at_once*
+This setting will tell neomake to place all of the signs in the buffer at
+once, instead of only placing visible signs and lazily placing more signs
+when the cursor is moved. Defaults to 0.
+
 ==============================================================================
 4. Functions                                                 *neomake-functions*
 
