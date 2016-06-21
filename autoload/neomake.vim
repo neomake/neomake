@@ -89,7 +89,7 @@ function! neomake#MakeJob(maker) abort
     else
         let args = a:maker.args
     endif
-    let append_file = a:maker.file_mode && index(args, '%:p') <= 0 && get(a:maker, 'append_file', 1)
+    let append_file = a:maker.file_mode && index(args, '%:p') == -1 && get(a:maker, 'append_file', 1)
     if append_file
         call add(args, '%:p')
     endif
