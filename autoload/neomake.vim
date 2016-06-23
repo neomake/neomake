@@ -241,6 +241,40 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     return maker
 endfunction
 
+function! neomake#GetMakers(ft) abort
+    " Get all makers for a given filetype.  This is used from completion.
+    " XXX: this should probably use a callback or some other more stable
+    " approach to get the list of makers (than looking at the lowercase
+    " functions)?!
+
+    let makers = []
+    let makers_count = {}
+    let fts = neomake#utils#GetSortedFiletypes(a:ft)
+    for ft in fts
+        let ft = substitute(ft, '\W', '_', 'g')
+        " Trigger sourcing of the autoload file.
+        try
+            exe 'call neomake#makers#ft#'.ft.'#EnabledMakers()'
+        catch /^Vim\%((\a\+)\)\=:E117/
+            continue
+        endtry
+        redir => funcs_output
+        exe 'silent fun /neomake#makers#ft#'.ft.'#\l'
+        redir END
+        for maker_name in map(split(funcs_output, '\n'),
+                    \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')")
+            let c = get(makers_count, maker_name, 0)
+            let makers_count[maker_name] = c + 1
+            " Add each maker only once, but keep the order.
+            if c == 0
+                let makers += [maker_name]
+            endif
+        endfor
+    endfor
+    let l = len(fts)
+    return filter(makers, 'makers_count[v:val] ==# l')
+endfunction
+
 function! neomake#GetEnabledMakers(...) abort
     if !a:0 || type(a:1) !=# type('')
         " If we have no filetype, our job isn't complicated.
@@ -705,7 +739,7 @@ function! neomake#CompleteMakers(ArgLead, ...) abort
     if a:ArgLead =~# '[^A-Za-z0-9]'
         return []
     else
-        return filter(neomake#GetEnabledMakers(&filetype),
+        return filter(neomake#GetMakers(&filetype),
                     \ "v:val =~? '^".a:ArgLead."'")
     endif
 endfunction
