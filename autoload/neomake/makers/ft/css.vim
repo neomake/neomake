@@ -16,6 +16,9 @@ endfunction
 
 function! neomake#makers#ft#css#stylelint()
     return {
-        \ 'errorformat': '%+P%f, %W%l:%c%*\s%m, %-Q'
+        \ 'errorformat': 
+            \ '%+P%f,' . 
+                \ '%*\s%l:%c  %t  %m,' .
+            \ '%-Q'
     \ }
 endfunction
