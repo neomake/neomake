@@ -86,7 +86,6 @@ The 'exe' and 'args' entries can be a function (callback) or a dictionary with
 an expected entry 'fn' (which has to be a function).
 The function has to return a string, and receives no arguments.
 
-<
 Running "|:Neomake!| lint" from file.txt would cause "lint /path/to/file.txt" to
 be run.
 
@@ -134,7 +133,8 @@ You can define two optional properties on a maker object to process the maker
 output: 'mapexpr' is applied to the maker output before any processing, and
 'postprocess' is applied to the quickfix or location list entry.
 
-The 'mapexpr' property will be passed directly into |map| as the expr argument like so: >
+The 'mapexpr' property will be passed directly into |map| as the expr argument
+like so: >
     call map(lines, maker.mapexpr)
 <where 'lines' contains the maker output.
 This allows you to manipulate the lines as needed. Currently this is called
@@ -164,13 +164,14 @@ a maker, try setting buffer_output to 1: >
         \ }
 <
 This tells the maker only to process output when either the output type
-changes (from stderr to stout or vice versa) or at the end of the job. Your
-results will take longer, but multiline error messages should parse properly.
+changes (from stderr to stdout or vice versa) or at the end of the job. Your
+results will take longer to appear, but multiline error messages should get
+parsed properly.
 
 				         *neomake-makers-remove_invalid_entries*
 Makers can filter invalid entries (e.g. entries that do not match the
 |errorformat|) in the location/quickfix list. Set the 'remove_invalid_entries'
-property to 0 to keep all the maker output in the list:
+property to 0 to keep all the maker output in the list: >
     let g:neomake_ft_maker_remove_invalid_entries = 0
 <
 
