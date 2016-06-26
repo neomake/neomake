@@ -392,7 +392,13 @@ function! s:AddExprCallback(maker) abort
         let index += 1
 
         if has_key(a:maker, 'postprocess')
+            if !list_modified
+                let before = copy(entry)
+            endif
             call a:maker.postprocess(entry)
+            if !list_modified && entry != before
+                let list_modified = 1
+            endif
         endif
 
         if !entry.valid
