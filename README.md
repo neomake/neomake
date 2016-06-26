@@ -176,6 +176,9 @@ Scala:
 sh:
 - shellcheck
 
+Slim:
+- [slim-lint](https://github.com/sds/slim-lint)
+
 Standard ML:
 - smlnj
 
