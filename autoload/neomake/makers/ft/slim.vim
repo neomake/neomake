@@ -8,6 +8,6 @@ function! neomake#makers#ft#slim#slimlint()
     return {
         \ 'exe': 'slim-lint',
         \ 'args': ['--no-color'],
-        \ 'errorformat': '%f:%l %m'
+        \ 'errorformat': '%f:%l [%t] %m'
         \ }
 endfunction
