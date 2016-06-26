@@ -1,7 +1,19 @@
 " Setup and helpers for all tests.
 
-Execute:
-  let neomake_verbose = 3
+Before:
+  if exists('g:neomake_verbose')
+    let g:save_neomake_verbose = g:neomake_verbose
+  endif
+  let g:neomake_verbose = 3
 
+After:
+  if exists('g:save_neomake_verbose')
+    let g:neomake_verbose = g:save_neomake_verbose
+    unlet g:save_neomake_verbose
+  else
+    unlet g:neomake_verbose
+  endif
+
+Execute:
   command! -nargs=* RunNeomake Neomake <args>
     \ | while len(neomake#GetJobs()) | sleep 50m | endwhile
