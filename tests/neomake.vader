@@ -1,0 +1,6 @@
+Include: _setup.vader
+
+Execute (neomake#GetMakers):
+  AssertEqual neomake#GetMakers('non-existent'), []
+  AssertEqual neomake#GetMakers('pug'), ['puglint']
+  AssertEqual sort(neomake#GetMakers('sh')), ['checkbashisms', 'sh', 'shellcheck']
