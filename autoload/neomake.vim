@@ -502,6 +502,17 @@ function! s:CleanJobinfo(jobinfo) abort
     endif
 endfunction
 
+function! s:neomake_hook(event)
+    if exists('#User#'.a:event)
+        call neomake#utils#DebugMessage('Calling User autocmd: '.a:event)
+        if v:version >= 704 || (v:version == 703 && has('patch442'))
+            exec 'doautocmd <nomodeline> User ' . a:event
+        else
+            exec 'doautocmd User ' . a:event
+        endif
+    endif
+endfunction
+
 function! s:ProcessJobOutput(maker, lines) abort
     call neomake#utils#DebugMessage(get(a:maker, 'name', 'makeprg').' processing '.
                                     \ len(a:lines).' lines of output')
@@ -517,6 +528,10 @@ function! s:ProcessJobOutput(maker, lines) abort
         call s:AddExprCallback(a:maker)
         let &errorformat = olderrformat
     endif
+
+    let g:neomake_current_maker = a:maker
+    call s:neomake_hook('NeomakeMakerFinished')
+    unlet g:neomake_current_maker
 
     call s:HandleLoclistQflistDisplay(a:maker.file_mode)
 endfunction
@@ -666,16 +681,6 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
                 call s:Make(maker.next)
             endif
         endif
-
-        let g:neomake_current_maker = maker
-        if exists('#User#NeomakeMakerFinished')
-            if has('patch-7.3.442')
-                doautocmd <nomodeline> User NeomakeMakerFinished
-            else
-                doautocmd User NeomakeMakerFinished
-            endif
-        endif
-        unlet g:neomake_current_maker
     endif
 endfunction
 
