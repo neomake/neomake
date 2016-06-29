@@ -375,7 +375,7 @@ endf
 
 
 function! s:GlobPathList(path, pattern, suf)
-    if has("patch-7.4.279")
+    if v:version >= 705 || (v:version == 704 && has('patch279'))
         return globpath(a:path, a:pattern, a:suf, 1)
     else
         return split(globpath(a:path, a:pattern, a:suf), "\n")
