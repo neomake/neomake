@@ -283,7 +283,9 @@ endfunction
 
 function! neomake#GetEnabledMakers(...) abort
     if !a:0 || type(a:1) !=# type('')
-        " If we have no filetype, our job isn't complicated.
+        " If we have no filetype, use the global default makers
+        " This variable is used for running neomake against multiple files, too
+        " so there is no analogous buffer local ('b:') counterpart
         return get(g:, 'neomake_enabled_makers', [])
     endif
 
@@ -294,19 +296,30 @@ function! neomake#GetEnabledMakers(...) abort
     let fts = neomake#utils#GetSortedFiletypes(a:1)
     for ft in fts
         let ft = substitute(ft, '\W', '_', 'g')
-        let varname = 'g:neomake_'.ft.'_enabled_makers'
-        let fnname = 'neomake#makers#ft#'.ft.'#EnabledMakers'
-        if exists(varname)
-            let enabled_makers = eval(varname)
-        else
+        unlet! l:enabled_makers
+
+        let l:varname = 'b:neomake_'.ft.'_enabled_makers'
+        if exists(l:varname)    " Try buffer's enabled makers for the ft
+            let l:enabled_makers = eval(l:varname)
+        else                    " Try global enabled makers for the ft
+            let l:varname = 'g:neomake_'.ft.'_enabled_makers'
+            if exists(l:varname)
+                let l:enabled_makers = eval(l:varname)
+            endif
+        endif
+
+        " Use plugin's defaults if not user customized
+        if !exists('l:enabled_makers')
             try
+                let fnname = 'neomake#makers#ft#'.ft.'#EnabledMakers'
                 let default_makers = eval(fnname . '()')
             catch /^Vim\%((\a\+)\)\=:E117/
                 let default_makers = []
             endtry
-            let enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
+            let l:enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
         endif
-        for maker_name in enabled_makers
+
+        for maker_name in l:enabled_makers
             let c = get(makers_count, maker_name, 0)
             let makers_count[maker_name] = c + 1
             " Add each maker only once, but keep the order.
