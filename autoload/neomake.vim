@@ -283,7 +283,9 @@ endfunction
 
 function! neomake#GetEnabledMakers(...) abort
     if !a:0 || type(a:1) !=# type('')
-        " If we have no filetype, our job isn't complicated.
+        " If we have no filetype, use the global default makers.
+        " This variable is also used for project jobs, so it has no
+        " buffer local ('b:') counterpart for now.
         return get(g:, 'neomake_enabled_makers', [])
     endif
 
@@ -294,19 +296,28 @@ function! neomake#GetEnabledMakers(...) abort
     let fts = neomake#utils#GetSortedFiletypes(a:1)
     for ft in fts
         let ft = substitute(ft, '\W', '_', 'g')
-        let varname = 'g:neomake_'.ft.'_enabled_makers'
-        let fnname = 'neomake#makers#ft#'.ft.'#EnabledMakers'
-        if exists(varname)
-            let enabled_makers = eval(varname)
-        else
+        unlet! l:enabled_makers
+        for l:varname in [
+                    \ 'b:neomake_'.ft.'_enabled_makers',
+                    \ 'g:neomake_'.ft.'_enabled_makers']
+            if exists(l:varname)
+                let l:enabled_makers = eval(l:varname)
+                break
+            endif
+        endfor
+
+        " Use plugin's defaults if not customized.
+        if !exists('l:enabled_makers')
             try
+                let fnname = 'neomake#makers#ft#'.ft.'#EnabledMakers'
                 let default_makers = eval(fnname . '()')
             catch /^Vim\%((\a\+)\)\=:E117/
                 let default_makers = []
             endtry
-            let enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
+            let l:enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
         endif
-        for maker_name in enabled_makers
+
+        for maker_name in l:enabled_makers
             let c = get(makers_count, maker_name, 0)
             let makers_count[maker_name] = c + 1
             " Add each maker only once, but keep the order.
