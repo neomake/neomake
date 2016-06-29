@@ -290,7 +290,7 @@ function! neomake#GetEnabledMakers(...) abort
     let fts = neomake#utils#GetSortedFiletypes(a:1)
     for ft in fts
         let ft = substitute(ft, '\W', '_', 'g')
-        unlet l:enabled_makers
+        unlet! l:enabled_makers
 
         let l:varname = 'b:neomake_'.ft.'_enabled_makers'
         if exists(l:varname)    " Try buffer's enabled makers for the ft
