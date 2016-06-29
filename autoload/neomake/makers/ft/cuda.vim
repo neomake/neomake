@@ -7,6 +7,9 @@ endfunction
 function! neomake#makers#ft#cuda#nvcc()
     return {
         \ 'exe': 'nvcc',
-        \ 'errorformat': '%f\(%l\):%m',
+        \ 'errorformat':
+            \ '%f\(%l\): %trror: %m,'.
+            \ '%f\(%l\): %tarning: %m,'.
+            \ '%f\(%l\): %m',
         \ }
 endfunction
