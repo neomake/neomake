@@ -277,10 +277,10 @@ endfunction
 
 function! neomake#GetEnabledMakers(...) abort
     if !a:0 || type(a:1) !=# type('')
-        " If we have no filetype, our job isn't complicated.
-        return get(b:, 'neomake_enabled_makers',
-                    \   get(g:, 'neomake_enabled_makers', [])
-                    \ )
+        " If we have no filetype, use the global default makers
+        " This variable is used for running neomake against multiple files, too
+        " so there is no analogous buffer local ('b:') counterpart
+        return get(g:, 'neomake_enabled_makers', [])
     endif
 
     " If a filetype was passed, get the makers that are enabled for each of
