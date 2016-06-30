@@ -71,8 +71,8 @@ function! neomake#MakeJob(maker) abort
         \ 'name': 'neomake_'.make_id,
         \ 'winnr': winnr(),
         \ 'bufnr': bufnr('%'),
+        \ 'maker': a:maker,
         \ }
-    let jobinfo.maker = a:maker
 
     " Resolve exe/args, which might be a function or dictionary.
     if type(a:maker.exe) == type(function('tr'))
