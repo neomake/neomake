@@ -395,4 +395,11 @@ or quickfix window.
 For this event `g:neomake_hook_context.file_mode` will be set, indicating if
 this was run for a file or the project.
 
+                                                          *NeomakeCountsChanged*
+The *NeomakeCountsChanged* autocommand is triggered after counts for the
+location/quickfix list have changed, i.e. new errors have been added.
+This can be used to e.g. update the statusline.
+For this event `g:neomake_hook_context.file_mode` and
+`g:neomake_hook_context.bufnr` (only relevant for file mode) will be set.
+
 vim: ft=help tw=78

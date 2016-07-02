@@ -350,10 +350,11 @@ function! s:Make(options, ...) abort
     let ft = get(a:options, 'ft', '')
     let file_mode = get(a:options, 'file_mode')
 
-    if file_mode
-        call neomake#statusline#ResetCountsForBuf(buf)
-    else
-        call neomake#statusline#ResetCounts()
+    if ((file_mode && neomake#statusline#ResetCountsForBuf(buf))
+                \ || (!file_mode && neomake#statusline#ResetCounts()))
+        call s:neomake_hook('NeomakeCountsChanged', {
+                    \ 'file_mode': file_mode,
+                    \ 'bufnr': buf})
     endif
 
     let enabled_makers = get(a:options, 'enabled_makers', [])
@@ -435,6 +436,7 @@ function! s:AddExprCallback(maker) abort
     let place_signs = get(g:, 'neomake_place_signs', 1)
     let list = file_mode ? getloclist(a:maker.winnr) : getqflist()
     let list_modified = 0
+    let counts_changed = 0
     let index = file_mode ? s:loclist_nr[a:maker.winnr] : s:qflist_nr
     let maker_type = file_mode ? 'file' : 'project'
 
@@ -463,7 +465,9 @@ function! s:AddExprCallback(maker) abort
         endif
 
         if !file_mode
-            call neomake#statusline#AddQflistCount(entry)
+            if neomake#statusline#AddQflistCount(entry)
+                let counts_changed = 1
+            endif
         endif
 
         if !entry.bufnr
@@ -471,7 +475,9 @@ function! s:AddExprCallback(maker) abort
         endif
 
         if file_mode
-            call neomake#statusline#AddLoclistCount(entry.bufnr, entry)
+            if neomake#statusline#AddLoclistCount(entry.bufnr, entry)
+                let counts_changed = 1
+            endif
         endif
 
         " On the first valid error identified by a maker,
@@ -493,6 +499,12 @@ function! s:AddExprCallback(maker) abort
         endif
     endwhile
 
+    if file_mode
+        let s:loclist_nr[a:maker.winnr] = index
+    else
+        let s:qflist_nr = index
+    endif
+
     if list_modified
         if file_mode
             call setloclist(a:maker.winnr, list, 'r')
@@ -500,11 +512,10 @@ function! s:AddExprCallback(maker) abort
             call setqflist(list, 'r')
         endif
     endif
-
-    if file_mode
-        let s:loclist_nr[a:maker.winnr] = index
-    else
-        let s:qflist_nr = index
+    if counts_changed
+        call s:neomake_hook('NeomakeCountsChanged', {
+                    \ 'file_mode': a:maker.file_mode,
+                    \ 'bufnr': a:maker.bufnr})
     endif
 endfunction
 
@@ -546,12 +557,14 @@ function! s:ProcessJobOutput(maker, lines) abort
         let olderrformat = &errorformat
         let &errorformat = a:maker.errorformat
         if get(a:maker, 'file_mode')
+            let a:maker.bufnr = bufnr('%')
             let a:maker.winnr = winnr()
             laddexpr a:lines
         else
             caddexpr a:lines
         endif
         call s:AddExprCallback(a:maker)
+
         let &errorformat = olderrformat
     endif
 
