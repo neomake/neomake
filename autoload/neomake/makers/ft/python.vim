@@ -132,11 +132,12 @@ function! neomake#makers#ft#python#python()
             \ "from __future__ import print_function\r" .
             \ "from sys import argv, exit\r" .
             \ "if len(argv) != 2:\r" .
-            \ "    exit(1)\r" .
+            \ "    exit(64)\r" .
             \ "try:\r" .
             \ "    compile(open(argv[1]).read(), argv[1], 'exec', 0, 1)\r" .
             \ "except SyntaxError as err:\r" .
-            \ "    print('%s:%s:%s: %s' % (err.filename, err.lineno, err.offset, err.msg))"
+            \ "    print('%s:%s:%s: %s' % (err.filename, err.lineno, err.offset, err.msg))\r" .
+            \ "    exit(1)"
         \ ],
         \ 'errorformat': '%E%f:%l:%c: %m',
         \ }
