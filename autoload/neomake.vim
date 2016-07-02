@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
-let s:make_id = 1
+let s:job_id = 1
 let s:jobs = {}
 let s:jobs_by_maker = {}
 let s:current_errors = {
@@ -65,10 +65,10 @@ function! s:AddJobinfoForCurrentWin(job_id) abort
 endfunction
 
 function! neomake#MakeJob(maker) abort
-    let make_id = s:make_id
-    let s:make_id += 1
+    let job_id = s:job_id
+    let s:job_id += 1
     let jobinfo = {
-        \ 'name': 'neomake_'.make_id,
+        \ 'name': 'neomake_'.job_id,
         \ 'winnr': winnr(),
         \ 'bufnr': bufnr('%'),
         \ 'maker': a:maker,
@@ -147,11 +147,11 @@ function! neomake#MakeJob(maker) abort
             else
                 let program = exe
             endif
-            let jobinfo.id = make_id
-            let s:jobs[make_id] = jobinfo
+            let jobinfo.id = job_id
+            let s:jobs[job_id] = jobinfo
             call s:AddJobinfoForCurrentWin(jobinfo.id)
-            call neomake#MakeHandler(make_id, split(system(program), '\r\?\n', 1), 'stdout')
-            call neomake#MakeHandler(make_id, v:shell_error, 'exit')
+            call neomake#MakeHandler(job_id, split(system(program), '\r\?\n', 1), 'stdout')
+            call neomake#MakeHandler(job_id, v:shell_error, 'exit')
             let r = 0
         endif
     finally
