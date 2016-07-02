@@ -3,11 +3,22 @@ Include: _setup.vader
 Execute (Test Neomake on errors.sh):
   e! fixtures/errors.sh
 
+  let g:finished = 0
+  function! OnNeomakeFinished()
+    let g:finished += 1
+  endfunction
+  augroup neomake_tests
+    au!
+    au User NeomakeFinished call OnNeomakeFinished()
+  augroup END
+
   if executable('shellcheck')
     AssertEqual neomake#GetEnabledMakers('sh'), ['sh', 'shellcheck']
   else
     AssertEqual neomake#GetEnabledMakers('sh'), ['sh']
   endif
 
-  RunNeomake sh
+  RunNeomake
   AssertNotEqual getloclist(0), []
+  Log getloclist(0)
+  AssertEqual g:finished, 1
