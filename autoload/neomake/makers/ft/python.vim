@@ -1,6 +1,6 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#python#EnabledMakers()
+function! neomake#makers#ft#python#EnabledMakers() abort
     if exists('s:python_makers')
         return s:python_makers
     endif
@@ -23,7 +23,7 @@ function! neomake#makers#ft#python#EnabledMakers()
     return makers
 endfunction
 
-function! neomake#makers#ft#python#pylint()
+function! neomake#makers#ft#python#pylint() abort
     return {
         \ 'args': [
             \ '--output-format=text',
