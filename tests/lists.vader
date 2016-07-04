@@ -7,11 +7,11 @@ Execute (Postprocessing should update list):
   AssertNotEqual list, []
 
   let s:efm = neomake#makers#ft#sh#sh()
-  function s:postprocess(entry)
+  function g:Postprocess(entry)
     let a:entry.text .= ' SUFFIX'
   endfunction
   function! neomake#makers#ft#sh#sh()
-    return extend(s:efm, {'postprocess': function('s:postprocess')})
+    return extend(s:efm, {'postprocess': function('g:Postprocess')})
   endfunction
   let expected_list = map(list, 'extend(v:val, {"text": v:val.text." SUFFIX"})')
   RunNeomake sh
