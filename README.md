@@ -86,6 +86,9 @@ C++:
 - g++
 - clang-tidy
 
+CUDA:
+- nvcc
+
 Coffeescript:
 - coffeelint
 
