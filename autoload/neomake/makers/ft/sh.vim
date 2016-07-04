@@ -1,10 +1,10 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#sh#EnabledMakers()
+function! neomake#makers#ft#sh#EnabledMakers() abort
     return ['sh', 'shellcheck']
 endfunction
 
-function! neomake#makers#ft#sh#shellcheck()
+function! neomake#makers#ft#sh#shellcheck() abort
     return {
         \ 'args': ['-fgcc'],
         \ 'errorformat':
@@ -14,7 +14,7 @@ function! neomake#makers#ft#sh#shellcheck()
         \ }
 endfunction
 
-function! neomake#makers#ft#sh#checkbashisms()
+function! neomake#makers#ft#sh#checkbashisms() abort
     return {
         \ 'args': ['-fx'],
         \ 'errorformat':
@@ -28,7 +28,7 @@ function! neomake#makers#ft#sh#checkbashisms()
         \ }
 endfunction
 
-function! neomake#makers#ft#sh#sh()
+function! neomake#makers#ft#sh#sh() abort
     let shebang = matchstr(getline(1), '^#!\s*\zs.*$')
     if len(shebang)
         let l = split(shebang)

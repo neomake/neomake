@@ -206,7 +206,7 @@ function! neomake#signs#RedefineInformationalSign(...) abort
 endfunction
 
 
-function! s:hlexists_and_is_not_cleared(group)
+function! s:hlexists_and_is_not_cleared(group) abort
     if !hlexists(a:group)
         return 1
     endif

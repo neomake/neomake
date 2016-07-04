@@ -35,27 +35,27 @@ function! s:GetMakerKey(maker) abort
     return has_key(a:maker, 'name') ? a:maker.name.' ft='.a:maker.ft : 'makeprg'
 endfunction
 
-function! s:gettabwinvar(t, w, v, d)
+function! s:gettabwinvar(t, w, v, d) abort
     " Wrapper around gettabwinvar that has no default (Vim in Travis).
     let r = gettabwinvar(a:t, a:w, a:v)
-    if r is ''
+    if r is# ''
         unlet r
         let r = a:d
     endif
     return r
 endfunction
 
-function! s:getwinvar(w, v, d)
+function! s:getwinvar(w, v, d) abort
     " Wrapper around getwinvar that has no default (Vim in Travis).
     let r = getwinvar(a:w, a:v)
-    if r is ''
+    if r is# ''
         unlet r
         let r = a:d
     endif
     return r
 endfunction
 
-function! s:AddJobinfoForCurrentWin(job_id)
+function! s:AddJobinfoForCurrentWin(job_id) abort
     " Add jobinfo to current window.
     let win_jobs = s:gettabwinvar(tabpagenr(), winnr(), 'neomake_jobs', [])
     if index(win_jobs, a:job_id) == -1
@@ -502,7 +502,7 @@ function! s:CleanJobinfo(jobinfo) abort
     endif
 endfunction
 
-function! s:neomake_hook(event)
+function! s:neomake_hook(event) abort
     if exists('#User#'.a:event)
         call neomake#utils#DebugMessage('Calling User autocmd: '.a:event)
         if v:version >= 704 || (v:version == 703 && has('patch442'))

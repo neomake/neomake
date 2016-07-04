@@ -36,7 +36,7 @@ function! neomake#statusline#QflistCounts() abort
     return s:qflist_counts
 endfunction
 
-function! s:showErrWarning(counts, prefix)
+function! s:showErrWarning(counts, prefix) abort
     let w = get(a:counts, 'W', 0)
     let e = get(a:counts, 'E', 0)
     if w || e
