@@ -379,13 +379,27 @@ processes its output as it arrives.
 ==============================================================================
 5. Autocommands                                               *neomake-autocmds*
 
-Neomake triggers the *NeomakeMakerFinished* autocommand after a maker is
-finished. This can be used to e.g. update information in your statusline: >
-
-    autocmd User NeomakeMakerFinished call MyNeomakeOpenForErrors()
+Neomake will trigger |User| autocommands on certain events.  With all these
+events a dictionary `g:neomake_hook_context` will be set, with key/value pairs
+depending on the autocommand.
+You can register your own function as a callback like this: >
+    augroup my_neomake
+        au!
+        autocmd User NeomakeFinished call OnNeomakeFinished()
+    augroup END
 <
-`g:neomake_current_maker` will contain a reference to the maker object that
-triggered this event. This contains e.g. the `file_mode` property, which
-allows you distinguish between project or file mode.
+                                                               *NeomakeFinished*
+The *NeomakeFinished* autocommand is triggered after all jobs for a call to
+|:Neomake| etc have finished.  This can be used to e.g. close an empty location
+or quickfix window.
+For this event `g:neomake_hook_context.file_mode` will be set, indicating if
+this was run for a file or the project.
+
+                                                          *NeomakeCountsChanged*
+The *NeomakeCountsChanged* autocommand is triggered after counts for the
+location/quickfix list have changed, i.e. new errors have been added.
+This can be used to e.g. update the statusline.
+For this event `g:neomake_hook_context.file_mode` and
+`g:neomake_hook_context.bufnr` (only relevant for file mode) will be set.
 
 vim: ft=help tw=78
