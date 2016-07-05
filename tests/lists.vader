@@ -1,0 +1,18 @@
+Include: _setup.vader
+
+Execute (Postprocessing should update list):
+  e! fixtures/errors.sh
+  RunNeomake sh
+  let list = getloclist(0)
+  AssertNotEqual list, []
+
+  let s:efm = neomake#makers#ft#sh#sh()
+  function g:Postprocess(entry)
+    let a:entry.text .= ' SUFFIX'
+  endfunction
+  function! neomake#makers#ft#sh#sh()
+    return extend(s:efm, {'postprocess': function('g:Postprocess')})
+  endfunction
+  let expected_list = map(list, 'extend(v:val, {"text": v:val.text." SUFFIX"})')
+  RunNeomake sh
+  AssertEqual getloclist(0), expected_list
