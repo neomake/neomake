@@ -5,7 +5,7 @@ function! neomake#makers#ft#vim#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#vim#vint() abort
-    let l:args = ['--style-problem', '-f',
+    let l:args = ['--style-problem', '-f', '--no-color',
         \ '{file_path}:{line_number}:{column_number}:{severity}:{description} ({policy_name})']
 
     if has('nvim')
