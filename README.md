@@ -86,6 +86,9 @@ C++:
 - g++
 - clang-tidy
 
+Crystal:
+- crystal
+
 CUDA:
 - nvcc
 
