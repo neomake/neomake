@@ -191,6 +191,9 @@ Stylus:
 SQL:
 - [sqlint](https://github.com/purcell/sqlint)
 
+TCL:
+- Nagelfar
+
 Tex/Latex:
 - chktex
 - lacheck
