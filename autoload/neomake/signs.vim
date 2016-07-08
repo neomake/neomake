@@ -193,7 +193,7 @@ function! neomake#signs#RedefineMessageSign(...) abort
     call neomake#signs#RedefineSign('neomake_msg', opts)
 endfunction
 
-function! neomake#signs#RedefineInfo(...) abort
+function! neomake#signs#RedefineInfoSign(...) abort
     let default_opts = {'text': 'ℹ', 'texthl': 'NeomakeInfoSign'}
     let opts = {}
     if a:0
