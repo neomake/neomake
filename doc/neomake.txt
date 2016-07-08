@@ -169,7 +169,7 @@ changes (from stderr to stdout or vice versa) or at the end of the job. Your
 results will take longer to appear, but multiline error messages should get
 parsed properly.
 
-				         *neomake-makers-remove_invalid_entries*
+                                         *neomake-makers-remove_invalid_entries*
 Makers can filter invalid entries (e.g. entries that do not match the
 |errorformat|) in the location/quickfix list. Set the 'remove_invalid_entries'
 property to 0 to keep all the maker output in the list: >
