@@ -193,13 +193,13 @@ function! neomake#signs#RedefineMessageSign(...) abort
     call neomake#signs#RedefineSign('neomake_msg', opts)
 endfunction
 
-function! neomake#signs#RedefineInformationalSign(...) abort
+function! neomake#signs#RedefineInfoSign(...) abort
     let default_opts = {'text': 'ℹ', 'texthl': 'NeomakeInfoSign'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
-    elseif exists('g:neomake_informational_sign')
-        call extend(opts, g:neomake_informational_sign)
+    elseif exists('g:neomake_info_sign')
+        call extend(opts, g:neomake_info_sign)
     endif
     call extend(opts, default_opts, 'keep')
     call neomake#signs#RedefineSign('neomake_info', opts)
@@ -249,7 +249,7 @@ function! neomake#signs#DefineSigns() abort
         let s:signs_defined = 1
         call neomake#signs#RedefineErrorSign()
         call neomake#signs#RedefineWarningSign()
-        call neomake#signs#RedefineInformationalSign()
+        call neomake#signs#RedefineInfoSign()
         call neomake#signs#RedefineMessageSign()
     endif
 endfunction
