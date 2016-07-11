@@ -1,4 +1,4 @@
-*neomake.txt*	For Vim version 7.4 and Neovim	Last change: Jan 22 2016
+*neomake.txt* For Vim version 7.4 and Neovim  Last change: Jul 10 2016
 
     _/      _/                                                _/               ~
    _/_/    _/    _/_/      _/_/    _/_/_/  _/_/      _/_/_/  _/  _/      _/_/  ~
@@ -103,7 +103,7 @@ usable on an individual file, you should also include the filtype in the name: >
     " Or use it on the whole project:
     :Neomake! c_lint
 <
-                                     *neomake-{{makepath}}* *neomake-!!makepath!!*
+                                   *neomake-{{makepath}}* *neomake-!!makepath!!*
 When running a maker on a file with |:Neomake|, you may want to control where
 in the 'args' list the file's path will appear. To do this, insert '%:p' in
 the 'args' list. {{makepath}} and !!makepath!! are no longer used for this,
@@ -210,7 +210,8 @@ operating on a single file. This effectively defaults to: >
 *g:neomake_open_list*
 This setting will open the |loclist| or |quickfix| list (depending on whether
 it is operating on a file) when adding entries. A value of 2 will preserve the
-cursor position when the |loclist| or |quickfix| window is opened. Defaults to 0.
+cursor position when the |loclist| or |quickfix| window is opened. Defaults to
+0.
 
 *g:neomake_list_height*
 The height of the |loclist| or |quickfix| list opened by neomake.
