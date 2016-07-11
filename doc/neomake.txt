@@ -1,4 +1,4 @@
-*neomake.txt* For Vim version 7.4 and Neovim  Last change: Jul 10 2016
+*neomake.txt* For Vim version 7.4 and Neovim
 
     _/      _/                                                _/               ~
    _/_/    _/    _/_/      _/_/    _/_/_/  _/_/      _/_/_/  _/  _/      _/_/  ~
@@ -30,13 +30,13 @@ fantastic vim plugins such as syntastic and dispatch.
 ==============================================================================
 2. Commands                                                   *neomake-commands*
 
-                                         *neomake-:Neomake* *neomake-:NeomakeFile*
+                                       *neomake-:Neomake* *neomake-:NeomakeFile*
 :Neomake [makers]       Run a make command with the current file as input. If
                         no makers are specified, the default makers for the
                         current |filetype| are used. See |neomake-configuration|
                         for more on makers.
 
-                                     *neomake-:Neomake!* *neomake-:NeomakeProject*
+                                   *neomake-:Neomake!* *neomake-:NeomakeProject*
 :Neomake! [makers]      Run a make command with no file as input. If no makers
                         are specified, the default top-level makers will be
                         used. If no default top-level makers exist, |makeprg|
