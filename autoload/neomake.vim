@@ -512,7 +512,7 @@ function! s:AddExprCallback(maker) abort
             call setqflist(list, 'r')
         endif
     endif
-    if counts_changed
+    if counts_changed && has_key(a:maker, 'bufnr')
         call s:neomake_hook('NeomakeCountsChanged', {
                     \ 'file_mode': a:maker.file_mode,
                     \ 'bufnr': a:maker.bufnr})
