@@ -199,9 +199,12 @@ Configure a property for a prexisting maker where property is one of 'exe',
 *g:neomake_<ft>_enabled_makers*
 This setting will tell neomake which makers to use by default for the given
 filetype. Filetypes that already have makers should have a default list
-of makers already. Can also be set by buffer. Example: >
+of makers already. Can also be set per buffer. For example: >
     let g:neomake_python_enabled_makers = ['pep8', 'pylint']
-    let b:neomake_python_enabled_makers = ['flake8']
+    augroup my_custom_maker
+        au!
+        au Filetype custom.py let b:neomake_python_enabled_makers = ['flake8']
+    augroup END
 <
 *g:neomake_enabled_makers*
 This setting will tell neomake which makers to use by default when not

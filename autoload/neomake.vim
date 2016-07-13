@@ -283,9 +283,9 @@ endfunction
 
 function! neomake#GetEnabledMakers(...) abort
     if !a:0 || type(a:1) !=# type('')
-        " If we have no filetype, use the global default makers
-        " This variable is used for running neomake against multiple files, too
-        " so there is no analogous buffer local ('b:') counterpart
+        " If we have no filetype, use the global default makers.
+        " This variable is also used for project jobs, so it has no
+        " buffer local ('b:') counterpart for now.
         return get(g:, 'neomake_enabled_makers', [])
     endif
 
@@ -297,18 +297,16 @@ function! neomake#GetEnabledMakers(...) abort
     for ft in fts
         let ft = substitute(ft, '\W', '_', 'g')
         unlet! l:enabled_makers
-
-        let l:varname = 'b:neomake_'.ft.'_enabled_makers'
-        if exists(l:varname)    " Try buffer's enabled makers for the ft
-            let l:enabled_makers = eval(l:varname)
-        else                    " Try global enabled makers for the ft
-            let l:varname = 'g:neomake_'.ft.'_enabled_makers'
+        for l:varname in [
+                    \ 'b:neomake_'.ft.'_enabled_makers',
+                    \ 'g:neomake_'.ft.'_enabled_makers']
             if exists(l:varname)
                 let l:enabled_makers = eval(l:varname)
+                break
             endif
-        endif
+        endfor
 
-        " Use plugin's defaults if not user customized
+        " Use plugin's defaults if not customized.
         if !exists('l:enabled_makers')
             try
                 let fnname = 'neomake#makers#ft#'.ft.'#EnabledMakers'
