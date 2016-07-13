@@ -515,7 +515,7 @@ function! s:AddExprCallback(maker) abort
     if counts_changed
         call s:neomake_hook('NeomakeCountsChanged', {
                     \ 'file_mode': a:maker.file_mode,
-                    \ 'bufnr': a:maker.bufnr})
+                    \ 'bufnr': a:maker.buffer_output})
     endif
 endfunction
 
