@@ -1,16 +1,28 @@
 Include: _setup.vader
 
-Execute (Test Neomake on errors.sh):
-  e! fixtures/errors.sh
+Execute (Setup autocmd wrappers):
+  function! g:NeomakeSetupAutocmdWrappers()
+    let g:neomake_test_finished = []
+    function! s:OnNeomakeFinished(context)
+      let g:neomake_test_finished += [a:context]
+    endfunction
 
-  let g:finished = 0
-  function! OnNeomakeFinished()
-    let g:finished += 1
+    let g:neomake_test_countschanged = []
+    function! s:OnNeomakeCountsChanged(context)
+      let g:neomake_test_countschanged += [a:context]
+    endfunction
+
+    augroup neomake_tests
+      au!
+      au User NeomakeFinished call s:OnNeomakeFinished(g:neomake_hook_context)
+      au User NeomakeCountsChanged call s:OnNeomakeCountsChanged(g:neomake_hook_context)
+    augroup END
   endfunction
-  augroup neomake_tests
-    au!
-    au User NeomakeFinished call OnNeomakeFinished()
-  augroup END
+
+Execute (Test Neomake on errors.sh with one maker):
+  call g:NeomakeSetupAutocmdWrappers()
+  e! fixtures/errors.sh
+  AssertEqual getline(1), '#! /bin/sh'
 
   if executable('shellcheck')
     AssertEqual neomake#GetEnabledMakers('sh'), ['sh', 'shellcheck']
@@ -18,7 +30,42 @@ Execute (Test Neomake on errors.sh):
     AssertEqual neomake#GetEnabledMakers('sh'), ['sh']
   endif
 
-  RunNeomake
+  AssertEqual len(g:neomake_test_finished), 0
+  AssertEqual len(g:neomake_test_countschanged), 0
+  RunNeomake sh
   AssertNotEqual getloclist(0), []
-  Log getloclist(0)
-  AssertEqual g:finished, 1
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_countschanged), 1
+
+  let bufnr = bufnr('%')
+  RunNeomake sh
+  AssertEqual len(g:neomake_test_countschanged), 2
+  for idx in range(0, len(g:neomake_test_countschanged))
+    AssertEqual [idx, g:neomake_test_countschanged[1].file_mode], [idx, 1]
+    AssertEqual [idx, g:neomake_test_countschanged[1].bufnr], [idx, bufnr]
+  endfor
+
+Execute (Test Neomake on errors.sh with two makers):
+  if index(neomake#GetEnabledMakers('sh'), 'shellcheck') != -1
+    call g:NeomakeSetupAutocmdWrappers()
+    e! fixtures/errors.sh
+    RunNeomake sh shellcheck
+    AssertEqual len(g:neomake_test_countschanged), 2
+  endif
+
+Execute (NeomakeSh: true):
+  call g:NeomakeSetupAutocmdWrappers()
+  let bufnr = bufnr('%')
+  RunNeomakeSh true
+  AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual getqflist(), []
+
+Execute (NeomakeSh: non-existing command):
+  call g:NeomakeSetupAutocmdWrappers()
+  RunNeomakeSh 'nonexistingcommand'
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual g:neomake_test_countschanged, [{'file_mode': 0, 'bufnr': -1}]
+  AssertEqual len(getqflist()), 1
+  AssertNotEqual match(getqflist()[0].text, 'nonexistingcommand'), -1
+  AssertNotEqual match(getqflist()[0].text, 'command not found'), -1

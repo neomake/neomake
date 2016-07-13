@@ -512,11 +512,6 @@ function! s:AddExprCallback(maker) abort
             call setqflist(list, 'r')
         endif
     endif
-    if counts_changed
-        call s:neomake_hook('NeomakeCountsChanged', {
-                    \ 'file_mode': a:maker.file_mode,
-                    \ 'bufnr': a:maker.bufnr})
-    endif
 endfunction
 
 function! s:CleanJobinfo(jobinfo) abort
@@ -556,15 +551,24 @@ function! s:ProcessJobOutput(maker, lines) abort
     if len(a:lines)
         let olderrformat = &errorformat
         let &errorformat = a:maker.errorformat
-        if get(a:maker, 'file_mode')
+        let file_mode = get(a:maker, 'file_mode')
+        if file_mode
             let a:maker.bufnr = bufnr('%')
             let a:maker.winnr = winnr()
+            let prev_list = getloclist(0)
             laddexpr a:lines
         else
+            let prev_list = getqflist()
             caddexpr a:lines
         endif
         call s:AddExprCallback(a:maker)
-
+        if (file_mode && getloclist(0) != prev_list)
+                    \ || (!file_mode && getqflist() != prev_list)
+            call s:neomake_hook('NeomakeCountsChanged', {
+                        \ 'file_mode': a:maker.file_mode,
+                        \ 'bufnr': get(a:maker, 'bufnr', -1),
+                        \ })
+        endif
         let &errorformat = olderrformat
     endif
 
@@ -825,6 +829,6 @@ function! neomake#Sh(sh_command, ...) abort
     let custom_maker = neomake#utils#MakerFromCommand(&shell, a:sh_command)
     let custom_maker.name = 'sh: '.a:sh_command
     let custom_maker.remove_invalid_entries = 0
-    let options.enabled_makers =  [custom_maker]
-    return s:Make(options)[0]
+    let options.enabled_makers = [custom_maker]
+    return get(s:Make(options), 0, 0)
 endfunction

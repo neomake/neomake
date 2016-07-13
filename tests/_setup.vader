@@ -16,4 +16,13 @@ After:
 
 Execute:
   command! -nargs=* RunNeomake Neomake <args>
-    \ | while len(neomake#GetJobs()) | sleep 50m | endwhile
+    \ | while len(neomake#GetJobs()) | sleep 10m | endwhile
+  command! -nargs=* RunNeomakeProject NeomakeProject <args>
+    \ | while len(neomake#GetJobs()) | sleep 10m | endwhile
+
+  " NOTE: NeomakeSh does not use '-bar'.
+  command! -nargs=* RunNeomakeSh call RunNeomakeSh(<q-args>)
+  function! RunNeomakeSh(...)
+    call call('neomake#Sh', a:000)
+    while len(neomake#GetJobs()) | sleep 50m | endwhile
+  endfunction
