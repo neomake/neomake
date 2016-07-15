@@ -8,6 +8,6 @@ function! neomake#makers#ft#haml#hamllint()
     return {
         \ 'exe': 'haml-lint',
         \ 'args': ['--no-color'],
-        \ 'errorformat': '%f:%l %m'
+        \ 'errorformat': '%f:%l [%t] %m'
         \ }
 endfunction
