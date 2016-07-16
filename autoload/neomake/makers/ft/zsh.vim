@@ -10,22 +10,29 @@ function! neomake#makers#ft#zsh#shellcheck()
         \ 'errorformat':
             \ '%f:%l:%c: %trror: %m,' .
             \ '%f:%l:%c: %tarning: %m,' .
-            \ '%f:%l:%c: %tote: %m',
+            \ '%I%f:%l:%c: Note: %m',
         \ 'postprocess':
             \ function('neomake#makers#ft#zsh#ShellcheckEntryProcess')
         \ }
 endfunction
 
-function! neomake#makers#ft#zsh#ShellcheckEntryProcess(entry)
-    if a:entry.type ==? 'N'
-        let a:entry.type = 'W'
+function! neomake#makers#ft#zsh#zsh() abort
+    let shebang = matchstr(getline(1), '^#!\s*\zs.*$')
+    if len(shebang)
+        let l = split(shebang)
+        let exe = l[0]
+        let args = l[1:] + ['-n']
+    else
+        let exe = '/usr/bin/zsh'
+        let args = ['-n']
     endif
-    return a:entry
-endfunction
 
-function! neomake#makers#ft#zsh#zsh()
+    " NOTE: the format without "line" is used by dash.
     return {
-        \ 'args': ['-n'],
-        \ 'errorformat': '%f: line %l: %m'
+        \ 'exe': exe,
+        \ 'args': args,
+        \ 'errorformat':
+            \ '%f: line %l: %m,' .
+            \ '%f: %l: %m'
         \}
 endfunction
