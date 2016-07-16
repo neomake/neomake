@@ -572,13 +572,15 @@ function! s:neomake_hook(event, context) abort
     endif
 endfunction
 
-function! s:ProcessJobOutput(maker, lines) abort
-    call neomake#utils#DebugMessage(get(a:maker, 'name', 'makeprg').' processing '.
-                                    \ len(a:lines).' lines of output')
-    if len(a:lines)
-        let olderrformat = &errorformat
-        let &errorformat = a:maker.errorformat
-        let file_mode = get(a:maker, 'file_mode')
+function! s:ProcessJobOutput(jobinfo, lines) abort
+    let maker = a:jobinfo.maker
+    call neomake#utils#DebugMessage(printf(
+                \ '[#%d] %s: processing %d lines of output.',
+                \ a:jobinfo.id, maker.name, len(a:lines)))
+    let olderrformat = &errorformat
+    let &errorformat = maker.errorformat
+    try
+        let file_mode = get(maker, 'file_mode')
         if file_mode
             let prev_list = getloclist(0)
             laddexpr a:lines
@@ -586,18 +588,19 @@ function! s:ProcessJobOutput(maker, lines) abort
             let prev_list = getqflist()
             caddexpr a:lines
         endif
-        call s:AddExprCallback(a:maker)
+        call s:AddExprCallback(maker)
         if (file_mode && getloclist(0) != prev_list)
                     \ || (!file_mode && getqflist() != prev_list)
             call s:neomake_hook('NeomakeCountsChanged', {
-                        \ 'file_mode': a:maker.file_mode,
-                        \ 'bufnr': get(a:maker, 'bufnr', -1),
+                        \ 'file_mode': maker.file_mode,
+                        \ 'bufnr': get(maker, 'bufnr', -1),
                         \ })
         endif
+    finally
         let &errorformat = olderrformat
-    endif
+    endtry
 
-    call s:HandleLoclistQflistDisplay(a:maker.file_mode)
+    call s:HandleLoclistQflistDisplay(maker.file_mode)
 endfunction
 
 function! neomake#ProcessCurrentWindow() abort
@@ -605,7 +608,7 @@ function! neomake#ProcessCurrentWindow() abort
     if len(outputs)
         unlet w:neomake_jobs_output
         for output in outputs
-            call s:ProcessJobOutput(output.maker, output.lines)
+            call s:ProcessJobOutput(output.jobinfo, output.lines)
         endfor
         call neomake#signs#PlaceVisibleSigns()
     endif
@@ -623,38 +626,40 @@ function! s:GetTabWinForJob(job_id) abort
     return [-1, -1]
 endfunction
 
-function! s:RegisterJobOutput(jobinfo, maker, lines) abort
-    if has_key(a:maker, 'mapexpr')
-        let lines = map(copy(a:lines), a:maker.mapexpr)
-    else
-        let lines = copy(a:lines)
+function! s:RegisterJobOutput(jobinfo, lines) abort
+    let lines = copy(a:lines)
+    let maker = a:jobinfo.maker
+    if has_key(maker, 'mapexpr')
+        let lines = map(lines, maker.mapexpr)
     endif
 
-    if get(a:maker, 'file_mode')
-        let output = {
-            \ 'maker': a:maker,
-            \ 'lines': lines
-            \ }
+    if !get(maker, 'file_mode')
+        return s:ProcessJobOutput(a:jobinfo, lines)
+    endif
 
-        let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
-        if w != -1
-            let w_output = s:gettabwinvar(t, w, 'neomake_jobs_output', [])
-                        \ + [output]
-            call settabwinvar(t, w, 'neomake_jobs_output', w_output)
-        endif
+    " file mode: append lines to jobs's window's output.
+    let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
+    if w == -1
+        call neomake#utils#DebugMessage(printf(
+                    \ '[%d] No window found for output!',
+                    \ a:jobinfo.id))
+        return
+    endif
+    let w_output = s:gettabwinvar(t, w, 'neomake_jobs_output', []) + [{
+          \ 'jobinfo': a:jobinfo,
+          \ 'lines': lines }]
+    call settabwinvar(t, w, 'neomake_jobs_output', w_output)
 
-        " Process the window on demand if we can.
-        let idx_win_job = index(s:getwinvar(winnr(), 'neomake_jobs', []), a:jobinfo.id)
-        if idx_win_job != -1
-            call neomake#ProcessCurrentWindow()
-        elseif &filetype ==# 'qf'
-            " Process the previous window if we are in a qf window.
-            wincmd p
-            call neomake#ProcessCurrentWindow()
-            wincmd p
-        endif
-    else
-        call s:ProcessJobOutput(a:maker, lines)
+    " Process the window on demand if we can.
+    let idx_win_job = index(s:getwinvar(winnr(), 'neomake_jobs', []), a:jobinfo.id)
+    if idx_win_job != -1
+        call neomake#ProcessCurrentWindow()
+    elseif &filetype ==# 'qf'
+        " Process the previous window if we are in a qf window.
+        " XXX: noautocmd, restore alt window.
+        wincmd p
+        call neomake#ProcessCurrentWindow()
+        wincmd p
     endif
 endfunction
 
@@ -664,12 +669,9 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
     endif
     let jobinfo = s:jobs[a:job_id]
     let maker = jobinfo.maker
+    call neomake#utils#DebugMessage(printf('[#%d] %s: %s: %s',
+                \ a:job_id, a:event_type, maker.name, string(a:data)))
     if index(['stdout', 'stderr'], a:event_type) >= 0
-        call neomake#utils#DebugMessage(
-            \ get(maker, 'name', 'makeprg').' '.a:event_type.': ["'.join(a:data, '", "').'"]')
-        call neomake#utils#DebugMessage(
-            \ get(maker, 'name', 'makeprg').' '.a:event_type.' done.')
-
         " Register job output. Buffer registering of output for long running
         " jobs.
         let last_event_type = get(jobinfo, 'event_type', a:event_type)
@@ -691,7 +693,10 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
                 \ (last_event_type !=# a:event_type ||
                 \  now - jobinfo.start < 1 ||
                 \  now - jobinfo.last_register > 3)
-            call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines[:-2])
+            let lines = jobinfo.lines[:-2]
+            if len(lines)
+                call s:RegisterJobOutput(jobinfo, lines)
+            endif
             let jobinfo.lines = jobinfo.lines[-1:]
             let jobinfo.last_register = now
         endif
