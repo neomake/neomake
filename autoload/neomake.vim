@@ -701,6 +701,16 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
             let jobinfo.last_register = now
         endif
     elseif a:event_type ==# 'exit'
+        " Handle any unfinished lines from stdout/stderr callbacks.
+        if has_key(jobinfo, 'lines')
+            if jobinfo.lines[-1] ==# ''
+                call remove(jobinfo.lines, -1)
+            endif
+            if len(jobinfo.lines)
+                call s:RegisterJobOutput(jobinfo, jobinfo.lines)
+            endif
+        endif
+
         let status = a:data
         if has_key(maker, 'exit_callback')
             let callback_dict = { 'status': status,

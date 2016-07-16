@@ -114,3 +114,29 @@ Execute (NeomakeSh: non-existing command):
   AssertEqual len(getqflist()), 1
   AssertNotEqual match(getqflist()[0].text, 'nonexistingcommand'), -1
   AssertNotEqual match(getqflist()[0].text, 'command not found'), -1
+
+Execute (NeomakeSh: handle unfinished output on exit):
+  call g:NeomakeSetupAutocmdWrappers()
+  NeomakeSh sh -c 'echo 1; printf 2; sleep 0.1; echo -n 3'
+  if neomake#has_async_support()
+    for i in range(0, 10)
+      if len(g:neomake_test_countschanged) == 1
+        break
+      endif
+      sleep 1m
+    endfor
+    AssertNotEqual i, 10
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['1', '23']
+  AssertEqual len(g:neomake_test_countschanged), 2
+
+Execute (NeomakeSh: project: handle removed window on exit):
+  call g:NeomakeSetupAutocmdWrappers()
+  new
+  NeomakeSh sh -c 'sleep 0.1; echo finished'
+  quit
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
