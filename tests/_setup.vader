@@ -31,3 +31,10 @@ Execute:
     call call('neomake#Sh', a:000)
     NeomakeTestsWaitForFinishedJobs
   endfunction
+
+  function! g:NeomakeTestsGetMessages()
+    redir => m
+    silent mess
+    redir END
+    return split(m, '\n')
+  endfunction
