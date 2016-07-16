@@ -1,0 +1,19 @@
+Include: _setup.vader
+
+Execute (LoclistCounts):
+  call neomake#statusline#ResetCountsForBuf(99)
+  call neomake#statusline#AddLoclistCount(99, {'type': 'E', 'bufnr': 99})
+  call neomake#statusline#AddLoclistCount(99, {'type': 'W', 'bufnr': 99})
+  AssertEqual neomake#statusline#LoclistCounts(), {}
+  " With 'buf ==# "all"' this matched 0.
+  AssertEqual neomake#statusline#LoclistCounts(0), {}
+
+  " 0 could refer to current buffer, but does not currently.
+  let curbufnr = bufnr('%')
+  call neomake#statusline#AddLoclistCount(curbufnr, {'type': 'E', 'bufnr': curbufnr})
+  AssertEqual neomake#statusline#LoclistCounts(0), {}
+
+  AssertEqual neomake#statusline#LoclistCounts(1), {}
+  AssertEqual neomake#statusline#LoclistCounts(99), {'E': 1, 'W': 1}
+  AssertEqual filter(neomake#statusline#LoclistCounts('all'), 'v:key == 99'),
+    \ {'99': {'E': 1, 'W': 1}}
