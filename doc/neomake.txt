@@ -398,9 +398,11 @@ this was run for a file or the project.
 
                                                           *NeomakeCountsChanged*
 The *NeomakeCountsChanged* autocommand is triggered after counts for the
-location/quickfix list have changed, i.e. new errors have been added.
-This can be used to e.g. update the statusline.
+location/quickfix list have changed, i.e. the list got reset or new errors
+have been added.  This can be used to e.g. update the statusline.
 For this event `g:neomake_hook_context.file_mode` and
-`g:neomake_hook_context.bufnr` (only relevant for file mode) will be set.
+`g:neomake_hook_context.bufnr` will be set.  If counts changed because of a
+maker's output being processed, the maker object itself will be passed in
+(which also has these attributes).
 
 vim: ft=help tw=78
