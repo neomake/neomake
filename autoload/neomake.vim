@@ -15,6 +15,11 @@ let s:need_errors_cleaning = {
     \ 'file': {}
     \ }
 
+function! neomake#has_async_support() abort
+    " TODO: add support for Vim's async support (job_start).
+    return has('nvim')
+endfunction
+
 function! neomake#GetJobs() abort
     return s:jobs
 endfunction
@@ -411,6 +416,10 @@ function! s:Make(options, ...) abort
             continue
         endif
         let maker.file_mode = file_mode
+        if file_mode
+            let maker.bufnr = bufnr('%')
+            let maker.winnr = winnr()
+        endif
         let maker_key = s:GetMakerKey(maker)
         if has_key(s:jobs_by_maker, maker_key)
             let jobinfo = s:jobs_by_maker[maker_key]
@@ -571,8 +580,6 @@ function! s:ProcessJobOutput(maker, lines) abort
         let &errorformat = a:maker.errorformat
         let file_mode = get(a:maker, 'file_mode')
         if file_mode
-            let a:maker.bufnr = bufnr('%')
-            let a:maker.winnr = winnr()
             let prev_list = getloclist(0)
             laddexpr a:lines
         else
