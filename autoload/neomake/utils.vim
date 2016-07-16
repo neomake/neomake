@@ -4,8 +4,8 @@ scriptencoding utf-8
 function! neomake#utils#LogMessage(level, msg) abort
     let verbose = get(g:, 'neomake_verbose', 1)
     let logfile = get(g:, 'neomake_logfile')
-    let msg ='Neomake: '.a:msg
     if verbose >= a:level
+        let msg ='Neomake: '.a:msg  " .' ('.a:level.')'
         if a:level ==# 0
             echohl ErrorMsg
         endif
