@@ -321,12 +321,12 @@ dictionary as its sole argument: >
 *neomake#Sh* (command[, callback])
 This function is called by the |:NeomakeSh| command. It runs the specified
 shell *command* according to 'shell'. |neomake#Sh| returns the single job id
-that it creates via 'jobstart'; you can potentially cancel this job with
-|neomake#CancelJob|.
+that it created via 'jobstart' (or 0 on Vim); you can potentially cancel
+this job with |neomake#CancelJob|.
 
-It also accepts a second, optional
-callback argument that is called when the command exits. The callback is
-given the following dictionary as its sole argument: >
+It also accepts a second, optional callback argument that is called when
+the command exits. The callback is given the following dictionary as its
+sole argument: >
     { 'status': <exit status of command>,
     \ 'name': 'sh: <command>',
     \ 'has_next': false }
