@@ -458,35 +458,39 @@ function! s:Make(options, ...) abort
     return job_ids
 endfunction
 
-function! s:AddExprCallback(maker) abort
-    let file_mode = get(a:maker, 'file_mode')
+function! s:AddExprCallback(jobinfo) abort
+    let maker = a:jobinfo.maker
+    let file_mode = get(maker, 'file_mode')
     let place_signs = get(g:, 'neomake_place_signs', 1)
-    let list = file_mode ? getloclist(a:maker.winnr) : getqflist()
+    let list = file_mode ? getloclist(maker.winnr) : getqflist()
     let list_modified = 0
     let counts_changed = 0
-    let index = file_mode ? s:loclist_nr[a:maker.winnr] : s:qflist_nr
+    let index = file_mode ? s:loclist_nr[maker.winnr] : s:qflist_nr
     let maker_type = file_mode ? 'file' : 'project'
 
     while index < len(list)
         let entry = list[index]
-        let entry.maker_name = has_key(a:maker, 'name') ? a:maker.name : 'makeprg'
+        let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
         let index += 1
 
-        if has_key(a:maker, 'postprocess')
+        if has_key(maker, 'postprocess')
             if !list_modified
                 let before = copy(entry)
             endif
-            call a:maker.postprocess(entry)
+            call maker.postprocess(entry)
             if !list_modified && entry != before
                 let list_modified = 1
             endif
         endif
 
         if !entry.valid
-            if a:maker.remove_invalid_entries
+            if maker.remove_invalid_entries
                 let index -= 1
                 call remove(list, index)
                 let list_modified = 1
+                call neomake#utils#DebugMessage(printf(
+                            \ '[#%d] Removing invalid entry: %s',
+                            \ a:jobinfo.id, string(entry)))
             endif
             continue
         endif
@@ -527,14 +531,14 @@ function! s:AddExprCallback(maker) abort
     endwhile
 
     if file_mode
-        let s:loclist_nr[a:maker.winnr] = index
+        let s:loclist_nr[maker.winnr] = index
     else
         let s:qflist_nr = index
     endif
 
     if list_modified
         if file_mode
-            call setloclist(a:maker.winnr, list, 'r')
+            call setloclist(maker.winnr, list, 'r')
         else
             call setqflist(list, 'r')
         endif
@@ -588,7 +592,7 @@ function! s:ProcessJobOutput(jobinfo, lines) abort
             let prev_list = getqflist()
             caddexpr a:lines
         endif
-        call s:AddExprCallback(maker)
+        call s:AddExprCallback(a:jobinfo)
         if (file_mode && getloclist(0) != prev_list)
                     \ || (!file_mode && getqflist() != prev_list)
             call s:neomake_hook('NeomakeCountsChanged', {
