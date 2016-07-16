@@ -176,10 +176,13 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     endif
     if type(a:name_or_maker) == type({})
         let maker = a:name_or_maker
+    elseif a:name_or_maker ==# 'makeprg'
+        let maker = neomake#utils#MakerFromCommand(&shell, &makeprg)
+    elseif a:name_or_maker !~# '\v^\w+$'
+        call neomake#utils#ErrorMessage('Invalid maker name: '.a:name_or_maker)
+        return {}
     else
-        if a:name_or_maker ==# 'makeprg'
-            let maker = neomake#utils#MakerFromCommand(&shell, &makeprg)
-        elseif len(fts)
+        if len(fts)
             for ft in fts
                 let m = get(g:, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
                 if type(m) == type({})
@@ -188,11 +191,10 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                 endif
                 unlet m
             endfor
-        else
+        elseif exists(get(g:, 'neomake_'.a:name_or_maker.'_maker'))
             let maker = get(g:, 'neomake_'.a:name_or_maker.'_maker')
         endif
-        if !exists('maker') || type(maker) == type(0)
-            unlet! maker
+        if !exists('maker')
             if len(fts)
                 for ft in fts
                     try
@@ -205,9 +207,12 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                 try
                     let maker = eval('neomake#makers#'.a:name_or_maker.'#'.a:name_or_maker.'()')
                 catch /^Vim\%((\a\+)\)\=:E117/
-                    let maker = {}
                 endtry
             endif
+        endif
+        if !exists('maker')
+            call neomake#utils#ErrorMessage('Maker not found: '.a:name_or_maker)
+            return {}
         endif
     endif
     let maker = deepcopy(maker)
@@ -347,6 +352,17 @@ function! s:HandleLoclistQflistDisplay(file_mode) abort
 endfunction
 
 function! s:Make(options, ...) abort
+    let file_mode = get(a:options, 'file_mode')
+    let enabled_makers = get(a:options, 'enabled_makers', [])
+    if !len(enabled_makers)
+        if file_mode
+            call neomake#utils#DebugMessage('Nothing to make: no enabled makers.')
+            return []
+        else
+            let enabled_makers = ['makeprg']
+        endif
+    endif
+
     if a:0
         let make_id = a:1
     else
@@ -358,23 +374,12 @@ function! s:Make(options, ...) abort
     let buf = bufnr('%')
     let win = winnr()
     let ft = get(a:options, 'ft', '')
-    let file_mode = get(a:options, 'file_mode')
 
     if ((file_mode && neomake#statusline#ResetCountsForBuf(buf))
                 \ || (!file_mode && neomake#statusline#ResetCounts()))
         call s:neomake_hook('NeomakeCountsChanged', {
                     \ 'file_mode': file_mode,
                     \ 'bufnr': buf})
-    endif
-
-    let enabled_makers = get(a:options, 'enabled_makers', [])
-    if !len(enabled_makers)
-        if file_mode
-            call neomake#utils#DebugMessage('Nothing to make: no enabled makers')
-            return
-        else
-            let enabled_makers = ['makeprg']
-        endif
     endif
 
     if file_mode
@@ -402,6 +407,9 @@ function! s:Make(options, ...) abort
     let job_ids = []
     for name in enabled_makers
         let maker = neomake#GetMaker(name, ft)
+        if maker == {}
+            continue
+        endif
         let maker.file_mode = file_mode
         let maker_key = s:GetMakerKey(maker)
         if has_key(s:jobs_by_maker, maker_key)
@@ -436,7 +444,7 @@ function! s:Make(options, ...) abort
     endfor
     if !len(job_ids)
         call s:neomake_hook('NeomakeFinished', {
-                    \ 'file_mode': maker.file_mode})
+                    \ 'file_mode': file_mode})
     endif
     return job_ids
 endfunction
