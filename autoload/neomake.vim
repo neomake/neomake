@@ -191,7 +191,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                 endif
                 unlet m
             endfor
-        elseif exists(get(g:, 'neomake_'.a:name_or_maker.'_maker'))
+        elseif exists('g:neomake_'.a:name_or_maker.'_maker')
             let maker = get(g:, 'neomake_'.a:name_or_maker.'_maker')
         endif
         if !exists('maker')

@@ -37,3 +37,10 @@ Execute (neomake#Make in project mode with no filetype and no makers):
   endif
 
   NeomakeTestsWaitForFinishedJobs
+
+Execute (neomake#GetMaker from g:neomake_foo_maker):
+  let g:neomake_foo_maker = {
+    \ 'exe': 'my-foo'
+    \ }
+  let maker = neomake#GetMaker('foo')
+  AssertEqual maker.exe, 'my-foo'
