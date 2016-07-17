@@ -16,7 +16,7 @@ After:
 
 Execute:
   function! s:wait_for_finished_jobs()
-    while len(neomake#GetJobs()) | sleep 50m | endwhile
+    while len(neomake#GetJobs()) | sleep 10m | endwhile
   endfunction
   command! NeomakeTestsWaitForFinishedJobs call s:wait_for_finished_jobs()
 
