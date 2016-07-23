@@ -1,0 +1,9 @@
+Include: _setup.vader
+
+Execute (neomake#utils#LogMessage writes to logfile always):
+  let neomake_verbose = 0
+  Save neomake_logfile
+  let g:neomake_logfile = tempname()
+  call neomake#utils#LogMessage(1, 'msg1')
+  Assert readfile(g:neomake_logfile)[0] =~# 'Log level 1: Neomake: msg1$'
+  Restore
