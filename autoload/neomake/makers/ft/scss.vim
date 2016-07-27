@@ -7,6 +7,6 @@ endfunction
 function! neomake#makers#ft#scss#scsslint()
     return {
         \ 'exe': 'scss-lint',
-        \ 'errorformat': '%f:%l [%t] %m'
+        \ 'errorformat': '%A%f:%l:%v [%t] %m'
     \ }
 endfunction
