@@ -36,8 +36,21 @@ endfunction
 
 function! neomake#makers#ft#javascript#standard()
     return {
-        \ 'errorformat': '  %f:%l:%c: %m'
+        \ 'errorformat': '  %f:%l:%c: %m',
+        \ 'postprocess': function('neomake#makers#ft#javascript#StandardEntryProcess')
         \ }
+endfunction
+
+function! neomake#makers#ft#javascript#semistandard()
+    return {
+        \ 'errorformat': '  %f:%l:%c: %m',
+        \ 'postprocess': function('neomake#makers#ft#javascript#StandardEntryProcess')
+        \ }
+endfunction
+
+function! neomake#makers#ft#javascript#StandardEntryProcess(entry)
+    " (Semi)Standard entries are warnings
+    let a:entry.type = 'W'
 endfunction
 
 function! neomake#makers#ft#javascript#flow()
