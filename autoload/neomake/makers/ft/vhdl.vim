@@ -10,7 +10,7 @@ endfunction
 
 function! neomake#makers#ft#vhdl#ghdl()
     return {
-                \ 'args' : ['-a'],
+                \ 'args' : ['-s'],
                 \ 'errorformat' : '%f:%l:%c: %m',
                 \ }
 endfunction
