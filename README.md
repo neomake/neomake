@@ -201,6 +201,9 @@ Tex/Latex:
 TypeScript:
 - tsc
 
+VHDL:
+- [GHDL](https://github.com/tgingold/ghdl)
+
 Vimscript:
 
 - vint
