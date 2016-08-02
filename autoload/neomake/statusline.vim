@@ -35,7 +35,7 @@ endfunction
 
 function! neomake#statusline#LoclistCounts(...) abort
     let buf = a:0 ? a:1 : bufnr('%')
-    if buf ==# 'all'
+    if buf is# 'all'
         return s:loclist_counts
     endif
     return get(s:loclist_counts, buf, {})

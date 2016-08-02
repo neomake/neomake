@@ -1,21 +1,14 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#scss#EnabledMakers()
-    " Only enable first one found
-    for m in ['sass-lint', 'scss-lint']
-        if executable(m)
-            " Return without dash since maker names have no dash
-            return [substitute(m, '-', '', 'g')]
-        endif
-    endfor
-    return []
+    return executable('sass-lint') ? ['sass-lint'] : ['scss-lint']
 endfunction
 
 function! neomake#makers#ft#scss#scsslint()
     return {
         \ 'exe': 'scss-lint',
-        \ 'errorformat': '%f:%l [%t] %m'
-        \ }
+        \ 'errorformat': '%A%f:%l:%v [%t] %m'
+    \ }
 endfunction
 
 function! neomake#makers#ft#scss#sasslint()

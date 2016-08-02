@@ -4,3 +4,43 @@ Execute (neomake#GetMakers):
   AssertEqual neomake#GetMakers('non-existent'), []
   AssertEqual neomake#GetMakers('pug'), ['puglint']
   AssertEqual sort(neomake#GetMakers('sh')), ['checkbashisms', 'sh', 'shellcheck']
+
+Execute (neomake#GetMaker with non-existent maker prints errors):
+  let g:neomake_verbose = 0
+  echom '====='
+  AssertEqual neomake#GetMaker('non-existent'), {}
+  AssertEqual g:NeomakeTestsGetMessages()[-1], 'Neomake: Invalid maker name: non-existent'
+  echom '====='
+  AssertEqual neomake#GetMaker('nonexistent'), {}
+  AssertEqual g:NeomakeTestsGetMessages()[-1], 'Neomake: Maker not found: nonexistent'
+
+Execute (neomake#Make in file mode with no filetype and no makers):
+  AssertEqual &ft, ''
+  echom '====='
+  AssertEqual neomake#Make(1, []), []
+  AssertEqual g:NeomakeTestsGetMessages()[-1], 'Neomake: Nothing to make: no enabled makers.'
+
+Execute (neomake#Make in project mode with no filetype and no makers):
+  Save makeprg
+  let &makeprg = 'sh -c "sleep 0.1"'
+  echom '====='
+  let job_ids = neomake#Make(0, [])
+  if has('nvim')
+    " Vim runs synchronously.
+    AssertEqual len(job_ids), 1
+    let jobs = neomake#GetJobs()
+    AssertEqual len(jobs), 1
+    let [job_id, job] = items(jobs)[0]
+    AssertEqual job.maker.name, 'makeprg'
+  else
+    AssertEqual len(job_ids), 0
+  endif
+
+  NeomakeTestsWaitForFinishedJobs
+
+Execute (neomake#GetMaker from g:neomake_foo_maker):
+  let g:neomake_foo_maker = {
+    \ 'exe': 'my-foo'
+    \ }
+  let maker = neomake#GetMaker('foo')
+  AssertEqual maker.exe, 'my-foo'

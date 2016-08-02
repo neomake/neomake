@@ -9,3 +9,6 @@ set colorcolumn=75
 
 " Easier for window numbers (incrementing).
 set splitbelow
+
+" No '-- More --' prompt, which would hang Travis.
+set nomore

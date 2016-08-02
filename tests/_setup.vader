@@ -15,5 +15,26 @@ After:
   endif
 
 Execute:
+  function! s:wait_for_finished_jobs()
+    while len(neomake#GetJobs()) | sleep 10m | endwhile
+  endfunction
+  command! NeomakeTestsWaitForFinishedJobs call s:wait_for_finished_jobs()
+
   command! -nargs=* RunNeomake Neomake <args>
-    \ | while len(neomake#GetJobs()) | sleep 50m | endwhile
+    \ | NeomakeTestsWaitForFinishedJobs
+  command! -nargs=* RunNeomakeProject NeomakeProject <args>
+    \ | NeomakeTestsWaitForFinishedJobs
+
+  " NOTE: NeomakeSh does not use '-bar'.
+  command! -nargs=* RunNeomakeSh call RunNeomakeSh(<q-args>)
+  function! RunNeomakeSh(...)
+    call call('neomake#Sh', a:000)
+    NeomakeTestsWaitForFinishedJobs
+  endfunction
+
+  function! g:NeomakeTestsGetMessages()
+    redir => m
+    silent mess
+    redir END
+    return split(m, '\n')
+  endfunction

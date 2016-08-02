@@ -199,12 +199,17 @@ Configure a property for a prexisting maker where property is one of 'exe',
 *g:neomake_<ft>_enabled_makers*
 This setting will tell neomake which makers to use by default for the given
 filetype. Filetypes that already have makers should have a default list
-of makers already. Example: >
+of makers already. Can also be set per buffer. For example: >
     let g:neomake_python_enabled_makers = ['pep8', 'pylint']
+    augroup my_custom_maker
+        au!
+        au Filetype custom.py let b:neomake_python_enabled_makers = ['flake8']
+    augroup END
 <
 *g:neomake_enabled_makers*
 This setting will tell neomake which makers to use by default when not
-operating on a single file. This effectively defaults to: >
+operating on a single file, or when no makers are defined for the filetype of
+the current buffer. This effectively defaults to: >
     let g:neomake_enabled_makers = ['makeprg']
 <
 *g:neomake_open_list*
@@ -316,12 +321,12 @@ dictionary as its sole argument: >
 *neomake#Sh* (command[, callback])
 This function is called by the |:NeomakeSh| command. It runs the specified
 shell *command* according to 'shell'. |neomake#Sh| returns the single job id
-that it creates via 'jobstart'; you can potentially cancel this job with
-|neomake#CancelJob|.
+that it created via 'jobstart' (or 0 on Vim); you can potentially cancel
+this job with |neomake#CancelJob|.
 
-It also accepts a second, optional
-callback argument that is called when the command exits. The callback is
-given the following dictionary as its sole argument: >
+It also accepts a second, optional callback argument that is called when
+the command exits. The callback is given the following dictionary as its
+sole argument: >
     { 'status': <exit status of command>,
     \ 'name': 'sh: <command>',
     \ 'has_next': false }
@@ -398,9 +403,11 @@ this was run for a file or the project.
 
                                                           *NeomakeCountsChanged*
 The *NeomakeCountsChanged* autocommand is triggered after counts for the
-location/quickfix list have changed, i.e. new errors have been added.
-This can be used to e.g. update the statusline.
+location/quickfix list have changed, i.e. the list got reset or new errors
+have been added.  This can be used to e.g. update the statusline.
 For this event `g:neomake_hook_context.file_mode` and
-`g:neomake_hook_context.bufnr` (only relevant for file mode) will be set.
+`g:neomake_hook_context.bufnr` will be set.  If counts changed because of a
+maker's output being processed, the maker object itself will be passed in
+(which also has these attributes).
 
 vim: ft=help tw=78
