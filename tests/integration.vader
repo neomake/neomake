@@ -93,7 +93,6 @@ Execute (Neomake: handle output for removed window):
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 1
-    Log g:NeomakeTestsGetMessages()
     AssertNotEqual index(g:NeomakeTestsGetMessages(), printf(
       \ 'Neomake: [%d] No window found for output!', join(job_ids))), -1
   endif
@@ -123,7 +122,7 @@ Execute (NeomakeSh: handle unfinished output on exit):
       if len(g:neomake_test_countschanged) == 1
         break
       endif
-      sleep 1m
+      sleep 10m
     endfor
     AssertNotEqual i, 10
     NeomakeTestsWaitForFinishedJobs
@@ -135,7 +134,7 @@ Execute (NeomakeSh: handle unfinished output on exit):
 Execute (NeomakeSh: project: handle removed window on exit):
   call g:NeomakeSetupAutocmdWrappers()
   new
-  NeomakeSh sh -c 'sleep 0.1; echo finished'
+  NeomakeSh sh -c 'sleep 0.5; echo finished'
   quit
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_finished), 1
