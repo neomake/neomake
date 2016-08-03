@@ -395,14 +395,14 @@ You can register your own function as a callback like this: >
     augroup END
 <
                                                                *NeomakeFinished*
-The *NeomakeFinished* autocommand is triggered after all jobs for a call to
+The |NeomakeFinished| autocommand is triggered after all jobs for a call to
 |:Neomake| etc have finished.  This can be used to e.g. close an empty location
 or quickfix window.
 For this event `g:neomake_hook_context.file_mode` will be set, indicating if
 this was run for a file or the project.
 
                                                           *NeomakeCountsChanged*
-The *NeomakeCountsChanged* autocommand is triggered after counts for the
+The |NeomakeCountsChanged| autocommand is triggered after counts for the
 location/quickfix list have changed, i.e. the list got reset or new errors
 have been added.  This can be used to e.g. update the statusline.
 For this event `g:neomake_hook_context.file_mode` and
