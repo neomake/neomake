@@ -167,6 +167,9 @@ endfunction
 function! neomake#makers#ft#python#mypy()
     return {
         \ 'args': ['--silent-imports'],
-        \ 'errorformat': '%f:%l: error: %m',
+        \ 'errorformat':
+            \ '%E%f:%l: error: %m,' .
+            \ '%W%f:%l: warning: %m,' .
+            \ '%I%f:%l: note: %m',
         \ }
 endfunction
