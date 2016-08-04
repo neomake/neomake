@@ -19,3 +19,11 @@ function! neomake#makers#ft#elixir#credo()
       \ 'errorformat': '[%t] %. %f:%l:%c %m'
       \ }
 endfunction
+
+function! neomake#markers#ft#elixir#dogma()
+    return {
+      \ 'exe': 'mix',
+      \ 'args': ['dogma', '%:p', '--format=flycheck'],
+      \ 'errorformat': '%f:%l:%c: %.: %m'
+      \ }
+endfunction
