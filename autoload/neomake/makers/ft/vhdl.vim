@@ -1,11 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#vhdl#EnabledMakers()
-    if executable('ghdl')
-        return ['ghdl']
-    else
-        return []
-    endif
+    return ['ghdl']
 endfunction
 
 function! neomake#makers#ft#vhdl#ghdl()
