@@ -220,9 +220,9 @@ function! neomake#signs#RedefineInfoSign(...) abort
 endfunction
 
 
-function! s:hlexists_and_is_not_cleared(group) abort
+function! neomake#signs#HlexistsAndIsNotCleared(group) abort
     if !hlexists(a:group)
-        return 1
+        return 0
     endif
     redir => hlstatus | exec 'silent hi ' . a:group | redir END
     return hlstatus !~# 'cleared'
@@ -254,7 +254,7 @@ function! neomake#signs#DefineHighlights() abort
                 \ })
         let [ctermfg, guifg] = fgs
         exe 'hi '.group.'Default ctermfg='.ctermfg.' guifg='.guifg.' '.bg
-        if !s:hlexists_and_is_not_cleared(group)
+        if !neomake#signs#HlexistsAndIsNotCleared(group)
             exe 'hi link '.group.' '.group.'Default'
         endif
     endfor
