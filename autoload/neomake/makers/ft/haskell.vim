@@ -4,9 +4,11 @@ function! neomake#makers#ft#haskell#EnabledMakers()
 endfunction
 
 function! neomake#makers#ft#haskell#hdevtools()
+    let mapexpr = 'substitute(v:val, "\n", "", "g")'
     return {
         \ 'exe': 'hdevtools',
         \ 'args': ['check', '-g-Wall'],
+        \ 'mapexpr': mapexpr,
         \ 'errorformat':
             \ '%-Z %#,'.
             \ '%W%f:%l:%v: Warning: %m,'.
