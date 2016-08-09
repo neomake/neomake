@@ -176,6 +176,10 @@ Scala:
 - scalac
 - scalastyle
 
+scss:
+- [sass-lint](https://github.com/sasstools/sass-lint) node.js-based linter
+- [scss-lint](https://github.com/brigade/scss-lint) ruby gem-based linter
+
 sh:
 
 - sh
