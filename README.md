@@ -177,6 +177,8 @@ Scala:
 - scalastyle
 
 sh:
+
+- sh
 - shellcheck
 
 Slim:
@@ -221,6 +223,11 @@ Vimscript:
 
 YAML:
 - [yamllint](http://yamllint.readthedocs.org/)
+
+Zsh:
+
+- shellcheck (not enabled by default, current versions do not support Zsh)
+- zsh
 
 Since this list may be out of date, look at
 [autoload/neomake/makers](https://github.com/benekastah/neomake/tree/master/autoload/neomake/makers)
