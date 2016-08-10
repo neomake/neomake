@@ -1,17 +1,10 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#scss#EnabledMakers()
-    return executable('sass-lint') ? ['sass-lint'] : ['scss-lint']
+function! neomake#makers#ft#scss#EnabledMakers() abort
+    return executable('sass-lint') ? ['sasslint'] : ['scsslint']
 endfunction
 
-function! neomake#makers#ft#scss#scsslint()
-    return {
-        \ 'exe': 'scss-lint',
-        \ 'errorformat': '%A%f:%l:%v [%t] %m'
-    \ }
-endfunction
-
-function! neomake#makers#ft#scss#sasslint()
+function! neomake#makers#ft#scss#sasslint() abort
     return {
         \ 'exe': 'sass-lint',
         \ 'args': ['--no-exit', '--verbose', '--format=compact'],
@@ -21,3 +14,9 @@ function! neomake#makers#ft#scss#sasslint()
         \ }
 endfunction
 
+function! neomake#makers#ft#scss#scsslint() abort
+    return {
+        \ 'exe': 'scss-lint',
+        \ 'errorformat': '%A%f:%l:%v [%t] %m'
+    \ }
+endfunction
