@@ -44,3 +44,15 @@ Execute (neomake#GetMaker from g:neomake_foo_maker):
     \ }
   let maker = neomake#GetMaker('foo')
   AssertEqual maker.exe, 'my-foo'
+
+Execute (neomake#CancelJob):
+  if neomake#has_async_support()
+    let job_id = neomake#Sh("sh -c 'while true; do sleep 0.1; done'")
+    AssertEqual neomake#CancelJob(job_id), 1
+
+    " The job is still in the table, therefore 'E900: Invalid job id'.
+    AssertThrows neomake#CancelJob(job_id)
+
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual neomake#CancelJob(job_id), 0
+  endif

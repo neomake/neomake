@@ -33,8 +33,10 @@ endfunction
 
 function! neomake#CancelJob(job_id) abort
     if has_key(s:jobs, a:job_id)
-        call jobstop(s:jobs[a:job_id])
+        call jobstop(a:job_id)
+        return 1
     endif
+    return 0
 endfunction
 
 function! s:GetMakerKey(maker) abort
