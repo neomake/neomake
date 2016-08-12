@@ -100,8 +100,9 @@ D:
 - dmd
 
 Elixir:
-- credo
-- dogma
+- credo [not enabled by default]
+- dogma [not enabled by default]
+- elixirc
 
 Erlang:
 - erlc
