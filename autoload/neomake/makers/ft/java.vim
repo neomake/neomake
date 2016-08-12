@@ -56,7 +56,7 @@ let g:neomake_java_javac_outputdir =
             \ get(g:, 'neomake_java_javac_outputdir', '')
 
 let g:neomake_java_checkstyle_xml =
-            \ get(g:, 'g:neomake_java_checkstyle_xml', '/usr/share/checkstyle/google_checks.xml')
+            \ get(g:, 'neomake_java_checkstyle_xml', '/usr/share/checkstyle/google_checks.xml')
 
 let g:neomake_java_javac_delete_output =
             \ get(g:, 'neomake_java_javac_delete_output', 1)
