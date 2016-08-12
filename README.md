@@ -99,6 +99,10 @@ CSS:
 D:
 - dmd
 
+Elixir:
+- credo
+- dogma
+
 Erlang:
 - erlc
 
