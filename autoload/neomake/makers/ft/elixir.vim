@@ -7,8 +7,8 @@ endfunction
 function! neomake#makers#ft#elixir#elixir()
     return {
         \ 'errorformat':
-            \ '** %s %f:%l: %m,' .
-            \ '%f:%l: warning: %m'
+            \ '%E** %s %f:%l: %m,' .
+            \ '%W%f:%l: warning: %m'
         \ }
 endfunction
 
