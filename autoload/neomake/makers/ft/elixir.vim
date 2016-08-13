@@ -15,7 +15,8 @@ endfunction
 function! neomake#makers#ft#elixir#credo()
     return {
       \ 'exe': 'mix',
-      \ 'args': ['credo', 'list', '%:p', '--one-line', '-i', 'readability'],
+      \ 'args': ['credo', 'list', '%:p', '--format=oneline',
+      \          '-i', 'readability'],
       \ 'errorformat': '[%t] %. %f:%l:%c %m'
       \ }
 endfunction
