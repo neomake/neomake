@@ -20,7 +20,7 @@ function! neomake#makers#ft#elixir#credo()
       \ }
 endfunction
 
-function! neomake#markers#ft#elixir#dogma()
+function! neomake#makers#ft#elixir#dogma()
     return {
       \ 'exe': 'mix',
       \ 'args': ['dogma', '%:p', '--format=flycheck'],
