@@ -377,7 +377,7 @@ function! s:Make(options, ...) abort
         let make_id = s:make_id
     endif
     call neomake#signs#DefineSigns()
-
+    call neomake#highlights#DefineHighlights()
     let buf = bufnr('%')
     let win = winnr()
     let ft = get(a:options, 'ft', '')
@@ -464,6 +464,7 @@ function! s:AddExprCallback(jobinfo) abort
     let maker = a:jobinfo.maker
     let file_mode = get(maker, 'file_mode')
     let place_signs = get(g:, 'neomake_place_signs', 1)
+    let highlight_columns = get(g:, 'neomake_highlight_columns', 1)
     let list = file_mode ? getloclist(maker.winnr) : getqflist()
     let list_modified = 0
     let counts_changed = 0
@@ -529,6 +530,9 @@ function! s:AddExprCallback(jobinfo) abort
 
         if place_signs
             call neomake#signs#RegisterSign(entry, maker_type)
+        endif
+        if highlight_columns
+            call neomake#highlights#AddHighlight(entry, maker_type)
         endif
     endwhile
 
@@ -618,6 +622,8 @@ function! neomake#ProcessCurrentWindow() abort
         endfor
         call neomake#signs#PlaceVisibleSigns()
     endif
+    call neomake#signs#PlaceVisibleSigns()
+    call neomake#highlights#ShowHighlights(bufnr('%'))
 endfunction
 
 " Get tabnr and winnr for a given job ID.
@@ -783,6 +789,7 @@ function! neomake#CleanOldProjectSignsAndErrors() abort
     if s:need_errors_cleaning['project']
         for buf in keys(s:current_errors.project)
             unlet s:current_errors['project'][buf]
+            call neomake#highlights#ResetProject(buf)
         endfor
         let s:need_errors_cleaning['project'] = 0
         call neomake#utils#DebugMessage('All project-level errors cleaned.')
@@ -796,6 +803,7 @@ function! neomake#CleanOldFileSignsAndErrors(bufnr) abort
             unlet s:current_errors['file'][a:bufnr]
         endif
         unlet s:need_errors_cleaning['file'][a:bufnr]
+        call neomake#highlights#ResetFile(a:bufnr)
         call neomake#utils#DebugMessage('File-level errors cleaned in buffer '.a:bufnr)
     endif
     call neomake#signs#CleanOldSigns(a:bufnr, 'file')
