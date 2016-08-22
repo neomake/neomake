@@ -20,3 +20,8 @@ function! neomake#makers#ft#cpp#clangtidy()
     let maker = neomake#makers#ft#c#clangtidy()
     return maker
 endfunction
+
+function! neomake#makers#ft#cpp#clangcheck()
+    let maker = neomake#makers#ft#c#clangcheck()
+    return maker
+endfunction
