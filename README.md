@@ -245,3 +245,17 @@ for all supported makers.
 If you find this plugin useful, please contribute your maker recipes to the
 repository! Check out `autoload/neomake/makers/**/*.vim` to see how that is
 currently done.
+
+## How to select some linters
+
+Sometimes, it might not be appropriate to use some linter or other. In such
+cases, one can enable only the linters that one wants using:
+
+```let g:neomake_python_enabled_makers = […]```
+
+Where the linters go into the list. For example, to only use `pep8` and
+`pylama`, the above becomes:
+
+
+```let g:neomake_python_enabled_makers = ['pylama', 'pep8']```
+
