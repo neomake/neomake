@@ -58,6 +58,9 @@ Where `{ language }` is replaced with the name of the language, and `{ makername
 does not follow this convention, neomake will not be able to see it, and you
 will get an error message like `{ makername } not found`.
 
+Explanation for the strings making up the errorformat can be found by typing
+`:h errorformat` in Neovim/Vim.
+
 If the string `'%:p'` shows up anywhere in the `'args'` list, it will be
 `expand()`ed to the full path of the current file in place. Otherwise, the full
 path to the file will be `add()`ed to the end of the list, unless the maker's
