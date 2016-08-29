@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#javascript#EnabledMakers()
-    return ['jshint', 'jscs', 'eslint']
+    return ['jshint', 'jscs', 'eslint', 'xo']
 endfunction
 
 function! neomake#makers#ft#javascript#jshint()
@@ -48,4 +48,10 @@ function! neomake#makers#ft#javascript#flow()
         \ 'errorformat': '%E%f:%l:%c\,%n: %m',
         \ 'mapexpr': mapexpr,
         \ }
+endfunction
+
+function! neomake#makers#ft#javascript#xo()
+    let maker = neomake#makers#ft#javascript#eslint()
+    maker.exe = 'xo'
+    return maker
 endfunction
