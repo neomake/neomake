@@ -49,3 +49,11 @@ function! neomake#makers#ft#javascript#flow()
         \ 'mapexpr': mapexpr,
         \ }
 endfunction
+
+function! neomake#makers#ft#javascript#xo()
+    return {
+        \ 'args': ['--compact'],
+        \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
+        \ '%W%f: line %l\, col %c\, Warning - %m',
+        \ }
+endfunction
