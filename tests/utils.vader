@@ -70,3 +70,26 @@ Execute(neomake#utils#redir):
   endif
   AssertEqual neomake#utils#redir(['NeomakeTestCommand', 'echon 3']), "\n1\n23"
   AssertThrows neomake#utils#redir(['NeomakeTestCommand', 'echoerr 3'])
+
+Execute (Should expand arguments that start with %):
+  let param1 = '%'
+  let param2 = '%:h'
+  let param3 = '--param1=%:h'
+  let args = [param1, param2, param3]
+  let expected_args = [expand(param1), expand(param2), param3]
+  call neomake#utils#ExpandArgs(args)
+  AssertEqual expected_args, args
+
+Execute (Should expand arguments that start with escape char \):
+  let param1 = '\%'
+  let param2 = '\%:p'
+  let args = [param1, param2]
+  let expected_args = [expand(param1), expand(param2)]
+  call neomake#utils#ExpandArgs(args)
+  AssertEqual expected_args, args
+
+Execute (Should not expand arguments that start with double %):
+  let args = ['%%:h', '%%']
+  let expected_args = ['%%:h', '%%']
+  call neomake#utils#ExpandArgs(args)
+  AssertEqual expected_args, args

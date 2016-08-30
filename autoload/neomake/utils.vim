@@ -297,3 +297,8 @@ function! neomake#utils#redir(cmd) abort
     endtry
     return neomake_redir
 endfunction
+
+function! neomake#utils#ExpandArgs(args) abort
+    " Only expand those args that start with \ and a single %
+    call map(a:args, "v:val =~# '\\(^\\\\\\|^%$\\|^%[^%]\\)' ? expand(v:val) : v:val")
+endfunction
