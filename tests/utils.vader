@@ -12,3 +12,34 @@ Execute (NeomakeTestsEnsureExe creates exe):
   Assert !executable('boobar')
   call g:NeomakeTestsEnsureExe('boobar')
   Assert executable('boobar')
+
+Execute (shellcmdflag should not be expanded in Windows):
+  let old_shellcmdflag = &shellcmdflag
+  let &shellcmdflag = '%:h'
+  let args = [&shellcmdflag]
+  let expected_args = [&shellcmdflag]
+
+  try
+    call neomake#utils#ExpandArgsInWindows(args)
+    AssertEqual expected_args, args
+  finally
+    let &shellcmdflag = old_shellcmdflag
+  endtry
+
+Execute (Arguments in Windows are expanded correctly):
+  let param1 = '--param1="key1:val1 key2:val2"'
+  let param2 = '--param2=true'
+  let args = ['%', param1, param2]
+  let expected_args = [expand('%'), param1, param2]
+
+  call neomake#utils#ExpandArgsInWindows(args)
+  AssertEqual expected_args, args
+
+Execute (Arguments in Linux are expanded correctly):
+  let param1 = '--param1="key1:val1 key2:val2"'
+  let param2 = '--param2=true'
+  let args = ['%', param1 , param2]
+  let expected_args = [expand('%'), param1, param2]
+
+  call neomake#utils#ExpandArgsInLinux(args)
+  AssertEqual expected_args, args
