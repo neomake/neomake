@@ -6,8 +6,7 @@
  _/    _/_/  _/        _/    _/  _/    _/    _/  _/    _/  _/  _/    _/        ~
 _/      _/    _/_/_/    _/_/    _/    _/    _/    _/_/_/  _/    _/    _/_/_/   ~
 
-        Runs make tasks and syntax checkers asynchronously (for neovim)
-                         and simply (for all the vims)!
+        Runs make tasks and syntax checkers asynchronously!
 
 ==============================================================================
 CONTENTS                                                      *neomake-contents*
@@ -22,11 +21,11 @@ CONTENTS                                                      *neomake-contents*
 ==============================================================================
 1. Introduction                                           *neomake-introduction*
 
-Neomake leverages neovim's |job-control| feature where available to run
+Neomake leverages Neovim's or Vim's |job-control| feature where available to run
 programs like syntax checkers asynchronously. Where job control is not
 available, it resorts to a synchronous |system()| call, making it possible to
-run this plugin in both vim and neovim. This plugin is heavily inspired by
-fantastic vim plugins such as syntastic and dispatch.
+run this plugin in both Vim and Neovim. This plugin is heavily inspired by
+fantastic Vim plugins such as syntastic and dispatch.
 
 ==============================================================================
 2. Commands                                                   *neomake-commands*
@@ -58,8 +57,8 @@ fantastic vim plugins such as syntastic and dispatch.
                         job_id job_name
 <
                                                              *:NeomakeCancelJob*
-:NeomakeCancelJob *{job_id}*
-                        Sends a 'jobstop' to *job_id* which terminates the job.
+:NeomakeCancelJob {job_id}
+                        Terminate a job identified by its job_id.
 
 ==============================================================================
 3. Configuration                                         *neomake-configuration*
@@ -325,8 +324,8 @@ functions useful.
 *neomake#Make* (filemode, makers[, callback])
 This function is called by |:Neomake(!)| command. It runs all the *makers*
 specified, in order. If *filemode* is 1, then the current file is used as input
-to the makers. |neomake#Make| returns an array of the job ids that it creates
-via 'jobstart'; you can potentially cancel these jobs with |neomake#CancelJob|.
+to the makers. |neomake#Make| returns an array of job ids that were created;
+you can potentially cancel these jobs with |neomake#CancelJob|.
 
 It also accepts a third, optional callback argument that
 is called when the command exits.  The callback is given the following
@@ -338,8 +337,8 @@ dictionary as its sole argument: >
 *neomake#Sh* (command[, callback])
 This function is called by the |:NeomakeSh| command. It runs the specified
 shell *command* according to 'shell'. |neomake#Sh| returns the single job id
-that it created via 'jobstart' (or 0 on Vim); you can potentially cancel
-this job with |neomake#CancelJob|.
+that was created (0 on Vim without asynchronous support);
+you can potentially cancel this job with |neomake#CancelJob|.
 
 It also accepts a second, optional callback argument that is called when
 the command exits. The callback is given the following dictionary as its
@@ -353,7 +352,7 @@ Invoked via |:NeomakeListJobs|. Echoes a list of running jobs in the format
 (job_id, job_name).
 
 *neomake#CancelJob*
-Invoked via |:NeomakeCancelJob|. Sends a 'jobstop' to the job id specified.
+Invoked via |:NeomakeCancelJob|. Terminate a job identified by its job_id
 Will trigger callback if it was specified when the job was started.
 Example: >
     let job_id = neomake#Sh("bash -c 'while true; do sleep 1; done'")
@@ -442,7 +441,7 @@ You can make quickfixsigns respect Neomake's signs using this option: >
 
 6.2 How to configure the makers to be used?~
 
-See |g:neomake_<ft>_enabled_makers| (press `K` on the link to go there).
+See |g:neomake_<ft>_enabled_makers| (press `<C-]>` on the link to go there).
 
 
 vim: ft=help tw=78 isk+=<,>,\:
