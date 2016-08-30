@@ -128,6 +128,7 @@ Javascript:
 - jshint
 - jsxhint
 - flow
+- xo
 
 JSON:
 - jsonlint
