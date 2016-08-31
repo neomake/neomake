@@ -17,6 +17,7 @@ CONTENTS                                                      *neomake-contents*
 3. Configuration                                         |neomake-configuration|
 4. Functions                                                 |neomake-functions|
 5. Autocommands                                               |neomake-autocmds|
+6. Frequently Asked Questions (FAQ)                                |neomake-FAQ|
 
 ==============================================================================
 1. Introduction                                           *neomake-introduction*
@@ -410,4 +411,22 @@ For this event `g:neomake_hook_context.file_mode` and
 maker's output being processed, the maker object itself will be passed in
 (which also has these attributes).
 
-vim: ft=help tw=78
+==============================================================================
+6. Frequently Asked Questions (FAQ)                                *neomake-FAQ*
+
+6.1 Other plugins overwrite the signs placed by Neomake~
+
+When using quickfixsigns (https://github.com/tomtom/quickfixsigns_vim/) it
+will also place signs for errors and warnings in the quickfix/location list,
+and conflicts therefore with Neomake's own signs (see |g:neomake_place_signs|).
+You can make quickfixsigns respect Neomake's signs using this option: >
+
+    let g:quickfixsigns_protect_sign_rx = '^neomake_'
+<
+
+6.2 How to configure the makers to be used?~
+
+See |g:neomake_<ft>_enabled_makers| (press `K` on the link to go there).
+
+
+vim: ft=help tw=78 isk+=<,>,\:
