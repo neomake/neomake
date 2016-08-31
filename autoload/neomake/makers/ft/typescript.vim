@@ -7,8 +7,9 @@ endfunction
 function! neomake#makers#ft#typescript#tsc()
     return {
         \ 'args': [
-            \ '-m', 'commonjs', '--noEmit'
+            \ '--project', getcwd(), '--noEmit'
         \ ],
+        \ 'append_file': 0,
         \ 'errorformat':
             \ '%E%f %#(%l\,%c): error %m,' .
             \ '%E%f %#(%l\,%c): %m,' .
