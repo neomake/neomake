@@ -15,10 +15,6 @@ function! s:InitSigns() abort
         \ 'project': {},
         \ 'file': {}
         \ }
-    let s:sign_queue = {
-        \ 'project': {},
-        \ 'file': {}
-        \ }
     let s:neomake_sign_id = {
         \ 'project': {},
         \ 'file': {}
@@ -27,7 +23,7 @@ endfunction
 call s:InitSigns()
 
 " Reset signs placed by a :Neomake! call
-" (resettting signs means the current signs will be deleted on the next call to ResetProject)
+" (resetting signs means the current signs will be deleted on the next call to ResetProject)
 function! neomake#signs#ResetProject() abort
     let s:sign_queue.project = {}
     for buf in keys(s:placed_signs.project)

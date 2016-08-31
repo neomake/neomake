@@ -365,9 +365,8 @@ function! s:Make(options, ...) abort
         if file_mode
             call neomake#utils#DebugMessage('Nothing to make: no enabled makers.')
             return []
-        else
-            let enabled_makers = ['makeprg']
         endif
+        let enabled_makers = ['makeprg']
     endif
 
     if a:0
