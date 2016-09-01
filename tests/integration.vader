@@ -24,11 +24,8 @@ Execute (Test Neomake on errors.sh with one maker):
   e! fixtures/errors.sh
   AssertEqual getline(1), '#! /bin/sh'
 
-  if executable('shellcheck')
-    AssertEqual neomake#GetEnabledMakers('sh'), ['sh', 'shellcheck']
-  else
-    AssertEqual neomake#GetEnabledMakers('sh'), ['sh']
-  endif
+  call g:NeomakeTestsEnsureExe('shellcheck')
+  AssertEqual neomake#GetEnabledMakers('sh'), ['sh', 'shellcheck']
 
   AssertEqual len(g:neomake_test_finished), 0
   AssertEqual len(g:neomake_test_countschanged), 0

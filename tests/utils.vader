@@ -7,3 +7,8 @@ Execute (neomake#utils#LogMessage writes to logfile always):
   call neomake#utils#LogMessage(1, 'msg1')
   Assert readfile(g:neomake_logfile)[0] =~# 'Log level 1: Neomake: msg1$'
   Restore
+
+Execute (NeomakeTestsEnsureExe creates exe):
+  Assert !executable('boobar')
+  call g:NeomakeTestsEnsureExe('boobar')
+  Assert executable('boobar')
