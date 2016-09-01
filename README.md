@@ -73,7 +73,14 @@ Once you have created your makers, run `:Neomake` as normal. Run
 filetype to use makers will currently cause the `makeprg` to be ignored (this
 should be remedied).
 
-Makers provided by neomake as of this writing are:
+## Plugin documentation
+
+For more detailed documentation please refer to the
+[plugin's help](https://github.com/neomake/neomake/tree/master/doc/neomake.txt)
+(`:h neomake`).
+
+
+## Makers provided by Neomake as of this writing are:
 
 Applescript:
 - osacompile

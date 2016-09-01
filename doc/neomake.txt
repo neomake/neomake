@@ -17,6 +17,7 @@ CONTENTS                                                      *neomake-contents*
 3. Configuration                                         |neomake-configuration|
 4. Functions                                                 |neomake-functions|
 5. Autocommands                                               |neomake-autocmds|
+6. Frequently Asked Questions (FAQ)                                |neomake-FAQ|
 
 ==============================================================================
 1. Introduction                                           *neomake-introduction*
@@ -30,29 +31,30 @@ fantastic vim plugins such as syntastic and dispatch.
 ==============================================================================
 2. Commands                                                   *neomake-commands*
 
-                                       *neomake-:Neomake* *neomake-:NeomakeFile*
+                                                         *:Neomake* *:NeomakeFile*
 :Neomake [makers]       Run a make command with the current file as input. If
                         no makers are specified, the default makers for the
                         current |filetype| are used. See |neomake-configuration|
                         for more on makers.
 
-                                   *neomake-:Neomake!* *neomake-:NeomakeProject*
+                                                     *:Neomake!* *:NeomakeProject*
 :Neomake! [makers]      Run a make command with no file as input. If no makers
                         are specified, the default top-level makers will be
                         used. If no default top-level makers exist, |makeprg|
                         will be used.
 
-                                                            *neomake-:NeomakeSh*
+                                                                    *:NeomakeSh*
 :NeomakeSh {command}    Run {command} in a shell (according to 'shell'). The
-                        command output will be loaded in the quickfix list when
-                        the job is complete. Example:
+                        command output will be loaded in the quickfix list
+                        when the job is complete. Example: >
                         :NeomakeSh find . -name '*.pyc'
+<
 
-                                                      *neomake-:NeomakeListJobs*
+                                                              *:NeomakeListJobs*
 :NeomakeListJobs        List all running jobs in the format: >
                         job_id job_name
 <
-                                                     *neomake-:NeomakeCancelJob*
+                                                             *:NeomakeCancelJob*
 :NeomakeCancelJob *{job_id}*
                         Sends a 'jobstop' to *job_id* which terminates the job.
 
@@ -191,21 +193,33 @@ Global Options                                                 *neomake-options*
 Define a new filetype or project-level maker. See |neomake-makers|.
 
 *g:neomake_<name>_<property>* *g:neomake_<ft>_<name>_<property>*
+*b:neomake_<name>_<property>* *b:neomake_<ft>_<name>_<property>*
 Configure a property for a prexisting maker where property is one of 'exe',
 'args', 'errorformat' or 'buffer_output'. Can also be set by buffer. Example: >
     let g:neomake_javascript_jshint_exe = './myjshint'
     let b:neomake_javascript_jshint_exe = './myotherjshint'
 <
-*g:neomake_<ft>_enabled_makers*
-This setting will tell neomake which makers to use by default for the given
-filetype. Filetypes that already have makers should have a default list
-of makers already. Can also be set per buffer. For example: >
+*g:neomake_<ft>_enabled_makers* *b:neomake_<ft>_enabled_makers*
+
+This setting will tell Neomake which makers to use by default for the given
+filetype `<ft>` (when called without a maker as an argument, i.e. |:Neomake|).
+
+The default for this setting is the return value of the function
+`neomake#makers#ft#<ft>#EnabledMakers`.  For Python this is defined in
+`./autoload/neomake/makers/ft/python.vim`, and might return: >
+    ['python', 'frosted', 'pylama']
+<
+This setting can also be defined per buffer, so the following snippet can be
+used to configure a custom set of makers from your vimrc: >
     let g:neomake_python_enabled_makers = ['pep8', 'pylint']
     augroup my_custom_maker
         au!
         au Filetype custom.py let b:neomake_python_enabled_makers = ['flake8']
     augroup END
 <
+Please refer to |autocmd-patterns| for help on defining the pattern
+(`custom.py`) in this case.
+
 *g:neomake_enabled_makers*
 This setting will tell neomake which makers to use by default when not
 operating on a single file, or when no makers are defined for the filetype of
@@ -410,4 +424,22 @@ For this event `g:neomake_hook_context.file_mode` and
 maker's output being processed, the maker object itself will be passed in
 (which also has these attributes).
 
-vim: ft=help tw=78
+==============================================================================
+6. Frequently Asked Questions (FAQ)                                *neomake-FAQ*
+
+6.1 Other plugins overwrite the signs placed by Neomake~
+
+When using quickfixsigns (https://github.com/tomtom/quickfixsigns_vim/) it
+will also place signs for errors and warnings in the quickfix/location list,
+and conflicts therefore with Neomake's own signs (see |g:neomake_place_signs|).
+You can make quickfixsigns respect Neomake's signs using this option: >
+
+    let g:quickfixsigns_protect_sign_rx = '^neomake_'
+<
+
+6.2 How to configure the makers to be used?~
+
+See |g:neomake_<ft>_enabled_makers| (press `K` on the link to go there).
+
+
+vim: ft=help tw=78 isk+=<,>,\:
