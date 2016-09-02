@@ -1,5 +1,3 @@
-**[Maintainers needed!](https://github.com/neomake/neomake)** Contact an organization owner if interested.
-
 [![Build Status](https://travis-ci.org/neomake/neomake.svg?branch=master)](https://travis-ci.org/neomake/neomake)
 
 # Neomake
@@ -9,7 +7,7 @@ job-control functionality. It is inspired by the excellent vim plugins
 [Syntastic](https://github.com/scrooloose/syntastic) and
 [Dispatch](https://github.com/tpope/vim-dispatch).
 
-**This plugin also works in ordinary vim, but without the asynchronous benefits.**
+**This plugin also works in ordinary Vim, but without the asynchronous benefits.**
 
 The minimum Neovim version supported by Neomake is `NVIM 0.0.0-alpha+201503292107` (commit `960b9108c`).
 The minimum Vim version supported by Neomake is 7.4.503 (although if you don't
@@ -256,3 +254,10 @@ for all supported makers.
 If you find this plugin useful, please contribute your maker recipes to the
 repository! Check out `autoload/neomake/makers/**/*.vim` to see how that is
 currently done.
+
+
+# Contributing
+
+This is a community driven project, and maintainers are wanted.
+Please contact [@bl;eyed](https://github.com/blueyed) if you are interested.
+You should have a good profile of issue triaging and PRs on this repo already.
