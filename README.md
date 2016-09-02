@@ -96,6 +96,9 @@ C++:
 - g++
 - clang-tidy
 
+CFEngine 3:
+- cf-promises
+
 CUDA:
 - nvcc
 
