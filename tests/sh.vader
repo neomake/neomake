@@ -1,0 +1,10 @@
+Include: _setup.vader
+
+Execute (shellcheck):
+  AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc']
+  set ft=sh
+  AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc', '-s', 'sh']
+  set ft=bash
+  AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc', '-s', 'bash']
+  set ft=nadda
+  AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc']
