@@ -118,6 +118,9 @@ Elixir:
 Erlang:
 - erlc
 
+fish:
+- fish
+
 Go:
 - go
 - golint
