@@ -32,8 +32,10 @@ install:
     if [ "$ENV" = "vint-diff" ]; then
       # Run full vint against changed files.
       export CHANGED_VIM_FILES="$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep '\.vim$')"
-      if [ -z "$CHANGED_VIM_FILES" ]; then
-        echo "No changed .vim files: skipping build."
+      git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt
+      CHANGED_DOC_FILE=$?
+      if [ -z "$CHANGED_VIM_FILES" ] && [ -z "$CHANGED_DOC_FILE"]; then
+        echo "No changed .vim/doc files: skipping build."
         ENV=SKIP_BUILD
       fi
     fi
@@ -53,7 +55,12 @@ script:
     if [ "$ENV" = "SKIP_BUILD" ]; then
       echo "Skipping build script: see above for any reason."
     elif [ "$ENV" = "vint-diff" ]; then
-      vint $CHANGED_VIM_FILES
+      if [ -n "$CHANGED_VIM_FILES" ]; then
+        vint $CHANGED_VIM_FILES
+      fi
+      if [ "$CHANGED_DOC_FILE" = 1 ]; then
+        make vimhelplint
+      fi
     else
       make $ENV
     fi

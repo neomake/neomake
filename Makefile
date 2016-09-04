@@ -58,5 +58,18 @@ vimlint:
 vimlint-errors:
 	sh /tmp/vimlint/bin/vimlint.sh -E -l /tmp/vimlint -p /tmp/vimlparser .
 
+build:
+	mkdir $@
+build/vim-vimhelplint: | build
+	git clone https://github.com/machakann/vim-vimhelplint $@
+vimhelplint: | build/vim-vimhelplint
+	out="$$(vim -esN -c 'e doc/neomake2.txt' -c 'set ft=help' \
+		-c 'source build/vim-vimhelplint/ftplugin/help_lint.vim' \
+		-c 'verb VimhelpLintEcho' -c q 2>&1)"; \
+		if [ -n "$$out" ]; then \
+			echo "$$out"; \
+			exit 1; \
+		fi
+
 .PHONY: vint vint-errors vimlint vimlint-errors
 .PHONY: test testnvim testvim testinteractive runvim runnvim tags _run_tests
