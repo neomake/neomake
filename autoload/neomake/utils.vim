@@ -6,6 +6,7 @@ function! neomake#utils#LogMessage(level, msg) abort
     let logfile = get(g:, 'neomake_logfile')
     let msg ='Neomake: '.a:msg  " .' ('.a:level.')'
     if verbose >= a:level
+        redraw
         if a:level ==# 0
             echohl ErrorMsg
         endif
