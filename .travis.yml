@@ -52,16 +52,8 @@ script:
   - |
     if [ "$ENV" = "SKIP_BUILD" ]; then
       echo "Skipping build script: see above for any reason."
-    elif [ "$ENV" = "vimlint" ]; then
-      sh /tmp/vimlint/bin/vimlint.sh -l /tmp/vimlint -p /tmp/vimlparser .
-    elif [ "$ENV" = "vimlint-errors" ]; then
-      sh /tmp/vimlint/bin/vimlint.sh -E -l /tmp/vimlint -p /tmp/vimlparser .
-    elif [ "$ENV" = "vint" ]; then
-      vint .
     elif [ "$ENV" = "vint-diff" ]; then
-      vint "$CHANGED_VIM_FILES"
-    elif [ "$ENV" = "vint-errors" ]; then
-      vint --error .
+      vint $CHANGED_VIM_FILES
     else
       make $ENV
     fi

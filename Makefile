@@ -48,4 +48,15 @@ $(_TESTS_REL_AND_ABS):
 tags:
 	ctags -R --langmap=vim:+.vader
 
+# Linters, called from .travis.yml.
+vint:
+	vint .
+vint-errors:
+	vint --error .
+vimlint:
+	sh /tmp/vimlint/bin/vimlint.sh -l /tmp/vimlint -p /tmp/vimlparser .
+vimlint-errors:
+	sh /tmp/vimlint/bin/vimlint.sh -E -l /tmp/vimlint -p /tmp/vimlparser .
+
+.PHONY: vint vint-errors vimlint vimlint-errors
 .PHONY: test testnvim testvim testinteractive runvim runnvim tags _run_tests
