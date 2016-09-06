@@ -1,7 +1,10 @@
-sudo: false
+sudo: true
+services:
+  - docker
+
 language: python
 python:
-  - "3.4"
+  - "3.5"
 
 cache:
   pip: true
@@ -18,6 +21,7 @@ env:
     - ENV=vimlint-errors
     - ENV=vint
     - ENV=vimlint
+    - ENV=docker_test_all
 
 matrix:
   allow_failures:

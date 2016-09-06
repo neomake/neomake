@@ -1,0 +1,13 @@
+# Based on https://github.com/tweekmonster/vim-testbed.
+FROM blueyed/vim-testbed:latest
+
+# Currently tested versions:
+#  - v7.3.429 (Ubuntu Precise, 12.04LTS; same as on Travis currently)
+#  - v7.4.052 (Ubuntu Trusty, 14.04LTS)
+#  - v7.4.1689 (Ubuntu Xenial, 16.04LTS)
+#  - Git master
+
+RUN install_vim -tag v7.3.429 -name vim73 -build \
+                -tag v7.4.052 -name vim74-trusty -build \
+                -tag v7.4.1689 -name vim74-xenial -build \
+                -tag master -build
