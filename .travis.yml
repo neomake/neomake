@@ -67,5 +67,6 @@ script:
         vint $CHANGED_VIM_FILES
       fi
     else
+      vim --version
       make $ENV
     fi
