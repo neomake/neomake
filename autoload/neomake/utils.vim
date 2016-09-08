@@ -245,18 +245,6 @@ function! neomake#utils#CompressWhitespace(entry) abort
 endfunction
 
 function! neomake#utils#ExpandArgs(args) abort
-    if neomake#utils#IsRunningWindows()
-        call neomake#utils#ExpandArgsInWindows(a:args)
-    else
-        call neomake#utils#ExpandArgsInLinux(a:args)
-    endif
-endfunction
-
-function! neomake#utils#ExpandArgsInWindows(args) abort
-    " Don't expand &shellcmdflag argument of cmd.exe nor arguments like '"something"'
-    call map(a:args, "(v:val ==? &shellcmdflag || v:val =~? '.*\".*\".*') ? v:val : expand(v:val)")
-endfunction
-
-function! neomake#utils#ExpandArgsInLinux(args) abort
-    call map(a:args, 'expand(v:val)')
+    " Only expand those args that start with \ and a single %
+    call map(a:args, "v:val =~# '\\(^\\\\\\|^%$\\|^%[^%]\\)' ? expand(v:val) : v:val")
 endfunction
