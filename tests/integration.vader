@@ -21,7 +21,7 @@ Execute (Setup autocmd wrappers):
 
 Execute (Test Neomake on errors.sh with one maker):
   call g:NeomakeSetupAutocmdWrappers()
-  e! fixtures/errors.sh
+  e! tests/fixtures/errors.sh
   AssertEqual getline(1), '#! /bin/sh'
 
   call g:NeomakeTestsEnsureExe('shellcheck')
@@ -45,7 +45,7 @@ Execute (Test Neomake on errors.sh with one maker):
 Execute (Test Neomake on errors.sh with two makers):
   if index(neomake#GetEnabledMakers('sh'), 'shellcheck') != -1
     call g:NeomakeSetupAutocmdWrappers()
-    e! fixtures/errors.sh
+    e! tests/fixtures/errors.sh
     RunNeomake sh shellcheck
     AssertEqual len(g:neomake_test_countschanged), 2
   endif
