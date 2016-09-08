@@ -2,14 +2,16 @@
 
 # Neomake
 
-A plugin for asynchronous `:make` using [Neovim's](http://neovim.org/)
-job-control functionality. It is inspired by the excellent vim plugins
-[Syntastic](https://github.com/scrooloose/syntastic) and
-[Dispatch](https://github.com/tpope/vim-dispatch).
+Neomake is a plugin for asynchronous `:make` using
+[Neovim's](http://neovim.org/) job-control functionality. It is inspired by
+the excellent Vim plugins [Syntastic](https://github.com/scrooloose/syntastic)
+and [dispatch.vim](https://github.com/tpope/vim-dispatch).
 
-**This plugin also works in ordinary Vim, but without the asynchronous benefits.**
+**This plugin also works in ordinary Vim, but without the asynchronous
+benefits.**
 
-The minimum Neovim version supported by Neomake is `NVIM 0.0.0-alpha+201503292107` (commit `960b9108c`).
+The minimum Neovim version supported by Neomake is `NVIM
+0.0.0-alpha+201503292107` (commit `960b9108c`).
 The minimum Vim version supported by Neomake is 7.4.503 (although if you don't
 use `g:neomake_logfile` older versions will probably work fine as well).
 
@@ -21,9 +23,9 @@ Just set your `makeprg` and `errorformat` as normal, and run:
 
 If your makeprg can take a filename as an input, then you can run `:Neomake`
 (no exclamation point) to pass the current file as the first argument.
-Otherwise, it is simply invoked in vim's current directory with no arguments.
+Otherwise, it is simply invoked in Vim's current directory with no arguments.
 
-Here's an example of how to run neomake on the current file on every write:
+Here's an example of how to run Neomake on the current file on every write:
 
 ```viml
 autocmd! BufWritePost * Neomake
@@ -53,13 +55,13 @@ is critical that makers follow this naming convention:
 
     g:neomake_{ language }_{ makername }_maker
 
-Where `{ language }` is replaced with the name of the language, and 
+Where `{ language }` is replaced with the name of the language, and
 `{ makername }` is replaced with the name that you want your maker to have. If
-your maker does not follow this convention, neomake will not be able to see
+your maker does not follow this convention, Neomake will not be able to see
 it, and you will get an error message like `{ makername } not found`.
 
 Explanation for the strings making up the errorformat can be found by typing
-`:h errorformat` in Neovim/Vim.
+`:h errorformat` in Neovim (or Vim).
 
 If the string `'%:p'` shows up anywhere in the `'args'` list, it will be
 `expand()`ed to the full path of the current file in place. Otherwise, the full
@@ -279,12 +281,19 @@ Vimscript:
   It can be installed using npm:
   [node-vimlint](https://www.npmjs.com/package/vimlint).
 
-  Or you could create a wrapper script ``vimlint`` and add it to your PATH:
+  Or you could create a wrapper script `vimlint` and add it to your PATH:
 
     ```sh
     #!/bin/sh
-    ~/Vcs/vim-vimlint/bin/vimlint.sh -l ~/Vcs/vim-vimlint -p ~/Vcs/vim-vimlparser "$@"
+    ~/Vcs/vim-vimlint/bin/vimlint.sh  \
+      -l ~/Vcs/vim-vimlint            \
+      -p ~/Vcs/vim-vimlparser         \
+      "$@"
     ```
+
+  Where `~/Vcs/vim-vimlint/bin` is where you have
+  [vimlint.sh](https://github.com/syngan/vim-vimlint/blob/master/bin/vimlint.sh)
+  installed.
 
 YAML:
 
