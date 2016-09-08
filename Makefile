@@ -9,7 +9,7 @@ VIM_ARGS='+$(VADER) tests/*.vader'
 VADER_DIR:=tests/vim/plugins/vader
 $(VADER_DIR):
 	mkdir -p $(dir $@)
-	git clone https://github.com/junegunn/vader.vim $@
+	git clone --depth=1 https://github.com/junegunn/vader.vim $@
 
 TEST_VIMRC:=tests/vim/vimrc
 
@@ -65,7 +65,7 @@ vimlint-errors:
 build:
 	mkdir $@
 build/vim-vimhelplint: | build
-	git clone https://github.com/machakann/vim-vimhelplint $@
+	git clone --depth=1 https://github.com/machakann/vim-vimhelplint $@
 vimhelplint: | build/vim-vimhelplint
 	out="$$(vim -esN -c 'e doc/neomake2.txt' -c 'set ft=help' \
 		-c 'source build/vim-vimhelplint/ftplugin/help_lint.vim' \
