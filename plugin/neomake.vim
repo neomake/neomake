@@ -11,6 +11,8 @@ command! -nargs=+ -complete=shellcmd NeomakeSh call neomake#Sh(<q-args>)
 command! NeomakeListJobs call neomake#ListJobs()
 command! -nargs=1 NeomakeCancelJob call neomake#CancelJob(<args>)
 
+command! NeomakeInfo call neomake#DisplayInfo()
+
 augroup neomake
   au!
   au WinEnter,CursorHold * call neomake#ProcessCurrentWindow()

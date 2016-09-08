@@ -49,6 +49,9 @@ fantastic vim plugins such as syntastic and dispatch.
                         when the job is complete. Example: >
                         :NeomakeSh find . -name '*.pyc'
 <
+                                                                  *:NeomakeInfo*
+:NeomakeInfo            Display information, meant for debugging and inclusion
+                        in bug reports / help requests.
 
                                                               *:NeomakeListJobs*
 :NeomakeListJobs        List all running jobs in the format: >

@@ -93,7 +93,7 @@ $(_DOCKER_VIM_TARGETS):
 	$(MAKE) docker_test DOCKER_VIM=$(patsubst docker_test-%,%,$@)
 
 docker_test: DOCKER_VIM:=vim-master
-docker_test: DOCKER_RUN:=$(DOCKER_VIM) '+Vader! tests/*.vader'
+docker_test: DOCKER_RUN:=$(DOCKER_VIM) '+$(VADER) tests/*.vader'
 docker_test: docker_run
 
 docker_run: $(VADER_DIR)
