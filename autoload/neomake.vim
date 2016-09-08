@@ -192,7 +192,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         if len(fts)
             for ft in fts
                 for scope in [b:, g:]
-                    let m = get(g:, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
+                    let m = get(scope, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
                     if type(m) == type({})
                         let maker = m
                         break
