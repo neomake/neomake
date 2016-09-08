@@ -285,15 +285,11 @@ Vimscript:
 
     ```sh
     #!/bin/sh
-    ~/Vcs/vim-vimlint/bin/vimlint.sh  \
-      -l ~/Vcs/vim-vimlint            \
-      -p ~/Vcs/vim-vimlparser         \
-      "$@"
+    /vimlint/bin/vimlint.sh -l /vimlint -p ~/Vcs/vim-vimlparser "$@"
     ```
 
-  Where `~/Vcs/vim-vimlint/bin` is where you have
-  [vimlint.sh](https://github.com/syngan/vim-vimlint/blob/master/bin/vimlint.sh)
-  installed.
+  Where `/vimlint` is where you cloned/extracted
+  [vimlint](https://github.com/syngan/vim-vimlint).
 
 YAML:
 
