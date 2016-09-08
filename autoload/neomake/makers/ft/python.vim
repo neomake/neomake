@@ -173,3 +173,9 @@ function! neomake#makers#ft#python#mypy()
             \ '%I%f:%l: note: %m',
         \ }
 endfunction
+
+function! neomake#makers#ft#python#py3kwarn()
+    return {
+        \ 'errorformat': '%W%f:%l:%c: %m',
+        \ }
+endfunction

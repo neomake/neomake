@@ -181,6 +181,7 @@ Python:
 - python
 - [vulture](https://bitbucket.org/jendrikseipp/vulture) [not enabled by default]
 - [mypy](http://mypy-lang.org/) [not enabled by default]
+- [py3kwarn](https://github.com/liamcurry/py3kwarn) [not enabled by default]
 
 Ruby:
 - mri
