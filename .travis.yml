@@ -14,17 +14,19 @@ before_cache:
 
 env:
   matrix:
-    - ENV=testvim
-    - ENV=testnvim
+    - ENV=docker_test_all
     - ENV=vint-diff
     - ENV=vint-errors
     - ENV=vimlint-errors
+    - ENV=testvim
+    - ENV=testnvim
     - ENV=vint
     - ENV=vimlint
-    - ENV=docker_test_all
+    - ENV=vimhelplint
 
 matrix:
   allow_failures:
+    - env: ENV=vimhelplint
     - env: ENV=vimlint
     - env: ENV=vint
     # There are currently 3 remaining issues with the java maker.
@@ -36,14 +38,16 @@ install:
     if [ "$ENV" = "vint-diff" ]; then
       # Run full vint against changed files.
       export CHANGED_VIM_FILES="$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep '\.vim$')"
-      git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt
-      CHANGED_DOC_FILE=$?
-      if [ -z "$CHANGED_VIM_FILES" ] && [ -z "$CHANGED_DOC_FILE"]; then
-        echo "No changed .vim/doc files: skipping build."
+      if [ -z "$CHANGED_VIM_FILES" ]; then
+        echo "No changed .vim files: skipping build."
         ENV=SKIP_BUILD
       fi
-    fi
-    if [ "${ENV#vimlint}" != "$ENV" ]; then
+    elif [ "$ENV" = "vimhelplint" ]; then
+      if git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
+        echo "No changed doc files: skipping build."
+        ENV=SKIP_BUILD
+      fi
+    elif [ "${ENV#vimlint}" != "$ENV" ]; then
       git clone --depth=1 https://github.com/syngan/vim-vimlint /tmp/vimlint
       git clone --depth=1 https://github.com/ynkdir/vim-vimlparser /tmp/vimlparser
     elif [ "${ENV#vint}" != "$ENV" ]; then
@@ -61,9 +65,6 @@ script:
     elif [ "$ENV" = "vint-diff" ]; then
       if [ -n "$CHANGED_VIM_FILES" ]; then
         vint $CHANGED_VIM_FILES
-      fi
-      if [ "$CHANGED_DOC_FILE" = 1 ]; then
-        make vimhelplint
       fi
     else
       make $ENV
