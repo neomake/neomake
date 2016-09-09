@@ -886,8 +886,12 @@ function! neomake#DisplayInfo() abort
     echom '== Enabled makers =='
     echom 'For the current filetype (with :Neomake): '
                 \ .string(neomake#GetEnabledMakers(ft))
-    echom 'You can define g:neomake_'.ft.'_enabled_makers'
+    if !empty(ft)
+        echom 'You can define g:neomake_'.ft.'_enabled_makers'
                 \ .' to configure it (or b:neomake_'.ft.'_enabled_makers).'
+    else
+        echom 'The current buffer does not have a filetype.'
+    endif
     echom 'For the project (with :Neomake!): '
                 \ .string(neomake#GetEnabledMakers())
     echom 'You can define g:neomake_enabled_makers to configure it.'
