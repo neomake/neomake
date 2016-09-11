@@ -10,8 +10,11 @@ let s:shellcheck_supported = ['sh', 'bash', 'dash', 'ksh']
 
 function! neomake#makers#ft#sh#shellcheck() abort
     let args = ['-fgcc']
-    if index(s:shellcheck_supported, &filetype) != -1
-        let args += ['-s', &filetype]
+    let shebang = matchstr(getline(1), '^#!\s*\zs.*$')
+    if !len(shebang)
+        if index(s:shellcheck_supported, &filetype) != -1
+            let args += ['-s', &filetype]
+        endif
     endif
     return {
         \ 'args': args,

@@ -8,3 +8,7 @@ Execute (shellcheck):
   AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc', '-s', 'bash']
   set ft=nadda
   AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc']
+
+  set ft=sh
+  norm i#!/usr/bin/env bash
+  AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc']
