@@ -16,7 +16,6 @@ function! neomake#makers#ft#perl#perl() abort
          \ 'args' : ['-c', '-X', '-Mwarnings'],
          \ 'errorformat': '%E%m at %f line %l%s',
          \ 'postprocess': function('neomake#makers#ft#perl#PerlEntryProcess'),
-         \ 'buffer_output': 1
      \}
 endfunction
 

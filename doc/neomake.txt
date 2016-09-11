@@ -45,9 +45,14 @@ fantastic vim plugins such as syntastic and dispatch.
 
                                                                     *:NeomakeSh*
 :NeomakeSh {command}    Run {command} in a shell (according to 'shell'). The
-                        command output will be loaded in the quickfix list
+                        command output will be loaded into the quickfix list
                         when the job is complete. Example: >
                         :NeomakeSh find . -name '*.pyc'
+<
+                                                                   *:NeomakeSh!*
+:NeomakeSh! {command}   Same as |:NeomakeSh|, but does not buffer the output.
+                        Example: >
+                        :NeomakeSh! while true; do date; sleep 1; done
 <
                                                                   *:NeomakeInfo*
 :NeomakeInfo            Display information, meant for debugging and inclusion
@@ -160,19 +165,20 @@ Example: change the entry type to a warning. >
         \ }
 <
                                                   *neomake-makers-buffer_output*
-Some makers with multiline error messages have issues (depending on how they
-flush their output). If multiline errorformats seem to work inconsistently for
-a maker, try setting buffer_output to 1: >
-    let g:neomake_ft_test_maker = {
-        \ 'exe': 'some-maker',
-        \ 'errorformat': '%EError,%Cline %l,%Z%m',
-        \ 'buffer_output': 1
-        \ }
+Default: 1
+By default Neomake will only process the output from makers when either the
+output type changes (from stderr to stdout or vice versa), or at the end of
+the job.
+
+If you have a maker that is expected to run longer, and you want to get
+feedback as early as possible, you can set this to `0`.
+
+You can override this for a maker using e.g.: >
+    let g:neomake_ft_test_maker_buffer_output = 0
 <
-This tells the maker only to process output when either the output type
-changes (from stderr to stdout or vice versa) or at the end of the job. Your
-results will take longer to appear, but multiline error messages should get
-parsed properly.
+Your results will appear earlier, but if the |errorformat| is meant to parse
+multiline output this will likely cause issues (depending on how the maker
+flushes its output).
 
                                          *neomake-makers-remove_invalid_entries*
 Makers can filter invalid entries (e.g. entries that do not match the

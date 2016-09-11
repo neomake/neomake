@@ -7,7 +7,6 @@ endfunction
 function! neomake#makers#ft#fish#fish() abort
     return {
         \ 'args': ['-n'],
-        \ 'buffer_output': 1,
         \ 'errorformat':
             \ '%C%f (line %l): %s,'.
             \ '%-Gfish: %.%#,'.

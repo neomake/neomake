@@ -199,7 +199,6 @@ function! neomake#makers#ft#java#javac() abort
     return {
                 \ 'args': javac_opts,
                 \ 'exe': g:neomake_java_javac_executable,
-                \ 'buffer_output': 1,
                 \ 'errorformat':
                 \ '%E%f:%l: error: %m,'.
                 \ '%W%f:%l: warning: %m,'.
