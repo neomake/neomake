@@ -1,14 +1,10 @@
-### Intro
+# Issue
 
-Please adhere to this template for bug reports.
-For feature requests and if you know what you are doing you can do it
-free-style, of course.  You should also remove this intro section in any case.
+Please adhere to this template for bug reports, but in case the issue is clear,
+a feature requests, or if you know what you are doing you can do it
+free-style, of course.  You should also remove this intro paragraph.
 
-### Issue
-
-
-
-### Steps to reproduce
+## Steps to reproduce
 
 Please execute `:let g:neomake_verbose = 3` to enable verbose output, which
 might help showing the issue already.  Please provide the output from
@@ -18,14 +14,14 @@ might help showing the issue already.  Please provide the output from
 2.
 3.
 
-### Output of the ":NeomakeInfo" command
+## Output of the ":NeomakeInfo" command
 
-### Versions
+## Versions
 
 What is your Neovim or Vim version?  Please provide the relevant output from
 `:version`.
 
-### Output from ":messages"
+## Output from ":messages"
 
 You can use the command `:redir @+> | silent mess | redir END` to copy them to
 your clipboard.
