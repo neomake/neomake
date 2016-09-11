@@ -1,11 +1,11 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#fortran#EnabledMakers()
+function! neomake#makers#ft#fortran#EnabledMakers() abort
     return ['gfortran']
 endfunction
 
 " Using the errorformat from syntastic
-function! neomake#makers#ft#fortran#ifort()
+function! neomake#makers#ft#fortran#ifort() abort
     return {
         \ 'args': ['-syntax-only', '-warn'],
         \ 'errorformat':
@@ -18,7 +18,7 @@ function! neomake#makers#ft#fortran#ifort()
 endfunction
 
 " Using the errorformat from syntastic
-function! neomake#makers#ft#fortran#gfortran()
+function! neomake#makers#ft#fortran#gfortran() abort
     return {
         \ 'args': ['-fsyntax-only', '-Wall', '-Wextra'],
         \ 'errorformat':
