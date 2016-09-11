@@ -139,6 +139,11 @@ fish:
 
 - fish
 
+Fortran
+
+- gfortran
+- ifort
+
 Go:
 
 - go
