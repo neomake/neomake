@@ -83,6 +83,7 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry)
     else
         let type = ''
     endif
+    let a:entry.text = a:entry.type . a:entry.nr . ' ' . a:entry.text
     let a:entry.type = type
 endfunction
 
