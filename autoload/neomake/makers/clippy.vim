@@ -4,14 +4,7 @@
 let s:rustup_has_nightly = -1
 
 function! neomake#makers#clippy#clippy() abort
-    let errorfmt = '%Eerror[E%n]: %m,'.
-                 \ '%Eerror: %m,'.
-                 \ '%Wwarning: %m,'.
-                 \ '%Inote: %m,'.
-                 \ '%-Z\ %#-->\ %f:%l:%c,'.
-                 \ '%I\ %#\= %t%*[^:]: %m,'.
-                 \ '%I\ %#|\ %#%\\^%\\+ %m,'.
-                 \ '%-G%s,'
+    let errorfmt = neomake#makers#ft#rust#rustc()['errorformat']
 
     " When rustup and a nightly toolchain is installed, that is used.
     " Otherwise, the default cargo exectuable is used. If this is not part
