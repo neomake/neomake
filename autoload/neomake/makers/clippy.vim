@@ -13,7 +13,7 @@ function! neomake#makers#clippy#clippy()
     " When rustup and a nightly toolchain is installed, that is used
     " Otherwise, the default cargo exectuable is used. If this is not part
     " of a nightly rust, this will fail.
-    if executable('rustup') && system('rustup show | grep nightly | wc -l') >= 2
+    if executable('rustup') && system('rustup show | grep nightly | wc -l') >= 1
         return {
             \ 'exe': 'rustup',
             \ 'args': ['run', 'nightly', 'cargo', 'clippy'],
