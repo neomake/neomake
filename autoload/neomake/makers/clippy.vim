@@ -1,6 +1,6 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#clippy#clippy()
+function! neomake#makers#clippy#clippy() abort
     let errorfmt = '%Eerror[E%n]: %m,'.
                  \ '%Eerror: %m,'.
                  \ '%Wwarning: %m,'.
