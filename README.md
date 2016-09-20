@@ -230,8 +230,8 @@ Ruby:
 Rust:
 
 - rustc
-- cargo [Call with `Neomake! cargo`]
-- [clippy](https://github.com/Manishearth/rust-clippy) [Call with `Neomake! clippy`, needs [rustup](https://github.com/rust-lang-nursery/rustup.rs) with a nightly toolchain or a nightly rust installation]
+- cargo (call with `Neomake! cargo`)
+- [clippy](https://github.com/Manishearth/rust-clippy) (call with `Neomake! clippy`, needs nightly rust, supports [rustup](https://github.com/rust-lang-nursery/rustup.rs))
 
 Scala:
 
