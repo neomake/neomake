@@ -25,4 +25,5 @@ function! neomake#makers#clippy#clippy() abort
             \ 'args': ['clippy'],
             \ 'errorformat': errorfmt,
             \ }
+    endif
 endfunction
