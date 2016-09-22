@@ -1,8 +1,8 @@
-# Issue
-
 Please adhere to this template for bug reports, but in case the issue is clear,
 a feature requests, or if you know what you are doing you can do it
-free-style, of course.  You should also remove this intro paragraph.
+free-style, of course.
+*Please remove this intro paragraph and replace it with a short description of
+the issue.*
 
 ## Steps to reproduce
 
