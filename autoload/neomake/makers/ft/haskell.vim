@@ -82,9 +82,17 @@ function! neomake#makers#ft#haskell#ghcmod()
         \ })
 endfunction
 
+function! neomake#makers#ft#haskell#HlintEntryProcess(entry)
+    " Postprocess hlint output to make it more readable as a single line
+    let a:entry.text = substitute(a:entry.text, '\v(Found:)\s*\n', ' | \1', 'g')
+    let a:entry.text = substitute(a:entry.text, '\v(Why not:)\s*\n', ' | \1', 'g')
+    call neomake#utils#CompressWhitespace(a:entry)
+endfunction
+
 function! neomake#makers#ft#haskell#hlint()
     return s:TryStack({
         \ 'exe': 'hlint',
+        \ 'postprocess': function('neomake#makers#ft#haskell#HlintEntryProcess'),
         \ 'args': [],
         \ 'errorformat':
             \ '%E%f:%l:%v: Error: %m,' .
