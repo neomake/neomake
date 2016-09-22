@@ -388,11 +388,18 @@ function! s:Make(options, ...) abort
                     \ 'bufnr': buf})
     endif
 
-    if file_mode
-        lgetexpr ''
-    else
-        cgetexpr ''
-    endif
+    " Empty the quickfix/location list (using a valid 'errorformat' setting).
+    let l:efm = &efm
+    try
+        let &efm = '%-G'
+        if file_mode
+            lgetexpr ''
+        else
+            cgetexpr ''
+        endif
+    finally
+        let &efm = l:efm
+    endtry
     call s:HandleLoclistQflistDisplay(file_mode)
 
     if !get(a:options, 'continuation')
