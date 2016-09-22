@@ -892,7 +892,7 @@ function! neomake#DisplayInfo() abort
                 \ .string(neomake#GetEnabledMakers())
     echom 'You can define g:neomake_enabled_makers to configure it.'
     echom '== Settings =='
-    for [k, v] in items(filter(copy(g:), "v:key =~# '^neomake'"))
+    for [k, v] in items(filter(copy(g:), "v:key =~# '^neomake_'"))
         echom 'g:'.k.' = '.string(v)
         unlet! v  " Fix variable type mismatch with Vim 7.3.
     endfor
