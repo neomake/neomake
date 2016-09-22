@@ -156,6 +156,9 @@ Haskell:
 - ghc-mod
 - hdevtools
 - cabal
+- liquid (LiquidHaskell)
+
+Stack projects are supported.
 
 Java:
 
