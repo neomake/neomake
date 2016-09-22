@@ -1,5 +1,5 @@
 # Based on https://github.com/tweekmonster/vim-testbed.
-FROM blueyed/vim-testbed:latest
+FROM neomake/vim-testbed:latest
 
 # Currently tested versions:
 #  - v7.3.429 (Ubuntu Precise, 12.04LTS; same as on Travis currently)
