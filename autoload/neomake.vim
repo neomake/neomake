@@ -40,7 +40,7 @@ function! neomake#CancelJob(job_id) abort
 endfunction
 
 function! s:GetMakerKey(maker) abort
-    return has_key(a:maker, 'name') ? a:maker.name.' ft='.a:maker.ft : 'makeprg'
+    return a:maker.name.',ft='.a:maker.ft.',buf='.a:maker.bufnr
 endfunction
 
 function! s:gettabwinvar(t, w, v, d) abort
@@ -423,11 +423,11 @@ function! s:Make(options, ...) abort
         if maker == {}
             continue
         endif
-        let maker.file_mode = file_mode
-        if file_mode
-            let maker.bufnr = bufnr('%')
-            let maker.winnr = winnr()
-        endif
+        call extend(maker, {
+                    \ 'file_mode': file_mode,
+                    \ 'bufnr': buf,
+                    \ 'winnr': win,
+                    \ }, 'error')
         let maker_key = s:GetMakerKey(maker)
         if has_key(s:jobs_by_maker, maker_key)
             let jobinfo = s:jobs_by_maker[maker_key]
