@@ -25,8 +25,7 @@ Execute (neomake#Make in project mode with no filetype and no makers):
   let &makeprg = 'sh -c "sleep 0.1"'
   echom '====='
   let job_ids = neomake#Make(0, [])
-  if has('nvim')
-    " Vim runs synchronously.
+  if neomake#has_async_support()
     AssertEqual len(job_ids), 1
     let jobs = neomake#GetJobs()
     AssertEqual len(jobs), 1
