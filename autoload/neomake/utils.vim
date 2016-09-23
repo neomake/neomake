@@ -1,8 +1,6 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
-let s:UNSET_SENTINEL = {}
-
 function! neomake#utils#LogMessage(level, msg) abort
     let verbose = get(g:, 'neomake_verbose', 1)
     let logfile = get(g:, 'neomake_logfile')
@@ -184,14 +182,14 @@ function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
     for ft in a:fts
       let config_var = 'neomake_'.ft.'_'.a:maker.name.'_'.a:key
       if has_key(g:, config_var)
-            \ || getbufvar(a:bufnr, config_var, s:UNSET_SENTINEL) isnot s:UNSET_SENTINEL
+            \ || getbufvar(a:bufnr, config_var) !=# ''
         break
       endif
     endfor
   else
     let config_var = 'neomake_'.a:maker.name.'_'.a:key
   endif
-  if getbufvar(a:bufnr, config_var, s:UNSET_SENTINEL) isnot s:UNSET_SENTINEL
+  if getbufvar(a:bufnr, config_var) !=# ''
     return copy(getbufvar(a:bufnr, config_var))
   elseif has_key(g:, config_var)
     return copy(get(g:, config_var))
@@ -199,8 +197,15 @@ function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
     return a:maker[a:key]
   endif
   " Look for 'neomake_'.key in the buffer and global namespace.
-  return getbufvar(a:bufnr, 'neomake_'.a:key,
-        \ get(g:, 'neomake_'.a:key, a:default))
+  let bufvar = getbufvar(a:bufnr, 'neomake_'.a:key)
+  if bufvar !=# ''
+      return bufvar
+  endif
+  let var = get(g:, 'neomake_'.a:key)
+  if var !=# ''
+      return var
+  endif
+  return a:default
 endfunction
 
 " Get property from highlighting group.

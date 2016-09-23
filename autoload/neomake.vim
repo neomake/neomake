@@ -236,6 +236,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     let bufnr = bufnr('%')
     for [key, default] in items(defaults)
         let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
+        unlet! default  " workaround for old Vim (7.3.429)
     endfor
     if exists('real_ft')
         let maker.ft = real_ft
