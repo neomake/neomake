@@ -146,6 +146,14 @@ like so: >
 This allows you to manipulate the lines as needed. Currently this is called
 on stdout and stderr lines alike.
 
+You can set `mapexpr_setup_bufvars` to 1 in the maker's config to setup the
+variables `neomake_bufname` and `neomake_bufdir`, in case you use the
+buffer's name or its directory in your expression.  This is recommended for
+performance reasons, but only applies to file mode.
+The 'mapexpr' itself is being evaluated in the context of the affected buffer
+in file mode, for non-file mode it is evaluated in the context of the buffer
+that is current when the maker finished.
+
 The 'postprocess' property is a function reference that will be applied to the
 entry in the location or quickfix list.
 Example: change the entry type to a warning. >

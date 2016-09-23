@@ -589,6 +589,15 @@ function! s:ProcessJobOutput(jobinfo, lines) abort
     call neomake#utils#DebugMessage(printf(
                 \ '[#%d] %s: processing %d lines of output.',
                 \ a:jobinfo.id, maker.name, len(a:lines)))
+
+    if has_key(maker, 'mapexpr')
+        if file_mode && get(maker, 'mapexpr_setup_bufvars', 0)
+            let neomake_bufname = bufname(maker.bufnr)
+            let neomake_bufdir = fnamemodify(neomake_bufname, ':h')
+        endif
+        let lines = map(a:lines, maker.mapexpr)
+    endif
+
     let olderrformat = &errorformat
     let &errorformat = maker.errorformat
     try
@@ -641,9 +650,6 @@ endfunction
 function! s:RegisterJobOutput(jobinfo, lines) abort
     let lines = copy(a:lines)
     let maker = a:jobinfo.maker
-    if has_key(maker, 'mapexpr')
-        let lines = map(lines, maker.mapexpr)
-    endif
 
     if !get(maker, 'file_mode')
         return s:ProcessJobOutput(a:jobinfo, lines)
