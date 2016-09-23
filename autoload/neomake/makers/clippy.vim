@@ -15,9 +15,9 @@ function! neomake#makers#clippy#clippy() abort
     " of a nightly rust, this will fail.
     if !exists('s:rustup_has_nightly')
         if !executable('rustup')
-            let s:rustup_has_nightly = false
+            let s:rustup_has_nightly = 0
         else
-            call system('rustup show | grep -q nightly')
+            call system('rustup show | grep -q "^nightly-"')
             let s:rustup_has_nightly = !v:shell_error
         endif
     endif
