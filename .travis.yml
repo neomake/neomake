@@ -37,12 +37,14 @@ install:
   - |
     if [ "$ENV" = "vint-diff" ]; then
       # Run full vint against changed files.
+      echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       export CHANGED_VIM_FILES="$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep '\.vim$')"
       if [ -z "$CHANGED_VIM_FILES" ]; then
         echo "No changed .vim files: skipping build."
         ENV=SKIP_BUILD
       fi
     elif [ "$ENV" = "vimhelplint" ]; then
+      echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       if git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
         echo "No changed doc files: skipping build."
         ENV=SKIP_BUILD
@@ -66,7 +68,11 @@ script:
       echo "Skipping build script: see above for any reason."
     elif [ "$ENV" = "vint-diff" ]; then
       if [ -n "$CHANGED_VIM_FILES" ]; then
-        vint $CHANGED_VIM_FILES
+        vint $CHANGED_VIM_FILES | grep -v '^autoload/neomake/makers/.*Use the abort attribute for functions in autoload'
+        if [ "$?" != 1 ]; then
+          echo "vint-diff found errors."
+          exit 1
+        fi
       fi
     else
       vim --version
