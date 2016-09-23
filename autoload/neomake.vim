@@ -233,24 +233,10 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         \ 'buffer_output': 0,
         \ 'remove_invalid_entries': 1
         \ }
-    for key in keys(defaults)
-        if len(fts)
-            for ft in fts
-                let config_var = 'neomake_'.ft.'_'.maker.name.'_'.key
-                if has_key(g:, config_var) || has_key(b:, config_var)
-                    break
-                endif
-            endfor
-        else
-            let config_var = 'neomake_'.maker.name.'_'.key
-        endif
-        if has_key(b:, config_var)
-            let maker[key] = copy(get(b:, config_var))
-        elseif has_key(g:, config_var)
-            let maker[key] = copy(get(g:, config_var))
-        elseif !has_key(maker, key)
-            let maker[key] = defaults[key]
-        endif
+    let bufnr = bufnr('%')
+    for [key, default] in items(defaults)
+        let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
+        unlet! default  " workaround for old Vim (7.3.429)
     endfor
     if exists('real_ft')
         let maker.ft = real_ft
