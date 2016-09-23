@@ -40,7 +40,7 @@ function! neomake#CancelJob(job_id) abort
 endfunction
 
 function! s:GetMakerKey(maker) abort
-    return has_key(a:maker, 'name') ? a:maker.name.' ft='.a:maker.ft : 'makeprg'
+    return a:maker.name.',ft='.a:maker.ft.',buf='.a:maker.bufnr
 endfunction
 
 function! s:gettabwinvar(t, w, v, d) abort
