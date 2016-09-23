@@ -106,7 +106,7 @@ Execute (NeomakeSh: non-existing command):
   call g:NeomakeSetupAutocmdWrappers()
   RunNeomakeSh 'nonexistingcommand'
   AssertEqual len(g:neomake_test_finished), 1
-  AssertEqual g:neomake_test_countschanged, [{'file_mode': 0, 'bufnr': -1}]
+  AssertEqual g:neomake_test_countschanged, [{'file_mode': 0, 'bufnr': bufnr('%')}]
   AssertEqual len(getqflist()), 1
   AssertNotEqual match(getqflist()[0].text, 'nonexistingcommand'), -1
   AssertNotEqual match(getqflist()[0].text, 'command not found'), -1
