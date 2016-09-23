@@ -12,7 +12,7 @@ endfunction
 
 function! neomake#makers#ft#puppet#puppet()
     return {
-        \ 'args': ['parser', 'validate'],
+        \ 'args': ['parser', 'validate', '--color=false'],
         \ 'errorformat': '%t%*[a-zA-Z]: %m at %f:%l',
         \ }
 endfunction
