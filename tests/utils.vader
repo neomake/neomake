@@ -24,3 +24,22 @@ Execute (neomake#utils#CompressWhitespace):
   AssertEqual F('foo bar '), 'foo bar '
   AssertEqual F("foo\nbar "), 'foo bar'
   AssertEqual F("foo\n bar "), 'foo bar'
+
+Execute (neomake#utils#GetSetting):
+  let g:maker = {'name': 'mymaker'}
+  function! GetSetting()
+    return neomake#utils#GetSetting('serialize', g:maker, 'default',
+                                  \ ['myft'], bufnr('%'))
+  endfunction
+
+  AssertEqual GetSetting(), 'default'
+  let g:neomake_serialize = 5
+  AssertEqual GetSetting(), 5
+  let b:neomake_serialize = 4
+  AssertEqual GetSetting(), 4
+  let g:maker.serialize = 3
+  AssertEqual GetSetting(), 3
+  let g:neomake_myft_mymaker_serialize = 2
+  AssertEqual GetSetting(), 2
+  let b:neomake_myft_mymaker_serialize = 1
+  AssertEqual GetSetting(), 1
