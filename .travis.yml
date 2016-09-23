@@ -35,6 +35,7 @@ matrix:
 
 install:
   - |
+    set -x
     if [ "$ENV" = "vint-diff" ]; then
       # Run full vint against changed files.
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
@@ -64,6 +65,7 @@ install:
 
 script:
   - |
+    set -x
     if [ "$ENV" = "SKIP_BUILD" ]; then
       echo "Skipping build script: see above for any reason."
     elif [ "$ENV" = "vint-diff" ]; then
