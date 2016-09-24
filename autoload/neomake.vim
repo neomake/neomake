@@ -157,6 +157,14 @@ function! s:MakeJob(make_id, maker) abort
                 else
                     let program = [exe]
                 endif
+                " HACK: We need to add some 'sleep' for Vim (8.0.8) to work
+                " around https://groups.google.com/d/msg/vim_dev/us740TrOxNQ/IcBgP7YQBQAJ.
+                " Currently it is only being done in tests, but a) is
+                " hopefully not necessary anymore and b) might be needed in
+                " real usage, too.
+                if !has('nvim') && exists('g:vader_file')
+                    let program = ['/bin/sh', '-c', join(map(program, 'shellescape(v:val)')) . '; sleep .1']
+                endif
 
                 call neomake#utils#LoudMessage('Starting: ' . string(program))
                 let job = job_start(program, {
