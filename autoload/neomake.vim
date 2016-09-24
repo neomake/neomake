@@ -160,8 +160,10 @@ function! s:MakeJob(make_id, maker) abort
 
                 call neomake#utils#LoudMessage('Starting: ' . string(program))
                 let job = job_start(program, {
-                            \ 'callback': 'neomake#MakeHandlerVim',
-                            \ 'close_cb': 'neomake#MakeHandlerVimClose'
+                            \ 'err_cb': 'neomake#MakeHandlerVimStderr',
+                            \ 'out_cb': 'neomake#MakeHandlerVimStdout',
+                            \ 'close_cb': 'neomake#MakeHandlerVimClose',
+                            \ 'mode': 'raw',
                             \ })
                 let jobinfo.job = job
                 let jobinfo.start = localtime()
@@ -702,15 +704,24 @@ function! s:GetChannelId(channel) abort
     return ch_info(a:channel)['id']
 endfunction
 
-function! neomake#MakeHandlerVim(channel, line) abort
-    call add(s:jobs[s:GetChannelId(a:channel)].data, a:line)
+function! neomake#MakeHandlerVimStdout(channel, output) abort
+    call neomake#utils#DebugMessage('MakeHandlerVim: stdout: ' . a:channel)
+    let channel_id = s:GetChannelId(a:channel)
+    let jobinfo = s:jobs[channel_id]
+    call neomake#MakeHandler(channel_id, split(a:output, "\n", 1), 'stdout')
+endfunction
+
+function! neomake#MakeHandlerVimStderr(channel, output) abort
+    call neomake#utils#DebugMessage('MakeHandlerVim: stderr: ' . a:channel)
+    let channel_id = s:GetChannelId(a:channel)
+    let jobinfo = s:jobs[channel_id]
+    call neomake#MakeHandler(channel_id, split(a:output, "\n", 1), 'stderr')
 endfunction
 
 function! neomake#MakeHandlerVimClose(channel) abort
     call neomake#utils#DebugMessage('Channel has been closed: ' . a:channel)
     let channel_id = s:GetChannelId(a:channel)
     let jobinfo = s:jobs[channel_id]
-    call neomake#MakeHandler(channel_id, jobinfo.data, 'stdout')
     call neomake#MakeHandler(channel_id, job_info(jobinfo.job)['exitval'], 'exit')
 endfunction
 
