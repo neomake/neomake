@@ -40,13 +40,15 @@ runvim: testinteractive
 runnvim: VIM_ARGS:=
 runnvim: testninteractive
 
+TEST_TARGET:=test
+
 # Add targets for .vader files, absolute and relative.
 # This can be used with `b:dispatch = ':Make %'` in Vim.
 TESTS:=$(filter-out tests/_%.vader,$(wildcard tests/*.vader))
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 _TESTS_REL_AND_ABS:=$(call uniq,$(abspath $(TESTS)) $(TESTS))
 $(_TESTS_REL_AND_ABS):
-	make test VIM_ARGS='+$(VADER) $@'
+	make $(TEST_TARGET) VIM_ARGS='+$(VADER) $@'
 .PHONY: $(_TESTS_REL_AND_ABS)
 
 tags:
