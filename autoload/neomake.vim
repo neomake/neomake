@@ -873,20 +873,34 @@ endfunction
 
 function! neomake#DisplayInfo() abort
     let ft = &filetype
-    echom '= Neomake debug information ='
-    echom 'Async support: '.neomake#has_async_support()
-    echom 'Current filetype: '.ft
-    echom '== Enabled makers =='
-    echom 'For the current filetype (with :Neomake): '
+    echo '#### Neomake debug information'
+    echo 'Async support: '.neomake#has_async_support()
+    echo 'Current filetype: '.ft
+    echo "\n"
+    echo '##### Enabled makers'
+    echo 'For the current filetype (with :Neomake): '
                 \ .string(neomake#GetEnabledMakers(ft))
-    echom 'You can define g:neomake_'.ft.'_enabled_makers'
-                \ .' to configure it (or b:neomake_'.ft.'_enabled_makers).'
-    echom 'For the project (with :Neomake!): '
+    if empty(ft)
+        echo 'NOTE: the current buffer does not have a filetype.'
+    else
+        echo 'NOTE: you can define g:neomake_'.ft.'_enabled_makers'
+                    \ .' to configure it (or b:neomake_'.ft.'_enabled_makers).'
+    endif
+    echo 'For the project (with :Neomake!): '
                 \ .string(neomake#GetEnabledMakers())
-    echom 'You can define g:neomake_enabled_makers to configure it.'
-    echom '== Settings =='
+    echo 'NOTE: you can define g:neomake_enabled_makers to configure it.'
+    echo "\n"
+    echo '##### Settings'
     for [k, v] in items(filter(copy(g:), "v:key =~# '^neomake_'"))
-        echom 'g:'.k.' = '.string(v)
+        echo 'g:'.k.' = '.string(v)
         unlet! v  " Fix variable type mismatch with Vim 7.3.
     endfor
+    if &verbose
+        echo "\n"
+        echo "#### :version"
+        version
+        echo "\n"
+        echo "#### :messages"
+        messages
+    endif
 endfunction
