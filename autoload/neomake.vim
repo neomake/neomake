@@ -201,7 +201,7 @@ function! s:MakeJob(make_id, maker) abort
             call s:AddJobinfoForCurrentWin(jobinfo.id)
             call neomake#MakeHandler(job_id, split(system(program), '\r\?\n', 1), 'stdout')
             call neomake#MakeHandler(job_id, v:shell_error, 'exit')
-            let r = 0
+            let r = -1
         endif
     finally
         if exists('old_wd')
@@ -473,7 +473,7 @@ function! s:Make(options, ...) abort
             let maker.exit_callback = a:options.exit_callback
         endif
         let job_id = s:MakeJob(make_id, maker)
-        if job_id != 0
+        if job_id != -1
             call add(job_ids, job_id)
         endif
         " If we are serializing makers, stop after the first one. The

@@ -337,7 +337,7 @@ dictionary as its sole argument: >
 *neomake#Sh* (command[, callback])
 This function is called by the |:NeomakeSh| command. It runs the specified
 shell *command* according to 'shell'. |neomake#Sh| returns the single job id
-that was created (0 on Vim without asynchronous support);
+that was created (-1 on Vim without asynchronous support);
 you can potentially cancel this job with |neomake#CancelJob|.
 
 It also accepts a second, optional callback argument that is called when
