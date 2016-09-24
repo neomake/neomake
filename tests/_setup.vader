@@ -13,6 +13,7 @@ After:
   else
     unlet g:neomake_verbose
   endif
+  Restore
 
 Execute:
   function! s:wait_for_finished_jobs()
