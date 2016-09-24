@@ -153,6 +153,7 @@ Execute (NeomakeInfo):
   AssertEqual filter(copy(info), "v:val =~ 'neomaker'"), []
 
 Execute (Having an invalid &errorformat is OK):
+  Save &errorformat
   let &efm = '%E%W'
   NeomakeSh sh -c 'true'
 
