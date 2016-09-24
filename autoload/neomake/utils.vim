@@ -15,6 +15,9 @@ function! neomake#utils#LogMessage(level, msg) abort
             echohl None
         endif
     endif
+    if exists(':Log') == 2
+        Log a:msg
+    endif
     if type(logfile) ==# type('') && len(logfile)
         let date = strftime('%Y-%m-%dT%H:%M:%S%z')
         call writefile([date.' Log level '.a:level.': '.msg], logfile, 'a')
