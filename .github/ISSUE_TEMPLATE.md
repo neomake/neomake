@@ -1,18 +1,18 @@
-### Issue type:
+### Issue type
 
 <!-- Pick one and delete the rest -->
 - Bug report
 - Feature request
 
-### Description:
+### Description
 
 <!-- Explain the issue in detail -->
 
-### Expected behavior:
+### Expected behavior
 
 <!-- What did you expect or want to happen? -->
 
-### Steps to reproduce:
+### Steps to reproduce
 
 <!--
 Include if relevant.

@@ -147,7 +147,7 @@ Execute (NeomakeInfo):
   redir END
   let info = split(redir, '\n')
 
-  Assert index(info, '== Settings ==') != -1, 'Settings header exists'
+  Assert len(filter(copy(info), "v:val =~ '\\v^#+ Settings$'")), 'Settings header exists'
   Assert index(info, "g:neomake_c_enabled_makers = ['doesnotexist']") != -1,
   \ 'neomake_c_enabled_makers setting gets reported'
   AssertEqual filter(copy(info), "v:val =~ 'neomaker'"), []

@@ -897,10 +897,10 @@ function! neomake#DisplayInfo() abort
     endfor
     if &verbose
         echo "\n"
-        echo "#### :version"
+        echo '#### :version'
         version
         echo "\n"
-        echo "#### :messages"
+        echo '#### :messages'
         messages
     endif
 endfunction
