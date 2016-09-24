@@ -872,19 +872,11 @@ function! neomake#Sh(sh_command, ...) abort
 endfunction
 
 function! neomake#DisplayInfo() abort
-    if &verbose
-        echo "##### :version"
-        version
-        echo "\n"
-        echo "##### :messages"
-        messages
-        echo "\n"
-    endif
     let ft = &filetype
     echo '##### Neomake debug information'
     echo 'Async support: '.neomake#has_async_support()
     echo 'Current filetype: '.ft
-
+    echo "\n"
     echo '###### Enabled makers'
     echo 'For the current filetype (with :Neomake): '
                 \ .string(neomake#GetEnabledMakers(ft))
@@ -897,10 +889,18 @@ function! neomake#DisplayInfo() abort
     echo 'For the project (with :Neomake!): '
                 \ .string(neomake#GetEnabledMakers())
     echo 'NOTE: you can define g:neomake_enabled_makers to configure it.'
-
+    echo "\n"
     echo '###### Settings'
     for [k, v] in items(filter(copy(g:), "v:key =~# '^neomake_'"))
         echo 'g:'.k.' = '.string(v)
         unlet! v  " Fix variable type mismatch with Vim 7.3.
     endfor
+    if &verbose
+        echo "\n"
+        echo "##### :version"
+        version
+        echo "\n"
+        echo "##### :messages"
+        messages
+    endif
 endfunction
