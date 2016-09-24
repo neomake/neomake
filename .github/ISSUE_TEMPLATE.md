@@ -1,27 +1,31 @@
-Please adhere to this template for bug reports, but in case the issue is clear,
-a feature requests, or if you know what you are doing you can do it
-free-style, of course.
-*Please remove this intro paragraph and replace it with a short description of
-the issue.*
+#### Issue type:
 
-## Steps to reproduce
+<!-- Pick one and delete the rest -->
+- Bug report
+- Feature request
+
+#### Description:
+
+<!-- Explain the issue in detail -->
+
+#### Expected behavior:
+
+<!-- What did you expect or want to happen? -->
+
+#### Steps to reproduce:
+
+<!--
+Include if relevant.
 
 Please execute `:let g:neomake_verbose = 3` to enable verbose output, which
-might help showing the issue already.  Please provide the output from
-`:messages` afterwards (see below).
+might help showing the issue already.
+Look at `:messages` to see them.
+-->
 
-1.
-2.
-3.
+#### Output of the ":verb NeomakeInfo" command
 
-## Output of the ":NeomakeInfo" command
-
-## Versions
-
-What is your Neovim or Vim version?  Please provide the relevant output from
-`:version`.
-
-## Output from ":messages"
-
-You can use the command `:redir @+> | silent mess | redir END` to copy them to
+<!--
+Paste the output from `:verbose NeomakeInfo` here.
+You can use `:redir @+> | silent verb NeomakeInfo | redir END` to copy it to
 your clipboard.
+-->
