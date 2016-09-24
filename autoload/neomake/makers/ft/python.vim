@@ -83,7 +83,9 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
     else
         let type = ''
     endif
+    let a:entry.text = a:entry.type . a:entry.nr . ' ' . a:entry.text
     let a:entry.type = type
+    let a:entry.nr = ''  " Avoid redundancy in the displayed error message.
 endfunction
 
 function! neomake#makers#ft#python#pyflakes() abort
