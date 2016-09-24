@@ -15,6 +15,9 @@ function! neomake#utils#LogMessage(level, msg) abort
             echohl None
         endif
     endif
+    if exists(':Log') == 2
+        Log a:msg
+    endif
     if type(logfile) ==# type('') && len(logfile)
         let date = strftime('%Y-%m-%dT%H:%M:%S%z')
         call writefile([date.' Log level '.a:level.': '.msg], logfile, 'a')
@@ -242,4 +245,9 @@ function! neomake#utils#CompressWhitespace(entry) abort
     let text = substitute(text, '\m^\s\+', '', '')
     let text = substitute(text, '\m\s\+$', '', '')
     let a:entry.text = text
+endfunction
+
+function! neomake#utils#ExpandArgs(args) abort
+    " Only expand those args that start with \ and a single %
+    call map(a:args, "v:val =~# '\\(^\\\\\\|^%$\\|^%[^%]\\)' ? expand(v:val) : v:val")
 endfunction
