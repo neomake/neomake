@@ -6,6 +6,10 @@ language: python
 python:
   - "3.5"
 
+branches:
+  only:
+    - master
+
 cache:
   pip: true
 before_cache:
