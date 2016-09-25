@@ -180,16 +180,20 @@ endfunction
 function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
   if len(a:fts)
     for ft in a:fts
+      " Look through the neomake setting override vars for a filetype maker,
+      " like neomake_scss_sasslint_exe (should be a string), and 
+      " neomake_scss_sasslint_args (should be a list)
       let config_var = 'neomake_'.ft.'_'.a:maker.name.'_'.a:key
       if has_key(g:, config_var)
-            \ || getbufvar(a:bufnr, config_var) !=# ''
+            \ || !empty(getbufvar(a:bufnr, config_var))
         break
       endif
     endfor
   else
+    " Following this, we're checking the neomake overrides for global makers
     let config_var = 'neomake_'.a:maker.name.'_'.a:key
   endif
-  if getbufvar(a:bufnr, config_var) !=# ''
+  if !empty(getbufvar(a:bufnr, config_var))
     return copy(getbufvar(a:bufnr, config_var))
   elseif has_key(g:, config_var)
     return copy(get(g:, config_var))
@@ -198,11 +202,11 @@ function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
   endif
   " Look for 'neomake_'.key in the buffer and global namespace.
   let bufvar = getbufvar(a:bufnr, 'neomake_'.a:key)
-  if bufvar !=# ''
+  if !empty(bufvar)
       return bufvar
   endif
   let var = get(g:, 'neomake_'.a:key)
-  if var !=# ''
+  if !empty(var)
       return var
   endif
   return a:default
