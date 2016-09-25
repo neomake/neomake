@@ -1,5 +1,6 @@
 
 function! neomake#makers#ft#haskell#MakerAvailable(command)
+    let s:stack_is_executable = 0
     " stack may be able to find a maker binary that's not on the normal path
     " so check for that first
     if executable('stack')
@@ -10,7 +11,9 @@ function! neomake#makers#ft#haskell#MakerAvailable(command)
         else " if stack cannot find the maker command, its not available anywhere
             return 0
         endif
-    elseif executable(a:command) " stack isn't available, so check for the binary directly
+        " cache whether stack is available, to avoid lots of (UI blocking) system calls...the user must restart vim if stack's availability changes
+        let s:stack_is_executable = 1
+    elseif executable(a:command) " stack isn't available, so check for the maker binary directly
         return 1
     else
         return 0
@@ -18,18 +21,21 @@ function! neomake#makers#ft#haskell#MakerAvailable(command)
 endfunction
 
 function! neomake#makers#ft#haskell#EnabledMakers()
-    let commands = ['ghc-mod', 'hdevtools', 'hlint', 'liquid']
-    let makers = []
-    for command in commands
-        if neomake#makers#ft#haskell#MakerAvailable(command)
-            call add(makers, substitute(command, "-", "", "g"))
-        endif
-    endfor
-    return makers
+    " cache whether each maker is available, to avoid lots of (UI blocking) system calls...the user must restart vim if a maker's availability changes
+    if !exists("s:makers")
+        let commands = ['ghc-mod', 'hdevtools', 'hlint', 'liquid']
+        let s:makers = []
+        for command in commands
+            if neomake#makers#ft#haskell#MakerAvailable(command)
+                call add(s:makers, substitute(command, "-", "", "g"))
+            endif
+        endfor
+    endif
+    return s:makers
 endfunction
 
 function! neomake#makers#ft#haskell#TryStack(maker)
-    if executable('stack')
+    if s:stack_is_executable
         if !has_key(a:maker, 'stackexecargs')
             let a:maker['stackexecargs'] = []
         endif
