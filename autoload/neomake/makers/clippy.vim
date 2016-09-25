@@ -19,6 +19,10 @@ function! neomake#makers#clippy#clippy() abort
     if !exists('s:rustup_has_nightly') || s:rustup_has_nightly == -1
         if !executable('rustup')
             let s:rustup_has_nightly = 0
+            call system('rustc --version | grep -q "\-nightly"')
+            if v:shell_error
+                call neomake#utils#LoudMessage('Clippy requires a nightly rust installation.')
+            endif
         else
             call system('rustup show | grep -q "^nightly-"')
             let s:rustup_has_nightly = !v:shell_error
