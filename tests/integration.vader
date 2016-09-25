@@ -119,7 +119,7 @@ Execute (NeomakeSh: handle unfinished output on exit):
       if len(g:neomake_test_countschanged) == 1
         break
       endif
-      sleep 10m
+      sleep 100m
     endfor
     AssertNotEqual i, 10, "counts should have changed after 1s"
     NeomakeTestsWaitForFinishedJobs
@@ -134,8 +134,8 @@ Execute (NeomakeSh: project: handle removed window on exit):
   NeomakeSh sh -c 'sleep 0.5; echo finished'
   quit
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
+  AssertEqual len(g:neomake_test_finished), 1
 
 Execute (NeomakeInfo):
   Save g:neomake_c_enabled_makers
@@ -149,6 +149,7 @@ Execute (NeomakeInfo):
   AssertEqual filter(copy(info), "v:val =~ 'neomaker'"), []
 
 Execute (Having an invalid &errorformat is OK):
+  Save &errorformat
   let &efm = '%E%W'
   NeomakeSh sh -c 'true'
 
