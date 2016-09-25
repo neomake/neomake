@@ -1,0 +1,11 @@
+Include: _setup.vader
+
+Execute (neomake#signs#HlexistsAndIsNotCleared):
+  AssertEqual neomake#signs#HlexistsAndIsNotCleared('Error'), 1
+  AssertEqual neomake#signs#HlexistsAndIsNotCleared('NeomakeCustomHilight'), 0
+  hi clear NeomakeCustomHilight
+  AssertEqual neomake#signs#HlexistsAndIsNotCleared('NeomakeCustomHilight'), 0
+  hi link NeomakeCustomHilight Error
+  AssertEqual neomake#signs#HlexistsAndIsNotCleared('NeomakeCustomHilight'), 1
+  hi link NeomakeCustomHilight NONE
+  AssertEqual neomake#signs#HlexistsAndIsNotCleared('NeomakeCustomHilight'), 0

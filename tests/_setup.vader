@@ -13,10 +13,13 @@ After:
   else
     unlet g:neomake_verbose
   endif
+  Restore
 
 Execute:
   function! s:wait_for_finished_jobs()
-    while len(neomake#GetJobs()) | sleep 10m | endwhile
+    while len(neomake#GetJobs())
+      sleep 10m
+    endwhile
   endfunction
   command! NeomakeTestsWaitForFinishedJobs call s:wait_for_finished_jobs()
 
@@ -33,8 +36,36 @@ Execute:
   endfunction
 
   function! g:NeomakeTestsGetMessages()
-    redir => m
-    silent mess
-    redir END
-    return split(m, '\n')
+    return split(neomake#utils#redir('mess'), '\n')
+  endfunction
+
+  let s:tempname = tempname()
+
+  function! g:NeomakeTestsEnsureExe(name)
+    if executable(a:name)
+      return
+    endif
+    let path_separator = exists('+shellslash') ? ';' : ':'
+    let dir_separator = exists('+shellslash') ? '\' : '/'
+    let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
+    if $PATH !~# tmpbindir . path_separator
+      call mkdir(tmpbindir, 'p', 0770)
+      let $PATH = tmpbindir . ':' . $PATH
+    endif
+    let exe = tmpbindir.dir_separator.a:name
+    if !filereadable(exe)
+      " XXX: this is dirty (for 'Test Neomake on errors.sh with two makers').
+      if a:name == 'shellcheck'
+        call writefile(['#!/bin/sh', 'echo $1:1:1: warning: this is just a stub'], exe)
+      else
+        call writefile([], exe)
+      endif
+      if exists('*setfperm')
+        call setfperm(exe, "rwxrwx---")
+      else
+        " XXX: Windows support
+        call system('chmod 770 '.shellescape(exe))
+      endif
+    endif
+    Log exe
   endfunction

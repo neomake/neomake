@@ -6,6 +6,7 @@ function! neomake#utils#LogMessage(level, msg) abort
     let logfile = get(g:, 'neomake_logfile')
     let msg ='Neomake: '.a:msg  " .' ('.a:level.')'
     if verbose >= a:level
+        redraw
         if a:level ==# 0
             echohl ErrorMsg
         endif
@@ -13,6 +14,9 @@ function! neomake#utils#LogMessage(level, msg) abort
         if a:level ==# 0
             echohl None
         endif
+    endif
+    if exists(':Log') == 2
+        Log a:msg
     endif
     if type(logfile) ==# type('') && len(logfile)
         let date = strftime('%Y-%m-%dT%H:%M:%S%z')
@@ -68,7 +72,7 @@ function! neomake#utils#WideMessage(msg) abort " {{{2
     "convert tabs to spaces so that the tabs count towards the window
     "width as the proper amount of characters
     let chunks = split(msg, "\t", 1)
-    let msg = join(map(chunks[:-2], 'v:val . repeat(" ", &tabstop - strwidth(v:val) % &tabstop)'), '') . chunks[-1]
+    let msg = join(map(chunks[:-2], "v:val . repeat(' ', &tabstop - strwidth(v:val) % &tabstop)"), '') . chunks[-1]
     let msg = strpart(msg, 0, &columns - 1)
 
     set noruler noshowcmd
@@ -174,6 +178,43 @@ function! neomake#utils#GetSortedFiletypes(ft) abort
     return sort(split(a:ft, '\.'), function('CompareFiletypes'))
 endfunction
 
+" Get a setting by key, based on filetypes, from the buffer or global
+" namespace, defaulting to default.
+function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
+  if len(a:fts)
+    for ft in a:fts
+      " Look through the neomake setting override vars for a filetype maker,
+      " like neomake_scss_sasslint_exe (should be a string), and 
+      " neomake_scss_sasslint_args (should be a list)
+      let config_var = 'neomake_'.ft.'_'.a:maker.name.'_'.a:key
+      if has_key(g:, config_var)
+            \ || !empty(getbufvar(a:bufnr, config_var))
+        break
+      endif
+    endfor
+  else
+    " Following this, we're checking the neomake overrides for global makers
+    let config_var = 'neomake_'.a:maker.name.'_'.a:key
+  endif
+  if !empty(getbufvar(a:bufnr, config_var))
+    return copy(getbufvar(a:bufnr, config_var))
+  elseif has_key(g:, config_var)
+    return copy(get(g:, config_var))
+  elseif has_key(a:maker, a:key)
+    return a:maker[a:key]
+  endif
+  " Look for 'neomake_'.key in the buffer and global namespace.
+  let bufvar = getbufvar(a:bufnr, 'neomake_'.a:key)
+  if !empty(bufvar)
+      return bufvar
+  endif
+  let var = get(g:, 'neomake_'.a:key)
+  if !empty(var)
+      return var
+  endif
+  return a:default
+endfunction
+
 " Get property from highlighting group.
 function! neomake#utils#GetHighlight(group, what) abort
   let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
@@ -198,4 +239,34 @@ function! neomake#utils#GetHighlight(group, what) abort
     let val = 'NONE'
   endif
   return val
+endfunction
+
+function! neomake#utils#CompressWhitespace(entry) abort
+    let text = a:entry.text
+    let text = substitute(text, "\001", '', 'g')
+    let text = substitute(text, '\n', ' ', 'g')
+    let text = substitute(text, '\m\s\{2,}', ' ', 'g')
+    let text = substitute(text, '\m^\s\+', '', '')
+    let text = substitute(text, '\m\s\+$', '', '')
+    let a:entry.text = text
+endfunction
+
+function! neomake#utils#redir(cmd) abort
+    if exists('*execute')
+        return execute(a:cmd)
+    endif
+    if type(a:cmd) == type([])
+        let r = ''
+        for cmd in a:cmd
+            let r .= neomake#utils#redir(cmd)
+        endfor
+        return r
+    endif
+    redir => neomake_redir
+    try
+        silent exe a:cmd
+    finally
+        redir END
+    endtry
+    return neomake_redir
 endfunction

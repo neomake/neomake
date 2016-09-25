@@ -1,0 +1,49 @@
+" Based on https://github.com/tweekmonster/braceless.vim/blob/master/test/vim/vimrc
+" TODO: provide this by default in the Docker image already?!  e.g. /vimrc?!
+
+if filereadable('/rtp.vim')
+  " Dockerized tests.
+  source /rtp.vim
+else
+  set runtimepath+=tests/vim/plugins/vader
+  set runtimepath+=.
+endif
+
+filetype plugin indent on
+
+augroup ssshhhhhh
+  autocmd VimEnter * set visualbell t_vb=
+  autocmd GUIEnter * set visualbell t_vb=
+augroup END
+
+set nocompatible
+syntax on
+set number
+set background=dark
+set colorcolumn=80
+set showcmd
+set lazyredraw
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+set backspace=2
+set nofoldenable
+set foldmethod=syntax
+set foldlevelstart=10
+set foldnestmax=10
+set ttimeoutlen=0
+set cmdheight=5
+set textwidth=79
+" set hidden
+set splitbelow  " Easier for window numbers (incrementing).
+
+
+set debug=msg,throw
+
+let mapleader=','
+
+let g:neomake_verbose = 3
+
+" No '-- More --' prompt, which would hang Travis.
+set nomore

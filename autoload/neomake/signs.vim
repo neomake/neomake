@@ -15,10 +15,6 @@ function! s:InitSigns() abort
         \ 'project': {},
         \ 'file': {}
         \ }
-    let s:sign_queue = {
-        \ 'project': {},
-        \ 'file': {}
-        \ }
     let s:neomake_sign_id = {
         \ 'project': {},
         \ 'file': {}
@@ -27,7 +23,7 @@ endfunction
 call s:InitSigns()
 
 " Reset signs placed by a :Neomake! call
-" (resettting signs means the current signs will be deleted on the next call to ResetProject)
+" (resetting signs means the current signs will be deleted on the next call to ResetProject)
 function! neomake#signs#ResetProject() abort
     let s:sign_queue.project = {}
     for buf in keys(s:placed_signs.project)
@@ -220,12 +216,11 @@ function! neomake#signs#RedefineInfoSign(...) abort
 endfunction
 
 
-function! s:hlexists_and_is_not_cleared(group) abort
+function! neomake#signs#HlexistsAndIsNotCleared(group) abort
     if !hlexists(a:group)
-        return 1
+        return 0
     endif
-    redir => hlstatus | exec 'silent hi ' . a:group | redir END
-    return hlstatus !~# 'cleared'
+    return neomake#utils#redir('hi '.a:group) !~# 'cleared'
 endfunction
 
 
@@ -254,7 +249,7 @@ function! neomake#signs#DefineHighlights() abort
                 \ })
         let [ctermfg, guifg] = fgs
         exe 'hi '.group.'Default ctermfg='.ctermfg.' guifg='.guifg.' '.bg
-        if !s:hlexists_and_is_not_cleared(group)
+        if !neomake#signs#HlexistsAndIsNotCleared(group)
             exe 'hi link '.group.' '.group.'Default'
         endif
     endfor

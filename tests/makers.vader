@@ -1,0 +1,14 @@
+Include: _setup.vader
+
+Execute (Run EnabledMakers for all filetype makers):
+  " This is meant to catch issues like https://github.com/neomake/neomake/pull/555.
+  let glob_args = [fnamemodify(g:vader_file, ':p:h')
+                 \ .'/../autoload/neomake/makers/ft/*.vim', 1, 1]
+  " NOTE: not using a list to support older Vim (on Travis).
+  let ft_makers = split(call('glob', glob_args[0:-2]), '\n')
+
+  for maker_file in ft_makers
+    let ft = fnamemodify(maker_file, ':t:r')
+    let enabled = call('neomake#makers#ft#'.ft.'#EnabledMakers', [])
+"     Log ft.': '.string(enabled)
+  endfor

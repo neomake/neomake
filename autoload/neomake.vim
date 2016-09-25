@@ -33,12 +33,14 @@ endfunction
 
 function! neomake#CancelJob(job_id) abort
     if has_key(s:jobs, a:job_id)
-        call jobstop(s:jobs[a:job_id])
+        call jobstop(a:job_id)
+        return 1
     endif
+    return 0
 endfunction
 
 function! s:GetMakerKey(maker) abort
-    return has_key(a:maker, 'name') ? a:maker.name.' ft='.a:maker.ft : 'makeprg'
+    return a:maker.name.',ft='.a:maker.ft.',buf='.a:maker.bufnr
 endfunction
 
 function! s:gettabwinvar(t, w, v, d) abort
@@ -231,24 +233,10 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         \ 'buffer_output': 0,
         \ 'remove_invalid_entries': 1
         \ }
-    for key in keys(defaults)
-        if len(fts)
-            for ft in fts
-                let config_var = 'neomake_'.ft.'_'.maker.name.'_'.key
-                if has_key(g:, config_var) || has_key(b:, config_var)
-                    break
-                endif
-            endfor
-        else
-            let config_var = 'neomake_'.maker.name.'_'.key
-        endif
-        if has_key(b:, config_var)
-            let maker[key] = copy(get(b:, config_var))
-        elseif has_key(g:, config_var)
-            let maker[key] = copy(get(g:, config_var))
-        elseif !has_key(maker, key)
-            let maker[key] = defaults[key]
-        endif
+    let bufnr = bufnr('%')
+    for [key, default] in items(defaults)
+        let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
+        unlet! default  " workaround for old Vim (7.3.429)
     endfor
     if exists('real_ft')
         let maker.ft = real_ft
@@ -273,9 +261,7 @@ function! neomake#GetMakers(ft) abort
         catch /^Vim\%((\a\+)\)\=:E117/
             continue
         endtry
-        redir => funcs_output
-        exe 'silent fun /neomake#makers#ft#'.ft.'#\l'
-        redir END
+        let funcs_output = neomake#utils#redir('fun /neomake#makers#ft#'.ft.'#\l')
         for maker_name in map(split(funcs_output, '\n'),
                     \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')")
             let c = get(makers_count, maker_name, 0)
@@ -363,9 +349,8 @@ function! s:Make(options, ...) abort
         if file_mode
             call neomake#utils#DebugMessage('Nothing to make: no enabled makers.')
             return []
-        else
-            let enabled_makers = ['makeprg']
         endif
+        let enabled_makers = ['makeprg']
     endif
 
     if a:0
@@ -387,11 +372,18 @@ function! s:Make(options, ...) abort
                     \ 'bufnr': buf})
     endif
 
-    if file_mode
-        lgetexpr ''
-    else
-        cgetexpr ''
-    endif
+    " Empty the quickfix/location list (using a valid 'errorformat' setting).
+    let l:efm = &efm
+    try
+        let &efm = '%-G'
+        if file_mode
+            lgetexpr ''
+        else
+            cgetexpr ''
+        endif
+    finally
+        let &efm = l:efm
+    endtry
     call s:HandleLoclistQflistDisplay(file_mode)
 
     if !get(a:options, 'continuation')
@@ -415,11 +407,11 @@ function! s:Make(options, ...) abort
         if maker == {}
             continue
         endif
-        let maker.file_mode = file_mode
-        if file_mode
-            let maker.bufnr = bufnr('%')
-            let maker.winnr = winnr()
-        endif
+        call extend(maker, {
+                    \ 'file_mode': file_mode,
+                    \ 'bufnr': buf,
+                    \ 'winnr': win,
+                    \ }, 'error')
         let maker_key = s:GetMakerKey(maker)
         if has_key(s:jobs_by_maker, maker_key)
             let jobinfo = s:jobs_by_maker[maker_key]
@@ -875,4 +867,38 @@ function! neomake#Sh(sh_command, ...) abort
     let custom_maker.remove_invalid_entries = 0
     let options.enabled_makers = [custom_maker]
     return get(s:Make(options), 0, 0)
+endfunction
+
+function! neomake#DisplayInfo() abort
+    let ft = &filetype
+    echo '#### Neomake debug information'
+    echo 'Async support: '.neomake#has_async_support()
+    echo 'Current filetype: '.ft
+    echo "\n"
+    echo '##### Enabled makers'
+    echo 'For the current filetype (with :Neomake): '
+                \ .string(neomake#GetEnabledMakers(ft))
+    if empty(ft)
+        echo 'NOTE: the current buffer does not have a filetype.'
+    else
+        echo 'NOTE: you can define g:neomake_'.ft.'_enabled_makers'
+                    \ .' to configure it (or b:neomake_'.ft.'_enabled_makers).'
+    endif
+    echo 'For the project (with :Neomake!): '
+                \ .string(neomake#GetEnabledMakers())
+    echo 'NOTE: you can define g:neomake_enabled_makers to configure it.'
+    echo "\n"
+    echo '##### Settings'
+    for [k, v] in items(filter(copy(g:), "v:key =~# '^neomake_'"))
+        echo 'g:'.k.' = '.string(v)
+        unlet! v  " Fix variable type mismatch with Vim 7.3.
+    endfor
+    if &verbose
+        echo "\n"
+        echo '#### :version'
+        version
+        echo "\n"
+        echo '#### :messages'
+        messages
+    endif
 endfunction
