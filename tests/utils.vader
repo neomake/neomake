@@ -43,3 +43,7 @@ Execute (neomake#utils#GetSetting):
   AssertEqual GetSetting(), 2
   let b:neomake_myft_mymaker_serialize = 1
   AssertEqual GetSetting(), 1
+  let g:neomake_myft_mymaker_serialize = [ 'global', 'shallow', 'list' ]
+  AssertEqual GetSetting(), [ 'global', 'shallow', 'list' ]
+  let b:neomake_myft_mymaker_serialize = [ 'buffer', 'shallow', 'list' ]
+  AssertEqual GetSetting(), [ 'buffer', 'shallow', 'list' ]
