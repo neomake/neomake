@@ -247,3 +247,23 @@ function! neomake#utils#CompressWhitespace(entry) abort
     let text = substitute(text, '\m\s\+$', '', '')
     let a:entry.text = text
 endfunction
+
+function! neomake#utils#redir(cmd) abort
+    if exists('*execute')
+        return execute(a:cmd)
+    endif
+    if type(a:cmd) == type([])
+        let r = ''
+        for cmd in a:cmd
+            let r .= neomake#utils#redir(cmd)
+        endfor
+        return r
+    endif
+    redir => neomake_redir
+    try
+        silent exe a:cmd
+    finally
+        redir END
+    endtry
+    return neomake_redir
+endfunction

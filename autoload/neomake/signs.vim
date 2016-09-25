@@ -220,8 +220,7 @@ function! neomake#signs#HlexistsAndIsNotCleared(group) abort
     if !hlexists(a:group)
         return 0
     endif
-    redir => hlstatus | exec 'silent hi ' . a:group | redir END
-    return hlstatus !~# 'cleared'
+    return neomake#utils#redir('hi '.a:group) !~# 'cleared'
 endfunction
 
 
