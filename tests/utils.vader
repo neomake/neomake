@@ -25,7 +25,7 @@ Execute (neomake#utils#CompressWhitespace):
   AssertEqual F("foo\nbar "), 'foo bar'
   AssertEqual F("foo\n bar "), 'foo bar'
 
-Execute (neomake#utils#GetSetting):
+Execute (neomake#utils#GetSetting serialize):
   let g:maker = {'name': 'mymaker'}
   function! GetSetting()
     return neomake#utils#GetSetting('serialize', g:maker, 'default',
@@ -43,7 +43,15 @@ Execute (neomake#utils#GetSetting):
   AssertEqual GetSetting(), 2
   let b:neomake_myft_mymaker_serialize = 1
   AssertEqual GetSetting(), 1
-  let g:neomake_myft_mymaker_serialize = [ 'global', 'shallow', 'list' ]
+
+Execute (neomake#utils#GetSetting accepts lists):
+  let g:maker = {'name': 'mymaker'}
+  function! GetSetting()
+    return neomake#utils#GetSetting('args', g:maker, 'default',
+                                  \ ['myft'], bufnr('%'))
+  endfunction
+
+  let g:neomake_myft_mymaker_args = [ 'global', 'shallow', 'list' ]
   AssertEqual GetSetting(), [ 'global', 'shallow', 'list' ]
-  let b:neomake_myft_mymaker_serialize = [ 'buffer', 'shallow', 'list' ]
+  let b:neomake_myft_mymaker_args = [ 'buffer', 'shallow', 'list' ]
   AssertEqual GetSetting(), [ 'buffer', 'shallow', 'list' ]
