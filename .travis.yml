@@ -39,6 +39,7 @@ matrix:
     # There are currently 3 remaining issues with the java maker.
     # Ref: https://github.com/neomake/neomake/issues/569
     - env: ENV=vimlint-errors
+  fast_finish: true
 
 install:
   - |
