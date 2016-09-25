@@ -22,12 +22,12 @@ endfunction
 
 function! neomake#makers#ft#haskell#EnabledMakers()
     " cache whether each maker is available, to avoid lots of (UI blocking) system calls...the user must restart vim if a maker's availability changes
-    if !exists("s:makers")
+    if !exists('s:makers')
         let commands = ['ghc-mod', 'hdevtools', 'hlint', 'liquid']
         let s:makers = []
         for command in commands
             if neomake#makers#ft#haskell#MakerAvailable(command)
-                call add(s:makers, substitute(command, "-", "", "g"))
+                call add(s:makers, substitute(command, '-', '', 'g'))
             endif
         endfor
     endif
