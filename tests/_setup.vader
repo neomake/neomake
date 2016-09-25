@@ -36,10 +36,7 @@ Execute:
   endfunction
 
   function! g:NeomakeTestsGetMessages()
-    redir => m
-    silent mess
-    redir END
-    return split(m, '\n')
+    return split(neomake#utils#redir('mess'), '\n')
   endfunction
 
   let s:tempname = tempname()

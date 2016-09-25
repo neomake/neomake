@@ -261,9 +261,7 @@ function! neomake#GetMakers(ft) abort
         catch /^Vim\%((\a\+)\)\=:E117/
             continue
         endtry
-        redir => funcs_output
-        exe 'silent fun /neomake#makers#ft#'.ft.'#\l'
-        redir END
+        let funcs_output = neomake#utils#redir('fun /neomake#makers#ft#'.ft.'#\l')
         for maker_name in map(split(funcs_output, '\n'),
                     \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')")
             let c = get(makers_count, maker_name, 0)
