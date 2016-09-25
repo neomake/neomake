@@ -1,5 +1,8 @@
 " vim: ts=4 sw=4 et
 
+" Yet to be determined
+let s:rustup_has_nightly = -1
+
 function! neomake#makers#clippy#clippy() abort
     let errorfmt = '%Eerror[E%n]: %m,'.
                  \ '%Eerror: %m,'.
@@ -13,7 +16,7 @@ function! neomake#makers#clippy#clippy() abort
     " When rustup and a nightly toolchain is installed, that is used.
     " Otherwise, the default cargo exectuable is used. If this is not part
     " of a nightly rust, this will fail.
-    if !exists('s:rustup_has_nightly')
+    if !exists('s:rustup_has_nightly') || s:rustup_has_nightly == -1
         if !executable('rustup')
             let s:rustup_has_nightly = 0
         else
