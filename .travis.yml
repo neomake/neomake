@@ -18,7 +18,10 @@ before_cache:
 
 env:
   matrix:
-    - ENV=docker_test_all
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-trusty
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-xenial
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
     - ENV=vint-diff
     - ENV=vint-errors
     - ENV=vimlint-errors
@@ -34,7 +37,7 @@ matrix:
     - env: ENV=vimlint
     - env: ENV=vint
     # There are currently 3 remaining issues with the java maker.
-    # Ref: https://github.com/neomake/neomake/pull/437
+    # Ref: https://github.com/neomake/neomake/issues/569
     - env: ENV=vimlint-errors
 
 install:
@@ -79,6 +82,8 @@ script:
         fi
       fi
     else
-      vim --version
-      make $ENV
+      if [[ "$ENV" = "testvim" ]]; then
+        vim --version
+      fi
+      make $ENV $MAKE_ARGS
     fi
