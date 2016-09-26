@@ -10,4 +10,5 @@ FROM neomake/vim-testbed:latest
 RUN install_vim -tag v7.3.429 -name vim73 -build \
                 -tag v7.4.052 -name vim74-trusty -build \
                 -tag v7.4.1689 -name vim74-xenial -build \
+                -tag v8.0.0000 -name vim8000 -build \
                 -tag master -build

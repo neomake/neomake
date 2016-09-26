@@ -86,7 +86,7 @@ docker_image:
 docker_push:
 	docker push $(DOCKER_IMAGE)
 
-DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim-master
+DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8000 vim-master
 _DOCKER_VIM_TARGETS:=$(addprefix docker_test-,$(DOCKER_VIMS))
 
 docker_test_all: $(_DOCKER_VIM_TARGETS)
