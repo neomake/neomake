@@ -1,5 +1,5 @@
 
-function! neomake#makers#ft#haskell#MakerAvailable(command)
+function! neomake#makers#ft#haskell#MakerAvailable(command) abort
     " stack may be able to find a maker binary that's not on the normal path
     " so check for that first
     if executable('stack')
@@ -17,18 +17,18 @@ function! neomake#makers#ft#haskell#MakerAvailable(command)
     endif
 endfunction
 
-function! neomake#makers#ft#haskell#EnabledMakers()
+function! neomake#makers#ft#haskell#EnabledMakers() abort
     let commands = ['ghc-mod', 'hdevtools', 'hlint', 'liquid']
     let makers = []
     for command in commands
         if neomake#makers#ft#haskell#MakerAvailable(command)
-            call add(makers, substitute(command, "-", "", "g"))
+            call add(makers, substitute(command, '-', '', 'g'))
         endif
     endfor
     return makers
 endfunction
 
-function! neomake#makers#ft#haskell#TryStack(maker)
+function! neomake#makers#ft#haskell#TryStack(maker) abort
     if executable('stack')
         if !has_key(a:maker, 'stackexecargs')
             let a:maker['stackexecargs'] = []
@@ -39,7 +39,7 @@ function! neomake#makers#ft#haskell#TryStack(maker)
     return a:maker
 endfunction
 
-function! neomake#makers#ft#haskell#hdevtools()
+function! neomake#makers#ft#haskell#hdevtools() abort
     let mapexpr = 'substitute(substitute(v:val, " \\{2,\\}", " ", "g"), "`", "''", "g")'
     return neomake#makers#ft#haskell#TryStack({
         \ 'exe': 'hdevtools',
@@ -58,7 +58,7 @@ function! neomake#makers#ft#haskell#hdevtools()
         \ })
 endfunction
 
-function! neomake#makers#ft#haskell#ghcmod()
+function! neomake#makers#ft#haskell#ghcmod() abort
     " This filters out newlines, which is what neovim gives us instead of the
     " null bytes that ghc-mod sometimes spits out.
     let mapexpr = 'substitute(v:val, "\n", "", "g")'
@@ -78,9 +78,17 @@ function! neomake#makers#ft#haskell#ghcmod()
         \ })
 endfunction
 
-function! neomake#makers#ft#haskell#hlint()
+function! neomake#makers#ft#haskell#HlintEntryProcess(entry) abort
+    " Postprocess hlint output to make it more readable as a single line
+    let a:entry.text = substitute(a:entry.text, '\v(Found:)\s*\n', ' | \1', 'g')
+    let a:entry.text = substitute(a:entry.text, '\v(Why not:)\s*\n', ' | \1', 'g')
+    call neomake#utils#CompressWhitespace(a:entry)
+endfunction
+
+function! neomake#makers#ft#haskell#hlint() abort
     return neomake#makers#ft#haskell#TryStack({
         \ 'exe': 'hlint',
+        \ 'postprocess': function('neomake#makers#ft#haskell#HlintEntryProcess'),
         \ 'args': [],
         \ 'errorformat':
             \ '%E%f:%l:%v: Error: %m,' .
@@ -90,7 +98,7 @@ function! neomake#makers#ft#haskell#hlint()
         \ })
 endfunction
 
-function! neomake#makers#ft#haskell#liquid()
+function! neomake#makers#ft#haskell#liquid() abort
     let mapexpr = 'substitute(substitute(v:val, " \\{2,\\}", " ", "g"), "`", "''", "g")'
     return neomake#makers#ft#haskell#TryStack({
       \ 'exe': 'liquid',
