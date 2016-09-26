@@ -274,6 +274,8 @@ Tex/Latex:
 
 - chktex
 - lacheck
+- rubberinfo
+- [proselint](http://proselint.com)
 
 TypeScript:
 
