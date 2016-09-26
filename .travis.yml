@@ -21,6 +21,7 @@ env:
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-trusty
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-xenial
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8000
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
     - ENV=vint-diff
     - ENV=vint-errors
