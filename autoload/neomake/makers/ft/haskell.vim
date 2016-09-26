@@ -22,7 +22,7 @@ function! neomake#makers#ft#haskell#EnabledMakers()
     let makers = []
     for command in commands
         if neomake#makers#ft#haskell#MakerAvailable(command)
-            call add(makers, substitute(command, "-", "", "g"))
+            call add(makers, substitute(command, '-', '', 'g'))
         endif
     endfor
     return makers
