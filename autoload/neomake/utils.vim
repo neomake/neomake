@@ -16,7 +16,7 @@ function! neomake#utils#LogMessage(level, msg) abort
         endif
     endif
     if exists(':Log') == 2
-        Log a:msg
+        Log msg
     endif
     if type(logfile) ==# type('') && len(logfile)
         let date = strftime('%Y-%m-%dT%H:%M:%S%z')
