@@ -1,6 +1,6 @@
+unlet! s:makers
 
-function! neomake#makers#ft#haskell#MakerAvailable(command)
-    let s:stack_is_executable = 0
+function! s:MakerAvailable(command)
     " stack may be able to find a maker binary that's not on the normal path
     " so check for that first
     if executable('stack')
@@ -12,7 +12,6 @@ function! neomake#makers#ft#haskell#MakerAvailable(command)
             return 0
         endif
         " cache whether stack is available, to avoid lots of (UI blocking) system calls...the user must restart vim if stack's availability changes
-        let s:stack_is_executable = 1
     elseif executable(a:command) " stack isn't available, so check for the maker binary directly
         return 1
     else
@@ -26,7 +25,7 @@ function! neomake#makers#ft#haskell#EnabledMakers()
         let commands = ['ghc-mod', 'hdevtools', 'hlint', 'liquid']
         let s:makers = []
         for command in commands
-            if neomake#makers#ft#haskell#MakerAvailable(command)
+            if s:MakerAvailable(command)
                 call add(s:makers, substitute(command, '-', '', 'g'))
             endif
         endfor
@@ -35,7 +34,7 @@ function! neomake#makers#ft#haskell#EnabledMakers()
 endfunction
 
 function! neomake#makers#ft#haskell#TryStack(maker)
-    if s:stack_is_executable
+    if executable('stack')
         if !has_key(a:maker, 'stackexecargs')
             let a:maker['stackexecargs'] = []
         endif
