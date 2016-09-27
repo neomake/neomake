@@ -11,7 +11,6 @@ function! s:MakerAvailable(command)
         else " if stack cannot find the maker command, its not available anywhere
             return 0
         endif
-        " cache whether stack is available, to avoid lots of (UI blocking) system calls...the user must restart vim if stack's availability changes
     elseif executable(a:command) " stack isn't available, so check for the maker binary directly
         return 1
     else
