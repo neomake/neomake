@@ -234,8 +234,13 @@ Ruby:
 Rust:
 
 - rustc
-- cargo (call with `Neomake! cargo`)
-- [clippy](https://github.com/Manishearth/rust-clippy) (call with `Neomake! clippy`, needs nightly rust, supports [rustup](https://github.com/rust-lang-nursery/rustup.rs))
+- [cargo](https://github.com/rust-lang/cargo) -- This maker should be run
+  explicitly using the command `:Neomake! cargo` since it is used to compile
+  projects and install Rust dependencies.
+- [clippy](https://github.com/Manishearth/rust-clippy) -- This maker should be
+  run explicitly using the command `:Neomake! clippy`. It needs a nightly
+  build of Rust, and supports
+  [rustup](https://github.com/rust-lang-nursery/rustup.rs).
 
 Scala:
 
