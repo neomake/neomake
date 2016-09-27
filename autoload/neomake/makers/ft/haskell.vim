@@ -32,7 +32,7 @@ function! neomake#makers#ft#haskell#EnabledMakers()
     return s:makers
 endfunction
 
-function! neomake#makers#ft#haskell#TryStack(maker)
+function! s:TryStack(maker)
     if executable('stack')
         if !has_key(a:maker, 'stackexecargs')
             let a:maker['stackexecargs'] = []
@@ -45,7 +45,7 @@ endfunction
 
 function! neomake#makers#ft#haskell#hdevtools()
     let mapexpr = 'substitute(substitute(v:val, " \\{2,\\}", " ", "g"), "`", "''", "g")'
-    return neomake#makers#ft#haskell#TryStack({
+    return s:TryStack({
         \ 'exe': 'hdevtools',
         \ 'args': ['check', '-g-Wall'],
         \ 'stackexecargs': ['--no-ghc-package-path'],
@@ -66,7 +66,7 @@ function! neomake#makers#ft#haskell#ghcmod()
     " This filters out newlines, which is what neovim gives us instead of the
     " null bytes that ghc-mod sometimes spits out.
     let mapexpr = 'substitute(v:val, "\n", "", "g")'
-    return neomake#makers#ft#haskell#TryStack({
+    return s:TryStack({
         \ 'exe': 'ghc-mod',
         \ 'args': ['check'],
         \ 'mapexpr': mapexpr,
@@ -83,7 +83,7 @@ function! neomake#makers#ft#haskell#ghcmod()
 endfunction
 
 function! neomake#makers#ft#haskell#hlint()
-    return neomake#makers#ft#haskell#TryStack({
+    return s:TryStack({
         \ 'exe': 'hlint',
         \ 'args': [],
         \ 'errorformat':
@@ -96,7 +96,7 @@ endfunction
 
 function! neomake#makers#ft#haskell#liquid()
     let mapexpr = 'substitute(substitute(v:val, " \\{2,\\}", " ", "g"), "`", "''", "g")'
-    return neomake#makers#ft#haskell#TryStack({
+    return s:TryStack({
       \ 'exe': 'liquid',
       \ 'args': [],
       \ 'mapexpr': mapexpr,
