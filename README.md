@@ -110,6 +110,9 @@ For more detailed documentation, especially regarding configuration, please
 refer to the [plugin's help](https://github.com/neomake/neomake/tree/master/doc/neomake.txt)
 (`:h neomake.txt`).
 
+For supplemental information on makers, check out the
+[Makers page in the wiki](https://github.com/neomake/neomake/wiki/Makers)
+
 # Contributing
 
 If you find this plugin useful, please contribute your maker recipes to the
