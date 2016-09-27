@@ -1,5 +1,6 @@
+unlet! s:makers
 
-function! neomake#makers#ft#haskell#MakerAvailable(command)
+function! s:MakerAvailable(command)
     " stack may be able to find a maker binary that's not on the normal path
     " so check for that first
     if executable('stack')
@@ -10,7 +11,7 @@ function! neomake#makers#ft#haskell#MakerAvailable(command)
         else " if stack cannot find the maker command, its not available anywhere
             return 0
         endif
-    elseif executable(a:command) " stack isn't available, so check for the binary directly
+    elseif executable(a:command) " stack isn't available, so check for the maker binary directly
         return 1
     else
         return 0
@@ -18,17 +19,20 @@ function! neomake#makers#ft#haskell#MakerAvailable(command)
 endfunction
 
 function! neomake#makers#ft#haskell#EnabledMakers()
-    let commands = ['ghc-mod', 'hdevtools', 'hlint', 'liquid']
-    let makers = []
-    for command in commands
-        if neomake#makers#ft#haskell#MakerAvailable(command)
-            call add(makers, substitute(command, "-", "", "g"))
-        endif
-    endfor
-    return makers
+    " cache whether each maker is available, to avoid lots of (UI blocking) system calls...the user must restart vim if a maker's availability changes
+    if !exists('s:makers')
+        let commands = ['ghc-mod', 'hdevtools', 'hlint', 'liquid']
+        let s:makers = []
+        for command in commands
+            if s:MakerAvailable(command)
+                call add(s:makers, substitute(command, '-', '', 'g'))
+            endif
+        endfor
+    endif
+    return s:makers
 endfunction
 
-function! neomake#makers#ft#haskell#TryStack(maker)
+function! s:TryStack(maker)
     if executable('stack')
         if !has_key(a:maker, 'stackexecargs')
             let a:maker['stackexecargs'] = []
@@ -41,7 +45,7 @@ endfunction
 
 function! neomake#makers#ft#haskell#hdevtools()
     let mapexpr = 'substitute(substitute(v:val, " \\{2,\\}", " ", "g"), "`", "''", "g")'
-    return neomake#makers#ft#haskell#TryStack({
+    return s:TryStack({
         \ 'exe': 'hdevtools',
         \ 'args': ['check', '-g-Wall'],
         \ 'stackexecargs': ['--no-ghc-package-path'],
@@ -62,7 +66,7 @@ function! neomake#makers#ft#haskell#ghcmod()
     " This filters out newlines, which is what neovim gives us instead of the
     " null bytes that ghc-mod sometimes spits out.
     let mapexpr = 'substitute(v:val, "\n", "", "g")'
-    return neomake#makers#ft#haskell#TryStack({
+    return s:TryStack({
         \ 'exe': 'ghc-mod',
         \ 'args': ['check'],
         \ 'mapexpr': mapexpr,
@@ -79,7 +83,7 @@ function! neomake#makers#ft#haskell#ghcmod()
 endfunction
 
 function! neomake#makers#ft#haskell#hlint()
-    return neomake#makers#ft#haskell#TryStack({
+    return s:TryStack({
         \ 'exe': 'hlint',
         \ 'args': [],
         \ 'errorformat':
@@ -92,7 +96,7 @@ endfunction
 
 function! neomake#makers#ft#haskell#liquid()
     let mapexpr = 'substitute(substitute(v:val, " \\{2,\\}", " ", "g"), "`", "''", "g")'
-    return neomake#makers#ft#haskell#TryStack({
+    return s:TryStack({
       \ 'exe': 'liquid',
       \ 'args': [],
       \ 'mapexpr': mapexpr,
