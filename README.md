@@ -19,15 +19,13 @@ The minimum [Neovim] version supported by Neomake is
 supported by Neomake is 7.4.503 (although if you don't use `g:neomake_logfile`
 older versions will probably work fine as well).
 
-## How to use (basic)
+## Usage
 
-Just set your `makeprg` and `errorformat` as normal, and run:
+### File makers
 
-    :Neomake!
-
-If your `makeprg` can take a filename as an input, then you can run `:Neomake`
-(no exclamation point) to pass the current file as the first argument.
-Otherwise, it is simply invoked in Vim's current directory with no arguments.
+If your `makeprg` should run on the file in the current buffer (like most
+linters, e.g. you would normally type `eslint myfile.js`), then you can use
+`:Neomake`.
 
 Here's an example of how to run Neomake on the current file on every write:
 
@@ -40,7 +38,10 @@ populated in the window's quickfix list for `:Neomake!` and the location
 list for `:Neomake` as the job runs. Run `:copen` or `:lopen` to see the
 whole list.
 
-## How to use (advanced)
+If you want to run a specific maker on the file you can specify the maker's
+name, e.g. `:Neomake jshint`. The maker must be defined for the filetype.
+
+#### Configuration
 
 Taking a page from the book of [syntastic], you can configure "makers" (called
 "checkers" in [syntastic]) for different filetypes. Here is an example
@@ -79,11 +80,35 @@ Once you have created your makers, run `:Neomake` as normal. Run
 filetype to use makers will currently cause the `makeprg` to be ignored (this
 should be remedied).
 
+Refer to the inline documentation `:h neomake.txt` for more.
+
+### Directory makers
+
+Directory makers (these do not require the current filename, e.g. `make` or
+`grunt build`) should be set using Vim's `makeprg` and `errorformat` options.
+Then run the maker using:
+
+    :Neomake!
+
+In constrast to `:Neomake` without the exclamation, this will execute the
+defined maker in Vim's current directory, and will not pass the filename to
+the maker.
+
+If you want to run a specific maker in the current working directory you can
+specify the maker's name, e.g. `:Neomake! clean`. The maker must be defined as
+a directory maker, e.g., for the `clean` example:
+
+```viml
+let g:neomake_make_maker = { 'exe': 'make', 'args': ['clean'] }
+```
+
+Refer to the inline documentation `:h neomake.txt` for more.
+
 ## Plugin documentation
 
-For more detailed documentation please refer to the
-[plugin's help](https://github.com/neomake/neomake/tree/master/doc/neomake.txt)
-(`:h neomake`).
+For more detailed documentation, especially regarding configuration, please
+refer to the [plugin's help](https://github.com/neomake/neomake/tree/master/doc/neomake.txt)
+(`:h neomake.txt`).
 
 ## Included makers
 
