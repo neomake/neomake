@@ -95,11 +95,11 @@ defined maker in Vim's current directory, and will not pass the filename to
 the maker.
 
 If you want to run a specific maker in the current working directory you can
-specify the maker's name, e.g. `:Neomake! clean`. The maker must be defined as
-a directory maker, e.g., for the `clean` example:
+specify the maker's name, e.g. `:Neomake! makeclean`. The maker must be
+defined as a directory maker, e.g., for the `makeclean` example:
 
 ```viml
-let g:neomake_make_maker = { 'exe': 'make', 'args': ['clean'] }
+let g:neomake_makeclean_maker = { 'exe': 'make', 'args': ['clean'] }
 ```
 
 Refer to the inline documentation `:h neomake.txt` for more.
