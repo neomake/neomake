@@ -14,6 +14,6 @@ endfunction
 function! neomake#makers#ft#lua#luac() abort
     return {
         \ 'args': ['-p'],
-        \ 'errorformat': 'luac: %f:%l: %m',
+        \ 'errorformat': '%*\f: %#%f:%l: %m',
         \ }
 endfunction
