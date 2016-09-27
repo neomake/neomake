@@ -3,18 +3,21 @@
 
 # Neomake
 
-Neomake is a plugin for asynchronous `:make` using
-[Neovim's](http://neovim.org/) job-control functionality. It is inspired by
-the excellent Vim plugins [Syntastic](https://github.com/scrooloose/syntastic)
-and [dispatch.vim](https://github.com/tpope/vim-dispatch).
+Neomake is a plugin that asynchronously runs programs using
+[Neovim]'s job-control functionality. It is intended to
+replace Vim's built-in `:make` command and provides functionality similar to
+plugins like [syntastic] and [dispatch.vim]. It is primarily used to run code
+linters and compilers from within Vim, but can be used to run any program.
 
 **This plugin also works in ordinary Vim, but without the asynchronous
 benefits.**
 
-The minimum Neovim version supported by Neomake is `NVIM
-0.0.0-alpha+201503292107` (commit `960b9108c`).
-The minimum Vim version supported by Neomake is 7.4.503 (although if you don't
-use `g:neomake_logfile` older versions will probably work fine as well).
+## Requirements
+
+The minimum [Neovim] version supported by Neomake is
+`NVIM 0.0.0-alpha+201503292107` ([commit 960b9108c]). The minimum Vim version
+supported by Neomake is 7.4.503 (although if you don't use `g:neomake_logfile`
+older versions will probably work fine as well).
 
 ## How to use (basic)
 
@@ -22,7 +25,7 @@ Just set your `makeprg` and `errorformat` as normal, and run:
 
     :Neomake!
 
-If your makeprg can take a filename as an input, then you can run `:Neomake`
+If your `makeprg` can take a filename as an input, then you can run `:Neomake`
 (no exclamation point) to pass the current file as the first argument.
 Otherwise, it is simply invoked in Vim's current directory with no arguments.
 
@@ -39,9 +42,9 @@ whole list.
 
 ## How to use (advanced)
 
-Taking a page from the book of syntastic, you can configure "makers" (called
-"checkers" in syntastic) for different filetypes. Here is an example
-configuration:
+Taking a page from the book of [syntastic], you can configure "makers" (called
+"checkers" in [syntastic]) for different filetypes. Here is an example
+configuration that is already included with this plugin:
 
 ```viml
 let g:neomake_javascript_jshint_maker = {
@@ -54,15 +57,15 @@ let g:neomake_javascript_enabled_makers = ['jshint']
 For use with the `:Neomake` command (makers that run on an individual file), it
 is critical that makers follow this naming convention:
 
-    g:neomake_{ language }_{ makername }_maker
+    g:neomake_{ filetype }_{ makername }_maker
 
-Where `{ language }` is replaced with the name of the language, and
+Where `{ filetype }` is replaced with the name of the filetype, and
 `{ makername }` is replaced with the name that you want your maker to have. If
 your maker does not follow this convention, Neomake will not be able to see
 it, and you will get an error message like `{ makername } not found`.
 
 Explanation for the strings making up the errorformat can be found by typing
-`:h errorformat` in Neovim (or Vim).
+`:h errorformat` in [Neovim] (or Vim).
 
 If the string `'%:p'` shows up anywhere in the `'args'` list, it will be
 `expand()`ed to the full path of the current file in place. Otherwise, the full
@@ -124,7 +127,7 @@ CSS:
 
 D:
 
-- dmd
+- [dmd](https://dlang.org/dmd-linux.html)
 
 Elixir:
 
@@ -172,8 +175,8 @@ JavaScript / ECMAScript:
 - [jscs](http://jscs.info/)
 - jshint
 - jsxhint
-- standard
-- xo
+- [standard](http://standardjs.com/)
+- [xo](https://github.com/sindresorhus/xo)
 
 JSON:
 
@@ -186,7 +189,7 @@ JSX:
 Lua:
 
 - luac
-- luacheck
+- [luacheck](https://github.com/mpeterv/luacheck)
 
 Markdown:
 
@@ -209,7 +212,7 @@ Pug:
 Puppet:
 
 - puppet
-- puppet-lint
+- [puppet-lint](http://puppet-lint.com/)
 
 Python:
 
@@ -227,7 +230,7 @@ Ruby:
 
 - mri
 - jruby
-- rubocop
+- [rubocop](http://batsov.com/rubocop/)
 - reek
 - rubylint
 
@@ -235,7 +238,9 @@ Rust:
 
 - rustc
 - cargo (call with `Neomake! cargo`)
-- [clippy](https://github.com/Manishearth/rust-clippy) (call with `Neomake! clippy`, needs nightly rust, supports [rustup](https://github.com/rust-lang-nursery/rustup.rs))
+- [clippy](https://github.com/Manishearth/rust-clippy) (call with
+  `Neomake! clippy`, needs nightly rust, supports
+  [rustup](https://github.com/rust-lang-nursery/rustup.rs))
 
 Scala:
 
@@ -323,3 +328,7 @@ This is a community driven project, and maintainers are wanted.
 Please contact [@blueyed](https://github.com/blueyed) if you are interested.
 You should have a good profile of issue triaging and PRs on this repo already.
 
+[Neovim]: http://neovim.org/
+[syntastic]: https://github.com/scrooloose/syntastic
+[dispatch.vim]: https://github.com/tpope/vim-dispatch
+[commit 960b9108c]: https://github.com/neovim/neovim/tree/960b9108c2928b6cf0adcabdb829d06996635211
