@@ -8,7 +8,9 @@ let s:spc = g:airline_symbols.space
 
 function! airline#extensions#neomake#apply(...)
     let w:airline_section_warning = get(w:, 'airline_section_warning', g:airline_section_warning)
-    let w:airline_section_warning .= s:spc.'%{neomake#statusline#LoclistStatus()}'
+    let w:airline_section_warning .=
+                \ '%{neomake#statusline#LoclistStatus("'.s:spc.'")}'.
+                \ '%{neomake#statusline#QflistStatus("'.s:spc.'qf:")}'
 endfunction
 
 function! airline#extensions#neomake#init(ext)
