@@ -1,5 +1,12 @@
 function! neomake#makers#ft#text#EnabledMakers()
-    return ['proselint']
+    return ['proselint', 'writegood']
+endfunction
+
+function! neomake#makers#ft#text#writegood()
+    return {
+                \ 'args': ['--parse'],
+                \ 'errorformat': '%f:%l:%c:%m'
+                \ }
 endfunction
 
 function! neomake#makers#ft#text#proselint()
