@@ -12,3 +12,61 @@ Execute (NeomakeTestsEnsureExe creates exe):
   Assert !executable('boobar')
   call g:NeomakeTestsEnsureExe('boobar')
   Assert executable('boobar')
+
+Execute (neomake#utils#CompressWhitespace):
+  function! F(text)
+    let entry = {'text': a:text}
+    call neomake#utils#CompressWhitespace(entry)
+    return entry.text
+  endfunction
+  AssertEqual F('foo'), 'foo'
+  AssertEqual F(' foo'), 'foo'
+  AssertEqual F('foo '), 'foo'
+  AssertEqual F('foo bar '), 'foo bar'
+  AssertEqual F("foo\nbar "), 'foo bar'
+  AssertEqual F("foo\n bar "), 'foo bar'
+
+Execute (neomake#utils#GetSetting serialize):
+  let g:maker = {'name': 'mymaker'}
+  function! GetSetting()
+    return neomake#utils#GetSetting('serialize', g:maker, 'default',
+                                  \ ['myft'], bufnr('%'))
+  endfunction
+
+  AssertEqual GetSetting(), 'default'
+  let g:neomake_serialize = 5
+  AssertEqual GetSetting(), 5
+  let b:neomake_serialize = 4
+  AssertEqual GetSetting(), 4
+  let g:maker.serialize = 3
+  AssertEqual GetSetting(), 3
+  let g:neomake_myft_mymaker_serialize = 2
+  AssertEqual GetSetting(), 2
+  let b:neomake_myft_mymaker_serialize = 1
+  AssertEqual GetSetting(), 1
+
+Execute (neomake#utils#GetSetting accepts lists):
+  let g:maker = {'name': 'mymaker'}
+  function! GetSetting()
+    return neomake#utils#GetSetting('args', g:maker, 'default',
+                                  \ ['myft'], bufnr('%'))
+  endfunction
+
+  let g:neomake_myft_mymaker_args = [ 'global', 'shallow', 'list' ]
+  AssertEqual GetSetting(), [ 'global', 'shallow', 'list' ]
+  let b:neomake_myft_mymaker_args = [ 'buffer', 'shallow', 'list' ]
+  AssertEqual GetSetting(), [ 'buffer', 'shallow', 'list' ]
+
+Execute(neomake#utils#redir):
+  command! NeomakeTestCommand echo 1 | echo 2
+  command! NeomakeTestErrorCommand echoerr 'error'
+  AssertEqual neomake#utils#redir('echon 1'), "1"
+  AssertEqual neomake#utils#redir('echo 1'), "\n1"
+  AssertEqual neomake#utils#redir('NeomakeTestCommand'), "\n1\n2"
+  AssertThrows call neomake#utils#redir('NeomakeTestErrorCommand')
+  if exists('g:vader_exception')
+    " https://github.com/junegunn/vader.vim/issues/86
+    AssertEqual g:vader_exception, 'Vim(echoerr):error'
+  endif
+  AssertEqual neomake#utils#redir(['NeomakeTestCommand', 'echon 3']), "\n1\n23"
+  AssertThrows neomake#utils#redir(['NeomakeTestCommand', 'echoerr 3'])

@@ -1,7 +1,14 @@
-sudo: false
+sudo: true
+services:
+  - docker
+
 language: python
 python:
-  - "3.4"
+  - "3.5"
+
+branches:
+  only:
+    - master
 
 cache:
   pip: true
@@ -11,41 +18,56 @@ before_cache:
 
 env:
   matrix:
-    - ENV=testvim
-    - ENV=testnvim
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-trusty
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-xenial
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
     - ENV=vint-diff
     - ENV=vint-errors
     - ENV=vimlint-errors
+    - ENV=testvim
+    - ENV=testnvim
     - ENV=vint
     - ENV=vimlint
+    - ENV=vimhelplint
 
 matrix:
   allow_failures:
+    - env: ENV=vimhelplint
     - env: ENV=vimlint
     - env: ENV=vint
     # There are currently 3 remaining issues with the java maker.
-    # Ref: https://github.com/neomake/neomake/pull/437
+    # Ref: https://github.com/neomake/neomake/issues/569
     - env: ENV=vimlint-errors
+  fast_finish: true
 
 install:
   - |
     if [ "$ENV" = "vint-diff" ]; then
       # Run full vint against changed files.
+      echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       export CHANGED_VIM_FILES="$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep '\.vim$')"
       if [ -z "$CHANGED_VIM_FILES" ]; then
         echo "No changed .vim files: skipping build."
         ENV=SKIP_BUILD
       fi
-    fi
-    if [ "${ENV#vimlint}" != "$ENV" ]; then
+    elif [ "$ENV" = "vimhelplint" ]; then
+      echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
+      if git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
+        echo "No changed doc files: skipping build."
+        ENV=SKIP_BUILD
+      fi
+    elif [ "${ENV#vimlint}" != "$ENV" ]; then
       git clone --depth=1 https://github.com/syngan/vim-vimlint /tmp/vimlint
       git clone --depth=1 https://github.com/ynkdir/vim-vimlparser /tmp/vimlparser
-    elif [ "${ENV#vint}" != "$ENV" ]; then
+    elif [ "$ENV" = "testnvim" ]; then
+      eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
+    fi
+
+    if [ "${ENV#vint}" != "$ENV" ]; then
       pip install -U pip
       pip install -U wheel
       virtualenv /tmp/vint && source /tmp/vint/bin/activate && pip install vim-vint
-    elif [ "$ENV" = "testnvim" ]; then
-      eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
     fi
 
 script:
@@ -53,7 +75,16 @@ script:
     if [ "$ENV" = "SKIP_BUILD" ]; then
       echo "Skipping build script: see above for any reason."
     elif [ "$ENV" = "vint-diff" ]; then
-      vint $CHANGED_VIM_FILES
+      if [ -n "$CHANGED_VIM_FILES" ]; then
+        vint $CHANGED_VIM_FILES | grep -v '^autoload/neomake/makers/.*Use the abort attribute for functions in autoload'
+        if [ "$?" != 1 ]; then
+          echo "vint-diff found errors."
+          exit 1
+        fi
+      fi
     else
-      make $ENV
+      if [[ "$ENV" = "testvim" ]]; then
+        vim --version
+      fi
+      make $ENV $MAKE_ARGS
     fi

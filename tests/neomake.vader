@@ -14,6 +14,21 @@ Execute (neomake#GetMaker with non-existent maker prints errors):
   AssertEqual neomake#GetMaker('nonexistent'), {}
   AssertEqual g:NeomakeTestsGetMessages()[-1], 'Neomake: Maker not found: nonexistent'
 
+Execute (neomake#GetMaker uses defaults from b:/g:):
+  Save g:neomake_test_remove_invalid_entries
+
+  let maker = {'name': 'test'}
+
+  " Default.
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
+
+  let maker.remove_invalid_entries = 1
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
+  let g:neomake_test_remove_invalid_entries = 2
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 2
+  let b:neomake_test_remove_invalid_entries = 3
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 3
+
 Execute (neomake#Make in file mode with no filetype and no makers):
   AssertEqual &ft, ''
   echom '====='
@@ -25,8 +40,7 @@ Execute (neomake#Make in project mode with no filetype and no makers):
   let &makeprg = 'sh -c "sleep 0.1"'
   echom '====='
   let job_ids = neomake#Make(0, [])
-  if has('nvim')
-    " Vim runs synchronously.
+  if neomake#has_async_support()
     AssertEqual len(job_ids), 1
     let jobs = neomake#GetJobs()
     AssertEqual len(jobs), 1
