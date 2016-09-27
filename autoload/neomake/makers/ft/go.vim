@@ -29,7 +29,7 @@ endfunction
 function! neomake#makers#ft#go#golint()
     return {
         \ 'errorformat':
-            \ '%f:%l:%c: %m,' .
+            \ '%W%f:%l:%c: %m,' .
             \ '%-G%.%#'
         \ }
 endfunction
