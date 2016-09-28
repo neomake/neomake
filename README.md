@@ -223,6 +223,9 @@ Python:
 - [mypy](http://mypy-lang.org/) [not enabled by default]
 - [py3kwarn](https://github.com/liamcurry/py3kwarn) [not enabled by default]
 
+R:
+- [lintr](https://cran.r-project.org/package=lintr)
+
 Ruby:
 
 - mri
