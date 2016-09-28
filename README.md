@@ -84,13 +84,17 @@ Refer to the inline documentation `:h neomake.txt` for more.
 
 ### Directory makers
 
+Also commonly referred to as "Project makers", though they technically run
+from the current working directory only since Vim does not know what
+a "project" is.
+
 Directory makers (these do not require the current filename, e.g. `make` or
 `grunt build`) should be set using Vim's `makeprg` and `errorformat` options.
 Then run the maker using:
 
     :Neomake!
 
-In constrast to `:Neomake` without the exclamation, this will execute the
+In constrast to `:Neomake` (without the exclamation mark), this will execute the
 defined maker in Vim's current directory, and will not pass the filename to
 the maker.
 
@@ -101,6 +105,15 @@ defined as a directory maker, e.g., for the `makeclean` example:
 ```viml
 let g:neomake_makeclean_maker = { 'exe': 'make', 'args': ['clean'] }
 ```
+
+An example of a directory makers is the [cargo] for Rust, which you should run
+as `:Neomake! cargo`. This runs `cargo`, which both installs dependencies (like
+PHP's composer or Node.js's NVM) and compiles the project by calling `rustc`.
+
+Another example is [mvn], which is the maker name for Apache Maven, a Java
+project management tool. If you're working on a Java file that is part of a
+Maven project, you can use the command `:Neomake! mvn` to run the
+`mvn install` command using Neomake.
 
 Refer to the inline documentation `:h neomake.txt` for more.
 
@@ -127,3 +140,4 @@ You should have a good profile of issue triaging and PRs on this repo already.
 [syntastic]: https://github.com/scrooloose/syntastic
 [dispatch.vim]: https://github.com/tpope/vim-dispatch
 [commit 960b9108c]: https://github.com/neovim/neovim/tree/960b9108c2928b6cf0adcabdb829d06996635211
+[cargo]: https://github.com/neomake/neomake/blob/master/autoload/neomake/makers/cargo.vim
