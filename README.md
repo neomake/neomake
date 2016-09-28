@@ -141,3 +141,4 @@ You should have a good profile of issue triaging and PRs on this repo already.
 [dispatch.vim]: https://github.com/tpope/vim-dispatch
 [commit 960b9108c]: https://github.com/neovim/neovim/tree/960b9108c2928b6cf0adcabdb829d06996635211
 [cargo]: https://github.com/neomake/neomake/blob/master/autoload/neomake/makers/cargo.vim
+[mvn]: https://github.com/neomake/neomake/blob/master/autoload/neomake/makers/mvn.vim
