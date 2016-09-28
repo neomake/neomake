@@ -312,9 +312,9 @@ You can use `neomake#signs#DefineHighlights` to get e.g. the "bg" from
 "SignColumn".  See `neomake#signs#DefineHighlights` where this is used.
 
 
-*g:neomake_airline*
-Shows the output returned by |neomake#statusline#LoclistStatus| in the warning
-section of the vim-airline |statusline|. Defaults to 1.
+*g:airline#extensions#neomake#enabled*
+Shows warning and error counts returned by |neomake#statusline#LoclistCounts| in
+the warning and error sections of the vim-airline |statusline|. Defaults to 1.
 
 ==============================================================================
 4. Functions                                                 *neomake-functions*
