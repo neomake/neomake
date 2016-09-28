@@ -66,7 +66,7 @@ your maker does not follow this convention, Neomake will not be able to see
 it, and you will get an error message like `{ makername } not found`.
 
 Explanation for the strings making up the errorformat can be found by typing
-`:h errorformat` in [Neovim] (or Vim).
+`:h errorformat` in Vim.
 
 If the string `'%:p'` shows up anywhere in the `'args'` list, it will be
 `expand()`ed to the full path of the current file in place. Otherwise, the full
@@ -106,7 +106,7 @@ defined as a directory maker, e.g., for the `makeclean` example:
 let g:neomake_makeclean_maker = { 'exe': 'make', 'args': ['clean'] }
 ```
 
-An example of a directory makers is the [cargo] for Rust, which you should run
+An example of a directory maker is the [cargo] for Rust, which you should run
 as `:Neomake! cargo`. This runs `cargo`, which both installs dependencies (like
 PHP's composer or Node.js's NVM) and compiles the project by calling `rustc`.
 
