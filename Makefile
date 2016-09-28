@@ -17,8 +17,9 @@ testnvim: TEST_VIM:=VADER_OUTPUT_FILE=/dev/stderr nvim --headless
 testnvim: $(VADER_DIR)
 testnvim:
 	@# Use a temporary dir with Neovim (https://github.com/neovim/neovim/issues/5277).
-	tmp=$(shell mktemp -d --suffix=.neomaketests); \
-	HOME=$$tmp $(TEST_VIM) -nNu $(TEST_VIMRC) -i NONE $(VIM_ARGS)
+	tmp=$(shell mktemp -d "$${TMPDIR:-/tmp}/neomaketests.XXXXXXXXX"); \
+	HOME=$$tmp $(TEST_VIM) -nNu $(TEST_VIMRC) -i NONE $(VIM_ARGS); rx=$$?; \
+	$(RM) $$tmp; exit $$rx
 	
 testvim: TEST_VIM:=vim -X
 testvim: $(VADER_DIR)
