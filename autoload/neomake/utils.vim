@@ -252,9 +252,6 @@ function! neomake#utils#CompressWhitespace(entry) abort
 endfunction
 
 function! neomake#utils#redir(cmd) abort
-    if exists('*execute')
-        return execute(a:cmd)
-    endif
     if type(a:cmd) == type([])
         let r = ''
         for cmd in a:cmd
