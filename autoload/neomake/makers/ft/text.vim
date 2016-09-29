@@ -5,7 +5,7 @@ endfunction
 function! neomake#makers#ft#text#writegood()
     return {
                 \ 'args': ['--parse'],
-                \ 'errorformat': '%f:%l:%c:%m'
+                \ 'errorformat': '%W%f:%l:%c:%m'
                 \ }
 endfunction
 
