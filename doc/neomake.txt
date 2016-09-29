@@ -31,13 +31,13 @@ fantastic vim plugins such as syntastic and dispatch.
 ==============================================================================
 2. Commands                                                   *neomake-commands*
 
-                                                         *:Neomake* *:NeomakeFile*
+                                                       *:Neomake* *:NeomakeFile*
 :Neomake [makers]       Run a make command with the current file as input. If
                         no makers are specified, the default makers for the
                         current |filetype| are used. See |neomake-configuration|
                         for more on makers.
 
-                                                     *:Neomake!* *:NeomakeProject*
+                                                   *:Neomake!* *:NeomakeProject*
 :Neomake! [makers]      Run a make command with no file as input. If no makers
                         are specified, the default top-level makers will be
                         used. If no default top-level makers exist, |makeprg|
@@ -88,12 +88,16 @@ All 'args' will be |expand()|ed: >
         \ 'args': ['%:p'],
         \ }
 
-The 'exe' and 'args' entries can be a function (callback) or a dictionary with
-an expected entry 'fn' (which has to be a function).
-The function has to return a string, and receives no arguments.
+The 'exe' and 'args' entries can be a function reference (see |:h Funcref|) or
+a dictionary with an expected entry 'fn' (which has to be a function).
+The function must return a string, and the function will be called with no
+arguments.
 
-Running "|:Neomake!| lint" from file.txt would cause "lint /path/to/file.txt" to
-be run.
+In the above example, running "|:Neomake!| lint" from file.txt would cause
+"lint /path/to/file.txt" to be run. Do note that this is atypical usage and is
+provided as an example of args expansion only, since "|:Neomake!|" commands
+typically don't require the filename. The preferred method of running Neomake
+against the current file is "|:Neomake|" without the exclamation mark.
 
 In the above example, the exe argument isn't strictly necessary, since neomake
 uses the name of the maker as the default value for it.  If you want it to be
@@ -103,10 +107,14 @@ usable on an individual file, you should also include the filtype in the name: >
         \ 'args': ['--option', 'x'],
         \ 'errorformat': '%f:%l:%c: %m',
         \ }
-    " Use this maker from a c file:
+
+    " Run this maker against the open file:
     :Neomake lint
-    " Or use it on the whole project:
+    " This would run "lint --option x myfile.c"
+
+    " Or use it on the whole project, executing the command from Vim's cwd
     :Neomake! c_lint
+    " This would run "lint --option x" in the current working directoy
 <
                                    *neomake-{{makepath}}* *neomake-!!makepath!!*
 When running a maker on a file with |:Neomake|, you may want to control where
