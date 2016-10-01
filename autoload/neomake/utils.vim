@@ -252,7 +252,10 @@ function! neomake#utils#CompressWhitespace(entry) abort
 endfunction
 
 function! neomake#utils#redir(cmd) abort
-    if exists('*execute')
+    if exists('*execute') && has('nvim')
+        " NOTE: require Neovim, since Vim has at least an issue when using
+        "       this in a :command-completion function.
+        "       Ref: https://github.com/neomake/neomake/issues/650.
         return execute(a:cmd)
     endif
     if type(a:cmd) == type([])
