@@ -235,8 +235,8 @@ function! neomake#signs#DefineHighlights() abort
 
     for [group, fgs] in items({
                 \ 'NeomakeErrorSign': [
-                \   neomake#utils#GetHighlight('Error', 'bg'),
-                \   neomake#utils#GetHighlight('Error', 'bg#')],
+                \   neomake#utils#GetHighlight('ErrorMsg', 'fg'),
+                \   neomake#utils#GetHighlight('ErrorMsg', 'fg#')],
                 \ 'NeomakeWarningSign': [
                 \   neomake#utils#GetHighlight('Todo', 'fg'),
                 \   neomake#utils#GetHighlight('Todo', 'fg#')],
