@@ -373,16 +373,16 @@ function! s:Make(options, ...) abort
     endif
 
     " Empty the quickfix/location list (using a valid 'errorformat' setting).
-    let l:efm = &efm
+    let l:efm = &errorformat
     try
-        let &efm = '%-G'
+        let &errorformat = '%-G'
         if file_mode
             lgetexpr ''
         else
             cgetexpr ''
         endif
     finally
-        let &efm = l:efm
+        let &errorformat = l:efm
     endtry
     call s:HandleLoclistQflistDisplay(file_mode)
 
