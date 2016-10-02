@@ -82,22 +82,11 @@ Here is a sample maker definition: >
     " Use the maker like this:
     :Neomake! make
 <
-All 'args' will be |expand()|ed: >
-    let g:neomake_lint_maker = {
-        \ 'exe': 'lint',
-        \ 'args': ['%:p'],
-        \ }
-
+All 'args' will be |expand()|ed if they use wildcards (see |:h expand()|).
 The 'exe' and 'args' entries can be a function reference (see |:h Funcref|) or
 a dictionary with an expected entry 'fn' (which has to be a function).
 The function must return a string, and the function will be called with no
 arguments.
-
-In the above example, running "|:Neomake!| lint" from file.txt would cause
-"lint /path/to/file.txt" to be run. Do note that this is atypical usage and is
-provided as an example of args expansion only, since "|:Neomake!|" commands
-typically don't require the filename. The preferred method of running Neomake
-against the current file is "|:Neomake|" without the exclamation mark.
 
 In the above example, the exe argument isn't strictly necessary, since neomake
 uses the name of the maker as the default value for it.  If you want it to be
@@ -112,7 +101,8 @@ usable on an individual file, you should also include the filtype in the name: >
     :Neomake lint
     " This would run "lint --option x myfile.c"
 
-    " Or use it on the whole project, executing the command from Vim's cwd
+    " Or use it on the whole project, executing the command from Vim's current
+    " working directory
     :Neomake! c_lint
     " This would run "lint --option x" in the current working directoy
 <
