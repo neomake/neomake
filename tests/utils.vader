@@ -5,7 +5,7 @@ Execute (neomake#utils#LogMessage writes to logfile always):
   Save neomake_logfile
   let g:neomake_logfile = tempname()
   call neomake#utils#LogMessage(1, 'msg1')
-  Assert readfile(g:neomake_logfile)[0] =~# 'Log level 1: Neomake: msg1$'
+  Assert readfile(g:neomake_logfile)[0] =~# '\v\[\d+-\d\d-\d\dT\d\d:\d\d:\d\d\+\d+ \@\d+\.\d\d\d, level 1\] msg1$'
   Restore
 
 Execute (NeomakeTestsEnsureExe creates exe):

@@ -1,20 +1,5 @@
 " Setup and helpers for all tests.
 
-Before:
-  if exists('g:neomake_verbose')
-    let g:save_neomake_verbose = g:neomake_verbose
-  endif
-  let g:neomake_verbose = 3
-
-After:
-  if exists('g:save_neomake_verbose')
-    let g:neomake_verbose = g:save_neomake_verbose
-    unlet g:save_neomake_verbose
-  else
-    unlet g:neomake_verbose
-  endif
-  Restore
-
 Execute:
   function! s:wait_for_finished_jobs()
     while len(neomake#GetJobs())

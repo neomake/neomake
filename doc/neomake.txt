@@ -259,8 +259,8 @@ Controls how verbose neomake should be. Neomake log levels are as follows:
     1 - Quiet message (default -- should only log one message at a time)
     2 - Loud message (may log multiple messages at once, making the screen
         shift momentarily)
-    3 - Debug information, normally relevant only to people who develop
-        neomake.
+    3 - Debug information (all messages).
+        This will also add time information to messages.
 Each log level includes all the levels before it.
 
 *g:neomake_logfile*
