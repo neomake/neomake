@@ -90,8 +90,10 @@ Execute (Neomake: handle output for removed window):
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 1
-    AssertNotEqual index(g:NeomakeTestsGetMessages(), printf(
-      \ 'Neomake: [%d] No window found for output!', join(job_ids))), -1
+
+    let messages = g:NeomakeTestsGetMessages()
+    let pattern = printf('\v^Neomake \[\d+.\d+\]: \[%d\] No window found for output!', job_ids[0])
+    Assert len(filter(messages, 'v:val =~# pattern'))
   endif
 
 Execute (NeomakeSh: true):

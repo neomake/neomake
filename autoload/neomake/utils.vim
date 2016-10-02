@@ -1,26 +1,44 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
+if has('reltime')
+    let s:reltime_start = reltime()
+endif
+function! s:timestr() abort
+    if exists('s:reltime_start')
+        let cur_time = split(split(reltimestr(reltime(s:reltime_start)))[0], '\.')
+        return cur_time[0].'.'.cur_time[1][3:-1]
+    endif
+    return strftime('%H:%M:%S')
+endfunction
+
 function! neomake#utils#LogMessage(level, msg) abort
     let verbose = get(g:, 'neomake_verbose', 1)
     let logfile = get(g:, 'neomake_logfile')
-    let msg ='Neomake: '.a:msg  " .' ('.a:level.')'
+
+    if exists(':Log') == 2
+        " Log is defined during Vader tests.
+        let test_msg = 'Neomake ['.a:level.'] ['.s:timestr().']: '.a:msg
+        Log test_msg
+    endif
+
     if verbose >= a:level
         redraw
         if a:level ==# 0
             echohl ErrorMsg
         endif
-        echom msg
+        if verbose > 2
+            echom 'Neomake ['.s:timestr().']: '.a:msg
+        else
+            echom 'Neomake: '.a:msg
+        endif
         if a:level ==# 0
             echohl None
         endif
     endif
-    if exists(':Log') == 2
-        Log msg
-    endif
     if type(logfile) ==# type('') && len(logfile)
         let date = strftime('%Y-%m-%dT%H:%M:%S%z')
-        call writefile([date.' Log level '.a:level.': '.msg], logfile, 'a')
+        call writefile(['['.date.' @'.s:timestr().', level '.a:level.'] '.a:msg], logfile, 'a')
     endif
 endfunction
 

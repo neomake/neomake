@@ -32,8 +32,12 @@ Execute (neomake#GetMaker uses defaults from b:/g:):
 Execute (neomake#Make in file mode with no filetype and no makers):
   AssertEqual &ft, ''
   echom '====='
+  Save g:neomake_verbose
+  let g:neomake_verbose = 3
   AssertEqual neomake#Make(1, []), []
-  AssertEqual g:NeomakeTestsGetMessages()[-1], 'Neomake: Nothing to make: no enabled makers.'
+  Assert g:NeomakeTestsGetMessages()[-1] =~#
+    \ '\v^Neomake \[\d+.\d+\]: Nothing to make: no enabled makers.'
+  Restore
 
 Execute (neomake#Make in project mode with no filetype and no makers):
   Save makeprg
