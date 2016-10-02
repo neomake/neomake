@@ -129,9 +129,6 @@ function! s:MakeJob(make_id, maker) abort
                 \ 'on_exit': function('neomake#MakeHandler')
                 \ }
             let job = jobstart(argv, opts)
-            let jobinfo.start = localtime()
-            let jobinfo.last_register = 0
-
             if job == 0
                 throw 'Job table is full or invalid arguments given'
             elseif job == -1
@@ -685,17 +682,12 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
             let jobinfo.lines = a:data
         endif
 
-        let now = localtime()
-        if (!maker.buffer_output || last_event_type !=# a:event_type) ||
-                \ (last_event_type !=# a:event_type ||
-                \  now - jobinfo.start < 1 ||
-                \  now - jobinfo.last_register > 3)
+        if !maker.buffer_output || last_event_type !=# a:event_type
             let lines = jobinfo.lines[:-2]
             if len(lines)
                 call s:RegisterJobOutput(jobinfo, lines)
             endif
             let jobinfo.lines = jobinfo.lines[-1:]
-            let jobinfo.last_register = now
         endif
     elseif a:event_type ==# 'exit'
         " Handle any unfinished lines from stdout/stderr callbacks.
@@ -867,6 +859,7 @@ function! neomake#Sh(sh_command, ...) abort
     let custom_maker = neomake#utils#MakerFromCommand(&shell, a:sh_command)
     let custom_maker.name = 'sh: '.a:sh_command
     let custom_maker.remove_invalid_entries = 0
+    let custom_maker.buffer_output = 0
     let options.enabled_makers = [custom_maker]
     return get(s:Make(options), 0, 0)
 endfunction

@@ -118,6 +118,8 @@ Execute (NeomakeSh: handle unfinished output on exit):
   if neomake#has_async_support()
     for i in range(0, 10)
       if len(g:neomake_test_countschanged) == 1
+        AssertEqual map(copy(getqflist()), 'v:val.text'), ['1'],
+        \ "only the first line should be there"
         break
       endif
       sleep 50m
