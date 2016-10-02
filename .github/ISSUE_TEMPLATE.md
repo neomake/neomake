@@ -1,12 +1,4 @@
-### Issue type
-
-<!-- Pick one and delete the rest -->
-- Bug report
-- Feature request
-
-### Description
-
-<!-- Explain the issue in detail -->
+<!-- Please explain the issue in detail (actual behavior). -->
 
 ### Expected behavior
 

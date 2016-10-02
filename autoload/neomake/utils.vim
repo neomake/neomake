@@ -220,15 +220,7 @@ function! neomake#utils#GetHighlight(group, what) abort
   let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
   let what = a:what
   if reverse
-    if what ==# 'fg'
-      let what = 'bg'
-    elseif what ==# 'bg'
-      let what = 'fg'
-    elseif what ==# 'fg#'
-      let what = 'bg#'
-    elseif what ==# 'bg#'
-      let what = 'fg#'
-    endif
+    let what = neomake#utils#ReverseSynIDattr(what)
   endif
   if what[-1:] ==# '#'
       let val = synIDattr(synIDtrans(hlID(a:group)), what, 'gui')
@@ -239,6 +231,19 @@ function! neomake#utils#GetHighlight(group, what) abort
     let val = 'NONE'
   endif
   return val
+endfunction
+
+function! neomake#utils#ReverseSynIDattr(attr) abort
+  if a:attr ==# 'fg'
+    return 'bg'
+  elseif a:attr ==# 'bg'
+    return 'fg'
+  elseif a:attr ==# 'fg#'
+    return 'bg#'
+  elseif a:attr ==# 'bg#'
+    return 'fg#'
+  endif
+  return a:attr
 endfunction
 
 function! neomake#utils#CompressWhitespace(entry) abort
@@ -252,7 +257,10 @@ function! neomake#utils#CompressWhitespace(entry) abort
 endfunction
 
 function! neomake#utils#redir(cmd) abort
-    if exists('*execute')
+    if exists('*execute') && has('nvim')
+        " NOTE: require Neovim, since Vim has at least an issue when using
+        "       this in a :command-completion function.
+        "       Ref: https://github.com/neomake/neomake/issues/650.
         return execute(a:cmd)
     endif
     if type(a:cmd) == type([])

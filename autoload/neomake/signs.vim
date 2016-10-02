@@ -233,21 +233,22 @@ function! neomake#signs#DefineHighlights() abort
     let guibg = neomake#utils#GetHighlight('SignColumn', 'bg#')
     let bg = 'ctermbg='.ctermbg.' guibg='.guibg
 
-    for [group, fgs] in items({
-                \ 'NeomakeErrorSign': [
-                \   neomake#utils#GetHighlight('Error', 'bg'),
-                \   neomake#utils#GetHighlight('Error', 'bg#')],
-                \ 'NeomakeWarningSign': [
-                \   neomake#utils#GetHighlight('Todo', 'fg'),
-                \   neomake#utils#GetHighlight('Todo', 'fg#')],
-                \ 'NeomakeInfoSign': [
-                \   neomake#utils#GetHighlight('Question', 'fg'),
-                \   neomake#utils#GetHighlight('Question', 'fg#')],
-                \ 'NeomakeMessageSign': [
-                \   neomake#utils#GetHighlight('ModeMsg', 'fg'),
-                \   neomake#utils#GetHighlight('ModeMsg', 'fg#')],
+    for [group, fg_from] in items({
+                \ 'NeomakeErrorSign': ['Error', 'bg'],
+                \ 'NeomakeWarningSign': ['Todo', 'fg'],
+                \ 'NeomakeInfoSign': ['Question', 'fg'],
+                \ 'NeomakeMessageSign': ['ModeMsg', 'fg']
                 \ })
-        let [ctermfg, guifg] = fgs
+        let [fg_group, fg_attr] = fg_from
+        let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr)
+        let guifg = neomake#utils#GetHighlight(fg_group, fg_attr.'#')
+        " Ensure that we're not using SignColumn bg as fg (as with gotham
+        " colorscheme, issue https://github.com/neomake/neomake/pull/659).
+        if ctermfg == ctermbg && guifg == guibg
+            let fg_attr = neomake#utils#ReverseSynIDattr(fg_attr)
+            let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr)
+            let guifg = neomake#utils#GetHighlight(fg_group, fg_attr.'#')
+        endif
         exe 'hi '.group.'Default ctermfg='.ctermfg.' guifg='.guifg.' '.bg
         if !neomake#signs#HlexistsAndIsNotCleared(group)
             exe 'hi link '.group.' '.group.'Default'
