@@ -121,9 +121,9 @@ Execute (NeomakeSh: handle unfinished output on exit):
       if len(g:neomake_test_countschanged) == 1
         break
       endif
-      sleep 100m
+      sleep 50m
     endfor
-    AssertNotEqual i, 10, "counts should have changed after 1s"
+    AssertNotEqual i, 10, "counts should have changed after 500ms"
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual len(g:neomake_test_finished), 1
@@ -133,7 +133,7 @@ Execute (NeomakeSh: handle unfinished output on exit):
 Execute (NeomakeSh: project: handle removed window on exit):
   call g:NeomakeSetupAutocmdWrappers()
   new
-  NeomakeSh sh -c 'sleep 0.5; echo finished'
+  NeomakeSh sh -c 'sleep 0.1; echo finished'
   quit
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
