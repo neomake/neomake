@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#cpp#EnabledMakers()
-    return executable('clang++') ? ['clang'] : ['gcc']
+    return executable('clang++') ? ['clang', 'clangtidy', 'clangcheck'] : ['gcc']
 endfunction
 
 function! neomake#makers#ft#cpp#clang()
