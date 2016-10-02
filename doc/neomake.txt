@@ -297,7 +297,7 @@ Neomake uses the following defaults: >
 <
 
 Default 'texthl' groups are created with those names, but only if they do not
-exist already.  This allows you to customize them.  This should typically be
+exist already, which allows you to customize them.  This should typically be
 done through the |ColorScheme| autoevent, which applies it after any color
 scheme: >
 
