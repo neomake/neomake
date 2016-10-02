@@ -15,11 +15,9 @@ TEST_VIMRC:=tests/vim/vimrc
 
 testnvim: TEST_VIM:=VADER_OUTPUT_FILE=/dev/stderr nvim --headless
 testnvim: $(VADER_DIR)
-testnvim:
-	@# Use a temporary dir with Neovim (https://github.com/neovim/neovim/issues/5277).
-	tmp=$(shell mktemp -d "$${TMPDIR:-/tmp}/neomaketests.XXXXXXXXX"); \
-	HOME=$$tmp $(TEST_VIM) -nNu $(TEST_VIMRC) -i NONE $(VIM_ARGS); rx=$$?; \
-	$(RM) $$tmp; exit $$rx
+testnvim: build/neovim-test-home
+	@# Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
+	HOME=build/neovim-test-home $(TEST_VIM) -nNu $(TEST_VIMRC) -i NONE $(VIM_ARGS)
 	
 testvim: TEST_VIM:=vim -X
 testvim: $(VADER_DIR)
@@ -65,8 +63,9 @@ vimlint:
 vimlint-errors:
 	sh /tmp/vimlint/bin/vimlint.sh -E -l /tmp/vimlint -p /tmp/vimlparser .
 
-build:
+build build/neovim-test-home:
 	mkdir $@
+build/neovim-test-home: | build
 build/vim-vimhelplint: | build
 	git clone --depth=1 https://github.com/machakann/vim-vimhelplint $@
 vimhelplint: | build/vim-vimhelplint
