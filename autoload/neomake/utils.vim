@@ -7,7 +7,7 @@ endif
 function! s:timestr() abort
     if exists('s:reltime_start')
         let cur_time = split(split(reltimestr(reltime(s:reltime_start)))[0], '\.')
-        return cur_time[0].'.'.cur_time[1][3:-1]
+        return cur_time[0].'.'.cur_time[1][0:2]
     endif
     return strftime('%H:%M:%S')
 endfunction
