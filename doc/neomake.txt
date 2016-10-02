@@ -197,8 +197,8 @@ Define a new filetype or project-level maker. See |neomake-makers|.
 
 *g:neomake_<name>_<property>* *g:neomake_<ft>_<name>_<property>*
 *b:neomake_<name>_<property>* *b:neomake_<ft>_<name>_<property>*
-Configure a property for a prexisting maker where property is one of 'exe',
-'args', 'errorformat' or 'buffer_output'. Can also be set by buffer. Example: >
+Configure a property for a maker where property is one of 'exe', 'args',
+'errorformat' or 'buffer_output'. Can also be set per buffer. Example: >
     let g:neomake_javascript_jshint_exe = './myjshint'
     let b:neomake_javascript_jshint_exe = './myotherjshint'
 <
