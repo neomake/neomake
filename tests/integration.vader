@@ -130,14 +130,28 @@ Execute (NeomakeSh: handle unfinished output on exit):
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['1', '23']
   AssertEqual len(g:neomake_test_countschanged), 2
 
-Execute (NeomakeSh: project: handle removed window on exit):
+Execute (NeomakeSh: project: handle removed window on exit (quit)):
   call g:NeomakeSetupAutocmdWrappers()
   new
+  let bufnr = bufnr('%')
   NeomakeSh sh -c 'sleep 0.1; echo finished'
   quit
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
-  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual g:neomake_test_finished, [{'file_mode': 0}]
+  AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
+
+Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
+  call g:NeomakeSetupAutocmdWrappers()
+  new
+  let bufnr = bufnr('%')
+  NeomakeSh sh -c 'sleep 0.1; echo finished'
+  bwipe
+  Assert bufnr != bufnr('%'), 'buffer has been wiped'
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
+  AssertEqual g:neomake_test_finished, [{'file_mode': 0}]
+  AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
 
 Execute (NeomakeInfo):
   Save g:neomake_c_enabled_makers
