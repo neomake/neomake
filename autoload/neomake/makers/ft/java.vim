@@ -10,8 +10,8 @@
 "============================================================================
 
 
-let s:save_cpo = &cpo
-set cpo&vim
+let s:save_cpo = &cpoptions
+set cpoptions&vim
 
 if exists('g:neomake_java_javac_maker')
     finish
@@ -20,7 +20,7 @@ let g:neomake_java_javac_maker = 1
 
 let g:neomake_java_javac_maven_pom_tags = ['build', 'properties']
 let g:neomake_java_javac_maven_pom_properties = {}
-let s:is_windows = has("win32") || has("win64") || has("win16") || has("dos32") || has("dos16")
+let s:is_windows = has('win32') || has('win64') || has('win16') || has('dos32') || has('dos16')
 if s:is_windows
     let s:fsep = ';'
     let s:psep = '\'
@@ -86,7 +86,7 @@ let g:neomake_java_javac_gradle_classpath =
 let s:has_maven = executable(expand(g:neomake_java_maven_executable, 1))
 let s:has_gradle = executable(expand(g:neomake_java_gradle_executable, 1))
 
-function! s:tmpdir()
+function! s:tmpdir() abort
     let tempdir = ''
 
     if (has('unix') || has('mac')) && executable('mktemp') && !has('win32unix')
@@ -119,37 +119,37 @@ function! s:tmpdir()
     return tempdir
 endfunction
 
-function! s:ClassSep() " {{{2
+function! s:ClassSep() abort
     return (s:is_windows || has('win32unix')) ? ';' : ':'
-endfunction " }}}2
+endfunction
 
 function! s:shescape(string) abort
     return a:string =~# '\m^[A-Za-z0-9_/.-]\+$' ? a:string : shellescape(a:string)
 endfunction
 
-function! s:AddToClasspath(classpath, path)
+function! s:AddToClasspath(classpath, path) abort
     if a:path ==# ''
         return a:classpath
     endif
     return (a:classpath !=# '') ? a:classpath . s:ClassSep() . a:path : a:path
 endfunction
 
-function! s:ReadClassPathFile(classpathFile)
+function! s:ReadClassPathFile(classpathFile) abort
     let cp = ''
     let file = g:neomake_java_checker_home. s:psep. 'java'. s:psep.  'classpath.py'
     if has('python3')
-        execute "py3file" file
+        execute 'py3file' file
         py3 import vim
         py3 vim.command("let cp = '%s'" % os.pathsep.join(ReadClasspathFile(vim.eval('a:classpathFile'))).replace('\\', '/'))
     elseif has('python')
-        execute "pyfile" file
+        execute 'pyfile' file
         py import vim
         py vim.command("let cp = '%s'" % os.pathsep.join(ReadClasspathFile(vim.eval('a:classpathFile'))).replace('\\', '/'))
     endif
     return cp
 endfunction
 
-function! neomake#makers#ft#java#EnabledMakers()
+function! neomake#makers#ft#java#EnabledMakers() abort
     let makers = []
     if executable(expand(g:neomake_java_javac_executable, 1))
         call add(makers, g:neomake_java_javac_executable)
@@ -160,7 +160,7 @@ function! neomake#makers#ft#java#EnabledMakers()
     return makers
 endfunction
 
-function! neomake#makers#ft#java#javac()
+function! neomake#makers#ft#java#javac() abort
     let javac_opts = extend([], g:neomake_java_javac_options)
 
     let output_dir = ''
@@ -209,7 +209,7 @@ function! neomake#makers#ft#java#javac()
                 \ }
 endfunction
 
-function! neomake#makers#ft#java#checkstyle()
+function! neomake#makers#ft#java#checkstyle() abort
     return {
                 \ 'args': ['-c', g:neomake_java_checkstyle_xml],
                 \ 'exe': g:neomake_java_checkstyle_executable,
@@ -226,7 +226,7 @@ function! s:findFileInParent(what, where) abort " {{{2
     return file
 endfunction " }}}2
 
-function! s:GetMavenProperties() " {{{2
+function! s:GetMavenProperties() abort " {{{2
     let mvn_properties = {}
     let pom = s:findFileInParent('pom.xml', expand('%:p:h', 1))
     if s:has_maven && filereadable(pom)
@@ -262,7 +262,7 @@ function! s:GetMavenProperties() " {{{2
     return mvn_properties
 endfunction " }}}2
 
-function! s:GetMavenClasspath() " {{{2
+function! s:GetMavenClasspath() abort " {{{2
     let pom = s:findFileInParent('pom.xml', expand('%:p:h', 1))
     if s:has_maven && filereadable(pom)
         if !has_key(g:neomake_java_javac_maven_pom_ftime, pom) || g:neomake_java_javac_maven_pom_ftime[pom] != getftime(pom)
@@ -299,7 +299,7 @@ function! s:GetMavenClasspath() " {{{2
     return ''
 endfunction " }}}2
 
-function! s:MavenOutputDirectory() " {{{2
+function! s:MavenOutputDirectory() abort " {{{2
     let pom = s:findFileInParent('pom.xml', expand('%:p:h', 1))
     if s:has_maven && filereadable(pom)
         let mvn_properties = s:GetMavenProperties()
@@ -322,7 +322,7 @@ function! s:MavenOutputDirectory() " {{{2
     return '.'
 endfunction " }}}2
 
-fu! s:GradleOutputDirectory()
+function! s:GradleOutputDirectory() abort
     let gradle_build = s:findFileInParent('build.gradle', expand('%:p:h', 1))
     let items = split(gradle_build, s:psep)
     if len(items)==1
@@ -330,14 +330,14 @@ fu! s:GradleOutputDirectory()
     endif
     let outputdir = ''
     for i in items
-        if i != 'build.gradle'
+        if i !=# 'build.gradle'
             let outputdir .= i . s:psep
         endif
     endfor
     return outputdir . join(['build', 'intermediates', 'classes', 'debug'], s:psep)
 endf
 
-fu! s:GetGradleClasspath()
+function! s:GetGradleClasspath() abort
     let gradle = s:findFileInParent('build.gradle', expand('%:p:h', 1))
     if s:has_gradle && filereadable(gradle)
         if !has_key(g:neomake_java_javac_gradle_ftime, gradle) || g:neomake_java_javac_gradle_ftime[gradle] != getftime(gradle)
@@ -351,7 +351,7 @@ fu! s:GetGradleClasspath()
                 call writefile(["allprojects{apply from: '" . g:neomake_java_checker_home . s:psep. 'java'. s:psep. "classpath.gradle'}"], f)
                 let ret = system(gradle_cmd . ' -q -I ' . shellescape(f) . ' classpath' )
                 if v:shell_error == 0
-                    let cp = filter(split(ret, "\n"), 'v:val =~ "^CLASSPATH:"')[0][10:]
+                    let cp = filter(split(ret, "\n"), "v:val =~# '^CLASSPATH:'")[0][10:]
                     if filereadable(getcwd() . s:psep . 'build.gradle')
                         let out_putdir = s:GlobPathList(getcwd(), join(
                                     \ ['**', 'build', 'intermediates', 'classes', 'debug'],
@@ -374,12 +374,12 @@ fu! s:GetGradleClasspath()
 endf
 
 
-function! s:GlobPathList(path, pattern, suf)
+function! s:GlobPathList(path, pattern, suf) abort
     if v:version >= 705 || (v:version == 704 && has('patch279'))
         return globpath(a:path, a:pattern, a:suf, 1)
     else
         return split(globpath(a:path, a:pattern, a:suf), "\n")
     endif
 endfunction
-let &cpo = s:save_cpo
+let &cpoptions = s:save_cpo
 unlet s:save_cpo
