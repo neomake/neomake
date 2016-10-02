@@ -5,7 +5,11 @@ if filereadable('/rtp.vim')
   " Dockerized tests.
   source /rtp.vim
 else
-  set runtimepath+=tests/vim/plugins/vader
+  if exists('$TESTS_VADER_DIR')
+    exe 'set runtimepath+='.$TESTS_VADER_DIR
+  else
+    set runtimepath+=tests/vim/plugins/vader
+  endif
   set runtimepath+=.
 endif
 
