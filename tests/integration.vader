@@ -112,12 +112,14 @@ Execute (NeomakeSh: non-existing command):
   AssertNotEqual match(getqflist()[0].text, 'nonexistingcommand'), -1
   AssertNotEqual match(getqflist()[0].text, 'command not found'), -1
 
-Execute (NeomakeSh: handle unfinished output on exit):
+Execute (NeomakeSh!: handle unfinished output on exit):
   call g:NeomakeSetupAutocmdWrappers()
-  NeomakeSh sh -c 'echo 1; printf 2; sleep 0.1; echo -n 3'
+  NeomakeSh! sh -c 'echo 1; printf 2; sleep 0.1; echo -n 3'
   if neomake#has_async_support()
     for i in range(0, 10)
       if len(g:neomake_test_countschanged) == 1
+        AssertEqual map(copy(getqflist()), 'v:val.text'), ['1'],
+        \ "only the first line should be there (buffer_output=0)"
         break
       endif
       sleep 50m
@@ -128,6 +130,23 @@ Execute (NeomakeSh: handle unfinished output on exit):
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['1', '23']
   AssertEqual len(g:neomake_test_countschanged), 2
+
+Execute (NeomakeSh: buffers output):
+  call g:NeomakeSetupAutocmdWrappers()
+  NeomakeSh sh -c 'echo 1; printf 2; sleep 0.1; echo -n 3'
+  if neomake#has_async_support()
+    for i in range(0, 10)
+      if len(g:neomake_test_countschanged)
+        break
+      endif
+      sleep 50m
+    endfor
+    AssertNotEqual i, 10, "counts should have changed after 500ms"
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['1', '23']
+  AssertEqual len(g:neomake_test_countschanged), 1
 
 Execute (NeomakeSh: project: handle removed window on exit (quit)):
   call g:NeomakeSetupAutocmdWrappers()
