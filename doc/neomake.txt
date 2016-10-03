@@ -450,5 +450,16 @@ You can make quickfixsigns respect Neomake's signs using this option: >
 
 See |g:neomake_<ft>_enabled_makers| (press `K` on the link to go there).
 
+6.3 How to develop/debug the errorformat setting?~
+
+Here are some tips to develop the 'errorformat' setting for makers:
+
+1. Get the output from the linter into a buffer (see also |:read!|).
+2. Set the errorformat, e.g. `:let &efm = '%E%f:%l:%c\,%n: %m,%Z%m`.
+3. Load the buffer into the quickfix list: `:cgetbuffer`.
+4. Use `:echo getqflist()` to display the raw data.
+5. Pay attention to the 'valid' property of entries.  Invalid entries are
+   currently removed by default in Neomake, but that is supposed to change
+   likely: it is better to ignore them through the |errorformat| already.
 
 vim: ft=help tw=78 isk+=<,>,\:
