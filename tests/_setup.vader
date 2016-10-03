@@ -1,5 +1,8 @@
 " Setup and helpers for all tests.
 
+Before:
+  let g:neomake_test_messages = []
+
 Execute:
   function! s:wait_for_finished_jobs()
     while len(neomake#GetJobs())
@@ -18,10 +21,6 @@ Execute:
   function! RunNeomakeSh(...)
     call call('neomake#Sh', a:000)
     NeomakeTestsWaitForFinishedJobs
-  endfunction
-
-  function! g:NeomakeTestsGetMessages()
-    return split(neomake#utils#redir('mess'), '\n')
   endfunction
 
   let s:tempname = tempname()
@@ -54,3 +53,26 @@ Execute:
     endif
     Log exe
   endfunction
+
+  function! s:AssertNeomakeMessage(msg, ...)
+    let level = a:0 ? a:1 : -1
+    let found_but_other_level = 0
+    for [l, m] in g:neomake_test_messages
+      if m ==# a:msg
+        if level == -1
+          return 1
+        else
+          if l == level
+            return 1
+          else
+            let found_but_other_level = 1
+          endif
+        endif
+      endif
+    endfor
+    if found_but_other_level
+      throw "Message '".a:msg."' found, but not for level ".level
+    endif
+    throw "Message '".a:msg."' not found."
+  endfunction
+  command! -nargs=+ AssertNeomakeMessage call s:AssertNeomakeMessage(<args>)

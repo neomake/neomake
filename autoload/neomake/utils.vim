@@ -20,6 +20,7 @@ function! neomake#utils#LogMessage(level, msg) abort
         " Log is defined during Vader tests.
         let test_msg = 'Neomake ['.a:level.'] ['.s:timestr().']: '.a:msg
         Log test_msg
+        let g:neomake_test_messages += [[a:level, a:msg]]
     endif
 
     if verbose >= a:level
