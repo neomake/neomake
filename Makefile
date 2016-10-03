@@ -13,7 +13,7 @@ $(TESTS_VADER_DIR):
 
 TEST_VIMRC:=tests/vim/vimrc
 
-testnvim: TEST_VIM:=VADER_OUTPUT_FILE=/dev/stderr nvim --headless
+testnvim: TEST_VIM:=VADER_OUTPUT_FILE=/dev/stderr nvim
 testnvim: $(TESTS_VADER_DIR)
 testnvim: build/neovim-test-home
 	@# Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
