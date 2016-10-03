@@ -17,12 +17,12 @@ testnvim: TEST_VIM:=VADER_OUTPUT_FILE=/dev/stderr nvim --headless
 testnvim: $(TESTS_VADER_DIR)
 testnvim: build/neovim-test-home
 	@# Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
-	HOME=build/neovim-test-home $(TEST_VIM) -nNu $(TEST_VIMRC) -i NONE $(VIM_ARGS)
+	HOME=build/neovim-test-home $(TEST_VIM) -nNu $(TEST_VIMRC) -i NONE $(VIM_ARGS) >/dev/null
 	
 testvim: TEST_VIM:=vim -X
 testvim: $(TESTS_VADER_DIR)
 testvim:
-	HOME=/dev/null $(TEST_VIM) -nNu $(TEST_VIMRC) -i NONE $(VIM_ARGS)
+	HOME=/dev/null $(TEST_VIM) -nNu $(TEST_VIMRC) -i NONE $(VIM_ARGS) >/dev/null
 
 # Interactive tests, keep Vader open.
 testinteractive: VADER:=Vader
@@ -79,8 +79,9 @@ vimhelplint: | build/vim-vimhelplint
 
 # Run tests in dockerized Vims.
 DOCKER_IMAGE:=neomake/vims-for-tests
-DOCKER:=docker run -it --rm \
-				 -v $(PWD):/testplugin -v $(PWD)/tests/vim:/home $(DOCKER_IMAGE)
+DOCKER_STREAMS:=-ti
+DOCKER=docker run $(DOCKER_STREAMS) --rm \
+       -v $(PWD):/testplugin -v $(PWD)/tests/vim:/home $(DOCKER_IMAGE)
 docker_image:
 	docker build -f Dockerfile.tests -t $(DOCKER_IMAGE) .
 docker_push:
@@ -95,6 +96,7 @@ $(_DOCKER_VIM_TARGETS):
 	$(MAKE) docker_test DOCKER_VIM=$(patsubst docker_test-%,%,$@)
 
 docker_test: DOCKER_VIM:=vim-master
+docker_test: DOCKER_STREAMS:=-a stderr
 docker_test: DOCKER_RUN:=$(DOCKER_VIM) '+$(VADER) tests/*.vader'
 docker_test: docker_run
 
