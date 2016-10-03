@@ -7,12 +7,10 @@ Execute (neomake#GetMakers):
 
 Execute (neomake#GetMaker with non-existent maker prints errors):
   let g:neomake_verbose = 0
-  echom '====='
   AssertEqual neomake#GetMaker('non-existent'), {}
-  AssertEqual g:NeomakeTestsGetMessages()[-1], 'Neomake: Invalid maker name: non-existent'
-  echom '====='
+  AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent']
   AssertEqual neomake#GetMaker('nonexistent'), {}
-  AssertEqual g:NeomakeTestsGetMessages()[-1], 'Neomake: Maker not found: nonexistent'
+  AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent']
 
 Execute (neomake#GetMaker uses defaults from b:/g:):
   Save g:neomake_test_remove_invalid_entries
@@ -31,18 +29,12 @@ Execute (neomake#GetMaker uses defaults from b:/g:):
 
 Execute (neomake#Make in file mode with no filetype and no makers):
   AssertEqual &ft, ''
-  echom '====='
-  Save g:neomake_verbose
-  let g:neomake_verbose = 3
   AssertEqual neomake#Make(1, []), []
-  Assert g:NeomakeTestsGetMessages()[-1] =~#
-    \ '\v^Neomake \[\d+.\d+\]: Nothing to make: no enabled makers.'
-  Restore
+  AssertEqual g:neomake_test_messages[-1], [3, 'Nothing to make: no enabled makers.']
 
 Execute (neomake#Make in project mode with no filetype and no makers):
   Save makeprg
   let &makeprg = 'sh -c "sleep 0.1"'
-  echom '====='
   let job_ids = neomake#Make(0, [])
   if neomake#has_async_support()
     AssertEqual len(job_ids), 1
@@ -73,4 +65,16 @@ Execute (neomake#CancelJob):
 
     NeomakeTestsWaitForFinishedJobs
     AssertEqual neomake#CancelJob(job_id), 0
+  endif
+
+Execute (Reports exit status):
+  if neomake#has_async_support()
+    let job_id = neomake#Sh("sh -c 'exit 7'")
+    NeomakeTestsWaitForFinishedJobs
+
+    let msg = printf('[#%d] sh: sh -c ''exit 7'': completed with exit code 7.', job_id)
+    AssertNeomakeMessage msg, 1
+
+    let msg = printf('[#%d] exit: sh: sh -c ''exit 7'': 7', job_id)
+    AssertNeomakeMessage msg, 3
   endif
