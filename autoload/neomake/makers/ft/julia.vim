@@ -1,10 +1,11 @@
 function! neomake#makers#ft#julia#EnabledMakers() abort
-    return ['julia']
+    return ['lint']
 endfunction
 
-function! neomake#makers#ft#julia#julia() abort
+function! neomake#makers#ft#julia#lint() abort
     return {
 \       'errorformat': '%f:%l %t%*[^ ] %m',
+\       'exe': 'julia',
 \       'args': ['-e', '
 \           try
 \               using Lint
