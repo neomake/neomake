@@ -18,6 +18,7 @@ before_cache:
 
 env:
   matrix:
+    - ENV=testnvim
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-trusty
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-xenial
@@ -26,7 +27,6 @@ env:
     - ENV=vint-errors
     - ENV=vimlint-errors
     - ENV=testvim
-    - ENV=testnvim
     - ENV=vint
     - ENV=vimlint
     - ENV=vimhelplint
