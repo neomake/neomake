@@ -1,8 +1,5 @@
 " Setup and helpers for all tests.
 
-Before:
-  let g:neomake_test_messages = []
-
 Execute:
   function! s:wait_for_finished_jobs()
     while len(neomake#GetJobs())
@@ -76,3 +73,9 @@ Execute:
     throw "Message '".a:msg."' not found."
   endfunction
   command! -nargs=+ AssertNeomakeMessage call s:AssertNeomakeMessage(<args>)
+
+Before:
+  let g:neomake_test_messages = []
+
+After:
+  NeomakeTestsWaitForFinishedJobs
