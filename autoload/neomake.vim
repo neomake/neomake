@@ -717,8 +717,8 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         if has('nvim')
             " Only report completion for neovim, since it is asynchronous
             call neomake#utils#QuietMessage(printf(
-                        \ '[#%d] %s: completed with exit code %d.',
-                        \ jobinfo.id, maker.name, status))
+                        \ '%s: completed with exit code %d.',
+                        \ maker.name, status))
         endif
 
         " If signs were not cleared before this point, then the maker did not return

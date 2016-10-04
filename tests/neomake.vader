@@ -72,8 +72,7 @@ Execute (Reports exit status):
     let job_id = neomake#Sh("sh -c 'exit 7'")
     NeomakeTestsWaitForFinishedJobs
 
-    let msg = printf('[#%d] sh: sh -c ''exit 7'': completed with exit code 7.', job_id)
-    AssertNeomakeMessage msg, 1
+    AssertNeomakeMessage 'sh: sh -c ''exit 7'': completed with exit code 7.', 1
 
     let msg = printf('[#%d] exit: sh: sh -c ''exit 7'': 7', job_id)
     AssertNeomakeMessage msg, 3
