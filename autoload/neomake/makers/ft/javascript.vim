@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#javascript#EnabledMakers() abort
-    return ['eslint', 'jshint']
+    return ['eslint', 'jscs', 'jshint', 'ternlint']
 endfunction
 
 " ============================================================================
