@@ -1,26 +1,26 @@
-*neomake.txt* For Vim version 7.4 and Neovim
+*neomake.txt* Asynchronous make for Vim version 7.4 and Neovim
 
-    _/      _/                                                _/               ~
-   _/_/    _/    _/_/      _/_/    _/_/_/  _/_/      _/_/_/  _/  _/      _/_/  ~
-  _/  _/  _/  _/_/_/_/  _/    _/  _/    _/    _/  _/    _/  _/_/      _/_/_/_/ ~
- _/    _/_/  _/        _/    _/  _/    _/    _/  _/    _/  _/  _/    _/        ~
-_/      _/    _/_/_/    _/_/    _/    _/    _/    _/_/_/  _/    _/    _/_/_/   ~
+        ███╗   ██╗███████╗ ██████╗ ███╗   ███╗ █████╗ ██╗  ██╗███████╗
+        ████╗  ██║██╔════╝██╔═══██╗████╗ ████║██╔══██╗██║ ██╔╝██╔════╝
+        ██╔██╗ ██║█████╗  ██║   ██║██╔████╔██║███████║█████╔╝ █████╗
+        ██║╚██╗██║██╔══╝  ██║   ██║██║╚██╔╝██║██╔══██║██╔═██╗ ██╔══╝
+        ██║ ╚████║███████╗╚██████╔╝██║ ╚═╝ ██║██║  ██║██║  ██╗███████╗
+        ╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
 
-        Runs make tasks and syntax checkers asynchronously (for neovim)
-                         and simply (for all the vims)!
-
-==============================================================================
-CONTENTS                                                      *neomake-contents*
-
-1. Introduction                                           |neomake-introduction|
-2. Commands                                                   |neomake-commands|
-3. Configuration                                         |neomake-configuration|
-4. Functions                                                 |neomake-functions|
-5. Autocommands                                               |neomake-autocmds|
-6. Frequently Asked Questions (FAQ)                                |neomake-FAQ|
+       Run make tasks (such as linters and build tools) asynchronously
 
 ==============================================================================
-1. Introduction                                           *neomake-introduction*
+CONTENTS                                                    *neomake-contents*
+
+    1. Introduction ............................... |neomake-introduction|
+    2. Commands ....................................... |neomake-commands|
+    3. Configuration ............................. |neomake-configuration|
+    4. Functions ..................................... |neomake-functions|
+    5. Autocommands ................................... |neomake-autocmds|
+    6. Frequently Asked Questions (FAQ) .................... |neomake-faq|
+
+==============================================================================
+1. Introduction                                         *neomake-introduction*
 
 Neomake leverages neovim's |job-control| feature where available to run
 programs like syntax checkers asynchronously. Where job control is not
@@ -29,51 +29,52 @@ run this plugin in both vim and neovim. This plugin is heavily inspired by
 fantastic vim plugins such as syntastic and dispatch.
 
 ==============================================================================
-2. Commands                                                   *neomake-commands*
+2. Commands                                                 *neomake-commands*
 
-                                                       *:Neomake* *:NeomakeFile*
+                                                     *:Neomake* *:NeomakeFile*
 :Neomake [makers]       Run a make command with the current file as input. If
                         no makers are specified, the default makers for the
-                        current |filetype| are used. See |neomake-configuration|
-                        for more on makers.
+                        current |filetype| are used. See
+                        |neomake-configuration| for more on makers.
 
-                                                     *:Neomake!* *:NeomakeProject*
+                                                 *:Neomake!* *:NeomakeProject*
 :Neomake! [makers]      Run a make command with no file as input. If no makers
                         are specified, the default top-level makers will be
-                        used. If no default top-level makers exist, |makeprg|
-                        will be used.
+                        used. If no default top-level makers exist,
+                        |'makeprg'| will be used.
 
-                                                                    *:NeomakeSh*
+                                                                  *:NeomakeSh*
 :NeomakeSh {command}    Run {command} in a shell (according to 'shell'). The
                         command output will be loaded into the quickfix list
                         when the job is complete. Example: >
                         :NeomakeSh find . -name '*.pyc'
 <
-                                                                   *:NeomakeSh!*
+                                                                 *:NeomakeSh!*
 :NeomakeSh! {command}   Same as |:NeomakeSh|, but does not buffer the output.
                         Example: >
                         :NeomakeSh! while true; do date; sleep 1; done
 <
-                                                                  *:NeomakeInfo*
+                                                                *:NeomakeInfo*
 :NeomakeInfo            Display information, meant for debugging and inclusion
                         in bug reports / help requests.
 
-                                                              *:NeomakeListJobs*
+                                                            *:NeomakeListJobs*
 :NeomakeListJobs        List all running jobs in the format: >
                         job_id job_name
 <
-                                                             *:NeomakeCancelJob*
+                                                           *:NeomakeCancelJob*
 :NeomakeCancelJob *{job_id}*
-                        Sends a 'jobstop' to *job_id* which terminates the job.
+                        Sends a 'jobstop()' to *job_id* which terminates the
+                        job.
 
 ==============================================================================
-3. Configuration                                         *neomake-configuration*
+3. Configuration                                       *neomake-configuration*
 
 If you just want an easy way to run |:make| asynchronously, you're all set.
-Just set your |makeprg| and |errorformat| as usual, and run |:Neomake!|. If
-you want more, read on.
+Just set your |'makeprg'| and |'errorformat'| as usual, and run |:Neomake!|.
+If you want more, read on.
 
-Makers                                                          *neomake-makers*
+Makers                                                        *neomake-makers*
 A maker is an object that tells neomake how to run a job for you. A maker may
 be run with a file as input (great for linting), or with no file as input
 (great for building, project-level tasks).
@@ -87,15 +88,16 @@ Here is a sample maker definition: >
     " Use the maker like this:
     :Neomake! make
 <
-All 'args' will be |expand()|ed if they use wildcards (see |:h expand()|).
-The 'exe' and 'args' entries can be a function reference (see |:h Funcref|) or
-a dictionary with an expected entry 'fn' (which has to be a function).
+All `args` will be |expand()|ed if they use wildcards (see |:h expand()|).
+The `exe` and `args` entries can be a function reference (see |:h Funcref|) or
+a dictionary with an expected entry `fn` (which has to be a function).
 The function must return a string, and the function will be called with no
 arguments.
 
 In the above example, the exe argument isn't strictly necessary, since neomake
 uses the name of the maker as the default value for it.  If you want it to be
-usable on an individual file, you should also include the filtype in the name: >
+usable on an individual file, you should also include the filtype in the name:
+>
     let g:neomake_c_lint_maker = {
         \ 'exe': 'lint',
         \ 'args': ['--option', 'x'],
@@ -109,10 +111,10 @@ usable on an individual file, you should also include the filtype in the name: >
     " working directory (runs "lint --option x"):
     :Neomake! c_lint
 <
-                                   *neomake-{{makepath}}* *neomake-!!makepath!!*
+                                 *neomake-{{makepath}}* *neomake-!!makepath!!*
 When running a maker on a file with |:Neomake|, you may want to control where
-in the 'args' list the file's path will appear. To do this, insert '%:p' in
-the 'args' list. {{makepath}} and !!makepath!! are no longer used for this,
+in the `args` list the file's path will appear. To do this, insert '%:p' in
+the `args` list. {{makepath}} and !!makepath!! are no longer used for this,
 but will be retained in the docs for discoverability: >
     let g:neomake_c_lint_maker = {
         \ 'exe': 'lint',
@@ -135,19 +137,19 @@ The file path can be excluded from the argument list entirely by setting the
 This can be useful for makers that are filetype dependent but are typically
 run on an whole project rather than a specific file.
 
-                                                     *neomake-makers-processing*
+                                                   *neomake-makers-processing*
 You can define two optional properties on a maker object to process the maker
-output: 'mapexpr' is applied to the maker output before any processing, and
-'postprocess' is applied to the quickfix or location list entry.
+output: `mapexpr` is applied to the maker output before any processing, and
+`postprocess` is applied to the quickfix or location list entry.
 
-The 'mapexpr' property will be passed directly into |map| as the expr argument
-like so: >
+The `mapexpr` property will be passed directly into |map()| as the expr
+argument like so: >
     call map(lines, maker.mapexpr)
-<where 'lines' contains the maker output.
+<where `lines` contains the maker output.
 This allows you to manipulate the lines as needed. Currently this is called
 on stdout and stderr lines alike.
 
-The 'postprocess' property is a function reference that will be applied to the
+The `postprocess` property is a function reference that will be applied to the
 entry in the location or quickfix list.
 Example: change the entry type to a warning. >
     function SetWarningType(entry)
@@ -160,7 +162,7 @@ Example: change the entry type to a warning. >
         \ 'postprocess': function('SetWarningType')
         \ }
 <
-                                                  *neomake-makers-buffer_output*
+                                                *neomake-makers-buffer_output*
 Default: 1
 By default Neomake will only process the output from makers when either the
 output type changes (from stderr to stdout or vice versa), or at the end of
@@ -172,19 +174,20 @@ feedback as early as possible, you can set this to `0`.
 You can override this for a maker using e.g.: >
     let g:neomake_ft_test_maker_buffer_output = 0
 <
-Your results will appear earlier, but if the |errorformat| is meant to parse
+Your results will appear earlier, but if the |'errorformat'| is meant to parse
 multiline output this will likely cause issues (depending on how the maker
 flushes its output).
 
-                                         *neomake-makers-remove_invalid_entries*
+                                       *neomake-makers-remove_invalid_entries*
 Makers can filter invalid entries (e.g. entries that do not match the
-|errorformat|) in the location/quickfix list. Set the 'remove_invalid_entries'
-property to 0 to keep all the maker output in the list: >
+|'errorformat'|) in the location/quickfix list. Set the
+'remove_invalid_entries' property to 0 to keep all the maker output in the
+list: >
     let g:neomake_ft_maker_remove_invalid_entries = 0
 <
 
-                                                            *neomake-makers-cwd*
-The working directory used to run a maker can be changed by setting its 'cwd'
+                                                          *neomake-makers-cwd*
+The working directory used to run a maker can be changed by setting its `cwd`
 property: >
         let g:neomake_my_example_maker = {
         \ 'exe': 'pwd',
@@ -192,15 +195,15 @@ property: >
         \ }
 <
 
-Global Options                                                 *neomake-options*
+Global Options                                               *neomake-options*
 
 *g:neomake_<name>_maker* *g:neomake_<ft>_<name>_maker*
 Define a new filetype or project-level maker. See |neomake-makers|.
 
 *g:neomake_<name>_<property>* *g:neomake_<ft>_<name>_<property>*
 *b:neomake_<name>_<property>* *b:neomake_<ft>_<name>_<property>*
-Configure a property for a maker where property is one of 'exe', 'args',
-'errorformat' or 'buffer_output'. Can also be set per buffer. Example: >
+Configure a property for a maker where property is one of `exe`, `args`,
+`errorformat` or `buffer_output`. Can also be set per buffer. Example: >
     let g:neomake_javascript_jshint_exe = './myjshint'
     let b:neomake_javascript_jshint_exe = './myotherjshint'
 <
@@ -232,13 +235,13 @@ the current buffer. This effectively defaults to: >
     let g:neomake_enabled_makers = ['makeprg']
 <
 *g:neomake_open_list*
-This setting will open the |loclist| or |quickfix| list (depending on whether
-it is operating on a file) when adding entries. A value of 2 will preserve the
-cursor position when the |loclist| or |quickfix| window is opened. Defaults to
-0.
+This setting will open the |location-list| or |quickfix| list (depending on
+whether it is operating on a file) when adding entries. A value of 2 will
+preserve the cursor position when the |location-list| or |quickfix| window is
+opened. Defaults to 0.
 
 *g:neomake_list_height*
-The height of the |loclist| or |quickfix| list opened by neomake.
+The height of the |location-list| or |quickfix| list opened by neomake.
 Defaults to 10.
 
 *g:neomake_echo_current_error*
@@ -274,14 +277,14 @@ on neomake itself. This feature is not yet cross-platform.
 
 *g:neomake_place_signs*
 This setting will tell neomake whether to place signs by errors recognized
-from the |errorformat|. Defaults to 1.
+from the |'errorformat'|. Defaults to 1.
 
 *g:neomake_error_sign* *g:neomake_warning_sign* *g:neomake_info_sign*
 *g:neomake_message_sign*
 These options allow you to control the appearance of the signs that are
 placed beside messages.
 These are dictionaries that represent the parameters provided by
-|sign-define|. Here is an example definition: >
+|:sign-define|. Here is an example definition: >
     let g:neomake_error_sign = {
         \ 'text': 'E>',
         \ 'texthl': 'ErrorMsg',
@@ -293,14 +296,20 @@ create new ones.
 Neomake uses the following defaults: >
 
      let g:neomake_error_sign = {'text': '✖', 'texthl': 'NeomakeErrorSign'}
-     let g:neomake_warning_sign = {'text': '⚠', 'texthl': 'NeomakeWarningSign'}
-     let g:neomake_message_sign = {'text': '➤', 'texthl': 'NeomakeMessageSign'}
+     let g:neomake_warning_sign = {
+         \   'text': '⚠',
+         \   'texthl': 'NeomakeWarningSign',
+         \ }
+     let g:neomake_message_sign = {
+          \   'text': '➤',
+          \   'texthl': 'NeomakeMessageSign',
+          \ }
      let g:neomake_info_sign = {'text': 'ℹ', 'texthl': 'NeomakeInfoSign'}
 <
 
-Default 'texthl' groups are created with those names, but only if they do not
-exist already, which allows you to customize them.  This should typically be
-done through the |ColorScheme| autoevent, which applies it after any color
+Default |highlight-groups| are created with those names, but only if they do
+not exist already, which allows you to customize them.  This should typically
+be done through the |ColorScheme| autoevent, which applies it after any color
 scheme: >
 
     augroup my_error_signs
@@ -315,24 +324,26 @@ You can use `neomake#signs#DefineHighlights` to get e.g. the "bg" from
 
 
 *g:airline#extensions#neomake#enabled*
-Shows warning and error counts returned by |neomake#statusline#LoclistCounts| in
-the warning and error sections of the vim-airline |statusline|. Defaults to 1.
+Shows warning and error counts returned by |neomake#statusline#LoclistCounts|
+in the warning and error sections of the vim-airline |'statusline'|. Defaults
+to 1.
 
 ==============================================================================
-4. Functions                                                 *neomake-functions*
+4. Functions                                               *neomake-functions*
 
 This list is non-exhaustive at the moment, but you may find some of these
 functions useful.
 
 *neomake#Make* (filemode, makers[, callback])
-This function is called by |:Neomake(!)| command. It runs all the *makers*
-specified, in order. If *filemode* is 1, then the current file is used as input
-to the makers. |neomake#Make| returns an array of the job ids that it creates
-via 'jobstart'; you can potentially cancel these jobs with |neomake#CancelJob|.
+This function is called by the |:Neomake| (and |:Neomake!|) command. It runs
+all the *makers* specified, in order. If *filemode* is 1, then the current
+file is used as input to the makers. |neomake#Make| returns an array of the
+job ids that it creates via 'jobstart()'; you can potentially cancel these
+jobs with |neomake#CancelJob|.
 
-It also accepts a third, optional callback argument that
-is called when the command exits.  The callback is given the following
-dictionary as its sole argument: >
+It also accepts a third, optional callback argument that is called when the
+command exits.  The callback is given the following dictionary as its sole
+argument: >
     { 'status': <exit status of maker>,
     \ 'name': <maker name>,
     \ 'has_next': <true if another maker follows, false otherwise> }
@@ -340,7 +351,7 @@ dictionary as its sole argument: >
 *neomake#Sh* (command[, callback])
 This function is called by the |:NeomakeSh| command. It runs the specified
 shell *command* according to 'shell'. |neomake#Sh| returns the single job id
-that it created via 'jobstart' (or 0 on Vim); you can potentially cancel
+that it created via 'jobstart()' (or 0 on Vim); you can potentially cancel
 this job with |neomake#CancelJob|.
 
 It also accepts a second, optional callback argument that is called when
@@ -355,7 +366,7 @@ Invoked via |:NeomakeListJobs|. Echoes a list of running jobs in the format
 (job_id, job_name).
 
 *neomake#CancelJob*
-Invoked via |:NeomakeCancelJob|. Sends a 'jobstop' to the job id specified.
+Invoked via |:NeomakeCancelJob|. Sends a 'jobstop()' to the job id specified.
 Will trigger callback if it was specified when the job was started.
 Example: >
     let job_id = neomake#Sh("bash -c 'while true; do sleep 1; done'")
@@ -370,11 +381,11 @@ define |g:neomake_error_sign|. >
     let g:neomake_error_sign = {'text': 'D:'}
     call neomake#utils#RedefineErrorSign()
 <
-                                                            *neomake-statusline*
+                                                          *neomake-statusline*
 *neomake#statusline#LoclistStatus* *neomake#statusline#QflistStatus*
-These functions return text for your |statusline|. They each take an optional
-first argument, which is the prefix text that will be shown if errors or
-warnings exist. Example usage: >
+These functions return text for your |'statusline'|. They each take an
+optional first argument, which is the prefix text that will be shown if errors
+or warnings exist. Example usage: >
     set statusline+=\ %#ErrorMsg#%{neomake#statusline#QflistStatus('qf:\ ')}
 <
 The result of this will be something like 'qf: E:1, W:2' if there are errors
@@ -384,25 +395,26 @@ or warnings and the empty string otherwise.
 These functions get the counts of errors by error type for the |location-list|
 and the |quickfix| respectively. The return value is something like this: >
     {'E': 2, 'W': 1, 'x': 5}
-<Where 'E', 'W' and 'x' are error types. Empty error types are ignored for now.
+<Where 'E', 'W' and 'x' are error types. Empty error types are ignored for
+now.
 
 By default, *LoclistCounts* returns the counts for the current buffer (i.e.
 `bufnr("%")`), but you can pass an optional argument: passing a buffer number
 will retrieve the counts for a particular buffer, while passing the string
-`'all'` will return a dictionary of counts for all buffers.
+"`all`" will return a dictionary of counts for all buffers.
 
 *neomake#ProcessCurrentWindow*
-This is the function that takes the job output and puts it into the loclist or
-qflist, adds signs, etc. Currently, if you stay in the window you called
-|:Neomake| from, this will happen as the job output comes in. However, if you go
-to a different window, neomake will wait until you return to that window for
-the job output to be processed. Currently, that will happen on |WinEnter| and
-|CursorHold|. You can also call this function directly if you need to force
-it. This function is not currently used for |:Neomake!|, which always
-processes its output as it arrives.
+This is the function that takes the job output and puts it into the
+|location-list| or |quickfix| list, adds signs, etc. Currently, if you stay in
+the window you called |:Neomake| from, this will happen as the job output
+comes in. However, if you go to a different window, neomake will wait until
+you return to that window for the job output to be processed. Currently, that
+will happen on |WinEnter| and |CursorHold|. You can also call this function
+directly if you need to force it. This function is not currently used for
+|:Neomake!|, which always processes its output as it arrives.
 
 ==============================================================================
-5. Autocommands                                               *neomake-autocmds*
+5. Autocommands                                             *neomake-autocmds*
 
 Neomake will trigger |User| autocommands on certain events.  With all these
 events a dictionary `g:neomake_hook_context` will be set, with key/value pairs
@@ -413,14 +425,14 @@ You can register your own function as a callback like this: >
         autocmd User NeomakeFinished call OnNeomakeFinished()
     augroup END
 <
-                                                               *NeomakeFinished*
+                                                             *NeomakeFinished*
 The |NeomakeFinished| autocommand is triggered after all jobs for a call to
-|:Neomake| etc have finished.  This can be used to e.g. close an empty location
-or quickfix window.
+|:Neomake| etc have finished.  This can be used to e.g. close an empty
+location or quickfix window.
 For this event `g:neomake_hook_context.file_mode` will be set, indicating if
 this was run for a file or the project.
 
-                                                          *NeomakeCountsChanged*
+                                                        *NeomakeCountsChanged*
 The |NeomakeCountsChanged| autocommand is triggered after counts for the
 location/quickfix list have changed, i.e. the list got reset or new errors
 have been added.  This can be used to e.g. update the statusline.
@@ -430,14 +442,15 @@ maker's output being processed, the maker object itself will be passed in
 (which also has these attributes).
 
 ==============================================================================
-6. Frequently Asked Questions (FAQ)                                *neomake-FAQ*
+6. Frequently Asked Questions (FAQ)                              *neomake-faq*
 
 6.1 Other plugins overwrite the signs placed by Neomake~
 
 When using quickfixsigns (https://github.com/tomtom/quickfixsigns_vim/) it
 will also place signs for errors and warnings in the quickfix/location list,
-and conflicts therefore with Neomake's own signs (see |g:neomake_place_signs|).
-You can make quickfixsigns respect Neomake's signs using this option: >
+and conflicts therefore with Neomake's own signs (see
+|g:neomake_place_signs|). You can make quickfixsigns respect Neomake's signs
+using this option: >
 
     let g:quickfixsigns_protect_sign_rx = '^neomake_'
 <
@@ -454,8 +467,8 @@ Here are some tips to develop the 'errorformat' setting for makers:
 2. Set the errorformat, e.g. `:let &efm = '%E%f:%l:%c\,%n: %m,%Z%m`.
 3. Load the buffer into the quickfix list: `:cgetbuffer`.
 4. Use `:echo getqflist()` to display the raw data.
-5. Pay attention to the 'valid' property of entries.  Invalid entries are
+5. Pay attention to the "`valid`" property of entries.  Invalid entries are
    currently removed by default in Neomake, but that is supposed to change
-   likely: it is better to ignore them through the |errorformat| already.
+   likely: it is better to ignore them through the |'errorformat'| already.
 
 vim: ft=help tw=78 isk+=<,>,\:
