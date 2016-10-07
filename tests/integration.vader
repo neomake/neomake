@@ -19,6 +19,14 @@ Execute (Setup autocmd wrappers):
     augroup END
   endfunction
 
+  function! NeomakeAsyncTestsSetup()
+    if neomake#has_async_support()
+      call g:NeomakeSetupAutocmdWrappers()
+      return 1
+    endif
+    Log "SKIP: no async support."
+  endfunction
+
 Execute (Test Neomake on errors.sh with one maker):
   call g:NeomakeSetupAutocmdWrappers()
   e! tests/fixtures/errors.sh
@@ -74,26 +82,26 @@ Execute (Neomake: handle result for current window):
   AssertEqual len(g:neomake_test_countschanged), 1
 
 Execute (Neomake: handle output for removed window):
-  if neomake#has_async_support()
-    call g:NeomakeSetupAutocmdWrappers()
-    let orig_winnr = winnr()
-    let sleep_maker = {
-        \ 'name': 'sleep_maker',
-        \ 'exe': 'sh',
-        \ 'args': ['-c', 'sleep 0.1; echo finished'],
-        \ 'remove_invalid_entries': 0,
-        \ }
-    let job_ids = neomake#Make(1, [sleep_maker])
-    let bufnr = bufnr('%')
-    new
-    exe 'bd' bufnr
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual len(g:neomake_test_countschanged), 0
-    AssertEqual len(g:neomake_test_finished), 1
+  if !NeomakeAsyncTestsSetup() | finish | endif
 
-    let msg = printf('[%d] No window found for output!', job_ids[0])
-    AssertNeomakeMessage msg, 3
-  endif
+  call g:NeomakeSetupAutocmdWrappers()
+  let orig_winnr = winnr()
+  let sleep_maker = {
+      \ 'name': 'sleep_maker',
+      \ 'exe': 'sh',
+      \ 'args': ['-c', 'sleep 0.1; echo finished'],
+      \ 'remove_invalid_entries': 0,
+      \ }
+  let job_ids = neomake#Make(1, [sleep_maker])
+  let bufnr = bufnr('%')
+  new
+  exe 'bd' bufnr
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual len(g:neomake_test_countschanged), 0
+  AssertEqual len(g:neomake_test_finished), 1
+
+  let msg = printf('[%d] No window found for output!', job_ids[0])
+  AssertNeomakeMessage msg, 3
 
 Execute (NeomakeSh: true):
   call g:NeomakeSetupAutocmdWrappers()
@@ -195,14 +203,7 @@ Execute (Having an invalid &errorformat is OK):
   NeomakeSh sh -c 'true'
 
 Execute (Neomake with windo):
-  function! NeomakeTestsSetup()
-    if neomake#has_async_support()
-      call g:NeomakeSetupAutocmdWrappers()
-      return 1
-    endif
-    Log "SKIP: no async support."
-  endfunction
-  if !NeomakeTestsSetup() | finish | endif
+  if !NeomakeAsyncTestsSetup() | finish | endif
 
   " Create a maker that generates incrementing errors.
   let g:counter = 0
