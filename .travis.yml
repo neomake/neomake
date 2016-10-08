@@ -29,11 +29,11 @@ env:
     - ENV=testvim
     - ENV=vint
     - ENV=vimlint
-    - ENV=vimhelplint
+    - ENV=docker_vimhelplint
 
 matrix:
   allow_failures:
-    - env: ENV=vimhelplint
+    - env: ENV=docker_vimhelplint
     - env: ENV=vimlint
     - env: ENV=vint
     # There are currently 3 remaining issues with the java maker.
@@ -51,7 +51,7 @@ install:
         echo "No changed .vim files: skipping build."
         ENV=SKIP_BUILD
       fi
-    elif [ "$ENV" = "vimhelplint" ]; then
+    elif [ "$ENV" = "docker_vimhelplint" ]; then
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       if git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
         echo "No changed doc files: skipping build."
