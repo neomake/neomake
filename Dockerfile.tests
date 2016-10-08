@@ -11,3 +11,8 @@ RUN install_vim -tag v7.3.429 -name vim73 -build \
                 -tag v7.4.052 -name vim74-trusty -build \
                 -tag v7.4.1689 -name vim74-xenial -build \
                 -tag master -build
+
+# Install make and openssl for docker_vimhelplint.
+# openssl for https support with wget.
+RUN apk --update add make openssl \
+    && rm -rf /var/cache/apk/* /tmp/* /var/tmp/*

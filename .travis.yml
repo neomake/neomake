@@ -29,11 +29,11 @@ env:
     - ENV=testvim
     - ENV=vint
     - ENV=vimlint
-    - ENV=vimhelplint
+    - ENV=docker_vimhelplint
 
 matrix:
   allow_failures:
-    - env: ENV=vimhelplint
+    - env: ENV=docker_vimhelplint
     - env: ENV=vimlint
     - env: ENV=vint
     # There are currently 3 remaining issues with the java maker.
@@ -48,14 +48,12 @@ install:
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       export CHANGED_VIM_FILES="$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep '\.vim$')"
       if [ -z "$CHANGED_VIM_FILES" ]; then
-        echo "No changed .vim files: skipping build."
-        ENV=SKIP_BUILD
+        SKIP_BUILD_REASON="vint-diff: No changed .vim files."
       fi
-    elif [ "$ENV" = "vimhelplint" ]; then
+    elif [ "$ENV" = "docker_vimhelplint" ]; then
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       if git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
-        echo "No changed doc files: skipping build."
-        ENV=SKIP_BUILD
+        SKIP_BUILD_REASON="docker_vimhelplint: No changed doc files."
       fi
     elif [ "${ENV#vimlint}" != "$ENV" ]; then
       git clone --depth=1 https://github.com/syngan/vim-vimlint /tmp/vimlint
@@ -72,8 +70,8 @@ install:
 
 script:
   - |
-    if [ "$ENV" = "SKIP_BUILD" ]; then
-      echo "Skipping build script: see above for any reason."
+    if [ -n "$SKIP_BUILD_REASON" ]; then
+      echo "Skipping job: $SKIP_BUILD_REASON"
     elif [ "$ENV" = "vint-diff" ]; then
       if [ -n "$CHANGED_VIM_FILES" ]; then
         vint $CHANGED_VIM_FILES | grep -v '^autoload/neomake/makers/.*Use the abort attribute for functions in autoload'
