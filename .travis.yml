@@ -33,7 +33,6 @@ env:
 
 matrix:
   allow_failures:
-    - env: ENV=vimhelplint
     - env: ENV=vimlint
     - env: ENV=vint
     # There are currently 3 remaining issues with the java maker.
