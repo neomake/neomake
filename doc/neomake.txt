@@ -31,13 +31,15 @@ fantastic vim plugins such as syntastic and dispatch.
 ==============================================================================
 2. Commands                                                 *neomake-commands*
 
-                                                     *:Neomake* *:NeomakeFile*
+                                                                    *:Neomake*
+                                                                *:NeomakeFile*
 :Neomake [makers]       Run a make command with the current file as input. If
                         no makers are specified, the default makers for the
                         current |filetype| are used. See
                         |neomake-configuration| for more on makers.
 
-                                                 *:Neomake!* *:NeomakeProject*
+                                                                   *:Neomake!*
+                                                             *:NeomakeProject*
 :Neomake! [makers]      Run a make command with no file as input. If no makers
                         are specified, the default top-level makers will be
                         used. If no default top-level makers exist,
@@ -111,7 +113,8 @@ usable on an individual file, you should also include the filtype in the name:
     " working directory (runs "lint --option x"):
     :Neomake! c_lint
 <
-                                 *neomake-{{makepath}}* *neomake-!!makepath!!*
+                                                        *neomake-{{makepath}}*
+                                                        *neomake-!!makepath!!*
 When running a maker on a file with |:Neomake|, you may want to control where
 in the `args` list the file's path will appear. To do this, insert '%:p' in
 the `args` list. {{makepath}} and !!makepath!! are no longer used for this,
@@ -197,18 +200,21 @@ property: >
 
 Global Options                                               *neomake-options*
 
-*g:neomake_<name>_maker* *g:neomake_<ft>_<name>_maker*
+*g:neomake_<name>_maker*
+*g:neomake_<ft>_<name>_maker*
 Define a new filetype or project-level maker. See |neomake-makers|.
 
-*g:neomake_<name>_<property>* *g:neomake_<ft>_<name>_<property>*
-*b:neomake_<name>_<property>* *b:neomake_<ft>_<name>_<property>*
+*g:neomake_<name>_<property>*
+*g:neomake_<ft>_<name>_<property>*
+*b:neomake_<name>_<property>*
+*b:neomake_<ft>_<name>_<property>*
 Configure a property for a maker where property is one of `exe`, `args`,
 `errorformat` or `buffer_output`. Can also be set per buffer. Example: >
     let g:neomake_javascript_jshint_exe = './myjshint'
     let b:neomake_javascript_jshint_exe = './myotherjshint'
 <
-*g:neomake_<ft>_enabled_makers* *b:neomake_<ft>_enabled_makers*
-
+*g:neomake_<ft>_enabled_makers*
+*b:neomake_<ft>_enabled_makers*
 This setting will tell Neomake which makers to use by default for the given
 filetype `<ft>` (when called without a maker as an argument, i.e. |:Neomake|).
 
@@ -279,7 +285,9 @@ on neomake itself. This feature is not yet cross-platform.
 This setting will tell neomake whether to place signs by errors recognized
 from the |'errorformat'|. Defaults to 1.
 
-*g:neomake_error_sign* *g:neomake_warning_sign* *g:neomake_info_sign*
+*g:neomake_error_sign*
+*g:neomake_warning_sign*
+*g:neomake_info_sign*
 *g:neomake_message_sign*
 These options allow you to control the appearance of the signs that are
 placed beside messages.
@@ -372,7 +380,8 @@ Example: >
     let job_id = neomake#Sh("bash -c 'while true; do sleep 1; done'")
     call neomake#CancelJob(job_id)
 
-*neomake#signs#RedefineErrorSign* *neomake#signs#RedefineWarningSign*
+*neomake#signs#RedefineErrorSign*
+*neomake#signs#RedefineWarningSign*
 These functions define the error sign and the warning sign respectively. They
 optionally take a dictionary in the same format as |g:neomake_error_sign|. If
 no such dictionary is provided, the default values will be used. These
@@ -382,7 +391,8 @@ define |g:neomake_error_sign|. >
     call neomake#utils#RedefineErrorSign()
 <
                                                           *neomake-statusline*
-*neomake#statusline#LoclistStatus* *neomake#statusline#QflistStatus*
+*neomake#statusline#LoclistStatus*
+*neomake#statusline#QflistStatus*
 These functions return text for your |'statusline'|. They each take an
 optional first argument, which is the prefix text that will be shown if errors
 or warnings exist. Example usage: >
@@ -391,7 +401,8 @@ or warnings exist. Example usage: >
 The result of this will be something like 'qf: E:1, W:2' if there are errors
 or warnings and the empty string otherwise.
 
-*neomake#statusline#LoclistCounts* *neomake#statusline#QflistCounts*
+*neomake#statusline#LoclistCounts*
+*neomake#statusline#QflistCounts*
 These functions get the counts of errors by error type for the |location-list|
 and the |quickfix| respectively. The return value is something like this: >
     {'E': 2, 'W': 1, 'x': 5}
