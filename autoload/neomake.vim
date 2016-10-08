@@ -16,8 +16,8 @@ let s:need_errors_cleaning = {
     \ }
 
 function! neomake#has_async_support() abort
-    " TODO: add support for Vim's async support (job_start).
-    return has('nvim')
+    return has('nvim') ||
+                \ has('channel') && has('job') && has('patch-7-4-2260')
 endfunction
 
 function! neomake#GetJobs() abort
@@ -33,7 +33,12 @@ endfunction
 
 function! neomake#CancelJob(job_id) abort
     if has_key(s:jobs, a:job_id)
-        call jobstop(a:job_id)
+        call neomake#utils#DebugMessage('Stopping job: ' . a:job_id)
+        if has('nvim')
+            call jobstop(a:job_id)
+        else
+            call job_stop(s:jobs[a:job_id].vim_job)
+        endif
         return 1
     endif
     return 0
@@ -102,12 +107,7 @@ function! s:MakeJob(make_id, maker) abort
         call add(args, '%:p')
     endif
 
-    if neomake#utils#IsRunningWindows()
-        " Don't expand &shellcmdflag argument of cmd.exe
-        call map(args, 'v:val !=? &shellcmdflag ? expand(v:val) : v:val')
-    else
-        call map(args, 'expand(v:val)')
-    endif
+    call neomake#utils#ExpandArgs(args)
 
     if has_key(a:maker, 'cwd')
         let old_wd = getcwd()
@@ -117,36 +117,56 @@ function! s:MakeJob(make_id, maker) abort
 
     try
         let has_args = type(args) == type([])
-        if has('nvim')
+        if neomake#has_async_support()
             let argv = [exe]
             if has_args
-                let argv = argv + args
+                let argv += args
             endif
             call neomake#utils#LoudMessage('Starting: '.join(argv, ' '))
-            let opts = {
-                \ 'on_stdout': function('neomake#MakeHandler'),
-                \ 'on_stderr': function('neomake#MakeHandler'),
-                \ 'on_exit': function('neomake#MakeHandler')
-                \ }
-            let job = jobstart(argv, opts)
-            if job == 0
-                throw 'Job table is full or invalid arguments given'
-            elseif job == -1
-                throw 'Non executable given'
+            if has('nvim')
+                let opts = {
+                    \ 'on_stdout': function('neomake#MakeHandler'),
+                    \ 'on_stderr': function('neomake#MakeHandler'),
+                    \ 'on_exit': function('neomake#MakeHandler')
+                    \ }
+                let job = jobstart(argv, opts)
+                if job == 0
+                    throw 'Job table is full or invalid arguments given'
+                elseif job == -1
+                    throw 'Non executable given'
+                endif
+                let jobinfo.id = job
+            else
+                " HACK: We need to add some 'sleep' for Vim (8.0.8) to work
+                " around https://groups.google.com/d/msg/vim_dev/us740TrOxNQ/IcBgP7YQBQAJ.
+                " Currently it is only being done in tests, but a) is
+                " hopefully not necessary anymore and b) might be needed in
+                " real usage, too.
+                " Fix: https://groups.google.com/d/msg/vim_dev/LhXQJusQScM/_wV4u5y5AAAJ
+                if !has('nvim')
+                    let argv = ['/bin/sh', '-c', 'sleep .05 & '.join(map(argv, 'shellescape(v:val)'))]
+                endif
+                let job = job_start(argv, {
+                            \ 'err_cb': 'neomake#MakeHandlerVimStderr',
+                            \ 'out_cb': 'neomake#MakeHandlerVimStdout',
+                            \ 'close_cb': 'neomake#MakeHandlerVimClose',
+                            \ 'mode': 'raw',
+                            \ })
+                let jobinfo.id = ch_info(job)['id']
+                let jobinfo.vim_job = job
             endif
 
-            let jobinfo.id = job
-            let s:jobs[job] = jobinfo
+            let s:jobs[jobinfo.id] = jobinfo
             let maker_key = s:GetMakerKey(a:maker)
             let s:jobs_by_maker[maker_key] = jobinfo
             call s:AddJobinfoForCurrentWin(jobinfo.id)
-            let r = jobinfo.id
             if !exists('s:jobids_by_makeid[a:make_id]')
                 let s:jobids_by_makeid[a:make_id] = []
             endif
             call add(s:jobids_by_makeid[a:make_id], jobinfo.id)
+            let r = jobinfo.id
         else
-            " Vim, synchronously.
+            call neomake#utils#DebugMessage('Running synchronously')
             if has_args
                 if neomake#utils#IsRunningWindows()
                     let program = exe.' '.join(map(args, 'v:val'))
@@ -156,12 +176,15 @@ function! s:MakeJob(make_id, maker) abort
             else
                 let program = exe
             endif
+
+            call neomake#utils#LoudMessage('Starting: ' . program)
+
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
             call s:AddJobinfoForCurrentWin(jobinfo.id)
             call neomake#MakeHandler(job_id, split(system(program), '\r\?\n', 1), 'stdout')
             call neomake#MakeHandler(job_id, v:shell_error, 'exit')
-            let r = 0
+            let r = -1
         endif
     finally
         if exists('old_wd')
@@ -414,7 +437,7 @@ function! s:Make(options, ...) abort
             let jobinfo = s:jobs_by_maker[maker_key]
             let jobinfo.maker.next = copy(a:options)
             try
-                call jobstop(jobinfo.id)
+                call neomake#CancelJob(jobinfo.id)
             catch /^Vim\%((\a\+)\)\=:E900/
                 " Ignore invalid job id errors. Happens when the job is done,
                 " but on_exit hasn't been called yet.
@@ -431,7 +454,7 @@ function! s:Make(options, ...) abort
             let maker.exit_callback = a:options.exit_callback
         endif
         let job_id = s:MakeJob(make_id, maker)
-        if job_id != 0
+        if job_id != -1
             call add(job_ids, job_id)
         endif
         " If we are serializing makers, stop after the first one. The
@@ -657,6 +680,22 @@ function! s:RegisterJobOutput(jobinfo, lines) abort
     endif
 endfunction
 
+function! neomake#MakeHandlerVimStdout(channel, output) abort
+    call neomake#utils#DebugMessage('MakeHandlerVim: stdout: ' . a:channel)
+    call neomake#MakeHandler(ch_info(a:channel)['id'], split(a:output, "\n", 1), 'stdout')
+endfunction
+
+function! neomake#MakeHandlerVimStderr(channel, output) abort
+    call neomake#utils#DebugMessage('MakeHandlerVim: stderr: ' . a:channel)
+    call neomake#MakeHandler(ch_info(a:channel)['id'], split(a:output, "\n", 1), 'stderr')
+endfunction
+
+function! neomake#MakeHandlerVimClose(channel) abort
+    call neomake#utils#DebugMessage('Channel has been closed: ' . a:channel)
+    let job = ch_getjob(a:channel)
+    call neomake#MakeHandler(ch_info(a:channel)['id'], job_info(job)['exitval'], 'exit')
+endfunction
+
 function! neomake#MakeHandler(job_id, data, event_type) abort
     if !has_key(s:jobs, a:job_id)
         return
@@ -690,7 +729,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
     elseif a:event_type ==# 'exit'
         " Handle any unfinished lines from stdout/stderr callbacks.
         if has_key(jobinfo, 'lines')
-            if jobinfo.lines[-1] ==# ''
+            if len(jobinfo.lines) && jobinfo.lines[-1] ==# ''
                 call remove(jobinfo.lines, -1)
             endif
             if len(jobinfo.lines)
@@ -714,8 +753,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
             endtry
         endif
         call s:CleanJobinfo(jobinfo)
-        if has('nvim')
-            " Only report completion for neovim, since it is asynchronous
+        if neomake#has_async_support()
             call neomake#utils#QuietMessage(printf(
                         \ '%s: completed with exit code %d.',
                         \ maker.name, status))
@@ -743,7 +781,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         endif
 
         " Trigger autocmd if all jobs for a s:Make instance have finished.
-        if has('nvim')
+        if neomake#has_async_support()
             let make_id = -1
             for [k, v] in items(s:jobids_by_makeid)
                 if index(v, a:job_id) != -1
