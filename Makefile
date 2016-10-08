@@ -73,16 +73,16 @@ build/vim-vimhelplint-master: | build
 vimhelplint: VIMHELPLINT_VIM:=vim
 vimhelplint: | build/vim-vimhelplint-master
 	out="$$($(VIMHELPLINT_VIM) -esN -c 'e doc/neomake.txt' -c 'set ft=help' \
-		-c 'source build/vim-vimhelplint-master/ftplugin/help_lint.vim' \
-		-c 'verb VimhelpLintEcho' -c q 2>&1)"; \
-		if [ -n "$$out" ]; then \
-			echo "$$out"; \
-			exit 1; \
-		fi
+	  -c 'source build/vim-vimhelplint-master/ftplugin/help_lint.vim' \
+	  -c 'verb VimhelpLintEcho' -c q 2>&1)"; \
+	  if [ -n "$$out" ]; then \
+	    echo "$$out"; \
+	    exit 1; \
+	  fi
 
 docker_vimhelplint:
 	$(MAKE) docker_make "DOCKER_MAKE_TARGET=vimhelplint \
-		VIMHELPLINT_VIM=/vim-build/bin/vim-master"
+	  VIMHELPLINT_VIM=/vim-build/bin/vim-master"
 
 docker_make: DOCKER_RUN:=make -C /testplugin $(DOCKER_MAKE_TARGET)
 docker_make: docker_run
