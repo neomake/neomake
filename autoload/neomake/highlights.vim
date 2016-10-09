@@ -33,11 +33,12 @@ function! neomake#highlights#AddHighlight(entry, type) abort
     endif
     if a:entry.col
         let l:hi = get(s:highlight_types, toupper(a:entry.type), 'NeomakeError')
-        let l:length = 1
-        if has_key(a:entry, 'length')
-            let l:length = a:entry.length
+        if get(g:, 'neomake_highlight_line', 0)
+            let l:loc = a:entry.lnum
+        else
+            let l:loc = [a:entry.lnum, a:entry.col, get(a:entry, 'length', 1)]
         endif
-        call add(s:highlights[a:type][a:entry.bufnr][l:hi], [a:entry.lnum, a:entry.col, l:length])
+        call add(s:highlights[a:type][a:entry.bufnr][l:hi], l:loc)
     endif
 endfunction
 
