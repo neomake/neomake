@@ -22,8 +22,8 @@ CONTENTS                                                    *neomake-contents*
 ==============================================================================
 1. Introduction                                         *neomake-introduction*
 
-Neomake leverages Neovim's or Vim's |job-control| feature where available to run
-programs like syntax checkers asynchronously. Where job control is not
+Neomake leverages Neovim's or Vim's |job-control| feature where available to
+run programs like syntax checkers asynchronously. Where job control is not
 available, it resorts to a synchronous |system()| call, making it possible to
 run this plugin in both Vim and Neovim. This plugin is heavily inspired by
 fantastic Vim plugins such as syntastic and dispatch.
