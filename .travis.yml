@@ -34,7 +34,6 @@ env:
 
 matrix:
   allow_failures:
-    - env: ENV=docker_vimhelplint
     - env: ENV=vimlint
     - env: ENV=vint
     # There are currently 3 remaining issues with the java maker.
