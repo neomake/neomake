@@ -143,7 +143,7 @@ function! s:MakeJob(make_id, maker) abort
                 " hopefully not necessary anymore and b) might be needed in
                 " real usage, too.
                 " Fix: https://groups.google.com/d/msg/vim_dev/LhXQJusQScM/_wV4u5y5AAAJ
-                if !has('nvim')
+                if !has('nvim') && !neomake#utils#IsRunningWindows()
                     let argv = ['/bin/sh', '-c', 'sleep .05 & '.join(map(argv, 'shellescape(v:val)'))]
                 endif
                 let job = job_start(argv, {
