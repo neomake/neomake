@@ -1,5 +1,8 @@
 " vim: ts=4 sw=4 et
 
+let s:nvim_api = 0
+let s:highlights_defined = 0
+
 let s:highlights = {'file': {}, 'project': {}}
 let s:highlight_types = {
     \ 'E': 'NeomakeError',
@@ -8,13 +11,27 @@ let s:highlight_types = {
     \ 'M': 'NeomakeMessage'
     \ }
 
+if exists('*nvim_buf_add_highlight')
+    let s:nvim_api = 1
+    function! s:NewHighlightSource(buf) abort
+        return nvim_buf_add_highlight(a:buf, 0, '', 0, 0, -1)
+    endfunction
+endif
+
 function! s:InitBufHighlights(type, buf) abort
-    let s:highlights[a:type][a:buf] = {
-        \ 'NeomakeError': [],
-        \ 'NeomakeWarning': [],
-        \ 'NeomakeInformational': [],
-        \ 'NeomakeMessage': []
-        \ }
+    if s:nvim_api
+        if has_key(s:highlights[a:type], a:buf)
+            call nvim_buf_clear_highlight(a:buf, s:highlights[a:type][a:buf], 0, -1)
+        endif
+        let s:highlights[a:type][a:buf] = s:NewHighlightSource(a:buf)
+    else
+        let s:highlights[a:type][a:buf] = {
+            \ 'NeomakeError': [],
+            \ 'NeomakeWarning': [],
+            \ 'NeomakeInformational': [],
+            \ 'NeomakeMessage': []
+            \ }
+    endif
 endfunction
 
 function! neomake#highlights#ResetFile(buf) abort
@@ -34,15 +51,26 @@ function! neomake#highlights#AddHighlight(entry, type) abort
     if a:entry.col
         let l:hi = get(s:highlight_types, toupper(a:entry.type), 'NeomakeError')
         if get(g:, 'neomake_highlight_line', 0)
-            let l:loc = a:entry.lnum
+            if s:nvim_api
+                call nvim_buf_add_highlight(a:entry.bufnr, s:highlights[a:type][a:entry.bufnr], l:hi, a:entry.lnum - 1, 0, -1)
+            else
+                call add(s:highlights[a:type][a:entry.bufnr][l:hi], a:entry.lnum)
+            endif
         else
-            let l:loc = [a:entry.lnum, a:entry.col, get(a:entry, 'length', 1)]
+            let l:length = get(a:entry, 'length', 1)
+            if s:nvim_api
+                call nvim_buf_add_highlight(a:entry.bufnr, s:highlights[a:type][a:entry.bufnr], l:hi, a:entry.lnum - 1, a:entry.col - 1, a:entry.col + l:length - 1)
+            else
+                call add(s:highlights[a:type][a:entry.bufnr][l:hi], [a:entry.lnum, a:entry.col, l:length])
+            endif
         endif
-        call add(s:highlights[a:type][a:entry.bufnr][l:hi], l:loc)
     endif
 endfunction
 
 function! neomake#highlights#ShowHighlights() abort
+    if s:nvim_api
+        return
+    endif
     call s:ResetHighlights()
     let l:buf = bufnr('%')
     for l:type in ['file', 'project']
@@ -52,7 +80,6 @@ function! neomake#highlights#ShowHighlights() abort
     endfor
 endfunction
 
-let s:highlights_defined = 0
 function! neomake#highlights#DefineHighlights() abort
     if !s:highlights_defined
         let s:highlights_defined = 1
@@ -64,7 +91,10 @@ function! neomake#highlights#DefineHighlights() abort
 endfunction
 
 function! s:ResetHighlights() abort
-    if exists("w:current_highlights")
+    if s:nvim_api
+        return
+    endif
+    if exists('w:current_highlights')
         for l:highlight in w:current_highlights
             call matchdelete(l:highlight)
         endfor
