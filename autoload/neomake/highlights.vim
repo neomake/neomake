@@ -75,7 +75,17 @@ function! neomake#highlights#ShowHighlights() abort
     let l:buf = bufnr('%')
     for l:type in ['file', 'project']
         for l:hi in keys(get(s:highlights[l:type], l:buf, {}))
-            call add(w:current_highlights, matchaddpos(l:hi, s:highlights[l:type][l:buf][l:hi]))
+            if exists('*matchaddpos')
+                call add(w:current_highlights, matchaddpos(l:hi, s:highlights[l:type][l:buf][l:hi]))
+            else
+                for l:loc in s:highlights[l:type][l:buf][l:hi]
+                    if len(l:loc) == 1
+                        call add(w:current_highlights, matchadd(l:hi, '\%' . l:loc[0] . 'l'))
+                    else
+                        call add(w:current_highlights, matchadd(l:hi, '\%' . l:loc[0] . 'l\%' . l:loc[1] . 'c.\{' . l:loc[2] . '}'))
+                    endif
+                endfor
+            endif
         endfor
     endfor
 endfunction
