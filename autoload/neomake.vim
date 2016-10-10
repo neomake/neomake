@@ -16,7 +16,7 @@ let s:need_errors_cleaning = {
 
 function! neomake#has_async_support() abort
     return has('nvim') ||
-                \ has('channel') && has('job') && has('patch-7-4-2260')
+                \ has('channel') && has('job') && has('patch-8-0-0027')
 endfunction
 
 function! neomake#GetJobs() abort
@@ -143,15 +143,6 @@ function! s:MakeJob(make_id, maker) abort
                 endif
                 let jobinfo.id = job
             else
-                " HACK: We need to add some 'sleep' for Vim (8.0.8) to work
-                " around https://groups.google.com/d/msg/vim_dev/us740TrOxNQ/IcBgP7YQBQAJ.
-                " Currently it is only being done in tests, but a) is
-                " hopefully not necessary anymore and b) might be needed in
-                " real usage, too.
-                " Fix: https://groups.google.com/d/msg/vim_dev/LhXQJusQScM/_wV4u5y5AAAJ
-                if !has('nvim') && !neomake#utils#IsRunningWindows()
-                    let argv = ['/bin/sh', '-c', 'sleep .05 & '.join(map(argv, 'shellescape(v:val)'))]
-                endif
                 let job = job_start(argv, {
                             \ 'err_cb': 'neomake#MakeHandlerVimStderr',
                             \ 'out_cb': 'neomake#MakeHandlerVimStdout',

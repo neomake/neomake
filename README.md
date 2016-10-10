@@ -16,8 +16,7 @@ The minimum [Neovim] version supported by Neomake is
 supported by Neomake is 7.4.503 (although if you don't use `g:neomake_logfile`
 older versions will probably work fine as well).
 
-Vim's async mode is used with Vim 7.4.2260 or later, but is considered to be
-experimental and awaits fixes in Vim.
+Vim's async mode is used with Vim 8.0.0027 or later.
 
 ## Usage
 
