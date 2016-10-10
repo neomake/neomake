@@ -387,7 +387,7 @@ no such dictionary is provided, the default values will be used. These
 functions may be useful if somehow |:Neomake| is being invoked before you
 define |g:neomake_error_sign|. >
     let g:neomake_error_sign = {'text': 'D:'}
-    call neomake#utils#RedefineErrorSign()
+    call neomake#signs#RedefineErrorSign()
 <
                                                           *neomake-statusline*
 *neomake#statusline#LoclistStatus*
