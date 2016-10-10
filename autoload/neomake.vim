@@ -545,6 +545,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let file_mode = get(maker, 'file_mode')
     let place_signs = get(g:, 'neomake_place_signs', 1)
     let highlight_columns = get(g:, 'neomake_highlight_columns', 1)
+    let highlight_lines = get(g:, 'neomake_highlight_lines', 1)
     let list = file_mode ? getloclist(0) : getqflist()
     let list_modified = 0
     let counts_changed = 0
@@ -622,7 +623,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
                 call neomake#signs#RegisterSign(entry, maker_type)
             endif
         endif
-        if highlight_columns
+        if highlight_columns || highlight_lines
             call neomake#highlights#AddHighlight(entry, maker_type)
         endif
     endwhile
