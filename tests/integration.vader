@@ -201,6 +201,7 @@ Execute (Having an invalid &errorformat is OK):
   Save &errorformat
   let &efm = '%E%W'
   NeomakeSh sh -c 'true'
+  NeomakeTestsWaitForFinishedJobs
 
 Execute (Neomake with windo):
   if !NeomakeAsyncTestsSetup() | finish | endif

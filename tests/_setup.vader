@@ -81,4 +81,4 @@ Execute:
 
 Before:
   let g:neomake_test_messages = []
-  NeomakeTestsWaitForFinishedJobs
+  Assert !len(neomake#GetJobs()), 'There were jobs left from the previous test!'
