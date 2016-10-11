@@ -82,3 +82,6 @@ Execute:
 Before:
   let g:neomake_test_messages = []
   Assert !len(neomake#GetJobs()), 'There were jobs left from the previous test!'
+
+After:
+  Restore
