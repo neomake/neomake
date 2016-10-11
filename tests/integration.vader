@@ -250,3 +250,35 @@ Execute (Neomake with windo):
   AssertEqual neomake#statusline#LoclistCounts(winbufnr(1)), {'E': 1}
   AssertEqual neomake#statusline#LoclistCounts(winbufnr(2)), {'E': 2}
   AssertEqual neomake#statusline#LoclistCounts(winbufnr(3)), {'E': 3}
+
+Execute (NeomakeSh: two jobs after each other):
+  if !NeomakeAsyncTestsSetup() | finish | endif
+  NeomakeSh sh -c 'echo 1'
+  NeomakeSh sh -c 'echo 2'
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual len(g:neomake_test_finished), 2
+  AssertEqual sort(map(copy(getqflist()), 'v:val.text')), ['1', '2']
+  AssertEqual len(g:neomake_test_finished), 2, 'two jobs have run'
+
+Execute (Neomake#Make: two jobs after each other):
+  if !NeomakeAsyncTestsSetup() | finish | endif
+  let g:neomake_maker1_maker = {
+      \ 'name': '1',
+      \ 'exe': 'sh',
+      \ 'args': ['-c', 'echo 1'],
+      \ 'remove_invalid_entries': 0,
+      \ 'errorformat': '%m',
+      \ }
+  let g:neomake_maker2_maker = {
+      \ 'name': '2',
+      \ 'exe': 'sh',
+      \ 'args': ['-c', 'echo 2'],
+      \ 'remove_invalid_entries': 0,
+      \ 'errorformat': '%m',
+      \ }
+  let b:neomake_enabled_makers = ['maker1', 'maker2']
+  Neomake! maker1 maker2
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual sort(map(copy(getqflist()), 'v:val.text')), ['1', '2']
+  AssertEqual len(g:neomake_test_countschanged), 2, 'counts have changed'
+  AssertEqual len(g:neomake_test_finished), 2, 'two jobs have run'
