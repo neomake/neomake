@@ -137,22 +137,24 @@ function! neomake#utils#Random() abort
     return answer
 endfunction
 
-function! neomake#utils#MakerFromCommand(shell, command) abort
+function! neomake#utils#MakerFromCommand(command) abort
     let command = substitute(a:command, '%\(:[a-z]\)*',
                            \ '\=expand(submatch(0))', 'g')
-    let shell_name = split(a:shell, '/')[-1]
+    let shell_name = split(&shell, '/')[-1]
     if index(['sh', 'csh', 'ash', 'bash', 'dash', 'ksh', 'pdksh', 'mksh', 'zsh', 'fish'],
             \shell_name) >= 0
         let args = ['-c', command]
     else
-        let shell_name = split(a:shell, '\\')[-1]
+        let shell_name = split(&shell, '\\')[-1]
         if (shell_name ==? 'cmd.exe')
             let args = [&shellcmdflag, command]
         endif
     endif
     return {
-        \ 'exe': a:shell,
-        \ 'args': args
+        \ 'exe': &shell,
+        \ 'args': args,
+        \ 'remove_invalid_entries': 0,
+        \ 'errorformat': '%+G',
         \ }
 endfunction
 
