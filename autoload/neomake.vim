@@ -159,6 +159,9 @@ function! s:MakeJob(make_id, maker) abort
                             \ })
                 let jobinfo.id = ch_info(job)['id']
                 let jobinfo.vim_job = job
+                call neomake#utils#DebugMessage(printf(
+                            \ '[#%d] vim job: %s',
+                            \ jobinfo.id, string(job)))
             endif
 
             let s:jobs[jobinfo.id] = jobinfo
