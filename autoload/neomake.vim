@@ -157,11 +157,14 @@ function! s:MakeJob(make_id, maker) abort
                             \ 'close_cb': 'neomake#MakeHandlerVimClose',
                             \ 'mode': 'raw',
                             \ })
+                " XXX: do not use 0 in case job failed!
+                " Ref: https://github.com/neomake/neomake/issues/694#issuecomment-252889872
                 let jobinfo.id = ch_info(job)['id']
                 let jobinfo.vim_job = job
                 call neomake#utils#DebugMessage(printf(
-                            \ '[#%d] vim job: %s',
-                            \ jobinfo.id, string(job)))
+                            \ '[#%d] vim job: %s, channel: %s',
+                            \ jobinfo.id, string(job_info(job)),
+                            \ string(ch_info(job))))
             endif
 
             let s:jobs[jobinfo.id] = jobinfo
