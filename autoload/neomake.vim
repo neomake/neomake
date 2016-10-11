@@ -204,7 +204,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     if type(a:name_or_maker) == type({})
         let maker = a:name_or_maker
     elseif a:name_or_maker ==# 'makeprg'
-        let maker = neomake#utils#MakerFromCommand(&shell, &makeprg)
+        let maker = neomake#utils#MakerFromCommand(&makeprg)
     elseif a:name_or_maker !~# '\v^\w+$'
         call neomake#utils#ErrorMessage('Invalid maker name: '.a:name_or_maker)
         return {}
@@ -891,10 +891,8 @@ function! neomake#Make(file_mode, enabled_makers, ...) abort
 endfunction
 
 function! neomake#ShCommand(bang, sh_command, ...) abort
-    let maker = neomake#utils#MakerFromCommand(&shell, a:sh_command)
+    let maker = neomake#utils#MakerFromCommand(a:sh_command)
     let maker.name = 'sh: '.a:sh_command
-    let maker.remove_invalid_entries = 0
-    let maker.errorformat = '%+G'
     let maker.buffer_output = !a:bang
     if a:0
         call extend(maker, a:1)
