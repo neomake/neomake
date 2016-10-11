@@ -122,6 +122,7 @@ function! s:MakeJob(make_id, maker) abort
 
     try
         let has_args = type(args) == type([])
+        let error = ''
         if neomake#has_async_support()
             let argv = [exe]
             if has_args
@@ -135,28 +136,67 @@ function! s:MakeJob(make_id, maker) abort
                     \ 'on_stderr': function('neomake#MakeHandler'),
                     \ 'on_exit': function('neomake#MakeHandler')
                     \ }
-                let job = jobstart(argv, opts)
-                if job == 0
-                    throw 'Job table is full or invalid arguments given'
-                elseif job == -1
-                    throw 'Non executable given'
+                try
+                    let job = jobstart(argv, opts)
+                catch
+                    let error = printf('Failed to start Neovim job: %s: %s',
+                                \ string(argv), v:exception)
+                endtry
+                if empty(error)
+                    if job == 0
+                        let error = 'Job table is full or invalid arguments given'
+                    elseif job == -1
+                        " Never happens?!
+                        " https://github.com/neovim/neovim/issues/5465
+                        let error = 'Executable not found'
+                    else
+                        let jobinfo.id = job
+                        let s:jobs[jobinfo.id] = jobinfo
+                    endif
                 endif
-                let jobinfo.id = job
             else
-                if neomake#utils#IsRunningWindows()
-                    let argv = &shell.' '.&shellcmdflag.' '.shellescape(join(argv))
-                endif
-                let job = job_start(argv, {
+                let opts = {
                             \ 'err_cb': 'neomake#MakeHandlerVimStderr',
                             \ 'out_cb': 'neomake#MakeHandlerVimStdout',
                             \ 'close_cb': 'neomake#MakeHandlerVimClose',
                             \ 'mode': 'raw',
-                            \ })
-                let jobinfo.id = ch_info(job)['id']
-                let jobinfo.vim_job = job
+                            \ }
+                if neomake#utils#IsRunningWindows()
+                    let argv = &shell.' '.&shellcmdflag.' '.shellescape(join(argv))
+                endif
+                try
+                    let job = job_start(argv, opts)
+                    " Get this as early as possible!
+                    " XXX: the job might be finished already before the setup
+                    "      is done completely!
+                    let job_status = job_status(job)
+                    let jobinfo.id = ch_info(job)['id']
+                    let jobinfo.vim_job = job
+                    let s:jobs[jobinfo.id] = jobinfo
+                catch
+                    let error = printf('[#%d] Failed to start Vim job: %s: %s',
+                                \ a:make_id, argv, v:exception)
+                endtry
+                if job_status !=# 'run'
+                    let error = printf('[#%d.%d] Vim job failed to run: %s',
+                                \ a:make_id, jobinfo.id, string(job))
+                endif
+                if empty(error)
+                    call neomake#utils#DebugMessage(printf(
+                                \ '[#%d.%d] Vim job: %s',
+                                \ a:make_id, jobinfo.id, string(job_info(job))))
+                    call neomake#utils#DebugMessage(printf(
+                                \ '[#%d.%d] Vim channel: %s',
+                                \ a:make_id, jobinfo.id, string(ch_info(job))))
+                endif
             endif
 
-            let s:jobs[jobinfo.id] = jobinfo
+            " Bail out on errors.
+            if len(error)
+                call neomake#utils#LoudMessage(error)
+                return -1
+            endif
+
             let maker_key = s:GetMakerKey(a:maker)
             let s:jobs_by_maker[maker_key] = jobinfo
             call s:AddJobinfoForCurrentWin(jobinfo.id)
@@ -687,13 +727,17 @@ function! neomake#MakeHandlerVimStderr(channel, output) abort
 endfunction
 
 function! neomake#MakeHandlerVimClose(channel) abort
-    call neomake#utils#DebugMessage('Channel has been closed: ' . a:channel)
-    let job = ch_getjob(a:channel)
-    call neomake#MakeHandler(ch_info(a:channel)['id'], job_info(job)['exitval'], 'exit')
+    let job_info = job_info(ch_getjob(a:channel))
+    call neomake#utils#DebugMessage('MakeHandlerVim: exit: '
+                \ .string(a:channel).', job_info: '.string(job_info))
+    call neomake#MakeHandler(ch_info(a:channel)['id'], job_info['exitval'], 'exit')
 endfunction
 
 function! neomake#MakeHandler(job_id, data, event_type) abort
     if !has_key(s:jobs, a:job_id)
+        call neomake#utils#QuietMessage(
+                    \ 'neomake#MakeHandler: '.a:event_type.': job not found: '
+                    \ . string(a:job_id))
         return
     endif
     let jobinfo = s:jobs[a:job_id]
