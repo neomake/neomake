@@ -281,4 +281,4 @@ Execute (Neomake#Make: two jobs after each other):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual sort(map(copy(getqflist()), 'v:val.text')), ['1', '2']
   AssertEqual len(g:neomake_test_countschanged), 2, 'counts have changed'
-  AssertEqual len(g:neomake_test_finished), 2, 'two jobs have run'
+  AssertEqual len(g:neomake_test_finished), 1
