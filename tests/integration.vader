@@ -282,3 +282,39 @@ Execute (Neomake#Make: two jobs after each other):
   AssertEqual sort(map(copy(getqflist()), 'v:val.text')), ['1', '2']
   AssertEqual len(g:neomake_test_countschanged), 2, 'counts have changed'
   AssertEqual len(g:neomake_test_finished), 1
+
+Execute (Neomake: non-existing and proper job):
+  if !NeomakeAsyncTestsSetup() | finish | endif
+
+" TODO: Trigger failed job (but raising an exception) with Vim.
+" Should find a way to trigger a "failed" job by itself!
+"   Save g:neomake_extend_job_opts_vim
+"   let g:neomake_extend_job_opts_vim = {
+"             \ 'in_io': 'file',
+"             \ 'in_name': '/doesnotexist',
+"             \ }
+
+  let g:neomake_maker1_maker = {
+      \ 'name': '1',
+      \ 'exe': 'doesnotexist',
+      \ 'args': [],
+      \ 'remove_invalid_entries': 0,
+      \ 'errorformat': '%m',
+      \ }
+  let g:neomake_maker2_maker = neomake#utils#MakerFromCommand('echo 1')
+  let b:neomake_enabled_makers = ['maker1', 'maker2']
+  Neomake! maker1 maker2
+  NeomakeTestsWaitForFinishedJobs
+  let expected_counts_changed = 1
+  if has('nvim')
+    AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
+      \ ['1'])
+  else
+    " XXX: Vim puts the job's error on stdout.
+    let expected_counts_changed = 2
+    AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
+      \ ['1', 'executing job failed: No such file or directory'])
+  endif
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_countschanged), expected_counts_changed,
+    \ 'counts have changed'
