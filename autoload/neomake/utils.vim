@@ -1,6 +1,13 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
+let s:level_to_name = {
+            \ 0: 'error',
+            \ 1: 'quiet',
+            \ 2: 'verb ',
+            \ 3: 'debug',
+            \ }
+
 if has('reltime')
     let s:reltime_start = reltime()
 endif
@@ -18,7 +25,7 @@ function! neomake#utils#LogMessage(level, msg) abort
 
     if exists(':Log') == 2
         " Log is defined during Vader tests.
-        let test_msg = 'Neomake ['.a:level.'] ['.s:timestr().']: '.a:msg
+        let test_msg = '['.s:level_to_name[a:level].'] ['.s:timestr().']: '.a:msg
         Log test_msg
         let g:neomake_test_messages += [[a:level, a:msg]]
     endif
@@ -39,7 +46,7 @@ function! neomake#utils#LogMessage(level, msg) abort
     endif
     if type(logfile) ==# type('') && len(logfile)
         let date = strftime('%Y-%m-%dT%H:%M:%S%z')
-        call writefile(['['.date.' @'.s:timestr().', level '.a:level.'] '.a:msg], logfile, 'a')
+        call writefile(['['.date.' @'.s:timestr().', '.s:level_to_name[a:level].'] '.a:msg], logfile, 'a')
     endif
 endfunction
 
