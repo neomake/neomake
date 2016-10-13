@@ -902,7 +902,7 @@ function! neomake#ShCommand(bang, sh_command, ...) abort
     if a:0
         call extend(maker, a:1)
     endif
-    return get(s:Make({'enabled_makers': [maker]}), 0, 0)
+    return get(s:Make({'enabled_makers': [maker]}), 0, -1)
 endfunction
 
 function! neomake#Sh(sh_command, ...) abort

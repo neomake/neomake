@@ -77,3 +77,12 @@ Execute (Reports exit status):
     let msg = printf('[#%d] exit: sh: sh -c ''exit 7'': 7', job_id)
     AssertNeomakeMessage msg, 3
   endif
+
+Execute (neomake#Sh: job_id):
+  let job_id = neomake#Sh('true')
+  if neomake#has_async_support()
+    Assert job_id >= 0, 'Correct job_id for async.'
+    NeomakeTestsWaitForFinishedJobs
+  else
+    Assert job_id == -1, 'Correct job_id for sync.'
+  endif
