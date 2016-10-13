@@ -1,3 +1,8 @@
+if exists('g:loaded_neomake') || &compatible
+  finish
+endif
+let g:loaded_neomake = 1
+
 command! -nargs=* -bang -bar -complete=customlist,neomake#CompleteMakers
       \ Neomake call neomake#Make(<bang>1, [<f-args>])
 
