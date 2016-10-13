@@ -40,7 +40,7 @@ function! neomake#makers#ft#python#pylint() abort
         \ }
 endfunction
 
-function! neomake#makers#ft#python#PylintEntryProcess(entry)
+function! neomake#makers#ft#python#PylintEntryProcess(entry) abort
     if a:entry.type ==# 'F'  " Fatal error which prevented further processing
         let type = 'E'
     elseif a:entry.type ==# 'E'  " Error for important programming issues
@@ -57,7 +57,7 @@ function! neomake#makers#ft#python#PylintEntryProcess(entry)
     let a:entry.type = type
 endfunction
 
-function! neomake#makers#ft#python#flake8()
+function! neomake#makers#ft#python#flake8() abort
     return {
         \ 'args': ['--format=default'],
         \ 'errorformat':
@@ -69,7 +69,7 @@ function! neomake#makers#ft#python#flake8()
         \ }
 endfunction
 
-function! neomake#makers#ft#python#Flake8EntryProcess(entry)
+function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
     if a:entry.type ==# 'F'  " PyFlake errors
         let type = 'E'
     elseif a:entry.type ==# 'E' && a:entry.nr >= 900  " PEP8 runtime errors (E901, E902)
@@ -83,10 +83,12 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry)
     else
         let type = ''
     endif
+    let a:entry.text = a:entry.type . a:entry.nr . ' ' . a:entry.text
     let a:entry.type = type
+    let a:entry.nr = ''  " Avoid redundancy in the displayed error message.
 endfunction
 
-function! neomake#makers#ft#python#pyflakes()
+function! neomake#makers#ft#python#pyflakes() abort
     return {
         \ 'errorformat':
             \ '%E%f:%l: could not compile,' .
@@ -97,15 +99,15 @@ function! neomake#makers#ft#python#pyflakes()
         \ }
 endfunction
 
-function! neomake#makers#ft#python#pep8()
+function! neomake#makers#ft#python#pep8() abort
     return {
         \ 'errorformat': '%f:%l:%c: %m',
         \ 'postprocess': function('neomake#makers#ft#python#Pep8EntryProcess')
         \ }
 endfunction
 
-function! neomake#makers#ft#python#Pep8EntryProcess(entry)
-    if a:entry.text =~ '^E9'  " PEP8 runtime errors (E901, E902)
+function! neomake#makers#ft#python#Pep8EntryProcess(entry) abort
+    if a:entry.text =~# '^E9'  " PEP8 runtime errors (E901, E902)
         let type = 'E'
     else  " Everything else is a warning
         let type = 'W'
@@ -113,20 +115,20 @@ function! neomake#makers#ft#python#Pep8EntryProcess(entry)
     let a:entry.type = type
 endfunction
 
-function! neomake#makers#ft#python#pep257()
+function! neomake#makers#ft#python#pep257() abort
     return {
         \ 'errorformat': '%f:%l %m,%m',
         \ }
 endfunction
 
-function! neomake#makers#ft#python#pylama()
+function! neomake#makers#ft#python#pylama() abort
     return {
         \ 'args': ['--format', 'pep8'],
         \ 'errorformat': '%f:%l:%c: %t%m',
         \ }
 endfunction
 
-function! neomake#makers#ft#python#python()
+function! neomake#makers#ft#python#python() abort
     return {
         \ 'args': [ '-c',
             \ "from __future__ import print_function\r" .
@@ -137,13 +139,13 @@ function! neomake#makers#ft#python#python()
             \ "    compile(open(argv[1]).read(), argv[1], 'exec', 0, 1)\r" .
             \ "except SyntaxError as err:\r" .
             \ "    print('%s:%s:%s: %s' % (err.filename, err.lineno, err.offset, err.msg))\r" .
-            \ "    exit(1)"
+            \ '    exit(1)'
         \ ],
         \ 'errorformat': '%E%f:%l:%c: %m',
         \ }
 endfunction
 
-function! neomake#makers#ft#python#frosted()
+function! neomake#makers#ft#python#frosted() abort
     return {
         \ 'args': [
             \ '-vb'
@@ -156,7 +158,7 @@ function! neomake#makers#ft#python#frosted()
         \ }
 endfunction
 
-function! neomake#makers#ft#python#vulture()
+function! neomake#makers#ft#python#vulture() abort
     return {
         \ 'errorformat': '%f:%l: %m',
         \ }
@@ -164,9 +166,18 @@ endfunction
 
 " Because this uses --silent-imports it requires mypy >= 0.4
 " It is annoying for new users to use MyPy without --silent-imports
-function! neomake#makers#ft#python#mypy()
+function! neomake#makers#ft#python#mypy() abort
     return {
         \ 'args': ['--silent-imports'],
-        \ 'errorformat': '%f:%l: error: %m',
+        \ 'errorformat':
+            \ '%E%f:%l: error: %m,' .
+            \ '%W%f:%l: warning: %m,' .
+            \ '%I%f:%l: note: %m',
+        \ }
+endfunction
+
+function! neomake#makers#ft#python#py3kwarn() abort
+    return {
+        \ 'errorformat': '%W%f:%l:%c: %m',
         \ }
 endfunction

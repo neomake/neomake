@@ -15,10 +15,6 @@ function! s:InitSigns() abort
         \ 'project': {},
         \ 'file': {}
         \ }
-    let s:sign_queue = {
-        \ 'project': {},
-        \ 'file': {}
-        \ }
     let s:neomake_sign_id = {
         \ 'project': {},
         \ 'file': {}
@@ -27,7 +23,7 @@ endfunction
 call s:InitSigns()
 
 " Reset signs placed by a :Neomake! call
-" (resettting signs means the current signs will be deleted on the next call to ResetProject)
+" (resetting signs means the current signs will be deleted on the next call to ResetProject)
 function! neomake#signs#ResetProject() abort
     let s:sign_queue.project = {}
     for buf in keys(s:placed_signs.project)
@@ -220,12 +216,11 @@ function! neomake#signs#RedefineInfoSign(...) abort
 endfunction
 
 
-function! s:hlexists_and_is_not_cleared(group) abort
+function! neomake#signs#HlexistsAndIsNotCleared(group) abort
     if !hlexists(a:group)
-        return 1
+        return 0
     endif
-    redir => hlstatus | exec 'silent hi ' . a:group | redir END
-    return hlstatus !~# 'cleared'
+    return neomake#utils#redir('hi '.a:group) !~# 'cleared'
 endfunction
 
 
@@ -238,23 +233,24 @@ function! neomake#signs#DefineHighlights() abort
     let guibg = neomake#utils#GetHighlight('SignColumn', 'bg#')
     let bg = 'ctermbg='.ctermbg.' guibg='.guibg
 
-    for [group, fgs] in items({
-                \ 'NeomakeErrorSign': [
-                \   neomake#utils#GetHighlight('Error', 'bg'),
-                \   neomake#utils#GetHighlight('Error', 'bg#')],
-                \ 'NeomakeWarningSign': [
-                \   neomake#utils#GetHighlight('Todo', 'fg'),
-                \   neomake#utils#GetHighlight('Todo', 'fg#')],
-                \ 'NeomakeInfoSign': [
-                \   neomake#utils#GetHighlight('Question', 'fg'),
-                \   neomake#utils#GetHighlight('Question', 'fg#')],
-                \ 'NeomakeMessageSign': [
-                \   neomake#utils#GetHighlight('ModeMsg', 'fg'),
-                \   neomake#utils#GetHighlight('ModeMsg', 'fg#')],
+    for [group, fg_from] in items({
+                \ 'NeomakeErrorSign': ['Error', 'bg'],
+                \ 'NeomakeWarningSign': ['Todo', 'fg'],
+                \ 'NeomakeInfoSign': ['Question', 'fg'],
+                \ 'NeomakeMessageSign': ['ModeMsg', 'fg']
                 \ })
-        let [ctermfg, guifg] = fgs
+        let [fg_group, fg_attr] = fg_from
+        let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr)
+        let guifg = neomake#utils#GetHighlight(fg_group, fg_attr.'#')
+        " Ensure that we're not using SignColumn bg as fg (as with gotham
+        " colorscheme, issue https://github.com/neomake/neomake/pull/659).
+        if ctermfg == ctermbg && guifg == guibg
+            let fg_attr = neomake#utils#ReverseSynIDattr(fg_attr)
+            let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr)
+            let guifg = neomake#utils#GetHighlight(fg_group, fg_attr.'#')
+        endif
         exe 'hi '.group.'Default ctermfg='.ctermfg.' guifg='.guifg.' '.bg
-        if !s:hlexists_and_is_not_cleared(group)
+        if !neomake#signs#HlexistsAndIsNotCleared(group)
             exe 'hi link '.group.' '.group.'Default'
         endif
     endfor

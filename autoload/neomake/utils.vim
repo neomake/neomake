@@ -1,22 +1,52 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
+let s:level_to_name = {
+            \ 0: 'error',
+            \ 1: 'quiet',
+            \ 2: 'verb ',
+            \ 3: 'debug',
+            \ }
+
+if has('reltime')
+    let s:reltime_start = reltime()
+endif
+function! s:timestr() abort
+    if exists('s:reltime_start')
+        let cur_time = split(split(reltimestr(reltime(s:reltime_start)))[0], '\.')
+        return cur_time[0].'.'.cur_time[1][0:2]
+    endif
+    return strftime('%H:%M:%S')
+endfunction
+
 function! neomake#utils#LogMessage(level, msg) abort
     let verbose = get(g:, 'neomake_verbose', 1)
     let logfile = get(g:, 'neomake_logfile')
-    let msg ='Neomake: '.a:msg
+
+    if exists(':Log') == 2
+        " Log is defined during Vader tests.
+        let test_msg = '['.s:level_to_name[a:level].'] ['.s:timestr().']: '.a:msg
+        Log test_msg
+        let g:neomake_test_messages += [[a:level, a:msg]]
+    endif
+
     if verbose >= a:level
+        redraw
         if a:level ==# 0
             echohl ErrorMsg
         endif
-        echom msg
+        if verbose > 2
+            echom 'Neomake ['.s:timestr().']: '.a:msg
+        else
+            echom 'Neomake: '.a:msg
+        endif
         if a:level ==# 0
             echohl None
         endif
     endif
     if type(logfile) ==# type('') && len(logfile)
         let date = strftime('%Y-%m-%dT%H:%M:%S%z')
-        call writefile([date.' Log level '.a:level.': '.msg], logfile, 'a')
+        call writefile(['['.date.' @'.s:timestr().', '.s:level_to_name[a:level].'] '.a:msg], logfile, 'a')
     endif
 endfunction
 
@@ -68,7 +98,7 @@ function! neomake#utils#WideMessage(msg) abort " {{{2
     "convert tabs to spaces so that the tabs count towards the window
     "width as the proper amount of characters
     let chunks = split(msg, "\t", 1)
-    let msg = join(map(chunks[:-2], 'v:val . repeat(" ", &tabstop - strwidth(v:val) % &tabstop)'), '') . chunks[-1]
+    let msg = join(map(chunks[:-2], "v:val . repeat(' ', &tabstop - strwidth(v:val) % &tabstop)"), '') . chunks[-1]
     let msg = strpart(msg, 0, &columns - 1)
 
     set noruler noshowcmd
@@ -114,22 +144,24 @@ function! neomake#utils#Random() abort
     return answer
 endfunction
 
-function! neomake#utils#MakerFromCommand(shell, command) abort
+function! neomake#utils#MakerFromCommand(command) abort
     let command = substitute(a:command, '%\(:[a-z]\)*',
                            \ '\=expand(submatch(0))', 'g')
-    let shell_name = split(a:shell, '/')[-1]
+    let shell_name = split(&shell, '/')[-1]
     if index(['sh', 'csh', 'ash', 'bash', 'dash', 'ksh', 'pdksh', 'mksh', 'zsh', 'fish'],
             \shell_name) >= 0
         let args = ['-c', command]
     else
-        let shell_name = split(a:shell, '\\')[-1]
+        let shell_name = split(&shell, '\\')[-1]
         if (shell_name ==? 'cmd.exe')
             let args = [&shellcmdflag, command]
         endif
     endif
     return {
-        \ 'exe': a:shell,
-        \ 'args': args
+        \ 'exe': &shell,
+        \ 'args': args,
+        \ 'remove_invalid_entries': 0,
+        \ 'errorformat': '%+G',
         \ }
 endfunction
 
@@ -174,20 +206,49 @@ function! neomake#utils#GetSortedFiletypes(ft) abort
     return sort(split(a:ft, '\.'), function('CompareFiletypes'))
 endfunction
 
+" Get a setting by key, based on filetypes, from the buffer or global
+" namespace, defaulting to default.
+function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
+  if len(a:fts)
+    for ft in a:fts
+      " Look through the neomake setting override vars for a filetype maker,
+      " like neomake_scss_sasslint_exe (should be a string), and 
+      " neomake_scss_sasslint_args (should be a list)
+      let config_var = 'neomake_'.ft.'_'.a:maker.name.'_'.a:key
+      if has_key(g:, config_var)
+            \ || !empty(getbufvar(a:bufnr, config_var))
+        break
+      endif
+    endfor
+  else
+    " Following this, we're checking the neomake overrides for global makers
+    let config_var = 'neomake_'.a:maker.name.'_'.a:key
+  endif
+  if !empty(getbufvar(a:bufnr, config_var))
+    return copy(getbufvar(a:bufnr, config_var))
+  elseif has_key(g:, config_var)
+    return copy(get(g:, config_var))
+  elseif has_key(a:maker, a:key)
+    return a:maker[a:key]
+  endif
+  " Look for 'neomake_'.key in the buffer and global namespace.
+  let bufvar = getbufvar(a:bufnr, 'neomake_'.a:key)
+  if !empty(bufvar)
+      return bufvar
+  endif
+  let var = get(g:, 'neomake_'.a:key)
+  if !empty(var)
+      return var
+  endif
+  return a:default
+endfunction
+
 " Get property from highlighting group.
 function! neomake#utils#GetHighlight(group, what) abort
   let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
   let what = a:what
   if reverse
-    if what ==# 'fg'
-      let what = 'bg'
-    elseif what ==# 'bg'
-      let what = 'fg'
-    elseif what ==# 'fg#'
-      let what = 'bg#'
-    elseif what ==# 'bg#'
-      let what = 'fg#'
-    endif
+    let what = neomake#utils#ReverseSynIDattr(what)
   endif
   if what[-1:] ==# '#'
       let val = synIDattr(synIDtrans(hlID(a:group)), what, 'gui')
@@ -198,4 +259,55 @@ function! neomake#utils#GetHighlight(group, what) abort
     let val = 'NONE'
   endif
   return val
+endfunction
+
+function! neomake#utils#ReverseSynIDattr(attr) abort
+  if a:attr ==# 'fg'
+    return 'bg'
+  elseif a:attr ==# 'bg'
+    return 'fg'
+  elseif a:attr ==# 'fg#'
+    return 'bg#'
+  elseif a:attr ==# 'bg#'
+    return 'fg#'
+  endif
+  return a:attr
+endfunction
+
+function! neomake#utils#CompressWhitespace(entry) abort
+    let text = a:entry.text
+    let text = substitute(text, "\001", '', 'g')
+    let text = substitute(text, '\n', ' ', 'g')
+    let text = substitute(text, '\m\s\{2,}', ' ', 'g')
+    let text = substitute(text, '\m^\s\+', '', '')
+    let text = substitute(text, '\m\s\+$', '', '')
+    let a:entry.text = text
+endfunction
+
+function! neomake#utils#redir(cmd) abort
+    if exists('*execute') && has('nvim')
+        " NOTE: require Neovim, since Vim has at least an issue when using
+        "       this in a :command-completion function.
+        "       Ref: https://github.com/neomake/neomake/issues/650.
+        return execute(a:cmd)
+    endif
+    if type(a:cmd) == type([])
+        let r = ''
+        for cmd in a:cmd
+            let r .= neomake#utils#redir(cmd)
+        endfor
+        return r
+    endif
+    redir => neomake_redir
+    try
+        silent exe a:cmd
+    finally
+        redir END
+    endtry
+    return neomake_redir
+endfunction
+
+function! neomake#utils#ExpandArgs(args) abort
+    " Only expand those args that start with \ and a single %
+    call map(a:args, "v:val =~# '\\(^\\\\\\|^%$\\|^%[^%]\\)' ? expand(v:val) : v:val")
 endfunction

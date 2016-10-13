@@ -1,7 +1,7 @@
 Include: _setup.vader
 
 Execute (Postprocessing should update list):
-  e! fixtures/errors.sh
+  e! tests/fixtures/errors.sh
   RunNeomake sh
   let list = getloclist(0)
   AssertNotEqual list, []

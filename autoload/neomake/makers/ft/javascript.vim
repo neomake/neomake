@@ -14,7 +14,7 @@ endfunction
 function! neomake#makers#ft#javascript#jscs()
     return {
         \ 'args': ['--no-colors', '--reporter', 'inline'],
-        \ 'errorformat': '%f: line %l\, col %c\, %m',
+        \ 'errorformat': '%E%f: line %l\, col %c\, %m',
         \ }
 endfunction
 
@@ -51,7 +51,15 @@ function! neomake#makers#ft#javascript#flow()
     let mapexpr = 'substitute(v:val, "\\\\n", " ", "g")'
     return {
         \ 'args': ['--old-output-format'],
-        \ 'errorformat': '%f:%l:%c\,%n: %m',
+        \ 'errorformat': '%E%f:%l:%c\,%n: %m',
         \ 'mapexpr': mapexpr,
+        \ }
+endfunction
+
+function! neomake#makers#ft#javascript#xo()
+    return {
+        \ 'args': ['--compact'],
+        \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
+        \ '%W%f: line %l\, col %c\, Warning - %m',
         \ }
 endfunction

@@ -15,6 +15,11 @@ let s:need_errors_cleaning = {
     \ 'file': {}
     \ }
 
+function! neomake#has_async_support() abort
+    return has('nvim') ||
+                \ has('channel') && has('job') && has('patch-7-4-2260')
+endfunction
+
 function! neomake#GetJobs() abort
     return s:jobs
 endfunction
@@ -27,14 +32,25 @@ function! neomake#ListJobs() abort
 endfunction
 
 function! neomake#CancelJob(job_id) abort
-    if !has_key(s:jobs, a:job_id)
-        return
+    if has_key(s:jobs, a:job_id)
+        call neomake#utils#DebugMessage('Stopping job: ' . a:job_id)
+        if has('nvim')
+            call jobstop(a:job_id)
+        else
+            " HACK: Vim might fail to stop a job right away.
+            " So let's just wait a bit, which is OK since this is not really
+            " a user facing function anyway.
+            " https://github.com/vim/vim/issues/1155
+            sleep 50m
+            call job_stop(s:jobs[a:job_id].vim_job)
+        endif
+        return 1
     endif
-    call jobstop(s:jobs[a:job_id])
+    return 0
 endfunction
 
 function! s:GetMakerKey(maker) abort
-    return has_key(a:maker, 'name') ? a:maker.name.' ft='.a:maker.ft : 'makeprg'
+    return a:maker.name.',ft='.a:maker.ft.',buf='.a:maker.bufnr
 endfunction
 
 function! s:gettabwinvar(t, w, v, d) abort
@@ -96,12 +112,7 @@ function! s:MakeJob(make_id, maker) abort
         call add(args, '%:p')
     endif
 
-    if neomake#utils#IsRunningWindows()
-        " Don't expand &shellcmdflag argument of cmd.exe
-        call map(args, 'v:val !=? &shellcmdflag ? expand(v:val) : v:val')
-    else
-        call map(args, 'expand(v:val)')
-    endif
+    call neomake#utils#ExpandArgs(args)
 
     if has_key(a:maker, 'cwd')
         let old_wd = getcwd()
@@ -111,39 +122,56 @@ function! s:MakeJob(make_id, maker) abort
 
     try
         let has_args = type(args) == type([])
-        if has('nvim')
+        if neomake#has_async_support()
             let argv = [exe]
             if has_args
-                let argv = argv + args
+                let argv += args
             endif
             call neomake#utils#LoudMessage('Starting: '.join(argv, ' '))
-            let opts = {
-                \ 'on_stdout': function('neomake#MakeHandler'),
-                \ 'on_stderr': function('neomake#MakeHandler'),
-                \ 'on_exit': function('neomake#MakeHandler')
-                \ }
-            let job = jobstart(argv, opts)
-            let jobinfo.start = localtime()
-            let jobinfo.last_register = 0
-
-            if job == 0
-                throw 'Job table is full or invalid arguments given'
-            elseif job == -1
-                throw 'Non executable given'
+            if has('nvim')
+                let opts = {
+                    \ 'on_stdout': function('neomake#MakeHandler'),
+                    \ 'on_stderr': function('neomake#MakeHandler'),
+                    \ 'on_exit': function('neomake#MakeHandler')
+                    \ }
+                let job = jobstart(argv, opts)
+                if job == 0
+                    throw 'Job table is full or invalid arguments given'
+                elseif job == -1
+                    throw 'Non executable given'
+                endif
+                let jobinfo.id = job
+            else
+                " HACK: We need to add some 'sleep' for Vim (8.0.8) to work
+                " around https://groups.google.com/d/msg/vim_dev/us740TrOxNQ/IcBgP7YQBQAJ.
+                " Currently it is only being done in tests, but a) is
+                " hopefully not necessary anymore and b) might be needed in
+                " real usage, too.
+                " Fix: https://groups.google.com/d/msg/vim_dev/LhXQJusQScM/_wV4u5y5AAAJ
+                if !has('nvim') && !neomake#utils#IsRunningWindows()
+                    let argv = ['/bin/sh', '-c', 'sleep .05 & '.join(map(argv, 'shellescape(v:val)'))]
+                endif
+                let job = job_start(argv, {
+                            \ 'err_cb': 'neomake#MakeHandlerVimStderr',
+                            \ 'out_cb': 'neomake#MakeHandlerVimStdout',
+                            \ 'close_cb': 'neomake#MakeHandlerVimClose',
+                            \ 'mode': 'raw',
+                            \ })
+                let jobinfo.id = ch_info(job)['id']
+                let jobinfo.vim_job = job
             endif
 
-            let jobinfo.id = job
-            let s:jobs[job] = jobinfo
+            let s:jobs[jobinfo.id] = jobinfo
             let maker_key = s:GetMakerKey(a:maker)
             let s:jobs_by_maker[maker_key] = jobinfo
             call s:AddJobinfoForCurrentWin(jobinfo.id)
-            let r = jobinfo.id
             if !exists('s:jobids_by_makeid[a:make_id]')
                 let s:jobids_by_makeid[a:make_id] = []
             endif
             call add(s:jobids_by_makeid[a:make_id], jobinfo.id)
+            let r = jobinfo.id
         else
-            " Vim, synchronously.
+            call neomake#utils#DebugMessage('Running synchronously')
             if has_args
                 if neomake#utils#IsRunningWindows()
                     let program = exe.' '.join(map(args, 'v:val'))
@@ -153,12 +181,15 @@ function! s:MakeJob(make_id, maker) abort
             else
                 let program = exe
             endif
+
+            call neomake#utils#LoudMessage('Starting: ' . program)
+
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
             call s:AddJobinfoForCurrentWin(jobinfo.id)
             call neomake#MakeHandler(job_id, split(system(program), '\r\?\n', 1), 'stdout')
             call neomake#MakeHandler(job_id, v:shell_error, 'exit')
-            let r = 0
+            let r = -1
         endif
     finally
         if exists('old_wd')
@@ -177,10 +208,13 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     endif
     if type(a:name_or_maker) == type({})
         let maker = a:name_or_maker
+    elseif a:name_or_maker ==# 'makeprg'
+        let maker = neomake#utils#MakerFromCommand(&makeprg)
+    elseif a:name_or_maker !~# '\v^\w+$'
+        call neomake#utils#ErrorMessage('Invalid maker name: '.a:name_or_maker)
+        return {}
     else
-        if a:name_or_maker ==# 'makeprg'
-            let maker = neomake#utils#MakerFromCommand(&shell, &makeprg)
-        elseif len(fts)
+        if len(fts)
             for ft in fts
                 let m = get(g:, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
                 if type(m) == type({})
@@ -189,11 +223,10 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                 endif
                 unlet m
             endfor
-        else
+        elseif exists('g:neomake_'.a:name_or_maker.'_maker')
             let maker = get(g:, 'neomake_'.a:name_or_maker.'_maker')
         endif
-        if !exists('maker') || type(maker) == type(0)
-            unlet! maker
+        if !exists('maker')
             if len(fts)
                 for ft in fts
                     try
@@ -206,9 +239,12 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                 try
                     let maker = eval('neomake#makers#'.a:name_or_maker.'#'.a:name_or_maker.'()')
                 catch /^Vim\%((\a\+)\)\=:E117/
-                    let maker = {}
                 endtry
             endif
+        endif
+        if !exists('maker')
+            call neomake#utils#ErrorMessage('Maker not found: '.a:name_or_maker)
+            return {}
         endif
     endif
     let maker = deepcopy(maker)
@@ -219,27 +255,13 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         \ 'exe': maker.name,
         \ 'args': [],
         \ 'errorformat': &errorformat,
-        \ 'buffer_output': 0,
+        \ 'buffer_output': 1,
         \ 'remove_invalid_entries': 1
         \ }
-    for key in keys(defaults)
-        if len(fts)
-            for ft in fts
-                let config_var = 'neomake_'.ft.'_'.maker.name.'_'.key
-                if has_key(g:, config_var) || has_key(b:, config_var)
-                    break
-                endif
-            endfor
-        else
-            let config_var = 'neomake_'.maker.name.'_'.key
-        endif
-        if has_key(b:, config_var)
-            let maker[key] = copy(get(b:, config_var))
-        elseif has_key(g:, config_var)
-            let maker[key] = copy(get(g:, config_var))
-        elseif !has_key(maker, key)
-            let maker[key] = defaults[key]
-        endif
+    let bufnr = bufnr('%')
+    for [key, default] in items(defaults)
+        let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
+        unlet! default  " workaround for old Vim (7.3.429)
     endfor
     if exists('real_ft')
         let maker.ft = real_ft
@@ -264,9 +286,7 @@ function! neomake#GetMakers(ft) abort
         catch /^Vim\%((\a\+)\)\=:E117/
             continue
         endtry
-        redir => funcs_output
-        exe 'silent fun /neomake#makers#ft#'.ft.'#\l'
-        redir END
+        let funcs_output = neomake#utils#redir('fun /neomake#makers#ft#'.ft.'#\l')
         for maker_name in map(split(funcs_output, '\n'),
                     \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')")
             let c = get(makers_count, maker_name, 0)
@@ -283,7 +303,9 @@ endfunction
 
 function! neomake#GetEnabledMakers(...) abort
     if !a:0 || type(a:1) !=# type('')
-        " If we have no filetype, our job isn't complicated.
+        " If we have no filetype, use the global default makers.
+        " This variable is also used for project jobs, so it has no
+        " buffer local ('b:') counterpart for now.
         return get(g:, 'neomake_enabled_makers', [])
     endif
 
@@ -294,19 +316,28 @@ function! neomake#GetEnabledMakers(...) abort
     let fts = neomake#utils#GetSortedFiletypes(a:1)
     for ft in fts
         let ft = substitute(ft, '\W', '_', 'g')
-        let varname = 'g:neomake_'.ft.'_enabled_makers'
-        let fnname = 'neomake#makers#ft#'.ft.'#EnabledMakers'
-        if exists(varname)
-            let enabled_makers = eval(varname)
-        else
+        unlet! l:enabled_makers
+        for l:varname in [
+                    \ 'b:neomake_'.ft.'_enabled_makers',
+                    \ 'g:neomake_'.ft.'_enabled_makers']
+            if exists(l:varname)
+                let l:enabled_makers = eval(l:varname)
+                break
+            endif
+        endfor
+
+        " Use plugin's defaults if not customized.
+        if !exists('l:enabled_makers')
             try
+                let fnname = 'neomake#makers#ft#'.ft.'#EnabledMakers'
                 let default_makers = eval(fnname . '()')
             catch /^Vim\%((\a\+)\)\=:E117/
                 let default_makers = []
             endtry
-            let enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
+            let l:enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
         endif
-        for maker_name in enabled_makers
+
+        for maker_name in l:enabled_makers
             let c = get(makers_count, maker_name, 0)
             let makers_count[maker_name] = c + 1
             " Add each maker only once, but keep the order.
@@ -337,6 +368,16 @@ function! s:HandleLoclistQflistDisplay(file_mode) abort
 endfunction
 
 function! s:Make(options, ...) abort
+    let file_mode = get(a:options, 'file_mode')
+    let enabled_makers = get(a:options, 'enabled_makers', [])
+    if !len(enabled_makers)
+        if file_mode
+            call neomake#utils#DebugMessage('Nothing to make: no enabled makers.')
+            return []
+        endif
+        let enabled_makers = ['makeprg']
+    endif
+
     if a:0
         let make_id = a:1
     else
@@ -348,7 +389,6 @@ function! s:Make(options, ...) abort
     let buf = bufnr('%')
     let win = winnr()
     let ft = get(a:options, 'ft', '')
-    let file_mode = get(a:options, 'file_mode')
 
     if ((file_mode && neomake#statusline#ResetCountsForBuf(buf))
                 \ || (!file_mode && neomake#statusline#ResetCounts()))
@@ -357,21 +397,18 @@ function! s:Make(options, ...) abort
                     \ 'bufnr': buf})
     endif
 
-    let enabled_makers = get(a:options, 'enabled_makers', [])
-    if !len(enabled_makers)
+    " Empty the quickfix/location list (using a valid 'errorformat' setting).
+    let l:efm = &errorformat
+    try
+        let &errorformat = '%-G'
         if file_mode
-            call neomake#utils#DebugMessage('Nothing to make: no enabled makers')
-            return
+            lgetexpr ''
         else
-            let enabled_makers = ['makeprg']
+            cgetexpr ''
         endif
-    endif
-
-    if file_mode
-        lgetexpr ''
-    else
-        cgetexpr ''
-    endif
+    finally
+        let &errorformat = l:efm
+    endtry
     call s:HandleLoclistQflistDisplay(file_mode)
 
     if !get(a:options, 'continuation')
@@ -392,13 +429,20 @@ function! s:Make(options, ...) abort
     let job_ids = []
     for name in enabled_makers
         let maker = neomake#GetMaker(name, ft)
-        let maker.file_mode = file_mode
+        if maker == {}
+            continue
+        endif
+        call extend(maker, {
+                    \ 'file_mode': file_mode,
+                    \ 'bufnr': buf,
+                    \ 'winnr': win,
+                    \ }, 'error')
         let maker_key = s:GetMakerKey(maker)
         if has_key(s:jobs_by_maker, maker_key)
             let jobinfo = s:jobs_by_maker[maker_key]
             let jobinfo.maker.next = copy(a:options)
             try
-                call jobstop(jobinfo.id)
+                call neomake#CancelJob(jobinfo.id)
             catch /^Vim\%((\a\+)\)\=:E900/
                 " Ignore invalid job id errors. Happens when the job is done,
                 " but on_exit hasn't been called yet.
@@ -415,7 +459,7 @@ function! s:Make(options, ...) abort
             let maker.exit_callback = a:options.exit_callback
         endif
         let job_id = s:MakeJob(make_id, maker)
-        if job_id != 0
+        if job_id != -1
             call add(job_ids, job_id)
         endif
         " If we are serializing makers, stop after the first one. The
@@ -426,40 +470,44 @@ function! s:Make(options, ...) abort
     endfor
     if !len(job_ids)
         call s:neomake_hook('NeomakeFinished', {
-                    \ 'file_mode': maker.file_mode})
+                    \ 'file_mode': file_mode})
     endif
     return job_ids
 endfunction
 
-function! s:AddExprCallback(maker) abort
-    let file_mode = get(a:maker, 'file_mode')
+function! s:AddExprCallback(jobinfo) abort
+    let maker = a:jobinfo.maker
+    let file_mode = get(maker, 'file_mode')
     let place_signs = get(g:, 'neomake_place_signs', 1)
-    let list = file_mode ? getloclist(a:maker.winnr) : getqflist()
+    let list = file_mode ? getloclist(maker.winnr) : getqflist()
     let list_modified = 0
     let counts_changed = 0
-    let index = file_mode ? s:loclist_nr[a:maker.winnr] : s:qflist_nr
+    let index = file_mode ? s:loclist_nr[maker.winnr] : s:qflist_nr
     let maker_type = file_mode ? 'file' : 'project'
 
     while index < len(list)
         let entry = list[index]
-        let entry.maker_name = has_key(a:maker, 'name') ? a:maker.name : 'makeprg'
+        let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
         let index += 1
 
-        if has_key(a:maker, 'postprocess')
+        if has_key(maker, 'postprocess')
             if !list_modified
                 let before = copy(entry)
             endif
-            call a:maker.postprocess(entry)
+            call maker.postprocess(entry)
             if !list_modified && entry != before
                 let list_modified = 1
             endif
         endif
 
         if !entry.valid
-            if a:maker.remove_invalid_entries
+            if maker.remove_invalid_entries
                 let index -= 1
                 call remove(list, index)
                 let list_modified = 1
+                call neomake#utils#DebugMessage(printf(
+                            \ '[#%d] Removing invalid entry: %s',
+                            \ a:jobinfo.id, string(entry)))
             endif
             continue
         endif
@@ -500,22 +548,17 @@ function! s:AddExprCallback(maker) abort
     endwhile
 
     if file_mode
-        let s:loclist_nr[a:maker.winnr] = index
+        let s:loclist_nr[maker.winnr] = index
     else
         let s:qflist_nr = index
     endif
 
     if list_modified
         if file_mode
-            call setloclist(a:maker.winnr, list, 'r')
+            call setloclist(maker.winnr, list, 'r')
         else
             call setqflist(list, 'r')
         endif
-    endif
-    if counts_changed
-        call s:neomake_hook('NeomakeCountsChanged', {
-                    \ 'file_mode': a:maker.file_mode,
-                    \ 'bufnr': a:maker.bufnr})
     endif
 endfunction
 
@@ -540,7 +583,8 @@ endfunction
 function! s:neomake_hook(event, context) abort
     if exists('#User#'.a:event)
         let g:neomake_hook_context = a:context
-        call neomake#utils#DebugMessage('Calling User autocmd: '.a:event)
+        call neomake#utils#DebugMessage('Calling User autocmd '.a:event
+                                      \ .' with context: '.string(a:context))
         if v:version >= 704 || (v:version == 703 && has('patch442'))
             exec 'doautocmd <nomodeline> User ' . a:event
         else
@@ -550,25 +594,35 @@ function! s:neomake_hook(event, context) abort
     endif
 endfunction
 
-function! s:ProcessJobOutput(maker, lines) abort
-    call neomake#utils#DebugMessage(get(a:maker, 'name', 'makeprg').' processing '.
-                                    \ len(a:lines).' lines of output')
-    if len(a:lines)
-        let olderrformat = &errorformat
-        let &errorformat = a:maker.errorformat
-        if get(a:maker, 'file_mode')
-            let a:maker.bufnr = bufnr('%')
-            let a:maker.winnr = winnr()
+function! s:ProcessJobOutput(jobinfo, lines) abort
+    let maker = a:jobinfo.maker
+    call neomake#utils#DebugMessage(printf(
+                \ '[#%d] %s: processing %d lines of output.',
+                \ a:jobinfo.id, maker.name, len(a:lines)))
+    let olderrformat = &errorformat
+    let &errorformat = maker.errorformat
+    try
+        let file_mode = get(maker, 'file_mode')
+        if file_mode
+            let prev_list = getloclist(0)
             laddexpr a:lines
         else
+            let prev_list = getqflist()
             caddexpr a:lines
         endif
-        call s:AddExprCallback(a:maker)
-
+        call s:AddExprCallback(a:jobinfo)
+        if (file_mode && getloclist(0) != prev_list)
+                    \ || (!file_mode && getqflist() != prev_list)
+            call s:neomake_hook('NeomakeCountsChanged', {
+                        \ 'file_mode': maker.file_mode,
+                        \ 'bufnr': get(maker, 'bufnr', -1),
+                        \ })
+        endif
+    finally
         let &errorformat = olderrformat
-    endif
+    endtry
 
-    call s:HandleLoclistQflistDisplay(a:maker.file_mode)
+    call s:HandleLoclistQflistDisplay(maker.file_mode)
 endfunction
 
 function! neomake#ProcessCurrentWindow() abort
@@ -576,7 +630,7 @@ function! neomake#ProcessCurrentWindow() abort
     if len(outputs)
         unlet w:neomake_jobs_output
         for output in outputs
-            call s:ProcessJobOutput(output.maker, output.lines)
+            call s:ProcessJobOutput(output.jobinfo, output.lines)
         endfor
         call neomake#signs#PlaceVisibleSigns()
     endif
@@ -594,39 +648,57 @@ function! s:GetTabWinForJob(job_id) abort
     return [-1, -1]
 endfunction
 
-function! s:RegisterJobOutput(jobinfo, maker, lines) abort
-    if has_key(a:maker, 'mapexpr')
-        let lines = map(copy(a:lines), a:maker.mapexpr)
-    else
-        let lines = copy(a:lines)
+function! s:RegisterJobOutput(jobinfo, lines) abort
+    let lines = copy(a:lines)
+    let maker = a:jobinfo.maker
+    if has_key(maker, 'mapexpr')
+        let lines = map(lines, maker.mapexpr)
     endif
 
-    if get(a:maker, 'file_mode')
-        let output = {
-            \ 'maker': a:maker,
-            \ 'lines': lines
-            \ }
-
-        let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
-        if w != -1
-            let w_output = s:gettabwinvar(t, w, 'neomake_jobs_output', [])
-                        \ + [output]
-            call settabwinvar(t, w, 'neomake_jobs_output', w_output)
-        endif
-
-        " Process the window on demand if we can.
-        let idx_win_job = index(s:getwinvar(winnr(), 'neomake_jobs', []), a:jobinfo.id)
-        if idx_win_job != -1
-            call neomake#ProcessCurrentWindow()
-        elseif &filetype ==# 'qf'
-            " Process the previous window if we are in a qf window.
-            wincmd p
-            call neomake#ProcessCurrentWindow()
-            wincmd p
-        endif
-    else
-        call s:ProcessJobOutput(a:maker, lines)
+    if !get(maker, 'file_mode')
+        return s:ProcessJobOutput(a:jobinfo, lines)
     endif
+
+    " file mode: append lines to jobs's window's output.
+    let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
+    if w == -1
+        call neomake#utils#DebugMessage(printf(
+                    \ '[%d] No window found for output!',
+                    \ a:jobinfo.id))
+        return
+    endif
+    let w_output = s:gettabwinvar(t, w, 'neomake_jobs_output', []) + [{
+          \ 'jobinfo': a:jobinfo,
+          \ 'lines': lines }]
+    call settabwinvar(t, w, 'neomake_jobs_output', w_output)
+
+    " Process the window on demand if we can.
+    let idx_win_job = index(s:getwinvar(winnr(), 'neomake_jobs', []), a:jobinfo.id)
+    if idx_win_job != -1
+        call neomake#ProcessCurrentWindow()
+    elseif &filetype ==# 'qf'
+        " Process the previous window if we are in a qf window.
+        " XXX: noautocmd, restore alt window.
+        wincmd p
+        call neomake#ProcessCurrentWindow()
+        wincmd p
+    endif
+endfunction
+
+function! neomake#MakeHandlerVimStdout(channel, output) abort
+    call neomake#utils#DebugMessage('MakeHandlerVim: stdout: ' . a:channel)
+    call neomake#MakeHandler(ch_info(a:channel)['id'], split(a:output, "\n", 1), 'stdout')
+endfunction
+
+function! neomake#MakeHandlerVimStderr(channel, output) abort
+    call neomake#utils#DebugMessage('MakeHandlerVim: stderr: ' . a:channel)
+    call neomake#MakeHandler(ch_info(a:channel)['id'], split(a:output, "\n", 1), 'stderr')
+endfunction
+
+function! neomake#MakeHandlerVimClose(channel) abort
+    call neomake#utils#DebugMessage('Channel has been closed: ' . a:channel)
+    let job = ch_getjob(a:channel)
+    call neomake#MakeHandler(ch_info(a:channel)['id'], job_info(job)['exitval'], 'exit')
 endfunction
 
 function! neomake#MakeHandler(job_id, data, event_type) abort
@@ -635,14 +707,9 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
     endif
     let jobinfo = s:jobs[a:job_id]
     let maker = jobinfo.maker
+    call neomake#utils#DebugMessage(printf('[#%d] %s: %s: %s',
+                \ a:job_id, a:event_type, maker.name, string(a:data)))
     if index(['stdout', 'stderr'], a:event_type) >= 0
-        call neomake#utils#DebugMessage(
-            \ get(maker, 'name', 'makeprg').' '.a:event_type.': ["'.join(a:data, '", "').'"]')
-        call neomake#utils#DebugMessage(
-            \ get(maker, 'name', 'makeprg').' '.a:event_type.' done.')
-
-        " Register job output. Buffer registering of output for long running
-        " jobs.
         let last_event_type = get(jobinfo, 'event_type', a:event_type)
         let jobinfo.event_type = a:event_type
 
@@ -657,16 +724,24 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
             let jobinfo.lines = a:data
         endif
 
-        let now = localtime()
-        if (!maker.buffer_output || last_event_type !=# a:event_type) ||
-                \ (last_event_type !=# a:event_type ||
-                \  now - jobinfo.start < 1 ||
-                \  now - jobinfo.last_register > 3)
-            call s:RegisterJobOutput(jobinfo, maker, jobinfo.lines[:-2])
+        if !maker.buffer_output || last_event_type !=# a:event_type
+            let lines = jobinfo.lines[:-2]
+            if len(lines)
+                call s:RegisterJobOutput(jobinfo, lines)
+            endif
             let jobinfo.lines = jobinfo.lines[-1:]
-            let jobinfo.last_register = now
         endif
     elseif a:event_type ==# 'exit'
+        " Handle any unfinished lines from stdout/stderr callbacks.
+        if has_key(jobinfo, 'lines')
+            if len(jobinfo.lines) && jobinfo.lines[-1] ==# ''
+                call remove(jobinfo.lines, -1)
+            endif
+            if len(jobinfo.lines)
+                call s:RegisterJobOutput(jobinfo, jobinfo.lines)
+            endif
+        endif
+
         let status = a:data
         if has_key(maker, 'exit_callback')
             let callback_dict = { 'status': status,
@@ -683,10 +758,10 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
             endtry
         endif
         call s:CleanJobinfo(jobinfo)
-        if has('nvim')
-            " Only report completion for neovim, since it is asynchronous
-            call neomake#utils#QuietMessage(get(maker, 'name', 'make').
-                                          \ ' completed with exit code '.status)
+        if neomake#has_async_support()
+            call neomake#utils#QuietMessage(printf(
+                        \ '%s: completed with exit code %d.',
+                        \ maker.name, status))
         endif
 
         " If signs were not cleared before this point, then the maker did not return
@@ -711,7 +786,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         endif
 
         " Trigger autocmd if all jobs for a s:Make instance have finished.
-        if has('nvim')
+        if neomake#has_async_support()
             let make_id = -1
             for [k, v] in items(s:jobids_by_makeid)
                 if index(v, a:job_id) != -1
@@ -820,11 +895,52 @@ function! neomake#Make(file_mode, enabled_makers, ...) abort
     return s:Make(options)
 endfunction
 
+function! neomake#ShCommand(bang, sh_command, ...) abort
+    let maker = neomake#utils#MakerFromCommand(a:sh_command)
+    let maker.name = 'sh: '.a:sh_command
+    let maker.buffer_output = !a:bang
+    if a:0
+        call extend(maker, a:1)
+    endif
+    return get(s:Make({'enabled_makers': [maker]}), 0, 0)
+endfunction
+
 function! neomake#Sh(sh_command, ...) abort
+    " Deprecated, but documented.
     let options = a:0 ? { 'exit_callback': a:1 } : {}
-    let custom_maker = neomake#utils#MakerFromCommand(&shell, a:sh_command)
-    let custom_maker.name = 'sh: '.a:sh_command
-    let custom_maker.remove_invalid_entries = 0
-    let options.enabled_makers =  [custom_maker]
-    return s:Make(options)[0]
+    return neomake#ShCommand(0, a:sh_command, options)
+endfunction
+
+function! neomake#DisplayInfo() abort
+    let ft = &filetype
+    echo '#### Neomake debug information'
+    echo 'Async support: '.neomake#has_async_support()
+    echo 'Current filetype: '.ft
+    echo "\n"
+    echo '##### Enabled makers'
+    echo 'For the current filetype (with :Neomake): '
+                \ .string(neomake#GetEnabledMakers(ft))
+    if empty(ft)
+        echo 'NOTE: the current buffer does not have a filetype.'
+    else
+        echo 'NOTE: you can define g:neomake_'.ft.'_enabled_makers'
+                    \ .' to configure it (or b:neomake_'.ft.'_enabled_makers).'
+    endif
+    echo 'For the project (with :Neomake!): '
+                \ .string(neomake#GetEnabledMakers())
+    echo 'NOTE: you can define g:neomake_enabled_makers to configure it.'
+    echo "\n"
+    echo '##### Settings'
+    for [k, v] in items(filter(copy(g:), "v:key =~# '^neomake_'"))
+        echo 'g:'.k.' = '.string(v)
+        unlet! v  " Fix variable type mismatch with Vim 7.3.
+    endfor
+    if &verbose
+        echo "\n"
+        echo '#### :version'
+        version
+        echo "\n"
+        echo '#### :messages'
+        messages
+    endif
 endfunction

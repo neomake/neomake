@@ -1,19 +1,87 @@
 " Setup and helpers for all tests.
 
+Execute:
+  function! s:wait_for_finished_jobs()
+    let max = 500
+    while len(neomake#GetJobs())
+      let max -= 1
+      sleep 10m
+      if max == 0
+        throw "Jobs did not finish after 5s."
+      endif
+    endwhile
+  endfunction
+  command! NeomakeTestsWaitForFinishedJobs call s:wait_for_finished_jobs()
+
+  command! -nargs=* RunNeomake Neomake <args>
+    \ | NeomakeTestsWaitForFinishedJobs
+  command! -nargs=* RunNeomakeProject NeomakeProject <args>
+    \ | NeomakeTestsWaitForFinishedJobs
+
+  " NOTE: NeomakeSh does not use '-bar'.
+  command! -nargs=* RunNeomakeSh call RunNeomakeSh(<q-args>)
+  function! RunNeomakeSh(...)
+    call call('neomake#Sh', a:000)
+    NeomakeTestsWaitForFinishedJobs
+  endfunction
+
+  let s:tempname = tempname()
+
+  function! g:NeomakeTestsEnsureExe(name)
+    if executable(a:name)
+      return
+    endif
+    let path_separator = exists('+shellslash') ? ';' : ':'
+    let dir_separator = exists('+shellslash') ? '\' : '/'
+    let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
+    if $PATH !~# tmpbindir . path_separator
+      call mkdir(tmpbindir, 'p', 0770)
+      let $PATH = tmpbindir . ':' . $PATH
+    endif
+    let exe = tmpbindir.dir_separator.a:name
+    if !filereadable(exe)
+      " XXX: this is dirty (for 'Test Neomake on errors.sh with two makers').
+      if a:name == 'shellcheck'
+        call writefile(['#!/bin/sh', 'echo $1:1:1: warning: this is just a stub'], exe)
+      else
+        call writefile([], exe)
+      endif
+      if exists('*setfperm')
+        call setfperm(exe, "rwxrwx---")
+      else
+        " XXX: Windows support
+        call system('chmod 770 '.shellescape(exe))
+      endif
+    endif
+    Log exe
+  endfunction
+
+  function! s:AssertNeomakeMessage(msg, ...)
+    let level = a:0 ? a:1 : -1
+    let found_but_other_level = 0
+    for [l, m] in g:neomake_test_messages
+      if m ==# a:msg
+        if level == -1
+          return 1
+        else
+          if l == level
+            return 1
+          else
+            let found_but_other_level = 1
+          endif
+        endif
+      endif
+    endfor
+    if found_but_other_level
+      throw "Message '".a:msg."' found, but not for level ".level
+    endif
+    throw "Message '".a:msg."' not found."
+  endfunction
+  command! -nargs=+ AssertNeomakeMessage call s:AssertNeomakeMessage(<args>)
+
 Before:
-  if exists('g:neomake_verbose')
-    let g:save_neomake_verbose = g:neomake_verbose
-  endif
-  let g:neomake_verbose = 3
+  let g:neomake_test_messages = []
+  Assert !len(neomake#GetJobs()), 'There were jobs left from the previous test!'
 
 After:
-  if exists('g:save_neomake_verbose')
-    let g:neomake_verbose = g:save_neomake_verbose
-    unlet g:save_neomake_verbose
-  else
-    unlet g:neomake_verbose
-  endif
-
-Execute:
-  command! -nargs=* RunNeomake Neomake <args>
-    \ | while len(neomake#GetJobs()) | sleep 50m | endwhile
+  Restore
