@@ -36,7 +36,13 @@ endfunction
 
 function! neomake#makers#ft#javascript#standard()
     return {
-        \ 'errorformat': '%E%f:%l:%c: %m'
+        \ 'errorformat': '%W  %f:%l:%c: %m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#javascript#semistandard()
+    return {
+        \ 'errorformat': '%W  %f:%l:%c: %m'
         \ }
 endfunction
 
