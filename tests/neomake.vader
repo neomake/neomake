@@ -6,7 +6,6 @@ Execute (neomake#GetMakers):
   AssertEqual sort(neomake#GetMakers('sh')), ['checkbashisms', 'sh', 'shellcheck']
 
 Execute (neomake#GetMaker with non-existent maker prints errors):
-  let g:neomake_verbose = 0
   AssertEqual neomake#GetMaker('non-existent'), {}
   AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent']
   AssertEqual neomake#GetMaker('nonexistent'), {}
