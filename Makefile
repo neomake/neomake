@@ -119,7 +119,7 @@ $(_DOCKER_VIM_TARGETS):
 
 docker_test: DOCKER_VIM:=vim-master
 docker_test: DOCKER_STREAMS:=-a stderr
-docker_test: DOCKER_RUN:=$(DOCKER_VIM) '+$(VADER) tests/*.vader'
+docker_test: DOCKER_RUN:=$(DOCKER_VIM) $(VIM_ARGS)
 docker_test: docker_run
 
 docker_run: $(TESTS_VADER_DIR)
