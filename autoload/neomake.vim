@@ -5,7 +5,6 @@ let s:make_id = 0
 let s:job_id = 1
 let s:jobs = {}
 let s:jobs_by_maker = {}
-let s:jobids_by_makeid = {}
 let s:current_errors = {
     \ 'project': {},
     \ 'file': {}
@@ -90,6 +89,7 @@ function! s:MakeJob(make_id, maker) abort
         \ 'winnr': winnr(),
         \ 'bufnr': bufnr('%'),
         \ 'maker': a:maker,
+        \ 'make_id': a:make_id,
         \ }
 
     " Resolve exe/args, which might be a function or dictionary.
@@ -165,10 +165,6 @@ function! s:MakeJob(make_id, maker) abort
             let maker_key = s:GetMakerKey(a:maker)
             let s:jobs_by_maker[maker_key] = jobinfo
             call s:AddJobinfoForCurrentWin(jobinfo.id)
-            if !exists('s:jobids_by_makeid[a:make_id]')
-                let s:jobids_by_makeid[a:make_id] = []
-            endif
-            call add(s:jobids_by_makeid[a:make_id], jobinfo.id)
             let r = jobinfo.id
         else
             call neomake#utils#DebugMessage('Running synchronously')
@@ -787,16 +783,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
 
         " Trigger autocmd if all jobs for a s:Make instance have finished.
         if neomake#has_async_support()
-            let make_id = -1
-            for [k, v] in items(s:jobids_by_makeid)
-                if index(v, a:job_id) != -1
-                    let make_id = k
-                    break
-                endif
-            endfor
-            call filter(s:jobids_by_makeid[make_id], 'v:val != a:job_id')
-            if len(s:jobids_by_makeid[make_id]) == 0
-                unlet s:jobids_by_makeid[make_id]
+            if !len(filter(copy(s:jobs), 'v:val.make_id == jobinfo.make_id'))
                 call s:neomake_hook('NeomakeFinished', {
                             \ 'file_mode': maker.file_mode})
             endif
