@@ -53,7 +53,6 @@ Execute:
         call system('chmod 770 '.shellescape(exe))
       endif
     endif
-    Log exe
   endfunction
 
   function! s:AssertNeomakeMessage(msg, ...)
