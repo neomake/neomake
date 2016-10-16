@@ -69,11 +69,13 @@ Execute (neomake#CancelJob):
 Execute (Reports exit status):
   if neomake#has_async_support()
     let job_id = neomake#Sh("sh -c 'exit 7'")
+    let jobinfo = neomake#GetJobs()[job_id]
     NeomakeTestsWaitForFinishedJobs
 
     AssertNeomakeMessage 'sh: sh -c ''exit 7'': completed with exit code 7.', 1
 
-    let msg = printf('[#%d] exit: sh: sh -c ''exit 7'': 7', job_id)
+    let msg = printf('[#%d.%d] exit: sh: sh -c ''exit 7'': 7',
+      \ jobinfo.make_id, job_id)
     AssertNeomakeMessage msg, 3
   endif
 
