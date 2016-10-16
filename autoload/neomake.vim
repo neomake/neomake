@@ -143,6 +143,9 @@ function! s:MakeJob(make_id, maker) abort
                 endif
                 let jobinfo.id = job
             else
+                if neomake#utils#IsRunningWindows()
+                    let argv = &shell.' '.&shellcmdflag.' '.shellescape(join(argv))
+                endif
                 let job = job_start(argv, {
                             \ 'err_cb': 'neomake#MakeHandlerVimStderr',
                             \ 'out_cb': 'neomake#MakeHandlerVimStdout',
