@@ -145,21 +145,13 @@ function! neomake#utils#Random() abort
 endfunction
 
 function! neomake#utils#MakerFromCommand(command) abort
+    " XXX: use neomake#utils#ExpandArgs and/or remove it.
+    "      Expansion should happen later already!
     let command = substitute(a:command, '%\(:[a-z]\)*',
                            \ '\=expand(submatch(0))', 'g')
-    let shell_name = split(&shell, '/')[-1]
-    if index(['sh', 'csh', 'ash', 'bash', 'dash', 'ksh', 'pdksh', 'mksh', 'zsh', 'fish'],
-            \shell_name) >= 0
-        let args = ['-c', command]
-    else
-        let shell_name = split(&shell, '\\')[-1]
-        if (shell_name ==? 'cmd.exe')
-            let args = [&shellcmdflag, command]
-        endif
-    endif
     return {
         \ 'exe': &shell,
-        \ 'args': args,
+        \ 'args': [&shellcmdflag, command],
         \ 'remove_invalid_entries': 0,
         \ 'errorformat': '%+G',
         \ }
