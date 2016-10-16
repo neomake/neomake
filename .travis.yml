@@ -55,9 +55,6 @@ install:
       if git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
         SKIP_BUILD_REASON="docker_vimhelplint: No changed doc files."
       fi
-    elif [ "${ENV#vimlint}" != "$ENV" ]; then
-      git clone --depth=1 https://github.com/syngan/vim-vimlint /tmp/vimlint
-      git clone --depth=1 https://github.com/ynkdir/vim-vimlparser /tmp/vimlparser
     elif [ "$ENV" = "testnvim" ]; then
       eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
     fi
@@ -65,7 +62,6 @@ install:
     if [ "${ENV#vint}" != "$ENV" ]; then
       pip install -U pip
       pip install -U wheel
-      virtualenv /tmp/vint && source /tmp/vint/bin/activate && pip install vim-vint
     fi
 
 script:

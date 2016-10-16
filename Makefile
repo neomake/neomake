@@ -66,14 +66,24 @@ tags:
 	ctags -R --langmap=vim:+.vader
 
 # Linters, called from .travis.yml.
-vint:
-	vint .
-vint-errors:
-	vint --error .
-vimlint:
-	sh /tmp/vimlint/bin/vimlint.sh -l /tmp/vimlint -p /tmp/vimlparser .
+LINT_FILES:=./plugin ./autoload
+build/vint: | build
+	virtualenv $@
+	$@/bin/pip install vim-vint
+vint: build/vint
+	build/vint/bin/vint $(LINT_FILES)
+vint-errors: build/vint
+	build/vint/bin/vint --error $(LINT_FILES)
+
+# vimlint
+build/vimlint: | build
+	git clone --depth=1 https://github.com/syngan/vim-vimlint $@
+build/vimlparser: | build
+	git clone --depth=1 https://github.com/ynkdir/vim-vimlparser $@
+vimlint: build/vimlint build/vimlparser
+	build/vimlint/bin/vimlint.sh -l build/vimlint -p build/vimlparser $(LINT_FILES)
 vimlint-errors:
-	sh /tmp/vimlint/bin/vimlint.sh -E -l /tmp/vimlint -p /tmp/vimlparser .
+	build/vimlint/bin/vimlint.sh -E -l build/vimlint -p build/vimlparser $(LINT_FILES)
 
 build build/neovim-test-home:
 	mkdir $@
