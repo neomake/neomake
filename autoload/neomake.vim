@@ -74,11 +74,11 @@ endfunction
 
 function! s:AddJobinfoForCurrentWin(job_id) abort
     " Add jobinfo to current window.
-    let win_jobs = s:gettabwinvar(tabpagenr(), winnr(), 'neomake_jobs', [])
-    if index(win_jobs, a:job_id) == -1
-        let win_jobs += [a:job_id]
-        call settabwinvar(tabpagenr(), winnr(), 'neomake_jobs', win_jobs)
-    endif
+    let tabpagenr = tabpagenr()
+    let winnr = winnr()
+    let win_jobs = s:gettabwinvar(tabpagenr, winnr, 'neomake_jobs', [])
+    let win_jobs += [a:job_id]
+    call settabwinvar(tabpagenr, winnr, 'neomake_jobs', win_jobs)
 endfunction
 
 function! s:MakeJob(make_id, maker) abort
