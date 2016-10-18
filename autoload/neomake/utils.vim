@@ -153,7 +153,6 @@ function! neomake#utils#MakerFromCommand(command) abort
         \ 'exe': &shell,
         \ 'args': [&shellcmdflag, command],
         \ 'remove_invalid_entries': 0,
-        \ 'errorformat': '%+G',
         \ }
 endfunction
 

@@ -927,6 +927,7 @@ function! neomake#ShCommand(bang, sh_command, ...) abort
     let maker = neomake#utils#MakerFromCommand(a:sh_command)
     let maker.name = 'sh: '.a:sh_command
     let maker.buffer_output = !a:bang
+    let maker.errorformat = '%m'
     if a:0
         call extend(maker, a:1)
     endif

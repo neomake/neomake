@@ -107,11 +107,29 @@ Execute (Neomake: handle output for removed window):
 
 Execute (NeomakeSh: true):
   call g:NeomakeSetupAutocmdWrappers()
+  AssertEqual g:neomake_test_countschanged, []
   let bufnr = bufnr('%')
   RunNeomakeSh true
   AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual getqflist(), []
+
+  call g:NeomakeSetupAutocmdWrappers()
+  RunNeomakeSh true
+  AssertEqual g:neomake_test_countschanged, []
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual getqflist(), []
+
+Execute (NeomakeSh: echo foo):
+  call g:NeomakeSetupAutocmdWrappers()
+  AssertEqual g:neomake_test_countschanged, []
+  let bufnr = bufnr('%')
+  RunNeomakeSh echo foo
+  AssertEqual getqflist(),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
+    \   'type': '', 'pattern': '', 'text': 'foo'}]
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
 
 Execute (NeomakeSh: non-existing command):
   call g:NeomakeSetupAutocmdWrappers()

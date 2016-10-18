@@ -11,6 +11,12 @@ Execute (neomake#GetMaker with non-existent maker prints errors):
   AssertEqual neomake#GetMaker('nonexistent'), {}
   AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent']
 
+Execute (neomake#GetMaker: uses defined errorformat):
+  let maker = neomake#GetMaker('makeprg', '')
+  AssertEqual maker, {'name': 'makeprg', 'ft': '', 'args': ['-c', 'make'],
+    \ 'errorformat': &errorformat,
+    \ 'exe': &shell, 'remove_invalid_entries': 0, 'buffer_output': 1}
+
 Execute (neomake#GetMaker uses defaults from b:/g:):
   Save g:neomake_test_remove_invalid_entries
 
