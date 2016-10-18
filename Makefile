@@ -82,7 +82,7 @@ build/vimlparser: | build
 	git clone --depth=1 https://github.com/ynkdir/vim-vimlparser $@
 vimlint: build/vimlint build/vimlparser
 	build/vimlint/bin/vimlint.sh -l build/vimlint -p build/vimlparser $(LINT_FILES)
-vimlint-errors:
+vimlint-errors: build/vimlint build/vimlparser
 	build/vimlint/bin/vimlint.sh -E -l build/vimlint -p build/vimlparser $(LINT_FILES)
 
 build build/neovim-test-home:
