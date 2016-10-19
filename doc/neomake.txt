@@ -343,7 +343,7 @@ functions useful.
 
 *neomake#Make* (filemode, makers[, callback])
 This function is called by the |:Neomake| (and |:Neomake!|) command. It runs
-all the *makers* specified, in order. If *filemode* is 1, then the current
+all the `makers` specified, in order. If `filemode` is 1, then the current
 file is used as input to the makers. |neomake#Make| returns an array of job
 ids that were created; you can potentially cancel these jobs with
 |neomake#CancelJob|.
@@ -357,7 +357,7 @@ dictionary as its sole argument: >
 
 *neomake#Sh* (command[, callback])
 This function is called by the |:NeomakeSh| command. It runs the specified
-shell *command* according to 'shell'. |neomake#Sh| returns the single job id
+shell `command` according to 'shell'. |neomake#Sh| returns the single job id
 that was created (-1 on Vim without asynchronous support); you can potentially
 cancel this job with |neomake#CancelJob|.
 
@@ -408,7 +408,7 @@ and the |quickfix| respectively. The return value is something like this: >
 <Where 'E', 'W' and 'x' are error types. Empty error types are ignored for
 now.
 
-By default, *LoclistCounts* returns the counts for the current buffer (i.e.
+By default, `LoclistCounts` returns the counts for the current buffer (i.e.
 `bufnr("%")`), but you can pass an optional argument: passing a buffer number
 will retrieve the counts for a particular buffer, while passing the string
 "`all`" will return a dictionary of counts for all buffers.
