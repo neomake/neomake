@@ -78,21 +78,26 @@ Execute (neomake#CancelJob):
     AssertEqual neomake#CancelJob(job_id), 0
   endif
 
-Execute (Reports exit status):
+Execute (Reports exit status: 7):
+  let job_id = neomake#Sh("sh -c 'exit 7'")
   if neomake#has_async_support()
-    let job_id = neomake#Sh("sh -c 'exit 7'")
     let jobinfo = neomake#GetJobs()[job_id]
     NeomakeTestsWaitForFinishedJobs
-
-    AssertNeomakeMessage 'sh: sh -c ''exit 7'': completed with exit code 7.', 1, jobinfo
-    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3, jobinfo
+    AssertNeomakeMessage 'sh: sh -c ''exit 7'': completed with exit code 7.', 3, jobinfo
+  else
+    let jobinfo = {}
   endif
+  AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3, jobinfo
 
 Execute (neomake#Sh: job_id):
   let job_id = neomake#Sh('true')
   if neomake#has_async_support()
     Assert job_id >= 0, 'Correct job_id for async.'
+    let jobinfo = neomake#GetJobs()[job_id]
     NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'sh: true: completed with exit code 0.', 3
   else
     Assert job_id == -1, 'Correct job_id for sync.'
+    let jobinfo = {}
   endif
+  AssertNeomakeMessage 'exit: sh: true: 0', 3, jobinfo
