@@ -36,11 +36,10 @@ function! neomake#CancelJob(job_id) abort
         if has('nvim')
             call jobstop(a:job_id)
         else
-            " HACK: Vim might fail to stop a job right away.
-            " So let's just wait a bit, which is OK since this is not really
-            " a user facing function anyway.
-            " https://github.com/vim/vim/issues/1155
-            sleep 50m
+            if v:version < 800 || v:version == 800 && !has('patch45')
+                " Vim before 8.0.0045 might fail to stop a job right away.
+                sleep 50m
+            endif
             call job_stop(s:jobs[a:job_id].vim_job)
         endif
         return 1
