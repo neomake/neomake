@@ -127,7 +127,7 @@ function! s:MakeJob(make_id, maker) abort
             if has_args
                 let argv += args
             endif
-            call neomake#utils#LoudMessage(printf('[#%d] starting async job: %s',
+            call neomake#utils#LoudMessage(printf('[%d] starting async job: %s',
                         \ a:make_id, join(argv, ' ')))
             if has('nvim')
                 let opts = {
@@ -173,19 +173,19 @@ function! s:MakeJob(make_id, maker) abort
                     let jobinfo.vim_job = job
                     let s:jobs[jobinfo.id] = jobinfo
                 catch
-                    let error = printf('[#%d] Failed to start Vim job: %s: %s',
+                    let error = printf('[%d] Failed to start Vim job: %s: %s',
                                 \ a:make_id, argv, v:exception)
                 endtry
                 if job_status !=# 'run'
-                    let error = printf('[#%d.%d] Vim job failed to run: %s',
+                    let error = printf('[%d.%d] Vim job failed to run: %s',
                                 \ a:make_id, jobinfo.id, string(job))
                 endif
                 if empty(error)
                     call neomake#utils#DebugMessage(printf(
-                                \ '[#%d.%d] Vim job: %s',
+                                \ '[%d.%d] Vim job: %s',
                                 \ a:make_id, jobinfo.id, string(job_info(job))))
                     call neomake#utils#DebugMessage(printf(
-                                \ '[#%d.%d] Vim channel: %s',
+                                \ '[%d.%d] Vim channel: %s',
                                 \ a:make_id, jobinfo.id, string(ch_info(job))))
                 endif
             endif
@@ -536,7 +536,7 @@ function! s:AddExprCallback(jobinfo) abort
                 call remove(list, index)
                 let list_modified = 1
                 call neomake#utils#DebugMessage(printf(
-                            \ '[#%d.%d] Removing invalid entry: %s',
+                            \ '[%d.%d] Removing invalid entry: %s',
                             \ a:jobinfo.make_id, a:jobinfo.id, string(entry)))
             endif
             continue
@@ -627,7 +627,7 @@ endfunction
 function! s:ProcessJobOutput(jobinfo, lines) abort
     let maker = a:jobinfo.maker
     call neomake#utils#DebugMessage(printf(
-                \ '[#%d.%d] %s: processing %d lines of output.',
+                \ '[%d.%d] %s: processing %d lines of output.',
                 \ a:jobinfo.make_id, a:jobinfo.id, maker.name, len(a:lines)))
     let olderrformat = &errorformat
     let &errorformat = maker.errorformat
@@ -693,7 +693,7 @@ function! s:RegisterJobOutput(jobinfo, lines) abort
     let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
     if w == -1
         call neomake#utils#LoudMessage(printf(
-                    \ '[#%d.%d] No window found for output!',
+                    \ '[%d.%d] No window found for output!',
                     \ a:jobinfo.make_id, a:jobinfo.id))
         return
     endif
@@ -741,7 +741,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
     endif
     let jobinfo = s:jobs[a:job_id]
     let maker = jobinfo.maker
-    call neomake#utils#DebugMessage(printf('[#%d.%d] %s: %s: %s',
+    call neomake#utils#DebugMessage(printf('[%d.%d] %s: %s: %s',
                 \ jobinfo.make_id, a:job_id, a:event_type, maker.name,
                 \ string(a:data)))
     if index(['stdout', 'stderr'], a:event_type) >= 0
@@ -815,7 +815,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
             if get(g:, 'neomake_serialize_abort_on_error') && status !=# 0
                 call neomake#utils#LoudMessage('Aborting next makers '.next_makers)
             else
-                call neomake#utils#DebugMessage(printf('[#%d] next makers: %s',
+                call neomake#utils#DebugMessage(printf('[%d] next makers: %s',
                             \ jobinfo.make_id, next_makers))
                 call s:Make(maker.next, a:job_id)
             endif

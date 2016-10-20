@@ -80,7 +80,7 @@ Execute (Reports exit status):
 
     AssertNeomakeMessage 'sh: sh -c ''exit 7'': completed with exit code 7.', 1
 
-    let msg = printf('[#%d.%d] exit: sh: sh -c ''exit 7'': 7',
+    let msg = printf('[%d.%d] exit: sh: sh -c ''exit 7'': 7',
       \ jobinfo.make_id, job_id)
     AssertNeomakeMessage msg, 3
   endif
