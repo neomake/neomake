@@ -959,16 +959,22 @@ function! neomake#DisplayInfo() abort
     echo 'NOTE: you can define g:neomake_enabled_makers to configure it.'
     echo "\n"
     echo '##### Settings'
+    echo '```'
     for [k, v] in items(filter(copy(g:), "v:key =~# '^neomake_'"))
         echo 'g:'.k.' = '.string(v)
         unlet! v  " Fix variable type mismatch with Vim 7.3.
     endfor
+    echo '```'
     if &verbose
         echo "\n"
         echo '#### :version'
+        echo '```'
         version
+        echo '```'
         echo "\n"
         echo '#### :messages'
+        echo '```'
         messages
+        echo '```'
     endif
 endfunction
