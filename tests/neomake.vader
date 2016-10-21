@@ -7,9 +7,9 @@ Execute (neomake#GetMakers):
 
 Execute (neomake#GetMaker with non-existent maker prints errors):
   AssertEqual neomake#GetMaker('non-existent'), {}
-  AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent']
+  AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent', {}]
   AssertEqual neomake#GetMaker('nonexistent'), {}
-  AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent']
+  AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent', {}]
 
 Execute (neomake#GetMaker: uses defined errorformat):
   let maker = neomake#GetMaker('makeprg', '')
@@ -35,7 +35,7 @@ Execute (neomake#GetMaker uses defaults from b:/g:):
 Execute (neomake#Make in file mode with no filetype and no makers):
   AssertEqual &ft, ''
   AssertEqual neomake#Make(1, []), []
-  AssertEqual g:neomake_test_messages[-1], [3, 'Nothing to make: no enabled makers.']
+  AssertEqual g:neomake_test_messages[-1], [3, 'Nothing to make: no enabled makers.', {}]
 
 Execute (neomake#Make in project mode with no filetype and no makers):
   Save makeprg
@@ -78,11 +78,8 @@ Execute (Reports exit status):
     let jobinfo = neomake#GetJobs()[job_id]
     NeomakeTestsWaitForFinishedJobs
 
-    AssertNeomakeMessage 'sh: sh -c ''exit 7'': completed with exit code 7.', 1
-
-    let msg = printf('[%d.%d] exit: sh: sh -c ''exit 7'': 7',
-      \ jobinfo.make_id, job_id)
-    AssertNeomakeMessage msg, 3
+    AssertNeomakeMessage 'sh: sh -c ''exit 7'': completed with exit code 7.', 1, jobinfo
+    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3, jobinfo
   endif
 
 Execute (neomake#Sh: job_id):

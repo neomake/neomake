@@ -57,20 +57,33 @@ Execute:
 
   function! s:AssertNeomakeMessage(msg, ...)
     let level = a:0 ? a:1 : -1
+    let jobinfo = a:0 > 1 ? a:2 : -1
     let found_but_other_level = 0
-    for [l, m] in g:neomake_test_messages
+    let r = 0
+    for [l, m, info] in g:neomake_test_messages
       if m ==# a:msg
         if level == -1
-          return 1
+          let r = 1
+          break
         else
           if l == level
-            return 1
+            let r = 1
+            break
           else
             let found_but_other_level = 1
           endif
         endif
       endif
     endfor
+    if r == 1
+      if type(jobinfo) == type({})
+        for [k, v] in items(info)
+          let expected = get(jobinfo, k)
+          AssertEqual v, expected, "Correct value for jobinfo.".k
+        endfor
+      endif
+      return 1
+    endif
     if found_but_other_level
       throw "Message '".a:msg."' found, but not for level ".level
     endif

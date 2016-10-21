@@ -101,9 +101,7 @@ Execute (Neomake: handle output for removed window):
   AssertEqual len(g:neomake_test_countschanged), 0
   AssertEqual len(g:neomake_test_finished), 1
 
-  let msg = printf('[%d.%d] No window found for output!',
-    \ jobinfo.make_id, jobinfo.id)
-  AssertNeomakeMessage msg, 2
+  AssertNeomakeMessage 'No window found for output!', 2, jobinfo
 
 Execute (NeomakeSh: true):
   call g:NeomakeSetupAutocmdWrappers()
@@ -338,3 +336,17 @@ Execute (Neomake: non-existing and proper job):
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_countschanged), expected_counts_changed,
     \ 'counts have changed'
+
+Execute (Neomake: remove_invalid_entries):
+  let maker = neomake#utils#MakerFromCommand('echo invalid; echo "E: valid"')
+  call extend(maker, {
+      \ 'name': 'custom_maker',
+      \ 'remove_invalid_entries': 1,
+      \ 'errorformat': 'E: %m',
+      \ })
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage "Removing invalid entry: invalid ({'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'maker_name': 'custom_maker', 'pattern': ''})"
+  " XXX: the setloclist() makes the entry invalid?!
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'valid'}]
