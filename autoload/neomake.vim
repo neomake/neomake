@@ -280,7 +280,11 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     endif
     let maker = deepcopy(maker)
     if !has_key(maker, 'name')
-        let maker.name = a:name_or_maker
+        if type(a:name_or_maker) == type('')
+            let maker.name = a:name_or_maker
+        else
+            let maker.name = 'unnamed_maker'
+        endif
     endif
     let defaults = {
         \ 'exe': maker.name,
