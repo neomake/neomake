@@ -54,11 +54,17 @@ Execute (neomake#Make in project mode with no filetype and no makers):
   NeomakeTestsWaitForFinishedJobs
 
 Execute (neomake#GetMaker from g:neomake_foo_maker):
-  let g:neomake_foo_maker = {
-    \ 'exe': 'my-foo'
+  let g:neomake_custom_maker = {
+    \ 'exe': 'my-exe'
     \ }
-  let maker = neomake#GetMaker('foo')
-  AssertEqual maker.exe, 'my-foo'
+  let maker = neomake#GetMaker('custom')
+  AssertEqual maker.exe, 'my-exe'
+  AssertEqual maker.name, 'custom'
+
+Execute (neomake#GetMaker without name):
+  let maker = neomake#GetMaker({})
+  AssertEqual maker.exe, 'unnamed_maker'
+  AssertEqual maker.name, 'unnamed_maker'
 
 Execute (neomake#CancelJob):
   if neomake#has_async_support()
