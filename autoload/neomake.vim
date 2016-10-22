@@ -294,6 +294,14 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
         unlet! default  " workaround for old Vim (7.3.429)
     endfor
+    let s:UNSET = {}
+    for key in ['append_file']
+        let value = neomake#utils#GetSetting(key, maker, s:UNSET, fts, bufnr)
+        if value isnot s:UNSET
+            let maker[key] = value
+        endif
+        unlet! value  " workaround for old Vim (7.3.429)
+    endfor
     if exists('real_ft')
         let maker.ft = real_ft
     endif

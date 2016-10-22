@@ -343,6 +343,7 @@ Execute (Neomake: remove_invalid_entries):
       \ 'name': 'custom_maker',
       \ 'remove_invalid_entries': 1,
       \ 'errorformat': 'E: %m',
+      \ 'append_file': 0,
       \ })
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
@@ -350,3 +351,39 @@ Execute (Neomake: remove_invalid_entries):
   " XXX: the setloclist() makes the entry invalid?!
   AssertEqual getloclist(0),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'valid'}]
+
+Execute (Neomake: append_file from settings):
+  set ft=myft
+  let maker = {
+      \ 'exe': 'echo',
+      \ 'args': ['output'],
+      \ 'name': 'custom_maker',
+      \ 'errorformat': '%m',
+      \ }
+  call neomake#Make(1, [maker])
+  let bufname = expand('%:p')
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output '.bufname}]
+
+  let g:neomake_myft_custom_maker_maker = copy(maker)
+  let g:neomake_myft_custom_maker_append_file = 0
+  RunNeomake custom_maker
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output'}]
+  let g:neomake_myft_custom_maker_append_file = 1
+  RunNeomake custom_maker
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output '.bufname}]
+
+  let maker.append_file = 0
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output '.bufname}]
+
+  unlet g:neomake_myft_custom_maker_append_file
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output'}]
