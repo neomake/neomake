@@ -51,12 +51,13 @@ Execute (Test Neomake on errors.sh with one maker):
   endfor
 
 Execute (Test Neomake on errors.sh with two makers):
-  if index(neomake#GetEnabledMakers('sh'), 'shellcheck') != -1
-    call g:NeomakeSetupAutocmdWrappers()
-    e! tests/fixtures/errors.sh
-    RunNeomake sh shellcheck
-    AssertEqual len(g:neomake_test_countschanged), 2
-  endif
+  call g:NeomakeSetupAutocmdWrappers()
+  call g:NeomakeTestsEnsureExe('shellcheck')
+  e! tests/fixtures/errors.sh
+  RunNeomake sh shellcheck
+  AssertEqual len(g:neomake_test_countschanged), 2
+  AssertEqual g:neomake_test_messages[0],
+    \ [3, '[#3] Running makers: [''sh'', ''shellcheck'']', {}]
 
 Execute (Neomake: handle result for current window):
   call g:NeomakeSetupAutocmdWrappers()
