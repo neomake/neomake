@@ -3,6 +3,9 @@ CDPATH:=
 
 test: testnvim testvim
 
+# This is expected in tests.
+export SHELL:=/bin/bash
+
 VADER:=Vader!
 VADER_ARGS:=tests/*.vader
 VIM_ARGS='+$(VADER) $(VADER_ARGS)'
@@ -28,7 +31,7 @@ testvim: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim: _run_vim
 
 _REDIR_STDOUT:=>/dev/null
-_run_vim: $(TESTS_VADER_DIR)
+_run_vim: | build $(TESTS_VADER_DIR)
 _run_vim:
 	$(TEST_VIM_PREFIX) $(TEST_VIM) -u $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 
@@ -129,8 +132,8 @@ $(_DOCKER_VIM_TARGETS):
 
 docker_test: DOCKER_VIM:=vim-master
 docker_test: DOCKER_STREAMS:=-a stderr
-docker_test: DOCKER_RUN:=$(DOCKER_VIM) $(VIM_ARGS)
-docker_test: docker_run
+docker_test: DOCKER_MAKE_TARGET:=testvim TEST_VIM=/vim-build/bin/$(DOCKER_VIM) VIM_ARGS="$(VIM_ARGS)"
+docker_test: docker_make
 
 docker_run: $(TESTS_VADER_DIR)
 docker_run:
