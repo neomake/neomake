@@ -16,7 +16,7 @@ function! neomake#makers#ft#go#go()
         \ ],
         \ 'append_file': 0,
         \ 'cwd': '%:h',
-        \ 'mapexpr': 'expand("%:h") . "/" . v:val',
+        \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
         \ 'errorformat':
             \ '%W%f:%l: warning: %m,' .
             \ '%E%f:%l:%c:%m,' .
@@ -40,7 +40,7 @@ function! neomake#makers#ft#go#govet()
         \ 'args': ['vet'],
         \ 'append_file': 0,
         \ 'cwd': '%:h',
-        \ 'mapexpr': 'expand("%:h") . "/" . v:val',
+        \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
         \ 'errorformat':
             \ '%Evet: %.%\+: %f:%l:%c: %m,' .
             \ '%W%f:%l: %m,' .
