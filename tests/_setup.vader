@@ -77,9 +77,13 @@ Execute:
     endfor
     if r == 1
       if type(jobinfo) == type({})
+        let l:UNDEF = {}
         for [k, v] in items(info)
-          let expected = get(jobinfo, k)
-          AssertEqual v, expected, "Correct value for jobinfo.".k
+          let expected = get(jobinfo, k, l:UNDEF)
+          if expected isnot l:UNDEF && v !=# expected
+            throw printf("Got unexpected value for jobinfo.%s: "
+              \  ."expected '%s', but got '%s'.", k, string(expected), string(v))
+          endif
         endfor
       endif
       return 1
