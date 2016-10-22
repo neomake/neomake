@@ -693,15 +693,16 @@ function! s:GetTabWinForJob(job_id) abort
     return [-1, -1]
 endfunction
 
-function! s:RegisterJobOutput(jobinfo, lines) abort
+function! s:RegisterJobOutput(jobinfo, lines, source) abort
     let lines = copy(a:lines)
     let maker = a:jobinfo.maker
     if has_key(maker, 'mapexpr')
+        let l:neomake_output_source = a:source
         let lines = map(lines, maker.mapexpr)
     endif
 
     if !get(maker, 'file_mode')
-        return s:ProcessJobOutput(a:jobinfo, lines)
+        return s:ProcessJobOutput(a:jobinfo, lines, source)
     endif
 
     " file mode: append lines to jobs's window's output.
@@ -760,34 +761,40 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         let last_event_type = get(jobinfo, 'event_type', a:event_type)
         let jobinfo.event_type = a:event_type
 
-        " a:data is a List of 'lines' read. Each element *after* the first
-        " element represents a newline
-        if has_key(jobinfo, 'lines')
+        " a:data is a list of 'lines' read. Each element *after* the first
+        " element represents a newline.
+        if has_key(jobinfo, a:event_type)
+            let lines = jobinfo[a:event_type]
             " As per https://github.com/neovim/neovim/issues/3555
-            let jobinfo.lines = jobinfo.lines[:-2]
-                        \ + [jobinfo.lines[-1] . get(a:data, 0, '')]
+            let jobinfo[a:event_type] = lines[:-2]
+                        \ + [lines[-1] . get(a:data, 0, '')]
                         \ + a:data[1:]
         else
-            let jobinfo.lines = a:data
+            let jobinfo[a:event_type] = a:data
         endif
 
         if !maker.buffer_output || last_event_type !=# a:event_type
-            let lines = jobinfo.lines[:-2]
+            let lines = jobinfo[a:event_type][:-2]
             if len(lines)
-                call s:RegisterJobOutput(jobinfo, lines)
+                call s:RegisterJobOutput(jobinfo, lines, a:event_type)
             endif
-            let jobinfo.lines = jobinfo.lines[-1:]
+            let jobinfo[a:event_type] = jobinfo[a:event_type][-1:]
         endif
     elseif a:event_type ==# 'exit'
         " Handle any unfinished lines from stdout/stderr callbacks.
-        if has_key(jobinfo, 'lines')
-            if len(jobinfo.lines) && jobinfo.lines[-1] ==# ''
-                call remove(jobinfo.lines, -1)
+        for event_type in ['stdout', 'stderr']
+            if has_key(jobinfo, event_type)
+                let lines = jobinfo[event_type]
+                if len(lines)
+                    if lines[-1] ==# ''
+                        call remove(lines, -1)
+                    endif
+                    if len(lines)
+                        call s:RegisterJobOutput(jobinfo, lines, event_type)
+                    endif
+                endif
             endif
-            if len(jobinfo.lines)
-                call s:RegisterJobOutput(jobinfo, jobinfo.lines)
-            endif
-        endif
+        endfor
 
         let status = a:data
         if has_key(maker, 'exit_callback')

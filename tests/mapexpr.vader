@@ -1,0 +1,11 @@
+Include: _setup.vader
+
+Execute (mapexpr: output source in mapexpr):
+  let maker = neomake#utils#MakerFromCommand('echo on_stdout; echo on_stderr>&2')
+  let maker.mapexpr = "printf('[%s] %s', neomake_output_source, v:val)"
+  Log maker
+  call neomake#Make(0, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
+    \ ['[stderr] on_stderr', '[stdout] on_stdout'])

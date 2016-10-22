@@ -140,6 +140,7 @@ This can be useful for makers that are filetype dependent but are typically
 run on an whole project rather than a specific file.
 
                                                    *neomake-makers-processing*
+                                                      *neomake-makers-mapexpr*
 You can define two optional properties on a maker object to process the maker
 output: `mapexpr` is applied to the maker output before any processing, and
 `postprocess` is applied to the quickfix or location list entry.
@@ -148,9 +149,13 @@ The `mapexpr` property will be passed directly into |map()| as the expr
 argument like so: >
     call map(lines, maker.mapexpr)
 <where `lines` contains the maker output.
-This allows you to manipulate the lines as needed. Currently this is called
-on stdout and stderr lines alike.
+`neomake_output_source` will be set to either `'stderr'` or `'stdout'`, depending
+on where the output is coming from.
 
+The following `mapexpr` could be used to prefix the output type: >
+    "printf('[%s] %s', neomake_output_source, v:val)"
+<
+                                                  *neomake-makers-postprocess*
 The `postprocess` property is a function reference that will be applied to the
 entry in the location or quickfix list.
 Example: change the entry type to a warning. >
