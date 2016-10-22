@@ -425,6 +425,10 @@ function! s:Make(options, ...) abort
     endif
     call neomake#signs#DefineSigns()
 
+    call neomake#utils#DebugMessage(printf(
+                \ '[#%d] Running makers: %s',
+                \ make_id, string(enabled_makers)))
+
     let buf = bufnr('%')
     let win = winnr()
     let ft = get(a:options, 'ft', '')
