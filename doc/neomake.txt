@@ -95,10 +95,10 @@ a dictionary with an expected entry `fn` (which has to be a function).
 The function must return a string, and the function will be called with no
 arguments.
 
-In the above example, the exe argument isn't strictly necessary, since neomake
+In the above example, the exe argument isn't strictly necessary, since Neomake
 uses the name of the maker as the default value for it.  If you want it to be
-usable on an individual file, you should also include the filetype in the name:
->
+usable on an individual file, you should also include the filetype in the
+name: >
     let g:neomake_c_lint_maker = {
         \ 'exe': 'lint',
         \ 'args': ['--option', 'x'],
@@ -152,8 +152,8 @@ argument like so: >
 
 The following variables are available in the `mapexpr`:
 
- - `neomake_output_source`: either `'stderr'` or `'stdout'`, depending on
-   where the output is coming from.  This will be `'stdout'` always for
+ - `neomake_output_source`: either "stderr" or "stdout", depending on
+   where the output is coming from.  This will be "stdout" always for
    non-async Vim.
  - `neomake_bufname` and `neomake_bufdir`: the buffer's name (|bufname()|) and
    directory, respectively.  This is only set in file mode.
