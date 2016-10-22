@@ -127,8 +127,6 @@ function! s:MakeJob(make_id, maker) abort
             if has_args
                 let argv += args
             endif
-            call neomake#utils#LoudMessage(printf('Starting async job: %s',
-                        \ join(argv, ' ')), jobinfo)
             if has('nvim')
                 let opts = {
                     \ 'on_stdout': function('neomake#MakeHandler'),
@@ -136,6 +134,9 @@ function! s:MakeJob(make_id, maker) abort
                     \ 'on_exit': function('neomake#MakeHandler')
                     \ }
                 try
+                    call neomake#utils#LoudMessage(printf(
+                                \ 'Starting async job: %s',
+                                \ string(argv)), jobinfo)
                     let job = jobstart(argv, opts)
                 catch
                     let error = printf('Failed to start Neovim job: %s: %s',
@@ -164,6 +165,9 @@ function! s:MakeJob(make_id, maker) abort
                     let argv = &shell.' '.&shellcmdflag.' '.shellescape(join(argv))
                 endif
                 try
+                    call neomake#utils#LoudMessage(printf(
+                                \ 'Starting async job: %s',
+                                \ string(argv)), jobinfo)
                     let job = job_start(argv, opts)
                     " Get this as early as possible!
                     " XXX: the job might be finished already before the setup
@@ -960,6 +964,10 @@ function! neomake#DisplayInfo() abort
         echo 'g:'.k.' = '.string(v)
         unlet! v  " Fix variable type mismatch with Vim 7.3.
     endfor
+    echo "\n"
+    echo "shell:" &shell
+    echo "shellcmdflag:" &shellcmdflag
+    echo 'Windows: '.neomake#utils#IsRunningWindows()
     echo '```'
     if &verbose
         echo "\n"
