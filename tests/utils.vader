@@ -57,6 +57,14 @@ Execute (neomake#utils#GetSetting accepts lists):
   let b:neomake_myft_mymaker_args = [ 'buffer', 'shallow', 'list' ]
   AssertEqual GetSetting(), [ 'buffer', 'shallow', 'list' ]
 
+Execute (neomake#utils#GetSetting without name):
+  let g:maker = {}
+  function! GetSetting()
+    return neomake#utils#GetSetting('args', g:maker, [],
+                                  \ ['myft'], bufnr('%'))
+  endfunction
+  AssertEqual GetSetting(), []
+
 Execute(neomake#utils#redir):
   command! NeomakeTestCommand echo 1 | echo 2
   command! NeomakeTestErrorCommand echoerr 'error'

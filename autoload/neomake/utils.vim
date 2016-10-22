@@ -216,26 +216,30 @@ endfunction
 " Get a setting by key, based on filetypes, from the buffer or global
 " namespace, defaulting to default.
 function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
-  if len(a:fts)
-    for ft in a:fts
-      " Look through the neomake setting override vars for a filetype maker,
-      " like neomake_scss_sasslint_exe (should be a string), and 
-      " neomake_scss_sasslint_args (should be a list)
-      let config_var = 'neomake_'.ft.'_'.a:maker.name.'_'.a:key
-      if has_key(g:, config_var)
-            \ || !empty(getbufvar(a:bufnr, config_var))
-        break
-      endif
-    endfor
-  else
-    " Following this, we're checking the neomake overrides for global makers
-    let config_var = 'neomake_'.a:maker.name.'_'.a:key
+  if has_key(a:maker, 'name')
+    if len(a:fts)
+      for ft in a:fts
+        " Look through the neomake setting override vars for a filetype maker,
+        " like neomake_scss_sasslint_exe (should be a string), and 
+        " neomake_scss_sasslint_args (should be a list)
+        let config_var = 'neomake_'.ft.'_'.a:maker.name.'_'.a:key
+        if has_key(g:, config_var)
+              \ || !empty(getbufvar(a:bufnr, config_var))
+          break
+        endif
+      endfor
+    else
+      " Following this, we're checking the neomake overrides for global makers
+      let config_var = 'neomake_'.a:maker.name.'_'.a:key
+    endif
+
+    if !empty(getbufvar(a:bufnr, config_var))
+      return copy(getbufvar(a:bufnr, config_var))
+    elseif has_key(g:, config_var)
+      return copy(get(g:, config_var))
+    endif
   endif
-  if !empty(getbufvar(a:bufnr, config_var))
-    return copy(getbufvar(a:bufnr, config_var))
-  elseif has_key(g:, config_var)
-    return copy(get(g:, config_var))
-  elseif has_key(a:maker, a:key)
+  if has_key(a:maker, a:key)
     return a:maker[a:key]
   endif
   " Look for 'neomake_'.key in the buffer and global namespace.
