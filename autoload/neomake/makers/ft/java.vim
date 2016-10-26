@@ -9,7 +9,6 @@
 "             See http://sam.zoy.org/wtfpl/COPYING for more details.
 "============================================================================
 
-
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
@@ -356,9 +355,11 @@ function! s:GetGradleClasspath() abort
                                     \ ['**', 'build', 'intermediates', 'classes', 'debug'],
                                     \ s:psep), 0)
                         for classes in out_putdir
-                            let cp .= s:ClassSep().classes
+                            let cp .= s:ClassSep() . classes
                         endfor
                     endif
+                else
+                    let cp = ''
                 endif
             catch
             finally
