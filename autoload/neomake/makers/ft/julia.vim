@@ -10,7 +10,7 @@ function! neomake#makers#ft#julia#lint() abort
 \           try
 \               using Lint
 \           catch
-\               println("$(basename(ARGS[1])):1 E999 Install Lint.jl: Pkg.add(\\"Lint\\")");
+\               println("$(basename(ARGS[1])):1 E999 Install Lint.jl: Pkg.add(""Lint"")");
 \               exit(1)
 \           end;
 \           r = lintfile(ARGS[1]);
