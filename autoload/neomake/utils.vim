@@ -39,10 +39,10 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
         let msg = a:msg
     endif
 
-    if exists(':Log') == 2
+    if exists('*vader#log')
         " Log is defined during Vader tests.
         let test_msg = '['.s:level_to_name[a:level].'] ['.s:timestr().']: '.msg
-        Log test_msg
+        call vader#log(test_msg)
         let g:neomake_test_messages += [[a:level, a:msg, jobinfo]]
     endif
 
