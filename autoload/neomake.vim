@@ -16,7 +16,7 @@ let s:need_errors_cleaning = {
 
 function! neomake#has_async_support() abort
     return has('nvim') ||
-                \ has('channel') && has('job') && has('patch-8-0-0027')
+                \ has('channel') && has('job') && has('patch-8.0.0027')
 endfunction
 
 function! neomake#GetJobs() abort
@@ -380,6 +380,7 @@ function! neomake#GetEnabledMakers(...) abort
             let l:enabled_makers = neomake#utils#AvailableMakers(ft, default_makers)
         endif
 
+        " @vimlint(EVL104, 1, l:enabled_makers)
         for maker_name in l:enabled_makers
             let c = get(makers_count, maker_name, 0)
             let makers_count[maker_name] = c + 1
@@ -538,12 +539,14 @@ function! s:AddExprCallback(jobinfo) abort
         let index += 1
 
         if has_key(maker, 'postprocess')
-            if !list_modified
+            if list_modified
+                call maker.postprocess(entry)
+            else
                 let before = copy(entry)
-            endif
-            call maker.postprocess(entry)
-            if !list_modified && entry != before
-                let list_modified = 1
+                call maker.postprocess(entry)
+                if entry != before
+                    let list_modified = 1
+                endif
             endif
         endif
 
@@ -609,6 +612,7 @@ function! s:AddExprCallback(jobinfo) abort
             call setqflist(list, 'r')
         endif
     endif
+    return counts_changed
 endfunction
 
 function! s:CleanJobinfo(jobinfo) abort
@@ -652,8 +656,10 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
     if has_key(maker, 'mapexpr')
         if maker.file_mode
             let l:neomake_bufname = bufname(maker.bufnr)
+            " @vimlint(EVL102, 1, l:neomake_bufdir)
             let l:neomake_bufdir = fnamemodify(neomake_bufname, ':h')
         endif
+        " @vimlint(EVL102, 1, l:neomake_output_source)
         let l:neomake_output_source = a:source
         call map(a:lines, maker.mapexpr)
     endif
@@ -669,9 +675,12 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
             let prev_list = getqflist()
             caddexpr a:lines
         endif
-        call s:AddExprCallback(a:jobinfo)
-        if (file_mode && getloclist(0) != prev_list)
-                    \ || (!file_mode && getqflist() != prev_list)
+        let counts_changed = s:AddExprCallback(a:jobinfo)
+        if !counts_changed
+            let counts_changed = (file_mode && getloclist(0) != prev_list)
+                        \ || (!file_mode && getqflist() != prev_list)
+        endif
+        if counts_changed
             call s:neomake_hook('NeomakeCountsChanged', {
                         \ 'file_mode': maker.file_mode,
                         \ 'bufnr': get(maker, 'bufnr', -1),
@@ -995,8 +1004,8 @@ function! neomake#DisplayInfo() abort
         unlet! v  " Fix variable type mismatch with Vim 7.3.
     endfor
     echo "\n"
-    echo "shell:" &shell
-    echo "shellcmdflag:" &shellcmdflag
+    echo 'shell:' &shell
+    echo 'shellcmdflag:' &shellcmdflag
     echo 'Windows: '.neomake#utils#IsRunningWindows()
     echo '```'
     if &verbose

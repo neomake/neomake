@@ -91,7 +91,7 @@ Execute:
     if found_but_other_level
       throw "Message '".a:msg."' found, but not for level ".level
     endif
-    throw "Message '".a:msg."' not found."
+    throw "Message '".a:msg."' not found: ".string(g:neomake_test_messages)
   endfunction
   command! -nargs=+ AssertNeomakeMessage call s:AssertNeomakeMessage(<args>)
 
