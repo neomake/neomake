@@ -155,6 +155,7 @@ function! s:MakeJob(make_id, maker) abort
                     endif
                 endif
             else
+                " vim-async.
                 let opts = {
                             \ 'err_cb': 'neomake#MakeHandlerVimStderr',
                             \ 'out_cb': 'neomake#MakeHandlerVimStdout',
@@ -291,7 +292,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         \ 'args': [],
         \ 'errorformat': &errorformat,
         \ 'buffer_output': 1,
-        \ 'remove_invalid_entries': 1
+        \ 'remove_invalid_entries': 1,
         \ }
     let bufnr = bufnr('%')
     for [key, default] in items(defaults)
