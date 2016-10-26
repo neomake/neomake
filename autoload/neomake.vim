@@ -430,7 +430,7 @@ function! s:Make(options, ...) abort
     call neomake#signs#DefineSigns()
 
     call neomake#utils#DebugMessage(printf(
-                \ '[#%d] Running makers: %s',
+                \ '[%d] Running makers: %s',
                 \ make_id, string(enabled_makers)))
 
     let buf = bufnr('%')
