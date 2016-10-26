@@ -20,6 +20,7 @@ endfunction
 
 function! neomake#makers#ft#vim#vimlint() abort
     return {
-        \ 'errorformat': '%f:%l:%c:%t%*[^:]: %m'
-        \ }
+                \ 'args': ['-u'],
+                \ 'errorformat': '%f:%l:%c:%t%*[^:]: %m',
+                \ }
 endfunction
