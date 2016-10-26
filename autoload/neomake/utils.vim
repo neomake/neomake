@@ -288,7 +288,7 @@ endfunction
 function! neomake#utils#CompressWhitespace(entry) abort
     let text = a:entry.text
     let text = substitute(text, "\001", '', 'g')
-    let text = substitute(text, '\n', ' ', 'g')
+    let text = substitute(text, '\r\?\n', ' ', 'g')
     let text = substitute(text, '\m\s\{2,}', ' ', 'g')
     let text = substitute(text, '\m^\s\+', '', '')
     let text = substitute(text, '\m\s\+$', '', '')
