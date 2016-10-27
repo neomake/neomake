@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#vim#EnabledMakers() abort
-    return ['vint', 'vimlint']
+    return ['vint']
 endfunction
 
 function! neomake#makers#ft#vim#vint() abort
