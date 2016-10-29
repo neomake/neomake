@@ -1,16 +1,11 @@
 function! neomake#makers#ft#pandoc#EnabledMakers()
-    return ['mdl', 'proselint']
+    return neomake#makers#ft#markdown#EnabledMakers()
 endfunction
 
 function! neomake#makers#ft#pandoc#mdl()
-    return {
-                \ 'errorformat':
-                \ '%f:%l: %m'
-                \ }
+    return neomake#makers#ft#markdown#mdl()
 endfunction
 
 function! neomake#makers#ft#pandoc#proselint()
-    return {
-                \ 'errorformat': '%f:%l:%c: %m'
-                \ }
+    return neomake#makers#ft#markdown#proselint()
 endfunction
