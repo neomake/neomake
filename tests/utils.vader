@@ -128,6 +128,7 @@ Execute(neomake#utils#ParseSemanticVersion):
   AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-alpha*'), {}
 
   " Identifiers MUST NOT be empty.
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-'), {}
   AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-alpha..1'), {}
 
   " Numeric identifiers MUST NOT include leading zeroes.
@@ -144,7 +145,8 @@ Execute(neomake#utils#ParseSemanticVersion):
   AssertEqual neomake#utils#ParseSemanticVersion('1.0.0+20130313144700..1'), {}
 
   " Identifiers MUST NOT be empty.
-  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-alpha..1'), {}
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0+'), {}
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0+alpha..1'), {}
 
 Execute(neomake#utils#CompareSemanticVersions):
   " http://semver.org/#spec-item-11

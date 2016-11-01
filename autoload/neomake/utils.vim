@@ -325,9 +325,6 @@ endfunction
 
 function! neomake#utils#ParseSemanticVersion(version_string) abort
     let l:parser = copy(a:)
-    let l:parser.digit = '0\|[1-9]\d*'
-    let l:parser.identifiers = '[[:alnum:]-.]\+'
-
     let l:parser.parsed = {
                 \ 'major': 0,
                 \ 'minor': 0,
@@ -366,15 +363,15 @@ function! neomake#utils#ParseSemanticVersion(version_string) abort
     function! l:parser.ParseBasic() abort
         " MAJOR.MINOR.PATCH
         " http://semver.org/#spec-item-2
-        let l:regex = join(repeat([l:self.Capture(l:self.digit)], 3), '.')
+        let l:regex = join(repeat([l:self.Capture('0\|[1-9]\d*')], 3), '.')
 
         " Pre-release version
         " http://semver.org/#spec-item-9
-        let l:regex .= l:self.Capture('-' . l:self.identifiers) . '\?'
+        let l:regex .= l:self.Capture('-[^+]*') . '\?'
 
         " Build metadata
         " http://semver.org/#spec-item-10
-        let l:regex .= l:self.Capture('+' . l:self.identifiers) . '\?'
+        let l:regex .= l:self.Capture('+.*') . '\?'
 
         let l:self.matches = matchlist(l:self.version_string, l:regex)
         if empty(l:self.matches)
@@ -411,7 +408,7 @@ function! neomake#utils#ParseSemanticVersion(version_string) abort
             call map(l:identifiers, 'l:self.ParseIdentifier(v:val, l:convert)')
 
             " Ensure all indentifiers are valid
-            if match(l:identifiers, '^$') > -1
+            if empty(l:identifiers) || match(l:identifiers, '^$') > -1
                 " Identifiers must be non-empty
                 return 0
             endif
@@ -423,17 +420,17 @@ function! neomake#utils#ParseSemanticVersion(version_string) abort
     endfunction
 
     if !l:parser.ParseBasic()
-        call neomake#utils#DebugMessage('Invalid semantic version string')
+        call neomake#utils#DebugMessage('Invalid semantic version string "'.a:version_string.'"')
         return {}
     endif
 
     if !l:parser.ParseAdditional('stage')
-        call neomake#utils#DebugMessage('Invalid semantic version pre-release string')
+        call neomake#utils#DebugMessage('Invalid semantic version pre-release string "'.a:version_string.'"')
         return {}
     endif
 
     if !l:parser.ParseAdditional('metadata')
-        call neomake#utils#DebugMessage('Invalid semantic version metadata string')
+        call neomake#utils#DebugMessage('Invalid semantic version metadata string "'.a:version_string.'"')
         return {}
     endif
 
