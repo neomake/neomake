@@ -22,6 +22,8 @@ env:
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-trusty
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-xenial
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8000
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8027
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
     - ENV=vint-diff
     - ENV=vint-errors
@@ -29,16 +31,12 @@ env:
     - ENV=testvim
     - ENV=vint
     - ENV=vimlint
-    - ENV=vimhelplint
+    - ENV=docker_vimhelplint
 
 matrix:
   allow_failures:
-    - env: ENV=vimhelplint
     - env: ENV=vimlint
     - env: ENV=vint
-    # There are currently 3 remaining issues with the java maker.
-    # Ref: https://github.com/neomake/neomake/issues/569
-    - env: ENV=vimlint-errors
   fast_finish: true
 
 install:
@@ -48,18 +46,13 @@ install:
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       export CHANGED_VIM_FILES="$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep '\.vim$')"
       if [ -z "$CHANGED_VIM_FILES" ]; then
-        echo "No changed .vim files: skipping build."
-        ENV=SKIP_BUILD
+        SKIP_BUILD_REASON="vint-diff: No changed .vim files."
       fi
-    elif [ "$ENV" = "vimhelplint" ]; then
+    elif [ "$ENV" = "docker_vimhelplint" ]; then
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       if git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
-        echo "No changed doc files: skipping build."
-        ENV=SKIP_BUILD
+        SKIP_BUILD_REASON="docker_vimhelplint: No changed doc files."
       fi
-    elif [ "${ENV#vimlint}" != "$ENV" ]; then
-      git clone --depth=1 https://github.com/syngan/vim-vimlint /tmp/vimlint
-      git clone --depth=1 https://github.com/ynkdir/vim-vimlparser /tmp/vimlparser
     elif [ "$ENV" = "testnvim" ]; then
       eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
     fi
@@ -67,13 +60,12 @@ install:
     if [ "${ENV#vint}" != "$ENV" ]; then
       pip install -U pip
       pip install -U wheel
-      virtualenv /tmp/vint && source /tmp/vint/bin/activate && pip install vim-vint
     fi
 
 script:
   - |
-    if [ "$ENV" = "SKIP_BUILD" ]; then
-      echo "Skipping build script: see above for any reason."
+    if [ -n "$SKIP_BUILD_REASON" ]; then
+      echo "Skipping job: $SKIP_BUILD_REASON"
     elif [ "$ENV" = "vint-diff" ]; then
       if [ -n "$CHANGED_VIM_FILES" ]; then
         vint $CHANGED_VIM_FILES | grep -v '^autoload/neomake/makers/.*Use the abort attribute for functions in autoload'

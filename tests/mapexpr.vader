@@ -1,0 +1,36 @@
+Include: _setup.vader
+
+Execute (mapexpr: output source in mapexpr):
+  let maker = neomake#utils#MakerFromCommand('echo on_stdout; echo on_stderr>&2')
+  let maker.mapexpr = "printf('[%s] %s', neomake_output_source, v:val)"
+  call neomake#Make(0, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  let stderr_source = neomake#has_async_support() ? 'stderr' : 'stdout'
+
+  AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
+    \ ['['.stderr_source.'] on_stderr', '[stdout] on_stdout'])
+
+Execute (mapexpr: file mode vars):
+  let maker = neomake#utils#MakerFromCommand('echo on_stdout')
+  e! tests/fixtures/errors.sh
+  let maker.mapexpr = "printf('%s (%s): %s', neomake_bufname, neomake_bufdir, v:val)"
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
+    \ 'tests/fixtures/errors.sh (tests/fixtures): on_stdout']
+
+Execute (mapexpr: file mode vars with cd):
+  if !NeomakeAsyncTestsSetup() | finish | endif
+
+  let maker = neomake#utils#MakerFromCommand('sleep 0.1; echo on_stdout')
+  e! tests/fixtures/errors.sh
+  let maker.mapexpr = "printf('%s (%s): %s', neomake_bufname, neomake_bufdir, v:val)"
+  let start_cwd = getcwd()
+  call neomake#Make(1, [maker])
+  cd build
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
+    \ start_cwd.'/tests/fixtures/errors.sh ('.start_cwd.'/tests/fixtures): on_stdout']

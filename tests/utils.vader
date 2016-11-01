@@ -1,12 +1,12 @@
 Include: _setup.vader
 
 Execute (neomake#utils#LogMessage writes to logfile always):
+  Save g:neomake_verbose g:neomake_logfile
   let neomake_verbose = 0
-  Save neomake_logfile
   let g:neomake_logfile = tempname()
   call neomake#utils#LogMessage(1, 'msg1')
-  Assert readfile(g:neomake_logfile)[0] =~# '\v\[\d+-\d\d-\d\dT\d\d:\d\d:\d\d\+\d+ \@\d+\.\d\d\d, level 1\] msg1$'
-  Restore
+  let logfile_msg = readfile(g:neomake_logfile)[0]
+  Assert logfile_msg =~# '\v\[\d+-\d\d-\d\dT\d\d:\d\d:\d\d\+\d+ \@\d+\.\d\d\d, quiet\] msg1$'
 
 Execute (NeomakeTestsEnsureExe creates exe):
   Assert !executable('boobar')
@@ -24,7 +24,9 @@ Execute (neomake#utils#CompressWhitespace):
   AssertEqual F('foo '), 'foo'
   AssertEqual F('foo bar '), 'foo bar'
   AssertEqual F("foo\nbar "), 'foo bar'
+  AssertEqual F("foo\r\nbar "), 'foo bar'
   AssertEqual F("foo\n bar "), 'foo bar'
+  AssertEqual F("foo\n bar \r\n"), 'foo bar'
 
 Execute (neomake#utils#GetSetting serialize):
   let g:maker = {'name': 'mymaker'}
@@ -57,6 +59,14 @@ Execute (neomake#utils#GetSetting accepts lists):
   let b:neomake_myft_mymaker_args = [ 'buffer', 'shallow', 'list' ]
   AssertEqual GetSetting(), [ 'buffer', 'shallow', 'list' ]
 
+Execute (neomake#utils#GetSetting without name):
+  let g:maker = {}
+  function! GetSetting()
+    return neomake#utils#GetSetting('args', g:maker, [],
+                                  \ ['myft'], bufnr('%'))
+  endfunction
+  AssertEqual GetSetting(), []
+
 Execute(neomake#utils#redir):
   command! NeomakeTestCommand echo 1 | echo 2
   command! NeomakeTestErrorCommand echoerr 'error'
@@ -70,6 +80,29 @@ Execute(neomake#utils#redir):
   endif
   AssertEqual neomake#utils#redir(['NeomakeTestCommand', 'echon 3']), "\n1\n23"
   AssertThrows neomake#utils#redir(['NeomakeTestCommand', 'echoerr 3'])
+
+Execute (Should expand arguments that start with %):
+  let param1 = '%'
+  let param2 = '%:h'
+  let param3 = '--param1=%:h'
+  let args = [param1, param2, param3]
+  let expected_args = [expand(param1), expand(param2), param3]
+  call neomake#utils#ExpandArgs(args)
+  AssertEqual expected_args, args
+
+Execute (Should expand arguments that start with escape char \):
+  let param1 = '\%'
+  let param2 = '\%:p'
+  let args = [param1, param2]
+  let expected_args = [expand(param1), expand(param2)]
+  call neomake#utils#ExpandArgs(args)
+  AssertEqual expected_args, args
+
+Execute (Should not expand arguments that start with double %):
+  let args = ['%%:h', '%%']
+  let expected_args = ['%%:h', '%%']
+  call neomake#utils#ExpandArgs(args)
+  AssertEqual expected_args, args
 
 Execute(neomake#utils#ParseSemanticVersion):
   " http://semver.org/#spec-item-2

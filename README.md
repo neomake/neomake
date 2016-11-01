@@ -4,13 +4,10 @@
 # Neomake
 
 Neomake is a plugin that asynchronously runs programs using
-[Neovim]'s job-control functionality. It is intended to
-replace Vim's built-in `:make` command and provides functionality similar to
+[Neovim]'s or [Vim]'s job-control functionality. It is intended to
+replace the built-in `:make` command and provides functionality similar to
 plugins like [syntastic] and [dispatch.vim]. It is primarily used to run code
 linters and compilers from within Vim, but can be used to run any program.
-
-**This plugin also works in ordinary Vim, but without the asynchronous
-benefits.**
 
 ## Requirements
 
@@ -18,6 +15,8 @@ The minimum [Neovim] version supported by Neomake is
 `NVIM 0.0.0-alpha+201503292107` ([commit 960b9108c]). The minimum Vim version
 supported by Neomake is 7.4.503 (although if you don't use `g:neomake_logfile`
 older versions will probably work fine as well).
+
+Vim's async mode is used with Vim 8.0.0027 or later.
 
 ## Usage
 
@@ -137,6 +136,7 @@ Please contact [@blueyed](https://github.com/blueyed) if you are interested.
 You should have a good profile of issue triaging and PRs on this repo already.
 
 [Neovim]: http://neovim.org/
+[Vim]: http://vim.org/
 [syntastic]: https://github.com/scrooloose/syntastic
 [dispatch.vim]: https://github.com/tpope/vim-dispatch
 [commit 960b9108c]: https://github.com/neovim/neovim/tree/960b9108c2928b6cf0adcabdb829d06996635211

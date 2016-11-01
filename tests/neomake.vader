@@ -6,11 +6,16 @@ Execute (neomake#GetMakers):
   AssertEqual sort(neomake#GetMakers('sh')), ['checkbashisms', 'sh', 'shellcheck']
 
 Execute (neomake#GetMaker with non-existent maker prints errors):
-  let g:neomake_verbose = 0
   AssertEqual neomake#GetMaker('non-existent'), {}
-  AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent']
+  AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent', {}]
   AssertEqual neomake#GetMaker('nonexistent'), {}
-  AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent']
+  AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent', {}]
+
+Execute (neomake#GetMaker: uses defined errorformat):
+  let maker = neomake#GetMaker('makeprg', '')
+  AssertEqual maker, {'name': 'makeprg', 'ft': '', 'args': ['-c', 'make'],
+    \ 'errorformat': &errorformat,
+    \ 'exe': &shell, 'remove_invalid_entries': 0, 'buffer_output': 1}
 
 Execute (neomake#GetMaker uses defaults from b:/g:):
   Save g:neomake_test_remove_invalid_entries
@@ -30,7 +35,7 @@ Execute (neomake#GetMaker uses defaults from b:/g:):
 Execute (neomake#Make in file mode with no filetype and no makers):
   AssertEqual &ft, ''
   AssertEqual neomake#Make(1, []), []
-  AssertEqual g:neomake_test_messages[-1], [3, 'Nothing to make: no enabled makers.']
+  AssertEqual g:neomake_test_messages[-1], [3, 'Nothing to make: no enabled makers.', {}]
 
 Execute (neomake#Make in project mode with no filetype and no makers):
   Save makeprg
@@ -49,11 +54,17 @@ Execute (neomake#Make in project mode with no filetype and no makers):
   NeomakeTestsWaitForFinishedJobs
 
 Execute (neomake#GetMaker from g:neomake_foo_maker):
-  let g:neomake_foo_maker = {
-    \ 'exe': 'my-foo'
+  let g:neomake_custom_maker = {
+    \ 'exe': 'my-exe'
     \ }
-  let maker = neomake#GetMaker('foo')
-  AssertEqual maker.exe, 'my-foo'
+  let maker = neomake#GetMaker('custom')
+  AssertEqual maker.exe, 'my-exe'
+  AssertEqual maker.name, 'custom'
+
+Execute (neomake#GetMaker without name):
+  let maker = neomake#GetMaker({})
+  AssertEqual maker.exe, 'unnamed_maker'
+  AssertEqual maker.name, 'unnamed_maker'
 
 Execute (neomake#CancelJob):
   if neomake#has_async_support()
@@ -70,10 +81,18 @@ Execute (neomake#CancelJob):
 Execute (Reports exit status):
   if neomake#has_async_support()
     let job_id = neomake#Sh("sh -c 'exit 7'")
+    let jobinfo = neomake#GetJobs()[job_id]
     NeomakeTestsWaitForFinishedJobs
 
-    AssertNeomakeMessage 'sh: sh -c ''exit 7'': completed with exit code 7.', 1
+    AssertNeomakeMessage 'sh: sh -c ''exit 7'': completed with exit code 7.', 1, jobinfo
+    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3, jobinfo
+  endif
 
-    let msg = printf('[#%d] exit: sh: sh -c ''exit 7'': 7', job_id)
-    AssertNeomakeMessage msg, 3
+Execute (neomake#Sh: job_id):
+  let job_id = neomake#Sh('true')
+  if neomake#has_async_support()
+    Assert job_id >= 0, 'Correct job_id for async.'
+    NeomakeTestsWaitForFinishedJobs
+  else
+    Assert job_id == -1, 'Correct job_id for sync.'
   endif

@@ -9,7 +9,6 @@
 "             See http://sam.zoy.org/wtfpl/COPYING for more details.
 "============================================================================
 
-
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
@@ -134,6 +133,7 @@ function! s:AddToClasspath(classpath, path) abort
     return (a:classpath !=# '') ? a:classpath . s:ClassSep() . a:path : a:path
 endfunction
 
+" @vimlint(EVL103, 1, a:classpathFile)
 function! s:ReadClassPathFile(classpathFile) abort
     let cp = ''
     let file = g:neomake_java_checker_home. s:psep. 'java'. s:psep.  'classpath.py'
@@ -148,6 +148,7 @@ function! s:ReadClassPathFile(classpathFile) abort
     endif
     return cp
 endfunction
+" @vimlint(EVL103, 0)
 
 function! neomake#makers#ft#java#EnabledMakers() abort
     let makers = []
@@ -356,9 +357,11 @@ function! s:GetGradleClasspath() abort
                                     \ ['**', 'build', 'intermediates', 'classes', 'debug'],
                                     \ s:psep), 0)
                         for classes in out_putdir
-                            let cp .= s:ClassSep().classes
+                            let cp .= s:ClassSep() . classes
                         endfor
                     endif
+                else
+                    let cp = ''
                 endif
             catch
             finally

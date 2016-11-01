@@ -1,13 +1,23 @@
-# Based on https://github.com/tweekmonster/vim-testbed.
-FROM neomake/vim-testbed:latest
+# From https://github.com/tweekmonster/vim-testbed.
+FROM testbed/vim:latest
+
+# Install make and openssl for docker_vimhelplint.
+# openssl for https support with wget.
+RUN apk --update add make openssl \
+    && rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
 # Currently tested versions:
 #  - v7.3.429 (Ubuntu Precise, 12.04LTS; same as on Travis currently)
 #  - v7.4.052 (Ubuntu Trusty, 14.04LTS)
 #  - v7.4.1689 (Ubuntu Xenial, 16.04LTS)
-#  - Git master
+#  - v8.0.0000 (Vim 8, for reference)
+#  - v8.0.0027 (Vim 8, real async support)
+RUN install_vim \
+        -tag v7.3.429 -name vim73 -build \
+        -tag v7.4.052 -name vim74-trusty -build \
+        -tag v7.4.1689 -name vim74-xenial -build \
+        -tag v8.0.0000 -name vim8000 -build \
+        -tag v8.0.0027 -name vim8027 -build
 
-RUN install_vim -tag v7.3.429 -name vim73 -build \
-                -tag v7.4.052 -name vim74-trusty -build \
-                -tag v7.4.1689 -name vim74-xenial -build \
-                -tag master -build
+# Git master in a separate layer, since the above is meant to be stable.
+RUN install_vim -tag master -name vim-master -build
