@@ -335,11 +335,11 @@ function! neomake#utils#ParseSemanticVersion(version_string) abort
 
 
     " A simple helper function for regex captures
-    function! l:parser.Capture(regex) abort
+    function! l:parser.Capture(regex) abort dict
         return '\(' . a:regex . '\)'
     endfunction
 
-    function! l:parser.ParseIdentifier(identifier, convert) abort
+    function! l:parser.ParseIdentifier(identifier, convert) abort dict
         " Identifer must be non-empty
         if empty(a:identifier)
             return ''
@@ -360,33 +360,33 @@ function! neomake#utils#ParseSemanticVersion(version_string) abort
         return a:identifier
     endfunction
 
-    function! l:parser.ParseBasic() abort
+    function! l:parser.ParseBasic() abort dict
         " MAJOR.MINOR.PATCH
         " http://semver.org/#spec-item-2
-        let l:regex = join(repeat([l:self.Capture('0\|[1-9]\d*')], 3), '.')
+        let l:regex = join(repeat([self.Capture('0\|[1-9]\d*')], 3), '.')
 
         " Pre-release version
         " http://semver.org/#spec-item-9
-        let l:regex .= l:self.Capture('-[^+]*') . '\?'
+        let l:regex .= self.Capture('-[^+]*') . '\?'
 
         " Build metadata
         " http://semver.org/#spec-item-10
-        let l:regex .= l:self.Capture('+.*') . '\?'
+        let l:regex .= self.Capture('+.*') . '\?'
 
-        let l:self.matches = matchlist(l:self.version_string, l:regex)
-        if empty(l:self.matches)
+        let self.matches = matchlist(self.version_string, l:regex)
+        if empty(self.matches)
             " Must include MAJOR, MINOR, and PATCH to be valid
             return 0
         endif
 
-        let l:parsed = l:self.parsed
-        let l:parsed.major = str2nr(l:self.matches[1])
-        let l:parsed.minor = str2nr(l:self.matches[2])
-        let l:parsed.patch = str2nr(l:self.matches[3])
+        let l:parsed = self.parsed
+        let l:parsed.major = str2nr(self.matches[1])
+        let l:parsed.minor = str2nr(self.matches[2])
+        let l:parsed.patch = str2nr(self.matches[3])
         return 1
     endfunction
 
-    function! l:parser.ParseAdditional(key) abort
+    function! l:parser.ParseAdditional(key) abort dict
         if a:key ==# 'stage'
             let l:index = 4
             let l:prefix = '-'
@@ -399,21 +399,21 @@ function! neomake#utils#ParseSemanticVersion(version_string) abort
             return 0
         endif
 
-        let l:identifiers = l:self.matches[l:index]
-        if strpart(l:identifiers, 0, 1) ==# l:prefix
-            let l:identifiers = strpart(l:identifiers, 1)
-            let l:identifiers = split(l:identifiers, '\.')
+        let l:identifiers_string = self.matches[l:index]
+        if strpart(l:identifiers_string, 0, 1) ==# l:prefix
+            let l:identifiers_string = strpart(l:identifiers_string, 1)
+            let l:identifiers_list = split(l:identifiers_string, '\.')
 
             " Parse the identifiers
-            call map(l:identifiers, 'l:self.ParseIdentifier(v:val, l:convert)')
+            call map(l:identifiers_list, 'self.ParseIdentifier(v:val, l:convert)')
 
             " Ensure all indentifiers are valid
-            if empty(l:identifiers) || match(l:identifiers, '^$') > -1
+            if empty(l:identifiers_list) || match(l:identifiers_list, '^$') > -1
                 " Identifiers must be non-empty
                 return 0
             endif
 
-            let l:self.parsed[a:key] = l:identifiers
+            let self.parsed[a:key] = l:identifiers_list
         endif
 
         return 1
