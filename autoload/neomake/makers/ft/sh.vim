@@ -10,7 +10,8 @@ function! s:shellcheck_determine_supported() abort
     " zsh support was available from the first release of shellcheck and
     " removed in version 0.3.6. Before shellcheck version 0.3.1 there was no
     " way to get the version information.
-    let l:version_line = matchstr(systemlist('shellcheck --version'), '^version:')
+    let l:version_line = matchstr(split(system('shellcheck --version'), '\n'),
+                \ '^version:')
     if v:shell_error != 0
         let s:shellcheck_supported += ['zsh']
     else
