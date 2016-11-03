@@ -225,7 +225,7 @@ Execute (Neomake with windo):
     endfor
     return ['-c', cmd]
   endfunction
-  let maker = {
+  let inc_maker = {
         \ 'name': 'incmaker',
         \ 'exe': &shell,
         \ 'args': function('IncMaker'),
@@ -241,7 +241,7 @@ Execute (Neomake with windo):
   AssertEqual winnr(), 3
   1wincmd w
   AssertEqual winnr(), 1
-  windo call neomake#Make(1, [maker])
+  windo call neomake#Make(1, [inc_maker])
   AssertEqual winnr(), 3
   AssertEqual getloclist(3), []
 
