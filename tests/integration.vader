@@ -3,7 +3,7 @@ Include: _setup.vader
 Execute (Test Neomake on errors.sh with one maker):
   call g:NeomakeSetupAutocmdWrappers()
   e! tests/fixtures/errors.sh
-  AssertEqual getline(1), '#! /bin/sh'
+  AssertEqual getline(1), '#! /bin/bash'
 
   call g:NeomakeTestsEnsureExe('shellcheck')
   AssertEqual neomake#GetEnabledMakers('sh'), ['sh', 'shellcheck']
@@ -22,6 +22,19 @@ Execute (Test Neomake on errors.sh with one maker):
     AssertEqual [idx, g:neomake_test_countschanged[1].file_mode], [idx, 1]
     AssertEqual [idx, g:neomake_test_countschanged[1].bufnr], [idx, bufnr]
   endfor
+
+  " Basic verification that signs are placed.
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_err buffer=4', 3, {}
+  AssertNeomakeMessage 'Cleaning old signs in buffer 4:  {4: {5: 5000}}', 3, {}
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer=4', 3, {}
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_err buffer=4', 3, {}
+
+  let signs = split(neomake#utils#redir('sign place'), '\n')
+  call map(signs, "substitute(substitute(v:val, '\\m^\\s\\+', '', ''), '\\m\\s\\+$', '', '')")
+  AssertEqual signs, [
+    \ '--- Signs ---',
+    \ 'Signs for tests/fixtures/errors.sh:',
+    \ 'line=5  id=5000  name=neomake_err']
 
 Execute (Test Neomake on errors.sh with two makers):
   call g:NeomakeSetupAutocmdWrappers()
