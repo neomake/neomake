@@ -109,10 +109,10 @@ Execute (NeomakeSh: non-existing command):
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual g:neomake_test_countschanged, [{'file_mode': 0, 'bufnr': bufnr('%')}]
   AssertEqual len(getqflist()), 1
+  AssertNeomakeMessage "exit: sh: 'nonexistingcommand': 127", 3
   if neomake#has_async_support()
     AssertNeomakeMessage 'sh: ''nonexistingcommand'': completed with exit code 127.', 3, {}
   endif
-  AssertNeomakeMessage "exit: sh: 'nonexistingcommand': 127", 3
   AssertNotEqual match(getqflist()[0].text,
     \ '/bin/bash: nonexistingcommand: command not found'), -1, "error in qflist"
 
