@@ -438,11 +438,10 @@ function! s:Make(options, ...) abort
     let win = winnr()
     let ft = get(a:options, 'ft', '')
 
-    if ((file_mode && neomake#statusline#ResetCountsForBuf(buf))
-                \ || (!file_mode && neomake#statusline#ResetCounts()))
-        call s:neomake_hook('NeomakeCountsChanged', {
-                    \ 'file_mode': file_mode,
-                    \ 'bufnr': buf})
+    if file_mode
+        call neomake#statusline#ResetCountsForBuf(buf)
+    else
+        call neomake#statusline#ResetCountsForProject()
     endif
 
     " Empty the quickfix/location list (using a valid 'errorformat' setting).
@@ -517,7 +516,7 @@ function! s:Make(options, ...) abort
         endif
     endfor
     if !len(job_ids)
-        call s:neomake_hook('NeomakeFinished', {
+        call neomake#utils#hook('NeomakeFinished', {
                     \ 'file_mode': file_mode})
     endif
     return job_ids
@@ -633,20 +632,6 @@ function! s:CleanJobinfo(jobinfo) abort
     endif
 endfunction
 
-function! s:neomake_hook(event, context) abort
-    if exists('#User#'.a:event)
-        let g:neomake_hook_context = a:context
-        call neomake#utils#DebugMessage('Calling User autocmd '.a:event
-                                      \ .' with context: '.string(a:context))
-        if v:version >= 704 || (v:version == 703 && has('patch442'))
-            exec 'doautocmd <nomodeline> User ' . a:event
-        else
-            exec 'doautocmd User ' . a:event
-        endif
-        unlet g:neomake_hook_context
-    endif
-endfunction
-
 function! s:ProcessJobOutput(jobinfo, lines, source) abort
     let maker = a:jobinfo.maker
     call neomake#utils#DebugMessage(printf(
@@ -681,7 +666,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
                         \ || (!file_mode && getqflist() != prev_list)
         endif
         if counts_changed
-            call s:neomake_hook('NeomakeCountsChanged', {
+            call neomake#utils#hook('NeomakeCountsChanged', {
                         \ 'file_mode': maker.file_mode,
                         \ 'bufnr': get(maker, 'bufnr', -1),
                         \ })
@@ -863,7 +848,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         " Trigger autocmd if all jobs for a s:Make instance have finished.
         if neomake#has_async_support()
             if !len(filter(copy(s:jobs), 'v:val.make_id == jobinfo.make_id'))
-                call s:neomake_hook('NeomakeFinished', {
+                call neomake#utils#hook('NeomakeFinished', {
                             \ 'file_mode': maker.file_mode})
             endif
         endif
@@ -881,15 +866,16 @@ function! neomake#CleanOldProjectSignsAndErrors() abort
     call neomake#signs#CleanAllOldSigns('project')
 endfunction
 
-function! neomake#CleanOldFileSignsAndErrors(bufnr) abort
-    if get(s:need_errors_cleaning['file'], a:bufnr, 0)
-        if has_key(s:current_errors['file'], a:bufnr)
-            unlet s:current_errors['file'][a:bufnr]
+function! neomake#CleanOldFileSignsAndErrors(...) abort
+    let bufnr = a:0 ? a:1 : bufnr('%')
+    if get(s:need_errors_cleaning['file'], bufnr, 0)
+        if has_key(s:current_errors['file'], bufnr)
+            unlet s:current_errors['file'][bufnr]
         endif
-        unlet s:need_errors_cleaning['file'][a:bufnr]
-        call neomake#utils#DebugMessage('File-level errors cleaned in buffer '.a:bufnr)
+        unlet s:need_errors_cleaning['file'][bufnr]
+        call neomake#utils#DebugMessage('File-level errors cleaned in buffer '.bufnr)
     endif
-    call neomake#signs#CleanOldSigns(a:bufnr, 'file')
+    call neomake#signs#CleanOldSigns(bufnr, 'file')
 endfunction
 
 function! neomake#EchoCurrentError() abort

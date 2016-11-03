@@ -322,3 +322,17 @@ function! neomake#utils#ExpandArgs(args) abort
     " Only expand those args that start with \ and a single %
     call map(a:args, "v:val =~# '\\(^\\\\\\|^%$\\|^%[^%]\\)' ? expand(v:val) : v:val")
 endfunction
+
+function! neomake#utils#hook(event, context) abort
+    if exists('#User#'.a:event)
+        let g:neomake_hook_context = a:context
+        call neomake#utils#DebugMessage('Calling User autocmd '.a:event
+                                      \ .' with context: '.string(a:context))
+        if v:version >= 704 || (v:version == 703 && has('patch442'))
+            exec 'doautocmd <nomodeline> User ' . a:event
+        else
+            exec 'doautocmd User ' . a:event
+        endif
+        unlet g:neomake_hook_context
+    endif
+endfunction
