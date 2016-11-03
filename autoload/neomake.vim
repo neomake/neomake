@@ -532,6 +532,7 @@ function! s:AddExprCallback(jobinfo) abort
     let index = file_mode ? s:loclist_nr[maker.winnr] : s:qflist_nr
     let maker_type = file_mode ? 'file' : 'project'
     let cleaned_signs = 0
+    let ignored_signs = 0
 
     while index < len(list)
         let entry = list[index]
@@ -596,7 +597,11 @@ function! s:AddExprCallback(jobinfo) abort
         call add(s:current_errors[maker_type][entry.bufnr][entry.lnum], entry)
 
         if place_signs
-            call neomake#signs#RegisterSign(entry, maker_type)
+            if entry.lnum is 0
+                let ignored_signs += 1
+            else
+                call neomake#signs#RegisterSign(entry, maker_type)
+            endif
         endif
     endwhile
 
@@ -612,6 +617,11 @@ function! s:AddExprCallback(jobinfo) abort
         else
             call setqflist(list, 'r')
         endif
+    endif
+    if ignored_signs
+        call neomake#utils#DebugMessage(printf(
+                    \ 'Could not place signs for %d entries without line number.',
+                    \ ignored_signs))
     endif
     return counts_changed
 endfunction
