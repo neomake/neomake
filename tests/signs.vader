@@ -36,3 +36,15 @@ Execute (neomake#signs#RedefineErrorSign):
 
   " Test #736.
   call neomake#signs#RedefineErrorSign({'text': '✗', 'texthl': 'ErrorMsg'})
+
+Execute (neomake#signs#PlaceVisibleSigns in project mode):
+  let maker = neomake#utils#MakerFromCommand('echo 1:1: W: warning')
+  call extend(maker, {
+        \ 'name': 'custom_maker',
+        \ 'errorformat': '%E%f:%l: %t: %m',
+        \ }, 'error')
+
+  file 1
+  call neomake#Make(0, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'Placing sign: sign place 7000 line=1 name=neomake_warn buffer='.bufnr('%')

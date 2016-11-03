@@ -718,7 +718,9 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
     let maker = a:jobinfo.maker
 
     if !get(maker, 'file_mode')
-        return s:ProcessJobOutput(a:jobinfo, lines, a:source)
+        call s:ProcessJobOutput(a:jobinfo, lines, a:source)
+        call neomake#signs#PlaceVisibleSigns()
+        return
     endif
 
     " file mode: append lines to jobs's window's output.
