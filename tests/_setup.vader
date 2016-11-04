@@ -84,6 +84,7 @@ Execute:
             throw printf("Got unexpected value for jobinfo.%s: "
               \  ."expected '%s', but got '%s'.", k, string(expected), string(v))
           endif
+          unlet v  " for old Vim
         endfor
       endif
       return 1
