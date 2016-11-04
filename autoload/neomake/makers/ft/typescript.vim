@@ -10,7 +10,7 @@ function! neomake#makers#ft#typescript#tsc() abort
     return {
         \ 'args': ['--noEmit'],
         \ 'append_file': 0,
-        \ 'cwd': '%:p',
+        \ 'cwd': '%:p:h',
         \ 'errorformat':
             \ '%E%f %#(%l\,%c): error %m,' .
             \ '%E%f %#(%l\,%c): %m,' .
