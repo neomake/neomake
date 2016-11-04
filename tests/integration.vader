@@ -110,7 +110,7 @@ Execute (NeomakeSh: non-existing command):
   AssertEqual g:neomake_test_countschanged, [{'file_mode': 0, 'bufnr': bufnr('%')}]
   AssertEqual len(getqflist()), 1
   if neomake#has_async_support()
-    AssertNeomakeMessage 'sh: ''nonexistingcommand'': completed with exit code 127.', 1, {}
+    AssertNeomakeMessage 'sh: ''nonexistingcommand'': completed with exit code 127.', 3, {}
   endif
   AssertNeomakeMessage "exit: sh: 'nonexistingcommand': 127", 3
   AssertNotEqual match(getqflist()[0].text,

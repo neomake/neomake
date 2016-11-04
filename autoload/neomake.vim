@@ -820,7 +820,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         endif
         call s:CleanJobinfo(jobinfo)
         if neomake#has_async_support()
-            call neomake#utils#QuietMessage(printf(
+            call neomake#utils#DebugMessage(printf(
                         \ '%s: completed with exit code %d.',
                         \ maker.name, status))
         endif
