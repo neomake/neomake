@@ -1,55 +1,61 @@
 unlet! s:makers
-
-function! s:MakerAvailable(command) abort
-    " stack may be able to find a maker binary that's not on the normal path
-    " so check for that first
-    if executable('stack')
-        " run the maker command using stack to see whether stack can find it
-        " use the help flag to run the maker command without doing anything
-        if system('stack exec -- ' . a:command . ' --help > /dev/null 2>&1; echo $?') == 0
-            return 1
-        else " if stack cannot find the maker command, its not available anywhere
-            return 0
-        endif
-    elseif executable(a:command) " stack isn't available, so check for the maker binary directly
-        return 1
-    else
-        return 0
-    endif
-endfunction
+unlet! s:uses_cabal
 
 function! neomake#makers#ft#haskell#EnabledMakers() abort
-    " cache whether each maker is available, to avoid lots of (UI blocking) system calls...the user must restart vim if a maker's availability changes
     if !exists('s:makers')
+        " cache whether each maker is available, to avoid lots of (UI blocking)
+        " system calls
+        " TODO: figure out how to do all this configuration async instead of
+        " caching it--that would allow the user to change directories from
+        " within vim and recalculate maker availability without restarting vim
         let commands = ['ghc-mod', 'hdevtools', 'hlint', 'liquid']
         let s:makers = []
+        let s:jobs = []
         for command in commands
-            if s:MakerAvailable(command)
+            " stack may be able to find a maker binary that's not on the normal
+            " path so check for that first
+            if executable('stack')
+                " run the maker command using stack to see whether stack can
+                " find it use the help flag to run the maker command without
+                " doing anything
+                let stack_command = [
+                      \   'stack'
+                      \ , 'exec'
+                      \ , '--'
+                      \ , command
+                      \ , '--help'
+                      \ ]
+                if has('nvim')
+                    let job_id = jobstart(
+                        \ stack_command,
+                        \ { 'command': command
+                        \ , 'on_exit': function('s:CheckStackMakerAsync')
+                        \ })
+                    if job_id > 0
+                        call add(s:jobs, job_id)
+                    endif
+                else
+                    call extend(stack_command, ['> /dev/null 2>&1;', 'echo $?'])
+                    if system(join(stack_command, ' ')) == 0
+                        call add(s:makers, substitute(command, '-', '', 'g'))
+                    endif
+                endif
+            elseif executable(command) " no stack bin so check for maker bin
                 call add(s:makers, substitute(command, '-', '', 'g'))
             endif
         endfor
+        if has('nvim')
+            call jobwait(s:jobs)
+        endif
     endif
     return s:makers
 endfunction
 
-function! s:TryStack(maker) abort
-    if executable('stack')
-        if !has_key(a:maker, 'stackexecargs')
-            let a:maker['stackexecargs'] = []
-        endif
-        let a:maker['args'] = ['--verbosity', 'silent', 'exec'] + a:maker['stackexecargs'] + ['--'] + [a:maker['exe']] + a:maker['args']
-        let a:maker['exe'] = 'stack'
-    endif
-    return a:maker
-endfunction
-
 function! neomake#makers#ft#haskell#hdevtools() abort
-    let mapexpr = 'substitute(substitute(v:val, " \\{2,\\}", " ", "g"), "`", "''", "g")'
-    return s:TryStack({
+    let params = {
         \ 'exe': 'hdevtools',
         \ 'args': ['check', '-g-Wall'],
-        \ 'stackexecargs': ['--no-ghc-package-path'],
-        \ 'mapexpr': mapexpr,
+        \ 'mapexpr': s:CleanUpSpaceAndBackticks(),
         \ 'errorformat':
             \ '%-Z %#,'.
             \ '%W%f:%l:%v: Warning: %m,'.
@@ -59,7 +65,24 @@ function! neomake#makers#ft#haskell#hdevtools() abort
             \ '%+C  %#%m,'.
             \ '%W%>%f:%l:%v:,'.
             \ '%+C  %#%tarning: %m,'
-        \ })
+        \ }
+    " hdevtools needs the GHC-PACKAGE-PATH environment variable to exist
+    " when running on a project WITHOUT a cabal file, but it needs the
+    " GHC-PACKAGE-PATH to NOT exist when running on a with a project WITH
+    " a cabal file
+    if !exists('s:uses_cabal')
+        let s:uses_cabal = 0
+        if executable('stack')
+            let rootdir = systemlist('stack --verbosity silent path --project-root')[0]
+            if glob(rootdir . '/*.cabal') != ''
+                let s:uses_cabal = 1
+            endif
+        endif
+    endif
+    if s:uses_cabal
+        let params['stackexecargs'] = ['--no-ghc-package-path']
+    endif
+    return s:TryStack(params)
 endfunction
 
 function! neomake#makers#ft#haskell#ghcmod() abort
@@ -103,15 +126,46 @@ function! neomake#makers#ft#haskell#hlint() abort
 endfunction
 
 function! neomake#makers#ft#haskell#liquid() abort
-    let mapexpr = 'substitute(substitute(v:val, " \\{2,\\}", " ", "g"), "`", "''", "g")'
     return s:TryStack({
       \ 'exe': 'liquid',
       \ 'args': [],
-      \ 'mapexpr': mapexpr,
+      \ 'mapexpr': s:CleanUpSpaceAndBackticks(),
       \ 'errorformat':
           \ '%E %f:%l:%c-%.%#Error: %m,' .
           \ '%C%.%#|%.%#,' .
           \ '%C %#^%#,' .
           \ '%C%m,'
       \ })
+endfunction
+
+" @vimlint(EVL103, 1, a.job_id)
+" @vimlint(EVL103, 1, a.event)
+" @vimlint(EVL101, 1, l.self)
+" vint: -ProhibitUsingUndeclaredVariable
+function! s:CheckStackMakerAsync(job_id, data, event) abort
+    if a:data == 0
+        call add(s:makers, substitute(self.command, '-', '', 'g'))
+    endif
+endfunction
+" vint: +ProhibitUsingUndeclaredVariable
+" @vimlint(EVL101, 0)
+" @vimlint(EVL103, 0)
+
+function! s:TryStack(maker) abort
+    if executable('stack')
+        if !has_key(a:maker, 'stackexecargs')
+            let a:maker['stackexecargs'] = []
+        endif
+        let a:maker['args'] =
+            \   ['--verbosity', 'silent', 'exec']
+            \ + a:maker['stackexecargs']
+            \ + ['--', a:maker['exe']]
+            \ + a:maker['args']
+        let a:maker['exe'] = 'stack'
+    endif
+    return a:maker
+endfunction
+
+function! s:CleanUpSpaceAndBackticks() abort
+    return 'substitute(substitute(v:val, " \\{2,\\}", " ", "g"), "`", "''", "g")'
 endfunction
