@@ -1,4 +1,4 @@
-Include: _setup.vader
+Include: include/setup.vader
 
 Execute (neomake#signs#HlexistsAndIsNotCleared):
   AssertEqual neomake#signs#HlexistsAndIsNotCleared('Error'), 1
@@ -9,3 +9,56 @@ Execute (neomake#signs#HlexistsAndIsNotCleared):
   AssertEqual neomake#signs#HlexistsAndIsNotCleared('NeomakeCustomHilight'), 1
   hi link NeomakeCustomHilight NONE
   AssertEqual neomake#signs#HlexistsAndIsNotCleared('NeomakeCustomHilight'), 0
+
+Execute (neomake#signs#RedefineErrorSign):
+  let maker = neomake#utils#MakerFromCommand(
+    \ 'echo 1: E: error; echo 1:2: W: warning')
+  call extend(maker, {
+        \ 'name': 'custom_maker',
+        \ 'errorformat': '%E%f:%l: %t: %m,%E%f: %t: %m',
+        \ }, 'error')
+
+  new
+  file 1
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'Could not place signs for 1 entries without line number.'
+
+  let bufnr = bufnr('%')
+  let g:sign_msg = 'Placing sign: sign place 5000 line=2 name=neomake_warn buffer='.bufnr('%')
+  call neomake#signs#PlaceVisibleSigns()
+  AssertThrows AssertNeomakeMessage g:sign_msg
+  AssertEqual g:vader_exception, "Message '".sign_msg."' not found."
+
+  " Add the line referring to the sign.
+  norm o
+  call neomake#signs#PlaceVisibleSigns()
+  AssertNeomakeMessage sign_msg
+
+  " Test #736.
+  call neomake#signs#RedefineErrorSign({'text': '✗', 'texthl': 'ErrorMsg'})
+
+  bd!
+  call neomake#signs#Reset(bufnr, 'file')
+  call neomake#signs#CleanAllOldSigns('file')
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.':  {'.bufnr.': {2: 5000}}', 3, {}
+
+
+Execute (neomake#signs#PlaceVisibleSigns in project mode):
+  let maker = neomake#utils#MakerFromCommand('echo 1:1: W: warning')
+  call extend(maker, {
+        \ 'name': 'custom_maker',
+        \ 'errorformat': '%E%f:%l: %t: %m',
+        \ }, 'error')
+
+  new
+  let bufnr = bufnr('%')
+  file 1
+  call neomake#Make(0, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'Placing sign: sign place 7000 line=1 name=neomake_warn buffer='.bufnr
+  bd!
+
+  call neomake#signs#Reset(bufnr, 'project')
+  call neomake#signs#CleanAllOldSigns('project')
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.':  {'.bufnr.': {1: 7000}}', 3, {}

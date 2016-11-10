@@ -1,4 +1,4 @@
-Include: _setup.vader
+Include: include/setup.vader
 
 Execute (shellcheck):
   AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc']

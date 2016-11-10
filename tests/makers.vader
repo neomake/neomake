@@ -1,4 +1,4 @@
-Include: _setup.vader
+Include: include/setup.vader
 
 Execute (Run EnabledMakers for all filetype makers):
   " This is meant to catch issues like https://github.com/neomake/neomake/pull/555.

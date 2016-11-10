@@ -1,6 +1,7 @@
-Include: _setup.vader
+Include: include/setup.vader
 
 Execute (LoclistCounts):
+  call neomake#statusline#ResetCounts()
   call neomake#statusline#ResetCountsForBuf(99)
   call neomake#statusline#AddLoclistCount(99, {'type': 'E', 'bufnr': 99})
   call neomake#statusline#AddLoclistCount(99, {'type': 'W', 'bufnr': 99})
@@ -19,9 +20,10 @@ Execute (LoclistCounts):
     \ {'99': {'E': 1, 'W': 1}}
 
 Execute (neomake#statusline#ResetCounts):
+  call neomake#statusline#ResetCounts()
   call neomake#statusline#AddLoclistCount(99, {'type': 'E', 'bufnr': 99})
   call neomake#statusline#AddLoclistCount(99, {'type': 'W', 'bufnr': 99})
-  AssertEqual neomake#statusline#LoclistCounts('all'), {'99': {'E': 2, 'W': 2}}
+  AssertEqual neomake#statusline#LoclistCounts('all'), {'99': {'E': 1, 'W': 1}}
   call neomake#statusline#AddQflistCount({'type': 'S', 'bufnr': 99})
   AssertEqual neomake#statusline#QflistCounts(), {'S': 1}
 

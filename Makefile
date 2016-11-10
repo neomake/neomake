@@ -7,7 +7,7 @@ test: testnvim testvim
 export SHELL:=/bin/bash
 
 VADER:=Vader!
-VADER_ARGS:=tests/*.vader
+VADER_ARGS:=tests/neomake.vader
 VIM_ARGS='+$(VADER) $(VADER_ARGS)'
 
 DEFAULT_VADER_DIR:=tests/vim/plugins/vader
@@ -59,7 +59,7 @@ TEST_TARGET:=test
 
 # Add targets for .vader files, absolute and relative.
 # This can be used with `b:dispatch = ':Make %'` in Vim.
-TESTS:=$(filter-out tests/_%.vader,$(wildcard tests/*.vader))
+TESTS:=$(wildcard tests/*.vader tests/*/*.vader)
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 _TESTS_REL_AND_ABS:=$(call uniq,$(abspath $(TESTS)) $(TESTS))
 $(_TESTS_REL_AND_ABS):

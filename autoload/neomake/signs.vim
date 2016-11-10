@@ -158,11 +158,13 @@ function! neomake#signs#RedefineSign(name, opts) abort
     endfor
     exe sign_define
 
-    for buf in keys(s:placed_signs)
-        for ln in keys(s:placed_signs[buf])
-            let sign_id = s:placed_signs[buf][ln]
-            exe 'sign place '.sign_id.' name=neomake_invisible buffer='.buf
-            exe 'sign place '.sign_id.' name='.a:name.' buffer='.buf
+    for type in keys(s:placed_signs)
+        for buf in keys(s:placed_signs[type])
+            for ln in keys(s:placed_signs[type][buf])
+                let sign_id = s:placed_signs[type][buf][ln]
+                exe 'sign place '.sign_id.' name=neomake_invisible buffer='.buf
+                exe 'sign place '.sign_id.' name='.a:name.' buffer='.buf
+            endfor
         endfor
     endfor
 endfunction
