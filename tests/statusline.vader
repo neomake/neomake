@@ -1,4 +1,4 @@
-Include: _setup.vader
+Include: include/setup.vader
 
 Execute (LoclistCounts):
   call neomake#statusline#ResetCounts()

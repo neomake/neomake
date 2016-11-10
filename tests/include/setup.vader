@@ -1,6 +1,6 @@
 " Setup and helpers for all tests.
 
-Execute:
+Execute (Setup):
   function! s:wait_for_finished_jobs()
     let max = 500
     while len(neomake#GetJobs())

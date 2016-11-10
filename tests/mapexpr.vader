@@ -1,4 +1,4 @@
-Include: _setup.vader
+Include: include/setup.vader
 
 Execute (mapexpr: output source in mapexpr):
   let maker = neomake#utils#MakerFromCommand('echo on_stdout; echo on_stderr>&2')
@@ -31,6 +31,7 @@ Execute (mapexpr: file mode vars with cd):
   call neomake#Make(1, [maker])
   cd build
   NeomakeTestsWaitForFinishedJobs
+  cd -
 
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
     \ start_cwd.'/tests/fixtures/errors.sh ('.start_cwd.'/tests/fixtures): on_stdout']

@@ -1,4 +1,4 @@
-Include: _setup.vader
+Include: include/setup.vader
 
 Execute (neomake#signs#HlexistsAndIsNotCleared):
   AssertEqual neomake#signs#HlexistsAndIsNotCleared('Error'), 1
@@ -18,6 +18,7 @@ Execute (neomake#signs#RedefineErrorSign):
         \ 'errorformat': '%E%f:%l: %t: %m,%E%f: %t: %m',
         \ }, 'error')
 
+  new
   file 1
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
@@ -37,6 +38,12 @@ Execute (neomake#signs#RedefineErrorSign):
   " Test #736.
   call neomake#signs#RedefineErrorSign({'text': '✗', 'texthl': 'ErrorMsg'})
 
+  bd!
+  call neomake#signs#Reset(bufnr, 'file')
+  call neomake#signs#CleanAllOldSigns('file')
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.':  {'.bufnr.': {2: 5000}}', 3, {}
+
+
 Execute (neomake#signs#PlaceVisibleSigns in project mode):
   let maker = neomake#utils#MakerFromCommand('echo 1:1: W: warning')
   call extend(maker, {
@@ -44,7 +51,14 @@ Execute (neomake#signs#PlaceVisibleSigns in project mode):
         \ 'errorformat': '%E%f:%l: %t: %m',
         \ }, 'error')
 
+  new
+  let bufnr = bufnr('%')
   file 1
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Placing sign: sign place 7000 line=1 name=neomake_warn buffer='.bufnr('%')
+  AssertNeomakeMessage 'Placing sign: sign place 7000 line=1 name=neomake_warn buffer='.bufnr
+  bd!
+
+  call neomake#signs#Reset(bufnr, 'project')
+  call neomake#signs#CleanAllOldSigns('project')
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.':  {'.bufnr.': {1: 7000}}', 3, {}
