@@ -89,10 +89,10 @@ Here is a sample maker definition: >
     " Use the maker like this:
     :Neomake! make
 <
-All `args` will be |expand()|ed if they use wildcards (see |:h expand()|).
-The `exe` and `args` entries can be a function reference (see |:h Funcref|) or
-a dictionary with an expected entry `fn` (which has to be a function).
-The function must return a string, and the function will be called with no
+All `args` will be |expand()|ed if they use wildcards (see |expand()|). The
+`exe` and `args` entries can be a function reference (see |Funcref|) or a
+dictionary with an expected entry `fn` (which has to be a function). The
+function must return a string, and the function will be called with no
 arguments.
 
 In the above example, the exe argument isn't strictly necessary, since Neomake
