@@ -347,7 +347,6 @@ function! neomake#utils#ParseSemanticVersion(version_string) abort
                 \ 'metadata': []
                 \ }
 
-
     " A simple helper function for regex captures
     function! l:parser.Capture(regex) abort dict
         return '\(' . a:regex . '\)'
