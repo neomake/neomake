@@ -1,9 +1,9 @@
-Include: _setup.vader
+Include: include/setup.vader
 
 Execute (Test Neomake on errors.sh with one maker):
   call g:NeomakeSetupAutocmdWrappers()
   e! tests/fixtures/errors.sh
-  AssertEqual getline(1), '#! /bin/sh'
+  AssertEqual getline(1), '#! /bin/bash'
 
   call g:NeomakeTestsEnsureExe('shellcheck')
   AssertEqual neomake#GetEnabledMakers('sh'), ['sh', 'shellcheck']
@@ -23,14 +23,25 @@ Execute (Test Neomake on errors.sh with one maker):
     AssertEqual [idx, g:neomake_test_countschanged[1].bufnr], [idx, bufnr]
   endfor
 
+  " Basic verification that signs are placed.
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_err buffer=4', 3, {}
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer=4', 3, {}
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_err buffer=4', 3, {}
+
+  let signs = split(neomake#utils#redir('sign place'), '\n')
+  call map(signs, "substitute(substitute(v:val, '\\m^\\s\\+', '', ''), '\\m\\s\\+$', '', '')")
+  AssertEqual signs, [
+    \ '--- Signs ---',
+    \ 'Signs for tests/fixtures/errors.sh:',
+    \ 'line=5  id=5000  name=neomake_err']
+
 Execute (Test Neomake on errors.sh with two makers):
   call g:NeomakeSetupAutocmdWrappers()
   call g:NeomakeTestsEnsureExe('shellcheck')
   e! tests/fixtures/errors.sh
   RunNeomake sh shellcheck
-  AssertEqual len(g:neomake_test_countschanged), 2
-  AssertEqual g:neomake_test_messages[0],
-    \ [3, '[3] Running makers: [''sh'', ''shellcheck'']', {}]
+  AssertEqual len(g:neomake_test_countschanged), 2, "counts changed (".len(g:neomake_test_countschanged).")"
+  AssertNeomakeMessage 'Running makers: [''sh'', ''shellcheck'']'
 
 Execute (Neomake: handle result for current window):
   call g:NeomakeSetupAutocmdWrappers()
@@ -82,7 +93,7 @@ Execute (NeomakeSh: true):
   AssertEqual g:neomake_test_countschanged, []
   let bufnr = bufnr('%')
   RunNeomakeSh true
-  AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
+  AssertEqual g:neomake_test_countschanged, []
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual getqflist(), []
 
@@ -109,10 +120,10 @@ Execute (NeomakeSh: non-existing command):
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual g:neomake_test_countschanged, [{'file_mode': 0, 'bufnr': bufnr('%')}]
   AssertEqual len(getqflist()), 1
-  if neomake#has_async_support()
-    AssertNeomakeMessage 'sh: ''nonexistingcommand'': completed with exit code 127.', 1, {}
-  endif
   AssertNeomakeMessage "exit: sh: 'nonexistingcommand': 127", 3
+  if neomake#has_async_support()
+    AssertNeomakeMessage 'sh: ''nonexistingcommand'': completed with exit code 127.', 3, {}
+  endif
   AssertNotEqual match(getqflist()[0].text,
     \ '/bin/bash: nonexistingcommand: command not found'), -1, "error in qflist"
 
@@ -208,11 +219,11 @@ Execute (Neomake with windo):
     let g:counter += 1
     let cmd = ''
     for i in range(g:counter)
-      let cmd .= 'echo '.g:counter.' '.g:counter.':'.i.': buf: %; '
+      let cmd .= 'echo b'.g:counter.' '.g:counter.':'.i.': buf: %; '
     endfor
     return ['-c', cmd]
   endfunction
-  let maker = {
+  let inc_maker = {
         \ 'name': 'incmaker',
         \ 'exe': &shell,
         \ 'args': function('IncMaker'),
@@ -220,16 +231,15 @@ Execute (Neomake with windo):
         \ }
 
   Assert winnr() == 1, "Starting at window 1"
-  file 1
-  new
-  file 2
-  new
-  file 3
-  AssertEqual winnr(), 3
-  1wincmd w
+  topleft new
+  file b1
+  topleft new
+  file b2
+  topleft new
+  file b3
   AssertEqual winnr(), 1
-  windo call neomake#Make(1, [maker])
-  AssertEqual winnr(), 3
+  windo call neomake#Make(1, [inc_maker])
+  3wincmd w
   AssertEqual getloclist(3), []
 
   NeomakeTestsWaitForFinishedJobs
@@ -243,9 +253,13 @@ Execute (Neomake with windo):
   Assert ll_3 > ll_2, "Loclist 3 is newer than 2"
   Assert ll_2 > ll_1, "Loclist 2 is newer than 1"
 
-  AssertEqual neomake#statusline#LoclistCounts(winbufnr(1)), {'E': 1}
+  AssertEqual neomake#statusline#LoclistCounts(winbufnr(1)), {'E': 3}
   AssertEqual neomake#statusline#LoclistCounts(winbufnr(2)), {'E': 2}
-  AssertEqual neomake#statusline#LoclistCounts(winbufnr(3)), {'E': 3}
+  AssertEqual neomake#statusline#LoclistCounts(winbufnr(3)), {'E': 1}
+
+  bd b1
+  bd b2
+  bd b3
 
 Execute (NeomakeSh: two jobs after each other):
   if !NeomakeAsyncTestsSetup() | finish | endif
@@ -276,7 +290,7 @@ Execute (Neomake#Make: two jobs after each other):
   Neomake! maker1 maker2
   NeomakeTestsWaitForFinishedJobs
   AssertEqual sort(map(copy(getqflist()), 'v:val.text')), ['1', '2']
-  AssertEqual len(g:neomake_test_countschanged), 2, 'counts have changed'
+  AssertEqual len(g:neomake_test_countschanged), 2, 'counts have changed: '.len(g:neomake_test_countschanged)
   AssertEqual len(g:neomake_test_finished), 1
 
 Execute (Neomake: non-existing and proper job):

@@ -7,11 +7,12 @@ test: testnvim testvim
 export SHELL:=/bin/bash
 
 VADER:=Vader!
-VADER_ARGS:=tests/*.vader
+VADER_ARGS:=tests/neomake.vader
 VIM_ARGS='+$(VADER) $(VADER_ARGS)'
 
-export TESTS_VADER_DIR:=$(abspath $(firstword $(wildcard tests/vim/plugins/vader.override) tests/vim/plugins/vader))
-$(TESTS_VADER_DIR):
+DEFAULT_VADER_DIR:=tests/vim/plugins/vader
+export TESTS_VADER_DIR:=$(abspath $(firstword $(wildcard tests/vim/plugins/vader.override) $(DEFAULT_VADER_DIR)))
+$(TESTS_VADER_DIR) $(DEFAULT_VADER_DIR):
 	mkdir -p $(dir $@)
 	git clone --depth=1 https://github.com/junegunn/vader.vim $@
 
@@ -58,7 +59,7 @@ TEST_TARGET:=test
 
 # Add targets for .vader files, absolute and relative.
 # This can be used with `b:dispatch = ':Make %'` in Vim.
-TESTS:=$(filter-out tests/_%.vader,$(wildcard tests/*.vader))
+TESTS:=$(wildcard tests/*.vader tests/*/*.vader)
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 _TESTS_REL_AND_ABS:=$(call uniq,$(abspath $(TESTS)) $(TESTS))
 $(_TESTS_REL_AND_ABS):
@@ -122,7 +123,7 @@ docker_image:
 docker_push:
 	docker push $(DOCKER_IMAGE)
 
-DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8000 vim8027 vim-master
+DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8000 vim8069 vim-master
 _DOCKER_VIM_TARGETS:=$(addprefix docker_test-,$(DOCKER_VIMS))
 
 docker_test_all: $(_DOCKER_VIM_TARGETS)
@@ -135,7 +136,8 @@ docker_test: DOCKER_STREAMS:=-a stderr
 docker_test: DOCKER_MAKE_TARGET:=testvim TEST_VIM=/vim-build/bin/$(DOCKER_VIM) VIM_ARGS="$(VIM_ARGS)"
 docker_test: docker_make
 
-docker_run: $(TESTS_VADER_DIR)
+docker_run: TESTS_VADER_DIR:=$(DEFAULT_VADER_DIR)
+docker_run: $(DEFAULT_VADER_DIR)
 docker_run:
 	$(DOCKER) $(if $(DOCKER_RUN),$(DOCKER_RUN),bash)
 

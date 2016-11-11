@@ -1,4 +1,4 @@
-Include: _setup.vader
+Include: include/setup.vader
 
 Execute (neomake#makers#ft#haskell#HlintEntryProcess):
   function! F(text)

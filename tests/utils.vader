@@ -1,4 +1,4 @@
-Include: _setup.vader
+Include: include/setup.vader
 
 Execute (neomake#utils#LogMessage writes to logfile always):
   Save g:neomake_verbose g:neomake_logfile

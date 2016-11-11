@@ -430,19 +430,17 @@ function! s:Make(options, ...) abort
     endif
     call neomake#signs#DefineSigns()
 
-    call neomake#utils#DebugMessage(printf(
-                \ '[%d] Running makers: %s',
-                \ make_id, string(enabled_makers)))
+    call neomake#utils#DebugMessage(printf('Running makers: %s',
+                \ string(enabled_makers)), {'make_id': make_id})
 
     let buf = bufnr('%')
     let win = winnr()
     let ft = get(a:options, 'ft', '')
 
-    if ((file_mode && neomake#statusline#ResetCountsForBuf(buf))
-                \ || (!file_mode && neomake#statusline#ResetCounts()))
-        call s:neomake_hook('NeomakeCountsChanged', {
-                    \ 'file_mode': file_mode,
-                    \ 'bufnr': buf})
+    if file_mode
+        call neomake#statusline#ResetCountsForBuf(buf)
+    else
+        call neomake#statusline#ResetCountsForProject()
     endif
 
     " Empty the quickfix/location list (using a valid 'errorformat' setting).
@@ -517,7 +515,7 @@ function! s:Make(options, ...) abort
         endif
     endfor
     if !len(job_ids)
-        call s:neomake_hook('NeomakeFinished', {
+        call neomake#utils#hook('NeomakeFinished', {
                     \ 'file_mode': file_mode})
     endif
     return job_ids
@@ -532,6 +530,8 @@ function! s:AddExprCallback(jobinfo) abort
     let counts_changed = 0
     let index = file_mode ? s:loclist_nr[maker.winnr] : s:qflist_nr
     let maker_type = file_mode ? 'file' : 'project'
+    let cleaned_signs = 0
+    let ignored_signs = 0
 
     while index < len(list)
         let entry = list[index]
@@ -580,12 +580,13 @@ function! s:AddExprCallback(jobinfo) abort
             endif
         endif
 
-        " On the first valid error identified by a maker,
-        " clear the existing signs
-        if file_mode
-            call neomake#CleanOldFileSignsAndErrors(entry.bufnr)
-        else
-            call neomake#CleanOldProjectSignsAndErrors()
+        if !cleaned_signs
+            if file_mode
+                call neomake#CleanOldFileSignsAndErrors(entry.bufnr)
+            else
+                call neomake#CleanOldProjectSignsAndErrors()
+            endif
+            let cleaned_signs = 1
         endif
 
         " Track all errors by buffer and line
@@ -595,7 +596,11 @@ function! s:AddExprCallback(jobinfo) abort
         call add(s:current_errors[maker_type][entry.bufnr][entry.lnum], entry)
 
         if place_signs
-            call neomake#signs#RegisterSign(entry, maker_type)
+            if entry.lnum is 0
+                let ignored_signs += 1
+            else
+                call neomake#signs#RegisterSign(entry, maker_type)
+            endif
         endif
     endwhile
 
@@ -611,6 +616,11 @@ function! s:AddExprCallback(jobinfo) abort
         else
             call setqflist(list, 'r')
         endif
+    endif
+    if ignored_signs
+        call neomake#utils#DebugMessage(printf(
+                    \ 'Could not place signs for %d entries without line number.',
+                    \ ignored_signs))
     endif
     return counts_changed
 endfunction
@@ -630,20 +640,6 @@ function! s:CleanJobinfo(jobinfo) abort
     if idx != -1
         call remove(jobs, idx)
         call settabwinvar(t, w, 'neomake_jobs', jobs)
-    endif
-endfunction
-
-function! s:neomake_hook(event, context) abort
-    if exists('#User#'.a:event)
-        let g:neomake_hook_context = a:context
-        call neomake#utils#DebugMessage('Calling User autocmd '.a:event
-                                      \ .' with context: '.string(a:context))
-        if v:version >= 704 || (v:version == 703 && has('patch442'))
-            exec 'doautocmd <nomodeline> User ' . a:event
-        else
-            exec 'doautocmd User ' . a:event
-        endif
-        unlet g:neomake_hook_context
     endif
 endfunction
 
@@ -681,7 +677,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
                         \ || (!file_mode && getqflist() != prev_list)
         endif
         if counts_changed
-            call s:neomake_hook('NeomakeCountsChanged', {
+            call neomake#utils#hook('NeomakeCountsChanged', {
                         \ 'file_mode': maker.file_mode,
                         \ 'bufnr': get(maker, 'bufnr', -1),
                         \ })
@@ -721,7 +717,9 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
     let maker = a:jobinfo.maker
 
     if !get(maker, 'file_mode')
-        return s:ProcessJobOutput(a:jobinfo, lines, a:source)
+        call s:ProcessJobOutput(a:jobinfo, lines, a:source)
+        call neomake#signs#PlaceVisibleSigns()
+        return
     endif
 
     " file mode: append lines to jobs's window's output.
@@ -833,7 +831,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         endif
         call s:CleanJobinfo(jobinfo)
         if neomake#has_async_support()
-            call neomake#utils#QuietMessage(printf(
+            call neomake#utils#DebugMessage(printf(
                         \ '%s: completed with exit code %d.',
                         \ maker.name, status))
         endif
@@ -863,7 +861,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         " Trigger autocmd if all jobs for a s:Make instance have finished.
         if neomake#has_async_support()
             if !len(filter(copy(s:jobs), 'v:val.make_id == jobinfo.make_id'))
-                call s:neomake_hook('NeomakeFinished', {
+                call neomake#utils#hook('NeomakeFinished', {
                             \ 'file_mode': maker.file_mode})
             endif
         endif
@@ -881,15 +879,16 @@ function! neomake#CleanOldProjectSignsAndErrors() abort
     call neomake#signs#CleanAllOldSigns('project')
 endfunction
 
-function! neomake#CleanOldFileSignsAndErrors(bufnr) abort
-    if get(s:need_errors_cleaning['file'], a:bufnr, 0)
-        if has_key(s:current_errors['file'], a:bufnr)
-            unlet s:current_errors['file'][a:bufnr]
+function! neomake#CleanOldFileSignsAndErrors(...) abort
+    let bufnr = a:0 ? a:1 : bufnr('%')
+    if get(s:need_errors_cleaning['file'], bufnr, 0)
+        if has_key(s:current_errors['file'], bufnr)
+            unlet s:current_errors['file'][bufnr]
         endif
-        unlet s:need_errors_cleaning['file'][a:bufnr]
-        call neomake#utils#DebugMessage('File-level errors cleaned in buffer '.a:bufnr)
+        unlet s:need_errors_cleaning['file'][bufnr]
+        call neomake#utils#DebugMessage('File-level errors cleaned in buffer '.bufnr)
     endif
-    call neomake#signs#CleanOldSigns(a:bufnr, 'file')
+    call neomake#signs#CleanOldSigns(bufnr, 'file')
 endfunction
 
 function! neomake#EchoCurrentError() abort

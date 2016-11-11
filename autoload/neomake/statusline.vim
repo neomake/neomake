@@ -10,19 +10,37 @@ function! s:setCount(counts, item, buf) abort
     return 0
 endfunction
 
-function! neomake#statusline#ResetCountsForBuf(buf) abort
-    let r = (get(s:loclist_counts, a:buf, {}) != {})
-    let s:loclist_counts[a:buf] = {}
+function! neomake#statusline#ResetCountsForBuf(...) abort
+    let bufnr = a:0 ? a:1 : bufnr('%')
+    let r = (get(s:loclist_counts, bufnr, {}) != {})
+    let s:loclist_counts[bufnr] = {}
+    if r
+        call neomake#utils#hook('NeomakeCountsChanged', {
+                    \ 'file_mode': 1,
+                    \ 'bufnr': bufnr})
+    endif
+    return r
+endfunction
+
+function! neomake#statusline#ResetCountsForProject(...) abort
+    let r = s:qflist_counts != {}
+    let s:qflist_counts = {}
+    if r
+        call neomake#utils#hook('NeomakeCountsChanged', {
+                    \ 'file_mode': 0,
+                    \ 'bufnr': bufnr('%')})
+    endif
     return r
 endfunction
 
 function! neomake#statusline#ResetCounts() abort
-    let r = (s:qflist_counts != {} || s:loclist_counts != {})
-    let s:qflist_counts = {}
+    let r = neomake#statusline#ResetCountsForProject()
+    for bufnr in keys(s:loclist_counts)
+        let r = neomake#statusline#ResetCountsForBuf(bufnr) || r
+    endfor
     let s:loclist_counts = {}
     return r
 endfunction
-call neomake#statusline#ResetCounts()
 
 function! neomake#statusline#AddLoclistCount(buf, item) abort
     let s:loclist_counts[a:buf] = get(s:loclist_counts, a:buf, {})

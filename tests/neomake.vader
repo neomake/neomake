@@ -1,5 +1,23 @@
-Include: _setup.vader
+" Include: include/setup.vader
 
+" XXX: needs to come first / early for now.
+Include (Integration tests): integration.vader
+
+~ Features
+Include (Lists): lists.vader
+Include (Makers): makers.vader
+Include (Mapexpr): mapexpr.vader
+Include (Signs): signs.vader
+Include (Statusline): statusline.vader
+Include (Utils): utils.vader
+
+
+~ Filetype specific
+Include (Haskell): ft_haskell.vader
+Include (Shell): ft_sh.vader
+
+
+* Old/unorganized tests
 Execute (neomake#GetMakers):
   AssertEqual neomake#GetMakers('non-existent'), []
   AssertEqual neomake#GetMakers('pug'), ['puglint']
@@ -78,14 +96,19 @@ Execute (neomake#CancelJob):
     AssertEqual neomake#CancelJob(job_id), 0
   endif
 
-Execute (Reports exit status):
+Execute (Reports exit status: 7):
+  let job_id = neomake#Sh("sh -c 'exit 7'")
+  let exit_msg = 'sh: sh -c ''exit 7'': completed with exit code 7.'
   if neomake#has_async_support()
-    let job_id = neomake#Sh("sh -c 'exit 7'")
     let jobinfo = neomake#GetJobs()[job_id]
     NeomakeTestsWaitForFinishedJobs
-
-    AssertNeomakeMessage 'sh: sh -c ''exit 7'': completed with exit code 7.', 1, jobinfo
     AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3, jobinfo
+    AssertNeomakeMessage exit_msg, 3, jobinfo
+  else
+    let jobinfo = {}
+    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3, jobinfo
+    AssertThrows AssertNeomakeMessage exit_msg, 3, jobinfo
+    AssertEqual g:vader_exception, 'Vim(call):E121: Undefined variable: exit_msg'
   endif
 
 Execute (neomake#Sh: job_id):
