@@ -12,11 +12,13 @@ function! s:shellcheck_determine_supported() abort
     " way to get the version information.
     let l:version_line = matchstr(split(system('shellcheck --version'), '\n'),
                 \ '^version:')
-    if v:shell_error != 0
+    if v:shell_error != 3 || empty(l:version_line)
+        echom 'zsh is supported!'
         let s:shellcheck_supported += ['zsh']
     else
         let l:version = matchstr(l:version_line, '^version:\s*\zs.*$')
         if neomake#utils#CompareSemanticVersions(l:version, '0.3.6') == -1
+            echom 'zsh is supported!'
             let s:shellcheck_supported += ['zsh']
         endif
     endif
@@ -25,7 +27,7 @@ call s:shellcheck_determine_supported()
 
 function! s:shellcheck_getshell() abort
     let pattern = '^#\s*shellcheck\s*shell='
-    let line = matchstr(getline(1, line('$')), l:pattern)
+    let line = matchstr(getline(1, 2), l:pattern)
     return matchstr(l:line, l:pattern . '\zs[^ \t]*$')
 endfunction
 
