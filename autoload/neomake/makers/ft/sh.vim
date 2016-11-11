@@ -4,14 +4,35 @@ function! neomake#makers#ft#sh#EnabledMakers() abort
     return ['sh', 'shellcheck']
 endfunction
 
-" IDEA: could be detected once from "shellcheck --help" (since older versions
-" support zsh, and newer might do so again).
-let s:shellcheck_supported = ['sh', 'bash', 'dash', 'ksh']
+function! s:shellcheck_determine_supported() abort
+    let s:shellcheck_supported = ['sh', 'bash', 'dash', 'ksh']
+
+    " zsh support was available from the first release of shellcheck and
+    " removed in version 0.3.6. Before shellcheck version 0.3.1 there was no
+    " way to get the version information.
+    let l:version_line = matchstr(split(system('shellcheck --version'), '\n'),
+                \ '^version:')
+    if v:shell_error != 0
+        let s:shellcheck_supported += ['zsh']
+    else
+        let l:version = matchstr(l:version_line, '^version:\s*\zs.*$')
+        if neomake#utils#CompareSemanticVersions(l:version, '0.3.6') == -1
+            let s:shellcheck_supported += ['zsh']
+        endif
+    endif
+endfunction
+call s:shellcheck_determine_supported()
+
+function! s:shellcheck_getshell() abort
+    let pattern = '^#\s*shellcheck\s*shell='
+    let line = matchstr(getline(1, line('$')), l:pattern)
+    return matchstr(l:line, l:pattern . '\zs[^ \t]*$')
+endfunction
 
 function! neomake#makers#ft#sh#shellcheck() abort
     let args = ['-fgcc']
     let shebang = matchstr(getline(1), '^#!\s*\zs.*$')
-    if !len(shebang)
+    if !len(shebang) && !len(s:shellcheck_getshell())
         if index(s:shellcheck_supported, &filetype) != -1
             let args += ['-s', &filetype]
         endif

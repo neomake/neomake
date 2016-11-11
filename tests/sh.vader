@@ -12,3 +12,6 @@ Execute (shellcheck):
   set ft=sh
   norm i#!/usr/bin/env bash
   AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc']
+
+  norm ggcG# shellcheck shell=bash
+  AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc']

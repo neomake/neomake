@@ -103,3 +103,90 @@ Execute (Should not expand arguments that start with double %):
   let expected_args = ['%%:h', '%%']
   call neomake#utils#ExpandArgs(args)
   AssertEqual expected_args, args
+
+Execute(neomake#utils#ParseSemanticVersion):
+  " http://semver.org/#spec-item-2
+  " A normal version number MUST take the form X.Y.Z
+  AssertEqual neomake#utils#ParseSemanticVersion('11.1.2016'), {'major': 11, 'minor': 1, 'patch': 2016, 'stage': [], 'metadata': []}
+  AssertEqual neomake#utils#ParseSemanticVersion('0.3.6'), {'major': 0, 'minor': 3, 'patch': 6, 'stage': [], 'metadata': []}
+
+  " where X, Y, and Z are non-negative integers
+  AssertEqual neomake#utils#ParseSemanticVersion('0.-3.6'), {}
+
+  " and MUST NOT contain leading zeroes
+  AssertEqual neomake#utils#ParseSemanticVersion('0.03.6'), {}
+
+  " http://semver.org/#spec-item-9
+  " A pre-release version MAY be denoted by appending a hyphen and a series of
+  " dot separated identifiers immediately following the patch version.
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-alpha'), {'major': 1, 'minor': 0, 'patch': 0, 'stage': ['alpha'], 'metadata': []}
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-alpha.1'), {'major': 1, 'minor': 0, 'patch': 0, 'stage': ['alpha', 1], 'metadata': []}
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-0.3.7'), {'major': 1, 'minor': 0, 'patch': 0, 'stage': [0, 3, 7], 'metadata': []}
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-x.7.z.92'), {'major': 1, 'minor': 0, 'patch': 0, 'stage': ['x', 7, 'z', 92], 'metadata': []}
+
+  " Identifiers MUST comprise only ASCII alphanumerics and hyphen [0-9A-Za-z-].
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-alpha*'), {}
+
+  " Identifiers MUST NOT be empty.
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-'), {}
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-alpha..1'), {}
+
+  " Numeric identifiers MUST NOT include leading zeroes.
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-alpha.01'), {}
+
+  " http://semver.org/#spec-item-10
+  " Build metadata MAY be denoted by appending a plus sign and a series of dot
+  " separated identifiers immediately following the patch or pre-release version.
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-alpha+001'), {'major': 1, 'minor': 0, 'patch': 0, 'stage': ['alpha'], 'metadata': ['001']}
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0+20130313144700'), {'major': 1, 'minor': 0, 'patch': 0, 'stage': [], 'metadata': ['20130313144700']}
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0-beta+exp.sha.5114f85'), {'major': 1, 'minor': 0, 'patch': 0, 'stage': ['beta'], 'metadata': ['exp', 'sha', '5114f85']}
+
+  " Identifiers MUST comprise only ASCII alphanumerics and hyphen [0-9A-Za-z-].
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0+20130313144700..1'), {}
+
+  " Identifiers MUST NOT be empty.
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0+'), {}
+  AssertEqual neomake#utils#ParseSemanticVersion('1.0.0+alpha..1'), {}
+
+Execute(neomake#utils#CompareSemanticVersions):
+  " http://semver.org/#spec-item-11
+  " Precedence is determined by the first difference when comparing each of
+  " these identifiers from left to right as follows: Major, minor, and patch
+  " versions are always compared numerically.
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0', '2.0.0'), -1
+  AssertEqual neomake#utils#CompareSemanticVersions('2.0.0', '2.1.0'), -1
+  AssertEqual neomake#utils#CompareSemanticVersions('2.1.0', '2.1.1'), -1
+  AssertEqual neomake#utils#CompareSemanticVersions('2.1.0', '2.1.0'), 0
+  AssertEqual neomake#utils#CompareSemanticVersions('2.1.1', '2.1.0'), 1
+
+  " When major, minor, and patch are equal, a pre-release version has lower
+  " precedence than a normal version.
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0-alpha', '1.0.0'), -1
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0', '1.0.0-alpha'), 1
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0-alpha', '1.0.0-alpha'), 0
+
+  " Precedence MUST be calculated by separating the version into major, minor,
+  " patch and pre-release identifiers in that order
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0-alpha', '1.0.0-alpha.1'), -1
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0-alpha.1', '1.0.0-alpha.beta'), -1
+
+  " Numeric identifiers always have lower precedence than non-numeric identifiers.
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0-alpha.beta', '1.0.0-beta'), -1
+
+  " A larger set of pre-release fields has a higher precedence than a smaller
+  " set, if all of the preceding identifiers are equal.
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0-beta', '1.0.0-beta.2'), -1
+
+  " Precedence for two pre-release versions with the same major, minor, and patch
+  " version MUST be determined by comparing each dot separated identifier from left
+  " to right until a difference is found as follows:
+  " identifiers consisting of only digits are compared numerically
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0-beta.2', '1.0.0-beta.11'), -1
+
+  " and identifiers with letters or hyphens are compared lexically in ASCII
+  " sort order
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0-beta.11', '1.0.0-rc.1'), -1
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0-rc.1', '1.0.0'), -1
+
+  " (Build metadata does not figure into precedence)
+  AssertEqual neomake#utils#CompareSemanticVersions('1.0.0-rc.1', '1.0.0-rc.1+sha.xyz'), 0

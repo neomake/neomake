@@ -336,3 +336,196 @@ function! neomake#utils#hook(event, context) abort
         unlet g:neomake_hook_context
     endif
 endfunction
+
+function! neomake#utils#ParseSemanticVersion(version_string) abort
+    let l:parser = copy(a:)
+    let l:parser.parsed = {
+                \ 'major': 0,
+                \ 'minor': 0,
+                \ 'patch': 0,
+                \ 'stage': [],
+                \ 'metadata': []
+                \ }
+
+
+    " A simple helper function for regex captures
+    function! l:parser.Capture(regex) abort dict
+        return '\(' . a:regex . '\)'
+    endfunction
+
+    function! l:parser.ParseIdentifier(identifier, convert) abort dict
+        " Identifer must be non-empty
+        if empty(a:identifier)
+            return ''
+        endif
+
+        " If an identifier is all numeric, convert it to a number
+        if a:convert && match(a:identifier, '\D') == -1
+            " Numeric identifiers must not start with a leading 0
+            return len(a:identifier) > 1 && strpart(a:identifier, 0, 1) ==# '0'
+                        \ ? '' : str2nr(a:identifier)
+        endif
+
+        " Otherwise identifiers must be alphanumeric and can include a hyphen
+        if match(a:identifier,  '\%(^[[:alnum:]-]\+\)$') == -1
+            return ''
+        endif
+
+        return a:identifier
+    endfunction
+
+    function! l:parser.ParseBasic() abort dict
+        " MAJOR.MINOR.PATCH
+        " http://semver.org/#spec-item-2
+        let l:regex = join(repeat([self.Capture('0\|[1-9]\d*')], 3), '.')
+
+        " Pre-release version
+        " http://semver.org/#spec-item-9
+        let l:regex .= self.Capture('-[^+]*') . '\?'
+
+        " Build metadata
+        " http://semver.org/#spec-item-10
+        let l:regex .= self.Capture('+.*') . '\?'
+
+        let self.matches = matchlist(self.version_string, l:regex)
+        if empty(self.matches)
+            " Must include MAJOR, MINOR, and PATCH to be valid
+            return 0
+        endif
+
+        let l:parsed = self.parsed
+        let l:parsed.major = str2nr(self.matches[1])
+        let l:parsed.minor = str2nr(self.matches[2])
+        let l:parsed.patch = str2nr(self.matches[3])
+        return 1
+    endfunction
+
+    function! l:parser.ParseAdditional(key) abort dict
+        if a:key ==# 'stage'
+            let l:index = 4
+            let l:prefix = '-'
+            let l:convert = 1
+        elseif a:key ==# 'metadata'
+            let l:index = 5
+            let l:prefix = '+'
+            let l:convert = 0
+        else
+            return 0
+        endif
+
+        let l:identifiers_string = self.matches[l:index]
+        if strpart(l:identifiers_string, 0, 1) ==# l:prefix
+            let l:identifiers_string = strpart(l:identifiers_string, 1)
+            let l:identifiers_list = split(l:identifiers_string, '\.')
+
+            " Parse the identifiers
+            call map(l:identifiers_list, 'self.ParseIdentifier(v:val, l:convert)')
+
+            " Ensure all indentifiers are valid
+            if empty(l:identifiers_list) || match(l:identifiers_list, '^$') > -1
+                " Identifiers must be non-empty
+                return 0
+            endif
+
+            let self.parsed[a:key] = l:identifiers_list
+        endif
+
+        return 1
+    endfunction
+
+    if !l:parser.ParseBasic()
+        call neomake#utils#DebugMessage('Invalid semantic version string "'.a:version_string.'"')
+        return {}
+    endif
+
+    if !l:parser.ParseAdditional('stage')
+        call neomake#utils#DebugMessage('Invalid semantic version pre-release string "'.a:version_string.'"')
+        return {}
+    endif
+
+    if !l:parser.ParseAdditional('metadata')
+        call neomake#utils#DebugMessage('Invalid semantic version metadata string "'.a:version_string.'"')
+        return {}
+    endif
+
+    return l:parser.parsed
+endfunction
+
+function! neomake#utils#CompareSemanticVersions(ver1, ver2) abort
+    let l:ver1 = neomake#utils#ParseSemanticVersion(a:ver1)
+    let l:ver2 = neomake#utils#ParseSemanticVersion(a:ver2)
+
+    " Both must be valid semantic versions
+    if l:ver1 == {} || l:ver2 == {}
+        return 0
+    endif
+
+    " Semantic versioning precendence
+    " http://semver.org/#spec-item-11
+
+    " Precedence is determined by the first difference when comparing each of
+    " these identifiers from left to right as follows: Major, minor, and patch
+    " versions are always compared numerically. Example: 1.0.0 < 2.0.0 < 2.1.0
+    " < 2.1.1.
+    if l:ver1.major != l:ver2.major
+        return l:ver1.major < l:ver2.major ? -1 : 1
+    endif
+
+    if l:ver1.minor != l:ver2.minor
+        return l:ver1.minor < l:ver2.minor ? -1 : 1
+    endif
+
+    if l:ver1.patch != l:ver2.patch
+        return l:ver1.patch < l:ver2.patch ? -1 : 1
+    endif
+
+    " When major, minor, and patch are equal, a pre-release version has lower
+    " precedence than a normal version. Example: 1.0.0-alpha < 1.0.0.
+    if empty(l:ver1.stage) != empty(l:ver2.stage)
+        return empty(l:ver2.stage) ? -1 : 1
+    endif
+
+    " Precedence for two pre-release versions with the same major, minor, and
+    " patch version MUST be determined by comparing each dot separated
+    " identifier from left to right until a difference is found
+    "
+    " Example: 1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-alpha.beta < 1.0.0-beta <
+    " 1.0.0-beta.2 < 1.0.0-beta.11 < 1.0.0-rc.1 < 1.0.0.
+    let l:ver1len = len(l:ver1.stage)
+    let l:ver2len = len(l:ver2.stage)
+    for i in range(min([l:ver1len, l:ver2len]))
+        let l:val1 = l:ver1.stage[i]
+        let l:val2 = l:ver2.stage[i]
+        let l:numeric1 = type(l:val1) == type(0)
+        let l:numeric2 = type(l:val2) == type(0)
+
+        " Numeric identifiers always have lower precedence than non-numeric
+        " identifiers.
+        if l:numeric1 != l:numeric2
+            return l:numeric1 ? -1 : 1
+        endif
+
+        " identifiers consisting of only digits are compared numerically
+        if l:numeric1
+            if l:val1 < l:val2
+                return -1
+            elseif l:val1 > l:val2
+                return 1
+            endif
+        endif
+
+        " identifiers with letters or hyphens are compared lexically in ASCII
+        " sort order.
+        if !l:numeric1
+            if l:val1 <# l:val2
+                return -1
+            elseif l:val1 ># l:val2
+                return 1
+            endif
+        endif
+    endfor
+
+    " A larger set of pre-release fields has a higher precedence than a
+    " smaller set, if all of the preceding identifiers are equal.
+    return l:ver1len > l:ver2len ? 1 : l:ver2len > l:ver1len ? -1 : 0
+endfunction
