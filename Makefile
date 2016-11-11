@@ -7,7 +7,7 @@ test: testnvim testvim
 export SHELL:=/bin/bash
 
 VADER:=Vader!
-VADER_ARGS:=tests/*.vader
+VADER_ARGS:=tests/neomake.vader
 VIM_ARGS='+$(VADER) $(VADER_ARGS)'
 
 DEFAULT_VADER_DIR:=tests/vim/plugins/vader
@@ -59,7 +59,7 @@ TEST_TARGET:=test
 
 # Add targets for .vader files, absolute and relative.
 # This can be used with `b:dispatch = ':Make %'` in Vim.
-TESTS:=$(filter-out tests/_%.vader,$(wildcard tests/*.vader))
+TESTS:=$(wildcard tests/*.vader tests/*/*.vader)
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 _TESTS_REL_AND_ABS:=$(call uniq,$(abspath $(TESTS)) $(TESTS))
 $(_TESTS_REL_AND_ABS):
@@ -123,7 +123,7 @@ docker_image:
 docker_push:
 	docker push $(DOCKER_IMAGE)
 
-DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8000 vim8027 vim-master
+DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8000 vim8069 vim-master
 _DOCKER_VIM_TARGETS:=$(addprefix docker_test-,$(DOCKER_VIMS))
 
 docker_test_all: $(_DOCKER_VIM_TARGETS)

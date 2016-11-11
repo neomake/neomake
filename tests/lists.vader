@@ -1,4 +1,4 @@
-Include: _setup.vader
+Include: include/setup.vader
 
 Execute (Postprocessing should update list):
   e! tests/fixtures/errors.sh

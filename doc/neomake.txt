@@ -89,10 +89,10 @@ Here is a sample maker definition: >
     " Use the maker like this:
     :Neomake! make
 <
-All `args` will be |expand()|ed if they use wildcards (see |:h expand()|).
-The `exe` and `args` entries can be a function reference (see |:h Funcref|) or
-a dictionary with an expected entry `fn` (which has to be a function).
-The function must return a string, and the function will be called with no
+All `args` will be |expand()|ed if they use wildcards (see |expand()|). The
+`exe` and `args` entries can be a function reference (see |Funcref|) or a
+dictionary with an expected entry `fn` (which has to be a function). The
+function must return a string, and the function will be called with no
 arguments.
 
 In the above example, the exe argument isn't strictly necessary, since Neomake
@@ -271,9 +271,7 @@ Defaults to 1.
 
 *g:neomake_serialize*
 Setting this to 1 tells neomake to run each enabled maker one after the other.
-This is a good way to ensure messages don't get mixed up. When Neovim's
-|job-control| feature implements a way to get the exit status of a job, an
-option will be added to stop after the first failing job as well.
+This is a good way to ensure messages don't get mixed up.
 
 *g:neomake_serialize_abort_on_error*
 Setting this to 1 tells neomake to abort after the first error status is

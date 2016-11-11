@@ -1,6 +1,6 @@
 " Setup and helpers for all tests.
 
-Execute:
+Execute (Setup):
   function! s:wait_for_finished_jobs()
     let max = 500
     while len(neomake#GetJobs())
@@ -58,21 +58,29 @@ Execute:
   function! s:AssertNeomakeMessage(msg, ...)
     let level = a:0 ? a:1 : -1
     let jobinfo = a:0 > 1 ? a:2 : -1
+    let found_but_before = 0
     let found_but_other_level = -1
     let r = 0
+    let idx = -1
     for [l, m, info] in g:neomake_test_messages
+      let idx += 1
       if m ==# a:msg
         if level == -1
           let r = 1
-          break
         else
           if l == level
             let r = 1
-            break
           else
             let found_but_other_level = l
           endif
         endif
+      endif
+      if r
+        if idx > g:neomake_test_messages_last_idx
+          break
+        endif
+        let found_but_before = 1
+        let r = 0
       endif
     endfor
     if r == 1
@@ -87,12 +95,16 @@ Execute:
           unlet v  " for old Vim
         endfor
       endif
+      let g:neomake_test_messages_last_idx = idx
       return 1
     endif
     if found_but_other_level != -1
       throw "Message '".a:msg."' found, but for level ".found_but_other_level
     endif
-    throw "Message '".a:msg."' not found: ".string(g:neomake_test_messages)
+    if found_but_before
+      throw "Message '".a:msg."' was found _before_ last asserted one."
+    endif
+    throw "Message '".a:msg."' not found."
   endfunction
   command! -nargs=+ AssertNeomakeMessage call s:AssertNeomakeMessage(<args>)
 
@@ -124,6 +136,7 @@ Execute:
 
 Before:
   let g:neomake_test_messages = []
+  let g:neomake_test_messages_last_idx = -1
   Assert !len(neomake#GetJobs()), 'There were jobs left from the previous test!'
 
 After:
