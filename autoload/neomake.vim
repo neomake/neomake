@@ -891,7 +891,7 @@ function! neomake#CleanOldProjectSignsAndErrors() abort
     if s:need_errors_cleaning['project']
         for buf in keys(s:current_errors.project)
             unlet s:current_errors['project'][buf]
-            call neomake#highlights#ResetProject(buf)
+            call neomake#highlights#ResetProject(buf + 0)
         endfor
         let s:need_errors_cleaning['project'] = 0
         call neomake#utils#DebugMessage('All project-level errors cleaned.')
