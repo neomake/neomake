@@ -105,9 +105,10 @@ Execute (Reports exit status: 7):
     AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3, jobinfo
     AssertNeomakeMessage exit_msg, 3, jobinfo
   else
-    let jobinfo = {}
-    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3, jobinfo
-    AssertThrows AssertNeomakeMessage exit_msg, 3, jobinfo
+    " XXX: jobinfo gets used in messages, but is hard to get here, so we do not
+    "      compare it.
+    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3
+    AssertThrows AssertNeomakeMessage exit_msg, 3
     AssertEqual g:vader_exception, 'Vim(call):E121: Undefined variable: exit_msg'
   endif
 
