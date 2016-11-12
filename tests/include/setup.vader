@@ -2,12 +2,14 @@
 
 Execute (Setup):
   function! s:wait_for_finished_jobs()
-    let max = 500
-    while len(neomake#GetJobs())
+    let max = 60
+    let filter = "!get(v:val, 'finished')"
+    while len(filter(copy(neomake#GetJobs()), filter))
       let max -= 1
-      sleep 10m
+      sleep 50m
       if max == 0
-        throw "Jobs did not finish after 5s."
+        let jobs = neomake#GetJobs()
+        throw "Jobs did not finish after 3s: ".string(jobs)
       endif
     endwhile
   endfunction
@@ -137,7 +139,13 @@ Execute (Setup):
 Before:
   let g:neomake_test_messages = []
   let g:neomake_test_messages_last_idx = -1
-  Assert !len(neomake#GetJobs()), 'There were jobs left from the previous test!'
 
 After:
   Restore
+  let jobs = copy(neomake#GetJobs())
+  if len(jobs)
+    for job_id in keys(jobs)
+      call neomake#CancelJob(job_id)
+    endfor
+    throw 'There were '.len(jobs).' jobs left: '.string(jobs)
+  endif
