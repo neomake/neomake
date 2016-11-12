@@ -967,10 +967,11 @@ function! neomake#ShCommand(bang, sh_command, ...) abort
     let maker.name = 'sh: '.a:sh_command
     let maker.buffer_output = !a:bang
     let maker.errorformat = '%m'
+    let options = {'enabled_makers': [maker]}
     if a:0
-        call extend(maker, a:1)
+        call extend(options, a:1)
     endif
-    return get(s:Make({'enabled_makers': [maker]}), 0, -1)
+    return get(s:Make(options), 0, -1)
 endfunction
 
 function! neomake#Sh(sh_command, ...) abort
