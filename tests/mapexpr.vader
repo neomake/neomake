@@ -10,6 +10,7 @@ Execute (mapexpr: output source in mapexpr):
 
   AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
     \ ['['.stderr_source.'] on_stderr', '[stdout] on_stdout'])
+  NeomakeTestsWaitForFinishedJobs
 
 Execute (mapexpr: file mode vars):
   let maker = neomake#utils#MakerFromCommand('echo on_stdout')
