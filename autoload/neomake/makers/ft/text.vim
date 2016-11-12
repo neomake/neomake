@@ -1,16 +1,11 @@
-function! neomake#makers#ft#text#EnabledMakers()
-    return ['proselint', 'writegood']
+function! neomake#makers#ft#text#EnabledMakers() abort
+    return neomake#makers#ft#markdown#EnabledMakers()
 endfunction
 
-function! neomake#makers#ft#text#writegood()
-    return {
-                \ 'args': ['--parse'],
-                \ 'errorformat': '%W%f:%l:%c:%m'
-                \ }
+function! neomake#makers#ft#text#writegood() abort
+    return neomake#makers#ft#markdown#writegood()
 endfunction
 
-function! neomake#makers#ft#text#proselint()
-    return {
-                \ 'errorformat': '%f:%l:%c: %m'
-                \ }
+function! neomake#makers#ft#text#proselint() abort
+    return neomake#makers#ft#markdown#proselint()
 endfunction
