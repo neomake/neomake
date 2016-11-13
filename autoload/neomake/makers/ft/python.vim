@@ -51,6 +51,8 @@ function! neomake#makers#ft#python#PylintEntryProcess(entry) abort
         let type = 'W'
     elseif a:entry.type ==# 'C'  " Convention violation
         let type = 'W'
+    elseif a:entry.type ==# 'I'  " Informations
+        let type = 'I'
     else
         let type = ''
     endif
