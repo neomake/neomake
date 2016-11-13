@@ -476,7 +476,7 @@ function! s:Make(options, ...) abort
     let job_ids = []
     for name in enabled_makers
         let maker = neomake#GetMaker(name, ft)
-        if maker == {}
+        if empty(maker)
             continue
         endif
         call extend(maker, {
