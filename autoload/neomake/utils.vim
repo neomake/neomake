@@ -23,7 +23,7 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
     let verbose = get(g:, 'neomake_verbose', 1)
     let logfile = get(g:, 'neomake_logfile')
 
-    if exists(':Log') != 2 && verbose < a:level && logfile is ''
+    if exists(':Log') != 2 && verbose < a:level && logfile is# ''
         return
     endif
 
@@ -181,6 +181,9 @@ function! neomake#utils#MakerIsAvailable(ft, maker_name) abort
     endif
     if !has_key(s:available_makers, a:maker_name)
         let maker = neomake#GetMaker(a:maker_name, a:ft)
+        if empty(maker)
+            return 0
+        endif
         let s:available_makers[a:maker_name] = executable(maker.exe)
     endif
     return s:available_makers[a:maker_name]

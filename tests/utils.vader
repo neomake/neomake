@@ -103,3 +103,7 @@ Execute (Should not expand arguments that start with double %):
   let expected_args = ['%%:h', '%%']
   call neomake#utils#ExpandArgs(args)
   AssertEqual expected_args, args
+
+Execute (neomake#utils#MakerIsAvailable):
+  AssertEqual neomake#utils#MakerIsAvailable('sh', 'sh'), 1
+  AssertEqual neomake#utils#MakerIsAvailable('sh', 'doesnotexist'), 0
