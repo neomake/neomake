@@ -23,7 +23,7 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
     let verbose = get(g:, 'neomake_verbose', 1)
     let logfile = get(g:, 'neomake_logfile')
 
-    if exists(':Log') != 2 && verbose < a:level && logfile is ''
+    if exists(':Log') != 2 && verbose < a:level && logfile is# ''
         return
     endif
 
