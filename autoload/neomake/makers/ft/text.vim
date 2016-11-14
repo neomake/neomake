@@ -1,5 +1,5 @@
 function! neomake#makers#ft#text#EnabledMakers() abort
-    return neomake#makers#ft#markdown#EnabledMakers()
+    return ['writegood', 'proselint']
 endfunction
 
 function! neomake#makers#ft#text#writegood() abort
