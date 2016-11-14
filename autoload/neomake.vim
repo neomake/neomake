@@ -470,12 +470,9 @@ function! s:Make(options, ...) abort
         if file_mode
             call neomake#signs#ResetFile(buf)
             let s:need_errors_cleaning['file'][buf] = 1
-            let s:loclist_nr = get(s:, 'loclist_nr', {})
-            let s:loclist_nr[win] = 0
         else
             call neomake#signs#ResetProject()
             let s:need_errors_cleaning['project'] = 1
-            let s:qflist_nr = 0
         endif
     endif
 
@@ -529,14 +526,14 @@ function! s:Make(options, ...) abort
     return job_ids
 endfunction
 
-function! s:AddExprCallback(jobinfo) abort
+function! s:AddExprCallback(jobinfo, prev_index) abort
     let maker = a:jobinfo.maker
     let file_mode = get(maker, 'file_mode')
     let place_signs = get(g:, 'neomake_place_signs', 1)
-    let list = file_mode ? getloclist(maker.winnr) : getqflist()
+    let list = file_mode ? getloclist(0) : getqflist()
     let list_modified = 0
     let counts_changed = 0
-    let index = file_mode ? s:loclist_nr[maker.winnr] : s:qflist_nr
+    let index = a:prev_index
     let maker_type = file_mode ? 'file' : 'project'
     let cleaned_signs = 0
     let ignored_signs = 0
@@ -612,15 +609,9 @@ function! s:AddExprCallback(jobinfo) abort
         endif
     endwhile
 
-    if file_mode
-        let s:loclist_nr[maker.winnr] = index
-    else
-        let s:qflist_nr = index
-    endif
-
     if list_modified
         if file_mode
-            call setloclist(maker.winnr, list, 'r')
+            call setloclist(0, list, 'r')
         else
             call setqflist(list, 'r')
         endif
@@ -679,7 +670,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
             let prev_list = getqflist()
             caddexpr a:lines
         endif
-        let counts_changed = s:AddExprCallback(a:jobinfo)
+        let counts_changed = s:AddExprCallback(a:jobinfo, len(prev_list))
         if !counts_changed
             let counts_changed = (file_mode && getloclist(0) != prev_list)
                         \ || (!file_mode && getqflist() != prev_list)
