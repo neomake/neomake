@@ -59,7 +59,7 @@ Execute (Setup):
 
   function! s:AssertNeomakeMessage(msg, ...)
     let level = a:0 ? a:1 : -1
-    let jobinfo = a:0 > 1 ? a:2 : -1
+    let jobinfo = a:0 > 1 ? copy(a:2) : -1
     let found_but_before = 0
     let found_but_other_level = -1
     let r = 0
@@ -87,14 +87,34 @@ Execute (Setup):
     endfor
     if r == 1
       if type(jobinfo) == type({})
+        " Only compare entries relevant for messages.
+        call filter(jobinfo, "index(['id', 'make_id'], v:key) != -1")
         let l:UNDEF = {}
         for [k, v] in items(info)
           let expected = get(jobinfo, k, l:UNDEF)
-          if expected isnot l:UNDEF && v !=# expected
-            throw printf("Got unexpected value for jobinfo.%s: "
-              \  ."expected '%s', but got '%s'.", k, string(expected), string(v))
+          if expected is l:UNDEF
+            throw printf("[%s] Missing value for jobinfo.%s: "
+                \  ."expected nothing, but got '%s'.", a:msg, k, string(v))
+          else
+            try
+              let same = (v ==# expected)
+            catch
+              throw printf(
+                \ "Could not compare jobinfo entries (expected: %s, actual: %s): %s",
+                \ string(expected), string(v), v:exception)
+            endtry
+            if !same
+              throw printf("Got unexpected value for jobinfo.%s: "
+                \  ."expected '%s', but got '%s'.", k, string(expected), string(v))
+            endif
           endif
+          unlet jobinfo[k]
           unlet v  " for old Vim
+        endfor
+        for [k, expected] in items(jobinfo)
+          throw printf("[%s] Missing entry for jobinfo.%s: "
+            \  ."expected '%s', but got nothing.", a:msg, k, string(expected))
+
         endfor
       endif
       let g:neomake_test_messages_last_idx = idx

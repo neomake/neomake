@@ -40,8 +40,9 @@ Execute (Test Neomake on errors.sh with two makers):
   call g:NeomakeTestsEnsureExe('shellcheck')
   e! tests/fixtures/errors.sh
   RunNeomake sh shellcheck
-  AssertEqual len(g:neomake_test_countschanged), 2, "counts changed (".len(g:neomake_test_countschanged).")"
-  AssertNeomakeMessage 'Running makers: [''sh'', ''shellcheck'']'
+  AssertEqual len(g:neomake_test_countschanged), 2
+  AssertNeomakeMessage 'Running makers: [''sh'', ''shellcheck'']', 3,
+    \ {'make_id': neomake#GetStatus().last_make_id}
 
 Execute (Neomake: handle result for current window):
   call g:NeomakeSetupAutocmdWrappers()
@@ -57,7 +58,7 @@ Execute (Neomake: handle result for current window):
     new
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0
-    AssertEqual len(g:neomake_test_finished), 1
+    AssertEqual len(g:neomake_test_finished), 1, "tests finished"
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
     quit
     AssertEqual winnr(), orig_winnr
@@ -83,7 +84,8 @@ Execute (Neomake: handle output for removed window):
   new
   exe 'bd' bufnr
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual len(g:neomake_test_countschanged), 0
+  AssertEqual len(g:neomake_test_countschanged), 0,
+    \ "counts changed (".len(g:neomake_test_countschanged).")"
   AssertEqual len(g:neomake_test_finished), 1
 
   AssertNeomakeMessage 'No window found for output!', 2, jobinfo
@@ -122,7 +124,7 @@ Execute (NeomakeSh: non-existing command):
   AssertEqual len(getqflist()), 1
   AssertNeomakeMessage "exit: sh: 'nonexistingcommand': 127", 3
   if neomake#has_async_support()
-    AssertNeomakeMessage 'sh: ''nonexistingcommand'': completed with exit code 127.', 3, {}
+    AssertNeomakeMessage 'sh: ''nonexistingcommand'': completed with exit code 127.', 3
   endif
   AssertNotEqual match(getqflist()[0].text,
     \ '/bin/bash: nonexistingcommand: command not found'), -1, "error in qflist"

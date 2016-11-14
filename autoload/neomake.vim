@@ -23,6 +23,13 @@ function! neomake#GetJobs() abort
     return s:jobs
 endfunction
 
+" Not documented, only used in tests for now.
+function! neomake#GetStatus() abort
+    return {
+                \ 'last_make_id': s:make_id,
+                \ }
+endfunction
+
 function! neomake#ListJobs() abort
     call neomake#utils#DebugMessage('call neomake#ListJobs()')
     for jobinfo in values(s:jobs)
@@ -834,7 +841,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         if neomake#has_async_support()
             call neomake#utils#DebugMessage(printf(
                         \ '%s: completed with exit code %d.',
-                        \ maker.name, status))
+                        \ maker.name, status), jobinfo)
         endif
 
         " If signs were not cleared before this point, then the maker did not return
@@ -960,10 +967,11 @@ function! neomake#ShCommand(bang, sh_command, ...) abort
     let maker.name = 'sh: '.a:sh_command
     let maker.buffer_output = !a:bang
     let maker.errorformat = '%m'
+    let options = {'enabled_makers': [maker]}
     if a:0
-        call extend(maker, a:1)
+        call extend(options, a:1)
     endif
-    return get(s:Make({'enabled_makers': [maker]}), 0, -1)
+    return get(s:Make(options), 0, -1)
 endfunction
 
 function! neomake#Sh(sh_command, ...) abort
