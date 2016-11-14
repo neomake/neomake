@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#less#EnabledMakers()
-    return ['lessc']
+    return executable('stylelint') ? ['stylelint'] : ['lessc']
 endfunction
 
 function! neomake#makers#ft#less#lessc()
@@ -12,4 +12,8 @@ function! neomake#makers#ft#less#lessc()
             \ '%m in %f:%l:%c,' .
             \ '%-G%.%#'
     \ }
+endfunction
+
+function! neomake#makers#ft#less#stylelint() abort
+    return neomake#makers#ft#css#stylelint()
 endfunction
