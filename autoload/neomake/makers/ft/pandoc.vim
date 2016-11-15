@@ -7,7 +7,7 @@ function! neomake#makers#ft#pandoc#mdl() abort
 endfunction
 
 function! neomake#makers#ft#pandoc#proselint() abort
-    return neomake#makers#ft#markdown#proselint()
+    return neomake#makers#proselint#proselint()
 endfunction
 
 function! neomake#makers#ft#pandoc#markdownlint() abort

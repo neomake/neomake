@@ -1,9 +1,7 @@
 function! neomake#makers#ft#mail#EnabledMakers() abort
-    return ['proselint']
+    return executable('proselint') ? ['proselint'] : []
 endfunction
 
 function! neomake#makers#ft#mail#proselint() abort
-    return {
-                \ 'errorformat': '%W%f:%l:%c: %m'
-                \ }
+    return neomake#makers#proselint#proselint()
 endfunction
