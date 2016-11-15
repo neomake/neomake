@@ -428,6 +428,9 @@ function! s:Make(options, ...) abort
             return []
         endif
         let enabled_makers = ['makeprg']
+        let title = 'makeprg'
+    else
+        let title = join(map(copy(enabled_makers), 'v:val.name'), ', ')
     endif
 
     if a:0
@@ -456,9 +459,17 @@ function! s:Make(options, ...) abort
     try
         let &errorformat = '%-G'
         if file_mode
-            lgetexpr ''
+            try
+                call setloclist(0, [], '', title)
+            catch /E118/
+                call setloclist(0, [], '')
+            endtry
         else
-            cgetexpr ''
+            try
+                call setqflist([], '', title)
+            catch /E118/
+                call setqflist([], '')
+            endtry
         endif
     finally
         let &errorformat = l:efm
@@ -620,9 +631,17 @@ function! s:AddExprCallback(jobinfo) abort
 
     if list_modified
         if file_mode
-            call setloclist(maker.winnr, list, 'r')
+            try
+                call setloclist(maker.winnr, list, '')
+            catch /E118/
+                call setloclist(maker.winnr, list, '')
+            endtry
         else
-            call setqflist(list, 'r')
+            try
+                call setqflist(list, '', name)
+            catch /E118/
+                call setqflist(list, '')
+            endtry
         endif
     endif
     if ignored_signs
