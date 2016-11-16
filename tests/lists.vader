@@ -31,7 +31,7 @@ Execute (AddExprCallback with changed windows inbetween):
     \ }
   let maker_1 = neomake#utils#MakerFromCommand('echo 1a; sleep .1; echo 1b')
   call extend(maker_1, extend(copy(options), {'name': 'maker1'}))
-  let maker_2 = neomake#utils#MakerFromCommand('echo 2')
+  let maker_2 = neomake#utils#MakerFromCommand('sleep .01; echo 2')
   call extend(maker_2, extend(copy(options), {'name': 'maker2'}))
 
   " Start 2 makers.
