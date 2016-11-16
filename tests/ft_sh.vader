@@ -1,14 +1,48 @@
 Include: include/setup.vader
 
 Execute (shellcheck):
-  AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc']
-  set ft=sh
-  AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc', '-s', 'sh']
-  set ft=bash
-  AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc', '-s', 'bash']
-  set ft=nadda
-  AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc']
+  " By variable...
+  let g:is_sh = 1
+  AssertEqual ['-fgcc', '-s', 'sh'], neomake#makers#ft#sh#shellcheck().args
+  unlet g:is_sh
+  let g:is_kornshell = 1
+  AssertEqual ['-fgcc', '-s', 'ksh'], neomake#makers#ft#sh#shellcheck().args
+  unlet g:is_kornshell
+  let g:is_posix = 1
+  AssertEqual ['-fgcc', '-s', 'ksh'], neomake#makers#ft#sh#shellcheck().args
+  unlet g:is_posix
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
 
-  set ft=sh
-  norm i#!/usr/bin/env bash
-  AssertEqual neomake#makers#ft#sh#shellcheck()['args'], ['-fgcc']
+  " By file extension...
+  silent file test.sh
+  AssertEqual ['-fgcc', '-s', 'sh'], neomake#makers#ft#sh#shellcheck().args
+  silent file test.dash
+  AssertEqual ['-fgcc', '-s', 'dash'], neomake#makers#ft#sh#shellcheck().args
+  silent file test.ksh
+  AssertEqual ['-fgcc', '-s', 'ksh'], neomake#makers#ft#sh#shellcheck().args
+  silent file test.bash
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+  silent file yay
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+
+  " By shebang...
+  call setline(1, '#!/bin/sh')
+  AssertEqual ['-fgcc', '-s', 'sh'], neomake#makers#ft#sh#shellcheck().args
+  call setline(1, '#!/bin/ksh')
+  AssertEqual ['-fgcc', '-s', 'ksh'], neomake#makers#ft#sh#shellcheck().args
+  call setline(1, '#!/usr/bin/env ksh')
+  AssertEqual ['-fgcc', '-s', 'ksh'], neomake#makers#ft#sh#shellcheck().args
+  call setline(1, '#!/bin/dash')
+  AssertEqual ['-fgcc', '-s', 'dash'], neomake#makers#ft#sh#shellcheck().args
+  call setline(1, '#!/usr/bin/env dash')
+  AssertEqual ['-fgcc', '-s', 'dash'], neomake#makers#ft#sh#shellcheck().args
+  call setline(1, '#!/bin/bash')
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+  call setline(1, '#!/usr/bin/env bash')
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+
+  " The following should never happen in practice.
+  set ft=
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+  set ft=nadda
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
