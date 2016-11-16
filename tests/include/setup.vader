@@ -1,6 +1,9 @@
 " Setup and helpers for all tests.
 
-Execute (Setup):
+Before:
+  if exists(':NeomakeTestsWaitForFinishedJobs') == 2
+    finish
+  endif
   function! s:wait_for_finished_jobs()
     let max = 60
     let filter = "!get(v:val, 'finished')"
@@ -156,7 +159,6 @@ Execute (Setup):
     Log "SKIP: no async support."
   endfunction
 
-Before:
   let g:neomake_test_messages = []
   let g:neomake_test_messages_last_idx = -1
 
