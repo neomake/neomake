@@ -387,8 +387,7 @@ Invoked via |:NeomakeListJobs|. Echoes a list of running jobs in the format
 (job_id, job_name).
 
 *neomake#CancelJob*
-Invoked via |:NeomakeCancelJob|. Terminate a job identified by its job_id
-Will trigger callback if it was specified when the job was started.
+Invoked via |:NeomakeCancelJob|. Terminate a job identified by its job_id.
 Example: >
     let job_id = neomake#Sh("bash -c 'while true; do sleep 1; done'")
     call neomake#CancelJob(job_id)
