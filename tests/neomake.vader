@@ -1,4 +1,4 @@
-" Include: include/setup.vader
+Include: include/setup.vader
 
 " XXX: needs to come first / early for now.
 Include (Integration tests): integration.vader
