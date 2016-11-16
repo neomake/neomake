@@ -41,13 +41,23 @@ function! neomake#CancelJob(job_id) abort
     if has_key(s:jobs, a:job_id)
         call neomake#utils#DebugMessage('Stopping job: ' . a:job_id)
         if has('nvim')
-            call jobstop(a:job_id)
+            try
+                call jobstop(a:job_id)
+            catch /^Vim\%((\a\+)\)\=:\(E474\|E900\):/
+                return 0
+            endtry
         else
             if v:version < 800 || v:version == 800 && !has('patch45')
                 " Vim before 8.0.0045 might fail to stop a job right away.
                 sleep 50m
             endif
-            call job_stop(s:jobs[a:job_id].vim_job)
+            let vim_job = s:jobs[a:job_id].vim_job
+            " NOTE: Vim does not trigger the exit callback with job_stop?!
+            unlet s:jobs[a:job_id]
+            if job_status(vim_job) !=# 'run'
+                return 0
+            endif
+            call job_stop(vim_job)
         endif
         return 1
     endif
@@ -492,12 +502,7 @@ function! s:Make(options, ...) abort
         if has_key(s:jobs_by_maker, maker_key)
             let jobinfo = s:jobs_by_maker[maker_key]
             let jobinfo.maker.next = copy(a:options)
-            try
-                call neomake#CancelJob(jobinfo.id)
-            catch /^Vim\%((\a\+)\)\=:E900/
-                " Ignore invalid job id errors. Happens when the job is done,
-                " but on_exit hasn't been called yet.
-            endtry
+            call neomake#CancelJob(jobinfo.id)
             break
         endif
         if serialize && len(enabled_makers) > 1

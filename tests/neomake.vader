@@ -88,12 +88,14 @@ Execute (neomake#CancelJob):
   if neomake#has_async_support()
     let job_id = neomake#Sh("sh -c 'while true; do sleep 0.1; done'")
     AssertEqual neomake#CancelJob(job_id), 1
+    AssertNeomakeMessage 'Stopping job: '.job_id
 
-    " The job is still in the table, therefore 'E900: Invalid job id'.
-    AssertThrows neomake#CancelJob(job_id)
+    AssertEqual neomake#CancelJob(job_id), 0
 
     NeomakeTestsWaitForFinishedJobs
+    let msg_count = len(g:neomake_test_messages)
     AssertEqual neomake#CancelJob(job_id), 0
+    AssertEqual msg_count, len(g:neomake_test_messages), "msg_count: ".msg_count
   endif
 
 Execute (Reports exit status: 7):
