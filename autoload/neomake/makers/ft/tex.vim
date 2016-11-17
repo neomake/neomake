@@ -50,6 +50,6 @@ function! neomake#makers#ft#tex#latexrun()
                 \ }
 endfunction
 
-function! neomake#makers#ft#tex#proselint()
+function! neomake#makers#ft#tex#proselint() abort
     return neomake#makers#proselint#proselint()
 endfunction
