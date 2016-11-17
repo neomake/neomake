@@ -41,7 +41,7 @@ Execute (AddExprCallback with changed windows inbetween):
     sleep 10m
   endwhile
   let loclist_texts = map(copy(getloclist(0)), 'v:val.text')
-  AssertEqual sort(loclist_texts), ['1a SUFFIX:0', '2 SUFFIX:0']
+  AssertEqual sort(copy(loclist_texts)), ['1a SUFFIX:0', '2 SUFFIX:0']
 
   " Start maker in new window (same winnr!)
   topleft new
