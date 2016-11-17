@@ -11,7 +11,7 @@ function! neomake#makers#ft#markdown#mdl() abort
 endfunction
 
 function! neomake#makers#ft#markdown#proselint() abort
-    return neomake#makers#proselint#proselint()
+    return neomake#makers#text#proselint()
 endfunction
 
 function! neomake#makers#ft#markdown#markdownlint() abort

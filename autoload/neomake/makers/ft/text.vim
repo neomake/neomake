@@ -3,5 +3,5 @@ function! neomake#makers#ft#text#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#text#proselint() abort
-    return neomake#makers#proselint#proselint()
+    return neomake#makers#text#proselint()
 endfunction
