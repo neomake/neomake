@@ -51,5 +51,5 @@ function! neomake#makers#ft#tex#latexrun()
 endfunction
 
 function! neomake#makers#ft#tex#proselint() abort
-    return neomake#makers#text#proselint()
+    return neomake#makers#ft#text#proselint()
 endfunction

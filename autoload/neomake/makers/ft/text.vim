@@ -3,5 +3,7 @@ function! neomake#makers#ft#text#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#text#proselint() abort
-    return neomake#makers#text#proselint()
+    return {
+                \ 'errorformat': '%W%f:%l:%c: %m'
+                \ }
 endfunction

@@ -3,5 +3,5 @@ function! neomake#makers#ft#mail#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#mail#proselint() abort
-    return neomake#makers#text#proselint()
+    return neomake#makers#ft#text#proselint()
 endfunction
