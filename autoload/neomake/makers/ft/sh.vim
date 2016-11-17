@@ -6,7 +6,7 @@ endfunction
 
 function! neomake#makers#ft#sh#shellcheck() abort
     let ext = expand('%:e')
-    let shebang = getline(1)
+    let shebang = matchstr(getline(1), '^#!\zs.*')
 
     if ext ==# 'dash' || shebang =~# '\<dash\>'
         let ft = 'dash'
