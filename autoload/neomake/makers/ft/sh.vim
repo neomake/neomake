@@ -8,12 +8,12 @@ function! neomake#makers#ft#sh#shellcheck() abort
     let ext = expand('%:e')
     let shebang = getline(1)
 
-    if ext ==# 'dash' || shebang =~# 'dash'
+    if ext ==# 'dash' || shebang =~# '\<dash\>'
         let ft = 'dash'
-    elseif exists('g:is_sh') || ext ==# 'sh' || shebang =~# '\<sh'
+    elseif exists('g:is_sh') || ext ==# 'sh' || shebang =~# '\<sh\>'
         let ft = 'sh'
     elseif exists('g:is_kornshell') || exists('g:is_posix') || ext ==# 'ksh'
-        \ || shebang =~# 'ksh'
+        \ || shebang =~# '\<ksh\>'
         let ft = 'ksh'
     else
         let ft = 'bash'
