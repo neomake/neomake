@@ -1,9 +1,6 @@
 function! neomake#makers#ft#markdown#EnabledMakers() abort
     let makers = executable('mdl') ? ['mdl'] : ['markdownlint']
-    if executable('proselint')
-        call add(makers, 'proselint')
-    endif
-    return makers
+    return makers + ['proselint']
 endfunction
 
 function! neomake#makers#ft#markdown#mdl() abort

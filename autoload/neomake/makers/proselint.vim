@@ -2,6 +2,6 @@
 
 function! neomake#makers#proselint#proselint() abort
     return {
-        \ 'errorformat': '%f:%l:%c: %m'
+        \ 'errorformat': '%W%f:%l:%c: %m'
         \ }
 endfunction

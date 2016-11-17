@@ -1,5 +1,5 @@
 function! neomake#makers#ft#text#EnabledMakers() abort
-    return executable('proselint') ? ['proselint'] : []
+    return ['proselint']
 endfunction
 
 function! neomake#makers#ft#text#proselint() abort
