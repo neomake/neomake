@@ -4,20 +4,23 @@ function! neomake#makers#ft#sh#EnabledMakers() abort
     return ['sh', 'shellcheck']
 endfunction
 
-" IDEA: could be detected once from "shellcheck --help" (since older versions
-" support zsh, and newer might do so again).
-let s:shellcheck_supported = ['sh', 'bash', 'dash', 'ksh']
-
 function! neomake#makers#ft#sh#shellcheck() abort
-    let args = ['-fgcc']
-    let shebang = matchstr(getline(1), '^#!\s*\zs.*$')
-    if !len(shebang)
-        if index(s:shellcheck_supported, &filetype) != -1
-            let args += ['-s', &filetype]
-        endif
+    let ext = expand('%:e')
+    let shebang = getline(1)
+
+    if ext ==# 'dash' || shebang =~# 'dash'
+        let ft = 'dash'
+    elseif exists('g:is_sh') || ext ==# 'sh' || shebang =~# '\<sh'
+        let ft = 'sh'
+    elseif exists('g:is_kornshell') || exists('g:is_posix') || ext ==# 'ksh'
+        \ || shebang =~# 'ksh'
+        let ft = 'ksh'
+    else
+        let ft = 'bash'
     endif
+
     return {
-        \ 'args': args,
+        \ 'args': ['-fgcc', '-s', ft],
         \ 'errorformat':
             \ '%f:%l:%c: %trror: %m,' .
             \ '%f:%l:%c: %tarning: %m,' .
