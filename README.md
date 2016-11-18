@@ -1,5 +1,4 @@
 [![Build Status](https://travis-ci.org/neomake/neomake.svg?branch=master)](https://travis-ci.org/neomake/neomake)
-[![Krihelimeter](http://krihelinator.xyz/badge/neomake/neomake)](https://github.com/neomake/neomake/pulse)
 
 # Neomake
 
