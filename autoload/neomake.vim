@@ -248,13 +248,31 @@ function! s:MakeJob(make_id, maker) abort
     return r
 endfunction
 
-function! neomake#GetMaker(name_or_maker, ...) abort
-    if a:0
-        let real_ft = a:1
-        let fts = neomake#utils#GetSortedFiletypes(real_ft)
-    else
-        let fts = []
+function! s:GetMakerForFiletype(fts, maker_name) abort
+    for ft in a:fts
+        try
+            let maker = eval('neomake#makers#ft#'.ft.'#'.a:maker_name.'()')
+        catch /^Vim\%((\a\+)\)\=:E117/
+        endtry
+    endfor
+    if exists('maker')
+        if !has_key(maker, 'name')
+            let maker.name = a:maker_name
+        endif
+        return maker
     endif
+    return {}
+endfunction
+
+function! neomake#GetMaker(name_or_maker, ...) abort
+    let args = a:000
+    let ft = a:0 ? a:1 : &ft
+    if type(ft) != type('')
+        throw "Invalid ft: " string(ft)
+    endif
+    let file_mode = a:0 > 1 ? a:2 : (len(get(a:, 1, '')) ? 1 : 0)
+
+    let fts = neomake#utils#GetSortedFiletypes(ft)
     if type(a:name_or_maker) == type({})
         let maker = a:name_or_maker
     elseif a:name_or_maker ==# 'makeprg'
@@ -263,36 +281,50 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         call neomake#utils#ErrorMessage('Invalid maker name: '.a:name_or_maker)
         return {}
     else
-        if len(fts)
+        let maker_name = a:name_or_maker
+
+        " Try to get maker from user vars.
+        if file_mode
             for ft in fts
-                let m = get(g:, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
+                let m = get(g:, 'neomake_'.ft.'_'.maker_name.'_maker')
                 if type(m) == type({})
                     let maker = m
                     break
                 endif
                 unlet m
             endfor
-        elseif exists('g:neomake_'.a:name_or_maker.'_maker')
-            let maker = get(g:, 'neomake_'.a:name_or_maker.'_maker')
+        elseif exists('g:neomake_'.maker_name.'_maker')
+            let maker = get(g:, 'neomake_'.maker_name.'_maker')
         endif
+
         if !exists('maker')
-            if len(fts)
-                for ft in fts
-                    try
-                        let maker = eval('neomake#makers#ft#'.ft.'#'.a:name_or_maker.'()')
-                        break
-                    catch /^Vim\%((\a\+)\)\=:E117/
-                    endtry
-                endfor
+            if file_mode
+                let maker = s:GetMakerForFiletype(fts, maker_name)
             else
                 try
-                    let maker = eval('neomake#makers#'.a:name_or_maker.'#'.a:name_or_maker.'()')
+                    let maker = eval('neomake#makers#'.maker_name.'#'.maker_name.'()')
                 catch /^Vim\%((\a\+)\)\=:E117/
                 endtry
+
+                " No project maker, use it from filetype.
+                if !exists('maker')
+                    for ft in fts
+                        let maker = s:GetMakerForFiletype(fts, maker_name)
+                        if maker !=# {}
+                            let append_file = neomake#utils#GetSetting('append_file', maker, 1, [ft], bufnr('%'))
+                            if append_file
+                                let maker.append_file = 0
+                                let maker._forced_append_file = 1
+                                let maker.args += glob('**/*.'.ft, 0, 1)
+                            endif
+                            break
+                        endif
+                    endfor
+                endif
             endif
         endif
-        if !exists('maker')
-            call neomake#utils#ErrorMessage('Maker not found: '.a:name_or_maker)
+        if !exists('maker') || maker == {}
+            call neomake#utils#ErrorMessage('Maker not found: '.maker_name)
             return {}
         endif
     endif
@@ -316,17 +348,18 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
         unlet! default  " workaround for old Vim (7.3.429)
     endfor
-    let s:UNSET = {}
-    for key in ['append_file']
-        let value = neomake#utils#GetSetting(key, maker, s:UNSET, fts, bufnr)
+
+    " Handle append_file setting, if not handled before (enforced for project
+    " maker from ft maker).
+    if !get(maker, '_forced_append_file')
+        let s:UNSET = {}
+        let value = neomake#utils#GetSetting('append_file', maker, s:UNSET, fts, bufnr)
         if value isnot s:UNSET
-            let maker[key] = value
+            let maker['append_file'] = value
         endif
-        unlet! value  " workaround for old Vim (7.3.429)
-    endfor
-    if exists('real_ft')
-        let maker.ft = real_ft
     endif
+
+    let maker.ft = ft
     return maker
 endfunction
 
@@ -496,7 +529,7 @@ function! s:Make(options, ...) abort
     let serialize = get(g:, 'neomake_serialize')
     let job_ids = []
     for name in enabled_makers
-        let maker = neomake#GetMaker(name, ft)
+        let maker = neomake#GetMaker(name, ft, file_mode)
         if empty(maker)
             continue
         endif
