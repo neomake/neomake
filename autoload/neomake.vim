@@ -307,7 +307,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                 if !exists('maker')
                     let maker = s:GetMakerForFiletype(fts, maker_name)
                     if maker !=# {}
-                        let append_file = neomake#utils#GetSetting('append_file', maker, 1, [ft], bufnr('%'))
+                        let append_file = neomake#utils#GetSetting('append_file', maker, 1, [ft], bufnr('%'), type(0))
                         if append_file
                             let maker.append_file = 0
                             let maker._forced_append_file = 1
@@ -339,7 +339,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         \ }
     let bufnr = bufnr('%')
     for [key, default] in items(defaults)
-        let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
+        let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr, type(default))
         unlet! default  " workaround for old Vim (7.3.429)
     endfor
 
@@ -347,7 +347,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     " maker from ft maker).
     if !get(maker, '_forced_append_file')
         let s:UNSET = {}
-        let value = neomake#utils#GetSetting('append_file', maker, s:UNSET, fts, bufnr)
+        let value = neomake#utils#GetSetting('append_file', maker, s:UNSET, fts, bufnr, type(0))
         if value isnot s:UNSET
             let maker['append_file'] = value
         endif

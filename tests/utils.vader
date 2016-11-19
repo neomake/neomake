@@ -74,6 +74,27 @@ Execute (neomake#utils#GetSetting without name):
   let neomake_myft_setting = {'custom': 1}
   AssertEqual GetSetting('setting'), {'custom': 1}
 
+Execute (neomake#utils#GetSetting: type check):
+  let g:maker = {}
+  function! GetSetting(key, type)
+    return neomake#utils#GetSetting(a:key, g:maker, [],
+                                  \ ['myft'], bufnr('%'), a:type)
+  endfunction
+
+  " Defaults are not type-checked.
+  AssertEqual GetSetting('args', type([])), []
+  AssertEqual GetSetting('args', type(0)), []
+
+  Save neomake_args
+  let neomake_args = 42
+  AssertEqual GetSetting('args', type(0)), 42
+
+  let neomake_args = [1]
+  AssertThrows call GetSetting('args', type(0))
+  AssertEqual vader_exception, 'Invalid type for setting args: expected type 0, but got 3: [1].'
+
+  AssertEqual GetSetting('args', type([])), [1]
+
 Execute(neomake#utils#redir):
   command! NeomakeTestCommand echo 1 | echo 2
   command! NeomakeTestErrorCommand echoerr 'error'
