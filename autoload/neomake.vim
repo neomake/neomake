@@ -313,7 +313,6 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                             let maker._forced_append_file = 1
                             let maker.args += glob('**/*.'.ft, 0, 1)
                         endif
-                        break
                     endif
                 endif
             endif
