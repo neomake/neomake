@@ -305,18 +305,16 @@ function! neomake#GetMaker(name_or_maker, ...) abort
 
                 " No project maker, use it from filetype.
                 if !exists('maker')
-                    for ft in fts
-                        let maker = s:GetMakerForFiletype(fts, maker_name)
-                        if maker !=# {}
-                            let append_file = neomake#utils#GetSetting('append_file', maker, 1, [ft], bufnr('%'))
-                            if append_file
-                                let maker.append_file = 0
-                                let maker._forced_append_file = 1
-                                let maker.args += glob('**/*.'.ft, 0, 1)
-                            endif
-                            break
+                    let maker = s:GetMakerForFiletype(fts, maker_name)
+                    if maker !=# {}
+                        let append_file = neomake#utils#GetSetting('append_file', maker, 1, [ft], bufnr('%'))
+                        if append_file
+                            let maker.append_file = 0
+                            let maker._forced_append_file = 1
+                            let maker.args += glob('**/*.'.ft, 0, 1)
                         endif
-                    endfor
+                        break
+                    endif
                 endif
             endif
         endif
