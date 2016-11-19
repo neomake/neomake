@@ -6,9 +6,9 @@ endfunction
 
 function! neomake#makers#ft#nix#nix_instantiate()
     return {
-        \ 'exe': 'nix-instantiate',
-        \ 'args': ['%:p', '--parse-only'],
-        \ 'errorformat': 'error: %m at %f:%l:%c'
-        \ }
+                \ 'exe': 'nix-instantiate',
+                \ 'args': ['%:p', '--parse-only'],
+                \ 'errorformat': 'error: %m at %f:%l:%c'
+                \ }
 endfunction
 

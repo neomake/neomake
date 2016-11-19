@@ -6,19 +6,19 @@ endfunction
 
 function! neomake#makers#ft#scss#sasslint() abort
     return {
-        \ 'exe': 'sass-lint',
-        \ 'args': ['--no-exit', '--verbose', '--format=compact'],
-        \ 'errorformat':
-            \ '%E%f: line %l\, col %c\, Error - %m,' .
-            \ '%W%f: line %l\, col %c\, Warning - %m',
-        \ }
+                \ 'exe': 'sass-lint',
+                \ 'args': ['--no-exit', '--verbose', '--format=compact'],
+                \ 'errorformat':
+                \ '%E%f: line %l\, col %c\, Error - %m,' .
+                \ '%W%f: line %l\, col %c\, Warning - %m',
+                \ }
 endfunction
 
 function! neomake#makers#ft#scss#scsslint() abort
     return {
-        \ 'exe': 'scss-lint',
-        \ 'errorformat': '%A%f:%l:%v [%t] %m'
-    \ }
+                \ 'exe': 'scss-lint',
+                \ 'errorformat': '%A%f:%l:%v [%t] %m'
+                \ }
 endfunction
 
 function! neomake#makers#ft#scss#stylelint() abort

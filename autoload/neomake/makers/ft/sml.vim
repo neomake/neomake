@@ -7,13 +7,13 @@ endfunction
 " This comes straight out of syntastic.
 function! neomake#makers#ft#sml#smlnj()
     return {
-        \ 'exe': 'sml',
-        \ 'errorformat':
-            \ '%E%f:%l%\%.%c %trror: %m,' .
-            \ '%E%f:%l%\%.%c-%\d%\+%\%.%\d%\+ %trror: %m,' .
-            \ '%W%f:%l%\%.%c %tarning: %m,' .
-            \ '%W%f:%l%\%.%c-%\d%\+%\%.%\d%\+ %tarning: %m,' .
-            \ '%C%\s%\+%m,' .
-            \ '%-G%.%#'
-        \ }
+                \ 'exe': 'sml',
+                \ 'errorformat':
+                \ '%E%f:%l%\%.%c %trror: %m,' .
+                \ '%E%f:%l%\%.%c-%\d%\+%\%.%\d%\+ %trror: %m,' .
+                \ '%W%f:%l%\%.%c %tarning: %m,' .
+                \ '%W%f:%l%\%.%c-%\d%\+%\%.%\d%\+ %tarning: %m,' .
+                \ '%C%\s%\+%m,' .
+                \ '%-G%.%#'
+                \ }
 endfunction

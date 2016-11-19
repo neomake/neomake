@@ -6,7 +6,7 @@ endfunction
 
 function! neomake#makers#ft#cs#mcs()
     return {
-        \ 'args': ['--parse', '--unsafe'],
-        \ 'errorformat': '%f(%l\,%c): %trror %m',
-        \ }
+                \ 'args': ['--parse', '--unsafe'],
+                \ 'errorformat': '%f(%l\,%c): %trror %m',
+                \ }
 endfunction

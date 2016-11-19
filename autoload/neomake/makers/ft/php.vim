@@ -6,10 +6,10 @@ endfunction
 
 function! neomake#makers#ft#php#php()
     return {
-        \ 'args': ['-l'],
-        \ 'errorformat': '%m\ in\ %f\ on\ line\ %l,%-GErrors\ parsing\ %f,%-G',
-        \ 'postprocess': function('neomake#makers#ft#php#PhpEntryProcess'),
-        \ }
+                \ 'args': ['-l'],
+                \ 'errorformat': '%m\ in\ %f\ on\ line\ %l,%-GErrors\ parsing\ %f,%-G',
+                \ 'postprocess': function('neomake#makers#ft#php#PhpEntryProcess'),
+                \ }
 endfunction
 
 function! neomake#makers#ft#php#PhpEntryProcess(entry)
@@ -26,17 +26,17 @@ function! neomake#makers#ft#php#phpcs()
     endif
 
     return {
-        \ 'args': args,
-        \ 'errorformat':
-            \ '%-GFile\,Line\,Column\,Type\,Message\,Source\,Severity%.%#,'.
-            \ '"%f"\,%l\,%c\,%t%*[a-zA-Z]\,"%m"\,%*[a-zA-Z0-9_.-]\,%*[0-9]%.%#',
-        \ }
+                \ 'args': args,
+                \ 'errorformat':
+                \ '%-GFile\,Line\,Column\,Type\,Message\,Source\,Severity%.%#,'.
+                \ '"%f"\,%l\,%c\,%t%*[a-zA-Z]\,"%m"\,%*[a-zA-Z0-9_.-]\,%*[0-9]%.%#',
+                \ }
 endfunction
 
 function! neomake#makers#ft#php#phpmd()
 
     return {
-        \ 'args': ['%:p', 'text', 'codesize,design,unusedcode,naming'],
-        \ 'errorformat': '%E%f:%l%\s%m'
-        \ }
+                \ 'args': ['%:p', 'text', 'codesize,design,unusedcode,naming'],
+                \ 'errorformat': '%E%f:%l%\s%m'
+                \ }
 endfunction

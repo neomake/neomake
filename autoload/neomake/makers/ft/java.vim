@@ -1,3 +1,4 @@
+" vim: ts=4 sw=4 et
 "============================================================================
 "File:        java.vim
 "Description: Syntax checking plugin for neomake

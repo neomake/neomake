@@ -5,18 +5,18 @@ endfunction
 
 function! neomake#makers#ft#perl#perlcritic() abort
     return {
-         \ 'args' : ['--quiet', '--nocolor', '--verbose',
-         \           '\\%f:\\%l:\\%c:(\\%s) \\%m (\\%e)\\n'],
-         \ 'errorformat': '%f:%l:%c:%m,'
-     \}
+                \ 'args' : ['--quiet', '--nocolor', '--verbose',
+                \           '\\%f:\\%l:\\%c:(\\%s) \\%m (\\%e)\\n'],
+                \ 'errorformat': '%f:%l:%c:%m,'
+                \}
 endfunction
 
 function! neomake#makers#ft#perl#perl() abort
     return {
-         \ 'args' : ['-c', '-X', '-Mwarnings'],
-         \ 'errorformat': '%E%m at %f line %l%s',
-         \ 'postprocess': function('neomake#makers#ft#perl#PerlEntryProcess'),
-     \}
+                \ 'args' : ['-c', '-X', '-Mwarnings'],
+                \ 'errorformat': '%E%m at %f line %l%s',
+                \ 'postprocess': function('neomake#makers#ft#perl#PerlEntryProcess'),
+                \}
 endfunction
 
 function! neomake#makers#ft#perl#PerlEntryProcess(entry) abort

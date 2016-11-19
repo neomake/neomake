@@ -6,10 +6,10 @@ endfunction
 
 function! neomake#makers#ft#cf3#cfpromises() abort
     return {
-        \ 'exe': 'cf-promises',
-        \ 'args': ['-cf', '%:p'],
-        \ 'append_file': 0,
-        \ 'errorformat':
-            \ '%E%f:%l:%c: error: %m',
-        \ }
+                \ 'exe': 'cf-promises',
+                \ 'args': ['-cf', '%:p'],
+                \ 'append_file': 0,
+                \ 'errorformat':
+                \ '%E%f:%l:%c: error: %m',
+                \ }
 endfunction

@@ -6,8 +6,8 @@ endfunction
 
 function! neomake#makers#ft#jade#jadelint()
     return {
-        \ 'exe': 'jade-lint',
-        \ 'args': ['--reporter', 'inline'],
-        \ 'errorformat': '%f:%l:%c %m'
-        \ }
+                \ 'exe': 'jade-lint',
+                \ 'args': ['--reporter', 'inline'],
+                \ 'errorformat': '%f:%l:%c %m'
+                \ }
 endfunction

@@ -6,8 +6,8 @@ endfunction
 
 function! neomake#makers#ft#slim#slimlint()
     return {
-        \ 'exe': 'slim-lint',
-        \ 'args': ['--no-color'],
-        \ 'errorformat': '%f:%l [%t] %m'
-        \ }
+                \ 'exe': 'slim-lint',
+                \ 'args': ['--no-color'],
+                \ 'errorformat': '%f:%l [%t] %m'
+                \ }
 endfunction

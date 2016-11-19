@@ -7,12 +7,12 @@ endfunction
 function! neomake#makers#ft#sh#shellcheck() abort
     let ext = expand('%:e')
     let maker = {
-        \ 'args': ['-fgcc'],
-        \ 'errorformat':
-            \ '%f:%l:%c: %trror: %m,' .
-            \ '%f:%l:%c: %tarning: %m,' .
-            \ '%I%f:%l:%c: Note: %m',
-        \ }
+                \ 'args': ['-fgcc'],
+                \ 'errorformat':
+                \ '%f:%l:%c: %trror: %m,' .
+                \ '%f:%l:%c: %tarning: %m,' .
+                \ '%I%f:%l:%c: Note: %m',
+                \ }
 
     if match(getline(1), '\v^#!.*<%(sh|dash|bash|ksh)') >= 0
         " shellcheck reads the shebang by itself
@@ -35,16 +35,16 @@ endfunction
 
 function! neomake#makers#ft#sh#checkbashisms() abort
     return {
-        \ 'args': ['-fx'],
-        \ 'errorformat':
-            \ '%-Gscript %f is already a bash script; skipping,' .
-            \ '%Eerror: %f: %m\, opened in line %l,' .
-            \ '%Eerror: %f: %m,' .
-            \ '%Ecannot open script %f for reading: %m,' .
-            \ '%Wscript %f %m,%C%.# lines,' .
-            \ '%Wpossible bashism in %f line %l (%m):,%C%.%#,%Z.%#,' .
-            \ '%-G%.%#'
-        \ }
+                \ 'args': ['-fx'],
+                \ 'errorformat':
+                \ '%-Gscript %f is already a bash script; skipping,' .
+                \ '%Eerror: %f: %m\, opened in line %l,' .
+                \ '%Eerror: %f: %m,' .
+                \ '%Ecannot open script %f for reading: %m,' .
+                \ '%Wscript %f %m,%C%.# lines,' .
+                \ '%Wpossible bashism in %f line %l (%m):,%C%.%#,%Z.%#,' .
+                \ '%-G%.%#'
+                \ }
 endfunction
 
 function! neomake#makers#ft#sh#sh() abort
@@ -60,10 +60,10 @@ function! neomake#makers#ft#sh#sh() abort
 
     " NOTE: the format without "line" is used by dash.
     return {
-        \ 'exe': exe,
-        \ 'args': args,
-        \ 'errorformat':
-            \ '%f: line %l: %m,' .
-            \ '%f: %l: %m'
-        \}
+                \ 'exe': exe,
+                \ 'args': args,
+                \ 'errorformat':
+                \ '%f: line %l: %m,' .
+                \ '%f: %l: %m'
+                \}
 endfunction

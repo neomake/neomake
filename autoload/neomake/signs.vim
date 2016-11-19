@@ -4,21 +4,21 @@ scriptencoding utf-8
 
 function! s:InitSigns() abort
     let s:sign_queue = {
-        \ 'project': {},
-        \ 'file': {}
-        \ }
+                \ 'project': {},
+                \ 'file': {}
+                \ }
     let s:last_placed_signs = {
-        \ 'project': {},
-        \ 'file': {}
-        \ }
+                \ 'project': {},
+                \ 'file': {}
+                \ }
     let s:placed_signs = {
-        \ 'project': {},
-        \ 'file': {}
-        \ }
+                \ 'project': {},
+                \ 'file': {}
+                \ }
     let s:neomake_sign_id = {
-        \ 'project': {},
-        \ 'file': {}
-        \ }
+                \ 'project': {},
+                \ 'file': {}
+                \ }
 endfunction
 call s:InitSigns()
 
@@ -81,8 +81,8 @@ function! neomake#signs#PlaceSign(entry, type) abort
         let sign_id = get(s:neomake_sign_id[a:type], a:entry.bufnr, default)
         let s:neomake_sign_id[a:type][a:entry.bufnr] = sign_id + 1
         let cmd = 'sign place '.sign_id.' line='.a:entry.lnum.
-                                      \ ' name='.sign_type.
-                                      \ ' buffer='.a:entry.bufnr
+                    \ ' name='.sign_type.
+                    \ ' buffer='.a:entry.bufnr
         let s:placed_signs[a:type][a:entry.bufnr][a:entry.lnum] = sign_id
     elseif sign_type ==# 'neomake_err'
         " Upgrade this sign to an error

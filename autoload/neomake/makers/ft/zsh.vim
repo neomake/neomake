@@ -12,7 +12,7 @@ endfunction
 
 function! neomake#makers#ft#zsh#zsh() abort
     return {
-        \ 'args': ['-n'],
-        \ 'errorformat': '%E%f:%l: %m'
-        \}
+                \ 'args': ['-n'],
+                \ 'errorformat': '%E%f:%l: %m'
+                \}
 endfunction

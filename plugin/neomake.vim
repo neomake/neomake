@@ -1,3 +1,4 @@
+" vim: ts=4 sw=4 et
 if exists('g:loaded_neomake') || &compatible
   finish
 endif
@@ -25,5 +26,3 @@ augroup neomake
   au CursorMoved * call neomake#CursorMoved()
   au ColorScheme,VimEnter * call neomake#signs#DefineHighlights()
 augroup END
-
-" vim: sw=2 et

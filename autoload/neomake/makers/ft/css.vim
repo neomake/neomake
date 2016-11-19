@@ -1,24 +1,25 @@
+" vim: ts=4 sw=4 et
 function! neomake#makers#ft#css#EnabledMakers()
     return ['csslint', 'stylelint']
 endfunction
 
 function! neomake#makers#ft#css#csslint()
     return {
-        \ 'args': ['--format=compact'],
-        \ 'errorformat':
-            \ '%-G,' .
-            \ '%-G%f: lint free!,' .
-            \ '%f: line %l\, col %c\, %trror - %m,' .
-            \ '%f: line %l\, col %c\, %tarning - %m,'.
-            \ '%f: line %l\, col %c\, %m,'
-    \ }
+                \ 'args': ['--format=compact'],
+                \ 'errorformat':
+                \ '%-G,' .
+                \ '%-G%f: lint free!,' .
+                \ '%f: line %l\, col %c\, %trror - %m,' .
+                \ '%f: line %l\, col %c\, %tarning - %m,'.
+                \ '%f: line %l\, col %c\, %m,'
+                \ }
 endfunction
 
 function! neomake#makers#ft#css#stylelint()
     return {
-        \ 'errorformat': 
-            \ '%+P%f,' . 
+                \ 'errorformat': 
+                \ '%+P%f,' . 
                 \ '%*\s%l:%c  %t  %m,' .
-            \ '%-Q'
-    \ }
+                \ '%-Q'
+                \ }
 endfunction

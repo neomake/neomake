@@ -166,12 +166,12 @@ function! neomake#utils#MakerFromCommand(command) abort
     " XXX: use neomake#utils#ExpandArgs and/or remove it.
     "      Expansion should happen later already!
     let command = substitute(a:command, '%\(:[a-z]\)*',
-                           \ '\=expand(submatch(0))', 'g')
+                \ '\=expand(submatch(0))', 'g')
     return {
-        \ 'exe': &shell,
-        \ 'args': [&shellcmdflag, command],
-        \ 'remove_invalid_entries': 0,
-        \ }
+                \ 'exe': &shell,
+                \ 'args': [&shellcmdflag, command],
+                \ 'remove_invalid_entries': 0,
+                \ }
 endfunction
 
 let s:available_makers = {}
@@ -221,73 +221,73 @@ endfunction
 " Get a setting by key, based on filetypes, from the buffer or global
 " namespace, defaulting to default.
 function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
-  if has_key(a:maker, 'name')
-    if len(a:fts)
-      for ft in a:fts
-        " Look through the neomake setting override vars for a filetype maker,
-        " like neomake_scss_sasslint_exe (should be a string), and 
-        " neomake_scss_sasslint_args (should be a list)
-        let config_var = 'neomake_'.ft.'_'.a:maker.name.'_'.a:key
-        if has_key(g:, config_var)
-              \ || !empty(getbufvar(a:bufnr, config_var))
-          break
+    if has_key(a:maker, 'name')
+        if len(a:fts)
+            for ft in a:fts
+                " Look through the neomake setting override vars for a filetype maker,
+                " like neomake_scss_sasslint_exe (should be a string), and 
+                " neomake_scss_sasslint_args (should be a list)
+                let config_var = 'neomake_'.ft.'_'.a:maker.name.'_'.a:key
+                if has_key(g:, config_var)
+                            \ || !empty(getbufvar(a:bufnr, config_var))
+                    break
+                endif
+            endfor
+        else
+            " Following this, we're checking the neomake overrides for global makers
+            let config_var = 'neomake_'.a:maker.name.'_'.a:key
         endif
-      endfor
-    else
-      " Following this, we're checking the neomake overrides for global makers
-      let config_var = 'neomake_'.a:maker.name.'_'.a:key
-    endif
 
-    if !empty(getbufvar(a:bufnr, config_var))
-      return copy(getbufvar(a:bufnr, config_var))
-    elseif has_key(g:, config_var)
-      return copy(get(g:, config_var))
+        if !empty(getbufvar(a:bufnr, config_var))
+            return copy(getbufvar(a:bufnr, config_var))
+        elseif has_key(g:, config_var)
+            return copy(get(g:, config_var))
+        endif
     endif
-  endif
-  if has_key(a:maker, a:key)
-    return a:maker[a:key]
-  endif
-  " Look for 'neomake_'.key in the buffer and global namespace.
-  let bufvar = getbufvar(a:bufnr, 'neomake_'.a:key)
-  if !empty(bufvar)
-      return bufvar
-  endif
-  let var = get(g:, 'neomake_'.a:key)
-  if !empty(var)
-      return var
-  endif
-  return a:default
+    if has_key(a:maker, a:key)
+        return a:maker[a:key]
+    endif
+    " Look for 'neomake_'.key in the buffer and global namespace.
+    let bufvar = getbufvar(a:bufnr, 'neomake_'.a:key)
+    if !empty(bufvar)
+        return bufvar
+    endif
+    let var = get(g:, 'neomake_'.a:key)
+    if !empty(var)
+        return var
+    endif
+    return a:default
 endfunction
 
 " Get property from highlighting group.
 function! neomake#utils#GetHighlight(group, what) abort
-  let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
-  let what = a:what
-  if reverse
-    let what = neomake#utils#ReverseSynIDattr(what)
-  endif
-  if what[-1:] ==# '#'
-      let val = synIDattr(synIDtrans(hlID(a:group)), what, 'gui')
-  else
-      let val = synIDattr(synIDtrans(hlID(a:group)), what, 'cterm')
-  endif
-  if empty(val) || val == -1
-    let val = 'NONE'
-  endif
-  return val
+    let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
+    let what = a:what
+    if reverse
+        let what = neomake#utils#ReverseSynIDattr(what)
+    endif
+    if what[-1:] ==# '#'
+        let val = synIDattr(synIDtrans(hlID(a:group)), what, 'gui')
+    else
+        let val = synIDattr(synIDtrans(hlID(a:group)), what, 'cterm')
+    endif
+    if empty(val) || val == -1
+        let val = 'NONE'
+    endif
+    return val
 endfunction
 
 function! neomake#utils#ReverseSynIDattr(attr) abort
-  if a:attr ==# 'fg'
-    return 'bg'
-  elseif a:attr ==# 'bg'
-    return 'fg'
-  elseif a:attr ==# 'fg#'
-    return 'bg#'
-  elseif a:attr ==# 'bg#'
-    return 'fg#'
-  endif
-  return a:attr
+    if a:attr ==# 'fg'
+        return 'bg'
+    elseif a:attr ==# 'bg'
+        return 'fg'
+    elseif a:attr ==# 'fg#'
+        return 'bg#'
+    elseif a:attr ==# 'bg#'
+        return 'fg#'
+    endif
+    return a:attr
 endfunction
 
 function! neomake#utils#CompressWhitespace(entry) abort
@@ -332,7 +332,7 @@ function! neomake#utils#hook(event, context) abort
     if exists('#User#'.a:event)
         let g:neomake_hook_context = a:context
         call neomake#utils#DebugMessage('Calling User autocmd '.a:event
-                                      \ .' with context: '.string(a:context))
+                    \ .' with context: '.string(a:context))
         if v:version >= 704 || (v:version == 703 && has('patch442'))
             exec 'doautocmd <nomodeline> User ' . a:event
         else

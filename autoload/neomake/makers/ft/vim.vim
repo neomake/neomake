@@ -6,21 +6,21 @@ endfunction
 
 function! neomake#makers#ft#vim#vint() abort
     let l:args = ['--style-problem', '--no-color',
-        \ '-f', '{file_path}:{line_number}:{column_number}:{severity}:{description} ({policy_name})']
+                \ '-f', '{file_path}:{line_number}:{column_number}:{severity}:{description} ({policy_name})']
 
     if has('nvim')
         call add(l:args, '--enable-neovim')
     endif
 
     return {
-        \ 'args': l:args,
-        \ 'errorformat': '%f:%l:%c:%t%*[^:]:%m'
-        \ }
+                \ 'args': l:args,
+                \ 'errorformat': '%f:%l:%c:%t%*[^:]:%m'
+                \ }
 endfunction
 
 function! neomake#makers#ft#vim#vimlint() abort
     return {
-        \ 'args': ['-u'],
-        \ 'errorformat': '%f:%l:%c:%t{rror|arning}:%n:%m',
-        \ }
+                \ 'args': ['-u'],
+                \ 'errorformat': '%f:%l:%c:%t{rror|arning}:%n:%m',
+                \ }
 endfunction

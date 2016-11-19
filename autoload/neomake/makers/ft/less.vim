@@ -6,12 +6,12 @@ endfunction
 
 function! neomake#makers#ft#less#lessc()
     return {
-        \ 'args': ['--lint', '--no-color'],
-        \ 'errorformat':
-            \ '%m in %f on line %l\, column %c:,' .
-            \ '%m in %f:%l:%c,' .
-            \ '%-G%.%#'
-    \ }
+                \ 'args': ['--lint', '--no-color'],
+                \ 'errorformat':
+                \ '%m in %f on line %l\, column %c:,' .
+                \ '%m in %f:%l:%c,' .
+                \ '%-G%.%#'
+                \ }
 endfunction
 
 function! neomake#makers#ft#less#stylelint() abort

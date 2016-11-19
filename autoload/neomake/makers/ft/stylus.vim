@@ -6,11 +6,11 @@ endfunction
 
 function! neomake#makers#ft#stylus#stylint()
     return {
-        \ 'errorformat':
-            \ '%WWarning: %m,' .
-            \ '%EError: %m,' .
-            \ '%-Csee file: %f for the original selector,' .
-            \ '%CFile: %f,' .
-            \ '%ZLine: %l:%.%#'
-    \ }
+                \ 'errorformat':
+                \ '%WWarning: %m,' .
+                \ '%EError: %m,' .
+                \ '%-Csee file: %f for the original selector,' .
+                \ '%CFile: %f,' .
+                \ '%ZLine: %l:%.%#'
+                \ }
 endfunction
