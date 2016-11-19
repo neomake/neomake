@@ -266,7 +266,7 @@ endfunction
 
 function! neomake#GetMaker(name_or_maker, ...) abort
     let args = a:000
-    let ft = a:0 ? a:1 : &ft
+    let ft = a:0 ? a:1 : &filetype
     let file_mode = a:0 > 1 ? a:2 : (len(get(a:, 1, '')) ? 1 : 0)
 
     let fts = neomake#utils#GetSortedFiletypes(ft)
