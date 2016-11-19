@@ -958,9 +958,7 @@ endfunction
 function! neomake#Make(file_mode, enabled_makers, ...) abort
     let options = a:0 ? { 'exit_callback': a:1 } : {}
     let options.file_mode = a:file_mode
-    if a:file_mode
-        let options.ft = &filetype
-    endif
+    let options.ft = &filetype
     let options.enabled_makers = len(a:enabled_makers)
                     \ ? a:enabled_makers
                     \ : neomake#GetEnabledMakers(a:file_mode ? &filetype : '')
