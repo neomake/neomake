@@ -45,15 +45,15 @@ function! s:DmdStyleMaker(args)
     call s:UpdateDub()
     let l:args = ['-w', '-wi', '-c', '-o-', '-vcolumns'] + a:args + s:dubImports
     return {
-        \ 'args': l:args,
-        \ 'errorformat':
-        \     '%f(%l\,%c): %trror: %m,' .
-        \     '%f(%l): %trror: %m,' .
-        \     '%f(%l\,%c): %tarning: %m,' .
-        \     '%f(%l): %tarning: %m,' .
-        \     '%f(%l\,%c): Deprecation: %m,' .
-        \     '%f(%l): Deprecation: %m,',
-        \ }
+                \ 'args': l:args,
+                \ 'errorformat':
+                \     '%f(%l\,%c): %trror: %m,' .
+                \     '%f(%l): %trror: %m,' .
+                \     '%f(%l\,%c): %tarning: %m,' .
+                \     '%f(%l): %tarning: %m,' .
+                \     '%f(%l\,%c): Deprecation: %m,' .
+                \     '%f(%l): Deprecation: %m,',
+                \ }
 endfunction
 
 function! neomake#makers#ft#d#dmd()
@@ -75,18 +75,18 @@ endfunction
 function! neomake#makers#ft#d#gdmd()
     let l:args = ['-c', '-o-', '-fsyntax-only', s:UpdateDub()]
     return {
-        \ 'args': l:args,
-        \ 'errorformat':
-            \ '%-G%f:%s:,' .
-            \ '%-G%f:%l: %#error: %#(Each undeclared identifier is reported only%.%#,' .
-            \ '%-G%f:%l: %#error: %#for each function it appears%.%#,' .
-            \ '%-GIn file included%.%#,' .
-            \ '%-G %#from %f:%l\,,' .
-            \ '%f:%l:%c: %trror: %m,' .
-            \ '%f:%l:%c: %tarning: %m,' .
-            \ '%f:%l:%c: %m,' .
-            \ '%f:%l: %trror: %m,' .
-            \ '%f:%l: %tarning: %m,'.
-            \ '%f:%l: %m',
-        \ }
+                \ 'args': l:args,
+                \ 'errorformat':
+                \ '%-G%f:%s:,' .
+                \ '%-G%f:%l: %#error: %#(Each undeclared identifier is reported only%.%#,' .
+                \ '%-G%f:%l: %#error: %#for each function it appears%.%#,' .
+                \ '%-GIn file included%.%#,' .
+                \ '%-G %#from %f:%l\,,' .
+                \ '%f:%l:%c: %trror: %m,' .
+                \ '%f:%l:%c: %tarning: %m,' .
+                \ '%f:%l:%c: %m,' .
+                \ '%f:%l: %trror: %m,' .
+                \ '%f:%l: %tarning: %m,'.
+                \ '%f:%l: %m',
+                \ }
 endfunction

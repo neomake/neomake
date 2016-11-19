@@ -10,40 +10,40 @@ endfunction
 
 function! neomake#makers#ft#go#go()
     return {
-        \ 'args': [
-            \ 'test', '-c',
-            \ '-o', neomake#utils#DevNull(),
-        \ ],
-        \ 'append_file': 0,
-        \ 'cwd': '%:h',
-        \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
-        \ 'errorformat':
-            \ '%W%f:%l: warning: %m,' .
-            \ '%E%f:%l:%c:%m,' .
-            \ '%E%f:%l:%m,' .
-            \ '%C%\s%\+%m,' .
-            \ '%-G#%.%#'
-        \ }
+                \ 'args': [
+                \ 'test', '-c',
+                \ '-o', neomake#utils#DevNull(),
+                \ ],
+                \ 'append_file': 0,
+                \ 'cwd': '%:h',
+                \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
+                \ 'errorformat':
+                \ '%W%f:%l: warning: %m,' .
+                \ '%E%f:%l:%c:%m,' .
+                \ '%E%f:%l:%m,' .
+                \ '%C%\s%\+%m,' .
+                \ '%-G#%.%#'
+                \ }
 endfunction
 
 function! neomake#makers#ft#go#golint()
     return {
-        \ 'errorformat':
-            \ '%W%f:%l:%c: %m,' .
-            \ '%-G%.%#'
-        \ }
+                \ 'errorformat':
+                \ '%W%f:%l:%c: %m,' .
+                \ '%-G%.%#'
+                \ }
 endfunction
 
 function! neomake#makers#ft#go#govet()
     return {
-        \ 'exe': 'go',
-        \ 'args': ['vet'],
-        \ 'append_file': 0,
-        \ 'cwd': '%:h',
-        \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
-        \ 'errorformat':
-            \ '%Evet: %.%\+: %f:%l:%c: %m,' .
-            \ '%W%f:%l: %m,' .
-            \ '%-G%.%#'
-        \ }
+                \ 'exe': 'go',
+                \ 'args': ['vet'],
+                \ 'append_file': 0,
+                \ 'cwd': '%:h',
+                \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
+                \ 'errorformat':
+                \ '%Evet: %.%\+: %f:%l:%c: %m,' .
+                \ '%W%f:%l: %m,' .
+                \ '%-G%.%#'
+                \ }
 endfunction

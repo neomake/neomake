@@ -8,8 +8,8 @@ function! neomake#makers#cabal#cabal()
                 \ '%-Z%[%^ ]',
                 \ ], ',')
     return {
-        \ 'exe': 'cabal',
-        \ 'args': ['build'],
-        \ 'errorformat': errorformat
-        \ }
+                \ 'exe': 'cabal',
+                \ 'args': ['build'],
+                \ 'errorformat': errorformat
+                \ }
 endfunction

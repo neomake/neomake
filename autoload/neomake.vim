@@ -6,13 +6,13 @@ let s:job_id = 1
 let s:jobs = {}
 let s:jobs_by_maker = {}
 let s:current_errors = {
-    \ 'project': {},
-    \ 'file': {}
-    \ }
+            \ 'project': {},
+            \ 'file': {}
+            \ }
 let s:need_errors_cleaning = {
-    \ 'project': 1,
-    \ 'file': {}
-    \ }
+            \ 'project': 1,
+            \ 'file': {}
+            \ }
 
 function! neomake#has_async_support() abort
     return has('nvim') ||
@@ -101,12 +101,12 @@ function! s:MakeJob(make_id, maker) abort
     let job_id = s:job_id
     let s:job_id += 1
     let jobinfo = {
-        \ 'name': 'neomake_'.job_id,
-        \ 'winnr': winnr(),
-        \ 'bufnr': bufnr('%'),
-        \ 'maker': a:maker,
-        \ 'make_id': a:make_id,
-        \ }
+                \ 'name': 'neomake_'.job_id,
+                \ 'winnr': winnr(),
+                \ 'bufnr': bufnr('%'),
+                \ 'maker': a:maker,
+                \ 'make_id': a:make_id,
+                \ }
 
     " Resolve exe/args, which might be a function or dictionary.
     if type(a:maker.exe) == type(function('tr'))
@@ -146,10 +146,10 @@ function! s:MakeJob(make_id, maker) abort
             endif
             if has('nvim')
                 let opts = {
-                    \ 'on_stdout': function('neomake#MakeHandler'),
-                    \ 'on_stderr': function('neomake#MakeHandler'),
-                    \ 'on_exit': function('neomake#MakeHandler')
-                    \ }
+                            \ 'on_stdout': function('neomake#MakeHandler'),
+                            \ 'on_stderr': function('neomake#MakeHandler'),
+                            \ 'on_exit': function('neomake#MakeHandler')
+                            \ }
                 try
                     call neomake#utils#LoudMessage(printf(
                                 \ 'Starting async job: %s',
@@ -305,12 +305,12 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         endif
     endif
     let defaults = {
-        \ 'exe': maker.name,
-        \ 'args': [],
-        \ 'errorformat': &errorformat,
-        \ 'buffer_output': 1,
-        \ 'remove_invalid_entries': 1,
-        \ }
+                \ 'exe': maker.name,
+                \ 'args': [],
+                \ 'errorformat': &errorformat,
+                \ 'buffer_output': 1,
+                \ 'remove_invalid_entries': 1,
+                \ }
     let bufnr = bufnr('%')
     for [key, default] in items(defaults)
         let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
@@ -609,7 +609,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         " Track all errors by buffer and line
         let s:current_errors[maker_type][entry.bufnr] = get(s:current_errors[maker_type], entry.bufnr, {})
         let s:current_errors[maker_type][entry.bufnr][entry.lnum] = get(
-            \ s:current_errors[maker_type][entry.bufnr], entry.lnum, [])
+                    \ s:current_errors[maker_type][entry.bufnr], entry.lnum, [])
         call add(s:current_errors[maker_type][entry.bufnr][entry.lnum], entry)
 
         if place_signs
@@ -828,8 +828,8 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         let status = a:data
         if has_key(maker, 'exit_callback')
             let callback_dict = { 'status': status,
-                                \ 'name': maker.name,
-                                \ 'has_next': has_key(maker, 'next') }
+                        \ 'name': maker.name,
+                        \ 'has_next': has_key(maker, 'next') }
             if type(maker.exit_callback) == type('')
                 let l:ExitCallback = function(maker.exit_callback)
             else
@@ -962,8 +962,8 @@ function! neomake#Make(file_mode, enabled_makers, ...) abort
         let options.ft = &filetype
     endif
     let options.enabled_makers = len(a:enabled_makers)
-                    \ ? a:enabled_makers
-                    \ : neomake#GetEnabledMakers(a:file_mode ? &filetype : '')
+                \ ? a:enabled_makers
+                \ : neomake#GetEnabledMakers(a:file_mode ? &filetype : '')
     return s:Make(options)
 endfunction
 

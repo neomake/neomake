@@ -1,3 +1,4 @@
+" vim: ts=4 sw=4 et
 let s:qflist_counts = {}
 let s:loclist_counts = {}
 

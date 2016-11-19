@@ -1,3 +1,4 @@
+" vim: ts=4 sw=4 et
 function! neomake#makers#ft#nim#EnabledMakers()
     return ['nim']
 endfunction

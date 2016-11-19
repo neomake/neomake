@@ -6,19 +6,19 @@ endfunction
 
 function! neomake#makers#ft#rust#rustc() abort
     return {
-        \ 'errorformat':
-            \ '%-Gerror: aborting due to previous error,'.
-            \ '%-Gerror: aborting due to %\\d%\\+ previous errors,'.
-            \ '%-Gerror: Could not compile `%s`.,'.
-            \ '%Eerror[E%n]: %m,'.
-            \ '%Eerror: %m,'.
-            \ '%Wwarning: %m,'.
-            \ '%Inote: %m,'.
-            \ '%-Z\ %#-->\ %f:%l:%c,'.
-            \ '%G\ %#\= %*[^:]: %m,'.
-            \ '%G\ %#|\ %#%\\^%\\+ %m,'.
-            \ '%I%>help:\ %#%m,'.
-            \ '%Z\ %#%m,'.
-            \ '%-G%s',
-        \ }
+                \ 'errorformat':
+                \ '%-Gerror: aborting due to previous error,'.
+                \ '%-Gerror: aborting due to %\\d%\\+ previous errors,'.
+                \ '%-Gerror: Could not compile `%s`.,'.
+                \ '%Eerror[E%n]: %m,'.
+                \ '%Eerror: %m,'.
+                \ '%Wwarning: %m,'.
+                \ '%Inote: %m,'.
+                \ '%-Z\ %#-->\ %f:%l:%c,'.
+                \ '%G\ %#\= %*[^:]: %m,'.
+                \ '%G\ %#|\ %#%\\^%\\+ %m,'.
+                \ '%I%>help:\ %#%m,'.
+                \ '%Z\ %#%m,'.
+                \ '%-G%s',
+                \ }
 endfunction

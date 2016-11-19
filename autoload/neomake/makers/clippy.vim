@@ -24,15 +24,15 @@ function! neomake#makers#clippy#clippy() abort
 
     if s:rustup_has_nightly
         return {
-            \ 'exe': 'rustup',
-            \ 'args': ['run', 'nightly', 'cargo', 'clippy'],
-            \ 'errorformat': errorfmt,
-            \ }
+                    \ 'exe': 'rustup',
+                    \ 'args': ['run', 'nightly', 'cargo', 'clippy'],
+                    \ 'errorformat': errorfmt,
+                    \ }
     else
         return {
-            \ 'exe': 'cargo',
-            \ 'args': ['clippy'],
-            \ 'errorformat': errorfmt,
-            \ }
+                    \ 'exe': 'cargo',
+                    \ 'args': ['clippy'],
+                    \ 'errorformat': errorfmt,
+                    \ }
     endif
 endfunction

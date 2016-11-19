@@ -6,10 +6,10 @@ endfunction
 
 function! neomake#makers#ft#coffee#coffeelint()
     return {
-        \ 'args': ['--reporter=csv'],
-        \ 'errorformat': '%f\,%l\,%\d%#\,%trror\,%m,' .
-            \ '%f\,%l\,%trror\,%m,' .
-            \ '%f\,%l\,%\d%#\,%tarn\,%m,' .
-            \ '%f\,%l\,%tarn\,%m'
-            \ }
+                \ 'args': ['--reporter=csv'],
+                \ 'errorformat': '%f\,%l\,%\d%#\,%trror\,%m,' .
+                \ '%f\,%l\,%trror\,%m,' .
+                \ '%f\,%l\,%\d%#\,%tarn\,%m,' .
+                \ '%f\,%l\,%tarn\,%m'
+                \ }
 endfunction

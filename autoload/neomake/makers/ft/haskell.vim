@@ -1,3 +1,4 @@
+" vim: ts=4 sw=4 et
 unlet! s:makers
 unlet! s:uses_cabal
 
@@ -19,18 +20,18 @@ function! neomake#makers#ft#haskell#EnabledMakers() abort
                 " find it use the help flag to run the maker command without
                 " doing anything
                 let stack_command = [
-                      \   'stack'
-                      \ , 'exec'
-                      \ , '--'
-                      \ , command
-                      \ , '--help'
-                      \ ]
+                            \   'stack'
+                            \ , 'exec'
+                            \ , '--'
+                            \ , command
+                            \ , '--help'
+                            \ ]
                 if has('nvim')
                     let job_id = jobstart(
-                        \ stack_command,
-                        \ { 'command': command
-                        \ , 'on_exit': function('s:CheckStackMakerAsync')
-                        \ })
+                                \ stack_command,
+                                \ { 'command': command
+                                \ , 'on_exit': function('s:CheckStackMakerAsync')
+                                \ })
                     if job_id > 0
                         call add(s:jobs, job_id)
                     endif
@@ -53,19 +54,19 @@ endfunction
 
 function! neomake#makers#ft#haskell#hdevtools() abort
     let params = {
-        \ 'exe': 'hdevtools',
-        \ 'args': ['check', '-g-Wall'],
-        \ 'mapexpr': s:CleanUpSpaceAndBackticks(),
-        \ 'errorformat':
-            \ '%-Z %#,'.
-            \ '%W%f:%l:%v: Warning: %m,'.
-            \ '%W%f:%l:%v: Warning:,'.
-            \ '%E%f:%l:%v: %m,'.
-            \ '%E%>%f:%l:%v:,'.
-            \ '%+C  %#%m,'.
-            \ '%W%>%f:%l:%v:,'.
-            \ '%+C  %#%tarning: %m,'
-        \ }
+                \ 'exe': 'hdevtools',
+                \ 'args': ['check', '-g-Wall'],
+                \ 'mapexpr': s:CleanUpSpaceAndBackticks(),
+                \ 'errorformat':
+                \ '%-Z %#,'.
+                \ '%W%f:%l:%v: Warning: %m,'.
+                \ '%W%f:%l:%v: Warning:,'.
+                \ '%E%f:%l:%v: %m,'.
+                \ '%E%>%f:%l:%v:,'.
+                \ '%+C  %#%m,'.
+                \ '%W%>%f:%l:%v:,'.
+                \ '%+C  %#%tarning: %m,'
+                \ }
     " hdevtools needs the GHC-PACKAGE-PATH environment variable to exist
     " when running on a project WITHOUT a cabal file, but it needs the
     " GHC-PACKAGE-PATH to NOT exist when running on a with a project WITH
@@ -90,19 +91,19 @@ function! neomake#makers#ft#haskell#ghcmod() abort
     " null bytes that ghc-mod sometimes spits out.
     let mapexpr = 'substitute(v:val, "\n", "", "g")'
     return s:TryStack({
-        \ 'exe': 'ghc-mod',
-        \ 'args': ['check'],
-        \ 'mapexpr': mapexpr,
-        \ 'errorformat':
-            \ '%-G%\s%#,' .
-            \ '%f:%l:%c:%trror: %m,' .
-            \ '%f:%l:%c:%tarning: %m,'.
-            \ '%f:%l:%c: %trror: %m,' .
-            \ '%f:%l:%c: %tarning: %m,' .
-            \ '%E%f:%l:%c:%m,' .
-            \ '%E%f:%l:%c:,' .
-            \ '%Z%m'
-        \ })
+                \ 'exe': 'ghc-mod',
+                \ 'args': ['check'],
+                \ 'mapexpr': mapexpr,
+                \ 'errorformat':
+                \ '%-G%\s%#,' .
+                \ '%f:%l:%c:%trror: %m,' .
+                \ '%f:%l:%c:%tarning: %m,'.
+                \ '%f:%l:%c: %trror: %m,' .
+                \ '%f:%l:%c: %tarning: %m,' .
+                \ '%E%f:%l:%c:%m,' .
+                \ '%E%f:%l:%c:,' .
+                \ '%Z%m'
+                \ })
 endfunction
 
 function! neomake#makers#ft#haskell#HlintEntryProcess(entry) abort
@@ -114,28 +115,28 @@ endfunction
 
 function! neomake#makers#ft#haskell#hlint() abort
     return s:TryStack({
-        \ 'exe': 'hlint',
-        \ 'postprocess': function('neomake#makers#ft#haskell#HlintEntryProcess'),
-        \ 'args': [],
-        \ 'errorformat':
-            \ '%E%f:%l:%v: Error: %m,' .
-            \ '%W%f:%l:%v: Warning: %m,' .
-            \ '%I%f:%l:%v: Suggestion: %m,' .
-            \ '%C%m'
-        \ })
+                \ 'exe': 'hlint',
+                \ 'postprocess': function('neomake#makers#ft#haskell#HlintEntryProcess'),
+                \ 'args': [],
+                \ 'errorformat':
+                \ '%E%f:%l:%v: Error: %m,' .
+                \ '%W%f:%l:%v: Warning: %m,' .
+                \ '%I%f:%l:%v: Suggestion: %m,' .
+                \ '%C%m'
+                \ })
 endfunction
 
 function! neomake#makers#ft#haskell#liquid() abort
     return s:TryStack({
-      \ 'exe': 'liquid',
-      \ 'args': [],
-      \ 'mapexpr': s:CleanUpSpaceAndBackticks(),
-      \ 'errorformat':
-          \ '%E %f:%l:%c-%.%#Error: %m,' .
-          \ '%C%.%#|%.%#,' .
-          \ '%C %#^%#,' .
-          \ '%C%m,'
-      \ })
+                \ 'exe': 'liquid',
+                \ 'args': [],
+                \ 'mapexpr': s:CleanUpSpaceAndBackticks(),
+                \ 'errorformat':
+                \ '%E %f:%l:%c-%.%#Error: %m,' .
+                \ '%C%.%#|%.%#,' .
+                \ '%C %#^%#,' .
+                \ '%C%m,'
+                \ })
 endfunction
 
 " @vimlint(EVL103, 1, a.job_id)
@@ -157,10 +158,10 @@ function! s:TryStack(maker) abort
             let a:maker['stackexecargs'] = []
         endif
         let a:maker['args'] =
-            \   ['--verbosity', 'silent', 'exec']
-            \ + a:maker['stackexecargs']
-            \ + ['--', a:maker['exe']]
-            \ + a:maker['args']
+                    \   ['--verbosity', 'silent', 'exec']
+                    \ + a:maker['stackexecargs']
+                    \ + ['--', a:maker['exe']]
+                    \ + a:maker['args']
         let a:maker['exe'] = 'stack'
     endif
     return a:maker

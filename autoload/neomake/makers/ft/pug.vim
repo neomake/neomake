@@ -6,8 +6,8 @@ endfunction
 
 function! neomake#makers#ft#pug#puglint()
     return {
-        \ 'exe': 'pug-lint',
-        \ 'args': ['--reporter', 'inline'],
-        \ 'errorformat': '%f:%l:%c %m'
-        \ }
+                \ 'exe': 'pug-lint',
+                \ 'args': ['--reporter', 'inline'],
+                \ 'errorformat': '%f:%l:%c %m'
+                \ }
 endfunction
