@@ -238,10 +238,12 @@ function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
     let config_var = 'neomake'.maker_name.'_'.a:key
   endif
 
-  if !empty(getbufvar(a:bufnr, config_var))
-    return copy(getbufvar(a:bufnr, config_var))
-  elseif has_key(g:, config_var)
-    return copy(get(g:, config_var))
+  if exists('config_var')
+    if !empty(getbufvar(a:bufnr, config_var))
+      return copy(getbufvar(a:bufnr, config_var))
+    elseif has_key(g:, config_var)
+      return copy(get(g:, config_var))
+    endif
   endif
   if has_key(a:maker, a:key)
     return a:maker[a:key]
