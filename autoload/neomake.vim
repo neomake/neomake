@@ -981,7 +981,8 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
         return []
     endif
     let file_mode = a:CmdLine =~# '\v^(Neomake|NeomakeFile)\s'
-    let makers = file_mode ? neomake#GetMakers(&filetype) : neomake#GetProjectMakers()
+    let makers = file_mode ? [] : neomake#GetProjectMakers()
+    let makers += neomake#GetMakers(&filetype)
     return filter(makers, "v:val =~? '^".a:ArgLead."'")
 endfunction
 
