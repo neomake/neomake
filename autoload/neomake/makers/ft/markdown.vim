@@ -11,9 +11,7 @@ function! neomake#makers#ft#markdown#mdl() abort
 endfunction
 
 function! neomake#makers#ft#markdown#proselint() abort
-    return {
-                \ 'errorformat': '%f:%l:%c: %m'
-                \ }
+    return neomake#makers#ft#text#proselint()
 endfunction
 
 function! neomake#makers#ft#markdown#markdownlint() abort
