@@ -52,13 +52,16 @@ Execute (neomake#GetMaker uses defaults from b:/g:):
 
 Execute (neomake#GetMaker in project mode uses ft makers):
   call mkdir('build/tests/vim-project/subdir', 'p')
-  cd build/tests/vim-project
-  write! foobar.vim
-  write! foobar2.vim
-  write! subdir/test.sh
-  let vint_maker = neomake#GetMaker('vint', 'vim', 0)
-  let sh_maker = neomake#GetMaker('sh', 'sh', 0)
-  cd -
+  try
+    cd build/tests/vim-project
+    write! foobar.vim
+    write! foobar2.vim
+    write! subdir/test.sh
+    let vint_maker = neomake#GetMaker('vint', 'vim', 0)
+    let sh_maker = neomake#GetMaker('sh', 'sh', 0)
+  finally
+    cd -
+  endtry
 
   AssertEqual vint_maker.append_file, 0, 'append_file is 0'
   AssertEqual vint_maker.args[-2:-1], ['foobar.vim', 'foobar2.vim']
@@ -68,22 +71,28 @@ Execute (neomake#GetMaker in project mode uses ft makers):
 
 Execute (neomake#GetMaker: project: respects append_file):
   call mkdir('build/tests/typescript-project', 'p')
-  cd build/tests/typescript-project
-  write! foobar.typescript
-  let tsc_maker = neomake#GetMaker('tsc', 'typescript', 1)
-  let tsc_project_maker = neomake#GetMaker('tsc', 'typescript', 0)
-  cd -
+  try
+    cd build/tests/typescript-project
+    write! foobar.typescript
+    let tsc_maker = neomake#GetMaker('tsc', 'typescript', 1)
+    let tsc_project_maker = neomake#GetMaker('tsc', 'typescript', 0)
+  finally
+    cd -
+  endtry
   AssertEqual tsc_maker.append_file, 0, 'append_file defaults to 0'
   AssertEqual tsc_project_maker.append_file, 0, 'append_file is 0'
   AssertEqual tsc_project_maker.args, ['--noEmit']
 
 Execute (neomake#GetMaker: project: respects append_file setting):
   call mkdir('build/tests/typescript-project', 'p')
-  cd build/tests/typescript-project
-  write! foobar.typescript
-  let g:neomake_typescript_tsc_append_file = 1
-  let tsc_project_maker = neomake#GetMaker('tsc', 'typescript', 0)
-  cd -
+  try
+    cd build/tests/typescript-project
+    write! foobar.typescript
+    let g:neomake_typescript_tsc_append_file = 1
+    let tsc_project_maker = neomake#GetMaker('tsc', 'typescript', 0)
+  finally
+    cd -
+  endtry
   AssertEqual tsc_project_maker.append_file, 0, 'append_file is 0'
   AssertEqual tsc_project_maker._forced_append_file, 1, '_forced_append_file'
   AssertEqual tsc_project_maker.args, ['--noEmit', 'foobar.typescript']
