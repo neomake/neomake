@@ -61,11 +61,18 @@ Execute (neomake#utils#GetSetting accepts lists):
 
 Execute (neomake#utils#GetSetting without name):
   let g:maker = {}
-  function! GetSetting()
-    return neomake#utils#GetSetting('args', g:maker, [],
+  function! GetSetting(key)
+    return neomake#utils#GetSetting(a:key, g:maker, [],
                                   \ ['myft'], bufnr('%'))
   endfunction
-  AssertEqual GetSetting(), []
+  AssertEqual GetSetting('args'), []
+
+  Save neomake_setting neomake_myft_setting
+  AssertEqual GetSetting('setting'), []
+  let neomake_setting = 42
+  AssertEqual GetSetting('setting'), 42
+  let neomake_myft_setting = {'custom': 1}
+  AssertEqual GetSetting('setting'), {'custom': 1}
 
 Execute(neomake#utils#redir):
   command! NeomakeTestCommand echo 1 | echo 2
