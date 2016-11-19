@@ -1,6 +1,6 @@
 function! neomake#makers#ft#markdown#EnabledMakers() abort
-    let makers = executable('mdl') ? ['mdl'] : ['markdownlint']
-    return makers + ['proselint']
+    let l:makers = executable('mdl') ? ['mdl'] : ['markdownlint']
+    return l:makers + ['writegood']
 endfunction
 
 function! neomake#makers#ft#markdown#mdl() abort
@@ -10,9 +10,10 @@ function! neomake#makers#ft#markdown#mdl() abort
                 \ }
 endfunction
 
-function! neomake#makers#ft#markdown#proselint() abort
+function! neomake#makers#ft#markdown#writegood() abort
     return {
-                \ 'errorformat': '%f:%l:%c: %m'
+                \ 'args': ['--parse'],
+                \ 'errorformat': '%W%f:%l:%c:%m'
                 \ }
 endfunction
 

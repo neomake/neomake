@@ -13,3 +13,7 @@ endfunction
 function! neomake#makers#ft#pandoc#markdownlint() abort
     return neomake#makers#ft#markdown#markdownlint()
 endfunction
+
+function! neomake#makers#ft#pandoc#writegood() abort
+    return neomake#makers#ft#markdown#writegood()
+endfunction
