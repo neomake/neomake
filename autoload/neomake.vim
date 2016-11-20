@@ -315,7 +315,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                                 let maker.append_file = 0
                                 let maker._forced_append_file = 1
                                 for glob in neomake#utils#GetGlobForFiletypeMaker(maker, ft)
-                                    let maker.args += glob(glob, 0, 1)
+                                    let maker.args += split(glob(glob, 0), "\n")
                                 endfor
                             endif
                         endfor
