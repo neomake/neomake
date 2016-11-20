@@ -357,3 +357,20 @@ function! neomake#utils#hook(event, context) abort
         unlet g:neomake_hook_context
     endif
 endfunction
+
+" Get file extension(s) for a given filetype.
+function! neomake#utils#GetGlobForFiletypeMaker(maker, ft) abort
+    let UNSET = []
+    let setting = neomake#utils#GetSetting('projectglob', a:maker, UNSET, [a:ft], bufnr('%'), type([]))
+    if setting != UNSET
+        return setting
+    endif
+    " Incomplete!  Right approach?!
+    let ext_by_ft = {
+                \ 'cpp': ['c', 'h'],
+                \ 'python': ['py'],
+                \ 'javascript': ['js'],
+                \ }
+    let exts = has_key(ext_by_ft, a:ft) ? ext_by_ft[a:ft] : [a:ft]
+    return map(copy(exts), "'**/*.'.v:val")
+endfunction

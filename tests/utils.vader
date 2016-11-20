@@ -135,3 +135,22 @@ Execute (Should not expand arguments that start with double %):
 Execute (neomake#utils#MakerIsAvailable):
   AssertEqual neomake#utils#MakerIsAvailable('sh', 'sh'), 1
   AssertEqual neomake#utils#MakerIsAvailable('sh', 'doesnotexist'), 0
+
+
+Execute (neomake#utils#GetGlobForFiletypeMaker):
+  AssertEqual neomake#utils#GetGlobForFiletypeMaker({}, 'python'),
+    \ ['**/*.py']
+  AssertEqual neomake#utils#GetGlobForFiletypeMaker({}, 'vim'),
+    \ ['**/*.vim']
+  AssertEqual neomake#utils#GetGlobForFiletypeMaker({}, 'cpp'),
+    \ ['**/*.c', '**/*.h']
+
+  Save g:neomake_projectglob
+  let g:neomake_projectglob = ['**/*.C']
+  AssertEqual neomake#utils#GetGlobForFiletypeMaker({}, 'cpp'),
+    \ ['**/*.C']
+
+  Save g:neomake_cpp_projectglob
+  let g:neomake_cpp_projectglob = ['**/*.c++']
+  AssertEqual neomake#utils#GetGlobForFiletypeMaker({}, 'cpp'),
+    \ ['**/*.c++']

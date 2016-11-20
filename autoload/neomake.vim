@@ -267,10 +267,10 @@ endfunction
 
 function! neomake#GetMaker(name_or_maker, ...) abort
     let args = a:000
-    let ft = a:0 ? a:1 : &filetype
     let file_mode = a:0 > 1 ? a:2 : (len(get(a:, 1, '')) ? 1 : 0)
-
+    let ft = a:0 ? a:1 : ''
     let fts = neomake#utils#GetSortedFiletypes(ft)
+
     if type(a:name_or_maker) == type({})
         let maker = a:name_or_maker
     elseif a:name_or_maker ==# 'makeprg'
@@ -306,14 +306,20 @@ function! neomake#GetMaker(name_or_maker, ...) abort
 
                 " No project maker, use it from filetype.
                 if !exists('maker')
-                    let maker = s:GetMakerForFiletype(fts, maker_name)
-                    if maker !=# {}
-                        let append_file = neomake#utils#GetSetting('append_file', maker, 1, [ft], bufnr('%'), type(0))
-                        if append_file
-                            let maker.append_file = 0
-                            let maker._forced_append_file = 1
-                            let maker.args += glob('**/*.'.ft, 0, 1)
-                        endif
+                    let ft_makers = neomake#GetAllFiletypeMakers()
+                    if has_key(ft_makers, maker_name)
+                        let fts = ft_makers[maker_name]
+                        let maker = s:GetMakerForFiletype(fts, maker_name)
+                        for ft in fts
+                            let append_file = neomake#utils#GetSetting('append_file', maker, 1, [ft], bufnr('%'), type(0))
+                            if append_file
+                                let maker.append_file = 0
+                                let maker._forced_append_file = 1
+                                for glob in neomake#utils#GetGlobForFiletypeMaker(maker, ft)
+                                    let maker.args += glob(glob, 0, 1)
+                                endfor
+                            endif
+                        endfor
                     endif
                 endif
             endif
@@ -369,12 +375,7 @@ function! neomake#GetMakers(ft) abort
     let fts = neomake#utils#GetSortedFiletypes(a:ft)
     for ft in fts
         let ft = substitute(ft, '\W', '_', 'g')
-        " Trigger sourcing of the autoload file.
-        try
-            exe 'call neomake#makers#ft#'.ft.'#EnabledMakers()'
-        catch /^Vim\%((\a\+)\)\=:E117/
-            continue
-        endtry
+        runtime! autoload/neomake/makers/ft/*/*.vim
         let funcs_output = neomake#utils#redir('fun /neomake#makers#ft#'.ft.'#\l')
         for maker_name in map(split(funcs_output, '\n'),
                     \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')")
@@ -395,6 +396,22 @@ function! neomake#GetProjectMakers() abort
     let funcs_output = neomake#utils#redir('fun /neomake#makers#\(ft#\)\@!\l')
     return map(split(funcs_output, '\n'),
                 \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')")
+endfunction
+
+function! neomake#GetAllFiletypeMakers() abort
+    runtime! autoload/neomake/makers/ft/*.vim
+    let funcs_output = neomake#utils#redir('fun /neomake#makers#ft#\l\+#\l')
+    let ft_maker_list = map(split(funcs_output, '\n'),
+                \ "split(substitute(v:val, '\\v^.*#(.*#.*)\\(.*$', '\\1', ''), '#')")
+    let fts_by_maker = {}
+    for [ft, maker] in ft_maker_list
+        if !has_key(fts_by_maker, maker)
+            let fts_by_maker[maker] = [ft]
+            continue
+        endif
+        let fts_by_maker[maker] += [ft]
+    endfor
+    return fts_by_maker
 endfunction
 
 function! neomake#GetEnabledMakers(...) abort
@@ -979,8 +996,12 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
         return []
     endif
     let file_mode = a:CmdLine =~# '\v^(Neomake|NeomakeFile)\s'
-    let makers = file_mode ? [] : neomake#GetProjectMakers()
-    let makers += neomake#GetMakers(&filetype)
+    if file_mode
+        let makers = neomake#GetMakers(&filetype)
+    else
+        let makers = neomake#GetProjectMakers() + neomake#GetMakers(&filetype)
+                    \ + keys(neomake#GetAllFiletypeMakers())
+    endif
     return filter(makers, "v:val =~? '^".a:ArgLead."'")
 endfunction
 
