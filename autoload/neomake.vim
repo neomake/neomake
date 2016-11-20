@@ -252,6 +252,7 @@ function! s:GetMakerForFiletype(fts, maker_name) abort
     for ft in a:fts
         try
             let maker = eval('neomake#makers#ft#'.ft.'#'.a:maker_name.'()')
+            break
         catch /^Vim\%((\a\+)\)\=:E117/
         endtry
     endfor
