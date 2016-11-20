@@ -74,7 +74,9 @@ Execute (neomake#GetMaker in project mode uses ft makers):
   AssertEqual sh_maker.args, ['-n', 'subdir/test.sh']
 
 Execute (neomake#GetMaker: project: respects append_file):
-  call mkdir('build/tests/typescript-project', 'p')
+  if !isdirectory('build/tests/typescript-project')
+    call mkdir('build/tests/typescript-project', 'p')
+  endif
   try
     cd build/tests/typescript-project
     write! foobar.typescript
@@ -88,7 +90,9 @@ Execute (neomake#GetMaker: project: respects append_file):
   AssertEqual tsc_project_maker.args, ['--noEmit']
 
 Execute (neomake#GetMaker: project: respects append_file setting):
-  call mkdir('build/tests/typescript-project', 'p')
+  if !isdirectory('build/tests/typescript-project')
+    call mkdir('build/tests/typescript-project', 'p')
+  endif
   try
     cd build/tests/typescript-project
     write! foobar.typescript
