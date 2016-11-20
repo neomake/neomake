@@ -88,6 +88,7 @@ Execute (neomake#utils#GetSetting: type check):
   Save neomake_args
   let neomake_args = 42
   AssertEqual GetSetting('args', type(0)), 42
+  unlet neomake_args
 
   let neomake_args = [1]
   AssertThrows call GetSetting('args', type(0))
