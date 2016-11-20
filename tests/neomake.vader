@@ -53,7 +53,9 @@ Execute (neomake#GetMaker uses defaults from b:/g:):
   AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 3
 
 Execute (neomake#GetMaker in project mode uses ft makers):
-  call mkdir('build/tests/vim-project/subdir', 'p')
+  if !isdirectory('build/tests/vim-project/subdir', )
+    call mkdir('build/tests/vim-project/subdir', 'p')
+  endif
   try
     cd build/tests/vim-project
     write! foobar.vim
