@@ -323,7 +323,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                 endif
             endif
         endif
-        if !exists('maker') || maker == {}
+        if !exists('maker')
             call neomake#utils#ErrorMessage('Maker not found: '.maker_name)
             return {}
         endif
