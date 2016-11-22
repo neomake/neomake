@@ -110,11 +110,10 @@ endfunction
 
 function! neomake#makers#ft#python#Pep8EntryProcess(entry) abort
     if a:entry.text =~# '^E9'  " PEP8 runtime errors (E901, E902)
-        let type = 'E'
+        let a:entry.type = 'E'
     else  " Everything else is a warning
-        let type = 'W'
+        let a:entry.type = 'W'
     endif
-    let a:entry.type = type
 endfunction
 
 function! neomake#makers#ft#python#pep257() abort
