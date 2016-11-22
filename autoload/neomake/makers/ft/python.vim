@@ -118,15 +118,19 @@ function! neomake#makers#ft#python#Pep8EntryProcess(entry) abort
 endfunction
 
 function! neomake#makers#ft#python#pydocstyle() abort
-    return {
+  if !exists('s:_pydocstyle_exe')
+    let s:_pydocstyle_exe = executable('pydocstyle') ? 'pydocstyle' : 'pep257'
+  endif
+  return {
+        \ 'exe': s:_pydocstyle_exe,
         \ 'errorformat':
-        \   '%E%f:%l %.%#:,' .
+        \   '%W%f:%l %.%#:,' .
         \   '%+C        %m',
         \ 'postprocess': function('neomake#utils#CompressWhitespace'),
         \ }
 endfunction
 
-" Deprecated: pep257 has been renamed to pydocstyle.
+" Note: pep257 has been renamed to pydocstyle, but is kept also as alias.
 function! neomake#makers#ft#python#pep257() abort
     return neomake#makers#ft#python#pydocstyle()
 endfunction
