@@ -13,7 +13,7 @@ function! neomake#makers#ft#python#EnabledMakers() abort
         if executable('flake8')
             call add(makers, 'flake8')
         else
-            call extend(makers, ['pep257', 'pep8', 'pyflakes'])
+            call extend(makers, ['pyflakes', 'pep8', 'pydocstyle'])
         endif
 
         call add(makers, 'pylint')  " Last because it is the slowest
@@ -117,10 +117,18 @@ function! neomake#makers#ft#python#Pep8EntryProcess(entry) abort
     let a:entry.type = type
 endfunction
 
-function! neomake#makers#ft#python#pep257() abort
+function! neomake#makers#ft#python#pydocstyle() abort
     return {
-        \ 'errorformat': '%f:%l %m,%m',
+        \ 'errorformat':
+        \   '%E%f:%l %.%#:,' .
+        \   '%+C        %m',
+        \ 'postprocess': function('neomake#utils#CompressWhitespace'),
         \ }
+endfunction
+
+" Deprecated: pep257 has been renamed to pydocstyle.
+function! neomake#makers#ft#python#pep257() abort
+    return neomake#makers#ft#python#pydocstyle()
 endfunction
 
 function! neomake#makers#ft#python#pylama() abort
