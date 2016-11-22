@@ -119,6 +119,7 @@ endfunction
 
 function! neomake#makers#ft#python#pydocstyle() abort
   if !exists('s:_pydocstyle_exe')
+    " Use the preferred exe to avoid deprecation warnings.
     let s:_pydocstyle_exe = executable('pydocstyle') ? 'pydocstyle' : 'pep257'
   endif
   return {
