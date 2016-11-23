@@ -20,3 +20,13 @@ function! neomake#makers#ft#markdown#markdownlint() abort
                 \ '%f: %l: %m'
                 \ }
 endfunction
+
+function! neomake#makers#ft#markdown#alex() abort
+    return {
+                \ 'errorformat':
+                \ '%P%f,' .
+                \ '%-Q,' .
+                \ '%*[ ]%l:%c-%*\d:%n%*[ ]%tarning%*[ ]%m,' .
+                \ '%-G%.%#'
+                \ }
+endfunction
