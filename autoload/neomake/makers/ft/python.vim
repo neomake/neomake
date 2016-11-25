@@ -111,6 +111,8 @@ endfunction
 function! neomake#makers#ft#python#Pep8EntryProcess(entry) abort
     if a:entry.text =~# '^E9'  " PEP8 runtime errors (E901, E902)
         let a:entry.type = 'E'
+    elseif a:entry.text =~# '^E113'  " unexpected indentation (IndentationError)
+        let a:entry.type = 'E'
     else  " Everything else is a warning
         let a:entry.type = 'W'
     endif
@@ -135,10 +137,24 @@ function! neomake#makers#ft#python#pep257() abort
     return neomake#makers#ft#python#pydocstyle()
 endfunction
 
+function! neomake#makers#ft#python#PylamaEntryProcess(entry) abort
+    if a:entry.type ==# 'C' && a:entry.text =~# '\v\[%(pycodestyle|pep8)\]$'
+        call neomake#makers#ft#python#Pep8EntryProcess(a:entry)
+    elseif a:entry.type ==# 'D'  " pydocstyle/pep257
+        let a:entry.type = 'W'
+    elseif a:entry.type ==# 'E901'  " mccabe
+        let a:entry.type = 'W'
+    elseif a:entry.type ==# 'R'  " Radon
+        let a:entry.type = 'W'
+    endif
+    return a:entry
+endfunction
+
 function! neomake#makers#ft#python#pylama() abort
     return {
-        \ 'args': ['--format', 'pep8'],
-        \ 'errorformat': '%f:%l:%c: %t%m',
+        \ 'args': ['--format', 'parsable'],
+        \ 'errorformat': '%f:%l:%c: [%t] %m',
+        \ 'postprocess': function('neomake#makers#ft#python#PylamaEntryProcess'),
         \ }
 endfunction
 
