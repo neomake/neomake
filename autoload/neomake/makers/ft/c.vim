@@ -23,7 +23,7 @@ endfunction
 function! neomake#makers#ft#c#clangcheck()
     return {
         \ 'exe': 'clang-check',
-        \ 'args': ['%:p', '--', '-Wall', '-Wextra'],
+        \ 'args': ['%:p'],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
             \ '%f:%l:%c: %trror: %m,' .
