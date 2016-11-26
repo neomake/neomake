@@ -11,6 +11,13 @@ function! neomake#makers#ft#javascript#jshint()
         \ }
 endfunction
 
+function! neomake#makers#ft#javascript#jsxhint()
+    return {
+        \ 'args': ['--verbose'],
+        \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
+        \ }
+endfunction
+
 function! neomake#makers#ft#javascript#jscs()
     return {
         \ 'args': ['--no-colors', '--reporter', 'inline'],
