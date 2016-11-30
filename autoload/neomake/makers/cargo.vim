@@ -2,7 +2,7 @@
 
 function! neomake#makers#cargo#cargo() abort
     return {
-        \ 'args': ['build'],
+        \ 'args': ['test', '--no-run'],
         \ 'errorformat':
             \ neomake#makers#ft#rust#rustc()['errorformat'],
         \ }
