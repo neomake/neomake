@@ -1,9 +1,5 @@
 " vim: ts=4 sw=4 et
 
-function s:find_mix_file(path)
-    " TODO: Recurse upwards to fix the mix file.
-endfunction
-
 function! neomake#makers#ft#elixir#EnabledMakers()
     return ['mix']
 endfunction
