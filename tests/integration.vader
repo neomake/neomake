@@ -1,0 +1,383 @@
+Include: include/setup.vader
+
+Execute (Test Neomake on errors.sh with one maker):
+  call g:NeomakeSetupAutocmdWrappers()
+  e! tests/fixtures/errors.sh
+  AssertEqual getline(1), '#! /bin/bash'
+
+  call g:NeomakeTestsEnsureExe('shellcheck')
+  AssertEqual neomake#GetEnabledMakers('sh'), ['sh', 'shellcheck']
+
+  AssertEqual len(g:neomake_test_finished), 0
+  AssertEqual len(g:neomake_test_countschanged), 0
+  RunNeomake sh
+  AssertNotEqual getloclist(0), []
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_countschanged), 1
+
+  let bufnr = bufnr('%')
+  RunNeomake sh
+  AssertEqual len(g:neomake_test_countschanged), 2
+  for idx in range(0, len(g:neomake_test_countschanged))
+    AssertEqual [idx, g:neomake_test_countschanged[1].file_mode], [idx, 1]
+    AssertEqual [idx, g:neomake_test_countschanged[1].bufnr], [idx, bufnr]
+  endfor
+
+  " Basic verification that signs are placed.
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_err buffer=4', 3, {}
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer=4', 3, {}
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_err buffer=4', 3, {}
+
+  let signs = split(neomake#utils#redir('sign place'), '\n')
+  call map(signs, "substitute(substitute(v:val, '\\m^\\s\\+', '', ''), '\\m\\s\\+$', '', '')")
+  AssertEqual signs, [
+    \ '--- Signs ---',
+    \ 'Signs for tests/fixtures/errors.sh:',
+    \ 'line=5  id=5000  name=neomake_err']
+
+Execute (Test Neomake on errors.sh with two makers):
+  call g:NeomakeSetupAutocmdWrappers()
+  call g:NeomakeTestsEnsureExe('shellcheck')
+  e! tests/fixtures/errors.sh
+  RunNeomake sh shellcheck
+  AssertEqual len(g:neomake_test_countschanged), 2
+  AssertNeomakeMessage 'Running makers: [''sh'', ''shellcheck'']', 3,
+    \ {'make_id': neomake#GetStatus().last_make_id}
+
+Execute (Neomake: handle result for current window):
+  call g:NeomakeSetupAutocmdWrappers()
+  let orig_winnr = winnr()
+  let sleep_maker = {
+      \ 'name': 'sleep_maker',
+      \ 'exe': 'sh',
+      \ 'args': ['-c', 'sleep 0.1; echo finished'],
+      \ 'remove_invalid_entries': 0,
+      \ }
+  call neomake#Make(1, [sleep_maker])
+  if neomake#has_async_support()
+    new
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual len(g:neomake_test_countschanged), 0
+    AssertEqual len(g:neomake_test_finished), 1, "tests finished"
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
+    quit
+    AssertEqual winnr(), orig_winnr
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['finished']
+  endif
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_countschanged), 1
+
+Execute (Neomake: handle output for removed window):
+  if !NeomakeAsyncTestsSetup() | finish | endif
+
+  call g:NeomakeSetupAutocmdWrappers()
+  let orig_winnr = winnr()
+  let sleep_maker = {
+      \ 'name': 'sleep_maker',
+      \ 'exe': 'sh',
+      \ 'args': ['-c', 'sleep 0.1; echo finished'],
+      \ 'remove_invalid_entries': 0,
+      \ }
+  let job_ids = neomake#Make(1, [sleep_maker])
+  let jobinfo = neomake#GetJobs()[job_ids[0]]
+  let bufnr = bufnr('%')
+  new
+  exe 'bd' bufnr
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual len(g:neomake_test_countschanged), 0,
+    \ "counts changed (".len(g:neomake_test_countschanged).")"
+  AssertEqual len(g:neomake_test_finished), 1
+
+  AssertNeomakeMessage 'No window found for output!', 2, jobinfo
+
+Execute (NeomakeSh: true):
+  call g:NeomakeSetupAutocmdWrappers()
+  AssertEqual g:neomake_test_countschanged, []
+  let bufnr = bufnr('%')
+  RunNeomakeSh true
+  AssertEqual g:neomake_test_countschanged, []
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual getqflist(), []
+
+  call g:NeomakeSetupAutocmdWrappers()
+  RunNeomakeSh true
+  AssertEqual g:neomake_test_countschanged, []
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual getqflist(), []
+
+Execute (NeomakeSh: echo foo):
+  call g:NeomakeSetupAutocmdWrappers()
+  AssertEqual g:neomake_test_countschanged, []
+  let bufnr = bufnr('%')
+  RunNeomakeSh echo foo
+  AssertEqual getqflist(),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
+    \   'type': '', 'pattern': '', 'text': 'foo'}]
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
+
+Execute (NeomakeSh: non-existing command):
+  call g:NeomakeSetupAutocmdWrappers()
+  RunNeomakeSh 'nonexistingcommand'
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual g:neomake_test_countschanged, [{'file_mode': 0, 'bufnr': bufnr('%')}]
+  AssertEqual len(getqflist()), 1
+  AssertNeomakeMessage "exit: sh: 'nonexistingcommand': 127", 3
+  if neomake#has_async_support()
+    AssertNeomakeMessage 'sh: ''nonexistingcommand'': completed with exit code 127.', 3
+  endif
+  AssertNotEqual match(getqflist()[0].text,
+    \ '/bin/bash: nonexistingcommand: command not found'), -1, "error in qflist"
+
+Execute (NeomakeSh!: handle unfinished output on exit):
+  call g:NeomakeSetupAutocmdWrappers()
+  NeomakeSh! sh -c 'echo 1; printf 2; sleep 0.1; echo -n 3'
+  if neomake#has_async_support()
+    for i in range(0, 10)
+      if len(g:neomake_test_countschanged) == 1
+        AssertEqual map(copy(getqflist()), 'v:val.text'), ['1'],
+        \ "only the first line should be there (buffer_output=0)"
+        break
+      endif
+      sleep 50m
+    endfor
+    AssertNotEqual i, 10, "counts should have changed after 500ms"
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['1', '23']
+  AssertEqual len(g:neomake_test_countschanged), 2
+
+Execute (NeomakeSh: buffers output):
+  call g:NeomakeSetupAutocmdWrappers()
+  NeomakeSh sh -c 'echo 1; printf 2; sleep 0.1; echo -n 3'
+  if neomake#has_async_support()
+    for i in range(0, 10)
+      if len(g:neomake_test_countschanged)
+        break
+      endif
+      sleep 50m
+    endfor
+    AssertNotEqual i, 10, "counts should have changed after 500ms"
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['1', '23']
+  AssertEqual len(g:neomake_test_countschanged), 1
+
+Execute (NeomakeSh: project: handle removed window on exit (quit)):
+  call g:NeomakeSetupAutocmdWrappers()
+  new
+  let bufnr = bufnr('%')
+  NeomakeSh sh -c 'sleep 0.1; echo finished'
+  quit
+  if neomake#has_async_support()
+    AssertEqual len(g:neomake_test_finished), 0
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
+  AssertEqual g:neomake_test_finished, [{'file_mode': 0}]
+  AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
+
+Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
+  call g:NeomakeSetupAutocmdWrappers()
+  new
+  let bufnr = bufnr('%')
+  NeomakeSh sh -c 'sleep 0.1; echo finished'
+  bwipe
+  Assert bufnr != bufnr('%'), 'buffer has been wiped'
+  if neomake#has_async_support()
+    AssertEqual len(g:neomake_test_finished), 0
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
+  AssertEqual g:neomake_test_finished, [{'file_mode': 0}]
+  AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
+
+Execute (NeomakeInfo):
+  Save g:neomake_c_enabled_makers
+  let g:neomake_c_enabled_makers = ['doesnotexist']
+  let g:neomaker_not_a_setting = 1
+
+  let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+  Assert len(filter(copy(info), "v:val =~ '\\v^#+ Settings$'")), 'Settings header exists'
+  Assert index(info, "g:neomake_c_enabled_makers = ['doesnotexist']") != -1,
+  \ 'neomake_c_enabled_makers setting gets reported'
+  AssertEqual filter(copy(info), "v:val =~ 'neomaker'"), []
+
+Execute (Having an invalid &errorformat is OK):
+  Save &errorformat
+  let &efm = '%E%W'
+  NeomakeSh sh -c 'true'
+  NeomakeTestsWaitForFinishedJobs
+
+Execute (Neomake with windo):
+  if !NeomakeAsyncTestsSetup() | finish | endif
+
+  " Create a maker that generates incrementing errors.
+  let g:counter = 0
+  function! IncMaker()
+    let g:counter += 1
+    let cmd = ''
+    for i in range(g:counter)
+      let cmd .= 'echo b'.g:counter.' '.g:counter.':'.i.': buf: %; '
+    endfor
+    return ['-c', cmd]
+  endfunction
+  let inc_maker = {
+        \ 'name': 'incmaker',
+        \ 'exe': &shell,
+        \ 'args': function('IncMaker'),
+        \ 'errorformat': '%E%f %m',
+        \ }
+
+  Assert winnr() == 1, "Starting at window 1"
+  topleft new
+  file b1
+  topleft new
+  file b2
+  topleft new
+  file b3
+  AssertEqual winnr(), 1
+  windo call neomake#Make(1, [inc_maker])
+  3wincmd w
+  AssertEqual getloclist(3), []
+
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual getloclist(1), []
+  AssertEqual getloclist(2), []
+  let ll_3 = getloclist(3)[0].text
+  1wincmd w
+  let ll_1 = getloclist(1)[0].text
+  2wincmd w
+  let ll_2 = getloclist(2)[0].text
+  Assert ll_3 > ll_2, "Loclist 3 is newer than 2"
+  Assert ll_2 > ll_1, "Loclist 2 is newer than 1"
+
+  AssertEqual neomake#statusline#LoclistCounts(winbufnr(1)), {'E': 3}
+  AssertEqual neomake#statusline#LoclistCounts(winbufnr(2)), {'E': 2}
+  AssertEqual neomake#statusline#LoclistCounts(winbufnr(3)), {'E': 1}
+
+  bd b1
+  bd b2
+  bd b3
+
+Execute (NeomakeSh: two jobs after each other):
+  if !NeomakeAsyncTestsSetup() | finish | endif
+  NeomakeSh sh -c 'echo 1'
+  NeomakeSh sh -c 'echo 2'
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual len(g:neomake_test_finished), 2
+  AssertEqual sort(map(copy(getqflist()), 'v:val.text')), ['1', '2']
+  AssertEqual len(g:neomake_test_finished), 2, 'two jobs have run'
+
+Execute (Neomake#Make: two jobs after each other):
+  if !NeomakeAsyncTestsSetup() | finish | endif
+  let g:neomake_maker1_maker = {
+      \ 'name': '1',
+      \ 'exe': 'sh',
+      \ 'args': ['-c', 'echo 1'],
+      \ 'remove_invalid_entries': 0,
+      \ 'errorformat': '%m',
+      \ }
+  let g:neomake_maker2_maker = {
+      \ 'name': '2',
+      \ 'exe': 'sh',
+      \ 'args': ['-c', 'echo 2'],
+      \ 'remove_invalid_entries': 0,
+      \ 'errorformat': '%m',
+      \ }
+  let b:neomake_enabled_makers = ['maker1', 'maker2']
+  Neomake! maker1 maker2
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual sort(map(copy(getqflist()), 'v:val.text')), ['1', '2']
+  AssertEqual len(g:neomake_test_countschanged), 2, 'counts have changed: '.len(g:neomake_test_countschanged)
+  AssertEqual len(g:neomake_test_finished), 1
+
+Execute (Neomake: non-existing and proper job):
+  if !NeomakeAsyncTestsSetup() | finish | endif
+
+" TODO: Trigger failed job (but raising an exception) with Vim.
+" Should find a way to trigger a "failed" job by itself!
+"   Save g:neomake_extend_job_opts_vim
+"   let g:neomake_extend_job_opts_vim = {
+"             \ 'in_io': 'file',
+"             \ 'in_name': '/doesnotexist',
+"             \ }
+
+  let g:neomake_maker1_maker = {
+      \ 'name': '1',
+      \ 'exe': 'doesnotexist',
+      \ 'args': [],
+      \ 'remove_invalid_entries': 0,
+      \ 'errorformat': '%m',
+      \ }
+  let g:neomake_maker2_maker = neomake#utils#MakerFromCommand('echo 1')
+  let b:neomake_enabled_makers = ['maker1', 'maker2']
+  Neomake! maker1 maker2
+  NeomakeTestsWaitForFinishedJobs
+  let expected_counts_changed = 1
+  if has('nvim')
+    AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
+      \ ['1'])
+  else
+    " XXX: Vim puts the job's error on stdout.
+    let expected_counts_changed = 2
+    AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
+      \ ['1', 'executing job failed: No such file or directory'])
+  endif
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_countschanged), expected_counts_changed,
+    \ 'counts have changed'
+
+Execute (Neomake: remove_invalid_entries):
+  let maker = neomake#utils#MakerFromCommand('echo invalid; echo "E: valid"')
+  call extend(maker, {
+      \ 'name': 'custom_maker',
+      \ 'remove_invalid_entries': 1,
+      \ 'errorformat': 'E: %m',
+      \ 'append_file': 0,
+      \ })
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage "Removing invalid entry: invalid ({'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'maker_name': 'custom_maker', 'pattern': ''})"
+  " XXX: the setloclist() makes the entry invalid?!
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'valid'}]
+
+Execute (Neomake: append_file from settings):
+  set ft=myft
+  let maker = {
+      \ 'exe': 'echo',
+      \ 'args': ['output'],
+      \ 'name': 'custom_maker',
+      \ 'errorformat': '%m',
+      \ }
+  call neomake#Make(1, [maker])
+  let bufname = expand('%:p')
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output '.bufname}]
+
+  let g:neomake_myft_custom_maker_maker = copy(maker)
+  let g:neomake_myft_custom_maker_append_file = 0
+  RunNeomake custom_maker
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output'}]
+  let g:neomake_myft_custom_maker_append_file = 1
+  RunNeomake custom_maker
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output '.bufname}]
+
+  let maker.append_file = 0
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output '.bufname}]
+
+  unlet g:neomake_myft_custom_maker_append_file
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output'}]

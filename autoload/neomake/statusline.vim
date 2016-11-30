@@ -1,39 +1,69 @@
+let s:qflist_counts = {}
+let s:loclist_counts = {}
 
 function! s:setCount(counts, item, buf) abort
     let type = toupper(a:item.type)
     if len(type) && (!a:buf || a:item.bufnr ==# a:buf)
         let a:counts[type] = get(a:counts, type, 0) + 1
+        return 1
     endif
+    return 0
+endfunction
+
+function! neomake#statusline#ResetCountsForBuf(...) abort
+    let bufnr = a:0 ? a:1 : bufnr('%')
+    let r = (get(s:loclist_counts, bufnr, {}) != {})
+    let s:loclist_counts[bufnr] = {}
+    if r
+        call neomake#utils#hook('NeomakeCountsChanged', {
+                    \ 'file_mode': 1,
+                    \ 'bufnr': bufnr})
+    endif
+    return r
+endfunction
+
+function! neomake#statusline#ResetCountsForProject(...) abort
+    let r = s:qflist_counts != {}
+    let s:qflist_counts = {}
+    if r
+        call neomake#utils#hook('NeomakeCountsChanged', {
+                    \ 'file_mode': 0,
+                    \ 'bufnr': bufnr('%')})
+    endif
+    return r
 endfunction
 
 function! neomake#statusline#ResetCounts() abort
-    let s:qflist_counts = {}
+    let r = neomake#statusline#ResetCountsForProject()
+    for bufnr in keys(s:loclist_counts)
+        let r = neomake#statusline#ResetCountsForBuf(bufnr) || r
+    endfor
     let s:loclist_counts = {}
+    return r
 endfunction
-call neomake#statusline#ResetCounts()
 
-function! neomake#statusline#AddLoclistCount(win, buf, item) abort
-    let s:loclist_counts[a:win] = get(s:loclist_counts, a:win, {})
-    let s:loclist_counts[a:win][a:buf] = get(s:loclist_counts[a:win], a:buf, {})
-    call s:setCount(s:loclist_counts[a:win][a:buf], a:item, a:buf)
+function! neomake#statusline#AddLoclistCount(buf, item) abort
+    let s:loclist_counts[a:buf] = get(s:loclist_counts, a:buf, {})
+    return s:setCount(s:loclist_counts[a:buf], a:item, a:buf)
 endfunction
 
 function! neomake#statusline#AddQflistCount(item) abort
-    call s:setCount(s:qflist_counts, a:item, 0)
+    return s:setCount(s:qflist_counts, a:item, 0)
 endfunction
 
-function! neomake#statusline#LoclistCounts() abort
-    let win = winnr()
-    let buf = bufnr('%')
-    let s:loclist_counts[win] = get(s:loclist_counts, win, {})
-    return get(s:loclist_counts[win], buf, {})
+function! neomake#statusline#LoclistCounts(...) abort
+    let buf = a:0 ? a:1 : bufnr('%')
+    if buf is# 'all'
+        return s:loclist_counts
+    endif
+    return get(s:loclist_counts, buf, {})
 endfunction
 
 function! neomake#statusline#QflistCounts() abort
     return s:qflist_counts
 endfunction
 
-function! s:showErrWarning(counts, prefix)
+function! s:showErrWarning(counts, prefix) abort
     let w = get(a:counts, 'W', 0)
     let e = get(a:counts, 'E', 0)
     if w || e

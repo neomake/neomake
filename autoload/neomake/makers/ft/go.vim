@@ -4,13 +4,19 @@ function! neomake#makers#ft#go#EnabledMakers()
     return ['go', 'golint', 'govet']
 endfunction
 
+" The mapexprs in these are needed because cwd will make the command print out
+" the wrong path (it will just be ./%:h in the output), so the mapexpr turns
+" that back into the relative path
+
 function! neomake#makers#ft#go#go()
     return {
         \ 'args': [
-            \ 'build',
-            \ '-o', neomake#utils#DevNull()
+            \ 'test', '-c',
+            \ '-o', neomake#utils#DevNull(),
         \ ],
         \ 'append_file': 0,
+        \ 'cwd': '%:h',
+        \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
         \ 'errorformat':
             \ '%W%f:%l: warning: %m,' .
             \ '%E%f:%l:%c:%m,' .
@@ -23,7 +29,7 @@ endfunction
 function! neomake#makers#ft#go#golint()
     return {
         \ 'errorformat':
-            \ '%f:%l:%c: %m,' .
+            \ '%W%f:%l:%c: %m,' .
             \ '%-G%.%#'
         \ }
 endfunction
@@ -33,6 +39,8 @@ function! neomake#makers#ft#go#govet()
         \ 'exe': 'go',
         \ 'args': ['vet'],
         \ 'append_file': 0,
+        \ 'cwd': '%:h',
+        \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
         \ 'errorformat':
             \ '%Evet: %.%\+: %f:%l:%c: %m,' .
             \ '%W%f:%l: %m,' .

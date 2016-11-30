@@ -1,0 +1,52 @@
+Include: include/setup.vader
+
+Execute (shellcheck):
+  " Unless -s is specified, shellcheck checks shebangs on its own and issues a
+  " warning for unsupported dialects.
+  call setline(1, '#!/bin/sh')
+  AssertEqual ['-fgcc'], neomake#makers#ft#sh#shellcheck().args
+  call setline(1, '#!/bin/dash')
+  AssertEqual ['-fgcc'], neomake#makers#ft#sh#shellcheck().args
+  call setline(1, '#!/bin/bash')
+  AssertEqual ['-fgcc'], neomake#makers#ft#sh#shellcheck().args
+  call setline(1, '#!/bin/ksh')
+  AssertEqual ['-fgcc'], neomake#makers#ft#sh#shellcheck().args
+  call setline(1, '') " reset shebang for next tests
+
+  " If extension is .ksh, force 'ksh'.
+  silent file test.ksh
+  AssertEqual ['-fgcc', '-s', 'ksh'], neomake#makers#ft#sh#shellcheck().args
+
+  " If extension is .sh, use variables to detect the dialect. (:h ft-sh-syntax)
+  silent file test.sh
+  let g:is_sh = 1
+  AssertEqual ['-fgcc', '-s', 'sh'], neomake#makers#ft#sh#shellcheck().args
+  unlet g:is_sh
+  let g:is_kornshell = 1
+  AssertEqual ['-fgcc', '-s', 'ksh'], neomake#makers#ft#sh#shellcheck().args
+  unlet g:is_kornshell
+  let g:is_posix = 1
+  AssertEqual ['-fgcc', '-s', 'ksh'], neomake#makers#ft#sh#shellcheck().args
+  unlet g:is_posix
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+
+  " Use 'bash' for everything else.
+  call setline(1, '#!/usr/bin/env foo')
+  silent file foo
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+  silent file foo.bash
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+  silent file foo.xxx
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+  let g:is_sh = 1
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+  unlet g:is_sh
+  let g:is_kornshell = 1
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+  unlet g:is_kornshell
+
+  " The following should never happen in practice.
+  set ft=
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
+  set ft=nadda
+  AssertEqual ['-fgcc', '-s', 'bash'], neomake#makers#ft#sh#shellcheck().args

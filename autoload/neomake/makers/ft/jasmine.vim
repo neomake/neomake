@@ -16,6 +16,10 @@ function! neomake#makers#ft#jasmine#eslint()
     return neomake#makers#ft#javascript#eslint()
 endfunction
 
+function! neomake#makers#ft#jasmine#eslint_d()
+    return neomake#makers#ft#javascript#eslint_d()
+endfunction
+
 function! neomake#makers#ft#jasmine#jscs()
     return neomake#makers#ft#javascript#jscs()
 endfunction

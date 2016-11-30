@@ -1,10 +1,7 @@
 " vim: ts=4 sw=4 et
 function! neomake#makers#ft#scala#EnabledMakers()
     " use let g:neomake_scala_enabled_makers = ['fsc','scalastyle'] for fsc
-    let makers = ['scalac']
-    if neomake#utils#Exists('scalastyle')
-        call add(makers, 'scalastyle')
-    endif
+    let makers = ['scalac', 'scalastyle']
     return makers
 endfunction
 

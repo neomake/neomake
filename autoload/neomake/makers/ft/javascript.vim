@@ -14,7 +14,7 @@ endfunction
 function! neomake#makers#ft#javascript#jscs()
     return {
         \ 'args': ['--no-colors', '--reporter', 'inline'],
-        \ 'errorformat': '%f: line %l\, col %c\, %m',
+        \ 'errorformat': '%E%f: line %l\, col %c\, %m',
         \ }
 endfunction
 
@@ -36,7 +36,13 @@ endfunction
 
 function! neomake#makers#ft#javascript#standard()
     return {
-        \ 'errorformat': '  %f:%l:%c: %m'
+        \ 'errorformat': '%W  %f:%l:%c: %m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#javascript#semistandard()
+    return {
+        \ 'errorformat': '%W  %f:%l:%c: %m'
         \ }
 endfunction
 
@@ -44,8 +50,16 @@ function! neomake#makers#ft#javascript#flow()
     " Replace "\n" by space.
     let mapexpr = 'substitute(v:val, "\\\\n", " ", "g")'
     return {
-        \ 'args': ['check', '--old-output-format'],
-        \ 'errorformat': '%f:%l:%c\,%n: %m',
+        \ 'args': ['--old-output-format'],
+        \ 'errorformat': '%E%f:%l:%c\,%n: %m',
         \ 'mapexpr': mapexpr,
+        \ }
+endfunction
+
+function! neomake#makers#ft#javascript#xo()
+    return {
+        \ 'args': ['--compact'],
+        \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
+        \ '%W%f: line %l\, col %c\, Warning - %m',
         \ }
 endfunction

@@ -10,6 +10,6 @@ function! neomake#makers#ft#json#jsonlint()
             \ '%Z\\s%#Reason: %m,'.
             \ '%C%.%#,'.
             \ '%f: line %l\, col %c\, %m,'.
-	    	\ '%-G%.%#'
+            \ '%-G%.%#'
         \ }
 endfunction

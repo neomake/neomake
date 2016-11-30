@@ -1,0 +1,124 @@
+Include: include/setup.vader
+
+" XXX: needs to come first / early for now.
+Include (Integration tests): integration.vader
+
+~ Features
+Include (Lists): lists.vader
+Include (Makers): makers.vader
+Include (Mapexpr): mapexpr.vader
+Include (Signs): signs.vader
+Include (Statusline): statusline.vader
+Include (Utils): utils.vader
+
+
+~ Filetype specific
+Include (Haskell): ft_haskell.vader
+Include (Shell): ft_sh.vader
+
+
+* Old/unorganized tests
+Execute (neomake#GetMakers):
+  AssertEqual neomake#GetMakers('non-existent'), []
+  AssertEqual neomake#GetMakers('pug'), ['puglint']
+  AssertEqual sort(neomake#GetMakers('sh')), ['checkbashisms', 'sh', 'shellcheck']
+
+Execute (neomake#GetMaker with non-existent maker prints errors):
+  AssertEqual neomake#GetMaker('non-existent'), {}
+  AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent', {}]
+  AssertEqual neomake#GetMaker('nonexistent'), {}
+  AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent', {}]
+
+Execute (neomake#GetMaker: uses defined errorformat):
+  let maker = neomake#GetMaker('makeprg', '')
+  AssertEqual maker, {'name': 'makeprg', 'ft': '', 'args': ['-c', 'make'],
+    \ 'errorformat': &errorformat,
+    \ 'exe': &shell, 'remove_invalid_entries': 0, 'buffer_output': 1}
+
+Execute (neomake#GetMaker uses defaults from b:/g:):
+  Save g:neomake_test_remove_invalid_entries
+
+  let maker = {'name': 'test'}
+
+  " Default.
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
+
+  let maker.remove_invalid_entries = 1
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
+  let g:neomake_test_remove_invalid_entries = 2
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 2
+  let b:neomake_test_remove_invalid_entries = 3
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 3
+
+Execute (neomake#Make in file mode with no filetype and no makers):
+  AssertEqual &ft, ''
+  AssertEqual neomake#Make(1, []), []
+  AssertEqual g:neomake_test_messages[-1], [3, 'Nothing to make: no enabled makers.', {}]
+
+Execute (neomake#Make in project mode with no filetype and no makers):
+  Save makeprg
+  let &makeprg = 'sh -c "sleep 0.1"'
+  let job_ids = neomake#Make(0, [])
+  if neomake#has_async_support()
+    AssertEqual len(job_ids), 1
+    let jobs = neomake#GetJobs()
+    AssertEqual len(jobs), 1
+    let [job_id, job] = items(jobs)[0]
+    AssertEqual job.maker.name, 'makeprg'
+  else
+    AssertEqual len(job_ids), 0
+  endif
+
+  NeomakeTestsWaitForFinishedJobs
+
+Execute (neomake#GetMaker from g:neomake_foo_maker):
+  let g:neomake_custom_maker = {
+    \ 'exe': 'my-exe'
+    \ }
+  let maker = neomake#GetMaker('custom')
+  AssertEqual maker.exe, 'my-exe'
+  AssertEqual maker.name, 'custom'
+
+Execute (neomake#GetMaker without name):
+  let maker = neomake#GetMaker({})
+  AssertEqual maker.exe, 'unnamed_maker'
+  AssertEqual maker.name, 'unnamed_maker'
+
+Execute (neomake#CancelJob):
+  if neomake#has_async_support()
+    let job_id = neomake#Sh("sh -c 'while true; do sleep 0.1; done'")
+    AssertEqual neomake#CancelJob(job_id), 1
+    AssertNeomakeMessage 'Stopping job: '.job_id
+
+    AssertEqual neomake#CancelJob(job_id), 0
+
+    NeomakeTestsWaitForFinishedJobs
+    let msg_count = len(g:neomake_test_messages)
+    AssertEqual neomake#CancelJob(job_id), 0
+    AssertEqual msg_count, len(g:neomake_test_messages), "msg_count: ".msg_count
+  endif
+
+Execute (Reports exit status: 7):
+  let job_id = neomake#Sh("sh -c 'exit 7'")
+  let exit_msg = 'sh: sh -c ''exit 7'': completed with exit code 7.'
+  if neomake#has_async_support()
+    let jobinfo = neomake#GetJobs()[job_id]
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3, jobinfo
+    AssertNeomakeMessage exit_msg, 3, jobinfo
+  else
+    " XXX: jobinfo gets used in messages, but is hard to get here, so we do not
+    "      compare it.
+    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3
+    AssertThrows AssertNeomakeMessage exit_msg, 3
+    AssertEqual g:vader_exception, 'Vim(call):E121: Undefined variable: exit_msg'
+  endif
+
+Execute (neomake#Sh: job_id):
+  let job_id = neomake#Sh('true')
+  if neomake#has_async_support()
+    Assert job_id >= 0, 'Correct job_id for async.'
+    NeomakeTestsWaitForFinishedJobs
+  else
+    Assert job_id == -1, 'Correct job_id for sync.'
+  endif

@@ -1,19 +1,82 @@
+sudo: true
+services:
+  - docker
+
 language: python
+python:
+  - "3.5"
+
+branches:
+  only:
+    - master
 
 cache:
   pip: true
-  directories:
-    - /tmp/vimlint
-    - /tmp/vimlparser
-    - /tmp/vint
+before_cache:
+  # Remove pip's debug log, which is there already with Travis' base image.
+  - rm -f $HOME/.cache/pip/log/debug.log
 
-# Don't reinstall dependencies if they have been cached
+env:
+  matrix:
+    - ENV=testnvim
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-trusty
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-xenial
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8000
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
+    - ENV=vint-diff
+    - ENV=vint-errors
+    - ENV=vimlint-errors
+    - ENV=testvim
+    - ENV=vint
+    - ENV=vimlint
+    - ENV=docker_vimhelplint
+
+matrix:
+  allow_failures:
+    - env: ENV=vimlint
+    - env: ENV=vint
+  fast_finish: true
+
 install:
-  - '[ -d /tmp/vimlint ] || git clone https://github.com/syngan/vim-vimlint /tmp/vimlint'
-  - '[ -d /tmp/vimlparser ] || git clone https://github.com/ynkdir/vim-vimlparser /tmp/vimlparser'
-  - '[ -d /tmp/vint/bin ] || virtualenv /tmp/vint && source /tmp/vint/bin/activate'
-  - 'vint --version || pip install vim-vint'
+  - |
+    if [ "$ENV" = "vint-diff" ]; then
+      # Run full vint against changed files.
+      echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
+      export CHANGED_VIM_FILES="$(git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep '\.vim$')"
+      if [ -z "$CHANGED_VIM_FILES" ]; then
+        SKIP_BUILD_REASON="vint-diff: No changed .vim files."
+      fi
+    elif [ "$ENV" = "docker_vimhelplint" ]; then
+      echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
+      if git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
+        SKIP_BUILD_REASON="docker_vimhelplint: No changed doc files."
+      fi
+    elif [ "$ENV" = "testnvim" ]; then
+      eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
+    fi
+
+    if [ "${ENV#vint}" != "$ENV" ]; then
+      pip install -U pip
+      pip install -U wheel
+    fi
 
 script:
-  - sh /tmp/vimlint/bin/vimlint.sh -l /tmp/vimlint -p /tmp/vimlparser -v $TRAVIS_BUILD_DIR
-  - vint --error $TRAVIS_BUILD_DIR
+  - |
+    if [ -n "$SKIP_BUILD_REASON" ]; then
+      echo "Skipping job: $SKIP_BUILD_REASON"
+    elif [ "$ENV" = "vint-diff" ]; then
+      if [ -n "$CHANGED_VIM_FILES" ]; then
+        vint $CHANGED_VIM_FILES | grep -v '^autoload/neomake/makers/.*Use the abort attribute for functions in autoload'
+        if [ "$?" != 1 ]; then
+          echo "vint-diff found errors."
+          exit 1
+        fi
+      fi
+    else
+      if [[ "$ENV" = "testvim" ]]; then
+        vim --version
+      fi
+      make $ENV $MAKE_ARGS
+    fi

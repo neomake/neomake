@@ -1,0 +1,173 @@
+" Setup and helpers for all tests.
+
+Before:
+  if exists(':NeomakeTestsWaitForFinishedJobs') == 2
+    finish
+  endif
+  function! s:wait_for_finished_jobs()
+    let max = 60
+    let filter = "!get(v:val, 'finished')"
+    while len(filter(copy(neomake#GetJobs()), filter))
+      let max -= 1
+      sleep 50m
+      if max == 0
+        let jobs = neomake#GetJobs()
+        throw "Jobs did not finish after 3s: ".string(jobs)
+      endif
+    endwhile
+  endfunction
+  command! NeomakeTestsWaitForFinishedJobs call s:wait_for_finished_jobs()
+
+  command! -nargs=* RunNeomake Neomake <args>
+    \ | NeomakeTestsWaitForFinishedJobs
+  command! -nargs=* RunNeomakeProject NeomakeProject <args>
+    \ | NeomakeTestsWaitForFinishedJobs
+
+  " NOTE: NeomakeSh does not use '-bar'.
+  command! -nargs=* RunNeomakeSh call RunNeomakeSh(<q-args>)
+  function! RunNeomakeSh(...)
+    call call('neomake#Sh', a:000)
+    NeomakeTestsWaitForFinishedJobs
+  endfunction
+
+  let s:tempname = tempname()
+
+  function! g:NeomakeTestsEnsureExe(name)
+    if executable(a:name)
+      return
+    endif
+    let path_separator = exists('+shellslash') ? ';' : ':'
+    let dir_separator = exists('+shellslash') ? '\' : '/'
+    let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
+    if $PATH !~# tmpbindir . path_separator
+      call mkdir(tmpbindir, 'p', 0770)
+      let $PATH = tmpbindir . ':' . $PATH
+    endif
+    let exe = tmpbindir.dir_separator.a:name
+    if !filereadable(exe)
+      " XXX: this is dirty (for 'Test Neomake on errors.sh with two makers').
+      if a:name == 'shellcheck'
+        call writefile(['#!/bin/sh', 'echo $1:1:1: warning: this is just a stub'], exe)
+      else
+        call writefile([], exe)
+      endif
+      if exists('*setfperm')
+        call setfperm(exe, "rwxrwx---")
+      else
+        " XXX: Windows support
+        call system('chmod 770 '.shellescape(exe))
+      endif
+    endif
+  endfunction
+
+  function! s:AssertNeomakeMessage(msg, ...)
+    let level = a:0 ? a:1 : -1
+    let jobinfo = a:0 > 1 ? copy(a:2) : -1
+    let found_but_before = 0
+    let found_but_other_level = -1
+    let r = 0
+    let idx = -1
+    for [l, m, info] in g:neomake_test_messages
+      let idx += 1
+      if m ==# a:msg
+        if level == -1
+          let r = 1
+        else
+          if l == level
+            let r = 1
+          else
+            let found_but_other_level = l
+          endif
+        endif
+      endif
+      if r
+        if idx > g:neomake_test_messages_last_idx
+          break
+        endif
+        let found_but_before = 1
+        let r = 0
+      endif
+    endfor
+    if r == 1
+      if type(jobinfo) == type({})
+        " Only compare entries relevant for messages.
+        call filter(jobinfo, "index(['id', 'make_id'], v:key) != -1")
+        let l:UNDEF = {}
+        for [k, v] in items(info)
+          let expected = get(jobinfo, k, l:UNDEF)
+          if expected is l:UNDEF
+            throw printf("[%s] Missing value for jobinfo.%s: "
+                \  ."expected nothing, but got '%s'.", a:msg, k, string(v))
+          else
+            try
+              let same = (v ==# expected)
+            catch
+              throw printf(
+                \ "Could not compare jobinfo entries (expected: %s, actual: %s): %s",
+                \ string(expected), string(v), v:exception)
+            endtry
+            if !same
+              throw printf("Got unexpected value for jobinfo.%s: "
+                \  ."expected '%s', but got '%s'.", k, string(expected), string(v))
+            endif
+          endif
+          unlet jobinfo[k]
+          unlet v  " for old Vim
+        endfor
+        for [k, expected] in items(jobinfo)
+          throw printf("[%s] Missing entry for jobinfo.%s: "
+            \  ."expected '%s', but got nothing.", a:msg, k, string(expected))
+
+        endfor
+      endif
+      let g:neomake_test_messages_last_idx = idx
+      return 1
+    endif
+    if found_but_other_level != -1
+      throw "Message '".a:msg."' found, but for level ".found_but_other_level
+    endif
+    if found_but_before
+      throw "Message '".a:msg."' was found _before_ last asserted one."
+    endif
+    throw "Message '".a:msg."' not found."
+  endfunction
+  command! -nargs=+ AssertNeomakeMessage call s:AssertNeomakeMessage(<args>)
+
+  function! g:NeomakeSetupAutocmdWrappers()
+    let g:neomake_test_finished = []
+    function! s:OnNeomakeFinished(context)
+      let g:neomake_test_finished += [a:context]
+    endfunction
+
+    let g:neomake_test_countschanged = []
+    function! s:OnNeomakeCountsChanged(context)
+      let g:neomake_test_countschanged += [a:context]
+    endfunction
+
+    augroup neomake_tests
+      au!
+      au User NeomakeFinished call s:OnNeomakeFinished(g:neomake_hook_context)
+      au User NeomakeCountsChanged call s:OnNeomakeCountsChanged(g:neomake_hook_context)
+    augroup END
+  endfunction
+
+  function! NeomakeAsyncTestsSetup()
+    if neomake#has_async_support()
+      call g:NeomakeSetupAutocmdWrappers()
+      return 1
+    endif
+    Log "SKIP: no async support."
+  endfunction
+
+  let g:neomake_test_messages = []
+  let g:neomake_test_messages_last_idx = -1
+
+After:
+  Restore
+  let jobs = copy(neomake#GetJobs())
+  if len(jobs)
+    for job_id in keys(jobs)
+      call neomake#CancelJob(job_id)
+    endfor
+    throw 'There were '.len(jobs).' jobs left: '.string(jobs)
+  endif
