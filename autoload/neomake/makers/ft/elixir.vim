@@ -1,10 +1,10 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#elixir#EnabledMakers()
+function! neomake#makers#ft#elixir#EnabledMakers() abort
     return ['mix']
 endfunction
 
-function! neomake#makers#ft#elixir#elixir()
+function! neomake#makers#ft#elixir#elixir() abort
     return {
         \ 'errorformat':
             \ '%E** %s %f:%l: %m,' .
@@ -12,7 +12,7 @@ function! neomake#makers#ft#elixir#elixir()
         \ }
 endfunction
 
-function! neomake#makers#ft#elixir#credo()
+function! neomake#makers#ft#elixir#credo() abort
     return {
       \ 'exe': 'mix',
       \ 'args': ['credo', 'list', '%:p', '--format=oneline', '-i', 'readability'],
@@ -20,7 +20,7 @@ function! neomake#makers#ft#elixir#credo()
       \ }
 endfunction
 
-function neomake#makers#ft#elixir#mix()
+function neomake#makers#ft#elixir#mix() abort
     return {
       \ 'exe' : 'mix',
       \ 'args': ['compile', '--warnings-as-errors'],
@@ -31,7 +31,7 @@ function neomake#makers#ft#elixir#mix()
       \ }
 endfunction
 
-function! neomake#makers#ft#elixir#dogma()
+function! neomake#makers#ft#elixir#dogma() abort
     return {
       \ 'exe': 'mix',
       \ 'args': ['dogma', '%:p', '--format=flycheck'],
