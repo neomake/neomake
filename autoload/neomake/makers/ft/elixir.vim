@@ -20,7 +20,7 @@ function! neomake#makers#ft#elixir#credo() abort
       \ }
 endfunction
 
-function neomake#makers#ft#elixir#mix() abort
+function! neomake#makers#ft#elixir#mix() abort
     return {
       \ 'exe' : 'mix',
       \ 'args': ['compile', '--warnings-as-errors'],
