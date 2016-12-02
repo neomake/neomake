@@ -6,6 +6,7 @@ endfunction
 function! neomake#makers#ft#erlang#erlc()
     return {
         \ 'errorformat':
-            \ '%f:%l: %m'
+            \ '%W%f:%l: Warning: %m,' .
+            \ '%E%f:%l: %m'
         \ }
 endfunction
