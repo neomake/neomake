@@ -147,7 +147,6 @@ function! neomake#makers#ft#python#PylamaEntryProcess(entry) abort
     elseif a:entry.type ==# 'R'  " Radon
         let a:entry.type = 'W'
     endif
-    return a:entry
 endfunction
 
 function! neomake#makers#ft#python#pylama() abort
