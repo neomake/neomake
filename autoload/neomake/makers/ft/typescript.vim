@@ -24,6 +24,6 @@ function! neomake#makers#ft#typescript#tslint() abort
         \ 'args': [
             \ '%:p', '--format verbose'
         \ ],
-        \ 'errorformat': '%f[%l\, %c]: %m'
+        \ 'errorformat': '%E%f[%l\, %c]: %m'
         \ }
 endfunction
