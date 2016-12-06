@@ -122,3 +122,13 @@ Execute (neomake#Sh: job_id):
   else
     Assert job_id == -1, 'Correct job_id for sync.'
   endif
+
+" NOTE: try/catch test, causing problems on vim8000.
+Execute (neomake#Make handles invalid cwd):
+  let maker = {
+      \ 'name': 'custom_maker',
+      \ 'cwd': '/doesnotexist',
+      \ }
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath", 0

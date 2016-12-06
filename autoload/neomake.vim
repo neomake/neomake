@@ -133,7 +133,14 @@ function! s:MakeJob(make_id, maker) abort
     if has_key(a:maker, 'cwd')
         let old_wd = getcwd()
         let cwd = expand(a:maker.cwd, 1)
-        exe 'cd' fnameescape(cwd)
+        try
+            exe 'cd' fnameescape(cwd)
+        catch /^Vim\%((\a\+)\)\=:E344/
+            call neomake#utils#ErrorMessage(
+                        \ a:maker.name.": could not change to maker's cwd (".cwd.'): '
+                        \ .v:exception, jobinfo)
+            return -1
+        endtry
     endif
 
     try
