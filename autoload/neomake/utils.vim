@@ -220,7 +220,8 @@ endfunction
 
 " Get a setting by key, based on filetypes, from the buffer or global
 " namespace, defaulting to default.
-function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
+function! neomake#utils#GetSetting(key, maker, default, fts, bufnr, ...) abort
+  let expected_type = a:0 ? a:1 : -1
   let maker_name = has_key(a:maker, 'name') ? '_'.a:maker.name : ''
   if len(a:fts)
     for ft in a:fts
@@ -240,22 +241,36 @@ function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
 
   if exists('config_var')
     if !empty(getbufvar(a:bufnr, config_var))
-      return copy(getbufvar(a:bufnr, config_var))
+      let R = copy(getbufvar(a:bufnr, config_var))
     elseif has_key(g:, config_var)
-      return copy(get(g:, config_var))
+      let R = copy(get(g:, config_var))
     endif
   endif
-  if has_key(a:maker, a:key)
-    return a:maker[a:key]
+  if !exists('R')
+    if has_key(a:maker, a:key)
+      let R = a:maker[a:key]
+    else
+      " Look for 'neomake_'.key in the buffer and global namespace.
+      let bufvar = getbufvar(a:bufnr, 'neomake_'.a:key)
+      if !empty(bufvar)
+        let R = bufvar
+      else
+        let var = get(g:, 'neomake_'.a:key)
+        if !empty(var)
+          let R = var
+        endif
+      endif
+    endif
   endif
-  " Look for 'neomake_'.key in the buffer and global namespace.
-  let bufvar = getbufvar(a:bufnr, 'neomake_'.a:key)
-  if !empty(bufvar)
-      return bufvar
-  endif
-  let var = get(g:, 'neomake_'.a:key)
-  if !empty(var)
-      return var
+  if exists('R')
+    if expected_type > -1
+      let t = type(R)
+      if t !=# 2 && t !=# expected_type
+        throw 'Invalid type for setting '.a:key.': expected type '
+                    \ .expected_type.', but got '.t.': '.string(R).'.'
+      endif
+    endif
+    return R
   endif
   return a:default
 endfunction
@@ -341,4 +356,21 @@ function! neomake#utils#hook(event, context) abort
         endif
         unlet g:neomake_hook_context
     endif
+endfunction
+
+" Get file extension(s) for a given filetype.
+function! neomake#utils#GetGlobForFiletypeMaker(maker, ft) abort
+    let UNSET = []
+    let setting = neomake#utils#GetSetting('projectglob', a:maker, UNSET, [a:ft], bufnr('%'), type([]))
+    if setting != UNSET
+        return setting
+    endif
+    " Incomplete!  Right approach?!
+    let ext_by_ft = {
+                \ 'cpp': ['c', 'h'],
+                \ 'python': ['py'],
+                \ 'javascript': ['js'],
+                \ }
+    let exts = has_key(ext_by_ft, a:ft) ? ext_by_ft[a:ft] : [a:ft]
+    return map(copy(exts), "'**/*.'.v:val")
 endfunction

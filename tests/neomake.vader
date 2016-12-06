@@ -30,9 +30,11 @@ Execute (neomake#GetMaker with non-existent maker prints errors):
   AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent', {}]
 
 Execute (neomake#GetMaker: uses defined errorformat):
+  Save errorformat
+  let &errorformat = '%G'
   let maker = neomake#GetMaker('makeprg', '')
   AssertEqual maker, {'name': 'makeprg', 'ft': '', 'args': ['-c', 'make'],
-    \ 'errorformat': &errorformat,
+    \ 'errorformat': '%G',
     \ 'exe': &shell, 'remove_invalid_entries': 0, 'buffer_output': 1}
 
 Execute (neomake#GetMaker uses defaults from b:/g:):
@@ -49,6 +51,60 @@ Execute (neomake#GetMaker uses defaults from b:/g:):
   AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 2
   let b:neomake_test_remove_invalid_entries = 3
   AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 3
+
+Execute (neomake#GetMaker in project mode uses ft makers):
+  if !isdirectory('build/tests/vim-project/subdir', )
+    call mkdir('build/tests/vim-project/subdir', 'p')
+  endif
+  try
+    cd build/tests/vim-project
+    write! foobar.vim
+    write! foobar2.vim
+    write! subdir/test.sh
+    let vint_maker = neomake#GetMaker('vint', 'vim', 0)
+    let sh_maker = neomake#GetMaker('sh', 'sh', 0)
+  finally
+    cd -
+  endtry
+
+  AssertEqual vint_maker.append_file, 0, 'append_file is 0'
+  AssertEqual vint_maker.args[-2:-1], ['foobar.vim', 'foobar2.vim']
+
+  AssertEqual sh_maker.append_file, 0, 'append_file is 0'
+  AssertEqual sh_maker.args, ['-n', 'subdir/test.sh']
+
+Execute (neomake#GetMaker: project: respects append_file):
+  if !isdirectory('build/tests/typescript-project')
+    call mkdir('build/tests/typescript-project', 'p')
+  endif
+  try
+    cd build/tests/typescript-project
+    write! foobar.typescript
+    let tsc_maker = neomake#GetMaker('tsc', 'typescript', 1)
+    let tsc_project_maker = neomake#GetMaker('tsc', 'typescript', 0)
+  finally
+    cd -
+  endtry
+  AssertEqual tsc_maker.append_file, 0, 'append_file defaults to 0'
+  AssertEqual tsc_project_maker.append_file, 0, 'append_file is 0'
+  AssertEqual tsc_project_maker.args, ['--noEmit']
+
+Execute (neomake#GetMaker: project: respects append_file setting):
+  if !isdirectory('build/tests/typescript-project')
+    call mkdir('build/tests/typescript-project', 'p')
+  endif
+  try
+    cd build/tests/typescript-project
+    write! foobar.typescript
+    let g:neomake_typescript_tsc_append_file = 1
+    let tsc_project_maker = neomake#GetMaker('tsc', 'typescript', 0)
+  finally
+    cd -
+  endtry
+  AssertEqual tsc_project_maker.append_file, 0, 'append_file is 0'
+  AssertEqual tsc_project_maker._forced_append_file, 1, '_forced_append_file'
+  AssertEqual tsc_project_maker.args, ['--noEmit', 'foobar.typescript']
+
 
 Execute (neomake#Make in file mode with no filetype and no makers):
   AssertEqual &ft, ''
@@ -76,6 +132,17 @@ Execute (neomake#GetMaker from g:neomake_foo_maker):
     \ 'exe': 'my-exe'
     \ }
   let maker = neomake#GetMaker('custom')
+  AssertEqual maker.exe, 'my-exe'
+  AssertEqual maker.name, 'custom'
+
+  let maker_2 = neomake#GetMaker('custom', '')
+  AssertEqual maker, maker_2
+
+Execute (neomake#GetMaker from g:neomake_ft_foo_maker):
+  let g:neomake_ft_custom_maker = {
+    \ 'exe': 'my-exe'
+    \ }
+  let maker = neomake#GetMaker('custom', 'ft')
   AssertEqual maker.exe, 'my-exe'
   AssertEqual maker.name, 'custom'
 

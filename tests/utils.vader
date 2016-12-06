@@ -74,6 +74,28 @@ Execute (neomake#utils#GetSetting without name):
   let neomake_myft_setting = {'custom': 1}
   AssertEqual GetSetting('setting'), {'custom': 1}
 
+Execute (neomake#utils#GetSetting: type check):
+  let g:maker = {}
+  function! GetSetting(key, type)
+    return neomake#utils#GetSetting(a:key, g:maker, [],
+                                  \ ['myft'], bufnr('%'), a:type)
+  endfunction
+
+  " Defaults are not type-checked.
+  AssertEqual GetSetting('args', type([])), []
+  AssertEqual GetSetting('args', type(0)), []
+
+  Save neomake_args
+  let neomake_args = 42
+  AssertEqual GetSetting('args', type(0)), 42
+  unlet neomake_args
+
+  let neomake_args = [1]
+  AssertThrows call GetSetting('args', type(0))
+  AssertEqual vader_exception, 'Invalid type for setting args: expected type 0, but got 3: [1].'
+
+  AssertEqual GetSetting('args', type([])), [1]
+
 Execute(neomake#utils#redir):
   command! NeomakeTestCommand echo 1 | echo 2
   command! NeomakeTestErrorCommand echoerr 'error'
@@ -114,3 +136,22 @@ Execute (Should not expand arguments that start with double %):
 Execute (neomake#utils#MakerIsAvailable):
   AssertEqual neomake#utils#MakerIsAvailable('sh', 'sh'), 1
   AssertEqual neomake#utils#MakerIsAvailable('sh', 'doesnotexist'), 0
+
+
+Execute (neomake#utils#GetGlobForFiletypeMaker):
+  AssertEqual neomake#utils#GetGlobForFiletypeMaker({}, 'python'),
+    \ ['**/*.py']
+  AssertEqual neomake#utils#GetGlobForFiletypeMaker({}, 'vim'),
+    \ ['**/*.vim']
+  AssertEqual neomake#utils#GetGlobForFiletypeMaker({}, 'cpp'),
+    \ ['**/*.c', '**/*.h']
+
+  Save g:neomake_projectglob
+  let g:neomake_projectglob = ['**/*.C']
+  AssertEqual neomake#utils#GetGlobForFiletypeMaker({}, 'cpp'),
+    \ ['**/*.C']
+
+  Save g:neomake_cpp_projectglob
+  let g:neomake_cpp_projectglob = ['**/*.c++']
+  AssertEqual neomake#utils#GetGlobForFiletypeMaker({}, 'cpp'),
+    \ ['**/*.c++']
