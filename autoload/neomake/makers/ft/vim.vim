@@ -14,7 +14,7 @@ function! neomake#makers#ft#vim#vint() abort
 
     return {
         \ 'args': l:args,
-        \ 'errorformat': '%f:%l:%c:%t%*[^:]:%m'
+        \ 'errorformat': '%I%f:%l:%c:style_problem:%m,%f:%l:%c:%t%*[^:]:%m'
         \ }
 endfunction
 
