@@ -343,6 +343,28 @@ scheme: >
 You can use `neomake#signs#DefineHighlights` to get e.g. the "bg" from
 "SignColumn".  See `neomake#signs#DefineHighlights` where this is used.
 
+*g:neomake_highlight_columns*
+This setting will tell neomake whether to highlight the columns of errors
+recognized from the |errorformat|. Defaults to 1.
+
+*g:neomake_highlight_lines*
+This setting will tell neomake whether to highlight the lines of errors
+recognized from the |errorformat|. Defaults to 0.
+
+*g:neomake_error_highlight* *g:neomake_warning_highlight*
+*g:neomake_informational_highlight* *g:neomake_message_highlight*
+These options allow you to control the appearance of the highlights by giving
+a highlight group.
+
+See the |:highlight| command to list the highlight groups available to you or
+create new ones.
+
+Neomake uses the following defaults: >
+
+     let g:neomake_error_highlight = 'Error'
+     let g:neomake_warning_highlight = 'Warning'
+     let g:neomake_message_highlight = 'Message'
+     let g:neomake_informational_highlight = 'Informational'
 
 *g:airline#extensions#neomake#enabled*
 Shows warning and error counts returned by |neomake#statusline#LoclistCounts|
