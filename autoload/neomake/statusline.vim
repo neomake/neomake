@@ -72,6 +72,9 @@ function! s:showErrWarning(counts, prefix) abort
             let result .= 'E:'.e
         endif
         if w
+            if e
+                let result .= ','
+            endif
             let result .= 'W:'.w
         endif
         return result
