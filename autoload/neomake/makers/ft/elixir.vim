@@ -7,7 +7,7 @@ endfunction
 function! neomake#makers#ft#elixir#elixir() abort
     return {
         \ 'errorformat':
-            \ '%E** %s %f:%l: %m,' .
+            \ '%E** %s %f:%l: %m,'.
             \ '%W%f:%l: warning: %m'
         \ }
 endfunction
@@ -24,9 +24,8 @@ function! neomake#makers#ft#elixir#mix() abort
     return {
       \ 'exe' : 'mix',
       \ 'args': ['compile', '--warnings-as-errors'],
-      \ 'cwd': getcwd(),
       \ 'errorformat':
-        \ '** %s %f:%l: %m,' .
+        \ '** %s %f:%l: %m,'.
         \ '%f:%l: warning: %m'
       \ }
 endfunction
