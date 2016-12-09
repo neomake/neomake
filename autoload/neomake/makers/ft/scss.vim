@@ -24,4 +24,3 @@ endfunction
 function! neomake#makers#ft#scss#stylelint() abort
     return neomake#makers#ft#css#stylelint()
 endfunction
-
