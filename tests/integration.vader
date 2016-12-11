@@ -47,13 +47,7 @@ Execute (Test Neomake on errors.sh with two makers):
 Execute (Neomake: handle result for current window):
   call g:NeomakeSetupAutocmdWrappers()
   let orig_winnr = winnr()
-  let sleep_maker = {
-      \ 'name': 'sleep_maker',
-      \ 'exe': 'sh',
-      \ 'args': ['-c', 'sleep 0.1; echo finished'],
-      \ 'remove_invalid_entries': 0,
-      \ }
-  call neomake#Make(1, [sleep_maker])
+  call neomake#Make(1, [neomake_test_sleep_maker])
   if neomake#has_async_support()
     new
     NeomakeTestsWaitForFinishedJobs
@@ -72,13 +66,7 @@ Execute (Neomake: handle output for removed window):
 
   call g:NeomakeSetupAutocmdWrappers()
   let orig_winnr = winnr()
-  let sleep_maker = {
-      \ 'name': 'sleep_maker',
-      \ 'exe': 'sh',
-      \ 'args': ['-c', 'sleep 0.1; echo finished'],
-      \ 'remove_invalid_entries': 0,
-      \ }
-  call neomake#Make(1, [sleep_maker])
+  call neomake#Make(1, [neomake_test_sleep_maker])
   let jobinfo = neomake#GetJobs()[0]
   let bufnr = bufnr('%')
   new
