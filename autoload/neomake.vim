@@ -135,7 +135,9 @@ function! s:MakeJob(make_id, maker) abort
         let cwd = expand(a:maker.cwd, 1)
         try
             exe 'cd' fnameescape(cwd)
-        catch /^Vim\%((\a\+)\)\=:E344/
+        " Tests fail with E344, but in reality it is E472?!
+        " If uncaught, both are shown.  Let's just catch every error here.
+        catch
             call neomake#utils#ErrorMessage(
                         \ a:maker.name.": could not change to maker's cwd (".cwd.'): '
                         \ .v:exception, jobinfo)
