@@ -782,6 +782,23 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
         return
     endif
 
+    " Process the window directly if we can.
+    let called_from_qf = &filetype ==# 'qf'
+    let winnr_has_jobs = index(get(w:, 'neomake_jobs', []), a:jobinfo.id) != -1
+    if called_from_qf || winnr_has_jobs
+        " Process the previous window if we are in a qf window.
+        " XXX: noautocmd, restore alt window.
+        if called_from_qf
+            wincmd p
+        endif
+        call s:ProcessJobOutput(a:jobinfo, lines, a:source)
+        call neomake#signs#PlaceVisibleSigns()
+        call neomake#highlights#ShowHighlights()
+        if called_from_qf
+            wincmd p
+        endif
+        return
+    endif
     " file mode: append lines to jobs's window's output.
     let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
     if w == -1
@@ -793,18 +810,6 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
                 \ 'jobinfo': a:jobinfo,
                 \ 'lines': lines }]
     call settabwinvar(t, w, 'neomake_jobs_output', w_output)
-
-    " Process the window on demand if we can.
-    let idx_win_job = index(get(w:, 'neomake_jobs', []), a:jobinfo.id)
-    if idx_win_job != -1
-        call neomake#ProcessCurrentWindow()
-    elseif &filetype ==# 'qf'
-        " Process the previous window if we are in a qf window.
-        " XXX: noautocmd, restore alt window.
-        wincmd p
-        call neomake#ProcessCurrentWindow()
-        wincmd p
-    endif
 endfunction
 
 function! s:vim_output_handler(type, channel, output) abort
