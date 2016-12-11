@@ -24,9 +24,9 @@ Execute (Test Neomake on errors.sh with one maker):
   endfor
 
   " Basic verification that signs are placed.
-  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_err buffer=4', 3, {}
-  AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer=4', 3, {}
-  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_err buffer=4', 3, {}
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_err buffer='.bufnr, 3, {}
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer='.bufnr, 3, {}
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_err buffer='.bufnr, 3, {}
 
   let signs = split(neomake#utils#redir('sign place'), '\n')
   call map(signs, "substitute(substitute(v:val, '\\m^\\s\\+', '', ''), '\\m\\s\\+$', '', '')")
@@ -79,6 +79,7 @@ Execute (Neomake: handle output for removed window):
   AssertNeomakeMessage 'No window found for output!', 2, jobinfo
 
 Execute (NeomakeSh: true):
+  call neomake#statusline#ResetCounts()
   call g:NeomakeSetupAutocmdWrappers()
   AssertEqual g:neomake_test_countschanged, []
   let bufnr = bufnr('%')
