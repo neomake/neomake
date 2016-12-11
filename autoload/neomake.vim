@@ -807,21 +807,48 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
     endif
 endfunction
 
+function! s:vim_output_handler(type, channel, output) abort
+    let job_id = ch_info(a:channel)['id']
+    let jobinfo = s:jobs[job_id]
+    let jobinfo['vim_in_'.a:type] = 1  " vim_in_stdout/vim_in_stderr
+    call neomake#utils#DebugMessage('MakeHandlerVim: stdout: '.a:channel.', '.string(a:output), jobinfo)
+
+    call neomake#MakeHandler(job_id, split(a:output, "\n", 1), a:type)
+
+    let jobinfo['vim_in_'.a:type] = 0  " vim_in_stdout/vim_in_stderr
+    if exists('jobinfo.vim_exited')
+        let job_info = job_info(ch_getjob(a:channel))
+        call neomake#utils#DebugMessage('MakeHandlerVim: trigger delayed exit: '
+                    \ .string(a:channel).', job_info: '.string(job_info), jobinfo)
+
+        call neomake#MakeHandler(job_id, jobinfo.vim_exited, 'exit')
+    endif
+endfunction
+
 function! neomake#MakeHandlerVimStdout(channel, output) abort
-    call neomake#utils#DebugMessage('MakeHandlerVim: stdout: ' . a:channel)
-    call neomake#MakeHandler(ch_info(a:channel)['id'], split(a:output, "\n", 1), 'stdout')
+    return s:vim_output_handler('stdout', a:channel, a:output)
 endfunction
 
 function! neomake#MakeHandlerVimStderr(channel, output) abort
-    call neomake#utils#DebugMessage('MakeHandlerVim: stderr: ' . a:channel)
-    call neomake#MakeHandler(ch_info(a:channel)['id'], split(a:output, "\n", 1), 'stderr')
+    return s:vim_output_handler('stderr', a:channel, a:output)
 endfunction
 
 function! neomake#MakeHandlerVimClose(channel) abort
     let job_info = job_info(ch_getjob(a:channel))
+    let job_id = ch_info(a:channel)['id']
+    if has_key(s:jobs, job_id)
+        let jobinfo = s:jobs[job_id]
+        if get(jobinfo, 'vim_in_stdout') || get(jobinfo, 'vim_in_stderr')
+            call neomake#utils#DebugMessage('MakeHandlerVim: exit (delayed): '
+                        \ .string(a:channel).', job_info: '.string(job_info), jobinfo)
+            let jobinfo.vim_exited = job_info['exitval']
+            return
+        endif
+    endif
     call neomake#utils#DebugMessage('MakeHandlerVim: exit: '
-                \ .string(a:channel).', job_info: '.string(job_info))
-    call neomake#MakeHandler(ch_info(a:channel)['id'], job_info['exitval'], 'exit')
+                \ .string(a:channel).', job_info: '.string(job_info),
+                \ get(l:, 'jobinfo', {}))
+    call neomake#MakeHandler(job_id, job_info['exitval'], 'exit')
 endfunction
 
 function! neomake#MakeHandler(job_id, data, event_type) abort
