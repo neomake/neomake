@@ -52,8 +52,6 @@ function! neomake#CancelJob(job_id) abort
                 sleep 50m
             endif
             let vim_job = s:jobs[a:job_id].vim_job
-            " NOTE: Vim does not trigger the exit callback with job_stop?!
-            unlet s:jobs[a:job_id]
             if job_status(vim_job) !=# 'run'
                 return 0
             endif
