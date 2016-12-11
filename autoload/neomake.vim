@@ -16,6 +16,7 @@ let s:need_errors_cleaning = {
 let s:maker_defaults = {
             \ 'buffer_output': 1,
             \ 'remove_invalid_entries': 1}
+let s:project_job_output = []
 
 function! neomake#has_async_support() abort
     return has('nvim') ||
@@ -698,6 +699,16 @@ function! s:CleanJobinfo(jobinfo) abort
     endif
 endfunction
 
+function! s:CanProcessJobOutput() abort
+    " We can only process output (change the location/quickfix list) in
+    " certain modes, otherwise e.g. the visual selection gets lost.
+    if index(['n', 'i'], mode()) != -1
+        return 1
+    endif
+    call neomake#utils#DebugMessage('Not processing output for mode '.mode())
+    return 0
+endfunction
+
 function! s:ProcessJobOutput(jobinfo, lines, source) abort
     let maker = a:jobinfo.maker
     call neomake#utils#DebugMessage(printf(
@@ -745,6 +756,13 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
 endfunction
 
 function! neomake#ProcessCurrentWindow() abort
+    if !s:CanProcessJobOutput()
+        return
+    endif
+    call s:ProcessCurrentWindow()
+endfunction
+
+function! s:ProcessCurrentWindow() abort
     let outputs = get(w:, 'neomake_jobs_output', [])
     if len(outputs)
         unlet w:neomake_jobs_output
@@ -754,6 +772,21 @@ function! neomake#ProcessCurrentWindow() abort
         if g:neomake_place_signs
             call neomake#signs#PlaceVisibleSigns()
         endif
+    endif
+    call neomake#highlights#ShowHighlights()
+endfunction
+
+function! neomake#ProcessPendingOutput() abort
+    if !s:CanProcessJobOutput()
+        return
+    endif
+    call s:ProcessCurrentWindow()
+    if len(s:project_job_output)
+        for output in s:project_job_output
+            call s:ProcessJobOutput(output.jobinfo, output.lines, output.source)
+        endfor
+        let s:project_job_output = []
+        call neomake#signs#PlaceVisibleSigns()
     endif
     call neomake#highlights#ShowHighlights()
 endfunction
@@ -771,33 +804,41 @@ function! s:GetTabWinForJob(job_id) abort
 endfunction
 
 function! s:RegisterJobOutput(jobinfo, lines, source) abort
-    let lines = copy(a:lines)
     let maker = a:jobinfo.maker
 
     if !get(maker, 'file_mode')
-        call s:ProcessJobOutput(a:jobinfo, lines, a:source)
-        if g:neomake_place_signs
-            call neomake#signs#PlaceVisibleSigns()
+        if s:CanProcessJobOutput()
+            call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
+            if g:neomake_place_signs
+                call neomake#signs#PlaceVisibleSigns()
+            endif
+        else
+            let s:project_job_output += [{
+                \ 'source': a:source,
+                \ 'jobinfo': a:jobinfo,
+                \ 'lines': a:lines }]
         endif
         return
     endif
 
     " Process the window directly if we can.
-    let called_from_qf = &filetype ==# 'qf'
-    let winnr_has_jobs = index(get(w:, 'neomake_jobs', []), a:jobinfo.id) != -1
-    if called_from_qf || winnr_has_jobs
-        " Process the previous window if we are in a qf window.
-        " XXX: noautocmd, restore alt window.
-        if called_from_qf
-            wincmd p
+    if s:CanProcessJobOutput()
+        let called_from_qf = &filetype ==# 'qf'
+        let winnr_has_jobs = index(get(w:, 'neomake_jobs', []), a:jobinfo.id) != -1
+        if called_from_qf || winnr_has_jobs
+            " Process the previous window if we are in a qf window.
+            " XXX: noautocmd, restore alt window.
+            if called_from_qf
+                wincmd p
+            endif
+            call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
+            call neomake#signs#PlaceVisibleSigns()
+            call neomake#highlights#ShowHighlights()
+            if called_from_qf
+                wincmd p
+            endif
+            return
         endif
-        call s:ProcessJobOutput(a:jobinfo, lines, a:source)
-        call neomake#signs#PlaceVisibleSigns()
-        call neomake#highlights#ShowHighlights()
-        if called_from_qf
-            wincmd p
-        endif
-        return
     endif
     " file mode: append lines to jobs's window's output.
     let [t, w] = s:GetTabWinForJob(a:jobinfo.id)
@@ -808,7 +849,7 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
     let w_output = s:gettabwinvar(t, w, 'neomake_jobs_output', []) + [{
                 \ 'source': a:source,
                 \ 'jobinfo': a:jobinfo,
-                \ 'lines': lines }]
+                \ 'lines': a:lines }]
     call settabwinvar(t, w, 'neomake_jobs_output', w_output)
 endfunction
 

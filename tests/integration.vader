@@ -47,7 +47,7 @@ Execute (Test Neomake on errors.sh with two makers):
 Execute (Neomake: handle result for current window):
   call g:NeomakeSetupAutocmdWrappers()
   let orig_winnr = winnr()
-  call neomake#Make(1, [neomake_test_sleep_maker])
+  call neomake#Make(1, [neomake_test_sleep_efm_maker])
   if neomake#has_async_support()
     new
     NeomakeTestsWaitForFinishedJobs
@@ -56,7 +56,7 @@ Execute (Neomake: handle result for current window):
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
     quit
     AssertEqual winnr(), orig_winnr
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['finished']
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning']
   endif
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_countschanged), 1
@@ -66,7 +66,7 @@ Execute (Neomake: handle output for removed window):
 
   call g:NeomakeSetupAutocmdWrappers()
   let orig_winnr = winnr()
-  call neomake#Make(1, [neomake_test_sleep_maker])
+  call neomake#Make(1, [neomake_test_sleep_efm_maker])
   let jobinfo = neomake#GetJobs()[0]
   let bufnr = bufnr('%')
   new

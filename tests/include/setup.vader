@@ -190,11 +190,11 @@ Before:
   endfunction
 
   " Fixtures
-  let g:neomake_test_sleep_maker = {
-      \ 'name': 'sleep_maker',
+  let g:neomake_test_sleep_efm_maker = {
+      \ 'name': 'sleep_efm_maker',
       \ 'exe': 'sh',
-      \ 'args': ['-c', 'sleep 0.1; echo finished'],
-      \ 'remove_invalid_entries': 0,
+      \ 'args': ['-c', 'sleep 0.1; echo file1:1:E:error message; echo file1:2:W:warning'],
+      \ 'errorformat': '%f:%l:%t:%m',
       \ }
 
   doautocmd VimEnter

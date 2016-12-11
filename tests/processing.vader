@@ -1,0 +1,29 @@
+Execute (Output is only processed in normal/insert mode (loclist)):
+  call neomake#Make(1, [neomake_test_sleep_efm_maker])
+  norm! V
+  if neomake#has_async_support()
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual getloclist(0), [], 'Location list has not been updated'
+    AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
+  endif
+  AssertEqual mode(), 'V'
+  exe "norm! \<Esc>"
+  AssertEqual mode(), 'n'
+  doautocmd CursorHold
+  AssertNeomakeMessage 'sleep_efm_maker: processing 2 lines of output.'
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning']
+
+Execute (Output is only processed in normal/insert mode (qflist)):
+  call neomake#Make(0, [neomake_test_sleep_efm_maker])
+  norm! V
+  if neomake#has_async_support()
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual getqflist(), [], 'Quickfix list has not been updated'
+    AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
+  endif
+  AssertEqual mode(), 'V'
+  exe "norm! \<Esc>"
+  AssertEqual mode(), 'n'
+  doautocmd CursorHold
+  AssertNeomakeMessage 'sleep_efm_maker: processing 2 lines of output.'
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['error message', 'warning']
