@@ -142,7 +142,7 @@ endfunction
 " @vimlint(EVL103, 1, a.event)
 " @vimlint(EVL101, 1, l.self)
 " vint: -ProhibitUsingUndeclaredVariable
-function! s:CheckStackMakerAsync(job_id, data, event) abort
+function! s:CheckStackMakerAsync(job_id, data, event) dict abort
     if a:data == 0
         call add(s:makers, substitute(self.command, '-', '', 'g'))
     endif
