@@ -147,10 +147,7 @@ function! s:MakeJob(make_id, maker) abort
         let has_args = type(args) == type([])
         let error = ''
         if neomake#has_async_support()
-            let argv = [exe]
-            if has_args
-                let argv += args
-            endif
+            let argv = exe . (has_args? (' ' . join(args)) : '')
             if has('nvim')
                 let opts = {
                     \ 'on_stdout': function('neomake#MakeHandler'),
@@ -160,7 +157,7 @@ function! s:MakeJob(make_id, maker) abort
                 try
                     call neomake#utils#LoudMessage(printf(
                                 \ 'Starting async job: %s',
-                                \ string(argv)), jobinfo)
+                                \ argv), jobinfo)
                     let job = jobstart(argv, opts)
                 catch
                     let error = printf('Failed to start Neovim job: %s: %s',
