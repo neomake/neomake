@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#vue#EnabledMakers() abort
-    return ['eslint']
+    return ['eslint', 'standard']
 endfunction
 
 function! neomake#makers#ft#vue#eslint() abort
@@ -15,3 +15,18 @@ endfunction
 function! neomake#makers#ft#vue#eslint_d() abort
     return neomake#makers#ft#vue#eslint()
 endfunction
+
+function! neomake#makers#ft#vue#standard() abort
+    return {
+        \ 'args': ['--plugin', 'html'],
+        \ 'errorformat': '%W  %f:%l:%c: %m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#vue#semistandard() abort
+    return {
+        \ 'args': ['--plugin', 'html'],
+        \ 'errorformat': '%W  %f:%l:%c: %m'
+        \ }
+endfunction
+
