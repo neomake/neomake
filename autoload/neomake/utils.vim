@@ -326,7 +326,7 @@ endfunction
 
 function! neomake#utils#ExpandArgs(args) abort
     " Only expand those args that start with \ and a single %
-    call map(a:args, "v:val =~# '\\(^\\\\\\|^%$\\|^%[^%]\\)' ? expand(v:val) : v:val")
+    call map(a:args, "v:val =~# '\\(^%$\\|^%:\\l\\+$\\)' ? expand(v:val) : v:val")
 endfunction
 
 function! neomake#utils#hook(event, context) abort
