@@ -231,10 +231,10 @@ function! s:MakeJob(make_id, maker) abort
         else
             call neomake#utils#DebugMessage('Running synchronously')
             if has_args
-                if neomake#utils#IsRunningWindows()
+                if neomake#utils#IsRunningWindows() || noquote
                     let program = exe.' '.join(map(args, 'v:val'))
                 else
-                    let program = exe.' '.join(map(args, noquote ? 'v:val' : 'shellescape(v:val)'))
+                    let program = exe.' '.join(map(args, 'shellescape(v:val)'))
                 endif
             else
                 let program = exe
