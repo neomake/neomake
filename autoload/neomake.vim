@@ -157,7 +157,7 @@ function! s:MakeJob(make_id, maker) abort
                 try
                     call neomake#utils#LoudMessage(printf(
                                 \ 'Starting async job: %s',
-                                \ string(argv)), jobinfo)
+                                \ argv), jobinfo)
                     let job = jobstart(argv, opts)
                 catch
                     let error = printf('Failed to start Neovim job: %s: %s',
