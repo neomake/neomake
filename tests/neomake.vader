@@ -6,6 +6,7 @@ Include (Integration tests): integration.vader
 ~ Features
 Include (Lists): lists.vader
 Include (Makers): makers.vader
+Include (Maker args): args.vader
 Include (Mapexpr): mapexpr.vader
 Include (Signs): signs.vader
 Include (Statusline): statusline.vader

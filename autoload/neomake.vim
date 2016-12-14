@@ -121,12 +121,16 @@ function! s:MakeJob(make_id, maker) abort
     else
         let args = a:maker.args
     endif
-    let append_file = a:maker.file_mode && index(args, '%:p') == -1 && get(a:maker, 'append_file', 1)
-    if append_file
-        call add(args, '%:p')
-    endif
+    let args_is_list = type(args) == type([])
 
-    call neomake#utils#ExpandArgs(args)
+    if a:maker.file_mode && get(a:maker, 'append_file', 1)
+        if args_is_list
+            call neomake#utils#ExpandArgs(args)
+            call add(args, expand('%:p'))
+        else
+            let args .= ' '.fnameescape(expand('%:p'))
+        endif
+    endif
 
     if has_key(a:maker, 'cwd')
         let old_wd = getcwd()
@@ -144,12 +148,12 @@ function! s:MakeJob(make_id, maker) abort
     endif
 
     try
-        let has_args = type(args) == type([])
         let error = ''
         if neomake#has_async_support()
-            let argv = [exe]
-            if has_args
-                let argv += args
+            if args_is_list
+                let argv = [exe] + args
+            else
+                let argv = exe . (len(args) ? ' ' . args : '')
             endif
             if has('nvim')
                 let opts = {
@@ -187,7 +191,9 @@ function! s:MakeJob(make_id, maker) abort
                             \ 'mode': 'raw',
                             \ }
                 if neomake#utils#IsRunningWindows()
-                    let argv = &shell.' '.&shellcmdflag.' '.shellescape(join(argv))
+                    let argv = &shell.' '.&shellcmdflag.' '.shellescape(args_is_list ? join(argv) : argv)
+                elseif !args_is_list
+                    let argv = [&shell, &shellcmdflag, argv]
                 endif
                 try
                     call neomake#utils#LoudMessage(printf(
@@ -228,14 +234,17 @@ function! s:MakeJob(make_id, maker) abort
             let r = jobinfo.id
         else
             call neomake#utils#DebugMessage('Running synchronously')
-            if has_args
-                if neomake#utils#IsRunningWindows()
-                    let program = exe.' '.join(map(args, 'v:val'))
+            let program = exe
+            if len(args)
+                if args_is_list
+                    if neomake#utils#IsRunningWindows()
+                        let program .= ' '.join(args)
+                    else
+                        let program .= ' '.join(map(args, 'shellescape(v:val)'))
+                    endif
                 else
-                    let program = exe.' '.join(map(args, 'shellescape(v:val)'))
+                    let program .= ' '.args
                 endif
-            else
-                let program = exe
             endif
 
             call neomake#utils#LoudMessage('Starting: ' . program)

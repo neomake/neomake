@@ -89,11 +89,15 @@ Here is a sample maker definition: >
     " Use the maker like this:
     :Neomake! make
 <
-All `args` will be |expand()|ed if they use wildcards (see |expand()|). The
-`exe` and `args` entries can be a function reference (see |Funcref|) or a
-dictionary with an expected entry `fn` (which has to be a function). The
-function must return a string, and the function will be called with no
-arguments.
+The `exe` and `args` entries can be a function reference (see |Funcref|) or a
+dictionary with an expected entry `fn` (which has to be a function).
+The function will be called with no arguments, and should return the value to
+use.
+
+`exe` has to be a string, while `args` can be a list or a string.
+If `args` is a list, entries like '%' and '%:p' will be |expand()|ed, and
+quoting/escaping is applied automatically.  If you want to handle escaping
+yourself, `args` should be a string.
 
 In the above example, the exe argument isn't strictly necessary, since Neomake
 uses the name of the maker as the default value for it.  If you want it to be
