@@ -944,7 +944,7 @@ function! neomake#EchoCurrentError() abort
 
     let s:neomake_last_echoed_error = ln_errors[0]
     for error in ln_errors
-        if error.type ==# 'E'
+        if error.type ==? 'E'
             let s:neomake_last_echoed_error = error
             break
         endif
