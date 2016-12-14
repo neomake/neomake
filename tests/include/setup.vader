@@ -1,6 +1,10 @@
 " Setup and helpers for all tests.
 
 Before:
+  let g:neomake_test_messages = []
+  let g:neomake_test_messages_last_idx = -1
+
+  " One-time setup.
   if exists(':NeomakeTestsWaitForFinishedJobs') == 2
     finish
   endif
@@ -158,9 +162,6 @@ Before:
     endif
     Log "SKIP: no async support."
   endfunction
-
-  let g:neomake_test_messages = []
-  let g:neomake_test_messages_last_idx = -1
 
 After:
   Restore
