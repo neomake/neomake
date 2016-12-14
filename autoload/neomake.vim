@@ -143,6 +143,8 @@ function! s:MakeJob(make_id, maker) abort
         endtry
     endif
 
+    let noquote = get(a:maker,'noquote')
+
     try
         let has_args = type(args) == type([])
         let error = ''
@@ -161,7 +163,7 @@ function! s:MakeJob(make_id, maker) abort
                     call neomake#utils#LoudMessage(printf(
                                 \ 'Starting async job: %s',
                                 \ string(argv)), jobinfo)
-                    let job = jobstart(argv, opts)
+                    let job = jobstart(noquote ? join(argv) : argv, opts)
                 catch
                     let error = printf('Failed to start Neovim job: %s: %s',
                                 \ string(argv), v:exception)
@@ -232,7 +234,7 @@ function! s:MakeJob(make_id, maker) abort
                 if neomake#utils#IsRunningWindows()
                     let program = exe.' '.join(map(args, 'v:val'))
                 else
-                    let program = exe.' '.join(map(args, 'shellescape(v:val)'))
+                    let program = exe.' '.join(map(args, noquote ? 'v:val' : 'shellescape(v:val)'))
                 endif
             else
                 let program = exe
