@@ -15,7 +15,6 @@ Execute (neomake#GetMakers):
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  Log getloclist(0)
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
     \ ['1', '2', '3a 3b', fname_abs]
 
