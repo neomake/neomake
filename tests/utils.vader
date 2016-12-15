@@ -35,17 +35,67 @@ Execute (neomake#utils#GetSetting serialize):
                                   \ ['myft'], bufnr('%'))
   endfunction
 
+  Save g:neomake_serialize b:neomake_serialize
+  Save g:neomake_mymaker_serialize b:neomake_mymaker_serialize
+  Save g:neomake_myft_mymaker_serialize b:neomake_myft_mymaker_serialize
+
   AssertEqual GetSetting(), 'default'
-  let g:neomake_serialize = 5
+
+  let g:neomake_serialize = 7
+  AssertEqual GetSetting(), 7
+  let g:neomake_serialize = 0
+  AssertEqual GetSetting(), 0
+  let g:neomake_serialize = 99
+  AssertEqual GetSetting(), 99
+
+  let b:neomake_serialize = 6
+  AssertEqual GetSetting(), 6
+  let b:neomake_serialize = 0
+  AssertEqual GetSetting(), 0
+  let b:neomake_serialize = 98
+  AssertEqual GetSetting(), 98
+
+  let maker.serialize = 5
   AssertEqual GetSetting(), 5
-  let b:neomake_serialize = 4
+  let maker.serialize = 0
+  AssertEqual GetSetting(), 0
+  let maker.serialize = 97
+  AssertEqual GetSetting(), 97
+
+  let g:neomake_mymaker_serialize = 4
   AssertEqual GetSetting(), 4
-  let g:maker.serialize = 3
+  let g:neomake_mymaker_serialize = 0
+  AssertEqual GetSetting(), 0
+  let g:neomake_mymaker_serialize = 96
+  AssertEqual GetSetting(), 96
+
+  let b:neomake_mymaker_serialize = 3
   AssertEqual GetSetting(), 3
+  let b:neomake_mymaker_serialize = 0
+  AssertEqual GetSetting(), 0
+  let b:neomake_mymaker_serialize = 95
+  AssertEqual GetSetting(), 95
+
   let g:neomake_myft_mymaker_serialize = 2
   AssertEqual GetSetting(), 2
+  let g:neomake_myft_mymaker_serialize = 0
+  AssertEqual GetSetting(), 0
+  let g:neomake_myft_mymaker_serialize = 94
+  AssertEqual GetSetting(), 94
+
   let b:neomake_myft_mymaker_serialize = 1
   AssertEqual GetSetting(), 1
+  let b:neomake_myft_mymaker_serialize = 0
+  AssertEqual GetSetting(), 0
+  unlet b:neomake_myft_mymaker_serialize
+  let b:neomake_myft_mymaker_serialize = [1]
+  AssertEqual GetSetting(), [1]
+
+  " Uses b:neomake_serialize
+  let g:maker = {'name': ''}
+  AssertEqual GetSetting(), 98
+  let g:maker = {}
+  AssertEqual GetSetting(), 98
 
 Execute (neomake#utils#GetSetting accepts lists):
   let g:maker = {'name': 'mymaker'}
@@ -54,10 +104,16 @@ Execute (neomake#utils#GetSetting accepts lists):
                                   \ ['myft'], bufnr('%'))
   endfunction
 
+  Save g:neomake_myft_mymaker_args b:neomake_myft_mymaker_args
   let g:neomake_myft_mymaker_args = [ 'global', 'shallow', 'list' ]
   AssertEqual GetSetting(), [ 'global', 'shallow', 'list' ]
   let b:neomake_myft_mymaker_args = [ 'buffer', 'shallow', 'list' ]
   AssertEqual GetSetting(), [ 'buffer', 'shallow', 'list' ]
+
+  Restore
+  Save b:neomake_myft_mymaker_args
+  let b:neomake_myft_mymaker_args = 'string'
+  AssertEqual GetSetting(), 'string'
 
 Execute (neomake#utils#GetSetting without name):
   let g:maker = {}
