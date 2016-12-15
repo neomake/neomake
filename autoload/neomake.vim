@@ -38,12 +38,24 @@ function! neomake#ListJobs() abort
 endfunction
 
 function! neomake#CancelJob(job_id) abort
-    if has_key(s:jobs, a:job_id)
+    if !has_key(s:jobs, a:job_id)
+        call neomake#utils#DebugMessage('CancelJob: job not found: '.a:job_id)
+        return 0
+    endif
+    let jobinfo = s:jobs[a:job_id]
+    if get(jobinfo, 'finished')
+        call neomake#utils#DebugMessage('Removing already finished job: '.a:job_id)
+        call s:CleanJobinfo(jobinfo)
+    else
+        " Mark it as canceled for the exit handler.
+        let jobinfo.canceled = 1
         call neomake#utils#DebugMessage('Stopping job: ' . a:job_id)
         if has('nvim')
             try
                 call jobstop(a:job_id)
             catch /^Vim\%((\a\+)\)\=:\(E474\|E900\):/
+                call neomake#utils#DebugMessage(printf(
+                            \ 'jobstop failed: %s', v:exception), jobinfo)
                 return 0
             endtry
         else
@@ -53,13 +65,14 @@ function! neomake#CancelJob(job_id) abort
             endif
             let vim_job = s:jobs[a:job_id].vim_job
             if job_status(vim_job) !=# 'run'
+                call neomake#utils#DebugMessage(
+                            \ 'job_stop: job was not running anymore', jobinfo)
                 return 0
             endif
             call job_stop(vim_job)
         endif
-        return 1
     endif
-    return 0
+    return 1
 endfunction
 
 function! s:GetMakerKey(maker) abort
@@ -798,6 +811,13 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         return
     endif
     let jobinfo = s:jobs[a:job_id]
+    if get(jobinfo, 'canceled')
+        call neomake#utils#DebugMessage(
+                    \ 'neomake#MakeHandler: '.a:event_type.': job was canceled.',
+                    \ jobinfo)
+        call s:CleanJobinfo(jobinfo)
+        return
+    endif
     let maker = jobinfo.maker
     call neomake#utils#DebugMessage(printf('%s: %s: %s',
                 \ a:event_type, maker.name, string(a:data)), jobinfo)
