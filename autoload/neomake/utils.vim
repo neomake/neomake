@@ -21,16 +21,6 @@ endfunction
 
 let s:unset = {}
 
-if v:version >= 704
-  function! neomake#utils#getbufvar(buf, key, def) abort
-    return getbufvar(a:buf, a:key, a:def)
-  endfunction
-else
-  function! neomake#utils#getbufvar(buf, key, def) abort
-    return get(getbufvar(a:buf, ''), a:key, a:def)
-  endfunction
-endif
-
 function! neomake#utils#LogMessage(level, msg, ...) abort
     let verbose = get(g:, 'neomake_verbose', 1)
     let logfile = get(g:, 'neomake_logfile')
@@ -244,13 +234,13 @@ function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
     endif
     let config_var = 'neomake_'.part.'_'.a:key
     if has_key(g:, config_var)
-          \ || neomake#utils#getbufvar(a:bufnr, config_var, s:unset) isnot s:unset
+          \ || neomake#compat#getbufvar(a:bufnr, config_var, s:unset) isnot s:unset
       break
     endif
   endfor
 
   if exists('config_var')
-    let bufcfgvar = neomake#utils#getbufvar(a:bufnr, config_var, s:unset)
+    let bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
     if bufcfgvar isnot s:unset
       return copy(bufcfgvar)
     elseif has_key(g:, config_var)
@@ -261,7 +251,7 @@ function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
     return a:maker[a:key]
   endif
   " Look for 'neomake_'.key in the buffer and global namespace.
-  let bufvar = neomake#utils#getbufvar(a:bufnr, 'neomake_'.a:key, s:unset)
+  let bufvar = neomake#compat#getbufvar(a:bufnr, 'neomake_'.a:key, s:unset)
   if bufvar isnot s:unset
       return bufvar
   endif
