@@ -85,18 +85,45 @@ Execute (neomake#GetMaker without name):
   AssertEqual maker.name, 'unnamed_maker'
 
 Execute (neomake#CancelJob):
-  if neomake#has_async_support()
-    let job_id = neomake#Sh("sh -c 'while true; do sleep 0.1; done'")
-    AssertEqual neomake#CancelJob(job_id), 1
-    AssertNeomakeMessage 'Stopping job: '.job_id
+  if !NeomakeAsyncTestsSetup() | finish | endif
 
-    AssertEqual neomake#CancelJob(job_id), 0
+  let job_id = neomake#Sh("sh -c 'while true; do sleep 0.1; done'")
+  AssertEqual neomake#CancelJob(job_id), 1
 
-    NeomakeTestsWaitForFinishedJobs
-    let msg_count = len(g:neomake_test_messages)
-    AssertEqual neomake#CancelJob(job_id), 0
-    AssertEqual msg_count, len(g:neomake_test_messages), "msg_count: ".msg_count
+  " The job is still in the table, therefore 'E900: Invalid job id'.
+  AssertThrows neomake#CancelJob(job_id)
+  AssertNeomakeMessage 'Stopping job: '.job_id, 3
+
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual neomake#CancelJob(job_id), 0
+  AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 3
+
+Execute (neomake#CancelJob with invalid job):
+  if !NeomakeAsyncTestsSetup() | finish | endif
+
+  let job_id = neomake#Sh("sh -c 'while true; do sleep 0.1; done'")
+  let jobinfo = neomake#GetJobs()[job_id]
+  if has('nvim')
+    call jobstop(job_id)
+  else
+    let vim_job = jobinfo.vim_job
+    call job_stop(vim_job)
   endif
+  AssertEqual neomake#CancelJob(job_id), 0
+  AssertNeomakeMessage 'Stopping job: '.job_id, 3
+  if has('nvim')
+    AssertNeomakeMessage 'jobstop failed: Vim(call):E900: Invalid job id', 3, jobinfo
+  else
+    AssertNeomakeMessage 'job_stop: job was not running anymore', 3, jobinfo
+  endif
+
+  AssertEqual neomake#CancelJob(job_id), 0
+  AssertNeomakeMessage 'Stopping job: '.job_id, 3
+
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'neomake#MakeHandler: exit: job was canceled.', 3, jobinfo
+  AssertEqual neomake#CancelJob(job_id), 0
+  AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 3
 
 Execute (Reports exit status: 7):
   let job_id = neomake#Sh("sh -c 'exit 7'")
