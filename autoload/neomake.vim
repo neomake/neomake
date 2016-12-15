@@ -76,16 +76,6 @@ function! s:gettabwinvar(t, w, v, d) abort
     return r
 endfunction
 
-function! s:getwinvar(w, v, d) abort
-    " Wrapper around getwinvar that has no default (Vim in Travis).
-    let r = getwinvar(a:w, a:v)
-    if r is# ''
-        unlet r
-        let r = a:d
-    endif
-    return r
-endfunction
-
 function! s:AddJobinfoForCurrentWin(job_id) abort
     " Add jobinfo to current window.
     let tabpagenr = tabpagenr()
@@ -761,7 +751,7 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
     call settabwinvar(t, w, 'neomake_jobs_output', w_output)
 
     " Process the window on demand if we can.
-    let idx_win_job = index(s:getwinvar(winnr(), 'neomake_jobs', []), a:jobinfo.id)
+    let idx_win_job = index(get(w:, 'neomake_jobs', []), a:jobinfo.id)
     if idx_win_job != -1
         call neomake#ProcessCurrentWindow()
     elseif &filetype ==# 'qf'
