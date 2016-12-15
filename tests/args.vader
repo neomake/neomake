@@ -1,0 +1,25 @@
+Include: include/setup.vader
+
+Execute (neomake#GetMakers):
+  let maker = {
+        \ 'exe': '/usr/bin/printf',
+        \ 'args': ['%s\n', '1', '2', '3a 3b'],
+        \ 'errorformat': '%f: %m',
+        \ 'mapexpr': 'expand("%:p") . ": " . v:val',
+        \ }
+
+  let fname = 'a filename with spaces'
+  file a\ filename\ with\ spaces
+  AssertEqual bufname('%'), fname
+  let fname_abs = expand('%:p')
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ ['1', '2', '3a 3b', fname_abs]
+
+  let maker.args = "'%s\\n' 1 2 '3a 3b' 4"
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ ['1', '2', '3a 3b', '4', fname_abs]
