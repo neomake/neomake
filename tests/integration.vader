@@ -41,8 +41,9 @@ Execute (Test Neomake on errors.sh with two makers):
   e! tests/fixtures/errors.sh
   RunNeomake sh shellcheck
   AssertEqual len(g:neomake_test_countschanged), 2
-  AssertNeomakeMessage 'Running makers: [''sh'', ''shellcheck'']', 3,
-    \ {'make_id': neomake#GetStatus().last_make_id}
+
+  Assert len(filter(copy(g:neomake_test_messages),
+    \ "v:val[1] =~# '^Running makers: sh, shellcheck (.*)'")) == 1, '"Running makers" message found'
 
 Execute (Neomake: handle result for current window):
   call g:NeomakeSetupAutocmdWrappers()
@@ -52,11 +53,11 @@ Execute (Neomake: handle result for current window):
     new
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0
-    AssertEqual len(g:neomake_test_finished), 1, "tests finished"
+    AssertEqual len(g:neomake_test_finished), 0, "output pending"
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
     quit
     AssertEqual winnr(), orig_winnr
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning']
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
   endif
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_countschanged), 1

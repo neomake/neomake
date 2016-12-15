@@ -38,10 +38,14 @@ Execute (neomake#signs#RedefineErrorSign):
   " Test #736.
   call neomake#signs#RedefineErrorSign({'text': '✗', 'texthl': 'ErrorMsg'})
 
+  call neomake#Make(1, [neomake_test_sleep_efm_maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.':  {'.bufnr.': {2: 5000}}', 3, {}
+
   bd!
   call neomake#signs#Reset(bufnr, 'file')
   call neomake#signs#CleanAllOldSigns('file')
-  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.':  {'.bufnr.': {2: 5000}}', 3, {}
+  AssertNeomakeMessage 'Removing signs {file: {}, project: {}}', 3
 
 
 Execute (neomake#signs#PlaceVisibleSigns in project mode):

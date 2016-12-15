@@ -157,7 +157,7 @@ Execute (neomake#CancelJob! with invalid job):
   AssertNeomakeMessageAbsent 'Stopping job: '.job_id, 3
 
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessageAbsent 'neomake#MakeHandler: exit: job not found: 1'
+  AssertNeomakeMessageAbsent 'neomake#MakeHandler: exit: job not found: '.job_id
 
   NeomakeTestsWaitForNextMessage
   AssertNeomakeMessage 'neomake#MakeHandler: exit: job not found: '.job_id, 1
