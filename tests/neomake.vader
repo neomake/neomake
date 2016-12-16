@@ -4,6 +4,7 @@ Include: include/setup.vader
 Include (Integration tests): integration.vader
 
 ~ Features
+Include (Hooks): hooks.vader
 Include (Lists): lists.vader
 Include (Makers): makers.vader
 Include (Maker args): args.vader

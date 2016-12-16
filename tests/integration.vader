@@ -170,6 +170,7 @@ Execute (NeomakeSh: project: handle removed window on exit (quit)):
   new
   let bufnr = bufnr('%')
   NeomakeSh sh -c 'sleep 0.1; echo finished'
+  let make_id = neomake#GetStatus().last_make_id
   quit
   if neomake#has_async_support()
     AssertEqual len(g:neomake_test_finished), 0
@@ -177,7 +178,7 @@ Execute (NeomakeSh: project: handle removed window on exit (quit)):
   endif
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
-  AssertEqual g:neomake_test_finished, [{'file_mode': 0}]
+  AssertEqual g:neomake_test_finished, [{'file_mode': 0, 'make_id': make_id}]
   AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
 
 Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
@@ -185,6 +186,7 @@ Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
   new
   let bufnr = bufnr('%')
   NeomakeSh sh -c 'sleep 0.1; echo finished'
+  let make_id = neomake#GetStatus().last_make_id
   bwipe
   Assert bufnr != bufnr('%'), 'buffer has been wiped'
   if neomake#has_async_support()
@@ -192,7 +194,7 @@ Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
-  AssertEqual g:neomake_test_finished, [{'file_mode': 0}]
+  AssertEqual g:neomake_test_finished, [{'file_mode': 0, 'make_id': make_id}]
   AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
 
 Execute (NeomakeInfo):

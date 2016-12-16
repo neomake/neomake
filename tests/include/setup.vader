@@ -137,6 +137,16 @@ Before:
   endfunction
   command! -nargs=+ AssertNeomakeMessage call s:AssertNeomakeMessage(<args>)
 
+  function! s:AssertNeomakeMessageAbsent(msg, ...)
+    try
+      call call('s:AssertNeomakeMessage', [a:msg] + a:000)
+    catch /^Message/
+      return 1
+    endtry
+    throw "Found unexpected message: ".a:msg
+  endfunction
+  command! -nargs=+ AssertNeomakeMessageAbsent call s:AssertNeomakeMessageAbsent(<args>)
+
   function! g:NeomakeSetupAutocmdWrappers()
     let g:neomake_test_finished = []
     function! s:OnNeomakeFinished(context)
@@ -165,10 +175,17 @@ Before:
 
 After:
   Restore
-  let jobs = neomake#GetJobs()
+
+  " Stop any (non-canceled) jobs.  Canceled jobs might take a while to call the
+  " exit handler, but that is OK.
+  let jobs = filter(neomake#GetJobs(), "!get(v:val, 'canceled', 0)")
   if len(jobs)
     for job in jobs
       call neomake#CancelJob(job.id)
     endfor
     throw 'There were '.len(jobs).' jobs left: '.string(jobs)
+  endif
+
+  if exists('#neomake_tests')
+    autocmd! neomake_tests
   endif
