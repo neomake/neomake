@@ -63,9 +63,12 @@ Execute (neomake#Make in project mode with no filetype and no makers):
   if neomake#has_async_support()
     AssertEqual len(job_ids), 1
     let jobs = neomake#GetJobs()
+    let jobs_by_ids = neomake#GetJobs(job_ids)
+    let job_by_id = neomake#GetJob(job_ids[0])
     AssertEqual len(jobs), 1
-    let [job_id, job] = items(jobs)[0]
-    AssertEqual job.maker.name, 'makeprg'
+    AssertEqual jobs, [job_by_id]
+    AssertEqual jobs, jobs_by_ids
+    AssertEqual job_by_id.maker.name, 'makeprg'
   else
     AssertEqual len(job_ids), 0
   endif
@@ -103,7 +106,7 @@ Execute (neomake#CancelJob with invalid job):
   if !NeomakeAsyncTestsSetup() | finish | endif
 
   let job_id = neomake#Sh("sh -c 'while true; do sleep 0.1; done'")
-  let jobinfo = neomake#GetJobs()[job_id]
+  let jobinfo = neomake#GetJob(job_id)
   if has('nvim')
     call jobstop(job_id)
   else
@@ -127,10 +130,10 @@ Execute (neomake#CancelJob with invalid job):
   AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 3
 
 Execute (Reports exit status: 7):
-  let job_id = neomake#Sh("sh -c 'exit 7'")
+  call neomake#Sh("sh -c 'exit 7'")
   let exit_msg = 'sh: sh -c ''exit 7'': completed with exit code 7.'
   if neomake#has_async_support()
-    let jobinfo = neomake#GetJobs()[job_id]
+    let jobinfo = neomake#GetJobs()[-1]
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3, jobinfo
     AssertNeomakeMessage exit_msg, 3, jobinfo
