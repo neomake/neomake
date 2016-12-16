@@ -557,10 +557,6 @@ function! s:Make(options, ...) abort
             break
         endif
     endfor
-    if !len(job_ids)
-        call neomake#utils#hook('NeomakeFinished', {
-                    \ 'file_mode': file_mode})
-    endif
     return job_ids
 endfunction
 
@@ -909,11 +905,10 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         endif
 
         " Trigger autocmd if all jobs for a s:Make instance have finished.
-        if neomake#has_async_support()
-            if !len(filter(copy(s:jobs), 'v:val.make_id == jobinfo.make_id'))
-                call neomake#utils#hook('NeomakeFinished', {
-                            \ 'file_mode': maker.file_mode})
-            endif
+        if !len(filter(copy(s:jobs), 'v:val.make_id == jobinfo.make_id'))
+            call neomake#utils#hook('NeomakeFinished', {
+                        \ 'file_mode': maker.file_mode,
+                        \ 'make_id': jobinfo.make_id})
         endif
     endif
 endfunction
