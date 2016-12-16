@@ -78,8 +78,8 @@ Execute (Neomake: handle output for removed window):
       \ 'args': ['-c', 'sleep 0.1; echo finished'],
       \ 'remove_invalid_entries': 0,
       \ }
-  let job_ids = neomake#Make(1, [sleep_maker])
-  let jobinfo = neomake#GetJobs()[job_ids[0]]
+  call neomake#Make(1, [sleep_maker])
+  let jobinfo = neomake#GetJobs()[0]
   let bufnr = bufnr('%')
   new
   exe 'bd' bufnr

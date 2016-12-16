@@ -19,8 +19,13 @@ function! neomake#has_async_support() abort
                 \ has('channel') && has('job') && has('patch-8.0.0027')
 endfunction
 
-function! neomake#GetJobs() abort
-    return s:jobs
+function! neomake#GetJobs(...) abort
+    return a:0 ? filter(copy(values(s:jobs)), 'index(a:1, v:val.id) != -1')
+                \ : values(s:jobs)
+endfunction
+
+function! neomake#GetJob(job_id) abort
+    return s:jobs[a:job_id]
 endfunction
 
 " Not documented, only used in tests for now.
