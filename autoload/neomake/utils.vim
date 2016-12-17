@@ -32,9 +32,9 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
     if a:0
         let jobinfo = a:1
         if has_key(jobinfo, 'id')
-            let msg = printf('[%d.%d] %s', jobinfo.make_id, jobinfo.id, a:msg)
+            let msg = printf('[%s.%d] %s', get(jobinfo, 'make_id', '-'), jobinfo.id, a:msg)
         else
-            let msg = printf('[%d] %s', jobinfo.make_id, a:msg)
+            let msg = printf('[%s] %s', get(jobinfo, 'make_id', '?'), a:msg)
         endif
     else
         let jobinfo = {}

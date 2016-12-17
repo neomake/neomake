@@ -6,12 +6,12 @@ Execute (Postprocessing should update list):
   let list = getloclist(0)
   AssertNotEqual list, [], 'loclist is not empty'
 
-  let s:efm = neomake#makers#ft#sh#sh()
+  let s:sh_maker = neomake#makers#ft#sh#sh()
   function g:Postprocess(entry)
     let a:entry.text .= ' SUFFIX'
   endfunction
   function! neomake#makers#ft#sh#sh()
-    return extend(s:efm, {'postprocess': function('g:Postprocess')})
+    return extend(s:sh_maker, {'postprocess': function('g:Postprocess')})
   endfunction
   let expected_list = map(list, 'extend(v:val, {"text": v:val.text." SUFFIX"})')
   RunNeomake sh
@@ -53,3 +53,4 @@ Execute (AddExprCallback with changed windows inbetween):
     \ loclist_texts + ['1b SUFFIX:1']
   wincmd k
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['2 SUFFIX:1']
+  q

@@ -8,19 +8,26 @@ Before:
   if exists(':NeomakeTestsWaitForFinishedJobs') == 2
     finish
   endif
-  function! s:wait_for_finished_jobs()
+  function! s:wait_for_jobs(filter)
     let max = 60
-    let filter = "!get(v:val, 'finished')"
-    while len(filter(copy(neomake#GetJobs()), filter))
+    let filter = a:filter
+    while 1
       let max -= 1
-      sleep 50m
+      let jobs = copy(neomake#GetJobs())
+      if len(a:filter)
+        let jobs = filter(jobs, a:filter)
+      endif
+      if !len(jobs)
+        break
+      endif
       if max == 0
-        let jobs = neomake#GetJobs()
         throw "Jobs did not finish after 3s: ".string(jobs)
       endif
+      sleep 50m
     endwhile
   endfunction
-  command! NeomakeTestsWaitForFinishedJobs call s:wait_for_finished_jobs()
+  command! NeomakeTestsWaitForFinishedJobs call s:wait_for_jobs("!get(v:val, 'finished')")
+  command! NeomakeTestsWaitForRemovedJobs call s:wait_for_jobs('')
 
   function! s:wait_for_next_message()
     let max = 60
@@ -189,6 +196,15 @@ Before:
     Log "SKIP: no async support."
   endfunction
 
+  " Fixtures
+  let g:neomake_test_sleep_efm_maker = {
+      \ 'name': 'sleep_efm_maker',
+      \ 'exe': 'sh',
+      \ 'args': ['-c', 'sleep 0.1; echo file1:1:E:error message; '
+      \         .'echo file1:2:W:warning; echo file1:1:E:error2'],
+      \ 'errorformat': '%f:%l:%t:%m',
+      \ }
+
   doautocmd VimEnter
 
 After:
@@ -206,4 +222,13 @@ After:
 
   if exists('#neomake_tests')
     autocmd! neomake_tests
+  endif
+
+  if !get(g:, '_neomake_test_thrown_win_assertion', 0)
+    if winnr('$') > 1
+      let g:_neomake_test_thrown_win_assertion = 1
+      throw "More than 1 window after tests: "
+        \ .string(map(range(1, winnr('$')),
+        \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
+    endif
   endif
