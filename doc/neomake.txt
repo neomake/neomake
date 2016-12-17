@@ -381,6 +381,11 @@ Shows warning and error counts returned by |neomake#statusline#LoclistCounts|
 in the warning and error sections of the vim-airline |'statusline'|. Defaults
 to 1.
 
+*g:neomake_place_signs_at_once*
+This setting will tell neomake to place all of the signs in the buffer at
+once, instead of only placing visible signs and lazily placing more signs
+when the cursor is moved. Defaults to 0.
+
 ==============================================================================
 4. Functions                                               *neomake-functions*
 

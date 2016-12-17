@@ -129,8 +129,15 @@ function! neomake#signs#PlaceVisibleSigns() abort
         if !has_key(s:sign_queue[type], buf)
             continue
         endif
-        let topline = line('w0')
-        let botline = line('w$')
+
+        if !get(g:, 'neomake_place_signs_at_once', 0)
+            let topline = line('w0')
+            let botline = line('w$')
+        else
+            let topline = line('0')
+            let botline = line('$')
+        endif
+
         for ln in range(topline, botline)
             if has_key(s:sign_queue[type][buf], ln)
                 call neomake#signs#PlaceSign(s:sign_queue[type][buf][ln], type)
