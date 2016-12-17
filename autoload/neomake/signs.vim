@@ -205,14 +205,12 @@ function! neomake#signs#RedefineInfoSign(...) abort
     call neomake#signs#RedefineSign('neomake_info', opts)
 endfunction
 
-
 function! neomake#signs#HlexistsAndIsNotCleared(group) abort
     if !hlexists(a:group)
         return 0
     endif
     return neomake#utils#redir('hi '.a:group) !~# 'cleared'
 endfunction
-
 
 function! neomake#signs#DefineHighlights() abort
     let ctermbg = neomake#utils#GetHighlight('SignColumn', 'bg')
@@ -242,10 +240,13 @@ function! neomake#signs#DefineHighlights() abort
     endfor
 endfunction
 
-
 function! neomake#signs#DefineSigns() abort
     call neomake#signs#RedefineErrorSign()
     call neomake#signs#RedefineWarningSign()
     call neomake#signs#RedefineInfoSign()
     call neomake#signs#RedefineMessageSign()
 endfunction
+
+" Init.
+call neomake#signs#DefineHighlights()
+call neomake#signs#DefineSigns()

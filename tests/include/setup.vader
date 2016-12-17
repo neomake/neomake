@@ -205,8 +205,6 @@ Before:
       \ 'errorformat': '%f:%l:%t:%m',
       \ }
 
-  doautocmd VimEnter
-
 After:
   Restore
 

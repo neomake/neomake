@@ -93,6 +93,7 @@ function! neomake#highlights#DefineHighlights() abort
             \ get(g:, 'neomake_' . tolower(l:type) . '_highlight', l:type)
     endfor
 endfunction
+call neomake#highlights#DefineHighlights()
 
 function! s:ResetHighlights() abort
     if s:nvim_api
