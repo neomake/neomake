@@ -556,7 +556,9 @@ function! s:Make(options, ...) abort
     endfor
     if !len(job_ids)
         call neomake#utils#hook('NeomakeFinished', {
-                    \ 'file_mode': file_mode})
+                    \ 'file_mode': file_mode,
+                    \ 'bufnr': buf,
+                    \ })
     endif
     return job_ids
 endfunction
@@ -909,7 +911,9 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
         if neomake#has_async_support()
             if !len(filter(copy(s:jobs), 'v:val.make_id == jobinfo.make_id'))
                 call neomake#utils#hook('NeomakeFinished', {
-                            \ 'file_mode': maker.file_mode})
+                            \ 'file_mode': maker.file_mode,
+                            \ 'bufnr': get(jobinfo, 'bufnr', -1),
+                            \ })
             endif
         endif
     endif
