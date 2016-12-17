@@ -1,5 +1,6 @@
 function! neomake#makers#ft#text#EnabledMakers() abort
-    return ['proselint']
+    " No makers enabled by default, since text is used as fallback often.
+    return []
 endfunction
 
 function! neomake#makers#ft#text#proselint() abort
