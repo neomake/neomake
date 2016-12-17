@@ -472,9 +472,6 @@ function! s:Make(options, ...) abort
         let s:make_id += 1
         let make_id = s:make_id
     endif
-    call neomake#signs#DefineSigns()
-
-    call neomake#highlights#DefineHighlights()
 
     call neomake#utils#DebugMessage(printf('Running makers: %s',
                 \ string(enabled_makers)), {'make_id': make_id})
@@ -506,10 +503,14 @@ function! s:Make(options, ...) abort
     if !get(a:options, 'continuation')
         " Only do this if we have one or more enabled makers
         if file_mode
-            call neomake#signs#ResetFile(buf)
+            if g:neomake_place_signs
+                call neomake#signs#ResetFile(buf)
+            endif
             let s:need_errors_cleaning['file'][buf] = 1
         else
-            call neomake#signs#ResetProject()
+            if g:neomake_place_signs
+                call neomake#signs#ResetProject()
+            endif
             let s:need_errors_cleaning['project'] = 1
         endif
     endif
@@ -562,7 +563,6 @@ endfunction
 function! s:AddExprCallback(jobinfo, prev_index) abort
     let maker = a:jobinfo.maker
     let file_mode = get(maker, 'file_mode')
-    let place_signs = get(g:, 'neomake_place_signs', 1)
     let highlight_columns = get(g:, 'neomake_highlight_columns', 1)
     let highlight_lines = get(g:, 'neomake_highlight_lines', 0)
     let list = file_mode ? getloclist(0) : getqflist()
@@ -635,7 +635,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             \ s:current_errors[maker_type][entry.bufnr], entry.lnum, [])
         call add(s:current_errors[maker_type][entry.bufnr][entry.lnum], entry)
 
-        if place_signs
+        if g:neomake_place_signs
             if entry.lnum is 0
                 let ignored_signs += 1
             else
@@ -733,7 +733,9 @@ function! neomake#ProcessCurrentWindow() abort
         for output in outputs
             call s:ProcessJobOutput(output.jobinfo, output.lines, output.source)
         endfor
-        call neomake#signs#PlaceVisibleSigns()
+        if g:neomake_place_signs
+            call neomake#signs#PlaceVisibleSigns()
+        endif
     endif
     call neomake#highlights#ShowHighlights()
 endfunction
@@ -756,7 +758,9 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
 
     if !get(maker, 'file_mode')
         call s:ProcessJobOutput(a:jobinfo, lines, a:source)
-        call neomake#signs#PlaceVisibleSigns()
+        if g:neomake_place_signs
+            call neomake#signs#PlaceVisibleSigns()
+        endif
         return
     endif
 
@@ -922,7 +926,9 @@ function! neomake#CleanOldProjectSignsAndErrors() abort
         let s:need_errors_cleaning['project'] = 0
         call neomake#utils#DebugMessage('All project-level errors cleaned.')
     endif
-    call neomake#signs#CleanAllOldSigns('project')
+    if g:neomake_place_signs
+        call neomake#signs#CleanAllOldSigns('project')
+    endif
 endfunction
 
 function! neomake#CleanOldFileSignsAndErrors(...) abort
@@ -935,7 +941,9 @@ function! neomake#CleanOldFileSignsAndErrors(...) abort
         call neomake#highlights#ResetFile(bufnr)
         call neomake#utils#DebugMessage('File-level errors cleaned in buffer '.bufnr)
     endif
-    call neomake#signs#CleanOldSigns(bufnr, 'file')
+    if g:neomake_place_signs
+        call neomake#signs#CleanOldSigns(bufnr, 'file')
+    endif
 endfunction
 
 function! neomake#EchoCurrentError() abort
@@ -977,7 +985,9 @@ function! neomake#CursorMoved() abort
     let l:line = line('.')
     if s:last_cursormoved[0] != l:line || s:last_cursormoved[1] != bufnr('%')
         let s:last_cursormoved = [l:line, bufnr('%')]
-        call neomake#signs#PlaceVisibleSigns()
+        if g:neomake_place_signs
+            call neomake#signs#PlaceVisibleSigns()
+        endif
         call neomake#EchoCurrentError()
     endif
 endfunction
