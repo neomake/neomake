@@ -101,7 +101,7 @@ Execute (neomake#CancelJob):
 
   NeomakeTestsWaitForFinishedJobs
   AssertEqual neomake#CancelJob(job_id), 0
-  AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 3
+  AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 0
 
 Execute (neomake#CancelJob with invalid job):
   if !NeomakeAsyncTestsSetup() | finish | endif
@@ -130,7 +130,7 @@ Execute (neomake#CancelJob with invalid job):
   NeomakeTestsWaitForNextMessage
   AssertNeomakeMessage 'neomake#MakeHandler: exit: job was canceled.', 3
   AssertEqual neomake#CancelJob(job_id), 0
-  AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 3
+  AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 0
 
 Execute (neomake#CancelJob! with invalid job):
   if !NeomakeAsyncTestsSetup() | finish | endif
@@ -162,7 +162,7 @@ Execute (neomake#CancelJob! with invalid job):
   NeomakeTestsWaitForNextMessage
   AssertNeomakeMessage 'neomake#MakeHandler: exit: job not found: '.job_id, 1
   AssertEqual neomake#CancelJob(job_id, 1), 0
-  AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 3
+  AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 0
 
 Execute (Reports exit status: 7):
   call neomake#Sh("sh -c 'exit 7'")
@@ -187,6 +187,17 @@ Execute (neomake#Sh: job_id):
     NeomakeTestsWaitForFinishedJobs
   else
     Assert job_id == -1, 'Correct job_id for sync.'
+  endif
+
+Execute (neomake#CompleteJobs):
+  if neomake#has_async_support()
+    AssertEqual neomake#CompleteJobs(), ''
+    let job_ids = [neomake#Sh('sleep 1')]
+    AssertEqual neomake#CompleteJobs(), job_ids[0].': sh: sleep 1'
+    let job_ids += [neomake#Sh('sleep 2')]
+    AssertEqual neomake#CompleteJobs(), printf(
+      \ "%d: sh: sleep 1\n%d: sh: sleep 2", job_ids[0], job_ids[1])
+    NeomakeCancelJobs
   endif
 
 " NOTE: try/catch test, causing problems on vim8000.
