@@ -189,6 +189,8 @@ Before:
     Log "SKIP: no async support."
   endfunction
 
+  doautocmd VimEnter
+
 After:
   Restore
 
