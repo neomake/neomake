@@ -31,10 +31,12 @@ testvim: TEST_VIM:=vim -X
 testvim: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim: _run_vim
 
-_REDIR_STDOUT:=>/dev/null
+_SED_HIGHLIGHT_ERRORS:=| sed --unbuffered 's/([[:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/'
+_REDIR_STDOUT:=2>&1 >/dev/null $(_SED_HIGHLIGHT_ERRORS)
 _run_vim: | build $(TESTS_VADER_DIR)
 _run_vim:
-	$(TEST_VIM_PREFIX) $(TEST_VIM) -u $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
+	@echo $(TEST_VIM_PREFIX) $(TEST_VIM) -u $(TEST_VIMRC) -i NONE $(VIM_ARGS)
+	@$(TEST_VIM_PREFIX) $(TEST_VIM) -u $(TEST_VIMRC) -i NONE $(VIM_ARGS) 2>&1 $(_REDIR_STDOUT)
 
 # Interactive tests, keep Vader open.
 _run_interactive: VADER:=Vader
