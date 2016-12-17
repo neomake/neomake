@@ -350,7 +350,7 @@ scheme: >
             \ hi NeomakeWarningSign ctermfg=yellow
     augroup END
 <
-You can use `neomake#signs#DefineHighlights` to get e.g. the "bg" from
+You can use `neomake#utils#GetHighlight` to get e.g. the "bg" from
 "SignColumn".  See `neomake#signs#DefineHighlights` where this is used.
 
 *g:neomake_highlight_columns*
