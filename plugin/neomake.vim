@@ -21,27 +21,19 @@ command! -bang NeomakeCancelJobs call neomake#CancelJobs(<bang>0)
 
 command! -bar NeomakeInfo call neomake#DisplayInfo()
 
-function! s:neomake_init()
-  call neomake#highlights#DefineHighlights()
-  if has('signs')
-    let g:neomake_place_signs = get(g:, 'neomake_place_signs', 1)
-    if g:neomake_place_signs
-      call neomake#signs#DefineHighlights()
-      call neomake#signs#DefineSigns()
-    endif
-  else
-    let g:neomake_place_signs = 0
-    lockvar g:neomake_place_signs
-  endif
-endfunction
-
 augroup neomake
   au!
   au WinEnter * call neomake#ProcessCurrentWindow()
   au CursorHold * call neomake#ProcessPendingOutput()
   au BufEnter * call neomake#highlights#ShowHighlights()
   au CursorMoved * call neomake#CursorMoved()
-  au ColorScheme,VimEnter * call s:neomake_init()
 augroup END
+
+if has('signs')
+  let g:neomake_place_signs = get(g:, 'neomake_place_signs', 1)
+else
+  let g:neomake_place_signs = 0
+  lockvar g:neomake_place_signs
+endif
 
 " vim: sw=2 et
