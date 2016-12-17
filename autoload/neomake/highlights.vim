@@ -85,9 +85,20 @@ function! neomake#highlights#ShowHighlights() abort
 endfunction
 
 function! neomake#highlights#DefineHighlights() abort
-    for l:type in ['Error', 'Warning', 'Info', 'Message']
-        exe 'hi link Neomake' . l:type . ' ' .
-            \ get(g:, 'neomake_' . tolower(l:type) . '_highlight', l:type)
+    for [group, fg_from] in items({
+                \ 'NeomakeError': ['Error', 'bg'],
+                \ 'NeomakeWarning': ['Todo', 'fg'],
+                \ 'NeomakeInfo': ['Question', 'fg'],
+                \ 'NeomakeMessage': ['ModeMsg', 'fg']
+                \ })
+        let [fg_group, fg_attr] = fg_from
+        let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr)
+        let guisp = neomake#utils#GetHighlight(fg_group, fg_attr.'#')
+        exe 'hi '.group.'Default ctermfg='.ctermfg.' guisp='.guisp.' cterm=underline gui=undercurl'
+        if neomake#signs#HlexistsAndIsNotCleared(group)
+            continue
+        endif
+        exe 'hi link '.group.' '.group.'Default'
     endfor
 endfunction
 
