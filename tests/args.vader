@@ -23,3 +23,16 @@ Execute (neomake#GetMakers):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
     \ ['1', '2', '3a 3b', '4', fname_abs]
+
+Execute (dict function given as maker args value):
+  let g:makerdict = {
+        \ 'exe': '/usr/bin/printf',
+        \ 'errorformat': '%f: %m',
+        \ 'append_file': 0,
+        \ }
+  function! g:makerdict.args()
+    return ['%s: %s', 'file1', 'exe: '.self.exe]
+  endfunction
+  call neomake#Make(1, [makerdict])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['exe: /usr/bin/printf']

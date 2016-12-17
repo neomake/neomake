@@ -149,7 +149,7 @@ function! s:MakeJob(make_id, options) abort
         let exe = maker.exe
     endif
     if type(maker.args) == type(function('tr'))
-        let args = call(maker.args, [])
+        let args = call(maker.args, [], maker)
     elseif type(maker.args) == type({})
         let args = call(maker.args.fn, [], maker.args)
     else
