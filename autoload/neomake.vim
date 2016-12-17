@@ -722,6 +722,7 @@ function! s:CleanJobinfo(jobinfo) abort
     " Show the current line's error
     call neomake#EchoCurrentError()
 
+    call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
     " Trigger autocmd if all jobs for a s:Make instance have finished.
     if !len(filter(copy(s:jobs), 'v:val.make_id == a:jobinfo.make_id'))
         call neomake#utils#hook('NeomakeFinished', {

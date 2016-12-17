@@ -176,6 +176,11 @@ Before:
       let g:neomake_test_finished += [a:context]
     endfunction
 
+    let g:neomake_test_jobfinished = []
+    function! s:OnNeomakeJobFinished(context)
+      let g:neomake_test_jobfinished += [a:context]
+    endfunction
+
     let g:neomake_test_countschanged = []
     function! s:OnNeomakeCountsChanged(context)
       let g:neomake_test_countschanged += [a:context]
@@ -184,6 +189,7 @@ Before:
     augroup neomake_tests
       au!
       au User NeomakeFinished call s:OnNeomakeFinished(g:neomake_hook_context)
+      au User NeomakeJobFinished call s:OnNeomakeJobFinished(g:neomake_hook_context)
       au User NeomakeCountsChanged call s:OnNeomakeCountsChanged(g:neomake_hook_context)
     augroup END
   endfunction
