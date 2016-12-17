@@ -1,7 +1,6 @@
 " vim: ts=4 sw=4 et
 
 let s:nvim_api = 0
-let s:highlights_defined = 0
 
 let s:highlights = {'file': {}, 'project': {}}
 let s:highlight_types = {
@@ -89,13 +88,10 @@ function! neomake#highlights#ShowHighlights() abort
 endfunction
 
 function! neomake#highlights#DefineHighlights() abort
-    if !s:highlights_defined
-        let s:highlights_defined = 1
-        for l:type in ['Error', 'Warning', 'Informational', 'Message']
-            exe 'hi link Neomake' . l:type . ' ' .
-                \ get(g:, 'neomake_' . tolower(l:type) . '_highlight', l:type)
-        endfor
-    endif
+    for l:type in ['Error', 'Warning', 'Informational', 'Message']
+        exe 'hi link Neomake' . l:type . ' ' .
+            \ get(g:, 'neomake_' . tolower(l:type) . '_highlight', l:type)
+    endfor
 endfunction
 
 function! s:ResetHighlights() abort
