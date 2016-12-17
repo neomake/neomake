@@ -6,7 +6,7 @@ let s:highlights = {'file': {}, 'project': {}}
 let s:highlight_types = {
     \ 'E': 'NeomakeError',
     \ 'W': 'NeomakeWarning',
-    \ 'I': 'NeomakeInformational',
+    \ 'I': 'NeomakeInfo',
     \ 'M': 'NeomakeMessage'
     \ }
 
@@ -24,7 +24,7 @@ function! s:InitBufHighlights(type, buf) abort
         let s:highlights[a:type][a:buf] = {
             \ 'NeomakeError': [],
             \ 'NeomakeWarning': [],
-            \ 'NeomakeInformational': [],
+            \ 'NeomakeInfo': [],
             \ 'NeomakeMessage': []
             \ }
     endif
@@ -85,7 +85,7 @@ function! neomake#highlights#ShowHighlights() abort
 endfunction
 
 function! neomake#highlights#DefineHighlights() abort
-    for l:type in ['Error', 'Warning', 'Informational', 'Message']
+    for l:type in ['Error', 'Warning', 'Info', 'Message']
         exe 'hi link Neomake' . l:type . ' ' .
             \ get(g:, 'neomake_' . tolower(l:type) . '_highlight', l:type)
     endfor
