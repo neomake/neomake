@@ -68,6 +68,10 @@ fantastic Vim plugins such as syntastic and dispatch.
 :NeomakeCancelJob {job_id}
                         Terminate a job identified by its job_id.
 
+                                                          *:NeomakeCancelJobs*
+:NeomakeCancelJobs
+                        Terminate all jobs.
+
 ==============================================================================
 3. Configuration                                       *neomake-configuration*
 
