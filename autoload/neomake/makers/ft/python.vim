@@ -94,9 +94,38 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
     else
         let type = ''
     endif
+
     let l:token = matchstr(a:entry.text, "'.*'")
     if strlen(l:token)
-        let a:entry.length = strlen(l:token) - 2 " subtract the quotes
+        "remove quotes
+        let l:token = substitute(l:token, "'", '', 'g')
+        if a:entry.type ==# 'F' && a:entry.nr == 401
+            " The unused import error column is incorrect
+            let l:view = winsaveview()
+            call cursor(a:entry.lnum, a:entry.col)
+
+            if searchpos('from', 'cnW', a:entry.lnum)[1] == a:entry.col
+                " for 'from xxx.yyy import zzz' the token looks like
+                " xxx.yyy.zzz, but only the zzz part should be highlighted. So
+                " this discards the module part
+                let l:token = split(l:token, '\.')[-1]
+            endif
+
+            " search for the first occurence of the token and highlight in the
+            " next couple of lines and chane the lnum and col to that
+            " position.
+            let l:search_lines = 5
+            let l:ident_pos = searchpos('\<' . l:token . '\>', 'cnW',
+                        \ a:entry.lnum + l:search_lines)
+            if l:ident_pos[1] > 0
+                let a:entry.lnum = l:ident_pos[0]
+                let a:entry.col = l:ident_pos[1]
+            endif
+
+            call winrestview(l:view)
+        endif
+
+        let a:entry.length = strlen(l:token) " subtract the quotes
     endif
 
     let a:entry.text = a:entry.type . a:entry.nr . ' ' . a:entry.text
