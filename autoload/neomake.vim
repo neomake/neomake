@@ -47,26 +47,28 @@ endfunction
 
 function! neomake#CancelJob(job_id, ...) abort
     let remove_on_error = a:0 ? a:1 : 0
-    if !has_key(s:jobs, a:job_id)
-        call neomake#utils#DebugMessage('CancelJob: job not found: '.a:job_id)
+    " Handle '1: foo' format from neomake#CompleteJobs.
+    let job_id = a:job_id + 0
+    if !has_key(s:jobs, job_id)
+        call neomake#utils#ErrorMessage('CancelJob: job not found: '.job_id)
         return 0
     endif
-    let jobinfo = s:jobs[a:job_id]
+    let jobinfo = s:jobs[job_id]
     if get(jobinfo, 'finished')
-        call neomake#utils#DebugMessage('Removing already finished job: '.a:job_id)
+        call neomake#utils#DebugMessage('Removing already finished job: '.job_id)
         call s:CleanJobinfo(jobinfo)
     else
         " Mark it as canceled for the exit handler.
         let jobinfo.canceled = 1
-        call neomake#utils#DebugMessage('Stopping job: ' . a:job_id)
+        call neomake#utils#DebugMessage('Stopping job: '.job_id)
         if has('nvim')
             try
-                call jobstop(a:job_id)
+                call jobstop(job_id)
             catch /^Vim\%((\a\+)\)\=:\(E474\|E900\):/
                 call neomake#utils#LoudMessage(printf(
                             \ 'jobstop failed: %s', v:exception), jobinfo)
                 if remove_on_error
-                    unlet s:jobs[a:job_id]
+                    unlet s:jobs[job_id]
                 endif
                 return 0
             endtry
@@ -75,12 +77,12 @@ function! neomake#CancelJob(job_id, ...) abort
                 " Vim before 8.0.0045 might fail to stop a job right away.
                 sleep 50m
             endif
-            let vim_job = s:jobs[a:job_id].vim_job
+            let vim_job = s:jobs[job_id].vim_job
             if job_status(vim_job) !=# 'run'
                 call neomake#utils#LoudMessage(
                             \ 'job_stop: job was not running anymore', jobinfo)
                 if remove_on_error
-                    unlet s:jobs[a:job_id]
+                    unlet s:jobs[job_id]
                 endif
                 return 0
             endif
@@ -1004,6 +1006,10 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
     let file_mode = a:CmdLine =~# '\v^(Neomake|NeomakeFile)\s'
     let makers = file_mode ? neomake#GetMakers(&filetype) : neomake#GetProjectMakers()
     return filter(makers, "v:val =~? '^".a:ArgLead."'")
+endfunction
+
+function! neomake#CompleteJobs() abort
+    return join(map(neomake#GetJobs(), "v:val.id.': '.v:val.maker.name"), "\n")
 endfunction
 
 function! neomake#Make(file_mode, enabled_makers, ...) abort
