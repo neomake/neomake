@@ -13,6 +13,9 @@ let s:need_errors_cleaning = {
     \ 'project': 1,
     \ 'file': {}
     \ }
+let s:maker_defaults = {
+            \ 'buffer_output': 1,
+            \ 'remove_invalid_entries': 1}
 
 function! neomake#has_async_support() abort
     return has('nvim') ||
@@ -323,13 +326,12 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             let maker.name = 'unnamed_maker'
         endif
     endif
-    let defaults = {
+    let defaults = copy(s:maker_defaults)
+    call extend(defaults, {
         \ 'exe': maker.name,
         \ 'args': [],
         \ 'errorformat': &errorformat,
-        \ 'buffer_output': 1,
-        \ 'remove_invalid_entries': 1,
-        \ }
+        \ })
     let bufnr = bufnr('%')
     for [key, default] in items(defaults)
         let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
@@ -1021,6 +1023,30 @@ function! neomake#Sh(sh_command, ...) abort
     return neomake#ShCommand(0, a:sh_command, options)
 endfunction
 
+" Optional arg: ft
+function! s:display_maker_info(...) abort
+    let maker_names = call('neomake#GetEnabledMakers', a:000)
+    if !len(maker_names)
+        echon ' None.'
+        return
+    endif
+    for maker_name in maker_names
+        let maker = call('neomake#GetMaker', [maker_name] + a:000)
+        echo ' - '.maker.name
+        for [k, v] in items(maker)
+            if k ==# 'name' || k ==# 'ft'
+                continue
+            endif
+            if has_key(s:maker_defaults, k)
+                        \ && type(v) == type(s:maker_defaults[k])
+                        \ && v ==# s:maker_defaults[k]
+                continue
+            endif
+            echo '   '.k.': '.string(v)
+        endfor
+    endfor
+endfunction
+
 function! neomake#DisplayInfo() abort
     let ft = &filetype
     echo '#### Neomake debug information'
@@ -1028,17 +1054,23 @@ function! neomake#DisplayInfo() abort
     echo 'Current filetype: '.ft
     echo "\n"
     echo '##### Enabled makers'
-    echo 'For the current filetype (with :Neomake): '
-                \ .string(neomake#GetEnabledMakers(ft))
+    echo 'For the current filetype (with :Neomake):'
+    call s:display_maker_info(ft)
     if empty(ft)
         echo 'NOTE: the current buffer does not have a filetype.'
     else
         echo 'NOTE: you can define g:neomake_'.ft.'_enabled_makers'
                     \ .' to configure it (or b:neomake_'.ft.'_enabled_makers).'
     endif
-    echo 'For the project (with :Neomake!): '
-                \ .string(neomake#GetEnabledMakers())
+    echo "\n"
+    echo 'For the project (with :Neomake!):'
+    call s:display_maker_info()
     echo 'NOTE: you can define g:neomake_enabled_makers to configure it.'
+    echo "\n"
+    echo 'Default maker settings:'
+    for [k, v] in items(s:maker_defaults)
+        echo ' - '.k.': '.string(v)
+    endfor
     echo "\n"
     echo '##### Settings'
     echo '```'
