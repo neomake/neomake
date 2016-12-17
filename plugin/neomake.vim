@@ -15,7 +15,9 @@ command! -nargs=* -bar -complete=customlist,neomake#CompleteMakers
 command! -nargs=+ -bang -complete=shellcmd
       \ NeomakeSh call neomake#ShCommand(<bang>0, <q-args>)
 command! NeomakeListJobs call neomake#ListJobs()
-command! -nargs=1 NeomakeCancelJob call neomake#CancelJob(<args>)
+command! -bang -nargs=1
+      \ NeomakeCancelJob call neomake#CancelJob(<args>, <bang>0)
+command! -bang NeomakeCancelJobs call neomake#CancelJobs(<bang>0)
 
 command! -bar NeomakeInfo call neomake#DisplayInfo()
 

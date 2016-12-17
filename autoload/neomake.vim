@@ -42,7 +42,8 @@ function! neomake#ListJobs() abort
     endfor
 endfunction
 
-function! neomake#CancelJob(job_id) abort
+function! neomake#CancelJob(job_id, ...) abort
+    let remove_on_error = a:0 ? a:1 : 0
     if !has_key(s:jobs, a:job_id)
         call neomake#utils#DebugMessage('CancelJob: job not found: '.a:job_id)
         return 0
@@ -59,8 +60,11 @@ function! neomake#CancelJob(job_id) abort
             try
                 call jobstop(a:job_id)
             catch /^Vim\%((\a\+)\)\=:\(E474\|E900\):/
-                call neomake#utils#DebugMessage(printf(
+                call neomake#utils#LoudMessage(printf(
                             \ 'jobstop failed: %s', v:exception), jobinfo)
+                if remove_on_error
+                    unlet s:jobs[a:job_id]
+                endif
                 return 0
             endtry
         else
@@ -70,14 +74,23 @@ function! neomake#CancelJob(job_id) abort
             endif
             let vim_job = s:jobs[a:job_id].vim_job
             if job_status(vim_job) !=# 'run'
-                call neomake#utils#DebugMessage(
+                call neomake#utils#LoudMessage(
                             \ 'job_stop: job was not running anymore', jobinfo)
+                if remove_on_error
+                    unlet s:jobs[a:job_id]
+                endif
                 return 0
             endif
             call job_stop(vim_job)
         endif
     endif
     return 1
+endfunction
+
+function! neomake#CancelJobs(bang) abort
+    for job in neomake#GetJobs()
+        call neomake#CancelJob(job.id, a:bang)
+    endfor
 endfunction
 
 function! s:GetMakerKey(maker) abort

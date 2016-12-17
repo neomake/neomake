@@ -22,6 +22,22 @@ Before:
   endfunction
   command! NeomakeTestsWaitForFinishedJobs call s:wait_for_finished_jobs()
 
+  function! s:wait_for_next_message()
+    let max = 60
+    let n = len(g:neomake_test_messages)
+    while 1
+      let max -= 1
+      sleep 50m
+      if max == 0
+        throw 'No new message appeared after 3s.'
+      endif
+      if len(g:neomake_test_messages) != n
+        break
+      endif
+    endwhile
+  endfunction
+  command! NeomakeTestsWaitForNextMessage call s:wait_for_next_message()
+
   command! -nargs=* RunNeomake Neomake <args>
     \ | NeomakeTestsWaitForFinishedJobs
   command! -nargs=* RunNeomakeProject NeomakeProject <args>
@@ -181,7 +197,7 @@ After:
   let jobs = filter(neomake#GetJobs(), "!get(v:val, 'canceled', 0)")
   if len(jobs)
     for job in jobs
-      call neomake#CancelJob(job.id)
+      call neomake#CancelJob(job.id, 1)
     endfor
     throw 'There were '.len(jobs).' jobs left: '.string(jobs)
   endif
