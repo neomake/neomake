@@ -12,9 +12,6 @@ let s:highlight_types = {
 
 if exists('*nvim_buf_add_highlight')
     let s:nvim_api = 1
-    function! s:NewHighlightSource(buf) abort
-        return nvim_buf_add_highlight(a:buf, 0, '', 0, 0, -1)
-    endfunction
 endif
 
 function! s:InitBufHighlights(type, buf) abort
@@ -22,7 +19,7 @@ function! s:InitBufHighlights(type, buf) abort
         if has_key(s:highlights[a:type], a:buf)
             call nvim_buf_clear_highlight(a:buf, s:highlights[a:type][a:buf], 0, -1)
         endif
-        let s:highlights[a:type][a:buf] = s:NewHighlightSource(a:buf)
+        let s:highlights[a:type][a:buf] = nvim_buf_add_highlight(a:buf, 0, '', 0, 0, -1)
     else
         let s:highlights[a:type][a:buf] = {
             \ 'NeomakeError': [],
