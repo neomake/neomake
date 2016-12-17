@@ -1178,16 +1178,17 @@ function! s:display_maker_info(...) abort
     for maker_name in maker_names
         let maker = call('neomake#GetMaker', [maker_name] + a:000)
         echo ' - '.maker.name
-        for [k, v] in items(maker)
+        for [k, V] in items(maker)
             if k ==# 'name' || k ==# 'ft'
                 continue
             endif
             if has_key(s:maker_defaults, k)
-                        \ && type(v) == type(s:maker_defaults[k])
-                        \ && v ==# s:maker_defaults[k]
+                        \ && type(V) == type(s:maker_defaults[k])
+                        \ && V ==# s:maker_defaults[k]
                 continue
             endif
-            echo '   '.k.': '.string(v)
+            echo '   '.k.': '.string(V)
+            unlet V
         endfor
     endfor
 endfunction
@@ -1219,9 +1220,9 @@ function! neomake#DisplayInfo() abort
     echo "\n"
     echo '##### Settings'
     echo '```'
-    for [k, v] in items(filter(copy(g:), "v:key =~# '^neomake_'"))
-        echo 'g:'.k.' = '.string(v)
-        unlet! v  " Fix variable type mismatch with Vim 7.3.
+    for [k, V] in items(filter(copy(g:), "v:key =~# '^neomake_'"))
+        echo 'g:'.k.' = '.string(V)
+        unlet! V  " Fix variable type mismatch with Vim 7.3.
     endfor
     echo "\n"
     echo 'shell:' &shell
