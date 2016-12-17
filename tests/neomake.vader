@@ -10,9 +10,10 @@ Include (Lists): lists.vader
 Include (Maker args): args.vader
 Include (Makers): makers.vader
 Include (Mapexpr): mapexpr.vader
+Include (Processing): processing.vader
+Include (Serialize): serialize.vader
 Include (Signs): signs.vader
 Include (Statusline): statusline.vader
-Include (Processing): processing.vader
 Include (Utils): utils.vader
 
 ~ Filetype specific
@@ -33,6 +34,12 @@ Execute (neomake#GetMaker with non-existent maker prints errors):
   AssertEqual neomake#GetMaker('nonexistent'), {}
   AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent', {}]
 
+Execute (Neomake! reports error on execution failure):
+  AssertEqual neomake#GetMaker('non-existent'), {}
+  AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent', {}]
+  AssertEqual neomake#GetMaker('nonexistent'), {}
+  AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent', {}]
+
 Execute (neomake#GetMaker uses defined errorformat with makeprg):
   Save &errorformat
   let &errorformat = '%Gcustom'
@@ -40,12 +47,26 @@ Execute (neomake#GetMaker uses defined errorformat with makeprg):
 
 Execute (neomake#GetMaker uses defaults from b:/g:):
   Save g:neomake_test_remove_invalid_entries
+  Save b:neomake_test_remove_invalid_entries
 
   let maker = {'name': 'test'}
 
   " Default.
-  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 0
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 0,
+  \ "default is ok"
 
+  let maker.remove_invalid_entries = 1
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
+  let g:neomake_test_remove_invalid_entries = 2
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 2
+  let b:neomake_test_remove_invalid_entries = 3
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 3
+
+Execute (neomake#GetMaker uses defaults from b:/g: based on maker):
+  Save g:neomake_test_remove_invalid_entries
+
+  let maker = {'name': 'test'}
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 0
   let maker.remove_invalid_entries = 1
   AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
   let g:neomake_test_remove_invalid_entries = 2

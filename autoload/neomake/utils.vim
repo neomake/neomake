@@ -331,11 +331,17 @@ function! neomake#utils#ExpandArgs(args) abort
     call map(a:args, "v:val =~# '\\(^%$\\|^%:\\l\\+$\\)' ? expand(v:val) : v:val")
 endfunction
 
-function! neomake#utils#hook(event, context) abort
+function! neomake#utils#hook(event, context, ...) abort
     if exists('#User#'.a:event)
+        let jobinfo = a:0 ? a:1 : (
+                    \ has_key(a:context, 'jobinfo') ? a:context.jobinfo : {})
         let g:neomake_hook_context = a:context
-        call neomake#utils#LoudMessage('Calling User autocmd '.a:event
-                                      \ .' with context: '.string(a:context))
+        let args = ['Calling User autocmd '.a:event
+                    \ .' with context: '.string(a:context)]
+        if len(jobinfo)
+            let args += [jobinfo]
+        endif
+        call call('neomake#utils#LoudMessage', args)
         if v:version >= 704 || (v:version == 703 && has('patch442'))
             exec 'doautocmd <nomodeline> User ' . a:event
         else

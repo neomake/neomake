@@ -11,7 +11,7 @@ Execute (Test Neomake on errors.sh with one maker):
   AssertEqual len(g:neomake_test_finished), 0
   AssertEqual len(g:neomake_test_countschanged), 0
   RunNeomake sh
-  AssertNotEqual getloclist(0), []
+  AssertNotEqual getloclist(0), [], 'loclist was not filled'
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_countschanged), 1
 
@@ -41,6 +41,7 @@ Execute (Test Neomake on errors.sh with two makers):
   e! tests/fixtures/errors.sh
   RunNeomake sh shellcheck
   AssertEqual len(g:neomake_test_countschanged), 2
+  AssertEqual len(g:neomake_test_finished), 1
 
   Assert len(filter(copy(g:neomake_test_messages),
     \ "v:val[1] =~# '^Running makers: sh, shellcheck (.*)'")) == 1, '"Running makers" message found'
@@ -78,6 +79,7 @@ Execute (Neomake: handle output for removed window):
   AssertEqual len(g:neomake_test_finished), 1
 
   AssertNeomakeMessage 'No window found for output!', 2, jobinfo
+  AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
 
 Execute (NeomakeSh: true):
   call neomake#statusline#ResetCounts()
@@ -311,18 +313,14 @@ Execute (Neomake: non-existing and proper job):
   let b:neomake_enabled_makers = ['maker1', 'maker2']
   Neomake! maker1 maker2
   NeomakeTestsWaitForFinishedJobs
-  let expected_counts_changed = 1
   if has('nvim')
-    AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
-      \ ['1'])
+    AssertNeomakeMessage 'Executable not found', 0
   else
-    " XXX: Vim puts the job's error on stdout.
-    let expected_counts_changed = 2
-    AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
-      \ ['1', 'executing job failed: No such file or directory'])
+    AssertNeomakeMessage 'Vim job failed to run: executing job failed: No such file or directory'
   endif
-  AssertEqual len(g:neomake_test_finished), 1
-  AssertEqual len(g:neomake_test_countschanged), expected_counts_changed,
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['1']
+"   AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_countschanged), 1,
     \ 'counts have changed'
 
 Execute (Neomake: remove_invalid_entries):

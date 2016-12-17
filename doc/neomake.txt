@@ -309,7 +309,8 @@ Defaults to 1.
 
 *g:neomake_serialize*
 Setting this to 1 tells Neomake to run each enabled maker one after the other.
-This is a good way to ensure messages don't get mixed up.
+This is a good way to ensure messages don't get mixed up. This setting is
+implied with non-async Vim versions.
 
 *g:neomake_serialize_abort_on_error*
 Setting this to 1 tells Neomake to abort after the first error status is
