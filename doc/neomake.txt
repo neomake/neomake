@@ -390,9 +390,10 @@ functions useful.
 *neomake#Make* (filemode, makers[, callback])
 This function is called by the |:Neomake| (and |:Neomake!|) command. It runs
 all the `makers` specified, in order. If `filemode` is 1, then the current
-file is used as input to the makers. |neomake#Make| returns an array of job
-ids that were created; you can potentially cancel these jobs with
-|neomake#CancelJob|.
+file is used as input to the makers.
+
+It returns an array of job ids that were created; you can potentially cancel
+these jobs with |neomake#CancelJob|.
 
 It also accepts a third, optional callback argument that
 is called when the command exits.  The callback is given the following
