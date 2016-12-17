@@ -156,8 +156,8 @@ function! neomake#makers#ft#python#PylamaEntryProcess(entry) abort
         call neomake#makers#ft#python#Pep8EntryProcess(a:entry)
     elseif a:entry.type ==# 'D'  " pydocstyle/pep257
         let a:entry.type = 'W'
-    elseif a:entry.type ==# 'E901'  " mccabe
-        let a:entry.type = 'W'
+    elseif a:entry.type ==# 'C' && a:entry.nr ==# '901'  " mccabe
+        let a:entry.type = 'I'
     elseif a:entry.type ==# 'R'  " Radon
         let a:entry.type = 'W'
     endif
