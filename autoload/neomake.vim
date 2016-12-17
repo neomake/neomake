@@ -726,9 +726,6 @@ function! s:CleanJobinfo(jobinfo) abort
         else
             call neomake#CleanOldProjectSignsAndErrors()
         endif
-
-        " Show the current line's error
-        call neomake#EchoCurrentError()
     endif
 
     call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
@@ -810,8 +807,8 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
         let &errorformat = olderrformat
     endtry
 
-    " TODO: after processed?!
     call s:HandleLoclistQflistDisplay(a:jobinfo.file_mode)
+    call neomake#EchoCurrentError()
 endfunction
 
 function! neomake#ProcessCurrentWindow() abort
@@ -1092,9 +1089,6 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
             let jobinfo.pending_output = 1
             let jobinfo.finished = 1
         endif
-
-        " Show the current line's error
-        call neomake#EchoCurrentError()
 
         call s:handle_next_makers(jobinfo, status)
     endif
