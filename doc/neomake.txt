@@ -76,7 +76,7 @@ Just set your |'makeprg'| and |'errorformat'| as usual, and run |:Neomake!|.
 If you want more, read on.
 
 Makers                                                        *neomake-makers*
-A maker is an object that tells neomake how to run a job for you. A maker may
+A maker is an object that tells Neomake how to run a job for you. A maker may
 be run with a file as input (great for linting), or with no file as input
 (great for building, project-level tasks).
 
@@ -254,7 +254,7 @@ Please refer to |autocmd-patterns| for help on defining the pattern
 (`custom.py`) in this case.
 
 *g:neomake_enabled_makers*
-This setting will tell neomake which makers to use by default when not
+This setting will tell Neomake which makers to use by default when not
 operating on a single file, or when no makers are defined for the filetype of
 the current buffer. This effectively defaults to: >
     let g:neomake_enabled_makers = ['makeprg']
@@ -266,7 +266,7 @@ preserve the cursor position when the |location-list| or |quickfix| window is
 opened. Defaults to 0.
 
 *g:neomake_list_height*
-The height of the |location-list| or |quickfix| list opened by neomake.
+The height of the |location-list| or |quickfix| list opened by Neomake.
 Defaults to 10.
 
 *g:neomake_echo_current_error*
@@ -274,15 +274,15 @@ This setting will echo the error for the line your cursor is on, if any.
 Defaults to 1.
 
 *g:neomake_serialize*
-Setting this to 1 tells neomake to run each enabled maker one after the other.
+Setting this to 1 tells Neomake to run each enabled maker one after the other.
 This is a good way to ensure messages don't get mixed up.
 
 *g:neomake_serialize_abort_on_error*
-Setting this to 1 tells neomake to abort after the first error status is
+Setting this to 1 tells Neomake to abort after the first error status is
 encountered. This setting only works when |g:neomake_serialize| is on.
 
 *g:neomake_verbose*
-Controls how verbose neomake should be. Neomake log levels are as follows:
+Controls how verbose Neomake should be. Neomake log levels are as follows:
     0 - Errors only
     1 - Quiet message (default -- should only log one message at a time)
     2 - Loud message (may log multiple messages at once, making the screen
@@ -296,18 +296,20 @@ Specify a logfile where all log messages will be logged. The setting
 |g:neomake_verbose| does not influence which messages will be logged to file,
 making it possible to reduce the number of messages you see in your editor
 without losing that information should you need it. Mainly for people hacking
-on neomake itself. This feature is not yet cross-platform.
+on Neomake itself. This feature is not yet cross-platform.
 
+                                                               *neomake-signs*
 *g:neomake_place_signs*
-This setting will tell neomake whether to place signs by errors recognized
-from the |'errorformat'|. Defaults to 1.
+This setting enables the placement of signs next to items from the location
+and quickfix list (i.e. errors/warnings etc recognized from the
+|'errorformat'|). Defaults to 1.
 
 *g:neomake_error_sign*
 *g:neomake_warning_sign*
 *g:neomake_info_sign*
 *g:neomake_message_sign*
 These options allow you to control the appearance of the signs that are
-placed beside messages.
+placed into the |signs| column next to lines with messages.
 These are dictionaries that represent the parameters provided by
 |:sign-define|. Here is an example definition: >
     let g:neomake_error_sign = {
@@ -456,7 +458,7 @@ will retrieve the counts for a particular buffer, while passing the string
 This is the function that takes the job output and puts it into the
 |location-list| or |quickfix| list, adds signs, etc. Currently, if you stay in
 the window you called |:Neomake| from, this will happen as the job output
-comes in. However, if you go to a different window, neomake will wait until
+comes in. However, if you go to a different window, Neomake will wait until
 you return to that window for the job output to be processed. Currently, that
 will happen on |WinEnter| and |CursorHold|. You can also call this function
 directly if you need to force it. This function is not currently used for
