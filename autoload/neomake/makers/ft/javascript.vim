@@ -1,10 +1,10 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#javascript#EnabledMakers()
+function! neomake#makers#ft#javascript#EnabledMakers() abort
     return ['jshint', 'jscs', 'eslint']
 endfunction
 
-function! neomake#makers#ft#javascript#gjslint()
+function! neomake#makers#ft#javascript#gjslint() abort
     return {
         \ 'args': ['--nodebug_indentation', '--nosummary', '--unix_mode', '--nobeep'],
         \ 'errorformat': '%f:%l:(New Error -%\\?\%n) %m,' .
@@ -15,21 +15,21 @@ function! neomake#makers#ft#javascript#gjslint()
         \ }
 endfunction
 
-function! neomake#makers#ft#javascript#jshint()
+function! neomake#makers#ft#javascript#jshint() abort
     return {
         \ 'args': ['--verbose'],
         \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
         \ }
 endfunction
 
-function! neomake#makers#ft#javascript#jscs()
+function! neomake#makers#ft#javascript#jscs() abort
     return {
         \ 'args': ['--no-colors', '--reporter', 'inline'],
         \ 'errorformat': '%E%f: line %l\, col %c\, %m',
         \ }
 endfunction
 
-function! neomake#makers#ft#javascript#eslint()
+function! neomake#makers#ft#javascript#eslint() abort
     return {
         \ 'args': ['-f', 'compact'],
         \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
@@ -37,7 +37,7 @@ function! neomake#makers#ft#javascript#eslint()
         \ }
 endfunction
 
-function! neomake#makers#ft#javascript#eslint_d()
+function! neomake#makers#ft#javascript#eslint_d() abort
     return {
         \ 'args': ['-f', 'compact'],
         \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
@@ -45,19 +45,19 @@ function! neomake#makers#ft#javascript#eslint_d()
         \ }
 endfunction
 
-function! neomake#makers#ft#javascript#standard()
+function! neomake#makers#ft#javascript#standard() abort
     return {
         \ 'errorformat': '%W  %f:%l:%c: %m'
         \ }
 endfunction
 
-function! neomake#makers#ft#javascript#semistandard()
+function! neomake#makers#ft#javascript#semistandard() abort
     return {
         \ 'errorformat': '%W  %f:%l:%c: %m'
         \ }
 endfunction
 
-function! neomake#makers#ft#javascript#flow()
+function! neomake#makers#ft#javascript#flow() abort
     " Replace "\n" by space.
     let mapexpr = 'substitute(v:val, "\\\\n", " ", "g")'
     return {
@@ -67,7 +67,7 @@ function! neomake#makers#ft#javascript#flow()
         \ }
 endfunction
 
-function! neomake#makers#ft#javascript#xo()
+function! neomake#makers#ft#javascript#xo() abort
     return {
         \ 'args': ['--compact'],
         \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
