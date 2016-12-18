@@ -47,12 +47,9 @@ function! neomake#makers#ft#javascript#semistandard()
 endfunction
 
 function! neomake#makers#ft#javascript#flow()
-    " Replace "\n" by space.
-    let mapexpr = 'substitute(v:val, "\\\\n", " ", "g")'
     return {
         \ 'args': ['--old-output-format'],
-        \ 'errorformat': '%E%f:%l:%c\,%n: %m',
-        \ 'mapexpr': mapexpr,
+        \ 'errorformat': '%E%f:%l:%c\,%n: %m,%Z%m',
         \ }
 endfunction
 
