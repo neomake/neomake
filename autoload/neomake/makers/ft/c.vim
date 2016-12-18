@@ -13,10 +13,12 @@ function! neomake#makers#ft#c#clang()
             \ '%-G%f:%s:,' .
             \ '%f:%l:%c: %trror: %m,' .
             \ '%f:%l:%c: %tarning: %m,' .
+            \ '%I%f:%l:%c: note: %m,' .
             \ '%f:%l:%c: %m,'.
             \ '%f:%l: %trror: %m,'.
             \ '%f:%l: %tarning: %m,'.
-            \ '%f:%l: %m',
+            \ '%I%f:%l: note: %m,'.
+            \ '%f:%l: %m'
         \ }
 endfunction
 
@@ -28,9 +30,11 @@ function! neomake#makers#ft#c#clangcheck()
             \ '%-G%f:%s:,' .
             \ '%f:%l:%c: %trror: %m,' .
             \ '%f:%l:%c: %tarning: %m,' .
+            \ '%I%f:%l:%c: note: %m,' .
             \ '%f:%l:%c: %m,'.
             \ '%f:%l: %trror: %m,'.
             \ '%f:%l: %tarning: %m,'.
+            \ '%I%f:%l: note: %m,'.
             \ '%f:%l: %m',
         \ }
 endfunction
@@ -46,9 +50,11 @@ function! neomake#makers#ft#c#gcc()
             \ '%-G %#from %f:%l\,,' .
             \ '%f:%l:%c: %trror: %m,' .
             \ '%f:%l:%c: %tarning: %m,' .
+            \ '%I%f:%l:%c: note: %m,' .
             \ '%f:%l:%c: %m,' .
             \ '%f:%l: %trror: %m,' .
             \ '%f:%l: %tarning: %m,'.
+            \ '%I%f:%l: note: %m,'.
             \ '%f:%l: %m',
         \ }
 endfunction
