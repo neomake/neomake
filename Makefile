@@ -31,7 +31,8 @@ testvim: TEST_VIM:=vim -X
 testvim: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim: _run_vim
 
-_SED_HIGHLIGHT_ERRORS:=| sed --unbuffered 's/([[:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/'
+INTERACTIVE=$(shell [ -t 0 ] && echo 1)
+_SED_HIGHLIGHT_ERRORS=$(if $(INTERACTIVE),| sed --unbuffered 's/([[:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/',)
 _REDIR_STDOUT:=2>&1 >/dev/null $(_SED_HIGHLIGHT_ERRORS)
 _run_vim: | build $(TESTS_VADER_DIR)
 _run_vim:
