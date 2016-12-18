@@ -4,6 +4,17 @@ function! neomake#makers#ft#javascript#EnabledMakers()
     return ['jshint', 'jscs', 'eslint']
 endfunction
 
+function! neomake#makers#ft#javascript#gjslint()
+    return {
+        \ 'args': ['--nodebug_indentation', '--nosummary', '--unix_mode', '--nobeep'],
+        \ 'errorformat': '%f:%l:(New Error -%\\?\%n) %m,' .
+        \ '%f:%l:(-%\\?%n) %m,' .
+        \ '%-G1 files checked,' .
+        \ ' no errors found.,' .
+        \ '%-G%.%#'
+        \ }
+endfunction
+
 function! neomake#makers#ft#javascript#jshint()
     return {
         \ 'args': ['--verbose'],
