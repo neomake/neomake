@@ -26,13 +26,27 @@ Execute (neomake#GetMakers):
 
 Execute (dict function given as maker args value):
   let g:makerdict = {
-        \ 'exe': '/usr/bin/printf',
-        \ 'errorformat': '%f: %m',
-        \ 'append_file': 0,
-        \ }
+    \ 'exe': '/usr/bin/printf',
+    \ 'errorformat': '%f: %m',
+    \ 'append_file': 0,
+    \ }
   function! g:makerdict.args()
     return ['%s: %s', 'file1', 'exe: '.self.exe]
   endfunction
   call neomake#Make(1, [makerdict])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['exe: /usr/bin/printf']
+
+Execute (exe function given as maker exe value):
+  function! g:Eref() dict
+    return '/usr/bin/printf'
+  endfunction
+  let g:makerexe = {
+    \ 'exe': function('g:Eref'),
+    \ 'args':['%s %s\n', 'curfile:', 'exe'],
+    \ 'errorformat': '%f: %m',
+    \ 'append_file': 0,
+    \ }
+  call neomake#Make(1, [makerexe])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['exe']
