@@ -548,9 +548,7 @@ function! s:Make(options, ...) abort
                 \ string(enabled_makers)), {'make_id': make_id})
     let maker = {}
     while len(enabled_makers)
-        unlockvar maker
         let maker = remove(enabled_makers, 0)
-        lockvar maker
         if empty(maker)
             continue
         endif
