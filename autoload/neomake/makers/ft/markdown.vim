@@ -30,3 +30,10 @@ function! neomake#makers#ft#markdown#alex() abort
                 \ '%-G%.%#'
                 \ }
 endfunction
+
+function! neomake#makers#ft#markdown#writegood() abort
+    return {
+                \ 'args': ['--parse'],
+                \ 'errorformat': '%W%f:%l:%c:%m'
+                \ }
+endfunction
