@@ -20,7 +20,12 @@ TEST_VIMRC:=tests/vim/vimrc
 # This is expected in tests.
 TEST_VIM_PREFIX:=SHELL=/bin/bash
 
-testnvim: TEST_VIM:=nvim
+# Neovim might quit after ~5s with stdin being closed.  Use --headless mode to
+# work around this, which then also requires :Vader to be silent.
+# > Vim: Error reading input, exiting...
+# > Vim: Finished.
+testnvim: TEST_VIM:=nvim --headless
+testnvim: VADER:=silent $(VADER)
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 testnvim: build/neovim-test-home
 testnvim: TEST_VIM_PREFIX+=HOME=build/neovim-test-home
@@ -31,9 +36,9 @@ testvim: TEST_VIM:=vim -X
 testvim: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim: _run_vim
 
-INTERACTIVE=$(shell [ -t 0 ] && echo 1)
-_SED_HIGHLIGHT_ERRORS=$(if $(INTERACTIVE),| sed --unbuffered 's/([[:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/',)
-_REDIR_STDOUT:=2>&1 >/dev/null $(_SED_HIGHLIGHT_ERRORS)
+_SED_HIGHLIGHT_ERRORS:=| sed 's/([[:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/'
+# Need to close stdin to fix spurious 'sed: couldn't write X items to stdout: Resource temporarily unavailable'.
+_REDIR_STDOUT:=</dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS)
 _run_vim: | build $(TESTS_VADER_DIR)
 _run_vim:
 	@echo $(TEST_VIM_PREFIX) $(TEST_VIM) -u $(TEST_VIMRC) -i NONE $(VIM_ARGS)
