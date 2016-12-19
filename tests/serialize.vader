@@ -132,3 +132,10 @@ Execute (Neomake#Make cancels previous jobs):
     AssertNeomakeMessage 'Restarting already running job ('
     \ .make_id.'.'.j.') for the same maker.', 2, {'make_id': make_id+1}
   endfor
+
+Execute (Neomake#Make does not cancel maker from same run):
+  if !NeomakeAsyncTestsSetup() | finish | endif
+
+  call neomake#Make(0, [g:maker_success, g:maker_success])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['success', 'success']

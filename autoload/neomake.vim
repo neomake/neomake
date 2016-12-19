@@ -547,11 +547,11 @@ function! s:Make(options) abort
             continue
         endif
 
-        " Check for already running job for the same maker.
+        " Check for already running job for the same maker (from other runs).
         " This used to use this key: maker.name.',ft='.maker.ft.',buf='.maker.bufnr
         if len(s:jobs)
             let running_already = values(filter(copy(s:jobs),
-                        \ 'v:val.maker == maker'
+                        \ 'v:val.make_id != s:make_id && v:val.maker == maker'
                         \ ." && v:val.bufnr == bufnr && !get(v:val, 'restarting')"))
             if len(running_already)
                 let jobinfo = running_already[0]
