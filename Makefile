@@ -3,8 +3,7 @@ CDPATH:=
 
 test: testnvim testvim
 
-# This is expected in tests.
-export SHELL:=/bin/bash
+SHELL:=/bin/bash -o pipefail
 
 VADER:=Vader!
 VADER_ARGS:=tests/neomake.vader
@@ -18,7 +17,8 @@ $(TESTS_VADER_DIR) $(DEFAULT_VADER_DIR):
 
 TEST_VIMRC:=tests/vim/vimrc
 
-TEST_VIM_PREFIX:=
+# This is expected in tests.
+TEST_VIM_PREFIX:=SHELL=/bin/bash
 
 testnvim: TEST_VIM:=nvim
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
