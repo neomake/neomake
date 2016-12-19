@@ -157,7 +157,7 @@ function! s:MakeJob(make_id, options) abort
     endif
     let args_is_list = type(args) == type([])
 
-    if a:options.file_mode && get(maker, 'append_file', 1)
+    if a:options.file_mode && neomake#utils#GetSetting('append_file', maker, 1, [maker.ft], jobinfo.bufnr)
         if args_is_list
             call neomake#utils#ExpandArgs(args)
             call add(args, expand('%:p'))
@@ -362,14 +362,6 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     for [key, default] in items(defaults)
         let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
         unlet! default  " workaround for old Vim (7.3.429)
-    endfor
-    let s:UNSET = {}
-    for key in ['append_file']
-        let value = neomake#utils#GetSetting(key, maker, s:UNSET, fts, bufnr)
-        if value isnot s:UNSET
-            let maker[key] = value
-        endif
-        unlet! value  " workaround for old Vim (7.3.429)
     endfor
     if exists('real_ft')
         let maker.ft = real_ft
