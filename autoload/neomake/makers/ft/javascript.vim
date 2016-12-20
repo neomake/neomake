@@ -61,7 +61,7 @@ function! neomake#makers#ft#javascript#flow() abort
     " Replace "\n" by space.
     let mapexpr = 'substitute(v:val, "\\\\n", " ", "g")'
     return {
-        \ 'args': ['--from-vim'],
+        \ 'args': ['--from vim'],
         \ 'errorformat': '%E%f:%l:%c\,%n: %m',
         \ 'mapexpr': mapexpr,
         \ }
