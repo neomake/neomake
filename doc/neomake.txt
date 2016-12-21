@@ -164,7 +164,7 @@ The following variables are available in the `mapexpr`:
    where the output is coming from.  This will be "stdout" always for
    non-async Vim.
  - `neomake_bufname` and `neomake_bufdir`: the buffer's name (|bufname()|) and
-   directory, respectively.  This is only set in file mode.
+   directory, respectively.
 
 The `mapexpr` itself is being evaluated in the context of the affected buffer
 in file mode, and in the context of the buffer that is current when the maker

@@ -772,11 +772,9 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
                 \ maker.name, len(a:lines)), a:jobinfo)
 
     if has_key(maker, 'mapexpr')
-        if file_mode
-            let l:neomake_bufname = bufname(a:jobinfo.bufnr)
-            " @vimlint(EVL102, 1, l:neomake_bufdir)
-            let l:neomake_bufdir = fnamemodify(neomake_bufname, ':h')
-        endif
+        let l:neomake_bufname = bufname(a:jobinfo.bufnr)
+        " @vimlint(EVL102, 1, l:neomake_bufdir)
+        let l:neomake_bufdir = fnamemodify(neomake_bufname, ':h')
         " @vimlint(EVL102, 1, l:neomake_output_source)
         let l:neomake_output_source = a:source
         call map(a:lines, maker.mapexpr)
