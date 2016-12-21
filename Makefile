@@ -1,7 +1,9 @@
 # Do not let mess "cd" with user-defined paths.
 CDPATH:=
 
-test: testnvim testvim
+test:
+	$(MAKE) testnvim
+	$(MAKE) testvim
 
 SHELL:=/bin/bash -o pipefail
 
