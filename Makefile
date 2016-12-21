@@ -36,7 +36,7 @@ testvim: TEST_VIM:=vim -X
 testvim: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim: _run_vim
 
-_SED_HIGHLIGHT_ERRORS:=| sed 's/([[:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/'
+_SED_HIGHLIGHT_ERRORS:=| sed 's/([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/'
 # Need to close stdin to fix spurious 'sed: couldn't write X items to stdout: Resource temporarily unavailable'.
 # Redirect to stderr again for Docker (where only stderr is used from).
 _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
