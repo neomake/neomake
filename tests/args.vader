@@ -1,6 +1,6 @@
 Include: include/setup.vader
 
-Execute (neomake#GetMakers):
+Execute (maker.args as string gets not escaped):
   let maker = {
         \ 'exe': '/usr/bin/printf',
         \ 'args': ['%s\n', '1', '2', '3a 3b'],
