@@ -41,7 +41,15 @@ testvim: TEST_VIM:=vim -X
 testvim: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim: _run_vim
 
-_SED_HIGHLIGHT_ERRORS:=| sed 's/([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/'
+# Add coloring to Vader's output:
+# 1. failures (includes pending) in red "(X)"
+# 2. test case header in bold "(2/2)"
+# 3. Neomake's debug log messages in less intense grey
+# 4. non-Neomake log lines (e.g. from :Log) in bold/bright yellow.
+_SED_HIGHLIGHT_ERRORS:=| sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/' \
+	-e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+)/[1m\0[0m/' \
+	-e 's/^ \+> \[\(debug\)\] \[[.[:digit:]]\+\]: .*/[38;5;8m\0[0m/' \
+	-e '/\[\(verb \|quiet\|error\)\]/! s/^ \+> .*/[33;1m\0[0m/'
 # Need to close stdin to fix spurious 'sed: couldn't write X items to stdout: Resource temporarily unavailable'.
 # Redirect to stderr again for Docker (where only stderr is used from).
 _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
