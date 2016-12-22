@@ -15,6 +15,7 @@ function! neomake#makers#ft#sh#shellcheck() abort
         \ }
 
     if match(getline(1), '\v^#!.*<%(sh|dash|bash|ksh)') >= 0
+                \ || match(getline(1), '\v^#\s*shellcheck\s+shell\=') >= 0
         " shellcheck reads the shebang by itself
     elseif ext ==# 'ksh'
         let maker.args += ['-s', 'ksh']
