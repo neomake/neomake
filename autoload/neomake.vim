@@ -136,6 +136,12 @@ function! s:MakeJob(make_id, options) abort
         \ 'next': get(a:options, 'next', {}),
         \ }
 
+    " Call .fn function in maker object, if any.
+    if has_key(maker, 'fn')
+        " TODO: Allow to throw and/or return 0 to abort/skip?!
+        let maker = call(maker.fn, [jobinfo], maker)
+    endif
+
     let cwd = get(maker, 'cwd', s:make_options[a:make_id].cwd)
     if len(cwd)
         let old_wd = getcwd()

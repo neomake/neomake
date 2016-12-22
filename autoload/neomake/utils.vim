@@ -166,15 +166,35 @@ function! neomake#utils#Random() abort
     return answer
 endfunction
 
+let s:command_maker = {
+            \ 'remove_invalid_entries': 0,
+            \ }
+function! s:command_maker.fn(jobinfo) dict abort
+    let maker = filter(copy(self), "v:key !~# '^__' && v:key !~# 'fn'")
+    let argv = split(&shell) + split(&shellcmdflag)
+    let command = self.__command
+
+    if a:jobinfo.file_mode && get(maker, 'append_file', 1)
+        let command .= ' '.fnameescape(fnamemodify(bufname(a:jobinfo.bufnr), ':p'))
+        let maker.append_file = 0
+    endif
+    call extend(maker, {
+                \ 'exe': argv[0],
+                \ 'args': argv[1:] + [command],
+                \ })
+    return maker
+endfunction
+
 function! neomake#utils#MakerFromCommand(command) abort
     " XXX: use neomake#utils#ExpandArgs and/or remove it.
     "      Expansion should happen later already!
+    " NOTE: useful when calling it from cmdline..
     let command = substitute(a:command, '%\(:[a-z]\)*',
                            \ '\=expand(submatch(0))', 'g')
-    return {
-        \ 'exe': &shell,
-        \ 'args': [&shellcmdflag, command],
-        \ }
+    " Create a maker object, with a "fn" callback.
+    let maker = copy(s:command_maker)
+    let maker.__command = command
+    return maker
 endfunction
 
 let s:available_makers = {}

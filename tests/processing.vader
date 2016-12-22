@@ -84,10 +84,10 @@ Execute (Unbuffered output handled correctly (loclist)):
 
   let maker_1 = extend(neomake#utils#MakerFromCommand(
     \ 'for i in $(seq 1 5); do echo $i; sleep 0.01; done'), {
-    \ 'buffer_output': 0, 'errorformat': '%m'})
+    \ 'buffer_output': 0, 'errorformat': '%m', 'append_file': 0})
   let maker_2 = extend(neomake#utils#MakerFromCommand(
     \ 'for i in $(seq 1 5); do echo 2_$i; sleep 0.01; done'), {
-    \ 'buffer_output': 0, 'errorformat': '%m'})
+    \ 'buffer_output': 0, 'errorformat': '%m', 'append_file': 0})
 
   let job_ids = neomake#Make(1, [maker_1, maker_2])
   let [jobinfo1, jobinfo2] = neomake#GetJobs(job_ids)

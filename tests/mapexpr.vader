@@ -16,10 +16,10 @@ Execute (mapexpr: file mode vars):
   let maker = neomake#utils#MakerFromCommand('echo on_stdout')
   e! tests/fixtures/errors.sh
   let maker.mapexpr = "printf('%s (%s): %s', neomake_bufname, neomake_bufdir, v:val)"
-  call neomake#Make(1, [maker])
+  call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
+  AssertEqual map(copy(getqflist()), 'v:val.text'), [
     \ 'tests/fixtures/errors.sh (tests/fixtures): on_stdout']
 
 Execute (mapexpr: file mode vars with cd):
@@ -29,6 +29,7 @@ Execute (mapexpr: file mode vars with cd):
   e! tests/fixtures/errors.sh
   let maker.mapexpr = "printf('%s (%s): %s', neomake_bufname, neomake_bufdir, v:val)"
   let start_cwd = getcwd()
+  let maker.append_file = 0
   call neomake#Make(1, [maker])
   cd build
   NeomakeTestsWaitForFinishedJobs
