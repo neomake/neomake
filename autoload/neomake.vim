@@ -4,6 +4,8 @@ scriptencoding utf-8
 let s:make_id = 0
 let s:job_id = 1
 let s:jobs = {}
+" A map of make_id to options, e.g. cwd when jobs where started.
+let s:make_options = {}
 let s:jobs_by_maker = {}
 " Errors by [maker_type][bufnr][lnum]
 let s:current_errors = {
@@ -134,9 +136,10 @@ function! s:MakeJob(make_id, options) abort
         \ 'next': get(a:options, 'next', {}),
         \ }
 
-    if has_key(maker, 'cwd')
+    let cwd = get(maker, 'cwd', s:make_options[a:make_id].cwd)
+    if len(cwd)
         let old_wd = getcwd()
-        let cwd = expand(maker.cwd, 1)
+        let cwd = expand(cwd, 1)
         try
             exe 'cd' fnameescape(cwd)
         " Tests fail with E344, but in reality it is E472?!
@@ -507,6 +510,9 @@ function! s:Make(options) abort
         endif
 
         let s:make_id += 1
+        let s:make_options[s:make_id] = {
+                    \ 'cwd': getcwd(),
+                    \ }
 
         if file_mode
             call neomake#statusline#ResetCountsForBuf(bufnr)
