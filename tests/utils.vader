@@ -1,7 +1,7 @@
 Include: include/setup.vader
 
 Execute (neomake#utils#LogMessage writes to logfile always):
-  Save g:neomake_verbose g:neomake_logfile
+  Save g:neomake_verbose, g:neomake_logfile
   let neomake_verbose = 0
   let g:neomake_logfile = tempname()
   call neomake#utils#LogMessage(1, 'msg1')
@@ -36,9 +36,9 @@ Execute (neomake#utils#GetSetting serialize):
                                   \ ['myft'], bufnr('%'))
   endfunction
 
-  Save g:neomake_serialize b:neomake_serialize
-  Save g:neomake_mymaker_serialize b:neomake_mymaker_serialize
-  Save g:neomake_myft_mymaker_serialize b:neomake_myft_mymaker_serialize
+  Save g:neomake_serialize, b:neomake_serialize
+  Save g:neomake_mymaker_serialize, b:neomake_mymaker_serialize
+  Save g:neomake_myft_mymaker_serialize, b:neomake_myft_mymaker_serialize
 
   AssertEqual GetSetting(), 'default'
 
@@ -106,7 +106,7 @@ Execute (neomake#utils#GetSetting accepts lists):
                                   \ ['myft'], bufnr('%'))
   endfunction
 
-  Save g:neomake_myft_mymaker_args b:neomake_myft_mymaker_args
+  Save g:neomake_myft_mymaker_args, b:neomake_myft_mymaker_args
   let g:neomake_myft_mymaker_args = [ 'global', 'shallow', 'list' ]
   AssertEqual GetSetting(), [ 'global', 'shallow', 'list' ]
   let b:neomake_myft_mymaker_args = [ 'buffer', 'shallow', 'list' ]
@@ -128,7 +128,7 @@ Execute (neomake#utils#GetSetting without name):
   endfunction
   AssertEqual GetSetting('args'), []
 
-  Save g:neomake_setting g:neomake_myft_setting
+  Save g:neomake_setting, g:neomake_myft_setting
   AssertEqual GetSetting('setting'), []
   let g:neomake_setting = 42
   AssertEqual GetSetting('setting'), 42

@@ -209,8 +209,6 @@ function! s:MakeJob(make_id, options) abort
                     if job == 0
                         let error = 'Job table is full or invalid arguments given'
                     elseif job == -1
-                        " Never happens?!
-                        " https://github.com/neovim/neovim/issues/5465
                         let error = 'Executable not found'
                     else
                         let jobinfo.id = job

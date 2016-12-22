@@ -3,14 +3,12 @@
 " include/setup.vader).
 Include: include/setup.vader
 
-" XXX: needs to come first / early for now.
-Include (Integration tests): integration.vader
-
 ~ Features
 Include (Hooks): hooks.vader
+Include (Integration tests): integration.vader
 Include (Lists): lists.vader
-Include (Makers): makers.vader
 Include (Maker args): args.vader
+Include (Makers): makers.vader
 Include (Mapexpr): mapexpr.vader
 Include (Signs): signs.vader
 Include (Statusline): statusline.vader
@@ -37,10 +35,7 @@ Execute (neomake#GetMaker with non-existent maker prints errors):
 Execute (neomake#GetMaker uses defined errorformat with makeprg):
   Save &errorformat
   let &errorformat = '%Gcustom'
-  AssertEqual neomake#GetMaker('makeprg', ''), {
-    \ 'name': 'makeprg', 'ft': '', 'args': ['-c', 'make'],
-    \ 'errorformat': '%Gcustom',
-    \ 'exe': &shell, 'remove_invalid_entries': 0, 'buffer_output': 1}
+  AssertEqual neomake#GetMaker('makeprg', '').errorformat, '%Gcustom'
 
 Execute (neomake#GetMaker uses defaults from b:/g:):
   Save g:neomake_test_remove_invalid_entries
@@ -206,6 +201,7 @@ Execute (neomake#CompleteJobs):
     AssertEqual neomake#CompleteJobs(), printf(
       \ "%d: sh: sleep 1\n%d: sh: sleep 2", job_ids[0], job_ids[1])
     NeomakeCancelJobs
+    NeomakeTestsWaitForFinishedJobs
   endif
 
 " NOTE: try/catch test, causing problems on vim8000.
