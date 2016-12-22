@@ -11,6 +11,10 @@ Execute (shellcheck):
   AssertEqual ['-fgcc'], neomake#makers#ft#sh#shellcheck().args
   call setline(1, '#!/bin/ksh')
   AssertEqual ['-fgcc'], neomake#makers#ft#sh#shellcheck().args
+
+  " Shellcheck also checks for a directive denoting the appropriate shell
+  call setline(1, '#shellcheck shell=sh')
+  AssertEqual ['-fgcc'], neomake#makers#ft#sh#shellcheck().args
   call setline(1, '') " reset shebang for next tests
 
   " If extension is .ksh, force 'ksh'.
