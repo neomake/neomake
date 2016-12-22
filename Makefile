@@ -6,7 +6,8 @@ test: testnvim testvim
 SHELL:=/bin/bash -o pipefail
 
 VADER:=Vader!
-VADER_ARGS:=tests/neomake.vader
+VADER_OPTIONS?=
+VADER_ARGS=tests/neomake.vader $(VADER_OPTIONS)
 VIM_ARGS='+$(VADER) $(VADER_ARGS)'
 
 DEFAULT_VADER_DIR:=tests/vim/plugins/vader
@@ -19,6 +20,9 @@ TEST_VIMRC:=tests/vim/vimrc
 
 # This is expected in tests.
 TEST_VIM_PREFIX:=SHELL=/bin/bash
+
+testx: export VADER_OPTIONS=-x
+testx: test
 
 # Neovim might quit after ~5s with stdin being closed.  Use --headless mode to
 # work around this, which then also requires :Vader to be silent.
