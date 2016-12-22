@@ -42,9 +42,7 @@ Execute (Test Neomake on errors.sh with two makers):
   RunNeomake sh shellcheck
   AssertEqual len(g:neomake_test_countschanged), 2
   AssertEqual len(g:neomake_test_finished), 1
-
-  Assert len(filter(copy(g:neomake_test_messages),
-    \ "v:val[1] =~# '^Running makers: sh, shellcheck (.*)'")) == 1, '"Running makers" message found'
+  AssertNeomakeMessage 'Running makers: sh, shellcheck'
 
 Execute (Neomake: handle result for current window):
   call g:NeomakeSetupAutocmdWrappers()

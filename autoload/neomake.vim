@@ -224,7 +224,7 @@ function! s:MakeJob(make_id, options) abort
 
             " Bail out on errors.
             if len(error)
-                call neomake#utils#ErrorMessage(error)
+                call neomake#utils#ErrorMessage(error, jobinfo)
                 call s:handle_next_makers(jobinfo, 122)
                 return -1
             endif
@@ -558,15 +558,15 @@ function! s:Make(options) abort
     let job_ids = []
 
     let enabled_makers = map(copy(enabled_makers), 'neomake#GetMaker(v:val, ft)')
-    call neomake#utils#DebugMessage(printf('Running makers: %s (%s)',
-                \ join(map(copy(enabled_makers), 'v:val.name'), ', '),
-                \ string(enabled_makers)), {'make_id': s:make_id})
+    call neomake#utils#DebugMessage(printf('Running makers: %s',
+                \ join(map(copy(enabled_makers), 'v:val.name'), ', ')))
     let maker = {}
     while len(enabled_makers)
         let maker = remove(enabled_makers, 0)
         if empty(maker)
             continue
         endif
+        " call neomake#utils#DebugMessage('Maker: '.string(enabled_makers), {'make_id': s:make_id})
 
         " Check for already running job for the same maker (from other runs).
         " This used to use this key: maker.name.',ft='.maker.ft.',buf='.maker.bufnr
@@ -580,7 +580,8 @@ function! s:Make(options) abort
                 " TODO: required?! (
                 " let jobinfo.next.enabled_makers = [maker]
                 call neomake#utils#LoudMessage(printf(
-                            \ 'Restarting already running job (%d.%d) for the same maker.', jobinfo.make_id, jobinfo.id), {'make_id': s:make_id})
+                            \ 'Restarting already running job (%d.%d) for the same maker.',
+                            \ jobinfo.make_id, jobinfo.id), {'make_id': s:make_id})
                 let jobinfo.restarting = 1
                 call neomake#CancelJob(jobinfo.id)
                 continue
