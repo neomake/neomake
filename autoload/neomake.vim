@@ -134,32 +134,6 @@ function! s:MakeJob(make_id, options) abort
         \ 'next': get(a:options, 'next', {}),
         \ }
 
-    " Resolve exe/args, which might be a function or dictionary.
-    if type(maker.exe) == type(function('tr'))
-        let exe = call(maker.exe, [])
-    elseif type(maker.exe) == type({})
-        let exe = call(maker.exe.fn, [], maker.exe)
-    else
-        let exe = maker.exe
-    endif
-    if type(maker.args) == type(function('tr'))
-        let args = call(maker.args, [])
-    elseif type(maker.args) == type({})
-        let args = call(maker.args.fn, [], maker.args)
-    else
-        let args = copy(maker.args)
-    endif
-    let args_is_list = type(args) == type([])
-
-    if a:options.file_mode && get(maker, 'append_file', 1)
-        if args_is_list
-            call neomake#utils#ExpandArgs(args)
-            call add(args, expand('%:p'))
-        else
-            let args .= ' '.fnameescape(expand('%:p'))
-        endif
-    endif
-
     if has_key(maker, 'cwd')
         let old_wd = getcwd()
         let cwd = expand(maker.cwd, 1)
@@ -177,12 +151,8 @@ function! s:MakeJob(make_id, options) abort
 
     try
         let error = ''
+        let argv = maker.get_argv(jobinfo.file_mode ? jobinfo.bufnr : 0)
         if neomake#has_async_support()
-            if args_is_list
-                let argv = [exe] + args
-            else
-                let argv = exe . (len(args) ? ' ' . args : '')
-            endif
             if has('nvim')
                 let opts = {
                     \ 'on_stdout': function('neomake#MakeHandler'),
@@ -216,11 +186,6 @@ function! s:MakeJob(make_id, options) abort
                             \ 'close_cb': 'neomake#MakeHandlerVimClose',
                             \ 'mode': 'raw',
                             \ }
-                if neomake#utils#IsRunningWindows()
-                    let argv = &shell.' '.&shellcmdflag.' '.shellescape(args_is_list ? join(argv) : argv)
-                elseif !args_is_list
-                    let argv = [&shell, &shellcmdflag, argv]
-                endif
                 try
                     call neomake#utils#LoudMessage(printf(
                                 \ 'Starting async job: %s',
@@ -258,24 +223,11 @@ function! s:MakeJob(make_id, options) abort
             let r = jobinfo.id
         else
             call neomake#utils#DebugMessage('Running synchronously')
-            let program = exe
-            if len(args)
-                if args_is_list
-                    if neomake#utils#IsRunningWindows()
-                        let program .= ' '.join(args)
-                    else
-                        let program .= ' '.join(map(args, 'shellescape(v:val)'))
-                    endif
-                else
-                    let program .= ' '.args
-                endif
-            endif
-
-            call neomake#utils#LoudMessage('Starting: ' . program)
+            call neomake#utils#LoudMessage('Starting: '.argv, jobinfo)
 
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
-            call neomake#MakeHandler(job_id, split(system(program), '\r\?\n', 1), 'stdout')
+            call neomake#MakeHandler(job_id, split(system(argv), '\r\?\n', 1), 'stdout')
             call neomake#MakeHandler(job_id, v:shell_error, 'exit')
             let r = -1
         endif
@@ -285,6 +237,67 @@ function! s:MakeJob(make_id, options) abort
         endif
     endtry
     return r
+endfunction
+
+let s:maker_base = {}
+function! s:maker_base.get_argv(...) abort dict
+    let bufnr = a:0 ? a:1 : 0
+
+    " Resolve exe/args, which might be a function or dictionary.
+    if type(self.exe) == type(function('tr'))
+        let exe = call(self.exe, [])
+    elseif type(self.exe) == type({})
+        let exe = call(self.exe.fn, [], self.exe)
+    else
+        let exe = self.exe
+    endif
+    if type(self.args) == type(function('tr'))
+        let args = call(self.args, [])
+    elseif type(self.args) == type({})
+        let args = call(self.args.fn, [], self.args)
+    else
+        let args = copy(self.args)
+    endif
+    let args_is_list = type(args) == type([])
+
+    if bufnr && neomake#utils#GetSetting('append_file', self, 1, [self.ft], bufnr)
+        let bufname = fnamemodify(bufname(bufnr), ':p')
+        if args_is_list
+            call neomake#utils#ExpandArgs(args)
+            call add(args, bufname)
+        else
+            let args .= ' '.fnameescape(bufname)
+        endif
+    endif
+
+    if neomake#has_async_support()
+        if args_is_list
+            let argv = [exe] + args
+        else
+            let argv = exe . (len(args) ? ' ' . args : '')
+        endif
+        if !has('nvim')
+            if neomake#utils#IsRunningWindows()
+                let argv = &shell.' '.&shellcmdflag.' '.shellescape(args_is_list ? join(argv) : argv)
+            elseif !args_is_list
+                let argv = [&shell, &shellcmdflag, argv]
+            endif
+        endif
+    else
+        let argv = exe
+        if len(args)
+            if args_is_list
+                if neomake#utils#IsRunningWindows()
+                    let argv .= ' '.join(args)
+                else
+                    let argv .= ' '.join(map(args, 'shellescape(v:val)'))
+                endif
+            else
+                let argv .= ' '.args
+            endif
+        endif
+    endif
+    return argv
 endfunction
 
 function! neomake#GetMaker(name_or_maker, ...) abort
@@ -335,6 +348,8 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             return {}
         endif
     endif
+
+    " Create the maker object.
     let maker = deepcopy(maker)
     if !has_key(maker, 'name')
         if type(a:name_or_maker) == type('')
@@ -343,6 +358,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             let maker.name = 'unnamed_maker'
         endif
     endif
+    let maker.get_argv = s:maker_base.get_argv
     let defaults = copy(s:maker_defaults)
     call extend(defaults, {
         \ 'exe': maker.name,
@@ -354,14 +370,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
         unlet! default  " workaround for old Vim (7.3.429)
     endfor
-    let s:UNSET = {}
-    for key in ['append_file']
-        let value = neomake#utils#GetSetting(key, maker, s:UNSET, fts, bufnr)
-        if value isnot s:UNSET
-            let maker[key] = value
-        endif
-        unlet! value  " workaround for old Vim (7.3.429)
-    endfor
+
     if exists('real_ft')
         let maker.ft = real_ft
     endif
