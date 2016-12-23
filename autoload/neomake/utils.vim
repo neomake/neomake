@@ -346,3 +346,18 @@ function! neomake#utils#hook(event, context) abort
                     \ 'Skipping User autocmd %s: no hooks.', a:event))
     endif
 endfunction
+
+function! neomake#utils#diff_dict(d1, d2) abort
+    let diff = [{}, {}, {}]
+    let keys = keys(a:d1) + keys(a:d2)
+    for k in keys
+        if !has_key(a:d2, k)
+            let diff[1][k] = a:d1[k]
+        elseif !has_key(a:d1, k)
+            let diff[2][k] = a:d2[k]
+        elseif type(a:d1[k]) !=# type(a:d2[k]) || a:d1[k] !=# a:d2[k]
+            let diff[0][k] = [a:d1[k], a:d2[k]]
+        endif
+    endfor
+    return diff
+endfunction

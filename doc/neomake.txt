@@ -187,6 +187,10 @@ Example: change the entry type to a warning. >
         \ 'postprocess': function('SetWarningType')
         \ }
 <
+
+The default is to use `neomake#utils#CompressWhitespace` here, which fixes
+whitespace issues (especially with multiline error messages).
+
                                                 *neomake-makers-buffer_output*
 Default: 1
 By default Neomake will only process the output from makers when either the

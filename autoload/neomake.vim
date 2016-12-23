@@ -607,21 +607,24 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let maker_type = file_mode ? 'file' : 'project'
     let cleaned_signs = 0
     let ignored_signs = 0
+    let s:postprocess = get(maker, 'postprocess', function('neomake#utils#CompressWhitespace'))
+    let debug = get(g:, 'neomake_verbose', 0) >= 3
 
     while index < len(list)
         let entry = list[index]
         let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
         let index += 1
 
-        if has_key(maker, 'postprocess')
-            if list_modified
-                call maker.postprocess(entry)
-            else
-                let before = copy(entry)
-                call maker.postprocess(entry)
-                if entry != before
-                    let list_modified = 1
-                endif
+        let before = copy(entry)
+        call call(s:postprocess, [entry], maker)
+        if entry != before
+            let list_modified = 1
+            if debug
+                call neomake#utils#DebugMessage(printf(
+                  \ 'Modified list entry (postprocess): %s',
+                  \ join(values(map(neomake#utils#diff_dict(before, entry)[0],
+                  \ "v:key.': '.string(v:val[0]).' => '.string(v:val[1])")))))
+
             endif
         endif
 
