@@ -21,7 +21,10 @@ Before:
         break
       endif
       if max == 0
-        throw "Jobs did not finish after 3s: ".string(jobs)
+        for j in jobs
+          Log "Remaining job: ".string(j)
+        endfor
+        throw len(jobs).' jobs did not finish after 3s.'
       endif
       sleep 50m
     endwhile
