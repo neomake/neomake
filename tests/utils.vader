@@ -168,3 +168,17 @@ Execute (TODO: neomake#utils#MakerIsAvailable picks up changes):
   AssertEqual neomake#utils#MakerIsAvailable('myft', 'sh'), 0
   let g:neomake_myft_sh_maker.exe = 'sh'
   AssertEqual neomake#utils#MakerIsAvailable('myft', 'sh'), 1
+
+Execute (neomake#utils#diff_dict):
+  AssertEqual neomake#utils#diff_dict({}, {}), [{}, {}, {}]
+  AssertEqual neomake#utils#diff_dict({'a': 1}, {'a': 2}),
+    \ [{'a': [1, 2]}, {}, {}]
+  AssertEqual neomake#utils#diff_dict({'a': 1}, {'b': 2}),
+    \ [{}, {'a': 1}, {'b': 2}]
+  AssertEqual neomake#utils#diff_dict({'a': 1}, {'a': 1, 'b': 2}),
+    \ [{}, {}, {'b': 2}]
+
+  AssertEqual neomake#utils#diff_dict({'a': '1'}, {'a': 1}),
+    \ [{'a': ['1', 1]}, {}, {}]
+  AssertEqual neomake#utils#diff_dict({'a': []}, {'a': {}}),
+    \ [{'a': [[], {}]}, {}, {}]

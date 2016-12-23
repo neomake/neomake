@@ -54,3 +54,4 @@ Execute (AddExprCallback with changed windows inbetween):
   wincmd k
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['2 SUFFIX:1']
   q
+  AssertNeomakeMessage "Modified list entry (postprocess): text: '2' => '2 SUFFIX:1'"
