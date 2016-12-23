@@ -15,7 +15,7 @@ let s:need_errors_cleaning = {
     \ }
 let s:maker_defaults = {
             \ 'buffer_output': 1,
-            \ 'remove_invalid_entries': 1}
+            \ 'remove_invalid_entries': 0}
 let s:project_job_output = {}
 " List of job ids with pending output per buffer.
 let s:buffer_job_output = {}

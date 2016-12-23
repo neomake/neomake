@@ -292,14 +292,12 @@ Execute (Neomake#Make: two jobs after each other):
       \ 'name': '1',
       \ 'exe': 'sh',
       \ 'args': ['-c', 'echo 1'],
-      \ 'remove_invalid_entries': 0,
       \ 'errorformat': '%m',
       \ }
   let g:neomake_maker2_maker = {
       \ 'name': '2',
       \ 'exe': 'sh',
       \ 'args': ['-c', 'echo 2'],
-      \ 'remove_invalid_entries': 0,
       \ 'errorformat': '%m',
       \ }
   let b:neomake_enabled_makers = ['maker1', 'maker2']
@@ -324,7 +322,6 @@ Execute (Neomake: non-existing and proper job):
       \ 'name': '1',
       \ 'exe': 'doesnotexist',
       \ 'args': [],
-      \ 'remove_invalid_entries': 0,
       \ 'errorformat': '%m',
       \ }
   let g:neomake_maker2_maker = neomake#utils#MakerFromCommand('echo 1')

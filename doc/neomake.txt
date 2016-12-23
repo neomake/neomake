@@ -208,12 +208,17 @@ multiline output this will likely cause issues (depending on how the maker
 flushes its output).
 
                                        *neomake-makers-remove_invalid_entries*
-Makers can filter invalid entries (e.g. entries that do not match the
-|'errorformat'|) in the location/quickfix list. Set the
-'remove_invalid_entries' property to 0 to keep all the maker output in the
-list: >
-    let g:neomake_ft_maker_remove_invalid_entries = 0
+Makers can be configured to filter invalid entries from the location/quickfix
+list (i.e. entries that do not match the |'errorformat'|, and that would show
+up with a `||` prefix in the location/quickfix list): >
+    let g:neomake_ft_maker_remove_invalid_entries = 1
 <
+NOTE: the default for this used to be 1, but it was changed because it is
+usually better to see unhandled output in case something is not working as
+expected, e.g. when the program displays some error.
+Makers should handle this properly through |errorformat|, e.g. by using '%-G'
+(see |efm-ignore|).  You can specify the default for this via
+|g:neomake_remove_invalid_entries|.
 
                                                           *neomake-makers-cwd*
 The working directory used to run a maker can be changed by setting its `cwd`
@@ -230,16 +235,33 @@ Global Options                                               *neomake-options*
 *g:neomake_<ft>_<name>_maker*
 Define a new filetype or project-level maker. See |neomake-makers|.
 
+                                                   *neomake-makers-properties*
 *g:neomake_<name>_<property>*
 *g:neomake_<ft>_<name>_<property>*
 *b:neomake_<name>_<property>*
 *b:neomake_<ft>_<name>_<property>*
-Configure a property for a maker where property is one of `exe`, `args`,
+Configure properties for a maker where <property> is one of `exe`, `args`,
 `errorformat`, `buffer_output`, `remove_invalid_entries` or `append_file`.
 This can be set per buffer, too. Example: >
     let g:neomake_javascript_jshint_exe = './myjshint'
     let b:neomake_javascript_jshint_exe = './myotherjshint'
 <
+
+The global defaults can be configured using `g:neomake_<property>`, i.e.
+*g:neomake_remove_invalid_entries* to remove invalid entries from the quickfix
+/ location list (|neomake-makers-remove_invalid_entries|), unless explicitly
+provided by the maker or overridden by your global/buffer setting.
+
+The internal defaults are: >
+    let defaults = {
+        \ 'exe': maker.name,
+        \ 'args': [],
+        \ 'errorformat': &errorformat,
+        \ 'buffer_output': 0,
+        \ 'remove_invalid_entries': 0
+        \ }
+<
+
 *g:neomake_<ft>_enabled_makers*
 *b:neomake_<ft>_enabled_makers*
 This setting will tell Neomake which makers to use by default for the given
