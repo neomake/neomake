@@ -1,3 +1,6 @@
+" Main entry point to run all Vader tests.
+" You can run the included files by itself (since they also include
+" include/setup.vader).
 Include: include/setup.vader
 
 " XXX: needs to come first / early for now.
