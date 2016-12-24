@@ -48,7 +48,7 @@ Execute (neomake#GetMaker uses defaults from b:/g:):
   let maker = {'name': 'test'}
 
   " Default.
-  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 0
 
   let maker.remove_invalid_entries = 1
   AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
