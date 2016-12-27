@@ -1,27 +1,34 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#php#EnabledMakers()
+function! neomake#makers#ft#php#EnabledMakers() abort
     return ['php', 'phpmd', 'phpcs']
 endfunction
 
-function! neomake#makers#ft#php#php()
+function! neomake#makers#ft#php#php() abort
     return {
-        \ 'args': ['-l'],
-        \ 'errorformat': '%m\ in\ %f\ on\ line\ %l,%-GErrors\ parsing\ %f,%-G',
+        \ 'args': ['-l', '-d', 'display_errors=1', '-d', 'log_errors=0',
+            \      '-d', 'xdebug.cli_color=0'],
+        \ 'errorformat':
+            \ '%-GNo syntax errors detected in%.%#,'.
+            \ 'Parse error: %#syntax %trror\, %m in %f on line %l,'.
+            \ 'Parse %trror: %m in %f on line %l,'.
+            \ 'Fatal %trror: %m in %f on line %l,'.
+            \ '%-G\s%#,'.
+            \ '%-GErrors parsing %.%#',
         \ 'postprocess': function('neomake#makers#ft#php#PhpEntryProcess'),
         \ }
 endfunction
 
-function! neomake#makers#ft#php#PhpEntryProcess(entry)
+function! neomake#makers#ft#php#PhpEntryProcess(entry) abort
     "All php lint entries are Errors.
     let a:entry.type = 'E'
 endfunction
 
-function! neomake#makers#ft#php#phpcs()
+function! neomake#makers#ft#php#phpcs() abort
     let l:args = ['--report=csv']
 
     "Add standard argument if one is set.
-    if exists("g:neomake_php_phpcs_args_standard")
+    if exists('g:neomake_php_phpcs_args_standard')
         call add(l:args, '--standard=' . expand(g:neomake_php_phpcs_args_standard))
     endif
 
@@ -33,8 +40,7 @@ function! neomake#makers#ft#php#phpcs()
         \ }
 endfunction
 
-function! neomake#makers#ft#php#phpmd()
-
+function! neomake#makers#ft#php#phpmd() abort
     return {
         \ 'args': ['%:p', 'text', 'codesize,design,unusedcode,naming'],
         \ 'errorformat': '%E%f:%l%\s%m'
