@@ -105,6 +105,10 @@ function! neomake#utils#DebugObject(msg, obj) abort
     call neomake#utils#DebugMessage(a:msg.' '.neomake#utils#Stringify(a:obj))
 endfunction
 
+function! neomake#utils#wstrpart(mb_string, start, len) abort
+  return matchstr(a:mb_string, '.\{,'.a:len.'}', 0, a:start+1)
+endfunction
+
 " This comes straight out of syntastic.
 "print as much of a:msg as possible without "Press Enter" prompt appearing
 function! neomake#utils#WideMessage(msg) abort " {{{2
@@ -119,7 +123,7 @@ function! neomake#utils#WideMessage(msg) abort " {{{2
     "width as the proper amount of characters
     let chunks = split(msg, "\t", 1)
     let msg = join(map(chunks[:-2], "v:val . repeat(' ', &tabstop - strwidth(v:val) % &tabstop)"), '') . chunks[-1]
-    let msg = strpart(msg, 0, &columns - 1)
+    let msg = neomake#utils#wstrpart(msg, 0, &columns - 1)
 
     set noruler noshowcmd
     redraw
