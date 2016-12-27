@@ -119,7 +119,8 @@ Execute (neomake#CancelJob with invalid job):
     let vim_job = jobinfo.vim_job
     call job_stop(vim_job)
   endif
-  AssertEqual neomake#CancelJob(job_id), 0
+  let ret = neomake#CancelJob(job_id)
+  AssertEqual ret, 0, "CancelJob (1) returned ".ret
   AssertNeomakeMessage 'Stopping job: '.job_id, 3
   if has('nvim')
     AssertNeomakeMessage 'jobstop failed: Vim(call):E900: Invalid job id', 2, jobinfo
@@ -128,13 +129,15 @@ Execute (neomake#CancelJob with invalid job):
   endif
   Assert len(neomake#GetJobs()), 'There are jobs'
 
-  AssertEqual neomake#CancelJob(job_id), 0
+  let ret = neomake#CancelJob(job_id)
+  AssertEqual ret, 0, "CancelJob (2) returned ".ret
   AssertNeomakeMessage 'Stopping job: '.job_id, 3
 
   AssertNeomakeMessageAbsent 'neomake#MakeHandler: exit: job was canceled.', 3
   NeomakeTestsWaitForNextMessage
   AssertNeomakeMessage 'neomake#MakeHandler: exit: job was canceled.', 3
-  AssertEqual neomake#CancelJob(job_id), 0
+  let ret = neomake#CancelJob(job_id)
+  AssertEqual ret, 0, "CancelJob (3) returned ".ret
   AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 0
 
 Execute (neomake#CancelJob! with invalid job):
