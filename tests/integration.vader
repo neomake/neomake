@@ -229,23 +229,6 @@ Execute (Having an invalid &errorformat is OK):
 Execute (Neomake with windo):
   if !NeomakeAsyncTestsSetup() | finish | endif
 
-  " Create a maker that generates incrementing errors.
-  let g:counter = 0
-  function! IncMaker()
-    let g:counter += 1
-    let cmd = ''
-    for i in range(g:counter)
-      let cmd .= 'echo b'.g:counter.' '.g:counter.':'.i.': buf: %; '
-    endfor
-    return ['-c', cmd]
-  endfunction
-  let inc_maker = {
-        \ 'name': 'incmaker',
-        \ 'exe': &shell,
-        \ 'args': function('IncMaker'),
-        \ 'errorformat': '%E%f %m',
-        \ }
-
   Assert winnr() == 1, "Starting at window 1"
   topleft new
   file b1
@@ -254,7 +237,7 @@ Execute (Neomake with windo):
   topleft new
   file b3
   AssertEqual winnr(), 1
-  windo call neomake#Make(1, [inc_maker])
+  windo call neomake#Make(1, [g:neomake_test_inc_maker])
   3wincmd w
   AssertEqual getloclist(3), []
 

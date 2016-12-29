@@ -211,6 +211,23 @@ Before:
       \ 'errorformat': '%f:%l:%t:%m',
       \ }
 
+  " A maker that generates incrementing errors.
+  let g:neomake_test_inc_maker_counter = 0
+  function! s:IncMakerArgs()
+    let g:neomake_test_inc_maker_counter += 1
+    let cmd = ''
+    for i in range(g:neomake_test_inc_maker_counter)
+      let cmd .= 'echo b'.g:neomake_test_inc_maker_counter.' '.g:neomake_test_inc_maker_counter.':'.i.': buf: '.shellescape(bufname('%')).'; '
+    endfor
+    return ['-c', cmd]
+  endfunction
+  let g:neomake_test_inc_maker = {
+        \ 'name': 'incmaker',
+        \ 'exe': &shell,
+        \ 'args': function('s:IncMakerArgs'),
+        \ 'errorformat': '%E%f %m',
+        \ }
+
 After:
   Restore
 
