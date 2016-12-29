@@ -711,6 +711,13 @@ function! s:CleanJobinfo(jobinfo) abort
         call remove(jobs, idx)
         call settabwinvar(t, w, 'neomake_jobs', jobs)
     endif
+    let jobs_output = s:gettabwinvar(t, w, 'neomake_jobs_output', {})
+    if has_key(jobs_output, a:jobinfo.id)
+        unlet jobs_output[a:jobinfo.id]
+    endif
+    if has_key(s:project_job_output, a:jobinfo.id)
+        unlet s:project_job_output[a:jobinfo.id]
+    endif
 
     " If signs were not cleared before this point, then the maker did not return
     " any errors, so all signs must be removed
