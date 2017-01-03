@@ -57,6 +57,8 @@ function! neomake#makers#ft#python#PylintEntryProcess(entry) abort
         let type = ''
     endif
     let a:entry.type = type
+    " Pylint uses 0-indexed columns, vim uses 1-indexed columns
+    let a:entry.col += 1
 endfunction
 
 function! neomake#makers#ft#python#flake8() abort
