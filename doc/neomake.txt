@@ -191,6 +191,10 @@ Example: change the entry type to a warning. >
 The default is to use `neomake#utils#CompressWhitespace` here, which fixes
 whitespace issues (especially with multiline error messages).
 
+This can also be used to set the `length` property of an entry, which is used
+to highlight entries in the text (|neomake-highlight|).
+See `neomake#makers#ft#text#PostprocessWritegood` for an example.
+
                                                 *neomake-makers-buffer_output*
 Default: 1
 By default Neomake will only process the output from makers when either the
