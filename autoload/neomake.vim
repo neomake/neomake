@@ -1143,6 +1143,19 @@ function! neomake#CursorMoved() abort
     call neomake#EchoCurrentError()
 endfunction
 
+function! s:cursormoved_delayed_cb(timer) abort
+    if getpos('.') == s:cursormoved_last_pos
+        call neomake#CursorMoved()
+    endif
+endfunction
+function! neomake#CursorMovedDelayed() abort
+    if exists('s:cursormoved_timer')
+        call timer_stop(s:cursormoved_timer)
+    endif
+    let s:cursormoved_timer = timer_start(get(g:, 'neomake_cursormoved_delay', 100), function('s:cursormoved_delayed_cb'))
+    let s:cursormoved_last_pos = getpos('.')
+endfunction
+
 function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
     if a:ArgLead =~# '[^A-Za-z0-9]'
         return []
