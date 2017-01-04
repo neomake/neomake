@@ -5,6 +5,7 @@ let s:make_id = 0
 let s:job_id = 1
 let s:jobs = {}
 let s:jobs_by_maker = {}
+" Errors by [maker_type][bufnr][lnum]
 let s:current_errors = {
     \ 'project': {},
     \ 'file': {}
@@ -1098,11 +1099,6 @@ function! neomake#EchoCurrentError() abort
         return
     endif
 
-    if !empty(get(s:, 'neomake_last_echoed_error', {}))
-        unlet s:neomake_last_echoed_error
-        echon ''
-    endif
-
     let buf = bufnr('%')
     let ln = line('.')
     let ln_errors = []
@@ -1113,17 +1109,25 @@ function! neomake#EchoCurrentError() abort
     endfor
 
     if empty(ln_errors)
+        if exists('s:neomake_last_echoed_error')
+            echon ''
+            unlet s:neomake_last_echoed_error
+        endif
         return
     endif
 
-    let s:neomake_last_echoed_error = ln_errors[0]
-    for error in ln_errors
-        if error.type ==# 'E'
-            let s:neomake_last_echoed_error = error
-            break
-        endif
-    endfor
-    let message = s:neomake_last_echoed_error.maker_name.': '.s:neomake_last_echoed_error.text
+    if len(ln_errors) > 1
+        let ln_errors = copy(ln_errors)
+        call sort(ln_errors, function('neomake#utils#sort_by_col'))
+    endif
+    let error_entry = ln_errors[0]
+    if exists('s:neomake_last_echoed_error')
+                \ && s:neomake_last_echoed_error == error_entry
+        return
+    endif
+    let s:neomake_last_echoed_error = error_entry
+
+    let message = error_entry.maker_name.': '.error_entry.text
     call neomake#utils#WideMessage(message)
 endfunction
 
@@ -1135,8 +1139,8 @@ function! neomake#CursorMoved() abort
         if g:neomake_place_signs
             call neomake#signs#PlaceVisibleSigns()
         endif
-        call neomake#EchoCurrentError()
     endif
+    call neomake#EchoCurrentError()
 endfunction
 
 function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
