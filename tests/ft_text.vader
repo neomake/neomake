@@ -1,0 +1,20 @@
+Include: include/setup.vader
+
+Execute (writegood: postprocess: length):
+  function! F(entry)
+    if !has_key(a:entry, 'col')
+      let a:entry.col = 0
+    endif
+    call neomake#makers#ft#text#PostprocessWritegood(a:entry)
+    return a:entry
+  endfunction
+  AssertEqual F({'text': '"Currently" can weaken meaning'}).length, 9
+  AssertEqual F({'text': '"Currently" can "weaken" meaning'}).length, 9
+  Assert !has_key(F({'text': '"Currently can weaken meaning'}), 'length')
+
+Execute (writegood: postprocess increments column):
+  function! F(entry)
+    call neomake#makers#ft#text#PostprocessWritegood(a:entry)
+    return a:entry
+  endfunction
+  AssertEqual F({'col': 2, 'text': 'foo'}), {'col': 3, 'text': 'foo'}

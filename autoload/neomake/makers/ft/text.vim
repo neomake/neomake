@@ -9,9 +9,20 @@ function! neomake#makers#ft#text#proselint() abort
                 \ }
 endfunction
 
+function! neomake#makers#ft#text#PostprocessWritegood(entry) abort
+    let a:entry.col += 1
+    if a:entry.text[0] ==# '"'
+      let matchend = match(a:entry.text, '\v^[^"]+\zs"', 1)
+      if matchend != -1
+        let a:entry.length = matchend - 1
+      endif
+    endif
+endfunction
+
 function! neomake#makers#ft#text#writegood() abort
     return {
                 \ 'args': ['--parse'],
-                \ 'errorformat': '%W%f:%l:%c:%m'
+                \ 'errorformat': '%W%f:%l:%c:%m',
+                \ 'postprocess': function('neomake#makers#ft#text#PostprocessWritegood'),
                 \ }
 endfunction
