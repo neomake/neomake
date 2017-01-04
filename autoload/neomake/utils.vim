@@ -367,7 +367,7 @@ endfunction
 
 " Sort quickfix/location list entries by distance to current cursor position's
 " column, but preferring entries starting at or behind the cursor position.
-function! neomake#utils#sort_by_col(a, b, col) abort
+function! neomake#utils#sort_by_col(a, b) abort
     let col = getpos('.')[2]
     if a:a.col > col
         if a:b.col < col
