@@ -123,6 +123,46 @@ Execute (Unbuffered output handled correctly (qflist)):
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual map(copy(getqflist()), 'v:val.text'), map(range(1, 5), 'v:val . ""')
 
+Execute (Sleep in postprocess gets handled correctly):
+  " This tests the workarounds for issues with both Vim and Neovim.
+  " https://github.com/vim/vim/issues/1320
+  " https://github.com/neovim/neovim/issues/5889
+  " Reproduces flakiness with https://github.com/neomake/neomake/issues/899.
+  call neomake#statusline#ResetCounts()
+  if !NeomakeAsyncTestsSetup() | finish | endif
+
+  " Vim needs longer sleep to process the output line by line.
+  let s:sleep = has('nvim') ? '0.01' : '0.05'
+  Save g:neomake_test_postprocess_count
+  let g:neomake_test_postprocess_count = 0
+  function! Postprocess(entry) dict
+    let g:neomake_test_postprocess_count += 1
+    let sleep = float2nr(str2float(s:sleep) * 500)
+    exe 'sleep '.sleep.'m'
+  endfunction
+
+  let maker_1 = extend(neomake#utils#MakerFromCommand(
+    \ 'for i in $(seq 1 3); do echo $i; sleep '.s:sleep.'; done'), {
+    \ 'buffer_output': 0, 'errorformat': '%m',
+    \ 'append_file': 0,
+    \ 'postprocess': function('Postprocess')})
+
+  call neomake#Make(1, [maker_1])
+"   norm! V
+  NeomakeTestsWaitForFinishedJobs
+"   exe "norm! <Esc>"
+"   doautocmd CursorHold
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), map(range(1, 3), 'v:val . ""')
+  AssertEqual g:neomake_test_postprocess_count, 3, 'postprocess count should be 3, but is '.g:neomake_test_postprocess_count
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_countschanged), 3
+
+  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+  let make_id = neomake#GetStatus().last_make_id
+  AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 1, 'make_id': ".make_id."}", 2
+
 Execute (Pending output with restarted job when not in normal/insert mode (loclist)):
   if !NeomakeAsyncTestsSetup() | finish | endif
 
