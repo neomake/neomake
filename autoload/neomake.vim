@@ -179,9 +179,11 @@ function! s:MakeJob(make_id, options) abort
                 endtry
                 if empty(error)
                     if job == 0
-                        let error = 'Job table is full or invalid arguments given'
+                        let error = printf('Failed to start Neovim job: %s: %s',
+                                    \ 'Job table is full or invalid arguments given', string(argv))
                     elseif job == -1
-                        let error = 'Executable not found'
+                        let error = printf('Failed to start Neovim job: %s: %s',
+                                    \ 'Executable not found', string(argv))
                     else
                         let jobinfo.id = job
                         let s:jobs[jobinfo.id] = jobinfo
