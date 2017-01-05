@@ -17,7 +17,8 @@ endfunction
 function! neomake#makers#ft#scss#scsslint() abort
     return {
         \ 'exe': 'scss-lint',
-        \ 'errorformat': '%A%f:%l:%v [%t] %m'
+        \ 'errorformat': '%A%f:%l:%v [%t] %m,' .
+        \                '%A%f:%l [%t] %m'
     \ }
 endfunction
 
