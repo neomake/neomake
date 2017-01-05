@@ -1143,7 +1143,7 @@ function! neomake#CursorMoved() abort
     call neomake#EchoCurrentError()
 endfunction
 
-function! s:cursormoved_delayed_cb(timer) abort
+function! s:cursormoved_delayed_cb(...) abort
     if getpos('.') == s:cursormoved_last_pos
         call neomake#CursorMoved()
     endif
