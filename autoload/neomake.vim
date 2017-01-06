@@ -1062,10 +1062,11 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
 
         if !maker.buffer_output || last_event_type !=# a:event_type
             let lines = jobinfo[a:event_type][:-2]
+            let jobinfo[a:event_type] = jobinfo[a:event_type][-1:]
+
             if len(lines)
                 call s:RegisterJobOutput(jobinfo, lines, a:event_type)
             endif
-            let jobinfo[a:event_type] = jobinfo[a:event_type][-1:]
         endif
 
         if len(jobinfo._in_handler)
