@@ -25,6 +25,10 @@ Execute (AddExprCallback with changed windows inbetween):
     let g:neomake_tests_postprocess_count += 1
   endfunction
 
+  Save g:neomake_verbose
+  " For the 'Modified list entry' debug message.
+  let g:neomake_verbose = 3
+
   let options = {
     \ 'postprocess': function('g:Postprocess'),
     \ 'buffer_output': 0,

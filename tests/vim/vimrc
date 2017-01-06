@@ -49,7 +49,5 @@ set debug=msg,throw
 
 let mapleader=','
 
-let g:neomake_verbose = 3
-
 " No '-- More --' prompt, which would hang Travis.
 set nomore
