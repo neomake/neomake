@@ -192,9 +192,9 @@ function! s:MakeJob(make_id, options) abort
             else
                 " vim-async.
                 let opts = {
-                            \ 'err_cb': 'neomake#MakeHandlerVimStderr',
-                            \ 'out_cb': 'neomake#MakeHandlerVimStdout',
-                            \ 'close_cb': 'neomake#MakeHandlerVimClose',
+                            \ 'out_cb': function('s:vim_output_handler_stdout'),
+                            \ 'err_cb': function('s:vim_output_handler_stderr'),
+                            \ 'close_cb': function('s:vim_exit_handler'),
                             \ 'mode': 'raw',
                             \ }
                 try
@@ -963,15 +963,15 @@ function! s:vim_output_handler(type, channel, output) abort
     return 0
 endfunction
 
-function! neomake#MakeHandlerVimStdout(channel, output) abort
+function! s:vim_output_handler_stdout(channel, output) abort
     return s:vim_output_handler('stdout', a:channel, a:output)
 endfunction
 
-function! neomake#MakeHandlerVimStderr(channel, output) abort
+function! s:vim_output_handler_stderr(channel, output) abort
     return s:vim_output_handler('stderr', a:channel, a:output)
 endfunction
 
-function! neomake#MakeHandlerVimClose(channel) abort
+function! s:vim_exit_handler(channel) abort
     let job_info = job_info(ch_getjob(a:channel))
     let job_id = ch_info(a:channel)['id']
     if has_key(s:jobs, job_id)
