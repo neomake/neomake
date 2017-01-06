@@ -15,7 +15,7 @@ Execute (Hook execution gets logged):
 
   AssertNeomakeMessage 'Skipping User autocmd NeomakeCountsChanged: no hooks.', 3
   AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 1, 'make_id': ".make_id."}", 2
-  AssertEqual neomake_tests_au_done, 1
+  AssertEqual g:neomake_tests_au_done, 1
 
 Execute (NeomakeJobFinished):
   if !NeomakeAsyncTestsSetup() | finish | endif
