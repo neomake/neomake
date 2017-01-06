@@ -171,14 +171,16 @@ Execute (Neomake#Make handles cwd properly):
     let g:neomake_test_exit_cb = []
     let maker1 = NeomakeTestsCommandMaker('maker1', 'echo maker_1 ${PWD##*/}: ')
     function! maker1.exit_callback(cb_dict) dict
-      let g:neomake_test_exit_cb += [a:cb_dict]
+      let g:neomake_test_exit_cb += [self, a:cb_dict]
       " Change to other window with different cwd.
       wincmd p
     endfunction
     let maker2 = NeomakeTestsCommandMaker('maker2', 'echo maker_2 ${PWD##*/}: ')
     let maker3 = {'name': 'maker3', 'errorformat': '%m', 'exe': 'echo maker_3', 'args': ''}
 
-    call neomake#Make(1, [maker1, maker2, maker3])
+    let jobs = neomake#Make(1, [maker1, maker2, maker3])
+    AssertEqual len(jobs), 1, "Only one job has been started initially"
+    let jobinfo1 = neomake#GetJob(jobs[0])
     NeomakeTestsWaitForFinishedJobs
     " Trigger processing.
     wincmd p
@@ -189,6 +191,6 @@ Execute (Neomake#Make handles cwd properly):
     exe 'cd '.orig_cwd
   endtry
 
-  AssertEqual g:neomake_test_exit_cb, [{'status': 0, 'name': 'maker1', 'has_next': 0}]
+  AssertEqual g:neomake_test_exit_cb, [jobinfo1, {'status': 0, 'name': 'maker1', 'has_next': 0}]
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
   \ ['maker_1 build: '.file1, 'maker_2 build: '.file1, 'maker_3 '.file1]

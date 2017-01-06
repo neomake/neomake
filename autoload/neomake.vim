@@ -1095,7 +1095,7 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
                 let l:ExitCallback = maker.exit_callback
             endif
             try
-                call l:ExitCallback(callback_dict)
+                call call(l:ExitCallback, [callback_dict], jobinfo)
             catch /^Vim\%((\a\+)\)\=:E117/
             endtry
         endif
