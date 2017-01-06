@@ -1152,7 +1152,7 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
     return filter(makers, "v:val =~? '^".a:ArgLead."'")
 endfunction
 
-function! neomake#CompleteJobs() abort
+function! neomake#CompleteJobs(...) abort
     return join(map(neomake#GetJobs(), "v:val.id.': '.v:val.maker.name"), "\n")
 endfunction
 
