@@ -26,7 +26,11 @@ augroup neomake
   au WinEnter * call neomake#ProcessCurrentWindow()
   au CursorHold * call neomake#ProcessPendingOutput()
   au BufEnter * call neomake#highlights#ShowHighlights()
-  au CursorMoved * call neomake#CursorMoved()
+  if has('timers')
+    au CursorMoved * call neomake#CursorMovedDelayed()
+  else
+    au CursorMoved * call neomake#CursorMoved()
+  endif
 augroup END
 
 if has('signs')
