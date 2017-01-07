@@ -1105,8 +1105,8 @@ function! neomake#MakeHandler(job_id, data, event_type) abort
                             let has_pending_output = 1
                         endif
                     endif
+                    unlet jobinfo[event_type]
                 endif
-                let jobinfo[a:event_type] = []
             endif
         endfor
 
