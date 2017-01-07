@@ -165,7 +165,7 @@ Execute (neomake#utils#MakerIsAvailable):
   let g:neomake_myft_mymaker_maker = {'exe': 'sh'}
   AssertEqual neomake#utils#MakerIsAvailable('myft', 'mymaker'), 1
 
-Execute (TODO: neomake#utils#MakerIsAvailable picks up changes):
+Execute (neomake#utils#MakerIsAvailable picks up changes):
   Save g:neomake_myft_sh_maker
   let g:neomake_myft_sh_maker = {
     \ 'exe': 'doesnotexist',
