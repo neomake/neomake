@@ -41,16 +41,14 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
         let msg = a:msg
     endif
 
+    " Use Vader's log for messages during tests.
     if exists('*vader#log')
-        " Log is defined during Vader tests.
         let test_msg = '['.s:level_to_name[a:level].'] ['.s:timestr().']: '.msg
         call vader#log(test_msg)
         " Only keep jobinfo entries that are relevant for / used in the message.
         let g:neomake_test_messages += [[a:level, a:msg,
                     \ filter(copy(jobinfo), "index(['id', 'make_id'], v:key) != -1")]]
-    endif
-
-    if verbose >= a:level
+    elseif verbose >= a:level
         redraw
         if a:level ==# 0
             echohl ErrorMsg
@@ -186,14 +184,14 @@ function! neomake#utils#MakerIsAvailable(ft, maker_name) abort
         " for our purposes
         return 1
     endif
-    if !has_key(s:available_makers, a:maker_name)
-        let maker = neomake#GetMaker(a:maker_name, a:ft)
-        if empty(maker)
-            return 0
-        endif
-        let s:available_makers[a:maker_name] = executable(maker.exe)
+    let maker = neomake#GetMaker(a:maker_name, a:ft)
+    if empty(maker)
+        return 0
     endif
-    return s:available_makers[a:maker_name]
+    if !has_key(s:available_makers, maker.exe)
+        let s:available_makers[maker.exe] = executable(maker.exe)
+    endif
+    return s:available_makers[maker.exe]
 endfunction
 
 function! neomake#utils#AvailableMakers(ft, makers) abort

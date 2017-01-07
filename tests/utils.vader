@@ -29,6 +29,7 @@ Execute (neomake#utils#CompressWhitespace):
   AssertEqual F("foo\n bar \r\n"), 'foo bar'
 
 Execute (neomake#utils#GetSetting serialize):
+  Save g:maker
   let g:maker = {'name': 'mymaker'}
   function! GetSetting()
     return neomake#utils#GetSetting('serialize', g:maker, 'default',
@@ -55,11 +56,11 @@ Execute (neomake#utils#GetSetting serialize):
   let b:neomake_serialize = 98
   AssertEqual GetSetting(), 98
 
-  let maker.serialize = 5
+  let g:maker.serialize = 5
   AssertEqual GetSetting(), 5
-  let maker.serialize = 0
+  let g:maker.serialize = 0
   AssertEqual GetSetting(), 0
-  let maker.serialize = 97
+  let g:maker.serialize = 97
   AssertEqual GetSetting(), 97
 
   let g:neomake_mymaker_serialize = 4
@@ -98,6 +99,7 @@ Execute (neomake#utils#GetSetting serialize):
   AssertEqual GetSetting(), 98
 
 Execute (neomake#utils#GetSetting accepts lists):
+  Save g:maker
   let g:maker = {'name': 'mymaker'}
   function! GetSetting()
     return neomake#utils#GetSetting('args', g:maker, 'default',
@@ -110,12 +112,15 @@ Execute (neomake#utils#GetSetting accepts lists):
   let b:neomake_myft_mymaker_args = [ 'buffer', 'shallow', 'list' ]
   AssertEqual GetSetting(), [ 'buffer', 'shallow', 'list' ]
 
+  Save g:maker
   Restore
+  let g:maker = {'name': 'mymaker'}
   Save b:neomake_myft_mymaker_args
   let b:neomake_myft_mymaker_args = 'string'
   AssertEqual GetSetting(), 'string'
 
 Execute (neomake#utils#GetSetting without name):
+  Save g:maker
   let g:maker = {}
   function! GetSetting(key)
     return neomake#utils#GetSetting(a:key, g:maker, [],
@@ -123,11 +128,11 @@ Execute (neomake#utils#GetSetting without name):
   endfunction
   AssertEqual GetSetting('args'), []
 
-  Save neomake_setting neomake_myft_setting
+  Save g:neomake_setting g:neomake_myft_setting
   AssertEqual GetSetting('setting'), []
-  let neomake_setting = 42
+  let g:neomake_setting = 42
   AssertEqual GetSetting('setting'), 42
-  let neomake_myft_setting = {'custom': 1}
+  let g:neomake_myft_setting = {'custom': 1}
   AssertEqual GetSetting('setting'), {'custom': 1}
 
 Execute(neomake#utils#redir):
@@ -160,7 +165,7 @@ Execute (neomake#utils#MakerIsAvailable):
   let g:neomake_myft_mymaker_maker = {'exe': 'sh'}
   AssertEqual neomake#utils#MakerIsAvailable('myft', 'mymaker'), 1
 
-Execute (TODO: neomake#utils#MakerIsAvailable picks up changes):
+Execute (neomake#utils#MakerIsAvailable picks up changes):
   Save g:neomake_myft_sh_maker
   let g:neomake_myft_sh_maker = {
     \ 'exe': 'doesnotexist',

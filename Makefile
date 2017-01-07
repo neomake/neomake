@@ -25,11 +25,10 @@ testx: export VADER_OPTIONS=-x
 testx: test
 
 # Neovim might quit after ~5s with stdin being closed.  Use --headless mode to
-# work around this, which then also requires :Vader to be silent.
+# work around this.
 # > Vim: Error reading input, exiting...
 # > Vim: Finished.
 testnvim: TEST_VIM:=nvim --headless
-testnvim: VADER:=silent $(VADER)
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 testnvim: build/neovim-test-home
 testnvim: TEST_VIM_PREFIX+=HOME=build/neovim-test-home

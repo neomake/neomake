@@ -3,7 +3,7 @@ Include: include/setup.vader
 Execute (Output is only processed in normal/insert mode (loclist)):
   if !NeomakeAsyncTestsSetup() | finish | endif
 
-  call neomake#Make(1, [neomake_test_sleep_efm_maker])
+  call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
   norm! V
   NeomakeTestsWaitForFinishedJobs
   AssertEqual getloclist(0), [], 'Location list has not been updated'
@@ -22,7 +22,7 @@ Execute (Output is only processed in normal/insert mode (loclist)):
 Execute (Output is only processed in normal/insert mode (qflist)):
   if !NeomakeAsyncTestsSetup() | finish | endif
 
-  call neomake#Make(0, [neomake_test_sleep_efm_maker])[0]
+  call neomake#Make(0, [g:neomake_test_sleep_efm_maker])[0]
   let jobinfo = neomake#GetJobs()[-1]
   norm! V
   NeomakeTestsWaitForFinishedJobs
@@ -40,7 +40,7 @@ Execute (Output is only processed in normal/insert mode (qflist)):
 Execute (Output is only processed in normal/insert mode (from loclist)):
   if !NeomakeAsyncTestsSetup() | finish | endif
 
-  call neomake#Make(1, [neomake_test_sleep_efm_maker])
+  call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
   lopen
   AssertEqual &buftype, 'quickfix'
   AssertEqual winnr(), 2
@@ -63,7 +63,7 @@ Execute (Output gets not processed from loclist):
   if !NeomakeAsyncTestsSetup() | finish | endif
 
   laddexpr ''
-  call neomake#Make(1, [neomake_test_sleep_efm_maker])
+  call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
   lopen
   AssertEqual &buftype, 'quickfix'
   AssertEqual winnr(), 2
@@ -127,12 +127,12 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
   if !NeomakeAsyncTestsSetup() | finish | endif
 
   file b1
-  call neomake#Make(1, [neomake_test_inc_maker])
+  call neomake#Make(1, [g:neomake_test_inc_maker])
   norm! V
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Not processing output for mode V', 3
   exe "norm! \<Esc>"
-  call neomake#Make(1, [neomake_test_inc_maker])
+  call neomake#Make(1, [g:neomake_test_inc_maker])
   AssertNeomakeMessage 'Found already running job for the same maker, restarting.', 2
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
@@ -145,12 +145,12 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
   if !NeomakeAsyncTestsSetup() | finish | endif
 
   file b1
-  call neomake#Make(1, [neomake_test_inc_maker])
+  call neomake#Make(1, [g:neomake_test_inc_maker])
   norm! V
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Not processing output for mode V', 3
   exe "norm! \<Esc>"
-  call neomake#Make(0, [neomake_test_inc_maker])
+  call neomake#Make(0, [g:neomake_test_inc_maker])
   AssertNeomakeMessage 'Found already running job for the same maker, restarting.', 2
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getqflist()), 'v:val.text'), []

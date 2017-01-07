@@ -28,17 +28,17 @@ Execute (neomake#signs#RedefineErrorSign):
   let g:sign_msg = 'Placing sign: sign place 5000 line=2 name=neomake_warn buffer='.bufnr('%')
   call neomake#signs#PlaceVisibleSigns()
   AssertThrows AssertNeomakeMessage g:sign_msg
-  AssertEqual g:vader_exception, "Message '".sign_msg."' not found."
+  AssertEqual g:vader_exception, "Message '".g:sign_msg."' not found."
 
   " Add the line referring to the sign.
   norm o
   call neomake#signs#PlaceVisibleSigns()
-  AssertNeomakeMessage sign_msg
+  AssertNeomakeMessage g:sign_msg
 
   " Test #736.
   call neomake#signs#RedefineErrorSign({'text': '✗', 'texthl': 'ErrorMsg'})
 
-  call neomake#Make(1, [neomake_test_sleep_efm_maker])
+  call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.':  {'.bufnr.': {2: 5000}}', 3, {}
 

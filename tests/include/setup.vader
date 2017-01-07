@@ -111,7 +111,9 @@ Before:
         if idx > g:neomake_test_messages_last_idx
           break
         endif
-        let found_but_before = 1
+        if idx < g:neomake_test_messages_last_idx
+          let found_but_before = 1
+        endif
         let r = 0
       endif
     endfor
