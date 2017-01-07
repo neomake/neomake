@@ -596,7 +596,7 @@ function! s:Make(options) abort
             let serialize = 1
         endif
         if serialize && len(enabled_makers) > 0
-            let next_opts = copy(a:options)
+            let next_opts = copy(options)
             let next_opts.enabled_makers = enabled_makers
             let next_opts.continuation = 1
             call extend(next_opts, {
@@ -606,9 +606,6 @@ function! s:Make(options) abort
                     \    neomake#utils#GetSetting('serialize_abort_on_error', maker, 0, [ft], bufnr),
                     \ })
             let options.next = next_opts
-        endif
-        if has_key(a:options, 'exit_callback')
-            let options.exit_callback = a:options.exit_callback
         endif
         let options.maker = maker
         let job_id = s:MakeJob(s:make_id, options)
