@@ -7,6 +7,8 @@ Execute (Output is only processed in normal/insert mode (loclist)):
   norm! V
   NeomakeTestsWaitForFinishedJobs
   AssertEqual getloclist(0), [], 'Location list has not been updated'
+  " with Vim
+  " AssertNeomakeMessage 'exit (delayed): sleep_efm_maker: 0'
   AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
   AssertEqual mode(), 'V'
   exe "norm! \<Esc>"
@@ -14,7 +16,7 @@ Execute (Output is only processed in normal/insert mode (loclist)):
   AssertEqual len(g:neomake_test_countschanged), 0
   AssertEqual len(g:neomake_test_finished), 0
   doautocmd CursorHold
-  AssertEqual len(g:neomake_test_countschanged), 1, "a"
+  AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_finished), 1, "b"
   AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
@@ -120,6 +122,9 @@ Execute (Unbuffered output handled correctly (qflist)):
   exe "norm! <Esc>"
   doautocmd CursorHold
   NeomakeTestsWaitForRemovedJobs
+  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 0}"
+  let make_id = neomake#GetStatus().last_make_id
+  AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 0, 'make_id': ".make_id."}", 2
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual map(copy(getqflist()), 'v:val.text'), map(range(1, 5), 'v:val . ""')
 
