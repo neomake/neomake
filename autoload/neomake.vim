@@ -49,6 +49,13 @@ function! neomake#GetJob(job_id) abort
     return s:jobs[a:job_id]
 endfunction
 
+function! neomake#GetErrors(bufnr) abort
+    if !a:bufnr
+        return s:current_errors['project']
+    endif
+    return get(s:current_errors['file'], a:bufnr, {})
+endfunction
+
 " Not documented, only used in tests for now.
 function! neomake#GetStatus() abort
     return {
