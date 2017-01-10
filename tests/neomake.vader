@@ -115,7 +115,7 @@ Execute (neomake#CancelJob with invalid job):
     call job_stop(vim_job)
     " Wait for the job to be stopped really, but without sleep to not trigger
     " the exit handler yet (which would remove the job).
-    let c = 100
+    let c = 1000
     while c > 0 && job_status(vim_job) ==# 'run'
       let c -= 1
     endwhile
@@ -132,7 +132,11 @@ Execute (neomake#CancelJob with invalid job):
   if has('nvim')
     AssertNeomakeMessage 'jobstop failed: Vim(call):E900: Invalid job id', 2, jobinfo
   else
-    AssertNeomakeMessage 'job_stop: job was not running anymore', 2, jobinfo
+    try
+      AssertNeomakeMessage 'job_stop: job was not running anymore', 2, jobinfo
+    catch
+      throw v:exception.' (might be a flaky test)'
+    endtry
   endif
   Assert len(neomake#GetJobs()), 'There are jobs'
 
