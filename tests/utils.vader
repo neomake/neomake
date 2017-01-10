@@ -206,7 +206,6 @@ Execute (neomake#utils#sort_by_col):
     return a:l
   endfunction
 
-  Log getpos('.')
   let a = {'col': 1}
   let b = {'col': 5}
   AssertEqual S([a, b]), [a, b]
