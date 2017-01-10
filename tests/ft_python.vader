@@ -1,0 +1,17 @@
+Include: include/setup.vader
+
+Execute (python: errorformat):
+  e! tests/fixtures/errors.py
+  Neomake python
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 1,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 22,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'E',
+  \ 'pattern': '',
+  \ 'text': 'invalid syntax'}]

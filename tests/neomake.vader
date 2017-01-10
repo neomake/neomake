@@ -17,6 +17,7 @@ Include (Utils): utils.vader
 
 ~ Filetype specific
 Include (Haskell): ft_haskell.vader
+Include (Python): ft_python.vader
 Include (Shell): ft_sh.vader
 Include (Text): ft_text.vader
 
