@@ -272,7 +272,14 @@ function! s:maker_base.get_argv(...) abort dict
     let args_is_list = type(args) == type([])
 
     if bufnr && neomake#utils#GetSetting('append_file', self, 1, [self.ft], bufnr)
-        let bufname = fnamemodify(bufname(bufnr), ':p')
+        let bufname = bufname(bufnr)
+        if !len(bufname)
+            throw 'Neomake: no file name'
+        endif
+        let bufname = fnamemodify(bufname, ':p')
+        if !filereadable(bufname)
+            throw 'Neomake: file is not readable ('.bufname.')'
+        endif
         if args_is_list
             call neomake#utils#ExpandArgs(args)
             call add(args, bufname)
@@ -611,7 +618,13 @@ function! s:Make(options) abort
             let options.next = next_opts
         endif
         let options.maker = maker
-        let job_id = s:MakeJob(s:make_id, options)
+        try
+            let job_id = s:MakeJob(s:make_id, options)
+        catch /^Neomake: /
+            let error = substitute(v:exception, '^Neomake: ', '', '')
+            call neomake#utils#ErrorMessage(error, {'make_id': s:make_id})
+            continue
+        endtry
         if job_id != -1
             call add(job_ids, job_id)
         endif

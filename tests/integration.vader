@@ -340,13 +340,15 @@ Execute (Neomake: remove_invalid_entries):
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'valid'}]
 
 Execute (Neomake: append_file from settings):
-  set ft=myft
   let maker = {
       \ 'exe': 'echo',
       \ 'args': ['output'],
       \ 'name': 'custom_maker',
       \ 'errorformat': '%m',
       \ }
+  e! tests/fixtures/errors.sh
+  set ft=myft
+
   call neomake#Make(1, [maker])
   let bufname = expand('%:p')
   NeomakeTestsWaitForFinishedJobs

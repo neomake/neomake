@@ -151,12 +151,12 @@ Execute (Neomake#Make handles cwd properly):
   let g:neomake_serialize = 1
 
   let orig_cwd = getcwd()
+
+  e! tests/fixtures/errors.sh
+  let file1 = expand('%:p')
+
   cd build
   try
-    file file1
-    " To make it stick to the current dir.
-    set buftype=
-    let file1 = expand('%:p')
     let cwd = fnamemodify(getcwd(), ':t')
 
     " Create a new window/buffer, with a different working dir.
@@ -168,13 +168,13 @@ Execute (Neomake#Make handles cwd properly):
     lcd dir1
     wincmd p
 
-    let g:neomake_test_exit_cb = []
     let maker1 = NeomakeTestsCommandMaker('maker1', 'echo maker_1 ${PWD##*/}: ')
     function! maker1.exit_callback(cb_dict) dict
       let g:neomake_test_exit_cb += [self, a:cb_dict]
       " Change to other window with different cwd.
       wincmd p
     endfunction
+    let g:neomake_test_exit_cb = []
     let maker2 = NeomakeTestsCommandMaker('maker2', 'echo maker_2 ${PWD##*/}: ')
     let maker3 = {'name': 'maker3', 'errorformat': '%m', 'exe': 'echo maker_3', 'args': ''}
 

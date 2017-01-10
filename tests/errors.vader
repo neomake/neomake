@@ -1,0 +1,47 @@
+Include: include/setup.vader
+
+Execute (Error with no filename):
+  new
+  set ft=python
+
+  Neomake
+  let make_id = neomake#GetStatus().last_make_id
+  AssertNeomakeMessage 'no file name', 0, {'make_id': make_id}
+  bd!
+
+Execute (Error with non-existing filename):
+  new
+  set ft=python
+  file doesnotexist
+
+  let fname = fnamemodify(bufname('%'), ':p')
+  Neomake
+  bd!
+  let make_id = neomake#GetStatus().last_make_id
+  AssertNeomakeMessage 'file is not readable ('.fname.')', 0, {'make_id': make_id}
+
+Execute (Error with non-existing filename for 2nd maker):
+  call g:NeomakeSetupAutocmdWrappers()
+
+  new
+  set ft=python
+  file doesnotexist
+
+  let maker1 = {
+      \ 'exe': 'true',
+      \ 'name': 'true_maker',
+      \ 'errorformat': '%m',
+      \ 'append_file': 0,
+      \ }
+  let maker2 = copy(maker1)
+  let maker2.append_file = 1
+  let maker3 = copy(maker1)
+
+  let fname = fnamemodify(bufname('%'), ':p')
+  call neomake#Make(1, [maker1, maker2, maker3])
+  let make_id = neomake#GetStatus().last_make_id
+  AssertNeomakeMessage 'file is not readable ('.fname.')', 0, {'make_id': make_id}
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_jobfinished), 2
+  bd!
