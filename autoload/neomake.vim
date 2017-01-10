@@ -559,7 +559,10 @@ function! s:Make(options) abort
 
     let job_ids = []
 
-    let enabled_makers = map(copy(enabled_makers), 'neomake#GetMaker(v:val, ft)')
+    let enabled_makers = filter(map(copy(enabled_makers), 'neomake#GetMaker(v:val, ft)'), '!empty(v:val)')
+    if !len(enabled_makers)
+        return []
+    endif
     call neomake#utils#DebugMessage(printf('Running makers: %s',
                 \ join(map(copy(enabled_makers), 'v:val.name'), ', ')))
     let maker = {}

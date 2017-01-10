@@ -40,6 +40,10 @@ Execute (Neomake! reports error on execution failure):
   AssertEqual neomake#GetMaker('nonexistent'), {}
   AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent', {}]
 
+Execute (Neomake with unknown maker):
+  Neomake doesnotexist
+  AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: doesnotexist', {}]
+
 Execute (neomake#GetMaker uses defined errorformat with makeprg):
   Save &errorformat
   let &errorformat = '%Gcustom'
