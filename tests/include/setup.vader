@@ -246,6 +246,8 @@ After:
     throw 'There were '.len(jobs).' jobs left: '.string(jobs)
   endif
 
+  NeomakeTestsWaitForRemovedJobs
+
   if exists('#neomake_tests')
     autocmd! neomake_tests
   endif
