@@ -973,7 +973,6 @@ function! s:vim_exit_handler(channel) abort
 
     " Handle failing starts from Vim here.
     let status = job_info['exitval']
-    let job_id = ch_info(a:channel)['id']
     if status == 122  " Vim uses EXEC_FAILED, but only on Unix?!
         let jobinfo = s:jobs[job_id]
         let jobinfo.failed_to_start = 1
