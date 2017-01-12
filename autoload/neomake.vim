@@ -67,13 +67,13 @@ function! neomake#CancelJob(job_id, ...) abort
         return 0
     endif
     let jobinfo = s:jobs[job_id]
-    if remove_always
-        unlet s:jobs[job_id]
-    endif
     if get(jobinfo, 'finished')
         call neomake#utils#DebugMessage('Removing already finished job: '.job_id)
         call s:CleanJobinfo(jobinfo)
     else
+        if remove_always
+            unlet s:jobs[job_id]
+        endif
         " Mark it as canceled for the exit handler.
         let jobinfo.canceled = 1
         call neomake#utils#DebugMessage('Stopping job', jobinfo)
