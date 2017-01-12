@@ -3,7 +3,7 @@ FROM testbed/vim:latest
 
 # Install make and openssl for docker_vimhelplint.
 # openssl for https support with wget.
-RUN apk --update add make openssl \
+RUN apk --update add make openssl python \
     && rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
 # Currently tested versions:
