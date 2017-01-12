@@ -226,7 +226,6 @@ Execute (neomake#CompleteJobs):
     NeomakeTestsWaitForFinishedJobs
   endif
 
-" NOTE: try/catch test, causing problems on vim8000.
 Execute (neomake#Make handles invalid cwd):
   let maker = {
       \ 'name': 'custom_maker',
