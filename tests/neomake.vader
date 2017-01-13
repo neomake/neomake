@@ -17,6 +17,7 @@ Include (Utils): utils.vader
 
 ~ Filetype specific
 Include (Haskell): ft_haskell.vader
+Include (Python): ft_python.vader
 Include (Shell): ft_sh.vader
 Include (Text): ft_text.vader
 
@@ -226,7 +227,6 @@ Execute (neomake#CompleteJobs):
     NeomakeTestsWaitForFinishedJobs
   endif
 
-" NOTE: try/catch test, causing problems on vim8000.
 Execute (neomake#Make handles invalid cwd):
   let maker = {
       \ 'name': 'custom_maker',

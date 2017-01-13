@@ -146,7 +146,7 @@ docker_push:
 	docker push $(DOCKER_IMAGE)
 
 # docker run --rm $(DOCKER_IMAGE) sh -c 'cd /vim-build/bin && ls vim*'
-DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8000 vim8069 vim-master
+DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8069 vim-master
 _DOCKER_VIM_TARGETS:=$(addprefix docker_test-,$(DOCKER_VIMS))
 
 docker_test_all: $(_DOCKER_VIM_TARGETS)

@@ -3,21 +3,19 @@ FROM testbed/vim:latest
 
 # Install make and openssl for docker_vimhelplint.
 # openssl for https support with wget.
-RUN apk --update add make openssl \
+RUN apk --update add make openssl python \
     && rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
 # Currently tested versions:
 #  - v7.3.429 (Ubuntu Precise, 12.04LTS; same as on Travis currently)
 #  - v7.4.052 (Ubuntu Trusty, 14.04LTS)
 #  - v7.4.1689 (Ubuntu Xenial, 16.04LTS)
-#  - v8.0.0000 (Vim 8, for reference)
 #  - v8.0.0027 (Vim 8, real async support)
 #  - v8.0.8069 (Updated Vim 8, https://groups.google.com/forum/#!topic/vim_dev/ro_FpeXgc24)
 RUN install_vim \
         -tag v7.3.429 -name vim73 -build \
         -tag v7.4.052 -name vim74-trusty -build \
         -tag v7.4.1689 -name vim74-xenial -build \
-        -tag v8.0.0000 -name vim8000 -build \
         -tag v8.0.0069 -name vim8069 -build
 
 # Git master in a separate layer, since the above is meant to be stable.
