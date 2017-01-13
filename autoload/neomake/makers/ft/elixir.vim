@@ -16,7 +16,9 @@ function! neomake#makers#ft#elixir#credo() abort
     return {
       \ 'exe': 'mix',
       \ 'args': ['credo', 'list', '%:p', '--format=oneline', '-i', 'readability'],
-      \ 'errorformat': '[%t] %. %f:%l:%c %m'
+      \ 'errorformat':
+          \'[%t] %. %f:%l:%c %m,' .
+          \'[%t] %. %f:%l %m'
       \ }
 endfunction
 
