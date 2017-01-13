@@ -7,7 +7,7 @@ endfunction
 function! neomake#makers#ft#ruby#rubocop()
     return {
         \ 'args': ['--format', 'emacs'],
-        \ 'errorformat': '%f:%l:%c: %t: %m',
+        \ 'errorformat': '%f:%l:%c: %t: %m,%E%f:%l: %m',
         \ 'postprocess': function('neomake#makers#ft#ruby#RubocopEntryProcess')
         \ }
 endfunction
