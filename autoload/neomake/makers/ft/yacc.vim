@@ -1,6 +1,6 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#yacc#EnabledMakers()
+function! neomake#makers#ft#yacc#EnabledMakers() abort
     let makers = []
     if executable('bison')
         call add(makers, 'bison')
@@ -8,8 +8,7 @@ function! neomake#makers#ft#yacc#EnabledMakers()
     return makers
 endfunction
 
-function! neomake#makers#ft#yacc#bison()
-
+function! neomake#makers#ft#yacc#bison() abort
     return {
             \ 'errorformat':
                 \ '%E%f:%l%.%v-%.%\{-}: %trror: %m,' .
