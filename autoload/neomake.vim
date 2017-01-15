@@ -422,6 +422,14 @@ function! neomake#GetMakers(ft) abort
                 let makers += [maker_name]
             endif
         endfor
+        for v in extend(keys(g:), keys(b:))
+            let maker_name = matchstr(v, '\v^neomake_'.ft.'_\zs\l+\ze_maker')
+            if len(maker_name)
+                let c = get(makers_count, maker_name, 0)
+                let makers_count[maker_name] = c + 1
+                let makers += [maker_name]
+            endif
+        endfor
     endfor
     let l = len(fts)
     return filter(makers, 'makers_count[v:val] ==# l')
