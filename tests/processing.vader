@@ -137,36 +137,54 @@ Execute (Sleep in postprocess gets handled correctly):
   if !NeomakeAsyncTestsSetup() | finish | endif
 
   " Vim needs longer sleep to process the output line by line.
-  let s:sleep = has('nvim') ? '0.01' : '0.05'
+  let s:sleep = has('nvim') ? '0.01' : '0.1'
   Save g:neomake_test_postprocess_count
   let g:neomake_test_postprocess_count = 0
   function! Postprocess(entry) dict
     let g:neomake_test_postprocess_count += 1
-    let sleep = float2nr(str2float(s:sleep) * 500)
-    exe 'sleep '.sleep.'m'
+    if g:neomake_test_postprocess_count == 1
+      let sleep = has('nvim') ? 50 : 400
+      exe 'sleep '.sleep.'m'
+    endif
   endfunction
 
   let maker_1 = extend(neomake#utils#MakerFromCommand(
-    \ 'for i in $(seq 1 3); do echo $i; sleep '.s:sleep.'; done'), {
+    \ 'echo out-1; sleep '.s:sleep.'; echo out-22; sleep '.s:sleep.'; echo out-333'), {
     \ 'buffer_output': 0, 'errorformat': '%m',
     \ 'append_file': 0,
     \ 'postprocess': function('Postprocess')})
 
-  call neomake#Make(1, [maker_1])
+  let job_ids = neomake#Make(1, [maker_1])
+  let jobinfo = neomake#GetJob(job_ids[0])
 "   norm! V
   NeomakeTestsWaitForFinishedJobs
 "   exe "norm! <Esc>"
 "   doautocmd CursorHold
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), map(range(1, 3), 'v:val . ""')
+  AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
+  if !has('nvim-0.2.0')
+    AssertNeomakeMessage 'exit (delayed): unnamed_maker: 0', 3, jobinfo
+    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+  endif
+
+  AssertNeomakeMessage "stdout: unnamed_maker: ['out-22', '']", 3, jobinfo
+  AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
+  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+
+  AssertNeomakeMessage "stdout: unnamed_maker: ['out-333', '']", 3, jobinfo
+  AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
+  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+
+  if !has('nvim-0.2.0')
+    AssertNeomakeMessage 'Trigger delayed exit', 3, jobinfo
+  endif
+
+  let make_id = neomake#GetStatus().last_make_id
+  AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 1, 'make_id': ".make_id."}", 2
+
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['out-1', 'out-22', 'out-333']
   AssertEqual g:neomake_test_postprocess_count, 3, 'postprocess count should be 3, but is '.g:neomake_test_postprocess_count
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_countschanged), 3
-
-  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
-  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
-  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
-  let make_id = neomake#GetStatus().last_make_id
-  AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 1, 'make_id': ".make_id."}", 2
 
 Execute (Pending output with restarted job when not in normal/insert mode (loclist)):
   if !NeomakeAsyncTestsSetup() | finish | endif
