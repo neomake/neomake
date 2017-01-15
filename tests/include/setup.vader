@@ -153,6 +153,8 @@ Before:
         endfor
       endif
       let g:neomake_test_messages_last_idx = idx
+      " Make it count as a successful assertion.
+      Assert 1
       return 1
     endif
     if found_but_other_level != -1
