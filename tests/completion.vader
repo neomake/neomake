@@ -1,0 +1,23 @@
+Include: include/setup.vader
+
+Execute (neomake#CompleteMakers: completes makers for b:):
+  Save b:neomake_c_lint_maker
+  let b:neomake_c_lint_maker = {
+    \ 'exe': 'lint',
+    \ 'args': ['--option', 'x'],
+    \ 'errorformat': '%f:%l:%c: %m',
+    \ }
+  Save &filetype
+  set filetype=c
+  Assert index(neomake#CompleteMakers('', 'Neomake '), 'lint') != -1, 'lint maker gets completed'
+
+Execute (neomake#CompleteMakers: completes makers for g:):
+  Save g:neomake_c_lint_maker
+  let g:neomake_c_lint_maker = {
+    \ 'exe': 'lint',
+    \ 'args': ['--option', 'x'],
+    \ 'errorformat': '%f:%l:%c: %m',
+    \ }
+  Save &filetype
+  set filetype=c
+  Assert index(neomake#CompleteMakers('', 'Neomake '), 'lint') != -1, 'lint maker gets completed'
