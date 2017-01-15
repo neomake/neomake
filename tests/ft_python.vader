@@ -15,3 +15,26 @@ Execute (python: errorformat):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'invalid syntax'}]
+
+Execute (python: pylama: errorformat):
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#python#pylama().errorformat
+  file file1.py
+  lgetexpr "file1.py:16:1: [C] C901 'load_library' is too complex (13) [mccabe]"
+  AssertEqual getloclist(0), [
+    \ {'lnum': 16, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
+    \  'nr': -1, 'type': 'C', 'pattern': '',
+    \  'text': 'C901 ''load_library'' is too complex (13) [mccabe]'}]
+
+  let e = copy(getloclist(0))[0]
+  call neomake#makers#ft#python#PylamaEntryProcess(e)
+  AssertEqual e, {
+  \ 'lnum': 16,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 1,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': 901,
+  \ 'type': 'I',
+  \ 'pattern': '',
+  \ 'text': "C901 'load_library' is too complex (13) [mccabe]"}

@@ -183,11 +183,18 @@ function! neomake#makers#ft#python#pep257() abort
 endfunction
 
 function! neomake#makers#ft#python#PylamaEntryProcess(entry) abort
+    if a:entry.nr == -1
+        " Get number from the beginning of text.
+        let nr = matchstr(a:entry.text, '\v^\u\zs\d+')
+        if len(nr)
+            let a:entry.nr = nr + 0
+        endif
+    endif
     if a:entry.type ==# 'C' && a:entry.text =~# '\v\[%(pycodestyle|pep8)\]$'
         call neomake#makers#ft#python#Pep8EntryProcess(a:entry)
     elseif a:entry.type ==# 'D'  " pydocstyle/pep257
         let a:entry.type = 'W'
-    elseif a:entry.type ==# 'C' && a:entry.nr ==# '901'  " mccabe
+    elseif a:entry.type ==# 'C' && a:entry.nr == 901  " mccabe
         let a:entry.type = 'I'
     elseif a:entry.type ==# 'R'  " Radon
         let a:entry.type = 'W'
