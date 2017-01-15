@@ -8,9 +8,8 @@ Execute (maker.args as string gets not escaped):
         \ 'mapexpr': 'expand("%:p") . ": " . v:val',
         \ }
 
-  let fname = 'a filename with spaces'
-  file a\ filename\ with\ spaces
-  AssertEqual bufname('%'), fname
+  let fname = 'tests/fixtures/a filename with spaces'
+  e! tests/fixtures/a\ filename\ with\ spaces
   let fname_abs = expand('%:p')
 
   call neomake#Make(1, [maker])

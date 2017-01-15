@@ -149,11 +149,11 @@ run on an whole project rather than a specific file.
 
                                                    *neomake-makers-processing*
                                                       *neomake-makers-mapexpr*
-You can define two optional properties on a maker object to process the maker
-output: `mapexpr` is applied to the maker output before any processing, and
-`postprocess` is applied to the quickfix or location list entry.
+You can define two optional properties on a maker object to process its
+output: `mapexpr` is applied to the maker's output before any processing, and
+`postprocess` is applied to each of the quickfix or location list entries.
 
-The `mapexpr` property will be passed directly into |map()| as the expr
+The `mapexpr` property will be passed directly into |map()| as the `expr`
 argument like so: >
     call map(lines, maker.mapexpr)
 <where `lines` contains the maker output.
@@ -164,7 +164,7 @@ The following variables are available in the `mapexpr`:
    where the output is coming from.  This will be "stdout" always for
    non-async Vim.
  - `neomake_bufname` and `neomake_bufdir`: the buffer's name (|bufname()|) and
-   directory, respectively.  This is only set in file mode.
+   directory, respectively.
 
 The `mapexpr` itself is being evaluated in the context of the affected buffer
 in file mode, and in the context of the buffer that is current when the maker
@@ -309,7 +309,8 @@ Defaults to 1.
 
 *g:neomake_serialize*
 Setting this to 1 tells Neomake to run each enabled maker one after the other.
-This is a good way to ensure messages don't get mixed up.
+This is a good way to ensure messages don't get mixed up. This setting is
+implied with non-async Vim versions.
 
 *g:neomake_serialize_abort_on_error*
 Setting this to 1 tells Neomake to abort after the first error status is
@@ -567,4 +568,4 @@ Here are some tips to develop the 'errorformat' setting for makers:
    currently removed by default in Neomake, but that is supposed to change
    likely: it is better to ignore them through the |'errorformat'| already.
 
-vim: ft=help tw=78 isk+=<,>,\:
+vim: ft=help tw=78 isk+=<,>,\:,-

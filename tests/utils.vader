@@ -206,7 +206,6 @@ Execute (neomake#utils#sort_by_col):
     return a:l
   endfunction
 
-  Log getpos('.')
   let a = {'col': 1}
   let b = {'col': 5}
   AssertEqual S([a, b]), [a, b]
@@ -216,3 +215,44 @@ Execute (neomake#utils#sort_by_col):
   norm a5
   AssertEqual getpos('.')[2], 5, 'position is correct'
   AssertEqual S([a, b]), [b, a]
+
+Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
+  Save &shell, &shellcmdflag
+
+  let jobinfo = {'file_mode': 0}
+
+  let &shell = '/bin/bash -o pipefail'
+  let &shellcmdflag = '-c'
+  let maker = neomake#utils#MakerFromCommand('echo 1')
+  if neomake#has_async_support()
+    let expected_argv = ['/bin/bash', '-o', 'pipefail', '-c', 'echo 1']
+  else
+    let expected_argv = "/bin/bash '-o' 'pipefail' '-c' 'echo 1'"
+  endif
+  let bound_maker = neomake#GetMaker(maker.fn(jobinfo))
+  AssertEqual bound_maker.get_argv(), expected_argv
+
+  let &shell = '/bin/bash'
+  let &shellcmdflag = '-o pipefail -c'
+  let maker = neomake#utils#MakerFromCommand('echo 2')
+  if neomake#has_async_support()
+    let expected_argv = ['/bin/bash', '-o', 'pipefail', '-c', 'echo 2']
+  else
+    let expected_argv = "/bin/bash '-o' 'pipefail' '-c' 'echo 2'"
+  endif
+  let bound_maker = neomake#GetMaker(maker.fn(jobinfo))
+  AssertEqual bound_maker.get_argv(), expected_argv
+
+Execute (neomake#utils#MakerFromCommand appends args for file_mode):
+  let maker = neomake#utils#MakerFromCommand('foo')
+  let jobinfo = {'file_mode': 0}
+
+  AssertEqual maker.fn(jobinfo), {
+  \ 'args': ['-c', 'foo'], 'exe': '/bin/bash', 'remove_invalid_entries': 0}
+
+  file file\ with\ space
+  let fname = expand('%:p')
+  let jobinfo = {'maker': maker, 'file_mode': 1, 'bufnr': bufnr('%')}
+  AssertEqual maker.fn(jobinfo), {
+  \ 'args': ['-c', 'foo '.fnameescape(fname)], 'append_file': 0,
+  \ 'exe': '/bin/bash', 'remove_invalid_entries': 0}

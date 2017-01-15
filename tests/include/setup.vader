@@ -132,7 +132,7 @@ Before:
                 \  ."expected nothing, but got '%s'.", a:msg, k, string(v))
           else
             try
-              let same = (v ==# expected)
+              let same = v ==# expected
             catch
               throw printf(
                 \ "Could not compare jobinfo entries (expected: %s, actual: %s): %s",
@@ -216,6 +216,7 @@ Before:
       \ 'args': ['-c', 'sleep 0.1; echo file1:1:E:error message; '
       \         .'echo file1:2:W:warning; echo file1:1:E:error2'],
       \ 'errorformat': '%f:%l:%t:%m',
+      \ 'append_file': 0,
       \ }
 
   " A maker that generates incrementing errors.
@@ -233,6 +234,7 @@ Before:
         \ 'exe': &shell,
         \ 'args': function('s:IncMakerArgs'),
         \ 'errorformat': '%E%f %m',
+        \ 'append_file': 0,
         \ }
 
 After:
@@ -245,7 +247,7 @@ After:
     for job in jobs
       call neomake#CancelJob(job.id, 1)
     endfor
-    throw 'There were '.len(jobs).' jobs left: '.string(jobs)
+    throw 'There were '.len(jobs).' jobs left: '.string(map(jobs, 'v:val.make_id.".".v:val.id'))
   endif
 
   NeomakeTestsWaitForRemovedJobs

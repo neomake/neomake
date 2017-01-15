@@ -32,6 +32,7 @@ Execute (AddExprCallback with changed windows inbetween):
   let options = {
     \ 'postprocess': function('g:Postprocess'),
     \ 'buffer_output': 0,
+    \ 'append_file': 0,
     \ }
   let maker_1 = neomake#utils#MakerFromCommand('echo 1a; sleep .1; echo 1b')
   call extend(maker_1, extend(copy(options), {'name': 'maker1'}))
