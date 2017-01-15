@@ -136,14 +136,14 @@ function! s:MakeJob(make_id, options) abort
 
     " Resolve exe/args, which might be a function or dictionary.
     if type(maker.exe) == type(function('tr'))
-        let exe = call(maker.exe, [])
+        let exe = call(maker.exe, [], maker)
     elseif type(maker.exe) == type({})
         let exe = call(maker.exe.fn, [], maker.exe)
     else
         let exe = maker.exe
     endif
     if type(maker.args) == type(function('tr'))
-        let args = call(maker.args, [])
+        let args = call(maker.args, [], maker)
     elseif type(maker.args) == type({})
         let args = call(maker.args.fn, [], maker.args)
     else
