@@ -121,6 +121,10 @@ function! s:AddJobinfoForCurrentWin(job_id) abort
     call settabwinvar(tabpagenr, winnr, 'neomake_jobs', win_jobs)
 endfunction
 
+function! s:DefaultFilename() abort
+    return expand('%:p')
+endfunction
+
 function! s:MakeJob(make_id, options) abort
     let job_id = s:job_id
     let s:job_id += 1
@@ -152,11 +156,12 @@ function! s:MakeJob(make_id, options) abort
     let args_is_list = type(args) == type([])
 
     if a:options.file_mode && get(maker, 'append_file', 1)
+        let MakeFilename = get(maker, 'make_filename', function('s:DefaultFilename'))
         if args_is_list
             call neomake#utils#ExpandArgs(args)
-            call add(args, expand('%:p'))
+            call add(args, MakeFilename())
         else
-            let args .= ' '.fnameescape(expand('%:p'))
+            let args .= ' '.fnameescape(MakeFilename())
         endif
     endif
 
@@ -356,12 +361,12 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         unlet! default  " workaround for old Vim (7.3.429)
     endfor
     let s:UNSET = {}
-    for key in ['append_file']
-        let value = neomake#utils#GetSetting(key, maker, s:UNSET, fts, bufnr)
-        if value isnot s:UNSET
-            let maker[key] = value
+    for key in ['append_file', 'make_filename']
+        let Value = neomake#utils#GetSetting(key, maker, s:UNSET, fts, bufnr)
+        if Value isnot s:UNSET
+            let maker[key] = Value
         endif
-        unlet! value  " workaround for old Vim (7.3.429)
+        unlet! Value  " workaround for old Vim (7.3.429)
     endfor
     if exists('real_ft')
         let maker.ft = real_ft

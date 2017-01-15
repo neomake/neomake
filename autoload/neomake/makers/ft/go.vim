@@ -4,9 +4,10 @@ function! neomake#makers#ft#go#EnabledMakers()
     return ['go', 'golint', 'govet']
 endfunction
 
-" The mapexprs in these are needed because cwd will make the command print out
-" the wrong path (it will just be ./%:h in the output), so the mapexpr turns
-" that back into the relative path
+
+function! s:RelativeModulePath() abort
+    return './' . expand('%:.:h')
+endfunction
 
 function! neomake#makers#ft#go#go()
     return {
@@ -14,9 +15,7 @@ function! neomake#makers#ft#go#go()
             \ 'test', '-c',
             \ '-o', neomake#utils#DevNull(),
         \ ],
-        \ 'append_file': 0,
-        \ 'cwd': '%:h',
-        \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
+        \ 'make_filename': function('s:RelativeModulePath'),
         \ 'errorformat':
             \ '%W%f:%l: warning: %m,' .
             \ '%E%f:%l:%c:%m,' .
@@ -38,9 +37,7 @@ function! neomake#makers#ft#go#govet()
     return {
         \ 'exe': 'go',
         \ 'args': ['vet'],
-        \ 'append_file': 0,
-        \ 'cwd': '%:h',
-        \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
+        \ 'make_filename': function('s:RelativeModulePath'),
         \ 'errorformat':
             \ '%Evet: %.%\+: %f:%l:%c: %m,' .
             \ '%W%f:%l: %m,' .
