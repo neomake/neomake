@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/neomake/neomake.svg?branch=master)](https://travis-ci.org/neomake/neomake)
-
 #[![Neomake](https://cloud.githubusercontent.com/assets/111942/21837263/b47caf4e-d798-11e6-989c-393699da9637.png)](#neomake)
+
+[![Build Status](https://travis-ci.org/neomake/neomake.svg?branch=master)](https://travis-ci.org/neomake/neomake)
 
 Neomake is a plugin that asynchronously runs programs using
 [Neovim]'s or [Vim]'s job-control functionality. It is intended to
