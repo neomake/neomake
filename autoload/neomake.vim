@@ -271,6 +271,9 @@ function! s:maker_base.get_argv(...) abort dict
     endif
     let args_is_list = type(args) == type([])
 
+    if args_is_list
+        call neomake#utils#ExpandArgs(args)
+    endif
     if bufnr && neomake#utils#GetSetting('append_file', self, 1, [self.ft], bufnr)
         let bufname = bufname(bufnr)
         if !len(bufname)
@@ -281,7 +284,6 @@ function! s:maker_base.get_argv(...) abort dict
             throw 'Neomake: file is not readable ('.bufname.')'
         endif
         if args_is_list
-            call neomake#utils#ExpandArgs(args)
             call add(args, bufname)
         else
             let args .= ' '.fnameescape(bufname)

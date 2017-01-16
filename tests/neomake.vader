@@ -261,3 +261,23 @@ Execute (neomake#Make handles invalid cwd):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath", 0
+
+Execute (Neomake picks up custom maker correctly):
+  let g:neomake_c_lint_maker = {
+    \ 'exe': 'echo',
+    \ 'args': ['%:p', '--foo', 'bar'],
+    \ 'append_file': 0,
+    \ 'errorformat': '%f:%l:%c: %m',
+    \ }
+  file file1
+  let fname = expand('%:p')
+  Save &filetype
+  set filetype=c
+
+  Neomake lint
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: ['echo', '".fname."', '--foo', 'bar']"
+    NeomakeTestsWaitForFinishedJobs
+  else
+    AssertNeomakeMessage "Starting: echo '".fname."' '--foo' 'bar'"
+  endif
