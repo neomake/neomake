@@ -203,9 +203,6 @@ function! s:MakeJob(make_id, options) abort
                                 \ string(argv)), jobinfo)
                     let job = job_start(argv, opts)
                     " Get this as early as possible!
-                    " XXX: the job might be finished already before the setup
-                    "      is done completely!
-                    let job_status = job_status(job)
                     let jobinfo.id = ch_info(job)['id']
                     let jobinfo.vim_job = job
                     let s:jobs[jobinfo.id] = jobinfo
@@ -213,9 +210,6 @@ function! s:MakeJob(make_id, options) abort
                     let error = printf('Failed to start Vim job: %s: %s',
                                 \ argv, v:exception)
                 endtry
-                if job_status !=# 'run'
-                    let error = printf('Vim job failed to run: %s', string(job))
-                endif
                 if empty(error)
                     call neomake#utils#DebugMessage(printf('Vim job: %s',
                                 \ string(job_info(job))), jobinfo)
