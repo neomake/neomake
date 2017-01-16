@@ -16,6 +16,10 @@ endif
 
 function! s:InitBufHighlights(type, buf) abort
     if s:nvim_api
+        if !bufexists(a:buf)
+            " The buffer might be wiped by now: prevent 'Invalid buffer id'.
+            return
+        endif
         if has_key(s:highlights[a:type], a:buf)
             call nvim_buf_clear_highlight(a:buf, s:highlights[a:type][a:buf], 0, -1)
         endif

@@ -111,11 +111,13 @@ function! neomake#signs#CleanOldSigns(bufnr, type) abort
         return
     endif
     call neomake#utils#DebugObject('Cleaning old signs in buffer '.a:bufnr.': ', s:last_placed_signs[a:type])
-    for ln in keys(s:last_placed_signs[a:type][a:bufnr])
-        let cmd = 'sign unplace '.s:last_placed_signs[a:type][a:bufnr][ln].' buffer='.a:bufnr
-        call neomake#utils#DebugMessage('Unplacing sign: '.cmd)
-        exe cmd
-    endfor
+    if bufexists(a:bufnr)
+        for ln in keys(s:last_placed_signs[a:type][a:bufnr])
+            let cmd = 'sign unplace '.s:last_placed_signs[a:type][a:bufnr][ln].' buffer='.a:bufnr
+            call neomake#utils#DebugMessage('Unplacing sign: '.cmd)
+            exe cmd
+        endfor
+    endif
     unlet s:last_placed_signs[a:type][a:bufnr]
 endfunction
 

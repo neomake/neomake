@@ -203,6 +203,7 @@ Before:
 
   function! NeomakeAsyncTestsSetup()
     if neomake#has_async_support()
+      call neomake#statusline#ResetCounts()
       call g:NeomakeSetupAutocmdWrappers()
       return 1
     endif
