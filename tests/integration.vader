@@ -79,6 +79,25 @@ Execute (Neomake: handle output for removed window):
   AssertNeomakeMessage 'No window found for output!', 2, jobinfo
   AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
 
+Execute (Neomake: handle wiped buffer):
+  " Check that there is no error, e.g. for highlights.
+  if !NeomakeAsyncTestsSetup() | finish | endif
+
+  new
+  e! tests/fixtures/errors.sh
+  let bufnr = bufnr('%')
+  Neomake sh
+  bwipe
+  let jobinfo = neomake#GetJobs()[0]
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual len(g:neomake_test_countschanged), 0,
+    \ "counts changed (".len(g:neomake_test_countschanged).")"
+  AssertEqual len(g:neomake_test_finished), 1
+
+  AssertNeomakeMessage 'No window found for output!', 2, jobinfo
+  AssertNeomakeMessage 'File-level errors cleaned in buffer '.bufnr
+  AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
+
 Execute (NeomakeSh: true):
   call neomake#statusline#ResetCounts()
   call g:NeomakeSetupAutocmdWrappers()
