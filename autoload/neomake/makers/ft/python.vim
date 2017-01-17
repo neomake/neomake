@@ -247,11 +247,15 @@ function! neomake#makers#ft#python#vulture() abort
         \ }
 endfunction
 
-" Because this uses --silent-imports it requires mypy >= 0.4
-" It is annoying for new users to use MyPy without --silent-imports
+" --fast-parser: adds experimental support for async/await syntax
+" --silent-imports: replaced by --ignore-missing-imports --follow-imports=skip
 function! neomake#makers#ft#python#mypy() abort
+    let args = ['--ignore-missing-imports', '--follow-imports=skip']
+    if neomake#utils#IsRunningWindows()
+        let args += ['--fast-parser']
+    endif
     return {
-        \ 'args': ['--silent-imports'],
+        \ 'args': args,
         \ 'errorformat':
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .
