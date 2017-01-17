@@ -554,6 +554,17 @@ function! neomake#utils#write_tempfile(bufnr, temp_file) abort
     call writefile(buflines, a:temp_file, 'b')
 endfunction
 
+function! neomake#utils#get_or_create_buffer(filename) abort
+    " TODO: Remove usage of this once not supplying a bufnr to process_output
+    " works if the filename is not opened in a buffer yet.
+    let nr = bufnr(a:filename)
+    if nr == -1
+        execute 'badd ' . substitute(a:filename, ' ', '\\ ', 'g')
+        let nr = bufnr(a:filename)
+    endif
+    return nr
+endfunction
+
 " Wrapper around fnamemodify that handles special buffers (e.g. fugitive).
 function! neomake#utils#fnamemodify(bufnr, modifier) abort
     let bufnr = +a:bufnr

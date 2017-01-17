@@ -54,6 +54,12 @@ install:
       make build/vimhelplint
     fi
 
+    if [ "$ENV" = "testvim" ]; then
+      set -x
+      python -V
+      python2 -V
+    fi
+
 script:
   - |
     if [ -n "$SKIP_BUILD_REASON" ]; then

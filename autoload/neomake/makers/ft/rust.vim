@@ -1,7 +1,5 @@
-" vim: ts=4 sw=4 et
-
 function! neomake#makers#ft#rust#EnabledMakers() abort
-    return ['rustc']
+    return ['cargo']
 endfunction
 
 function! neomake#makers#ft#rust#rustc() abort
@@ -22,3 +20,79 @@ function! neomake#makers#ft#rust#rustc() abort
             \ '%-G%s',
         \ }
 endfunction
+
+function! neomake#makers#ft#rust#cargo() abort
+    return {
+        \ 'args': ['test', '--no-run', '--message-format=json', '--quiet'],
+        \ 'append_file': 0,
+        \ 'errorformat':
+            \ '[%t%n] "%f" %l:%v %m,'.
+            \ '[%t] "%f" %l:%v %m',
+        \ 'process_output': function('neomake#makers#ft#rust#CargoProcessOutput'),
+        \ }
+endfunction
+
+function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
+    let errors = []
+    for line in a:context['output']
+        if line[0] !=# '{'
+            continue
+        endif
+
+        let decoded = neomake#utils#JSONdecode(line)
+        let data = get(decoded, 'message', -1)
+
+        if type(data) != type({}) || !len(data['spans'])
+            continue
+        endif
+        let error = {'maker_name': 'cargo'}
+
+        let code_dict = get(data, 'code', -1)
+
+        if code_dict is g:neomake#compat#json_null
+            if get(data, 'level', '') ==# 'warning'
+                let error.type = 'W'
+            else
+                let error.type = 'E'
+            endif
+        else
+            let error.type = code_dict['code'][0]
+            let error.nr = code_dict['code'][1:]
+        endif
+
+        let span = data.spans[0]
+        call neomake#makers#ft#rust#FillErrorFromSpan(error, span)
+
+        let error.text = data.message
+        let detail = span.label
+        let children = data.children
+        if type(detail) == type('') && len(detail)
+            let error.text = error.text . ': ' . detail
+        elseif len(children) && has_key(children[0], 'message')
+            let error.text = error.text . '. ' . children[0].message
+        endif
+
+        call add(errors, error)
+
+        if type(span.expansion) == type({})
+                    \ && type(span.expansion.span) == type({})
+                    \ && type(span.expansion.def_site_span) == type({})
+            let error = copy(error)
+            call neomake#makers#ft#rust#FillErrorFromSpan(error,
+                        \ span.expansion.span)
+            call add(errors, error)
+
+        endif
+    endfor
+    return errors
+endfunction
+
+function! neomake#makers#ft#rust#FillErrorFromSpan(error, span) abort
+    let a:error.filename = a:span.file_name
+    let a:error.bufnr = neomake#utils#get_or_create_buffer(a:error.filename)
+    let a:error.col = a:span.column_start
+    let a:error.lnum = a:span.line_start
+    let a:error.length = a:span.byte_end - a:span.byte_start
+endfunction
+
+" vim: ts=4 sw=4 et
