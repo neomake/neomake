@@ -64,7 +64,7 @@ Execute (Output is only processed in normal/insert mode (from loclist)):
 Execute (Output gets not processed from loclist):
   if !NeomakeAsyncTestsSetup() | finish | endif
 
-  laddexpr ''
+  lgetexpr ''
   call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
   lopen
   AssertEqual &buftype, 'quickfix'

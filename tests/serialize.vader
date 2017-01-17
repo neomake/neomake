@@ -72,7 +72,7 @@ Execute (NeomakeSh: serialized with previous buffer overriding global abort):
   call neomake#Make(1, [g:sleep_maker, g:maker_error, g:maker_success])
 
   let bufnr = bufnr('%')
-  laddexpr ''
+  lgetexpr ''
   new
   NeomakeTestsWaitForFinishedJobs
   AssertEqual getloclist(0), []

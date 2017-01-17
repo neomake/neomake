@@ -12,7 +12,7 @@ Execute (idris: errorformat):
 
   Save &errorformat
   let &errorformat = neomake#makers#ft#idris#idris().errorformat
-  laddexpr idris_output
+  lgetexpr idris_output
   AssertEqual len(getloclist(0)), 1
   AssertEqual getloclist(0)[0].text, "4:When checking left hand side of xor:\n
     \Type mismatch between\n
