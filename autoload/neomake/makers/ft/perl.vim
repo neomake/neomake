@@ -14,7 +14,7 @@ endfunction
 function! neomake#makers#ft#perl#perl() abort
     return {
          \ 'args' : ['-c', '-X', '-Mwarnings'],
-         \ 'errorformat': '%E%m at %f line %l%s',
+         \ 'errorformat': '%E%m at %f line %l%s,%-G%f syntax OK,%-G%f had compilation errors.',
          \ 'postprocess': function('neomake#makers#ft#perl#PerlEntryProcess'),
      \}
 endfunction
