@@ -1,11 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#yacc#EnabledMakers() abort
-    let makers = []
-    if executable('bison')
-        call add(makers, 'bison')
-    endif
-    return makers
+    return ['bison']
 endfunction
 
 function! neomake#makers#ft#yacc#bison() abort
