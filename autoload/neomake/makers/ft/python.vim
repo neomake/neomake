@@ -249,6 +249,7 @@ endfunction
 
 " Because this uses --silent-imports it requires mypy >= 0.4
 " It is annoying for new users to use MyPy without --silent-imports
+" For experimental async/await syntax support you'll need --fast-parser
 function! neomake#makers#ft#python#mypy() abort
     return {
         \ 'args': ['--silent-imports'],
