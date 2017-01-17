@@ -6,7 +6,6 @@ endfunction
 
 function! neomake#makers#ft#lisp#clisp() abort
     return {
-            \ 'exe': 'clisp',
             \ 'errorformat':
                 \ '%-G;%.%#,' .
                 \ '%W%>WARNING:%.%# line %l : %m,' .
