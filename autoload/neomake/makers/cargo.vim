@@ -12,9 +12,7 @@ endfunction
 function! neomake#makers#cargo#CargoParseJSON(val) abort
     let l:text = a:val
     if l:text[0] == '{'
-        echom len(l:text)
-        python import json
-        let l:data = pyeval("json.loads(vim.eval('l:text'))")['message']
+        let l:data = json_decode(l:text)['message']
         let l:code = l:data['code']
         echom type(l:code)
 
