@@ -12,10 +12,8 @@ endfunction
 function! neomake#makers#cargo#CargoParseJSON(val) abort
     let l:text = a:val
     if l:text[0] == '{'
-        let l:data = json_decode(l:text)['message']
-        let l:code = l:data['code']
-        echom type(l:code)
-
+        let l:data = get(json_decode(l:text), 'message', {})
+        let l:code = get(l:data, 'code', v:null)
         if type(l:code) == type({})
             let l:code = l:code['code']
             let l:message = l:data['message']
