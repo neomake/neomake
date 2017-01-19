@@ -32,7 +32,7 @@ function! neomake#makers#ft#rust#cargo() abort
         \ }
 endfunction
 
-function! neomake#makers#cargo#CargoParseJSON(val) abort
+function! neomake#makers#ft#rust#CargoParseJSON(val) abort
     let l:text = a:val
     if l:text[0] ==# '{'
         let l:data = get(json_decode(l:text), 'message', {})
