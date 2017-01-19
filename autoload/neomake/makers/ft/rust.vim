@@ -35,7 +35,13 @@ endfunction
 function! neomake#makers#ft#rust#CargoParseJSON(val) abort
     let l:text = a:val
     if l:text[0] ==# '{'
-        let l:data = get(json_decode(l:text), 'message', {})
+        if exists('*json_decode')
+            let l:decoded = json_decode(l:text)
+        else
+            python import json
+            let l:decoded = pyeval("json.loads(vim.eval('l:text'))")
+        endif
+        let l:data = get(l:decoded, 'message', {})
         let l:code = get(l:data, 'code', v:null)
         if type(l:code) == type({})
             let l:code = l:code['code']
