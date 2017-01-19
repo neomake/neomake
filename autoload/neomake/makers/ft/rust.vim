@@ -26,6 +26,7 @@ endfunction
 function! neomake#makers#ft#rust#cargo() abort
     return {
         \ 'args': ['test', '--no-run', '--message-format=json', '--quiet'],
+        \ 'append_file': 0,
         \ 'errorformat':
             \ '[%t%n] "%f" %l:%v %m',
         \ 'mapexpr': 'neomake#makers#cargo#CargoParseJSON(v:val)',
