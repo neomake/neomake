@@ -22,9 +22,10 @@ function! neomake#makers#cargo#CargoParseJSON(val) abort
             let l:col = l:span['column_start']
             let l:row = l:span['line_start']
             let l:file = l:span['file_name']
-            return '[' . l:code . '] "' . l:file . '" ' .
+            let l:error = '[' . l:code . '] "' . l:file . '" ' .
                         \ l:row . ':' .l:col .  ' ' .
                         \ l:message . ': ' . l:detail
+            return l:error
         endif
     endif
 endfunction
