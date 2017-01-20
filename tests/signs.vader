@@ -47,7 +47,6 @@ Execute (neomake#signs#RedefineErrorSign):
   call neomake#signs#CleanAllOldSigns('file')
   AssertNeomakeMessage 'Removing signs {file: {}, project: {}}', 3
 
-
 Execute (neomake#signs#PlaceVisibleSigns in project mode):
   let maker = neomake#utils#MakerFromCommand('echo 1:1: W: warning')
   call extend(maker, {
@@ -66,3 +65,4 @@ Execute (neomake#signs#PlaceVisibleSigns in project mode):
   call neomake#signs#Reset(bufnr, 'project')
   call neomake#signs#CleanAllOldSigns('project')
   AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.':  {'.bufnr.': {1: 7000}}', 3, {}
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 7000 buffer='.bufnr
