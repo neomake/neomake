@@ -1,4 +1,5 @@
 " vim: ts=4 sw=4 et
+let s:is_windows = has('win32') || has('win64') || has('win16') || has('dos32') || has('dos16')
 
 function! neomake#makers#ft#python#EnabledMakers() abort
     if exists('s:python_makers')
@@ -247,12 +248,12 @@ function! neomake#makers#ft#python#vulture() abort
         \ }
 endfunction
 
-" Because this uses --silent-imports it requires mypy >= 0.4
-" It is annoying for new users to use MyPy without --silent-imports
-" For experimental async/await syntax support you'll need --fast-parser
+" --fast-parser: adds experimental support for async/await syntax
+" --silent-imports: replaced by --ignore-missing-imports --follow-imports=skip
 function! neomake#makers#ft#python#mypy() abort
+    let defaults = ['--ignore-missing-imports', '--follow-imports=skip']
     return {
-        \ 'args': ['--silent-imports'],
+        \ 'args': s:is_windows ? defaults : defaults + ['--fast-parser'],
         \ 'errorformat':
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .
