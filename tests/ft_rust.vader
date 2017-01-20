@@ -19,3 +19,18 @@ Execute (cargo error message):
 
   AssertEqual error, '[E0308] "src/lib.rs" 19:46 mismatched types: expected str, found struct `proc_macro::TokenStream`'
 
+  cgetexpr error
+
+  let result = getqflist()[0]
+  unlet result.bufnr
+
+  AssertEqual result, {
+    \ 'type': 'E',
+    \ 'nr': 308,
+    \ 'lnum': 19,
+    \ 'col': 46,
+    \ 'valid': 1,
+    \ 'vcol': 1,
+    \ 'pattern': '',
+    \ 'text': 'mismatched types: expected str, found struct `proc_macro::TokenStream`'}
+
