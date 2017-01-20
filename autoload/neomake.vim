@@ -674,6 +674,11 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             endif
         endif
 
+        " Assume a message of unknown type is an error.
+        if entry.type == ''
+            let entry.type = 'E'
+        endif
+
         if !entry.valid
             if maker.remove_invalid_entries
                 let index -= 1
