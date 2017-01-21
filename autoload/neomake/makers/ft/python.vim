@@ -1,5 +1,4 @@
 " vim: ts=4 sw=4 et
-let s:is_windows = has('win32') || has('win64') || has('win16') || has('dos32') || has('dos16')
 
 function! neomake#makers#ft#python#EnabledMakers() abort
     if exists('s:python_makers')
@@ -251,9 +250,12 @@ endfunction
 " --fast-parser: adds experimental support for async/await syntax
 " --silent-imports: replaced by --ignore-missing-imports --follow-imports=skip
 function! neomake#makers#ft#python#mypy() abort
-    let defaults = ['--ignore-missing-imports', '--follow-imports=skip']
+    let args = ['--ignore-missing-imports', '--follow-imports=skip']
+    if neomake#utils#IsRunningWindows()
+        let args += ['--fast-parser']
+    endif
     return {
-        \ 'args': s:is_windows ? defaults : defaults + ['--fast-parser'],
+        \ 'args': args,
         \ 'errorformat':
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .
