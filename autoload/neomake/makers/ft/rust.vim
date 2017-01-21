@@ -45,7 +45,6 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
         endif
         let l:data = get(l:decoded, 'message', v:null)
         if type(l:data) == type({})
-            echom 'hoooi'
             let l:code = get(l:data, 'code', v:null)
 
             if type(l:code) == type({})
@@ -66,9 +65,10 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
             let l:error = '[' . l:code . '] "' . l:file . '" ' .
                         \ l:row . ':' .l:col .  ' ' .
                         \ l:message
-            if detail
+            if l:detail
                 let l:error = l:error . ': ' . l:detail
             endif
+            echom l:error
             return l:error
         endif
     endif
