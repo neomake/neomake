@@ -28,8 +28,9 @@ function! neomake#makers#ft#rust#cargo() abort
         \ 'args': ['test', '--no-run', '--message-format=json', '--quiet'],
         \ 'append_file': 0,
         \ 'errorformat':
-            \ '[%t%n] "%f" %l:%v %m',
-        \ 'mapexpr': 'neomake#makers#cargo#CargoParseJSON(v:val)',
+            \ '[%t%n] "%f" %l:%v %m,'.
+            \ '[%t] "%f" %l:%v %m',
+        \ 'mapexpr': 'neomake#makers#ft#rust#CargoParseJSON(v:val)',
         \ }
 endfunction
 
@@ -42,10 +43,20 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
             python import json
             let l:decoded = pyeval("json.loads(vim.eval('l:text'))")
         endif
-        let l:data = get(l:decoded, 'message', {})
-        let l:code = get(l:data, 'code', v:null)
-        if type(l:code) == type({})
-            let l:code = l:code['code']
+        let l:data = get(l:decoded, 'message', v:null)
+        if type(l:data) == type({})
+            echom 'hoooi'
+            let l:code = get(l:data, 'code', v:null)
+
+            if type(l:code) == type({})
+                let l:code = l:code['code']
+            else
+                if get(l:data, 'level', '') ==# 'warning'
+                    let l:code = 'W'
+                else
+                    let l:code = 'E'
+                endif
+            endif
             let l:message = l:data['message']
             let l:span = l:data['spans'][0]
             let l:detail = l:span['label']
@@ -54,7 +65,10 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
             let l:file = l:span['file_name']
             let l:error = '[' . l:code . '] "' . l:file . '" ' .
                         \ l:row . ':' .l:col .  ' ' .
-                        \ l:message . ': ' . l:detail
+                        \ l:message
+            if detail
+                let l:error = l:error . ': ' . l:detail
+            endif
             return l:error
         endif
     endif
