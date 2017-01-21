@@ -10,7 +10,8 @@ function! neomake#makers#ft#css#csslint() abort
         \   '%-G%f: lint free!,'.
         \   '%f: line %l\, col %c\, %trror - %m,'.
         \   '%f: line %l\, col %c\, %tarning - %m,'.
-        \   '%f: line %l\, col %c\, %m,'
+        \   '%f: line %l\, col %c\, %m,'.
+        \   '%f: %tarning - %m'
         \ }
 endfunction
 

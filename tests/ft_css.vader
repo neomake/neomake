@@ -1,0 +1,19 @@
+Include: include/setup.vader
+
+Execute (csslint: errorformat):
+  file file1
+  let output = [
+  \ "file1: line 315, col 1, Warning - Don't use IDs in selectors. (ids)",
+  \ "file1: Warning - You have 2 h1s, 3 h2s defined in this stylesheet. (unique-headings)'",
+  \ ]
+
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#css#csslint().errorformat
+  lgetexpr output
+  AssertEqual getloclist(0), [
+  \ {'lnum': 315, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'W', 'pattern': '',
+  \  'text': 'Don''t use IDs in selectors. (ids)'},
+  \ {'lnum': 0, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'W', 'pattern': '',
+  \  'text': 'You have 2 h1s, 3 h2s defined in this stylesheet. (unique-headings)'''}]
