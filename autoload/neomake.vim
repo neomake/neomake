@@ -1234,8 +1234,10 @@ function! neomake#CleanOldFileSignsAndErrors(...) abort
     endif
 endfunction
 
-function! neomake#EchoCurrentError() abort
-    if !get(g:, 'neomake_echo_current_error', 1)
+function! neomake#EchoCurrentError(...) abort
+    " a:1 might be a timer from the VimResized event.
+    let force = a:0 ? a:1 : 0
+    if !force && !get(g:, 'neomake_echo_current_error', 1)
         return
     endif
 
@@ -1261,7 +1263,7 @@ function! neomake#EchoCurrentError() abort
         call sort(ln_errors, function('neomake#utils#sort_by_col'))
     endif
     let error_entry = ln_errors[0]
-    if exists('s:neomake_last_echoed_error')
+    if !force && exists('s:neomake_last_echoed_error')
                 \ && s:neomake_last_echoed_error == error_entry
         return
     endif
