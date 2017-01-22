@@ -68,7 +68,6 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
             if l:detail
                 let l:error = l:error . ': ' . l:detail
             endif
-            echom l:error
             return l:error
         endif
     endif
