@@ -71,8 +71,12 @@ function! neomake#quickfix#FormatQuickfix() abort
     let makers = split(meta.text, ',', 1)
 
     for item in qflist
-        let item.maker_name = makers[i]
-        let maker_width = max([len(item.maker_name), maker_width])
+        let maker_name = makers[i]
+        if len(maker_name) > 4
+            let maker_name = maker_name[:3]
+        endif
+        let item.maker_name = maker_name
+        let maker_width = max([len(maker_name), maker_width])
 
         if item.lnum
             let lnum_width = max([len(item.lnum), lnum_width])
