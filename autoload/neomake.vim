@@ -752,20 +752,17 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let debug = get(g:, 'neomake_verbose', 1) >= 3
     let custom_qf = get(g:, '_neomake_qf_enabled', 0)
     let makers = []
+    let maker_name = get(maker, 'name', 'makeprg')
 
     if custom_qf && index > 0 && list[index - 1].pattern ==# '{neomake_meta}'
-        let makers = split(remove(list, index - 1).text, ',', 1)
         let index -= 1
+        let makers = eval(remove(list, index).text)
     endif
 
     while index < len(list)
         let entry = list[index]
-        let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
+        let entry.maker_name = maker_name
         let index += 1
-
-        if custom_qf
-            call add(makers, entry.maker_name)
-        endif
 
         let before = copy(entry)
         for s:f in s:postprocessors
@@ -847,8 +844,18 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     endwhile
 
     if custom_qf
-        call add(list, {'pattern': '{neomake_meta}', 'lnum': 0, 'text': join(makers, ',')})
+        if len(maker_name) > 4
+            let maker_name = get(maker, 'short_name', maker_name[:3])
+        endif
+
+        if !empty(makers) && makers[-1].name == maker_name
+            let makers[-1].i = index
+        else
+            call add(makers, {'name': maker_name, 'i': index})
+        endif
+
         let list_modified = 1
+        call add(list, {'pattern': '{neomake_meta}', 'lnum': 0, 'text': string(makers)})
     endif
 
     if list_modified

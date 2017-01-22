@@ -68,15 +68,16 @@ function! neomake#quickfix#FormatQuickfix() abort
     let src_buf = qflist[0].bufnr
 
     let meta = remove(qflist, -1)
-    let makers = split(meta.text, ',', 1)
+    let makers = eval(meta.text)
+    let maker = remove(makers, 0)
 
     for item in qflist
-        let maker_name = makers[i]
-        if len(maker_name) > 4
-            let maker_name = maker_name[:3]
+        if i >= maker.i
+            let maker = remove(makers, 0)
         endif
-        let item.maker_name = maker_name
-        let maker_width = max([len(maker_name), maker_width])
+
+        let item.maker_name = maker.name
+        let maker_width = max([len(item.maker_name), maker_width])
 
         if item.lnum
             let lnum_width = max([len(item.lnum), lnum_width])
