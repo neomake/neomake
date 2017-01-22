@@ -47,3 +47,56 @@ function! neomake#makers#ft#go#govet()
             \ '%-G%.%#'
         \ }
 endfunction
+
+" This comes straight out of vim-go.
+function! neomake#makers#ft#go#Paths()
+    let dirs = []
+
+    if !exists("s:goroot")
+        if executable('go')
+            let s:goroot = substitute(system('go env GOROOT'), '\n', '', 'g')
+        else
+            let s:goroot = $GOROOT
+        endif
+    endif
+
+    if len(s:goroot) != 0 && isdirectory(s:goroot)
+        let dirs += [s:goroot]
+    endif
+
+    let workspaces = split($GOPATH, neomake#utils#path_sep())
+    if workspaces != []
+        let dirs += workspaces
+    endif
+
+    return dirs
+endfunction
+
+" This comes straight out of vim-go.
+function! neomake#makers#ft#go#ImportPath(arg)
+    let path = fnamemodify(resolve(a:arg), ':p')
+    let dirs = neomake#makers#ft#go#Paths()
+
+    let workspace = ''
+    for dir in dirs
+        if len(dir) && match(path, dir) == 0
+            let workspace = dir
+        endif
+    endfor
+
+    if empty(workspace)
+        return -1
+    endif
+
+    let srcdir = substitute(workspace . '/src/', '//', '/', '')
+    return substitute(path, srcdir, '', '')
+endfunction
+
+function! neomake#makers#ft#go#errcheck()
+    let path = neomake#makers#ft#go#ImportPath(expand('%:p:h'))
+    return {
+        \ 'args': ['-abspath', path],
+        \ 'append_file': 0,
+        \ 'errorformat': '%E%f:%l:%c:\ %m, %f:%l:%c\ %#%m'
+        \ }
+endfunction
