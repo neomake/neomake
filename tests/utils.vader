@@ -151,8 +151,8 @@ Execute(neomake#utils#redir):
 
 Execute (neomake#utils#ExpandArgs):
   file file1.ext
-  let args = ['%', '%:h', '%:rt', '--foo=%:h', '%s', '\%', '%%']
-  let expected_args = ['file1.ext', '.', 'file1', '--foo=%:h', '%s', '\%', '%%']
+  let args = ['%', '%:h', '%:rt', '--foo=%:h', '%s', '\%', '%%', '%:r.o', '%:r%']
+  let expected_args = ['file1.ext', '.', 'file1', '--foo=%:h', '%s', '\%', '%%', 'file1.o', 'file1%']
   call neomake#utils#ExpandArgs(args)
   AssertEqual expected_args, args
 
