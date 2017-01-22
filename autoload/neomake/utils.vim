@@ -405,3 +405,7 @@ function! neomake#utils#sort_by_col(a, b) abort
     endif
     return abs(col - a:a.col) - abs(col - a:b.col)
 endfunction
+
+function! neomake#utils#path_sep() abort
+    return neomake#utils#IsRunningWindows() ? ';' : ':'
+endfunction

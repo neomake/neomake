@@ -49,15 +49,6 @@ function! neomake#makers#ft#go#govet()
 endfunction
 
 " This comes straight out of vim-go.
-" PathListSep returns the appropriate OS specific path list separator.
-function! neomake#makers#ft#go#PathListSep()
-    if neomake#utils#IsRunningWindows()
-        return ";"
-    endif
-    return ":"
-endfunction
-
-" This comes straight out of vim-go.
 function! neomake#makers#ft#go#Paths()
     let dirs = []
 
@@ -73,7 +64,7 @@ function! neomake#makers#ft#go#Paths()
         let dirs += [s:goroot]
     endif
 
-    let workspaces = split($GOPATH, neomake#makers#ft#go#PathListSep())
+    let workspaces = split($GOPATH, neomake#utils#path_sep())
     if workspaces != []
         let dirs += workspaces
     endif
