@@ -65,7 +65,11 @@ function! neomake#quickfix#FormatQuickfix() abort
     let lnum_width = 0
     let col_width = 0
     let maker_width = 0
-    let src_buf = qflist[0].bufnr
+    let src_buf = 0
+
+    if loclist
+        let src_buf = qflist[0].bufnr
+    endif
 
     let meta = remove(qflist, -1)
     let makers = eval(meta.text)
@@ -137,7 +141,9 @@ function! neomake#quickfix#FormatQuickfix() abort
     endfor
 
     runtime! syntax/neomake/qf.vim
-    execute 'runtime! syntax/neomake/'.getbufvar(src_buf, '&filetype').'.vim'
+    if src_buf
+        execute 'runtime! syntax/neomake/'.getbufvar(src_buf, '&filetype').'.vim'
+    endif
 
     call clearmatches()
 
@@ -158,5 +164,9 @@ function! neomake#quickfix#FormatQuickfix() abort
         autocmd CursorMoved <buffer> call s:cursor_moved()
     augroup END
 
-    let w:quickfix_title = printf('Neomake: %s', bufname(src_buf))
+    if src_buf
+        let w:quickfix_title = printf('Neomake[file]: %s', bufname(src_buf))
+    else
+        let w:quickfix_title = 'Neomake[project]'
+    endif
 endfunction
