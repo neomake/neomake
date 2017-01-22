@@ -7,10 +7,17 @@ let s:cursor_match_id = 999
 
 
 function! neomake#quickfix#enable() abort
+    let g:_neomake_qf_enabled = 1
     augroup neomake_qf
         autocmd!
-        autocmd FileType qf call neomake#quickfix#FormatLocList()
+        autocmd FileType qf call neomake#quickfix#FormatQuickfix()
     augroup END
+endfunction
+
+
+function! neomake#quickfix#disable() abort
+    let g:_neomake_qf_enabled = 0
+    autocmd! neomake_qf
 endfunction
 
 
@@ -29,13 +36,19 @@ function! s:cursor_moved() abort
 endfunction
 
 
-function! neomake#quickfix#FormatLocList() abort
+function! neomake#quickfix#FormatQuickfix() abort
     if &filetype != 'qf'
         return
     endif
 
-    let loclist = getloclist(0)
-    if empty(loclist)
+    let loclist = 1
+    let qflist = getloclist(0)
+    if empty(qflist)
+        let loclist = 0
+        let qflist = getqflist()
+    endif
+
+    if empty(qflist) || qflist[-1].pattern !=# '{neomake_meta}'
         return
     endif
 
@@ -48,34 +61,25 @@ function! neomake#quickfix#FormatLocList() abort
 
     let lines = []
     let signs = []
-    let i = 1
+    let i = 0
     let lnum_width = 0
     let col_width = 0
     let maker_width = 0
-    let src_buf = loclist[0].bufnr
+    let src_buf = qflist[0].bufnr
 
-    " XXX This will be blank sometimes.  Can only reproduce when using the
-    " flake8 maker and if the location list is already open.
-    let neomake_entries = deepcopy(neomake#GetErrors(src_buf))
+    let meta = remove(qflist, -1)
+    let makers = split(meta.text, ',', 1)
 
-    for item in loclist
-        let maker_name = ''
-        if item.lnum
-            let entries = get(neomake_entries, item.lnum,
-                        \ [{'maker_name': 'unknown'}])
-            if !empty(entries)
-                let entry = remove(entries, 0)
-                let maker_name = entry.maker_name
-                let maker_width = max([len(maker_name), maker_width])
-            endif
-        endif
-
-        let item.maker_name = maker_name
+    for item in qflist
+        let item.maker_name = makers[i]
+        let maker_width = max([len(item.maker_name), maker_width])
 
         if item.lnum
             let lnum_width = max([len(item.lnum), lnum_width])
             let col_width = max([len(item.col), col_width])
         endif
+
+        let i += 1
     endfor
 
     if maker_width + lnum_width + col_width > 0
@@ -89,7 +93,7 @@ function! neomake#quickfix#FormatLocList() abort
     endif
 
     let i = 1
-    for item in loclist
+    for item in qflist
         if item.lnum
             call add(signs, {'lnum': i, 'bufnr': buf, 'type': item.type})
         endif

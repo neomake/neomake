@@ -750,11 +750,22 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         let s:postprocessors = s:postprocess
     endif
     let debug = get(g:, 'neomake_verbose', 1) >= 3
+    let custom_qf = get(g:, '_neomake_qf_enabled', 0)
+    let makers = []
+
+    if custom_qf && index > 0 && list[index - 1].pattern ==# '{neomake_meta}'
+        let makers = split(remove(list, index - 1).text, ',', 1)
+        let index -= 1
+    endif
 
     while index < len(list)
         let entry = list[index]
         let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
         let index += 1
+
+        if custom_qf
+            call add(makers, entry.maker_name)
+        endif
 
         let before = copy(entry)
         for s:f in s:postprocessors
@@ -834,6 +845,11 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             call neomake#highlights#AddHighlight(entry, maker_type)
         endif
     endwhile
+
+    if custom_qf
+        call add(list, {'pattern': '{neomake_meta}', 'lnum': 0, 'text': join(makers, ',')})
+        let list_modified = 1
+    endif
 
     if list_modified
         if file_mode
