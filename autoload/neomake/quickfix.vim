@@ -104,16 +104,21 @@ function! neomake#quickfix#FormatQuickfix() abort
         endif
         let i += 1
 
+        let text = item.text
+        if !loclist && item.bufnr
+            let text = printf('[%s] %s', bufname(item.bufnr), text)
+        endif
+
         if !item.lnum
             call add(lines, printf('%*s %s %s',
                         \ maker_width, item.maker_name,
-                        \ blank_col, item.text))
+                        \ blank_col, text))
         else
             call add(lines, printf('%*s %*s:%*s %s',
                         \ maker_width, item.maker_name,
                         \ lnum_width, item.lnum,
                         \ col_width, item.col ? item.col : '-',
-                        \ item.text))
+                        \ text))
         endif
     endfor
 
