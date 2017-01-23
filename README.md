@@ -134,6 +134,48 @@ This is a community driven project, and maintainers are wanted.
 Please contact [@blueyed](https://github.com/blueyed) if you are interested.
 You should have a good profile of issue triaging and PRs on this repo already.
 
+## Hacking / Testing
+
+We are using [Vader](https://github.com/junegunn/vader.vim) for our tests, and
+they get run for every pull request in different environments (via Docker
+also).
+
+You can run the tests locally, of course.
+
+### Running tests
+
+#### Run all tests against your local Neovim and Vim
+
+    make test
+
+#### Run a specific test file
+
+    make tests/integration.vader
+
+#### Run some specific tests for Vim
+
+    make testvim VADER_ARGS=tests/integration.vader
+
+### Dockerized tests
+
+The `docker_test` target provides running tests for a specific Vim version.
+See `Dockerfile.tests` for the Vim versions provided in the Docker image.
+
+The image for this gets pulled from Docker Hub via
+[neomake/vims-for-tests](https://hub.docker.com/r/neomake/vims-for-tests/).
+
+NOTE: the Docker image used for tests does not include (different versions)
+of Neovim at the moment.
+
+#### Run all tests for Vim 8.0.0069
+
+make docker_test DOCKER_VIM=vim8069
+
+#### Run all tests against all Vims in the Docker image
+
+make docker_test_all
+
+
 [Neovim]: http://neovim.org/
 [Vim]: http://vim.org/
 [syntastic]: https://github.com/scrooloose/syntastic
