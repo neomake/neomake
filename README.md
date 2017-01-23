@@ -169,11 +169,11 @@ of Neovim at the moment.
 
 #### Run all tests for Vim 8.0.0069
 
-make docker_test DOCKER_VIM=vim8069
+    make docker_test DOCKER_VIM=vim8069
 
 #### Run all tests against all Vims in the Docker image
 
-make docker_test_all
+    make docker_test_all
 
 
 [Neovim]: http://neovim.org/
