@@ -35,18 +35,20 @@ Execute (cargo error message):
 
     let error = neomake#makers#ft#rust#CargoParseJSON(json)
 
-    AssertEqual '[E0308] "src/lib.rs" 19:46 mismatched types: expected str, found struct `proc_macro::TokenStream`', error
+    AssertEqual '[E0308] "src/lib.rs" 19:46 2 mismatched types: expected str, found struct `proc_macro::TokenStream`', error
 
     cgetexpr error
 
     let result = getqflist()[0]
     unlet result.bufnr
+    call neomake#makers#ft#rust#CargoPostProcess(result)
 
     AssertEqual {
       \ 'type': 'E',
       \ 'nr': 308,
       \ 'lnum': 19,
       \ 'col': 46,
+      \ 'length': 2,
       \ 'valid': 1,
       \ 'vcol': 1,
       \ 'pattern': '',
@@ -64,18 +66,21 @@ Execute (cargo warning message):
     let error = neomake#makers#ft#rust#CargoParseJSON(json)
 
 
-    AssertEqual '[W] "src/add_assign_like.rs" 2:24 unused import: `Variant`, #[warn(unused_imports)] on by default', error
+    AssertEqual '[W] "src/add_assign_like.rs" 2:24 7 unused import: `Variant`, #[warn(unused_imports)] on by default', error
 
     cgetexpr error
 
     let result = getqflist()[0]
     unlet result.bufnr
 
+    call neomake#makers#ft#rust#CargoPostProcess(result)
+
     AssertEqual {
       \ 'type': 'W',
       \ 'nr': -1,
       \ 'lnum': 2,
       \ 'col': 24,
+      \ 'length': 7,
       \ 'valid': 1,
       \ 'vcol': 1,
       \ 'pattern': '',

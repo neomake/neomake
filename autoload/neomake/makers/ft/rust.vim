@@ -31,6 +31,7 @@ function! neomake#makers#ft#rust#cargo() abort
             \ '[%t%n] "%f" %l:%v %m,'.
             \ '[%t] "%f" %l:%v %m',
         \ 'mapexpr': 'neomake#makers#ft#rust#CargoParseJSON(v:val)',
+        \ 'postprocess': function('neomake#makers#ft#rust#CargoPostProcess')
         \ }
 endfunction
 
@@ -40,8 +41,8 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
         if exists('*json_decode')
             let l:decoded = json_decode(l:text)
         else
-            python import json
-            let l:decoded = pyeval("json.loads(vim.eval('l:text'))")
+            python import json, vim
+            python vim.command("let l:decoded = pyeval(\"json.loads(vim.eval('l:text'))\")")
         endif
         let l:data = get(l:decoded, 'message', v:null)
         if type(l:data) == type({}) && len(l:data['spans'])
@@ -62,8 +63,9 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
             let l:col = l:span['column_start']
             let l:row = l:span['line_start']
             let l:file = l:span['file_name']
+            let l:length = l:span['byte_end'] - l:span['byte_start']
             let l:error = '[' . l:code . '] "' . l:file . '" ' .
-                        \ l:row . ':' .l:col .  ' ' .
+                        \ l:row . ':' . l:col .  ' ' . l:length . ' ' .
                         \ l:message
             if type(l:detail) == type('') && len(l:detail)
                 let l:error = l:error . ': ' . l:detail
@@ -71,4 +73,13 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
             return l:error
         endif
     endif
+endfunction
+
+function! neomake#makers#ft#rust#CargoPostProcess(entry) abort
+    let l:lines = split(a:entry.text, ' ')
+    if len(l:lines)
+        let a:entry.text = join(l:lines[1:])
+        let a:entry.length = str2nr(l:lines[0])
+    endif
+
 endfunction
