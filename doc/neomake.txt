@@ -377,7 +377,7 @@ scheme: >
     augroup my_neomake_signs
         au!
         autocmd ColorScheme *
-            \ hi NeomakeErrorSign ctermfg=white
+            \ hi NeomakeErrorSign ctermfg=white |
             \ hi NeomakeWarningSign ctermfg=yellow
     augroup END
 <
@@ -407,7 +407,7 @@ You can define them yourself: >
     augroup my_neomake_highlights
         au!
         autocmd ColorScheme *
-          \ hi link NeomakeError SpellBad
+          \ hi link NeomakeError SpellBad |
           \ hi link NeomakeWarning SpellCap
     augroup END
 >
