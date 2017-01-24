@@ -44,7 +44,7 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
             let l:decoded = pyeval("json.loads(vim.eval('l:text'))")
         endif
         let l:data = get(l:decoded, 'message', v:null)
-        if type(l:data) == type({})
+        if type(l:data) == type({}) && len(l:data['spans'])
             let l:code = get(l:data, 'code', v:null)
 
             if type(l:code) == type({})
