@@ -42,7 +42,14 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
             let l:decoded = json_decode(l:text)
         else
             python import json, vim
-            python vim.command("let l:decoded = json.loads(vim.eval('l:text'))")
+            try
+                python vim.command("let l:decoded = '{0}'".format(json.loads(vim.eval('l:text'))))
+            catch
+                redir => out
+                silent mess
+                redir END
+                call neomake#utils#DebugMessage('JSON Python Error: '.out)
+            endtry
         endif
         " @vimlint(EVL104, 1, l:decoded)
         let l:data = get(l:decoded, 'message', -1)
