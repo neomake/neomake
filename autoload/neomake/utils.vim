@@ -42,7 +42,7 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
     endif
 
     " Use Vader's log for messages during tests.
-    if exists('*vader#log')
+    if exists('*vader#log') && exists('g:neomake_test_messages')
         let test_msg = '['.s:level_to_name[a:level].'] ['.s:timestr().']: '.msg
         call vader#log(test_msg)
         " Only keep jobinfo entries that are relevant for / used in the message.
