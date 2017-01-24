@@ -65,7 +65,7 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
             let l:error = '[' . l:code . '] "' . l:file . '" ' .
                         \ l:row . ':' .l:col .  ' ' .
                         \ l:message
-            if l:detail
+            if type(l:detail) == type('') && len(l:detail)
                 let l:error = l:error . ': ' . l:detail
             endif
             return l:error
