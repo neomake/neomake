@@ -66,5 +66,20 @@ Execute (cargo warning message):
 
     AssertEqual '[W] "src/add_assign_like.rs" 2:24 unused import: `Variant`, #[warn(unused_imports)] on by default', error
 
+    cgetexpr error
+
+    let result = getqflist()[0]
+    unlet result.bufnr
+
+    AssertEqual {
+      \ 'type': 'W',
+      \ 'nr': -1,
+      \ 'lnum': 2,
+      \ 'col': 24,
+      \ 'valid': 1,
+      \ 'vcol': 1,
+      \ 'pattern': '',
+      \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}, result
+
   endif
 
