@@ -738,6 +738,11 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             call setqflist(list, 'r')
         endif
     endif
+    if file_mode
+        silent doautocmd QuickFixCmdPost lgetfile
+    else
+        silent doautocmd QuickFixCmdPost cgetfile
+    endif
     if ignored_signs
         call neomake#utils#DebugMessage(printf(
                     \ 'Could not place signs for %d entries without line number.',
