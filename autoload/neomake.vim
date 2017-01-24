@@ -738,11 +738,6 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             call setqflist(list, 'r')
         endif
     endif
-    if file_mode
-        silent doautocmd QuickFixCmdPost lgetfile
-    else
-        silent doautocmd QuickFixCmdPost cgetfile
-    endif
     if ignored_signs
         call neomake#utils#DebugMessage(printf(
                     \ 'Could not place signs for %d entries without line number.',
@@ -832,9 +827,11 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
         if file_mode
             let prev_list = getloclist(0)
             laddexpr a:lines
+            silent doautocmd QuickFixCmdPost lgetfile
         else
             let prev_list = getqflist()
             caddexpr a:lines
+            silent doautocmd QuickFixCmdPost cgetfile
         endif
         let counts_changed = s:AddExprCallback(a:jobinfo, len(prev_list))
         if !counts_changed
