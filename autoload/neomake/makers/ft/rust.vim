@@ -36,24 +36,25 @@ function! neomake#makers#ft#rust#cargo() abort
 endfunction
 
 function! neomake#makers#ft#rust#CargoParseJSON(val) abort
-    let l:text = a:val
-    if l:text[0] ==# '{'
+    let text = a:val
+    if text[0] ==# '{'
         if exists('*json_decode')
-            let l:decoded = json_decode(l:text)
+            let decoded = json_decode(text)
         else
             python import json, vim
+            python text = vim.eval('text')
             try
-                python vim.command("let l:decoded = '{0}'".format(json.loads(vim.eval('l:text'))))
+                let decoded = pyeval('json.loads(text)')
             catch
                 redir => out
                 silent mess
                 redir END
-                call neomake#utils#DebugMessage('JSON Python Error: '.out)
+                call neomake#utils#DebugMessage('JSON Python Error: '.v:exception.': '.out)
             endtry
         endif
-        " @vimlint(EVL104, 1, l:decoded)
-        let l:data = get(l:decoded, 'message', -1)
-        " @vimlint(EVL104, 0, l:decoded)
+        " @vimlint(EVL104, 1, decoded)
+        let l:data = get(decoded, 'message', -1)
+        " @vimlint(EVL104, 0, decoded)
         if type(l:data) == type({}) && len(l:data['spans'])
             let l:code = get(l:data, 'code', -1)
 
