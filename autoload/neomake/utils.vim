@@ -204,14 +204,21 @@ function! neomake#utils#MakerIsAvailable(ft, maker_name) abort
         " for our purposes
         return 1
     endif
+
     let maker = neomake#GetMaker(a:maker_name, a:ft)
     if empty(maker)
         return 0
     endif
-    if !has_key(s:available_makers, maker.exe)
-        let s:available_makers[maker.exe] = executable(maker.exe)
+
+    if (type(maker.exe) == type(function('tr')))
+        let l:executable = call(maker.exe, [])
+    elseif (type(maker.exe) == type({}))
+        let l:executable = call(maker.exe.fn, [], maker.exe)
+    else
+        let l:executable = maker.exe
     endif
-    return s:available_makers[maker.exe]
+
+    return executable(l:executable)
 endfunction
 
 function! neomake#utils#AvailableMakers(ft, makers) abort
