@@ -101,8 +101,9 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
     if strlen(l:token)
         " remove quotes
         let l:token = substitute(l:token, "'", '', 'g')
-        if a:entry.type ==# 'F' && a:entry.nr == 401
-            " The unused import error column is incorrect
+        if a:entry.type ==# 'F' && (a:entry.nr == 401 ||  a:entry.nr == 811)
+            " The unused column is incorrect for import errors and redefinition
+            " errors.
             let l:view = winsaveview()
             call cursor(a:entry.lnum, a:entry.col)
 
