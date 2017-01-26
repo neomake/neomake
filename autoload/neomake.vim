@@ -290,11 +290,8 @@ function! s:maker_base.get_argv(...) abort dict
         else
             let argv = exe . (len(args) ? ' ' . args : '')
         endif
-
         if !has('nvim')
-            if neomake#utils#IsRunningWindows()
-                let argv = args_is_list ? join(argv) : argv
-            elseif !args_is_list
+            if !args_is_list
                 " Have to use a shell to handle argv properly (Vim splits it
                 " at spaces).
                 let argv = [&shell, &shellcmdflag, argv]
