@@ -7,6 +7,23 @@ function! neomake#makers#ft#elixir#PostprocessEnforceMaxBufferLine(entry) abort
     endif
 endfunction
 
+function! neomake#makers#ft#elixir#PostprocessCredoErrorType(entry) abort
+    if a:entry.type ==# 'F'      " Refactoring opportunities
+        let type = 'W'
+    elseif a:entry.type ==# 'D'  " Software design suggestions
+        let type = 'I'
+    elseif a:entry.type ==# 'W'  " Warnings
+        let type = 'W'
+    elseif a:entry.type ==# 'R'  " Readability suggestions
+        let type = 'I'
+    elseif a:entry.type ==# 'C'  " Convention violation
+        let type = 'W'
+    else
+        let type = 'M'           " Everything else is a message
+    endif
+    let a:entry.type = type
+endfunction
+
 function! neomake#makers#ft#elixir#EnabledMakers() abort
     return ['mix']
 endfunction
@@ -23,6 +40,7 @@ function! neomake#makers#ft#elixir#credo() abort
     return {
       \ 'exe': 'mix',
       \ 'args': ['credo', 'list', '%:p', '--format=oneline'],
+      \ 'postprocess': function('neomake#makers#ft#elixir#PostprocessCredoErrorType'),
       \ 'errorformat':
           \'[%t] %. %f:%l:%c %m,' .
           \'[%t] %. %f:%l %m'
