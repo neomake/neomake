@@ -135,8 +135,8 @@ Execute (NeomakeSh: non-existing command):
   if neomake#has_async_support()
     AssertNeomakeMessage 'sh: ''nonexistingcommand'': completed with exit code 127.', 3
   endif
-  AssertNotEqual match(getqflist()[0].text,
-    \ '/bin/bash: nonexistingcommand: command not found'), -1, "error in qflist"
+  let qflist_text = getqflist()[0].text
+  AssertNotEqual match(qflist_text, 'command not found'), -1, "error in qflist: ".qflist_text
 
 Execute (NeomakeSh!: handle unfinished output on exit):
   call g:NeomakeSetupAutocmdWrappers()
