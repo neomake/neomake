@@ -248,11 +248,11 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode):
   let jobinfo = {'file_mode': 0}
 
   AssertEqual maker.fn(jobinfo), {
-  \ 'args': ['-c', 'foo'], 'exe': '/bin/bash', 'remove_invalid_entries': 0}
+  \ 'args': [&shellcmdflag, 'foo'], 'exe': &shell, 'remove_invalid_entries': 0}
 
   file file\ with\ space
   let fname = expand('%:p')
   let jobinfo = {'maker': maker, 'file_mode': 1, 'bufnr': bufnr('%')}
   AssertEqual maker.fn(jobinfo), {
-  \ 'args': ['-c', 'foo '.fnameescape(fname)], 'append_file': 0,
-  \ 'exe': '/bin/bash', 'remove_invalid_entries': 0}
+  \ 'args': [&shellcmdflag, 'foo '.fnameescape(fname)], 'append_file': 0,
+  \ 'exe': &shell, 'remove_invalid_entries': 0}
