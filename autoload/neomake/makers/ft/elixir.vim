@@ -1,5 +1,7 @@
 " vim: ts=4 sw=4 et
 
+let g:neomake_elixir_credo_type_map= get(g:, 'neomake_elixir_credo_type_map', {'F': 'W','C': 'W','D': 'I','R': 'I'})
+
 function! neomake#makers#ft#elixir#PostprocessEnforceMaxBufferLine(entry) abort
     let buffer_lines = str2nr(line('$'))
     if (buffer_lines < a:entry.lnum)
@@ -7,21 +9,18 @@ function! neomake#makers#ft#elixir#PostprocessEnforceMaxBufferLine(entry) abort
     endif
 endfunction
 
+" Credo error types
+" F -> Refactoring opportunities
+" W -> Warnings
+" C -> Convention violation
+" D -> Software design suggestions
+" R -> Readability suggestions
 function! neomake#makers#ft#elixir#PostprocessCredoErrorType(entry) abort
-    if a:entry.type ==# 'F'      " Refactoring opportunities
-        let type = 'W'
-    elseif a:entry.type ==# 'D'  " Software design suggestions
-        let type = 'I'
-    elseif a:entry.type ==# 'W'  " Warnings
-        let type = 'W'
-    elseif a:entry.type ==# 'R'  " Readability suggestions
-        let type = 'I'
-    elseif a:entry.type ==# 'C'  " Convention violation
-        let type = 'W'
-    else
-        let type = 'M'           " Everything else is a message
+    let type = toupper(a:entry.type)
+    let type_map = g:neomake_elixir_credo_type_map
+    if has_key(type_map, type)
+        let a:entry.type = type_map[type]
     endif
-    let a:entry.type = type
 endfunction
 
 function! neomake#makers#ft#elixir#EnabledMakers() abort
