@@ -40,11 +40,21 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
     if l:text[0] ==# '{'
         if !exists('*json_decode')
             let l:decoded = json_decode(text)
-        else
-            python import json, vim
-            python text = vim.eval('l:text')
+        elseif (has('python') && exists('*pyeval'))
+                    \ || (has('python3') && exists('*pyeval'))
+            if has('python')
+                python import json, vim
+                python text = vim.eval('l:text')
+            else
+                python3 import json, vim
+                python3 text = vim.eval('l:text')
+            endif
             try
-                let l:decoded = pyeval('json.loads(text)')
+                if has('python')
+                    let l:decoded = pyeval('json.loads(text)')
+                else
+                    let l:decoded = py3eval('json.loads(text)')
+                endif
             catch
                 redir => out
                 silent mess
@@ -52,6 +62,9 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
                 call neomake#utils#DebugMessage('JSON Python Error: '.v:exception.': '.out)
                 return
             endtry
+        else
+            call neomake#utils#DebugMessage('No support for json available')
+            return
         endif
         let l:data = get(l:decoded, 'message', -1)
         if type(l:data) == type({}) && len(l:data['spans'])
