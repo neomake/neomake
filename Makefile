@@ -16,7 +16,7 @@ DEFAULT_VADER_DIR:=tests/vim/plugins/vader
 export TESTS_VADER_DIR:=$(firstword $(realpath $(wildcard tests/vim/plugins/vader.override)) $(DEFAULT_VADER_DIR))
 $(DEFAULT_VADER_DIR):
 	mkdir -p $(dir $@)
-	git clone --depth=1 https://github.com/junegunn/vader.vim $@
+	git clone --depth=1 -b display-source-with-exceptions https://github.com/blueyed/vader.vim $@
 TESTS_FUGITIVE_DIR:=tests/vim/plugins/fugitive
 $(TESTS_FUGITIVE_DIR):
 	mkdir -p $(dir $@)
