@@ -38,7 +38,7 @@ endfunction
 function! neomake#makers#ft#rust#CargoParseJSON(val) abort
     let l:text = a:val
     if l:text[0] ==# '{'
-        if !exists('*json_decode')
+        if exists('*json_decode')
             let l:decoded = json_decode(text)
         elseif (has('python') && exists('*pyeval'))
                     \ || (has('python3') && exists('*pyeval'))
