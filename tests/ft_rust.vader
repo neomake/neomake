@@ -1,7 +1,7 @@
 Include: include/setup.vader
 
 Execute (cargo info message):
-  if !(exists('*json_decode') || has('python'))
+  if !exists('*json_decode') && !(has('python') && exists('*pyeval'))
     Log "SKIP: no JSON support."
     finish
   endif
@@ -15,7 +15,7 @@ Execute (cargo info message):
   AssertEqual 0, error
 
 Execute (cargo error without span):
-  if !(exists('*json_decode') || has('python'))
+  if !exists('*json_decode') && !(has('python') && exists('*pyeval'))
     Log "SKIP: no JSON support."
     finish
   endif
@@ -30,7 +30,7 @@ Execute (cargo error without span):
 
 
 Execute (cargo error message):
-  if !(exists('*json_decode') || has('python'))
+  if !exists('*json_decode') && !(has('python') && exists('*pyeval'))
     Log "SKIP: no JSON support."
     finish
   endif
@@ -62,7 +62,7 @@ Execute (cargo error message):
     \ 'text': 'mismatched types: expected str, found struct `proc_macro::TokenStream`'}, result
 
 Execute (cargo warning message):
-  if !(exists('*json_decode') || has('python'))
+  if !exists('*json_decode') && !(has('python') && exists('*pyeval'))
     Log "SKIP: no JSON support."
     finish
   endif
