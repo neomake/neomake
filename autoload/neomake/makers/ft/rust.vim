@@ -50,6 +50,7 @@ function! neomake#makers#ft#rust#CargoParseJSON(val) abort
                 silent mess
                 redir END
                 call neomake#utils#DebugMessage('JSON Python Error: '.v:exception.': '.out)
+                return
             endtry
         endif
         " @vimlint(EVL104, 1, decoded)
