@@ -358,6 +358,27 @@ Execute (Neomake: remove_invalid_entries):
   AssertEqual getloclist(0),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'valid'}]
 
+Execute (Neomake: entry.valid < 0):
+  let maker = neomake#utils#MakerFromCommand('echo invalid; echo "E: valid"')
+  call extend(maker, {
+      \ 'name': 'custom_maker',
+      \ 'remove_invalid_entries': 0,
+      \ 'errorformat': 'E: %m',
+      \ 'append_file': 0,
+      \ })
+
+  function maker.postprocess(entry) abort
+    if !a:entry.valid
+      let a:entry.valid = -1
+    endif
+  endfunction
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage "Removing invalid entry: invalid ({'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': -1, 'vcol': 0, 'nr': -1, 'type': '', 'maker_name': 'custom_maker', 'pattern': ''})"
+  AssertEqual getloclist(0),
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'valid'}]
+
 Execute (Neomake: append_file from settings):
   let maker = {
       \ 'exe': 'echo',
