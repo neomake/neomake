@@ -79,7 +79,13 @@ function! neomake#quickfix#FormatQuickfix() abort
 
     runtime! syntax/neomake/qf.vim
     if src_buf
-        execute 'runtime! syntax/neomake/'.getbufvar(src_buf, '&filetype').'.vim'
+        let ft = getbufvar(src_buf, '&filetype')
+        if ft != ''
+            for name in split(ft, '\.')
+                execute 'runtime! syntax/neomake/'.name.'.vim '
+                            \  . 'syntax/neomake/'.name.'/*.vim'
+            endfor
+        endif
     endif
 
     let ul = &l:undolevels
