@@ -17,7 +17,6 @@ endfunction
 
 function! neomake#quickfix#disable() abort
     let g:_neomake_qf_enabled = 0
-    autocmd! neomake_qf
 endfunction
 
 
@@ -36,14 +35,29 @@ function! s:cursor_moved() abort
 endfunction
 
 
+function! s:reset(buf) abort
+    call neomake#signs#ResetFile(a:buf)
+    execute 'sign unplace * buffer='.a:buf
+    call clearmatches()
+endfunction
+
+
 function! neomake#quickfix#FormatQuickfix() abort
-    if &filetype != 'qf'
+    if !get(g:, '_neomake_qf_enabled', 0) || &filetype != 'qf'
+        if exists('b:neomake_qf')
+            call s:reset(bufnr('%'))
+            unlet! b:neomake_qf
+            augroup neomake_qf
+                autocmd! * <buffer>
+            augroup END
+        endif
         return
     endif
 
     let buf = bufnr('%')
-    call neomake#signs#ResetFile(buf)
+    call s:reset(buf)
 
+    let src_buf = 0
     let loclist = 1
     let qflist = getloclist(0)
     if empty(qflist)
@@ -52,7 +66,20 @@ function! neomake#quickfix#FormatQuickfix() abort
     endif
 
     if empty(qflist) || qflist[0].text !~# '{neomake:[^}]\+}$'
+        set syntax=qf
         return
+    endif
+
+    if loclist
+        let b:neomake_qf = 'file'
+        let src_buf = qflist[0].bufnr
+    else
+        let b:neomake_qf = 'project'
+    endif
+
+    runtime! syntax/neomake/qf.vim
+    if src_buf
+        execute 'runtime! syntax/neomake/'.getbufvar(src_buf, '&filetype').'.vim'
     endif
 
     let ul = &l:undolevels
@@ -65,11 +92,6 @@ function! neomake#quickfix#FormatQuickfix() abort
     let lnum_width = 0
     let col_width = 0
     let maker_width = 0
-    let src_buf = 0
-
-    if loclist
-        let src_buf = qflist[0].bufnr
-    endif
 
     for item in qflist
         let maker_name = matchstr(item.text, '{neomake:\zs[^}]\+\ze}$')
@@ -138,13 +160,6 @@ function! neomake#quickfix#FormatQuickfix() abort
     for item in signs
         call neomake#signs#PlaceSign(item, 'file')
     endfor
-
-    runtime! syntax/neomake/qf.vim
-    if src_buf
-        execute 'runtime! syntax/neomake/'.getbufvar(src_buf, '&filetype').'.vim'
-    endif
-
-    call clearmatches()
 
     if b:neomake_start_col
         call matchadd('neomakeMakerName',
