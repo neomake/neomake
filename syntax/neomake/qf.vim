@@ -1,3 +1,5 @@
+let b:current_syntax = 'neomake_qf'
+
 syntax clear
 
 highlight default link neomakeListNr LineNr
