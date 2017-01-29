@@ -41,6 +41,9 @@ function! neomake#quickfix#FormatQuickfix() abort
         return
     endif
 
+    let buf = bufnr('%')
+    call neomake#signs#ResetFile(buf)
+
     let loclist = 1
     let qflist = getloclist(0)
     if empty(qflist)
@@ -48,12 +51,9 @@ function! neomake#quickfix#FormatQuickfix() abort
         let qflist = getqflist()
     endif
 
-    if empty(qflist) || qflist[-1].pattern !=# '{neomake_meta}'
+    if empty(qflist) || qflist[0].text !~# '{neomake:[^}]\+}$'
         return
     endif
-
-    let buf = bufnr('%')
-    call neomake#signs#Reset(buf, 'file')
 
     let ul = &l:undolevels
     setlocal modifiable nonumber undolevels=-1
@@ -71,16 +71,15 @@ function! neomake#quickfix#FormatQuickfix() abort
         let src_buf = qflist[0].bufnr
     endif
 
-    let meta = remove(qflist, -1)
-    let makers = eval(meta.text)
-    let maker = remove(makers, 0)
-
     for item in qflist
-        if i >= maker.i
-            let maker = remove(makers, 0)
+        let maker_name = matchstr(item.text, '{neomake:\zs[^}]\+\ze}$')
+        if empty(maker_name)
+            let maker_name = '????'
+        else
+            let item.text = matchstr(item.text, '.*\ze{neomake:')
         endif
 
-        let item.maker_name = maker.name
+        let item.maker_name = maker_name
         let maker_width = max([len(item.maker_name), maker_width])
 
         if item.lnum

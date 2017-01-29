@@ -754,11 +754,6 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let makers = []
     let maker_name = get(maker, 'name', 'makeprg')
 
-    if custom_qf && index > 0 && list[index - 1].pattern ==# '{neomake_meta}'
-        let index -= 1
-        let makers = eval(remove(list, index).text)
-    endif
-
     while index < len(list)
         let entry = list[index]
         let entry.maker_name = maker_name
@@ -843,22 +838,20 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         endif
     endwhile
 
-    if custom_qf
-        if len(maker_name) > 4
-            let maker_name = get(maker, 'short_name', maker_name[:3])
+    if list_modified || custom_qf
+        if custom_qf
+            let maker_append = printf(' {neomake:%s}',
+                        \ len(maker_name) > 4
+                        \ ? get(maker, 'short_name', maker_name[:3])
+                        \ : maker_name)
+            let list = deepcopy(list)
+            let index = a:prev_index
+            while index < len(list)
+                let list[index].text .= maker_append
+                let index += 1
+            endwhile
         endif
 
-        if !empty(makers) && makers[-1].name == maker_name
-            let makers[-1].i = index
-        else
-            call add(makers, {'name': maker_name, 'i': index})
-        endif
-
-        let list_modified = 1
-        call add(list, {'pattern': '{neomake_meta}', 'lnum': 0, 'text': string(makers)})
-    endif
-
-    if list_modified
         if file_mode
             call setloclist(0, list, 'r')
         else
