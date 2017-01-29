@@ -22,7 +22,13 @@ endfunction
 let s:unset = {}
 
 function! neomake#utils#LogMessage(level, msg, ...) abort
-    let verbose = get(g:, 'neomake_verbose', 1)
+    if a:0
+        let jobinfo = a:1
+        let verbose = neomake#GetMakeOptions().verbosity
+    else
+        let jobinfo = {}
+        let verbose = get(g:, 'neomake_verbose', 1) + &verbose
+    endif
     let logfile = get(g:, 'neomake_logfile')
 
     if exists(':Log') != 2 && verbose < a:level && logfile is# ''
@@ -30,19 +36,18 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
     endif
 
     if a:0
-        let jobinfo = a:1
         if has_key(jobinfo, 'id')
             let msg = printf('[%s.%d] %s', get(jobinfo, 'make_id', '-'), jobinfo.id, a:msg)
         else
             let msg = printf('[%s] %s', get(jobinfo, 'make_id', '?'), a:msg)
         endif
     else
-        let jobinfo = {}
         let msg = a:msg
     endif
 
     " Use Vader's log for messages during tests.
-    if exists('*vader#log') && exists('g:neomake_test_messages')
+    if exists('g:neomake_test_messages')
+                \ && get(g:, 'neomake_test_log_all_messages', (verbose >= a:level))
         let test_msg = '['.s:level_to_name[a:level].'] ['.s:timestr().']: '.msg
         call vader#log(test_msg)
         " Only keep jobinfo entries that are relevant for / used in the message.

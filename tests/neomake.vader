@@ -16,6 +16,7 @@ Include (Serialize): serialize.vader
 Include (Signs): signs.vader
 Include (Statusline): statusline.vader
 Include (Utils): utils.vader
+Include (Verbosity): verbosity.vader
 
 ~ Filetype specific
 Include (Haskell): ft_haskell.vader

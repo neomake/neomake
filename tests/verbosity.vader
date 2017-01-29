@@ -1,0 +1,82 @@
+Include: include/setup.vader
+
+Execute (neomake#utils#LogMessage uses &verbose):
+  Save g:neomake_verbose, &verbose
+  unlet! g:neomake_verbose
+  set verbose=0
+
+  unlet g:neomake_test_log_all_messages
+
+  call neomake#utils#LogMessage(1, 'msg')
+  AssertEqual g:neomake_test_messages, [[1, 'msg', {}]]
+
+  let g:neomake_test_messages = []
+  1verb call neomake#utils#LogMessage(1, 'msg')
+  AssertEqual g:neomake_test_messages, [[1, 'msg', {}]]
+
+  let g:neomake_test_messages = []
+  1verb call neomake#utils#LogMessage(2, 'msg')
+  AssertEqual g:neomake_test_messages, [[2, 'msg', {}]]
+
+  let g:neomake_test_messages = []
+  2verb call neomake#utils#LogMessage(2, 'msg')
+  AssertEqual g:neomake_test_messages, [[2, 'msg', {}]]
+
+  let g:neomake_test_messages = []
+  let g:neomake_verbose = 3
+  call neomake#utils#LogMessage(1, 'msg')
+  AssertEqual g:neomake_test_messages, [[1, 'msg', {}]]
+
+  let g:neomake_test_messages = []
+  let g:neomake_verbose = 1
+  0verb call neomake#utils#LogMessage(1, 'msg')
+  AssertEqual g:neomake_test_messages, [[1, 'msg', {}]]
+
+  let g:neomake_verbose = 0
+  NeomakeTestsResetMessages
+  0verb call neomake#utils#LogMessage(1, 'msg')
+  AssertEqual g:neomake_test_messages, []
+
+  1verb call neomake#utils#LogMessage(1, 'msg')
+  AssertNeomakeMessage 'msg', 1
+
+  3verb call neomake#utils#LogMessage(1, 'msg')
+  AssertNeomakeMessage 'msg', 1
+
+Execute (neomake#Make uses &verbose):
+  Save g:neomake_verbose, &verbose
+  unlet! g:neomake_verbose
+  set verbose=0
+
+  let maker = {
+  \ 'append_file': 0,
+  \ 'exe': 'echo',
+  \ 'args': ['1'],
+  \ }
+
+  unlet g:neomake_test_log_all_messages
+
+  " The default for g:neomake_verbose is 1, and ':2verb' displays level 3."
+  2verb call neomake#Make(1, [maker])
+  let make_id = neomake#GetStatus().last_make_id
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'Running makers: unnamed_maker', 3, {'make_id': make_id}
+
+  NeomakeTestsResetMessages
+  1verb call neomake#Make(1, [maker])
+  let make_id = neomake#GetStatus().last_make_id
+  NeomakeTestsWaitForFinishedJobs
+  if neomake#has_async_support()
+    AssertEqual g:neomake_test_messages,
+    \ [[2, "Starting async job: ['echo', '1']", {'make_id': make_id}]]
+  else
+    AssertEqual g:neomake_test_messages,
+    \ [[2, "Starting: echo '1'", {'make_id': make_id}]]
+  endif
+  AssertEqual len(g:neomake_test_messages), 1
+
+  let g:neomake_verbose = 3
+  0verb call neomake#Make(1, [maker])
+  let make_id = neomake#GetStatus().last_make_id
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'Running makers: unnamed_maker', 3, {'make_id': make_id}

@@ -2,6 +2,7 @@
 
 Before:
   let g:neomake_test_messages = []
+  let g:neomake_test_log_all_messages = 1
   let g:neomake_test_messages_last_idx = -1
 
   cgetexpr ''
@@ -196,6 +197,12 @@ Before:
     throw "Found unexpected message: ".a:msg
   endfunction
   command! -nargs=+ AssertNeomakeMessageAbsent call s:AssertNeomakeMessageAbsent(<args>)
+
+  function! s:NeomakeTestsResetMessages()
+    let g:neomake_test_messages = []
+    let g:neomake_test_messages_last_idx = -1
+  endfunction
+  command! NeomakeTestsResetMessages call s:NeomakeTestsResetMessages()
 
   function! g:NeomakeSetupAutocmdWrappers()
     let g:neomake_test_finished = []
