@@ -5,7 +5,7 @@ let s:make_id = 0
 let s:job_id = 1
 let s:jobs = {}
 " A map of make_id to options, e.g. cwd when jobs where started.
-let s:make_options = {}
+let s:make_info = {}
 let s:jobs_by_maker = {}
 " Errors by [maker_type][bufnr][lnum]
 let s:current_errors = {
@@ -145,7 +145,7 @@ function! s:MakeJob(make_id, options) abort
         let maker = call(maker.fn, [jobinfo], maker)
     endif
 
-    let cwd = get(maker, 'cwd', s:make_options[a:make_id].cwd)
+    let cwd = get(maker, 'cwd', s:make_info[a:make_id].cwd)
     if len(cwd)
         let old_wd = getcwd()
         let cwd = expand(cwd, 1)
@@ -532,7 +532,7 @@ function! s:Make(options) abort
         endif
 
         let s:make_id += 1
-        let s:make_options[s:make_id] = {
+        let s:make_info[s:make_id] = {
                     \ 'cwd': getcwd(),
                     \ }
 
