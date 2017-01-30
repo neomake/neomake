@@ -33,21 +33,18 @@ Execute (neomake#GetMakers):
   AssertEqual neomake#GetMakers('pug'), ['puglint']
   AssertEqual sort(neomake#GetMakers('sh')), ['checkbashisms', 'sh', 'shellcheck']
 
-Execute (neomake#GetMaker with non-existent maker prints errors):
+Execute (neomake#GetMaker with non-existent maker throws errors):
   AssertEqual neomake#GetMaker('non-existent'), {}
   AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent', {}]
-  AssertEqual neomake#GetMaker('nonexistent'), {}
-  AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent', {}]
-
-Execute (Neomake! reports error on execution failure):
-  AssertEqual neomake#GetMaker('non-existent'), {}
-  AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent', {}]
-  AssertEqual neomake#GetMaker('nonexistent'), {}
-  AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: nonexistent', {}]
+  AssertThrows call neomake#GetMaker('nonexistent')
+  AssertEqual g:vader_exception, 'Neomake: Maker not found: nonexistent'
 
 Execute (Neomake with unknown maker):
   Neomake doesnotexist
-  AssertEqual g:neomake_test_messages[-1], [0, 'Maker not found: doesnotexist', {}]
+  AssertEqual g:neomake_test_messages, [
+  \ [0, 'Maker not found: doesnotexist', {}],
+  \ [3, 'Nothing to make: no enabled makers.', {}],
+  \ ]
 
 Execute (neomake#GetMaker uses defined errorformat with makeprg):
   Save &errorformat
@@ -265,6 +262,7 @@ Execute (neomake#CompleteJobs):
 Execute (neomake#Make handles invalid cwd):
   let maker = {
       \ 'name': 'custom_maker',
+      \ 'exe': 'true',
       \ 'cwd': '/doesnotexist',
       \ }
   call neomake#Make(1, [maker])
