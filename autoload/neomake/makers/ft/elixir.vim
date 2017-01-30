@@ -1,17 +1,17 @@
 " vim: ts=4 sw=4 et
 
-" Credo error types
+" Credo error types.
 " F -> Refactoring opportunities
 " W -> Warnings
 " C -> Convention violation
 " D -> Software design suggestions
 " R -> Readability suggestions
 " Map structure {CredoError: NeomakeType, ...}
-let s:neomake_elixir_credo_type_map = get(
-    \ g:,
-    \ 'neomake_elixir_credo_type_map',
-    \ {'F': 'W','C': 'W','D': 'I','R': 'I'}
-\ )
+let s:neomake_elixir_credo_type_map = {
+    \ 'F': 'W',
+    \ 'C': 'W',
+    \ 'D': 'I',
+    \ 'R': 'I'}
 
 function! neomake#makers#ft#elixir#PostprocessEnforceMaxBufferLine(entry) abort
     let buffer_lines = str2nr(line('$'))
@@ -22,7 +22,8 @@ endfunction
 
 function! neomake#makers#ft#elixir#PostprocessCredo(entry) abort
     let type = toupper(a:entry.type)
-    let type_map = s:neomake_elixir_credo_type_map
+    let type_map = extend(s:neomake_elixir_credo_type_map,
+                \ get(g:, 'neomake_elixir_credo_type_map', {}))
     if has_key(type_map, type)
         let a:entry.type = type_map[type]
     endif
