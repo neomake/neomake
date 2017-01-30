@@ -1,6 +1,17 @@
 " vim: ts=4 sw=4 et
 
-let g:neomake_elixir_credo_type_map= get(g:, 'neomake_elixir_credo_type_map', {'F': 'W','C': 'W','D': 'I','R': 'I'})
+" Credo error types
+" F -> Refactoring opportunities
+" W -> Warnings
+" C -> Convention violation
+" D -> Software design suggestions
+" R -> Readability suggestions
+" Map structure {CredoError: NeomakeType, ...}
+let s:neomake_elixir_credo_type_map = get(
+    \ g:,
+    \ 'neomake_elixir_credo_type_map',
+    \ {'F': 'W','C': 'W','D': 'I','R': 'I'}
+\ )
 
 function! neomake#makers#ft#elixir#PostprocessEnforceMaxBufferLine(entry) abort
     let buffer_lines = str2nr(line('$'))
@@ -9,15 +20,9 @@ function! neomake#makers#ft#elixir#PostprocessEnforceMaxBufferLine(entry) abort
     endif
 endfunction
 
-" Credo error types
-" F -> Refactoring opportunities
-" W -> Warnings
-" C -> Convention violation
-" D -> Software design suggestions
-" R -> Readability suggestions
-function! neomake#makers#ft#elixir#PostprocessCredoErrorType(entry) abort
+function! neomake#makers#ft#elixir#PostprocessCredo(entry) abort
     let type = toupper(a:entry.type)
-    let type_map = g:neomake_elixir_credo_type_map
+    let type_map = s:neomake_elixir_credo_type_map
     if has_key(type_map, type)
         let a:entry.type = type_map[type]
     endif
@@ -39,7 +44,7 @@ function! neomake#makers#ft#elixir#credo() abort
     return {
       \ 'exe': 'mix',
       \ 'args': ['credo', 'list', '%:p', '--format=oneline'],
-      \ 'postprocess': function('neomake#makers#ft#elixir#PostprocessCredoErrorType'),
+      \ 'postprocess': function('neomake#makers#ft#elixir#PostprocessCredo'),
       \ 'errorformat':
           \'[%t] %. %f:%l:%c %m,' .
           \'[%t] %. %f:%l %m'
