@@ -1,0 +1,16 @@
+Include: include/setup.vader
+
+Execute (Credo: postprocess: type):
+  function! F(entry)
+    call neomake#makers#ft#elixir#PostprocessCredo(a:entry)
+    return a:entry
+  endfunction
+  AssertEqual F({'type': 'F'}).type, 'W'
+
+Execute (Credo: postprocess: global configuration):
+  function! F(entry)
+    call neomake#makers#ft#elixir#PostprocessCredo(a:entry)
+    return a:entry
+  endfunction
+  let g:neomake_elixir_credo_type_map = {'F': 'Z'}
+  AssertEqual F({'type': 'F'}).type, 'Z'

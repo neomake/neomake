@@ -23,6 +23,7 @@ Include (Perl): ft_perl.vader
 Include (Python): ft_python.vader
 Include (Shell): ft_sh.vader
 Include (Text): ft_text.vader
+Include (Elixir): ft_elixir.vader
 
 * Old/unorganized tests
 Execute (neomake#GetMakers):
