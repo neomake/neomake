@@ -14,6 +14,7 @@ Execute (Credo: postprocess: global configuration):
   endfunction
   let g:neomake_elixir_credo_type_map = {'F': 'Z'}
   AssertEqual F({'type': 'F'}).type, 'Z'
+  AssertEqual F({'type': 'C'}).type, 'W'
 
 Given (A file with 2 lines):
   some
