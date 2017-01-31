@@ -64,10 +64,9 @@ function! neomake#makers#ft#javascript#rjsx() abort
         \ .'(progn(package-initialize)(require ''rjsx-mode)'
         \ .'  (setq js2-include-node-externs t js2-include-rhino-externs t js2-include-browser-externs t js2-strict-missing-semi-warning nil)'
         \ .'  (rjsx-mode)(js2-reparse)(js2-display-error-list)'
-        \ .'  (princ(with-current-buffer "*js-lint*"'
-        \ .'    (replace-regexp-in-string "^" (concat (elt command-line-args 1) " ")'
-        \ .'      (buffer-substring-no-properties(point-min)(point-max)))))(terpri))'],
-        \ 'errorformat': '%f\ line\ %l:\ %m',
+        \ .'  (princ(replace-regexp-in-string "^" (concat buffer-file-name " ")'
+        \ .'  (with-current-buffer "*js-lint*" (buffer-substring-no-properties(point-min)(point-max)))))(terpri))'],
+        \ 'errorformat': '%f line %l: %m,%-G%.%#',
         \ 'append_file': 0,
         \ }
 endfunction
