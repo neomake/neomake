@@ -360,7 +360,7 @@ function! neomake#utils#hook(event, context, ...) abort
         let g:neomake_hook_context = a:context
 
         let args = ['Calling User autocmd '.a:event
-                    \ .' with context: '.string(map(copy(a:context), "v:key == 'jobinfo' ? '…' : v:val"))]
+                    \ .' with context: '.string(map(copy(a:context), "v:key ==# 'jobinfo' ? '…' : v:val"))]
         if len(jobinfo)
             let args += [jobinfo]
         endif
