@@ -54,7 +54,7 @@ endfunction
 function! neomake#ListJobs() abort
     call neomake#utils#DebugMessage('call neomake#ListJobs()')
     for jobinfo in values(s:jobs)
-        echom jobinfo.id.' '.jobinfo.name
+        echom jobinfo.id.' '.jobinfo.name.' '.jobinfo.maker.name
     endfor
 endfunction
 
