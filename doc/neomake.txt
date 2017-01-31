@@ -195,6 +195,13 @@ This can also be used to set the `length` property of an entry, which is used
 to highlight entries in the text (|neomake-highlight|).
 See `neomake#makers#ft#text#PostprocessWritegood` for an example.
 
+Entries can be selectively removed in post-processing by setting its "valid"
+property to `-1`.  This removal will happen even if `remove_invalid_entries`
+is disabled.  This feature is meant for conditional removals and a simpler way
+for end users to filter list entries.  Makers should handle removals through
+|errorformat| using '%-G' to remove items that should never appear in the
+error list.
+
                                                 *neomake-makers-buffer_output*
 Default: 1
 By default Neomake will only process the output from makers when either the
