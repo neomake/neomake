@@ -26,7 +26,6 @@ env:
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
     - ENV=vint-diff
     - ENV=vint-errors
-    - ENV=vimlint-errors
     - ENV=testvim
     - ENV=vint
     - ENV=vimlint
@@ -34,7 +33,6 @@ env:
 
 matrix:
   allow_failures:
-    - env: ENV=vimlint
     - env: ENV=vint
   fast_finish: true
 
