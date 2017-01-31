@@ -7,7 +7,7 @@
 " D -> Software design suggestions
 " R -> Readability suggestions
 " Map structure {CredoError: NeomakeType, ...}
-let s:neomake_elixir_credo_type_map = {
+let s:neomake_elixir_credo_config_typemap = {
     \ 'F': 'W',
     \ 'C': 'W',
     \ 'D': 'I',
@@ -22,8 +22,8 @@ endfunction
 
 function! neomake#makers#ft#elixir#PostprocessCredo(entry) abort
     let type = toupper(a:entry.type)
-    let type_map = extend(s:neomake_elixir_credo_type_map,
-                \ get(g:, 'neomake_elixir_credo_type_map', {}))
+    let type_map = extend(s:neomake_elixir_credo_config_typemap,
+                \ get(g:, 'neomake_elixir_credo_config_typemap', {}))
     if has_key(type_map, type)
         let a:entry.type = type_map[type]
     endif
