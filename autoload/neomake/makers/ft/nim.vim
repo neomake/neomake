@@ -5,7 +5,7 @@ endfunction
 function! neomake#makers#ft#nim#nim()
     return {
                 \ 'exe': 'nim',
-                \ 'args': ['--listFullPaths''--verbosity:0', '--colors:off',
+                \ 'args': ['--listFullPaths', '--verbosity:0', '--colors:off',
                 \   '-c', 'check'],
                 \ 'errorformat':
                 \   '%I%f(%l\, %c) Hint: %m,' .
