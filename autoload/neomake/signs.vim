@@ -129,12 +129,21 @@ function! neomake#signs#PlaceVisibleSigns() abort
         endif
         let topline = line('w0')
         let botline = line('w$')
+        let placed_one = 0
         for ln in range(topline, botline)
             if has_key(s:sign_queue[type][buf], ln)
                 call neomake#signs#PlaceSign(s:sign_queue[type][buf][ln], type)
                 unlet s:sign_queue[type][buf][ln]
+                let placed_one = 1
             endif
         endfor
+        " if this buffer has signs pending but none have been placed, force
+        " the placement of at least one to show the sidebar
+        if !placed_one && !has_key(s:placed_signs[type], buf)
+            let first_ln = keys(s:sign_queue[type][buf])[0]
+            call neomake#signs#PlaceSign(s:sign_queue[type][buf][first_ln], type)
+            unlet s:sign_queue[type][buf][first_ln]
+        endif
         if empty(s:sign_queue[type][buf])
             unlet s:sign_queue[type][buf]
         endif
