@@ -347,10 +347,9 @@ function! neomake#utils#redir(cmd) abort
 endfunction
 
 function! neomake#utils#ExpandArgs(args) abort
-    " Expand args that start with '%' only.
-    " It handles '%:r.o', by splitting it into '%:r' and '.o', and only
-    " expanding the first part.
-    call map(a:args, "v:val =~# '\\(^%$\\|^%:\\l\\+\\)' ? join(map(split(v:val, '^%:\\l\\+\\zs'), 'v:key == 0 ? expand(v:val) : v:val'), '') : v:val")
+    " Expand % in args like when using :!
+    " %% and \% are ignored.
+    call map(a:args, 'substitute(v:val, ''[%\\]\@<!%%\@!\%(:[phtre]\+\)*'', ''\=expand(submatch(0))'', ''g'')')
 endfunction
 
 function! neomake#utils#hook(event, context, ...) abort
