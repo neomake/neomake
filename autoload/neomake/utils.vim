@@ -189,8 +189,7 @@ function! neomake#utils#MakerFromCommand(command) abort
     " XXX: use neomake#utils#ExpandArgs and/or remove it.
     "      Expansion should happen later already!
     " NOTE: useful when calling it from cmdline..
-    let command = substitute(a:command, '%\(:[a-z]\)*',
-                           \ '\=expand(submatch(0))', 'g')
+    let command = neomake#utils#ExpandArgs([a:command])[0]
     " Create a maker object, with a "fn" callback.
     let maker = copy(s:command_maker)
     let maker.__command = command
@@ -348,8 +347,22 @@ endfunction
 
 function! neomake#utils#ExpandArgs(args) abort
     " Expand % in args like when using :!
-    " %% and \% are ignored.
-    call map(a:args, 'substitute(v:val, ''[%\\]\@<!%%\@!\%(:[phtre]\+\)*'', ''\=expand(submatch(0))'', ''g'')')
+    " \% is ignored
+    " \\% is expanded to \\file.ext
+    " %% becomes %
+    " % must be followed with an expansion keyword
+    let isk = &iskeyword
+    set iskeyword=p,h,t,r,e,%,:
+    try
+        let ret = map(a:args,
+                    \ 'substitute(v:val, '
+                    \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre]\+\)*\)\ze\)\w\@!'', '
+                    \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
+                    \ . '''g'')')
+    finally
+        let &iskeyword = isk
+    endtry
+    return ret
 endfunction
 
 function! neomake#utils#hook(event, context, ...) abort
