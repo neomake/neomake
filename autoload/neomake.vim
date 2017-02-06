@@ -33,6 +33,9 @@ function! s:sort_jobs(a, b) abort
 endfunction
 
 function! neomake#GetJobs(...) abort
+    if !len(s:jobs)
+        return []
+    endif
     let jobs = copy(values(s:jobs))
     if a:0
         call filter(jobs, 'index(a:1, v:val.id) != -1')
