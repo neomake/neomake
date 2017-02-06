@@ -251,7 +251,7 @@ endfunction
 " --silent-imports: replaced by --ignore-missing-imports --follow-imports=skip
 function! neomake#makers#ft#python#mypy() abort
     let args = ['--ignore-missing-imports', '--follow-imports=skip']
-    if neomake#utils#IsRunningWindows()
+    if !neomake#utils#IsRunningWindows()
         let args += ['--fast-parser']
     endif
     return {
