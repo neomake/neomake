@@ -257,11 +257,16 @@ After:
     autocmd! neomake_tests
   endif
 
-  if !get(g:, '_neomake_test_thrown_win_assertion', 0)
-    if winnr('$') > 1
-      let g:_neomake_test_thrown_win_assertion = 1
-      throw "More than 1 window after tests: "
-        \ .string(map(range(1, winnr('$')),
-        \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
-    endif
+  if winnr('$') > 1
+    let error = "More than 1 window after tests: "
+      \ .string(map(range(1, winnr('$')),
+      \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
+    try
+      for b in uniq(sort(tabpagebuflist()))
+        silent exe 'bd!' b
+      endfor
+    catch
+      Log "Error while cleaning windows: ".v:exception
+    endtry
+    throw error
   endif
