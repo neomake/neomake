@@ -1,132 +1,132 @@
 Include: include/setup.vader
 
 Execute (Output is only processed in normal/insert mode (loclist)):
-  if !NeomakeAsyncTestsSetup() | finish | endif
-
-  call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
-  norm! V
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual getloclist(0), [], 'Location list has not been updated'
-  " with Vim
-  " AssertNeomakeMessage 'exit (delayed): sleep_efm_maker: 0'
-  AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
-  AssertEqual mode(), 'V'
-  exe "norm! \<Esc>"
-  AssertEqual mode(), 'n'
-  AssertEqual len(g:neomake_test_countschanged), 0
-  AssertEqual len(g:neomake_test_finished), 0
-  doautocmd CursorHold
-  AssertEqual len(g:neomake_test_countschanged), 1
-  AssertEqual len(g:neomake_test_finished), 1, "b"
-  AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+  if NeomakeAsyncTestsSetup()
+    call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
+    norm! V
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual getloclist(0), [], 'Location list has not been updated'
+    " with Vim
+    " AssertNeomakeMessage 'exit (delayed): sleep_efm_maker: 0'
+    AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
+    AssertEqual mode(), 'V'
+    exe "norm! \<Esc>"
+    AssertEqual mode(), 'n'
+    AssertEqual len(g:neomake_test_countschanged), 0
+    AssertEqual len(g:neomake_test_finished), 0
+    doautocmd CursorHold
+    AssertEqual len(g:neomake_test_countschanged), 1
+    AssertEqual len(g:neomake_test_finished), 1, "b"
+    AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+  endif
 
 Execute (Output is only processed in normal/insert mode (qflist)):
-  if !NeomakeAsyncTestsSetup() | finish | endif
-
-  call neomake#Make(0, [g:neomake_test_sleep_efm_maker])[0]
-  let jobinfo = neomake#GetJobs()[-1]
-  norm! V
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual getqflist(), [], 'Quickfix list has not been updated'
-  AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
-  AssertEqual mode(), 'V'
-  exe "norm! \<Esc>"
-  AssertEqual mode(), 'n'
-  doautocmd CursorHold
-  AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
-  AssertNeomakeMessage 'Processed pending output', 3, jobinfo
-  AssertEqual map(copy(getqflist()), 'v:val.text'), ['error message', 'warning', 'error2']
-  NeomakeTestsWaitForRemovedJobs
+  if NeomakeAsyncTestsSetup()
+    call neomake#Make(0, [g:neomake_test_sleep_efm_maker])[0]
+    let jobinfo = neomake#GetJobs()[-1]
+    norm! V
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual getqflist(), [], 'Quickfix list has not been updated'
+    AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
+    AssertEqual mode(), 'V'
+    exe "norm! \<Esc>"
+    AssertEqual mode(), 'n'
+    doautocmd CursorHold
+    AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
+    AssertNeomakeMessage 'Processed pending output', 3, jobinfo
+    AssertEqual map(copy(getqflist()), 'v:val.text'), ['error message', 'warning', 'error2']
+    NeomakeTestsWaitForRemovedJobs
+  endif
 
 Execute (Output is only processed in normal/insert mode (from loclist)):
-  if !NeomakeAsyncTestsSetup() | finish | endif
-
-  call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
-  lopen
-  AssertEqual &buftype, 'quickfix'
-  AssertEqual winnr(), 2
-  AssertEqual line('$'), 1
-  norm! V
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual getloclist(0), [], 'Location list has not been updated'
-  AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
-  AssertEqual mode(), 'V'
-  exe "norm! \<Esc>"
-  AssertEqual mode(), 'n'
-  doautocmd CursorHold
-  AssertEqual getloclist(0), []
-  wincmd p
-  AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
-  lclose
+  if NeomakeAsyncTestsSetup()
+    call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
+    lopen
+    AssertEqual &buftype, 'quickfix'
+    AssertEqual winnr(), 2
+    AssertEqual line('$'), 1
+    norm! V
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual getloclist(0), [], 'Location list has not been updated'
+    AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
+    AssertEqual mode(), 'V'
+    exe "norm! \<Esc>"
+    AssertEqual mode(), 'n'
+    doautocmd CursorHold
+    AssertEqual getloclist(0), []
+    wincmd p
+    AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+    lclose
+  endif
 
 Execute (Output gets not processed from loclist):
-  if !NeomakeAsyncTestsSetup() | finish | endif
+  if NeomakeAsyncTestsSetup()
+    lgetexpr ''
+    call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
+    lopen
+    AssertEqual &buftype, 'quickfix'
+    AssertEqual winnr(), 2
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual winnr(), 2
 
-  lgetexpr ''
-  call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
-  lopen
-  AssertEqual &buftype, 'quickfix'
-  AssertEqual winnr(), 2
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual winnr(), 2
+    AssertEqual len(g:neomake_test_finished), 0
+    AssertEqual len(g:neomake_test_countschanged), 0
+    AssertEqual getloclist(0), []
 
-  AssertEqual len(g:neomake_test_finished), 0
-  AssertEqual len(g:neomake_test_countschanged), 0
-  AssertEqual getloclist(0), []
-
-  lclose
-  AssertEqual len(g:neomake_test_finished), 1
-  AssertEqual len(g:neomake_test_countschanged), 1
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+    lclose
+    AssertEqual len(g:neomake_test_finished), 1
+    AssertEqual len(g:neomake_test_countschanged), 1
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+  endif
 
 Execute (Unbuffered output handled correctly (loclist)):
-  if !NeomakeAsyncTestsSetup() | finish | endif
+  if NeomakeAsyncTestsSetup()
+    let maker_1 = extend(neomake#utils#MakerFromCommand(
+      \ 'for i in $(seq 1 5); do echo $i; sleep 0.01; done'), {
+      \ 'buffer_output': 0, 'errorformat': '%m', 'append_file': 0})
+    let maker_2 = extend(neomake#utils#MakerFromCommand(
+      \ 'for i in $(seq 1 5); do echo 2_$i; sleep 0.01; done'), {
+      \ 'buffer_output': 0, 'errorformat': '%m', 'append_file': 0})
 
-  let maker_1 = extend(neomake#utils#MakerFromCommand(
-    \ 'for i in $(seq 1 5); do echo $i; sleep 0.01; done'), {
-    \ 'buffer_output': 0, 'errorformat': '%m', 'append_file': 0})
-  let maker_2 = extend(neomake#utils#MakerFromCommand(
-    \ 'for i in $(seq 1 5); do echo 2_$i; sleep 0.01; done'), {
-    \ 'buffer_output': 0, 'errorformat': '%m', 'append_file': 0})
-
-  let job_ids = neomake#Make(1, [maker_1, maker_2])
-  let [jobinfo1, jobinfo2] = neomake#GetJobs(job_ids)
-  Assert jobinfo1.id < jobinfo2.id, "jobinfo1 before jobinfo2"
-  new
-  NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.', 3
-  wincmd p
-  NeomakeTestsWaitForRemovedJobs
-  AssertNeomakeMessage 'Processed pending output', 3, jobinfo1
-  AssertNeomakeMessage 'Processed pending output', 3, jobinfo2
-  AssertEqual len(g:neomake_test_countschanged), 2
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'),
-    \ ['1', '2', '3', '4', '5', '2_1', '2_2', '2_3', '2_4', '2_5']
-  wincmd p
-  q
+    let job_ids = neomake#Make(1, [maker_1, maker_2])
+    let [jobinfo1, jobinfo2] = neomake#GetJobs(job_ids)
+    Assert jobinfo1.id < jobinfo2.id, "jobinfo1 before jobinfo2"
+    new
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.', 3
+    wincmd p
+    NeomakeTestsWaitForRemovedJobs
+    AssertNeomakeMessage 'Processed pending output', 3, jobinfo1
+    AssertNeomakeMessage 'Processed pending output', 3, jobinfo2
+    AssertEqual len(g:neomake_test_countschanged), 2
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+      \ ['1', '2', '3', '4', '5', '2_1', '2_2', '2_3', '2_4', '2_5']
+    wincmd p
+    q
+  endif
 
 Execute (Unbuffered output handled correctly (qflist)):
   call neomake#statusline#ResetCounts()
-  if !NeomakeAsyncTestsSetup() | finish | endif
+  if NeomakeAsyncTestsSetup()
+    let maker_1 = extend(neomake#utils#MakerFromCommand(
+      \ 'for i in $(seq 1 5); do echo $i; sleep 0.01; done'), {
+      \ 'buffer_output': 0, 'errorformat': '%m'})
 
-  let maker_1 = extend(neomake#utils#MakerFromCommand(
-    \ 'for i in $(seq 1 5); do echo $i; sleep 0.01; done'), {
-    \ 'buffer_output': 0, 'errorformat': '%m'})
-
-  call neomake#Make(0, [maker_1])
-  norm! V
-  NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.', 3
-  exe "norm! <Esc>"
-  doautocmd CursorHold
-  NeomakeTestsWaitForRemovedJobs
-  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 0}"
-  let make_id = neomake#GetStatus().last_make_id
-  AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 0, 'make_id': ".make_id."}", 2
-  AssertEqual len(g:neomake_test_countschanged), 1
-  AssertEqual map(copy(getqflist()), 'v:val.text'), map(range(1, 5), 'v:val . ""')
+    call neomake#Make(0, [maker_1])
+    norm! V
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.', 3
+    exe "norm! <Esc>"
+    doautocmd CursorHold
+    NeomakeTestsWaitForRemovedJobs
+    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 0}"
+    let make_id = neomake#GetStatus().last_make_id
+    AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 0, 'make_id': ".make_id."}", 2
+    AssertEqual len(g:neomake_test_countschanged), 1
+    AssertEqual map(copy(getqflist()), 'v:val.text'), map(range(1, 5), 'v:val . ""')
+  endif
 
 Execute (Sleep in postprocess gets handled correctly):
   " This tests the workarounds for issues with both Vim and Neovim.
@@ -134,94 +134,94 @@ Execute (Sleep in postprocess gets handled correctly):
   " https://github.com/neovim/neovim/issues/5889
   " Reproduces flakiness with https://github.com/neomake/neomake/issues/899.
   call neomake#statusline#ResetCounts()
-  if !NeomakeAsyncTestsSetup() | finish | endif
+  if NeomakeAsyncTestsSetup()
+    " Vim needs longer sleep to process the output line by line.
+    let s:sleep = has('nvim') ? '0.01' : '0.1'
+    Save g:neomake_test_postprocess_count
+    let g:neomake_test_postprocess_count = 0
+    function! Postprocess(entry) dict
+      let g:neomake_test_postprocess_count += 1
+      if g:neomake_test_postprocess_count == 1
+        let sleep = has('nvim') ? 50 : 400
+        exe 'sleep '.sleep.'m'
+      endif
+    endfunction
 
-  " Vim needs longer sleep to process the output line by line.
-  let s:sleep = has('nvim') ? '0.01' : '0.1'
-  Save g:neomake_test_postprocess_count
-  let g:neomake_test_postprocess_count = 0
-  function! Postprocess(entry) dict
-    let g:neomake_test_postprocess_count += 1
-    if g:neomake_test_postprocess_count == 1
-      let sleep = has('nvim') ? 50 : 400
-      exe 'sleep '.sleep.'m'
+    let maker_1 = extend(neomake#utils#MakerFromCommand(
+      \ 'echo out-1; sleep '.s:sleep.'; echo out-22; sleep '.s:sleep.'; echo out-333'), {
+      \ 'buffer_output': 0, 'errorformat': '%m',
+      \ 'append_file': 0,
+      \ 'postprocess': function('Postprocess')})
+
+    let job_ids = neomake#Make(1, [maker_1])
+    let jobinfo = neomake#GetJob(job_ids[0])
+    " norm! V
+    NeomakeTestsWaitForFinishedJobs
+    " exe "norm! <Esc>"
+    " doautocmd CursorHold
+    AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
+    if !has('nvim-0.2.0')
+      AssertNeomakeMessage 'exit (delayed): unnamed_maker: 0', 3, jobinfo
+      AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
     endif
-  endfunction
 
-  let maker_1 = extend(neomake#utils#MakerFromCommand(
-    \ 'echo out-1; sleep '.s:sleep.'; echo out-22; sleep '.s:sleep.'; echo out-333'), {
-    \ 'buffer_output': 0, 'errorformat': '%m',
-    \ 'append_file': 0,
-    \ 'postprocess': function('Postprocess')})
-
-  let job_ids = neomake#Make(1, [maker_1])
-  let jobinfo = neomake#GetJob(job_ids[0])
-"   norm! V
-  NeomakeTestsWaitForFinishedJobs
-"   exe "norm! <Esc>"
-"   doautocmd CursorHold
-  AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
-  if !has('nvim-0.2.0')
-    AssertNeomakeMessage 'exit (delayed): unnamed_maker: 0', 3, jobinfo
+    AssertNeomakeMessage "stdout: unnamed_maker: ['out-22', '']", 3, jobinfo
+    AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
     AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+
+    AssertNeomakeMessage "stdout: unnamed_maker: ['out-333', '']", 3, jobinfo
+    AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
+    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+
+    if !has('nvim-0.2.0')
+      AssertNeomakeMessage 'Trigger delayed exit', 3, jobinfo
+    endif
+
+    let make_id = neomake#GetStatus().last_make_id
+    AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 1, 'make_id': ".make_id."}", 2
+
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['out-1', 'out-22', 'out-333']
+    AssertEqual g:neomake_test_postprocess_count, 3, 'postprocess count should be 3, but is '.g:neomake_test_postprocess_count
+    AssertEqual len(g:neomake_test_finished), 1
+    AssertEqual len(g:neomake_test_countschanged), 3
   endif
-
-  AssertNeomakeMessage "stdout: unnamed_maker: ['out-22', '']", 3, jobinfo
-  AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
-  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
-
-  AssertNeomakeMessage "stdout: unnamed_maker: ['out-333', '']", 3, jobinfo
-  AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
-  AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
-
-  if !has('nvim-0.2.0')
-    AssertNeomakeMessage 'Trigger delayed exit', 3, jobinfo
-  endif
-
-  let make_id = neomake#GetStatus().last_make_id
-  AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 1, 'make_id': ".make_id."}", 2
-
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['out-1', 'out-22', 'out-333']
-  AssertEqual g:neomake_test_postprocess_count, 3, 'postprocess count should be 3, but is '.g:neomake_test_postprocess_count
-  AssertEqual len(g:neomake_test_finished), 1
-  AssertEqual len(g:neomake_test_countschanged), 3
 
 Execute (Pending output with restarted job when not in normal/insert mode (loclist)):
-  if !NeomakeAsyncTestsSetup() | finish | endif
+  if NeomakeAsyncTestsSetup()
+    file b1
+    let first_jobs = neomake#Make(1, [g:neomake_test_inc_maker])
+    let make_id = neomake#GetStatus().last_make_id
+    norm! V
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Not processing output for mode V', 3
+    exe "norm! \<Esc>"
+    call neomake#Make(1, [g:neomake_test_inc_maker])
+    AssertNeomakeMessage 'Restarting already running job ('
+      \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
+    doautocmd CursorHold
 
-  file b1
-  let first_jobs = neomake#Make(1, [g:neomake_test_inc_maker])
-  let make_id = neomake#GetStatus().last_make_id
-  norm! V
-  NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Not processing output for mode V', 3
-  exe "norm! \<Esc>"
-  call neomake#Make(1, [g:neomake_test_inc_maker])
-  AssertNeomakeMessage 'Restarting already running job ('
-    \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
-  doautocmd CursorHold
-
-  " TODO: should have output from 2nd job, should work on serialize branch.
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
+    " TODO: should have output from 2nd job, should work on serialize branch.
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
+  endif
 
 Execute (Pending output with restarted job when not in normal/insert mode (quickfix)):
-  if !NeomakeAsyncTestsSetup() | finish | endif
+  if NeomakeAsyncTestsSetup()
+    file b1
+    let first_jobs = neomake#Make(0, [g:neomake_test_inc_maker])
+    let make_id = neomake#GetStatus().last_make_id
+    norm! V
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Not processing output for mode V', 3
+    exe "norm! \<Esc>"
+    call neomake#Make(0, [g:neomake_test_inc_maker])
+    AssertNeomakeMessage 'Restarting already running job ('
+      \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual map(copy(getqflist()), 'v:val.text'), []
+    doautocmd CursorHold
 
-  file b1
-  let first_jobs = neomake#Make(0, [g:neomake_test_inc_maker])
-  let make_id = neomake#GetStatus().last_make_id
-  norm! V
-  NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Not processing output for mode V', 3
-  exe "norm! \<Esc>"
-  call neomake#Make(0, [g:neomake_test_inc_maker])
-  AssertNeomakeMessage 'Restarting already running job ('
-    \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual map(copy(getqflist()), 'v:val.text'), []
-  doautocmd CursorHold
-
-  " TODO: should have output from 2nd job, should work on serialize branch.
-  AssertEqual map(copy(getqflist()), 'v:val.text'), []
+    " TODO: should have output from 2nd job, should work on serialize branch.
+    AssertEqual map(copy(getqflist()), 'v:val.text'), []
+  endif

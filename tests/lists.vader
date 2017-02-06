@@ -20,45 +20,46 @@ Execute (Postprocessing should update list):
   AssertEqual getloclist(0), expected_list
 
 Execute (AddExprCallback with changed windows inbetween):
-  if !NeomakeAsyncTestsSetup() | finish | endif
-  let g:neomake_tests_postprocess_count = 0
-  function! g:Postprocess(entry)
-    let a:entry.text .= ' SUFFIX:'.(g:neomake_tests_postprocess_count/2)
-    let g:neomake_tests_postprocess_count += 1
-  endfunction
+  if NeomakeAsyncTestsSetup()
+    let g:neomake_tests_postprocess_count = 0
+    function! g:Postprocess(entry)
+      let a:entry.text .= ' SUFFIX:'.(g:neomake_tests_postprocess_count/2)
+      let g:neomake_tests_postprocess_count += 1
+    endfunction
 
-  Save g:neomake_verbose
-  " For the 'Modified list entry' debug message.
-  let g:neomake_verbose = 3
+    Save g:neomake_verbose
+    " For the 'Modified list entry' debug message.
+    let g:neomake_verbose = 3
 
-  let options = {
-    \ 'postprocess': function('g:Postprocess'),
-    \ 'buffer_output': 0,
-    \ 'append_file': 0,
-    \ }
-  let maker_1 = neomake#utils#MakerFromCommand('echo 1a; sleep .1; echo 1b')
-  call extend(maker_1, extend(copy(options), {'name': 'maker1'}))
-  let maker_2 = neomake#utils#MakerFromCommand('echo 2')
-  call extend(maker_2, extend(copy(options), {'name': 'maker2'}))
+    let options = {
+      \ 'postprocess': function('g:Postprocess'),
+      \ 'buffer_output': 0,
+      \ 'append_file': 0,
+      \ }
+    let maker_1 = neomake#utils#MakerFromCommand('echo 1a; sleep .1; echo 1b')
+    call extend(maker_1, extend(copy(options), {'name': 'maker1'}))
+    let maker_2 = neomake#utils#MakerFromCommand('echo 2')
+    call extend(maker_2, extend(copy(options), {'name': 'maker2'}))
 
-  " Start 2 makers.
-  call neomake#Make(1, [maker_1, maker_2])
-  " Wait until partly finished.
-  while g:neomake_tests_postprocess_count < 2
-    sleep 10m
-  endwhile
-  let loclist_texts = map(copy(getloclist(0)), 'v:val.text')
-  AssertEqual sort(copy(loclist_texts)), ['1a SUFFIX:0', '2 SUFFIX:0']
+    " Start 2 makers.
+    call neomake#Make(1, [maker_1, maker_2])
+    " Wait until partly finished.
+    while g:neomake_tests_postprocess_count < 2
+      sleep 10m
+    endwhile
+    let loclist_texts = map(copy(getloclist(0)), 'v:val.text')
+    AssertEqual sort(copy(loclist_texts)), ['1a SUFFIX:0', '2 SUFFIX:0']
 
-  " Start maker in new window (same winnr!)
-  topleft new
-  call neomake#Make(1, [maker_2])
-  " Go to previous window, let previous job finish.
-  wincmd j
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'),
-    \ loclist_texts + ['1b SUFFIX:1']
-  wincmd k
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['2 SUFFIX:1']
-  q
-  AssertNeomakeMessage "Modified list entry (postprocess): text: '2' => '2 SUFFIX:1'"
+    " Start maker in new window (same winnr!)
+    topleft new
+    call neomake#Make(1, [maker_2])
+    " Go to previous window, let previous job finish.
+    wincmd j
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+      \ loclist_texts + ['1b SUFFIX:1']
+    wincmd k
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['2 SUFFIX:1']
+    q
+    AssertNeomakeMessage "Modified list entry (postprocess): text: '2' => '2 SUFFIX:1'"
+  endif

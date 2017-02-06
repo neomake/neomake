@@ -18,13 +18,13 @@ Execute (Hook execution gets logged):
   AssertEqual g:neomake_tests_au_done, 1
 
 Execute (NeomakeJobFinished):
-  if !NeomakeAsyncTestsSetup() | finish | endif
-
-  let maker = extend(neomake#utils#MakerFromCommand('echo done'), {
-    \ 'errorformat': '%m'})
-  call neomake#Make(1, [maker])
-  let jobinfo = neomake#GetJobs()[-1]
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual g:neomake_test_jobfinished, [{'jobinfo': jobinfo}]
-  AssertEqual jobinfo.file_mode, 1
-  AssertEqual jobinfo.bufnr, bufnr('%')
+  if NeomakeAsyncTestsSetup()
+    let maker = extend(neomake#utils#MakerFromCommand('echo done'), {
+      \ 'errorformat': '%m'})
+    call neomake#Make(1, [maker])
+    let jobinfo = neomake#GetJobs()[-1]
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual g:neomake_test_jobfinished, [{'jobinfo': jobinfo}]
+    AssertEqual jobinfo.file_mode, 1
+    AssertEqual jobinfo.bufnr, bufnr('%')
+  endif

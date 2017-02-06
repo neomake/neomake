@@ -23,17 +23,17 @@ Execute (mapexpr: file mode vars):
     \ 'tests/fixtures/errors.sh (tests/fixtures): on_stdout']
 
 Execute (mapexpr: file mode vars with cd):
-  if !NeomakeAsyncTestsSetup() | finish | endif
+  if NeomakeAsyncTestsSetup()
+    let maker = neomake#utils#MakerFromCommand('sleep 0.1; echo on_stdout')
+    e! tests/fixtures/errors.sh
+    let maker.mapexpr = "printf('%s (%s): %s', neomake_bufname, neomake_bufdir, v:val)"
+    let start_cwd = getcwd()
+    let maker.append_file = 0
+    call neomake#Make(1, [maker])
+    cd build
+    NeomakeTestsWaitForFinishedJobs
+    cd -
 
-  let maker = neomake#utils#MakerFromCommand('sleep 0.1; echo on_stdout')
-  e! tests/fixtures/errors.sh
-  let maker.mapexpr = "printf('%s (%s): %s', neomake_bufname, neomake_bufdir, v:val)"
-  let start_cwd = getcwd()
-  let maker.append_file = 0
-  call neomake#Make(1, [maker])
-  cd build
-  NeomakeTestsWaitForFinishedJobs
-  cd -
-
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
-    \ start_cwd.'/tests/fixtures/errors.sh ('.start_cwd.'/tests/fixtures): on_stdout']
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
+      \ start_cwd.'/tests/fixtures/errors.sh ('.start_cwd.'/tests/fixtures): on_stdout']
+  endif

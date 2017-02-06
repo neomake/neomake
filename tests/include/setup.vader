@@ -6,7 +6,7 @@ Before:
 
   " One-time setup.
   if exists(':NeomakeTestsWaitForFinishedJobs') == 2
-    finish
+    try | exe 'return' | catch /^Vim\%((\a\+)\)\=:E133/ | finish | endtry
   endif
   function! s:wait_for_jobs(filter)
     let max = 60
