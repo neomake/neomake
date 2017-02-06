@@ -13,8 +13,8 @@ VADER_ARGS=tests/neomake.vader $(VADER_OPTIONS)
 VIM_ARGS='+$(VADER) $(VADER_ARGS)'
 
 DEFAULT_VADER_DIR:=tests/vim/plugins/vader
-export TESTS_VADER_DIR:=$(abspath $(firstword $(wildcard tests/vim/plugins/vader.override) $(DEFAULT_VADER_DIR)))
-$(TESTS_VADER_DIR) $(DEFAULT_VADER_DIR):
+export TESTS_VADER_DIR:=$(firstword $(realpath $(wildcard tests/vim/plugins/vader.override)) $(DEFAULT_VADER_DIR))
+$(DEFAULT_VADER_DIR):
 	mkdir -p $(dir $@)
 	git clone --depth=1 https://github.com/junegunn/vader.vim $@
 
@@ -139,7 +139,7 @@ docker_make: docker_run
 DOCKER_IMAGE:=neomake/vims-for-tests
 DOCKER_STREAMS:=-ti
 DOCKER=docker run $(DOCKER_STREAMS) --rm \
-       -v $(PWD):/testplugin -v $(PWD)/tests/vim:/home $(DOCKER_IMAGE)
+       -v $(PWD):/testplugin -v $(abspath $(TESTS_VADER_DIR)):/home/plugins/vader $(DOCKER_IMAGE)
 docker_image:
 	docker build -f Dockerfile.tests -t $(DOCKER_IMAGE) .
 docker_push:
@@ -159,8 +159,7 @@ docker_test: DOCKER_STREAMS:=-a stderr
 docker_test: DOCKER_MAKE_TARGET:=testvim TEST_VIM=/vim-build/bin/$(DOCKER_VIM) VIM_ARGS="$(VIM_ARGS)"
 docker_test: docker_make
 
-docker_run: TESTS_VADER_DIR:=$(DEFAULT_VADER_DIR)
-docker_run: $(DEFAULT_VADER_DIR)
+docker_run: $(TESTS_VADER_DIR)
 docker_run:
 	$(DOCKER) $(if $(DOCKER_RUN),$(DOCKER_RUN),bash)
 
