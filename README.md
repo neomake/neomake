@@ -140,8 +140,6 @@ We are using [Vader](https://github.com/junegunn/vader.vim) for our tests, and
 they get run for every pull request in different environments (via Docker
 also).
 
-You can run the tests locally, of course.
-
 ### Running tests
 
 #### Run all tests against your local Neovim and Vim
