@@ -21,9 +21,8 @@ endfunction
 function! neomake#makers#ft#php#phpcs() abort
     let l:args = ['--report=csv']
 
-    "Add standard argument if one is set.
-    if exists('g:neomake_php_phpcs_args_standard')
-        call add(l:args, '--standard=' . expand(g:neomake_php_phpcs_args_standard))
+    if exists('g:neomake_php_phpcs_args_post')
+        call add(l:args, , g:neomake_php_phpmd_args_post))
     endif
 
     return {
@@ -35,6 +34,14 @@ function! neomake#makers#ft#php#phpcs() abort
 endfunction
 
 function! neomake#makers#ft#php#phpmd() abort
+    let l:args = ['%:p', 'text']
+
+    if exists('g:neomake_php_phpmd_args_post')
+        call add(l:args, g:neomake_php_phpmd_args_post)
+    else
+        call add(l:args, 'codesize,design,unusedcode,naming')
+    endif
+
     return {
         \ 'args': ['%:p', 'text', 'codesize,design,unusedcode,naming'],
         \ 'errorformat': '%W%f:%l%\s%\s%#%m'
