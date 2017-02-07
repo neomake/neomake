@@ -4,10 +4,11 @@ scriptencoding utf-8
 let s:maker_match_id = 997
 let s:gutter_match_id = 998
 let s:cursor_match_id = 999
+let s:is_enabled = 0
 
 
 function! neomake#quickfix#enable() abort
-    let g:_neomake_qf_enabled = 1
+    let s:is_enabled = 1
     augroup neomake_qf
         autocmd!
         autocmd FileType qf call neomake#quickfix#FormatQuickfix()
@@ -16,7 +17,12 @@ endfunction
 
 
 function! neomake#quickfix#disable() abort
-    let g:_neomake_qf_enabled = 0
+    let s:is_enabled = 0
+endfunction
+
+
+function! neomake#quickfix#is_enabled() abort
+    return s:is_enabled
 endfunction
 
 
@@ -43,7 +49,7 @@ endfunction
 
 
 function! neomake#quickfix#FormatQuickfix() abort
-    if !get(g:, '_neomake_qf_enabled', 0) || &filetype != 'qf'
+    if !s:is_enabled || &filetype != 'qf'
         if exists('b:neomake_qf')
             call s:reset(bufnr('%'))
             unlet! b:neomake_qf

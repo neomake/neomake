@@ -750,7 +750,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         let s:postprocessors = s:postprocess
     endif
     let debug = get(g:, 'neomake_verbose', 1) >= 3
-    let custom_qf = get(g:, '_neomake_qf_enabled', 0)
+    let custom_qf = neomake#quickfix#is_enabled()
     let maker_name = get(maker, 'name', 'makeprg')
 
     while index < len(list)
