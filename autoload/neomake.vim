@@ -548,8 +548,14 @@ function! s:Make(options) abort
             let &errorformat = '%-G'
             if file_mode
                 lgetexpr ''
+                if has("patch-7.4.2200")
+                    call setloclist(0, [], 'a', {'title': ''})
+                endif
             else
                 cgetexpr ''
+                if has("patch-7.4.2200")
+                    call setqflist([], 'a', {'title': ''})
+                endif
             endif
         finally
             let &errorformat = l:efm
@@ -830,9 +836,15 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
         if file_mode
             let prev_list = getloclist(0)
             laddexpr a:lines
+            if has("patch-7.4.2200")
+                call setloclist(0, [], 'a', {'title': maker.name})
+            endif
         else
             let prev_list = getqflist()
             caddexpr a:lines
+            if has("patch-7.4.2200")
+                call setqflist([], 'a', {'title': maker.name})
+            endif
         endif
         let counts_changed = s:AddExprCallback(a:jobinfo, len(prev_list))
         if !counts_changed
