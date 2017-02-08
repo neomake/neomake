@@ -48,6 +48,7 @@ Execute (Neomake: handle result for current window):
   call g:NeomakeSetupAutocmdWrappers()
   let orig_winnr = winnr()
   call neomake#Make(1, [g:neomake_test_sleep_efm_maker])
+  lgetexpr ''
   if neomake#has_async_support()
     new
     NeomakeTestsWaitForFinishedJobs
@@ -285,7 +286,9 @@ Execute (NeomakeSh: two jobs after each other):
     NeomakeSh sh -c 'echo 2'
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_finished), 2
-    AssertEqual sort(map(copy(getqflist()), 'v:val.text')), ['1', '2']
+    " NOTE: 2nd job clears list.
+    " TODO: add a command/option to skip that, e.g. NeomakeSh -append?!
+    AssertEqual len(getqflist()), 1, 'only one quickfix entry'
     AssertEqual len(g:neomake_test_finished), 2, 'two jobs have run'
   endif
 
@@ -418,3 +421,18 @@ Execute (Neomake: append_file from settings):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual getloclist(0),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output'}]
+
+Execute (Quickfix list should be cleared only after maker finished):
+  cgetexpr 'init'
+  AssertEqual getqflist()[0].text, 'init'
+
+  NeomakeSh echo finished
+  if neomake#has_async_support()
+    AssertEqual getqflist()[0].text, 'init'
+  else
+    AssertEqual getqflist()[0].text, 'finished'
+  endif
+  NeomakeTestsWaitForFinishedJobs
+  if neomake#has_async_support()
+    AssertEqual getqflist()[0].text, 'finished'
+  endif
