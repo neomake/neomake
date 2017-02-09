@@ -831,17 +831,12 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     endwhile
 
     if list_modified || custom_qf
-        if custom_qf
-            let maker_append = printf(' {neomake:%s}',
-                        \ len(maker_name) > 4
-                        \ ? get(maker, 'short_name', maker_name[:3])
-                        \ : maker_name)
-            let list = deepcopy(list)
-            let index = a:prev_index
-            while index < len(list)
-                let list[index].text .= maker_append
-                let index += 1
-            endwhile
+        if custom_qf && a:prev_index < len(list)
+            let config = {
+                        \ 'name': maker_name,
+                        \ 'short': get(maker, 'short_name', maker_name[:3]),
+                        \ }
+            let list[a:prev_index].text .= printf(' nmcfg:%s', string(config))
         endif
 
         if file_mode

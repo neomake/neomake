@@ -50,6 +50,15 @@ function! s:reset(buf) abort
 endfunction
 
 
+function! neomake#quickfix#set_syntax(names) abort
+    runtime! syntax/neomake/qf.vim
+    for name in a:names
+        execute 'runtime! syntax/neomake/'.name.'.vim '
+                    \  . 'syntax/neomake/'.name.'/*.vim'
+    endfor
+endfunction
+
+
 function! neomake#quickfix#FormatQuickfix() abort
     if !s:is_enabled || &filetype != 'qf'
         if exists('b:neomake_qf')
@@ -73,7 +82,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         let qflist = getqflist()
     endif
 
-    if empty(qflist) || qflist[0].text !~# '{neomake:[^}]\+}$'
+    if empty(qflist) || qflist[0].text !~# '\<nmcfg:{.*}$'
         set syntax=qf
         return
     endif
@@ -83,17 +92,6 @@ function! neomake#quickfix#FormatQuickfix() abort
         let src_buf = qflist[0].bufnr
     else
         let b:neomake_qf = 'project'
-    endif
-
-    runtime! syntax/neomake/qf.vim
-    if src_buf
-        let ft = getbufvar(src_buf, '&filetype')
-        if ft != ''
-            for name in split(ft, '\.')
-                execute 'runtime! syntax/neomake/'.name.'.vim '
-                            \  . 'syntax/neomake/'.name.'/*.vim'
-            endfor
-        endif
     endif
 
     let ul = &l:undolevels
@@ -106,16 +104,20 @@ function! neomake#quickfix#FormatQuickfix() abort
     let lnum_width = 0
     let col_width = 0
     let maker_width = 0
+    let maker = {}
+    let makers = []
 
     for item in qflist
-        let maker_name = matchstr(item.text, '{neomake:\zs[^}]\+\ze}$')
-        if empty(maker_name)
-            let maker_name = '????'
-        else
-            let item.text = matchstr(item.text, '.*\ze{neomake:')
+        let config = matchstr(item.text, '\<nmcfg:\zs{.*}$')
+        if !empty(config)
+            let maker = eval(config)
+            if index(makers, maker.name) == -1
+                call add(makers, maker.name)
+            endif
+            let item.text = matchstr(item.text, '.*\ze\<nmcfg:')
         endif
 
-        let item.maker_name = maker_name
+        let item.maker_name = get(maker, 'short', '????')
         let maker_width = max([len(item.maker_name), maker_width])
 
         if item.lnum
@@ -125,6 +127,18 @@ function! neomake#quickfix#FormatQuickfix() abort
 
         let i += 1
     endfor
+
+    if src_buf
+        for ft in split(getbufvar(src_buf, '&filetype', ''), '\.')
+            if !empty(ft) && index(makers, ft) == -1
+                call add(makers, ft)
+            endif
+        endfor
+    endif
+
+    if !empty(makers)
+        call neomake#quickfix#set_syntax(makers)
+    endif
 
     if maker_width + lnum_width + col_width > 0
         let b:neomake_start_col = maker_width + lnum_width + col_width + 2
