@@ -186,9 +186,6 @@ function! s:command_maker.fn(jobinfo) dict abort
 endfunction
 
 function! neomake#utils#MakerFromCommand(command) abort
-    " XXX: use neomake#utils#ExpandArgs and/or remove it.
-    "      Expansion should happen later already!
-    " NOTE: useful when calling it from cmdline..
     let command = neomake#utils#ExpandArgs([a:command])[0]
     " Create a maker object, with a "fn" callback.
     let maker = copy(s:command_maker)
