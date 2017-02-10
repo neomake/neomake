@@ -22,8 +22,9 @@ function! s:InitBufHighlights(type, buf) abort
         endif
         if has_key(s:highlights[a:type], a:buf)
             call nvim_buf_clear_highlight(a:buf, s:highlights[a:type][a:buf], 0, -1)
+        else
+            let s:highlights[a:type][a:buf] = nvim_buf_add_highlight(a:buf, 0, '', 0, 0, -1)
         endif
-        let s:highlights[a:type][a:buf] = nvim_buf_add_highlight(a:buf, 0, '', 0, 0, -1)
     else
         let s:highlights[a:type][a:buf] = {
             \ 'NeomakeError': [],
