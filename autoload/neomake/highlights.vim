@@ -14,6 +14,11 @@ if exists('*nvim_buf_add_highlight')
     let s:nvim_api = 1
 endif
 
+" Used in tests.
+function! neomake#highlights#_get() abort
+    return s:highlights
+endfunction
+
 function! s:InitBufHighlights(type, buf) abort
     if s:nvim_api
         if !bufexists(a:buf)

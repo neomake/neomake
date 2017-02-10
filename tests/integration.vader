@@ -455,3 +455,96 @@ Execute (neomake#Make: exit_callback):
   call neomake#Make(0, [maker], function('g:NeomakeTestsAfterExit'))
   NeomakeTestsWaitForFinishedJobs
   AssertEqual g:neomake_test_cb, 1
+
+Execute (Location list should be cleared only after first output):
+  call g:NeomakeSetupAutocmdWrappers()
+  lgetexpr 'init'
+
+  let g:maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
+  let g:maker_sleep = NeomakeTestsCommandMaker('sleep-maker', 'sleep .1; echo slept')
+
+  call neomake#Make(1, [g:maker_success, g:maker_sleep])
+
+  if neomake#has_async_support()
+    NeomakeTestsWaitForNextFinishedJob
+    AssertEqual getloclist(0)[0].text, 'init'
+    AssertEqual len(g:neomake_test_finished), 0
+    AssertEqual len(g:neomake_test_countschanged), 0
+  else
+    AssertEqual getloclist(0)[0].text, 'slept'
+  endif
+  NeomakeTestsWaitForFinishedJobs
+  if neomake#has_async_support()
+    AssertEqual getloclist(0)[0].text, 'slept'
+  endif
+  AssertEqual len(g:neomake_test_countschanged), 1
+
+Execute (Location list should be cleared after jobs finished):
+  call g:NeomakeSetupAutocmdWrappers()
+  lgetexpr 'init'
+
+  let g:maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
+
+  call neomake#Make(1, [g:maker_success])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual getloclist(0), []
+  AssertEqual len(g:neomake_test_countschanged), 0
+
+Execute (Highlights should be cleared after successful run):
+  call g:NeomakeSetupAutocmdWrappers()
+  lgetexpr 'init'
+
+  runtime autoload/neomake/highlights.vim
+
+  let g:maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
+  let g:maker_error = NeomakeTestsCommandMaker('error-maker', 'echo error')
+  let g:maker_error.errorformat = '%E%m'
+  function! PostProcess(entry) abort
+    let e = a:entry
+    let a:entry.lnum = 1
+    let a:entry.col = 1
+    let a:entry.length = 5
+    let a:entry.bufnr = bufnr('%')
+  endfunction
+  let g:maker_error.postprocess = function('PostProcess')
+
+  call neomake#Make(1, [g:maker_error])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual getloclist(0)[0].text, 'error'
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 1,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 1,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'E',
+  \ 'pattern': '',
+  \ 'text': 'error'}]
+
+  let highlights = neomake#highlights#_get()
+  if has('nvim')
+    let orig_highlight = highlights['file'][bufnr('%')]
+  else
+    AssertEqual highlights, {
+    \ 'file': {bufnr('%'): {'NeomakeError': [[1, 1, 5]], 'NeomakeInfo': [],
+    \                       'NeomakeMessage': [], 'NeomakeWarning': []}},
+    \ 'project': {}}
+  endif
+  AssertEqual len(highlights['file']), 1
+
+  call neomake#Make(1, [g:maker_success])
+  NeomakeTestsWaitForFinishedJobs
+
+  let highlights = neomake#highlights#_get()
+  if has('nvim')
+    let highlight = highlights['file'][bufnr('%')]
+    AssertEqual highlight, orig_highlight
+  else
+    AssertEqual highlights, {
+    \ 'file': {bufnr('%'): {'NeomakeError': [], 'NeomakeInfo': [],
+    \                       'NeomakeMessage': [], 'NeomakeWarning': []}},
+    \ 'project': {}}
+  endif
