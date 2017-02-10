@@ -230,6 +230,14 @@ Before:
     Log "SKIP: no async support."
   endfunction
 
+  function! NeomakeTestsCommandMaker(name, cmd)
+    let maker = neomake#utils#MakerFromCommand(a:cmd)
+    return extend(maker, {
+    \ 'name': a:name,
+    \ 'errorformat': '%m',
+    \ 'append_file': 0})
+  endfunction
+
   " Fixtures
   let g:neomake_test_sleep_efm_maker = {
       \ 'name': 'sleep_efm_maker',
