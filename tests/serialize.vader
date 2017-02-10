@@ -18,7 +18,7 @@ Execute (NeomakeSh: simple serialized makers):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
-  \ ['error', 'success '.expand('%:p')]
+  \ ['error', 'success']
 
 Execute (NeomakeSh: serialized with global abort):
   call g:NeomakeSetupAutocmdWrappers()
