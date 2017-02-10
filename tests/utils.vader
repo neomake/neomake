@@ -151,10 +151,49 @@ Execute(neomake#utils#redir):
 
 Execute (neomake#utils#ExpandArgs):
   file file1.ext
-  let args = ['%', '%:h', '%:rt', '--foo=%:h', '%s', '\%', '%%', '%:r.o', '%:r%']
-  let expected_args = ['file1.ext', '.', 'file1', '--foo=%:h', '%s', '\%', '%%', 'file1.o', 'file1%']
+  let isk = &iskeyword
+  let args = [
+  \ '%',
+  \ '%:h',
+  \ '%:p:t:r',
+  \ '%:rt',
+  \ '--foo=%:h',
+  \ '%s',
+  \ '%z',
+  \ '\%',
+  \ '%%',
+  \ '%:r.o',
+  \ '%:r%',
+  \ '%:r% %',
+  \ '%%%%',
+  \ '%%%',
+  \ '^%$',
+  \ 'C:\\%\\',
+  \ 'C:\\%:r\\',
+  \ ]
+  let expected_args = [
+  \ 'file1.ext',
+  \ '.',
+  \ 'file1',
+  \ 'file1',
+  \ '--foo=.',
+  \ '%s',
+  \ '%z',
+  \ '\%',
+  \ '%',
+  \ 'file1.o',
+  \ 'file1file1.ext',
+  \ 'file1file1.ext file1.ext',
+  \ '%%',
+  \ '%file1.ext',
+  \ '^file1.ext$',
+  \ 'C:\\file1.ext\\',
+  \ 'C:\\file1\\',
+  \ ]
+
   call neomake#utils#ExpandArgs(args)
   AssertEqual expected_args, args
+  AssertEqual isk, &iskeyword
 
 Execute (neomake#utils#MakerIsAvailable):
   AssertEqual neomake#utils#MakerIsAvailable('sh', 'makeprg'), 1
