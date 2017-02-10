@@ -729,8 +729,6 @@ endfunction
 function! s:CleanJobinfo(jobinfo) abort
     call neomake#utils#DebugMessage('Cleaning jobinfo', a:jobinfo)
 
-    call s:init_job_output(a:jobinfo)
-
     if has_key(a:jobinfo, 'id')
         call remove(s:jobs, a:jobinfo.id)
 
@@ -742,6 +740,13 @@ function! s:CleanJobinfo(jobinfo) abort
         if has_key(s:project_job_output, a:jobinfo.id)
             unlet s:project_job_output[a:jobinfo.id]
         endif
+    endif
+
+    call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
+
+    " Trigger autocmd if all jobs for a s:Make instance have finished.
+    if !len(filter(copy(s:jobs), 'v:val.make_id == a:jobinfo.make_id'))
+        call s:init_job_output(a:jobinfo)
 
         " If signs were not cleared before this point, then the maker did not return
         " any errors, so all signs must be removed
@@ -750,12 +755,7 @@ function! s:CleanJobinfo(jobinfo) abort
         else
             call neomake#CleanOldProjectSignsAndErrors()
         endif
-    endif
 
-    call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
-
-    " Trigger autocmd if all jobs for a s:Make instance have finished.
-    if !len(filter(copy(s:jobs), 'v:val.make_id == a:jobinfo.make_id'))
         " Remove make_id from its window.
         if !exists('l:t')
             let [t, w] = s:GetTabWinForMakeId(a:jobinfo.make_id)
