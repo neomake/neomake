@@ -40,10 +40,10 @@ Before:
     let n = len(g:neomake_test_messages)
     while 1
       let max -= 1
-      sleep 50m
       if max == 0
         throw 'No new message appeared after 3s.'
       endif
+      sleep 50m
       if len(g:neomake_test_messages) != n
         break
       endif
