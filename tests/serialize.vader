@@ -1,11 +1,6 @@
 Include: include/setup.vader
 
 Execute (Setup):
-  function! NeomakeTestsCommandMaker(name, cmd)
-    let maker = neomake#utils#MakerFromCommand(a:cmd)
-    return extend(maker, {'name': a:name, 'errorformat': '%m'})
-  endfunction
-
   let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .1; echo slept')
   let g:maker_error = NeomakeTestsCommandMaker('error-maker', 'echo error; false')
   let g:maker_success = NeomakeTestsCommandMaker('success-maker', 'echo success')
@@ -23,7 +18,7 @@ Execute (NeomakeSh: simple serialized makers):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
-  \ ['error', 'success '.expand('%:p')]
+  \ ['error', 'success']
 
 Execute (NeomakeSh: serialized with global abort):
   call g:NeomakeSetupAutocmdWrappers()
@@ -78,7 +73,7 @@ Execute (NeomakeSh: serialized with previous buffer overriding global abort):
 
     wincmd p
 
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['slept '.expand('%:p'), 'error']
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['slept', 'error']
     wincmd p
     bd
   endif
@@ -168,6 +163,7 @@ Execute (Neomake#Make handles cwd properly):
       wincmd p
 
       let maker1 = NeomakeTestsCommandMaker('maker1', 'echo maker_1 ${PWD##*/}: ')
+      let maker1.append_file = 1
       function! maker1.exit_callback(cb_dict) dict
         let g:neomake_test_exit_cb += [self, a:cb_dict]
         " Change to other window with different cwd.
@@ -175,7 +171,9 @@ Execute (Neomake#Make handles cwd properly):
       endfunction
       let g:neomake_test_exit_cb = []
       let maker2 = NeomakeTestsCommandMaker('maker2', 'echo maker_2 ${PWD##*/}: ')
+      let maker2.append_file = 1
       let maker3 = {'name': 'maker3', 'errorformat': '%m', 'exe': 'echo maker_3', 'args': ''}
+      let maker3.append_file = 1
 
       let jobs = neomake#Make(1, [maker1, maker2, maker3])
       AssertEqual len(jobs), 1, "Only one job has been started initially"
