@@ -836,6 +836,9 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
                         \ 'name': maker_name,
                         \ 'short': get(maker, 'short_name', maker_name[:3]),
                         \ }
+            " A copy is made so that the list in s:current_errors isn't
+            " modified to include the maker info.
+            let list = deepcopy(list)
             let list[a:prev_index].text .= printf(' nmcfg:%s', string(config))
         endif
 
