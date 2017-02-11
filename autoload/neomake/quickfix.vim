@@ -60,7 +60,7 @@ endfunction
 
 
 function! neomake#quickfix#FormatQuickfix() abort
-    if !s:is_enabled || &filetype != 'qf'
+    if !s:is_enabled || &filetype !=# 'qf'
         if exists('b:neomake_qf')
             call s:reset(bufnr('%'))
             unlet! b:neomake_qf
