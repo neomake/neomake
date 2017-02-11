@@ -45,24 +45,46 @@ Execute (python: flake8: errorformat/postprocess: F811):
 
   file file1.py
   norm Iimport os
-  norm oimport os.path as os
+  norm oimport os . path as os
+  norm ofrom os import os
   lgetexpr "file1.py:2:1: F811 redefinition of unused 'os' from line 1"
 
-  AssertEqual getloclist(0), [
+  AssertEqual [
   \ {'lnum': 2, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
   \  'nr': 811, 'type': 'F', 'pattern': '',
-  \  'text': "redefinition of unused 'os' from line 1"}]
+  \  'text': "redefinition of unused 'os' from line 1"}], getloclist(0)
 
   let e = copy(getloclist(0))[0]
   call neomake#makers#ft#python#Flake8EntryProcess(e)
-  AssertEqual e, {
+  AssertEqual {
   \ 'lnum': 2,
   \ 'bufnr': bufnr('%'),
-  \ 'col': 8,
+  \ 'col': 21,
   \ 'pattern': '',
   \ 'valid': 1,
   \ 'vcol': 0,
   \ 'nr': '',
   \ 'length': 2,
   \ 'type': 'E',
-  \ 'text': "F811 redefinition of unused 'os' from line 1"}
+  \ 'text': "F811 redefinition of unused 'os' from line 1"}, e
+
+  lgetexpr "file1.py:3:1: F811 redefinition of unused 'os' from line 2"
+
+  AssertEqual [
+  \ {'lnum': 3, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
+  \  'nr': 811, 'type': 'F', 'pattern': '',
+  \  'text': "redefinition of unused 'os' from line 2"}], getloclist(0)
+
+  let e = copy(getloclist(0))[0]
+  call neomake#makers#ft#python#Flake8EntryProcess(e)
+  AssertEqual {
+  \ 'lnum': 3,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 16,
+  \ 'pattern': '',
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': '',
+  \ 'length': 2,
+  \ 'type': 'E',
+  \ 'text': "F811 redefinition of unused 'os' from line 2"}, e

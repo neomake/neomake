@@ -106,19 +106,32 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
             " errors.
             let l:view = winsaveview()
             call cursor(a:entry.lnum, a:entry.col)
+            " The number of lines to give up searching afterwards
+            let l:search_lines = 5
 
-            if searchpos('from', 'cnW', a:entry.lnum)[1] == a:entry.col
+            if searchpos('\<from\>', 'cnW', a:entry.lnum)[1] == a:entry.col
                 " for 'from xxx.yyy import zzz' the token looks like
                 " xxx.yyy.zzz, but only the zzz part should be highlighted. So
                 " this discards the module part
                 let l:token = split(l:token, '\.')[-1]
+
+                " Also the searhch should be started at the import keyword.
+                " Otherwise for 'from os import os' the first os will be
+                " found. This moves the cursor there.
+                echom search('\<import\>', 'cW', a:entry.lnum + l:search_lines)
             endif
 
             " Search for the first occurrence of the token and highlight in
             " the next couple of lines and change the lnum and col to that
             " position.
-            let l:search_lines = 5
-            let l:ident_pos = searchpos('\<' . l:token . '\>', 'cnW',
+            " Don't match entries surrounded by dots, even though
+            " it ends a word, we want to find a full identifier. It also
+            " matches all seperators such as spaces and newlines with
+            " backslashes until it knows for sure the previous real character
+            " was not a dot.
+            let l:ident_pos = searchpos('\(\.\(\_s\|\\\)*\)\@<!\<' .
+                        \ l:token . '\>\(\(\_s\|\\\)*\.\)\@!',
+                        \ 'cnW',
                         \ a:entry.lnum + l:search_lines)
             if l:ident_pos[1] > 0
                 let a:entry.lnum = l:ident_pos[0]
