@@ -11,11 +11,11 @@ Before:
   if exists(':NeomakeTestsWaitForFinishedJobs') == 2
     try | exe 'return' | catch /^Vim\%((\a\+)\)\=:E133/ | finish | endtry
   endif
+
   function! s:wait_for_jobs(filter)
-    let max = 60
+    let max = 45
     let filter = a:filter
     while 1
-      let max -= 1
       let jobs = copy(neomake#GetJobs())
       if len(a:filter)
         let jobs = filter(jobs, a:filter)
@@ -23,27 +23,28 @@ Before:
       if !len(jobs)
         break
       endif
+      let max -= 1
       if max == 0
         for j in jobs
           Log "Remaining job: ".string(j)
         endfor
         throw len(jobs).' jobs did not finish after 3s.'
       endif
-      sleep 50m
+      exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
     endwhile
   endfunction
   command! NeomakeTestsWaitForFinishedJobs call s:wait_for_jobs("!get(v:val, 'finished')")
   command! NeomakeTestsWaitForRemovedJobs call s:wait_for_jobs('')
 
   function! s:wait_for_next_message()
-    let max = 60
+    let max = 45
     let n = len(g:neomake_test_messages)
     while 1
       let max -= 1
       if max == 0
         throw 'No new message appeared after 3s.'
       endif
-      sleep 50m
+      exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
       if len(g:neomake_test_messages) != n
         break
       endif
@@ -52,16 +53,15 @@ Before:
   command! NeomakeTestsWaitForNextMessage call s:wait_for_next_message()
 
   function! s:wait_for_finished_job()
-    let max = 60
+    let max = 45
     let n = len(neomake#GetJobs())
     while 1
       let max -= 1
       if max == 0
-        throw 'No job finished after 60ms.'
+        throw 'No job finished after 3s.'
       endif
-      sleep 1m
+      exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
       if len(neomake#GetJobs()) != n
-      Log max
         break
       endif
     endwhile
