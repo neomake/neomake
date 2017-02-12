@@ -455,6 +455,17 @@ Execute (neomake#Make: exit_callback):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual g:neomake_test_cb, 1
 
+Execute (neomake#Make: exit_callback with maker names):
+  let g:neomake_test_cb = 0
+  function! g:NeomakeTestsAfterExit(job_status)
+    let g:neomake_test_cb = 1
+  endfunction
+  Save g:neomake_mymaker_maker
+  let g:neomake_mymaker_maker = {'exe': 'true'}
+  call neomake#Make(0, ['mymaker'], function('g:NeomakeTestsAfterExit'))
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual g:neomake_test_cb, 1
+
 Execute (Location list should be cleared only after first output):
   call g:NeomakeSetupAutocmdWrappers()
   lgetexpr 'init'
