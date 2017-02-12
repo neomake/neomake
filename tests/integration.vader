@@ -436,3 +436,22 @@ Execute (Quickfix list should be cleared only after maker finished):
   if neomake#has_async_support()
     AssertEqual getqflist()[0].text, 'finished'
   endif
+
+Execute (neomake#Sh: exit_callback):
+  let g:neomake_test_cb = 0
+  function! g:NeomakeTestsAfterExit(job_status)
+    let g:neomake_test_cb = 1
+  endfunction
+  call neomake#Sh('true', function('g:NeomakeTestsAfterExit'))
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual g:neomake_test_cb, 1
+
+Execute (neomake#Make: exit_callback):
+  let g:neomake_test_cb = 0
+  function! g:NeomakeTestsAfterExit(job_status)
+    let g:neomake_test_cb = 1
+  endfunction
+  let maker = {'exe': 'true'}
+  call neomake#Make(0, [maker], function('g:NeomakeTestsAfterExit'))
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual g:neomake_test_cb, 1
