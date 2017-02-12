@@ -1330,14 +1330,17 @@ function! neomake#CompleteJobs(...) abort
 endfunction
 
 function! neomake#Make(file_mode, enabled_makers, ...) abort
-    let options = a:0 ? { 'exit_callback': a:1 } : {}
-    let options.file_mode = a:file_mode
+    let options = {'file_mode': a:file_mode}
     if a:file_mode
         let options.ft = &filetype
     endif
     let options.enabled_makers = len(a:enabled_makers)
                     \ ? a:enabled_makers
                     \ : neomake#GetEnabledMakers(a:file_mode ? &filetype : '')
+    if a:0
+        let options.enabled_makers = map(copy(options.enabled_makers),
+                    \ "extend(v:val, {'exit_callback': a:1})")
+    endif
     return s:Make(options)
 endfunction
 
@@ -1346,10 +1349,10 @@ function! neomake#ShCommand(bang, sh_command, ...) abort
     let maker.name = 'sh: '.a:sh_command
     let maker.buffer_output = !a:bang
     let maker.errorformat = '%m'
-    let options = {'enabled_makers': [maker]}
     if a:0
-        call extend(options, a:1)
+        call extend(maker, a:1)
     endif
+    let options = {'enabled_makers': [maker]}
     return get(s:Make(options), 0, -1)
 endfunction
 
