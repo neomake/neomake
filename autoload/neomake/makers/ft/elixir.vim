@@ -59,7 +59,7 @@ function! neomake#makers#ft#elixir#mix() abort
       \ 'postprocess': function('neomake#makers#ft#elixir#PostprocessEnforceMaxBufferLine'),
       \ 'errorformat':
         \ '** %s %f:%l: %m,'.
-        \ '%f:%l: warning: %m'
+        \ '%Ewarning: %m,%C  %f:%l,%Z'
       \ }
 endfunction
 
