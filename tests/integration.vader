@@ -227,7 +227,6 @@ Execute (NeomakeInfo with FuncRef):
   \ 'errorformat': 'custom_efm: %m'}
 
   let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
-  Log info
   let idx = 0
   for line in [
       \ 'For the current filetype (with :Neomake):',
