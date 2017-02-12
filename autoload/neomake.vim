@@ -1146,6 +1146,7 @@ function! s:exit_handler(job_id, data, event_type) abort
     endfor
 
     let status = a:data
+    let jobinfo.exit_code = a:data
     if has_key(maker, 'exit_callback') && !get(jobinfo, 'failed_to_start')
         let callback_dict = { 'status': status,
                             \ 'name': maker.name,

@@ -19,12 +19,13 @@ Execute (Hook execution gets logged):
 
 Execute (NeomakeJobFinished):
   if NeomakeAsyncTestsSetup()
-    let maker = extend(neomake#utils#MakerFromCommand('echo done'), {
+    let maker = extend(neomake#utils#MakerFromCommand('echo done; exit 7'), {
       \ 'errorformat': '%m'})
-    call neomake#Make(1, [maker])
+    call neomake#Make(0, [maker])
     let jobinfo = neomake#GetJobs()[-1]
     NeomakeTestsWaitForFinishedJobs
     AssertEqual g:neomake_test_jobfinished, [{'jobinfo': jobinfo}]
-    AssertEqual jobinfo.file_mode, 1
+    AssertEqual jobinfo.exit_code, 7
+    AssertEqual jobinfo.file_mode, 0
     AssertEqual jobinfo.bufnr, bufnr('%')
   endif

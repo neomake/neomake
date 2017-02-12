@@ -542,8 +542,9 @@ maker's output being processed, the maker object itself will be passed in
 
                                                           *NeomakeJobFinished*
 The NeomakeJobFinished autocommand is triggered after a single job has
-finished.  For this event `g:neomake_hook_context.jobinfo` will be
-set.
+finished.
+For this event `g:neomake_hook_context.jobinfo` will be set, where `exit_code`
+is available.
 
 ==============================================================================
 6. Frequently Asked Questions (FAQ)                              *neomake-faq*
