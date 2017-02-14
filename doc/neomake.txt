@@ -304,8 +304,11 @@ the current buffer. This effectively defaults to: >
 This setting will open the |location-list| or |quickfix| list (depending on
 whether it is operating on a file) when adding entries. A value of 2 will
 preserve the cursor position when the |location-list| or |quickfix| window is
-opened. A value of 3 always opens the |location-list| or |quickfix| regardless 
-of the result. Defaults to 0.
+opened. Defaults to 0.
+
+*g:neomake_always_show_list*
+Setting this variable to 1 will always open the |location-list| or |quickfix| 
+regardless of the result. Defaults to 0.
 
 *g:neomake_list_height*
 The height of the |location-list| or |quickfix| list opened by Neomake.
