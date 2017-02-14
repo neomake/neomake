@@ -498,9 +498,17 @@ function! s:HandleLoclistQflistDisplay(file_mode) abort
         let height = get(g:, 'neomake_list_height', 10)
         let win_val = winnr()
         if a:file_mode
-            exe 'lwindow' height
+            if open_val == 3
+                exe 'lopen' height
+            else
+                exe 'lwindow' height
+            endif
         else
-            exe 'cwindow' height
+            if open_val == 3
+                exe 'copen' height
+            else
+                exe 'cwindow' height
+            endif
         endif
         if open_val == 2 && win_val != winnr()
             wincmd p
