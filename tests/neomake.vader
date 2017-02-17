@@ -24,6 +24,7 @@ Include (Python): ft_python.vader
 Include (Shell): ft_sh.vader
 Include (Text): ft_text.vader
 Include (Elixir): ft_elixir.vader
+Include (PHP): ft_php.vader
 
 * Old/unorganized tests
 Execute (neomake#GetMakers):
