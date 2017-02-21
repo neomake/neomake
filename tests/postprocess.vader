@@ -1,0 +1,167 @@
+Include: include/setup.vader
+
+Execute (neomake#postprocess#GenericLengthPostprocess):
+  norm! iimport foo bar
+  let entry = {
+  \ 'bufnr': bufnr('%'),
+  \ 'lnum': 1,
+  \ 'col': 8,
+  \ 'text': "Some error about 'foo bar' happened"}
+
+  " Default pattern matches 'foo bar'.
+  let this = {'postprocess': {}}
+  let new = deepcopy(entry)
+  call call('neomake#postprocess#GenericLengthPostprocess', [new], this)
+  AssertEqual new.length, 7
+
+  " Skips handling of unexpected buffer.
+  let new = deepcopy(entry)
+  let new.bufnr = entry.bufnr + 1
+  call call('neomake#postprocess#GenericLengthPostprocess', [new], this)
+  AssertEqual has_key(new, 'length'), 0
+
+  " Skips handling without linenr.
+  let new = deepcopy(entry)
+  let new.lnum = 0
+  call call('neomake#postprocess#GenericLengthPostprocess', [new], this)
+  AssertEqual has_key(new, 'length'), 0
+
+  " Skips handling with unmatched col.
+  let new = deepcopy(entry)
+  let new.col += 1
+  call call('neomake#postprocess#GenericLengthPostprocess', [new], this)
+  AssertEqual has_key(new, 'length'), 0
+
+  " Custom pattern does not match.
+  let this = {'pattern': 'NOMATCH'}
+  let new = deepcopy(entry)
+  call call('neomake#postprocess#GenericLengthPostprocess', [new], this)
+  AssertEqual has_key(new, 'length'), 0
+  AssertEqual entry, new
+
+  " Custom pattern does match.
+  let this = {'pattern': 'foo'}
+  let new = deepcopy(entry)
+  call call('neomake#postprocess#GenericLengthPostprocess', [new], this)
+  AssertEqual new.length, 3
+
+Execute (Postprocess: called with dict+maker as self for list):
+  runtime autoload/neomake/highlights.vim
+
+  file file1.vim
+  norm! ifoo = bar - 5
+
+  let g:neomake_tests_called_self = []
+  function! NeomakeTestPostprocess(entry) abort dict
+    call add(g:neomake_tests_called_self, self)
+  endfunction
+
+  let maker = {
+  \ 'exe': 'printf',
+  \ 'args': ['file1.vim:1:7: check: bar!'],
+  \ 'errorformat': '%E%f:%l:%c: %m',
+  \ 'append_file': 0,
+  \ '_maker_marker': 1,
+  \ 'postprocess': [{
+  \     'fn': function('neomake#postprocess#GenericLengthPostprocess'),
+  \     'pattern': '\vcheck: \zs\k+\ze',
+  \   },
+  \   'NeomakeTestPostprocess',
+  \   {'fn': 'NeomakeTestPostprocess', 'pattern': 'custom_pattern',
+  \    'custom_var': 42}]
+  \ }
+
+  AssertEqual neomake#highlights#_get(), {'file': {}, 'project': {}}
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 1,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 7,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'E',
+  \ 'pattern': '',
+  \ 'text': 'check: bar!'}]
+
+  " Test that length has been used with the highlight.
+  let highlights = neomake#highlights#_get()
+  if has('nvim')
+    AssertEqual has_key(highlights['file'], bufnr('%')), 1, "highlight for file"
+  else
+    AssertEqual highlights.file[bufnr('%')].NeomakeError, [[1, 7, 3]]
+  endif
+
+  AssertEqual len(g:neomake_tests_called_self), 2
+  AssertEqual g:neomake_tests_called_self[0].maker._maker_marker, 1
+  AssertEqual g:neomake_tests_called_self[1].maker._maker_marker, 1
+  AssertEqual g:neomake_tests_called_self[1].pattern, 'custom_pattern'
+  AssertEqual g:neomake_tests_called_self[1].custom_var, 42
+
+Execute (Postprocess: called with dict+maker as self for non-list):
+  let g:neomake_tests_called_self = []
+  function! NeomakeTestPostprocess(entry) abort dict
+    call add(g:neomake_tests_called_self, self)
+  endfunction
+
+  let maker = {
+  \ 'exe': 'printf',
+  \ 'args': ['file1.vim:1:7: check: bar!'],
+  \ 'errorformat': '%E%f:%l:%c: %m',
+  \ 'append_file': 0,
+  \ '_maker_marker': 1,
+  \ 'postprocess': 'NeomakeTestPostprocess',
+  \ }
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 1,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 7,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'E',
+  \ 'pattern': '',
+  \ 'text': 'check: bar!'}]
+  AssertEqual len(g:neomake_tests_called_self), 1
+  AssertEqual g:neomake_tests_called_self[0].maker._maker_marker, 1
+
+Execute (Postprocess: removes entries with valid -1):
+  let g:neomake_tests_called_self = []
+  function! NeomakeTestPostprocess(entry) abort dict
+    call add(g:neomake_tests_called_self, self)
+    if a:entry.text ==# 'check: bar!'
+      let a:entry.valid = -1
+    endif
+  endfunction
+
+  let maker = {
+  \ 'exe': 'printf',
+  \ 'args': ['file1.vim:1:7: check: bar!\nfile1.vim:2:5: check: foo!'],
+  \ 'errorformat': '%E%f:%l:%c: %m',
+  \ 'append_file': 0,
+  \ '_maker_marker': 1,
+  \ 'postprocess': 'NeomakeTestPostprocess',
+  \ }
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual len(g:neomake_tests_called_self), 2
+  AssertEqual g:neomake_tests_called_self[0].maker._maker_marker, 1
+
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 2,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 5,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'E',
+  \ 'pattern': '',
+  \ 'text': 'check: foo!'}]
