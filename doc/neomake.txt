@@ -326,19 +326,23 @@ encountered. This setting only works when |g:neomake_serialize| is on.
 *g:neomake_verbose*
 Controls how verbose Neomake should be. Neomake log levels are as follows:
     0 - Errors only
-    1 - Quiet message (default -- should only log one message at a time)
+    1 - Quiet message
     2 - Loud message (may log multiple messages at once, making the screen
         shift momentarily)
     3 - Debug information (all messages).
         This will also add time information to messages.
 Each log level includes all the levels before it.
 
+Defaults to 1.
+
+|'verbose'| gets added to this setting, so you can use |:verbose| to increase
+the verbosity temporarily: >
+    :3verb Neomake
+<
 *g:neomake_logfile*
-Specify a logfile where all log messages will be logged. The setting
-|g:neomake_verbose| does not influence which messages will be logged to file,
-making it possible to reduce the number of messages you see in your editor
-without losing that information should you need it. Mainly for people hacking
-on Neomake itself. This feature is not yet cross-platform.
+Setting this to a file path will write all messages (regardless of the level
+configured through |g:neomake_verbose|) into it.
+This is useful for debugging/hacking, and when reporting issues.
 
                                                                *neomake-signs*
 *g:neomake_place_signs*
@@ -576,4 +580,4 @@ Here are some tips to develop the 'errorformat' setting for makers:
    currently removed by default in Neomake, but that is supposed to change
    likely: it is better to ignore them through the |'errorformat'| already.
 
-vim: ft=help tw=78 isk+=<,>,\:,-
+vim: ft=help tw=78 isk+=<,>,\:,-,'

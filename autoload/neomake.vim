@@ -54,6 +54,11 @@ function! neomake#GetStatus() abort
                 \ }
 endfunction
 
+" Not documented, only used internally for now.
+function! neomake#GetMakeOptions(...) abort
+    return s:make_info[a:0 ? a:1 : s:make_id]
+endfunction
+
 function! neomake#ListJobs() abort
     call neomake#utils#DebugMessage('call neomake#ListJobs()')
     for jobinfo in values(s:jobs)
@@ -534,6 +539,7 @@ function! s:Make(options) abort
         let s:make_id += 1
         let s:make_info[s:make_id] = {
                     \ 'cwd': getcwd(),
+                    \ 'verbosity': get(g:, 'neomake_verbose', 1) + &verbose,
                     \ }
 
         if file_mode
@@ -555,7 +561,8 @@ function! s:Make(options) abort
         return []
     endif
     call neomake#utils#DebugMessage(printf('Running makers: %s',
-                \ join(map(copy(enabled_makers), 'v:val.name'), ', ')))
+                \ join(map(copy(enabled_makers), 'v:val.name'), ', ')),
+                \ {'make_id': s:make_id})
     let maker = {}
     while len(enabled_makers)
         let maker = remove(enabled_makers, 0)
@@ -637,7 +644,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let cleaned_signs = 0
     let ignored_signs = []
     let s:postprocess = get(maker, 'postprocess', function('neomake#utils#CompressWhitespace'))
-    let debug = get(g:, 'neomake_verbose', 0) >= 3
+    let debug = get(g:, 'neomake_verbose', 1) >= 3
 
     while index < len(list)
         let entry = list[index]
