@@ -11,6 +11,7 @@ Execute (php):
   let loclist = getloclist(0)
   AssertEqual len(loclist), 1
   AssertEqual loclist[0].lnum, 1
+  AssertEqual loclist[0].type, 'E'
   AssertEqual loclist[0].text, 'Call to undefined function hello()'
 
 Execute (phpcs):
@@ -27,9 +28,11 @@ Execute (phpcs):
   AssertEqual loclist[0].lnum, 28
   AssertEqual loclist[0].col, 6
   AssertEqual loclist[0].text, 'Missing @return tag in functioncomment'
+  AssertEqual loclist[0].type, 'e'
   AssertEqual loclist[1].lnum, 36
   AssertEqual loclist[1].col, 5
   AssertEqual loclist[1].text, 'Missing short description in doc comment'
+  AssertEqual loclist[1].type, 'e'
 
 Execute (phpmd):
   let phpmd_output =
@@ -44,5 +47,7 @@ Execute (phpmd):
   AssertEqual len(loclist), 2
   AssertEqual loclist[0].lnum, 16
   AssertEqual loclist[0].text, "Avoid unused parameters such as '$request'."
+  AssertEqual loclist[0].type, 'W'
   AssertEqual loclist[1].lnum, 48
   AssertEqual loclist[1].text, "Avoid variables with short names like $id. Configured minimumlength is 3."
+  AssertEqual loclist[1].type, 'W'
