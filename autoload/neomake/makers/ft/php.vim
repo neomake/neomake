@@ -37,6 +37,6 @@ endfunction
 function! neomake#makers#ft#php#phpmd() abort
     return {
         \ 'args': ['%:p', 'text', 'codesize,design,unusedcode,naming'],
-        \ 'errorformat': '%E%f:%l%\s%\s%#%m'
+        \ 'errorformat': '%W%f:%l%\s%\s%#%m'
         \ }
 endfunction
