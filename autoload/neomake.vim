@@ -635,7 +635,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let index = a:prev_index
     let maker_type = file_mode ? 'file' : 'project'
     let cleaned_signs = 0
-    let ignored_signs = 0
+    let ignored_signs = []
     let s:postprocess = get(maker, 'postprocess', function('neomake#utils#CompressWhitespace'))
     let debug = get(g:, 'neomake_verbose', 0) >= 3
 
@@ -704,7 +704,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
 
         if g:neomake_place_signs
             if entry.lnum is 0
-                let ignored_signs += 1
+                let ignored_signs += [entry]
             else
                 call neomake#signs#PlaceSign(entry, maker_type)
             endif
@@ -721,10 +721,10 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             call setqflist(list, 'r')
         endif
     endif
-    if ignored_signs
+    if len(ignored_signs)
         call neomake#utils#DebugMessage(printf(
-                    \ 'Could not place signs for %d entries without line number.',
-                    \ ignored_signs))
+                    \ 'Could not place signs for %d entries without line number: %s.',
+                    \ len(ignored_signs), string(ignored_signs)))
     endif
     return counts_changed
 endfunction

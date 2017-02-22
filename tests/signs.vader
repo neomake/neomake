@@ -25,8 +25,11 @@ Execute (neomake#signs#RedefineErrorSign):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Placing sign: sign place 5000 line=2 name=neomake_warn buffer='.bufnr('%')
-  AssertNeomakeMessage 'Could not place signs for 1 entries without line number.'
 
+  AssertNeomakeMessage printf("Could not place signs for 1 entries without line number: %s.",
+  \ string([{'lnum': 0, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
+  \          'nr': -1, 'type': 'E', 'maker_name': 'custom_maker', 'pattern': '',
+  \          'text': 'error'}]))
 
   " Test #736.
   call neomake#signs#RedefineErrorSign({'text': '✗', 'texthl': 'ErrorMsg'})
