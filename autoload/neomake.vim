@@ -706,7 +706,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             if entry.lnum is 0
                 let ignored_signs += 1
             else
-                call neomake#signs#RegisterSign(entry, maker_type)
+                call neomake#signs#PlaceSign(entry, maker_type)
             endif
         endif
         if highlight_columns || highlight_lines
@@ -911,9 +911,6 @@ function! neomake#ProcessPendingOutput() abort
     call neomake#ProcessCurrentWindow()
     if len(s:project_job_output)
         call s:ProcessPendingOutput(s:project_job_output)
-        if g:neomake_place_signs
-            call neomake#signs#PlaceVisibleSigns()
-        endif
     endif
     call neomake#highlights#ShowHighlights()
 endfunction
@@ -935,9 +932,6 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
     if !a:jobinfo.file_mode
         if s:CanProcessJobOutput()
             call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
-            if g:neomake_place_signs
-                call neomake#signs#PlaceVisibleSigns()
-            endif
             return 0
         else
             if !exists('s:project_job_output[a:jobinfo.id]')
@@ -954,7 +948,6 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
     " Process the window directly if we can.
     if s:CanProcessJobOutput() && index(get(w:, 'neomake_make_ids', []), a:jobinfo.make_id) != -1
         call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
-        call neomake#signs#PlaceVisibleSigns()
         call neomake#highlights#ShowHighlights()
         return 0
     endif
@@ -1295,15 +1288,7 @@ function! neomake#EchoCurrentError(...) abort
     call neomake#utils#WideMessage(message)
 endfunction
 
-let s:last_cursormoved = [0, 0]
 function! neomake#CursorMoved() abort
-    let l:line = line('.')
-    if s:last_cursormoved[0] != l:line || s:last_cursormoved[1] != bufnr('%')
-        let s:last_cursormoved = [l:line, bufnr('%')]
-        if g:neomake_place_signs
-            call neomake#signs#PlaceVisibleSigns()
-        endif
-    endif
     call neomake#EchoCurrentError()
 endfunction
 
