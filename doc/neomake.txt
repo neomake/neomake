@@ -340,11 +340,9 @@ the verbosity temporarily: >
     :3verb Neomake
 <
 *g:neomake_logfile*
-Specify a logfile where all log messages will be logged. The setting
-|g:neomake_verbose| does not influence which messages will be logged to file,
-making it possible to reduce the number of messages you see in your editor
-without losing that information should you need it. Mainly for people hacking
-on Neomake itself. This feature is not yet cross-platform.
+Setting this to a file path will write all messages (regardless of the level
+configured through |g:neomake_verbose|) into it.
+This is useful for debugging/hacking, and when reporting issues.
 
                                                                *neomake-signs*
 *g:neomake_place_signs*
