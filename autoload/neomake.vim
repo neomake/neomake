@@ -882,7 +882,7 @@ function! neomake#ProcessCurrentWindow() abort
 endfunction
 
 function! s:ProcessPendingOutput(outputs) abort
-    for job_id in sort(keys(a:outputs))
+    for job_id in sort(keys(a:outputs), 'N')
         let output = a:outputs[job_id]
         let jobinfo = s:jobs[job_id]
         for [source, lines] in items(output)
