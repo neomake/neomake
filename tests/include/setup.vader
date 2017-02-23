@@ -1,13 +1,6 @@
 " Setup and helpers for all tests.
 
-Before:
-  let g:neomake_test_messages = []
-  let g:neomake_test_log_all_messages = 1
-  let g:neomake_test_messages_last_idx = -1
-
-  cgetexpr ''
-  lgetexpr ''
-
+Execute(Setup):
   " One-time setup.
   if exists(':NeomakeTestsWaitForFinishedJobs') == 2
     try | exe 'return' | catch /^Vim\%((\a\+)\)\=:E133/ | finish | endtry
@@ -273,41 +266,59 @@ Before:
         \ 'append_file': 0,
         \ }
 
-After:
-  Restore
+  function! s:Before()
+    let g:neomake_test_messages = []
+    let g:neomake_test_log_all_messages = 1
+    let g:neomake_test_messages_last_idx = -1
 
-  " Stop any (non-canceled) jobs.  Canceled jobs might take a while to call the
-  " exit handler, but that is OK.
-  let jobs = filter(neomake#GetJobs(), "!get(v:val, 'canceled', 0)")
-  if len(jobs)
-    if neomake#has_async_support()
-      for job in jobs
-        call neomake#CancelJob(job.id)
-      endfor
-    endif
-    throw 'There were '.len(jobs).' jobs left: '.string(map(jobs, 'v:val.make_id.".".v:val.id'))
-  endif
+    cgetexpr ''
+    lgetexpr ''
+  endfunction
+  command! NeomakeTestsGlobalBefore call s:Before()
 
-  NeomakeTestsWaitForRemovedJobs
+  function! s:After()
+    Restore
 
-  if exists('#neomake_tests')
-    autocmd! neomake_tests
-  endif
-
-  if winnr('$') > 1
-    let error = "More than 1 window after tests: "
-      \ .string(map(range(1, winnr('$')),
-      \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
-    try
-      let bufs = sort(tabpagebuflist())
-      if exists('*uniq')
-        let bufs = uniq(bufs)
+    " Stop any (non-canceled) jobs.  Canceled jobs might take a while to call the
+    " exit handler, but that is OK.
+    let jobs = filter(neomake#GetJobs(), "!get(v:val, 'canceled', 0)")
+    if len(jobs)
+      if neomake#has_async_support()
+        for job in jobs
+          call neomake#CancelJob(job.id)
+        endfor
       endif
-      for b in bufs
-        silent exe 'bd!' b
-      endfor
-    catch
-      Log "Error while cleaning windows: ".v:exception
-    endtry
-    throw error
-  endif
+      throw 'There were '.len(jobs).' jobs left: '.string(map(jobs, 'v:val.make_id.".".v:val.id'))
+    endif
+
+    NeomakeTestsWaitForRemovedJobs
+
+    if exists('#neomake_tests')
+      autocmd! neomake_tests
+    endif
+
+    if winnr('$') > 1
+      let error = "More than 1 window after tests: "
+        \ .string(map(range(1, winnr('$')),
+        \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
+      try
+        let bufs = sort(tabpagebuflist())
+        if exists('*uniq')
+          let bufs = uniq(bufs)
+        endif
+        for b in bufs
+          silent exe 'bd!' b
+        endfor
+      catch
+        Log "Error while cleaning windows: ".v:exception
+      endtry
+      throw error
+    endif
+  endfunction
+  command! NeomakeTestsGlobalAfter call s:After()
+
+Before:
+  NeomakeTestsGlobalBefore
+
+After:
+  NeomakeTestsGlobalAfter
