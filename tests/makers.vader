@@ -13,6 +13,14 @@ Execute (Run EnabledMakers for all filetype makers):
   endfor
   AssertEqual exists('*neomake#makers#ft#neomake_tests#EnabledMakers'), 1
 
+Execute (neomake#GetEnabledMakers without make_id):
+  runtime autoload/neomake.vim
+
+  Save g:neomake_myft_enabled_makers
+  let g:neomake_myft_enabled_makers = ['nonexisting_custom']
+  let makers = neomake#GetEnabledMakers('myft')
+  AssertNeomakeMessage 'Maker not found: nonexisting_custom', 0, {}
+
 Execute (Neomake with non-existing maker (configured)):
   Save &filetype
   set filetype=myft

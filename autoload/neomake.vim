@@ -509,7 +509,11 @@ function! neomake#GetEnabledMakers(...) abort
                 catch /^Neomake: /
                     let error = substitute(v:exception, '^Neomake: ', '', '')
                     if !auto_enabled
-                        call neomake#utils#ErrorMessage(error, {'make_id': s:make_id})
+                        let jobinfo = {}
+                        if has_key(s:make_info, s:make_id)
+                            let jobinfo.make_id = s:make_id
+                        endif
+                        call neomake#utils#ErrorMessage(error, jobinfo)
                     endif
                     continue
                 endtry

@@ -22,11 +22,10 @@ endfunction
 let s:unset = {}
 
 function! neomake#utils#LogMessage(level, msg, ...) abort
-    if a:0
-        let jobinfo = a:1
-        let verbose = neomake#GetMakeOptions().verbosity
+    let jobinfo = a:0 ? a:1 : {}
+    if has_key(jobinfo, 'make_id')
+        let verbose = neomake#GetMakeOptions(jobinfo.make_id).verbosity
     else
-        let jobinfo = {}
         let verbose = get(g:, 'neomake_verbose', 1) + &verbose
     endif
     let logfile = get(g:, 'neomake_logfile')
