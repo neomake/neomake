@@ -22,11 +22,10 @@ endfunction
 let s:unset = {}
 
 function! neomake#utils#LogMessage(level, msg, ...) abort
-    if a:0
-        let jobinfo = a:1
-        let verbose = neomake#GetMakeOptions().verbosity
+    let jobinfo = a:0 ? a:1 : {}
+    if has_key(jobinfo, 'make_id')
+        let verbose = neomake#GetMakeOptions(jobinfo.make_id).verbosity
     else
-        let jobinfo = {}
         let verbose = get(g:, 'neomake_verbose', 1) + &verbose
     endif
     let logfile = get(g:, 'neomake_logfile')
@@ -196,27 +195,6 @@ function! neomake#utils#MakerFromCommand(command) abort
     let maker = copy(s:command_maker)
     let maker.__command = command
     return maker
-endfunction
-
-let s:available_makers = {}
-function! neomake#utils#MakerIsAvailable(ft, maker_name) abort
-    if a:maker_name ==# 'makeprg'
-        " makeprg refers to the actual makeprg, which we don't need to check
-        " for our purposes
-        return 1
-    endif
-    let maker = neomake#GetMaker(a:maker_name, a:ft)
-    if empty(maker)
-        return 0
-    endif
-    if !has_key(s:available_makers, maker.exe)
-        let s:available_makers[maker.exe] = executable(maker.exe)
-    endif
-    return s:available_makers[maker.exe]
-endfunction
-
-function! neomake#utils#AvailableMakers(ft, makers) abort
-    return filter(copy(a:makers), 'neomake#utils#MakerIsAvailable(a:ft, v:val)')
 endfunction
 
 function! neomake#utils#GetSupersetOf(ft) abort

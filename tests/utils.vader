@@ -195,24 +195,6 @@ Execute (neomake#utils#ExpandArgs):
   AssertEqual expected_args, args
   AssertEqual isk, &iskeyword
 
-Execute (neomake#utils#MakerIsAvailable):
-  AssertEqual neomake#utils#MakerIsAvailable('sh', 'makeprg'), 1
-  AssertEqual neomake#utils#MakerIsAvailable('sh', 'sh'), 1
-  AssertEqual neomake#utils#MakerIsAvailable('sh', 'doesnotexist'), 0
-
-  Save g:neomake_myft_mymaker_maker
-  let g:neomake_myft_mymaker_maker = {'exe': 'sh'}
-  AssertEqual neomake#utils#MakerIsAvailable('myft', 'mymaker'), 1
-
-Execute (neomake#utils#MakerIsAvailable picks up changes):
-  Save g:neomake_myft_sh_maker
-  let g:neomake_myft_sh_maker = {
-    \ 'exe': 'doesnotexist',
-    \ }
-  AssertEqual neomake#utils#MakerIsAvailable('myft', 'sh'), 0
-  let g:neomake_myft_sh_maker.exe = 'sh'
-  AssertEqual neomake#utils#MakerIsAvailable('myft', 'sh'), 1
-
 Execute (neomake#utils#diff_dict):
   AssertEqual neomake#utils#diff_dict({}, {}), [{}, {}, {}]
   AssertEqual neomake#utils#diff_dict({'a': 1}, {'a': 2}),
