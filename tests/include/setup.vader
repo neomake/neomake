@@ -280,9 +280,11 @@ After:
   " exit handler, but that is OK.
   let jobs = filter(neomake#GetJobs(), "!get(v:val, 'canceled', 0)")
   if len(jobs)
-    for job in jobs
-      call neomake#CancelJob(job.id)
-    endfor
+    if neomake#has_async_support()
+      for job in jobs
+        call neomake#CancelJob(job.id)
+      endfor
+    endif
     throw 'There were '.len(jobs).' jobs left: '.string(map(jobs, 'v:val.make_id.".".v:val.id'))
   endif
 
@@ -297,7 +299,11 @@ After:
       \ .string(map(range(1, winnr('$')),
       \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
     try
-      for b in uniq(sort(tabpagebuflist()))
+      let bufs = sort(tabpagebuflist())
+      if exists('*uniq')
+        let bufs = uniq(bufs)
+      endif
+      for b in bufs
         silent exe 'bd!' b
       endfor
     catch
