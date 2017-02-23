@@ -14,8 +14,11 @@ function! neomake#makers#ft#vim#vint() abort
 
     return {
         \ 'args': l:args,
-        \ 'errorformat': '%I%f:%l:%c:style_problem:%m,%f:%l:%c:%t%*[^:]:%m'
-        \ }
+        \ 'errorformat': '%I%f:%l:%c:style_problem:%m,%f:%l:%c:%t%*[^:]:%m',
+        \ 'postprocess': {
+        \   'fn': function('neomake#postprocess#GenericLengthPostprocess'),
+        \   'pattern': '\vUndefined variable: \zs([^ ]+)',
+        \ }}
 endfunction
 
 function! neomake#makers#ft#vim#vimlint() abort

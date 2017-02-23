@@ -36,8 +36,10 @@ function! neomake#makers#ft#python#pylint() abort
             \ '%A%f:(%l): %m,' .
             \ '%-Z%p^%.%#,' .
             \ '%-G%.%#',
-        \ 'postprocess': function('neomake#makers#ft#python#PylintEntryProcess')
-        \ }
+        \ 'postprocess': [
+        \   function('neomake#postprocess#GenericLengthPostprocess'),
+        \   function('neomake#makers#ft#python#PylintEntryProcess'),
+        \ ]}
 endfunction
 
 function! neomake#makers#ft#python#PylintEntryProcess(entry) abort

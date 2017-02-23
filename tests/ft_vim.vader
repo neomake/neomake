@@ -1,0 +1,32 @@
+Include: include/setup.vader
+
+Execute (Vint: generic postprocessing for highlights):
+  file file1.vim
+  norm! iecho l:undefined_var
+  let vint_maker = neomake#makers#ft#vim#vint()
+  let vint_maker.exe = 'printf'
+  let vint_maker.args = ["file1.vim:1:6:warning:Undefined variable: l:undefined_var (ProhibitUsingUndeclaredVariable)"]
+  let vint_maker.append_file = 0
+
+  AssertEqual neomake#highlights#_get(), {'file': {}, 'project': {}}
+
+  call neomake#Make(1, [vint_maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 1,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 6,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'w',
+  \ 'pattern': '',
+  \ 'text': 'Undefined variable: l:undefined_var (ProhibitUsingUndeclaredVariable)'}]
+
+  " Test that length has been used with the highlight.
+  let highlights = neomake#highlights#_get()
+  if has('nvim')
+    AssertEqual highlights, {'file': {bufnr('%'): 1}, 'project': {}}
+  else
+    AssertEqual highlights.file[bufnr('%')].NeomakeWarning, [[1, 6, 15]]
+  endif

@@ -8,6 +8,7 @@ function! neomake#makers#ft#lua#luacheck() abort
         \ 'args': ['--no-color', '--formatter=plain', '--codes'],
         \ 'cwd': '%:p:h',
         \ 'errorformat': '%f:%l:%c: \(%t%n\) %m',
+        \ 'postprocess': function('neomake#postprocess#GenericLengthPostprocess'),
         \ }
 endfunction
 
