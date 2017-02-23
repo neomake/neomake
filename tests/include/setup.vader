@@ -297,7 +297,11 @@ After:
       \ .string(map(range(1, winnr('$')),
       \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
     try
-      for b in uniq(sort(tabpagebuflist()))
+      let bufs = sort(tabpagebuflist())
+      if exists('*uniq')
+        let bufs = uniq(bufs)
+      endif
+      for b in bufs
         silent exe 'bd!' b
       endfor
     catch
