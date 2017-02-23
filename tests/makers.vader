@@ -20,10 +20,13 @@ Execute (Neomake with non-existing maker (configured)):
   Save g:neomake_myft_enabled_makers
   let g:neomake_myft_enabled_makers = ['nonexisting_custom']
 
+  let make_id_before = neomake#GetStatus().last_make_id
   RunNeomake
-  AssertNeomakeMessage 'Maker not found: nonexisting_custom', 0
-  AssertNeomakeMessage 'Nothing to make: no enabled makers.', 3
+  let make_id = neomake#GetStatus().last_make_id
+  AssertNeomakeMessage 'Maker not found: nonexisting_custom', 0, {'make_id': make_id}
+  AssertNeomakeMessage 'Nothing to make: no enabled makers.', 3, {'make_id': make_id}
   AssertEqual len(g:neomake_test_messages), 2
+  AssertEqua make_id_before + 1, neomake#GetStatus().last_make_id
 
 Execute (Neomake with non-existing default makers):
   Save &filetype

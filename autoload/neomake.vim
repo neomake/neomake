@@ -542,30 +542,31 @@ function! s:Make(options) abort
     let options = copy(a:options)
     call extend(options, {
                 \ 'file_mode': 0,
-                \ 'enabled_makers': [],
                 \ 'bufnr': bufnr('%'),
                 \ 'ft': '',
                 \ }, 'keep')
     let bufnr = options.bufnr
     let file_mode = options.file_mode
-    let enabled_makers = options.enabled_makers
     let ft = options.ft
 
     " Reset/clear on first run, but not when using 'serialize'.
     if !get(options, 'continuation', 0)
-        if !len(enabled_makers)
-            if file_mode
-                call neomake#utils#DebugMessage('Nothing to make: no enabled makers.')
-                return []
-            endif
-            let enabled_makers = ['makeprg']
-        endif
-
         let s:make_id += 1
         let s:make_info[s:make_id] = {
                     \ 'cwd': getcwd(),
                     \ 'verbosity': get(g:, 'neomake_verbose', 1) + &verbose,
                     \ }
+
+        if !has_key(options, 'enabled_makers')
+            let options.enabled_makers = neomake#GetEnabledMakers(file_mode ? ft : '')
+            if !len(options.enabled_makers)
+                if file_mode
+                    call neomake#utils#DebugMessage('Nothing to make: no enabled makers.', {'make_id': s:make_id})
+                    return []
+                endif
+                let options.enabled_makers = ['makeprg']
+            endif
+        endif
 
         if file_mode
             " XXX: this clears counts for job's buffer only, but we
@@ -579,7 +580,7 @@ function! s:Make(options) abort
         call s:AddMakeInfoForCurrentWin(s:make_id)
     endif
 
-    let args = [enabled_makers]
+    let args = [options.enabled_makers]
     if file_mode
         let args += [&filetype]
     endif
@@ -1387,9 +1388,9 @@ function! neomake#Make(file_mode, enabled_makers, ...) abort
     if a:file_mode
         let options.ft = &filetype
     endif
-    let options.enabled_makers = len(a:enabled_makers)
-                    \ ? a:enabled_makers
-                    \ : neomake#GetEnabledMakers(a:file_mode ? &filetype : '')
+    if len(a:enabled_makers)
+        let options.enabled_makers = a:enabled_makers
+    endif
     return s:Make(options)
 endfunction
 

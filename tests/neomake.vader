@@ -83,7 +83,9 @@ Execute (neomake#GetMaker uses defaults from b:/g: based on maker):
 Execute (neomake#Make in file mode with no filetype and no makers):
   AssertEqual &ft, ''
   AssertEqual neomake#Make(1, []), []
-  AssertEqual g:neomake_test_messages[-1], [3, 'Nothing to make: no enabled makers.', {}]
+  let make_id = neomake#GetStatus().last_make_id
+  AssertEqual g:neomake_test_messages[-1],
+  \ [3, 'Nothing to make: no enabled makers.', {'make_id': make_id}]
 
 Execute (neomake#Make in project mode with no filetype and no makers):
   Save makeprg
