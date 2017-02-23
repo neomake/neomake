@@ -197,36 +197,6 @@ function! neomake#utils#MakerFromCommand(command) abort
     return maker
 endfunction
 
-let s:available_makers = {}
-function! neomake#utils#MakerIsAvailable(ft, maker_name) abort
-    if a:maker_name ==# 'makeprg'
-        " makeprg refers to the actual makeprg, which we don't need to check
-        " for our purposes
-        return 1
-    endif
-
-    try
-        let maker = neomake#GetMaker(a:maker_name, a:ft)
-    catch /^Neomake: /
-        let error = substitute(v:exception, '^Neomake: ', '', '')
-        call neomake#utils#DebugMessage(printf('Maker %s is not available: %s', a:maker_name, error))
-        return 0
-    endtry
-
-    if (type(maker.exe) == type(function('tr')))
-        let l:executable = call(maker.exe, [])
-    elseif (type(maker.exe) == type({}))
-        let l:executable = call(maker.exe.fn, [], maker.exe)
-    else
-        let l:executable = maker.exe
-    endif
-    return s:available_makers[maker.exe]
-endfunction
-
-function! neomake#utils#AvailableMakers(ft, makers) abort
-    return filter(copy(a:makers), 'neomake#utils#MakerIsAvailable(a:ft, v:val)')
-endfunction
-
 function! neomake#utils#GetSupersetOf(ft) abort
     try
         return eval('neomake#makers#ft#' . a:ft . '#SupersetOf()')
