@@ -213,6 +213,16 @@ Execute (neomake#utils#MakerIsAvailable picks up changes):
   let g:neomake_myft_sh_maker.exe = 'sh'
   AssertEqual neomake#utils#MakerIsAvailable('myft', 'sh'), 1
 
+Execute (neomake#utils#MakerIsAvailable with funcrefs):
+  Save g:neomake_myft_sh_maker
+  function! MyExeFunction()
+    return 'sh'
+  endfunction
+  let g:neomake_myft_sh_maker = { 'exe': function('MyExeFunction') }
+  AssertEqual neomake#utils#MakerIsAvailable('myft', 'sh'), 1
+  let g:neomake_myft_sh_maker.exe = { 'fn': function('MyExeFunction') }
+  AssertEqual neomake#utils#MakerIsAvailable('myft', 'sh'), 1
+
 Execute (neomake#utils#diff_dict):
   AssertEqual neomake#utils#diff_dict({}, {}), [{}, {}, {}]
   AssertEqual neomake#utils#diff_dict({'a': 1}, {'a': 2}),
