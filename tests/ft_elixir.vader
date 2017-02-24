@@ -11,13 +11,13 @@ Execute (Credo: postprocess: type):
   let g:neomake_elixir_credo_config_typemap = {'F': 'Z'}
   AssertEqual F({'type': 'F'}).type, 'Z'
 
-Given (A file with 2 lines):
-  some
-  lines
 Execute (Mix: postprocess: line is never higher than buffer size):
   function! F(entry)
     call neomake#makers#ft#elixir#PostprocessEnforceMaxBufferLine(a:entry)
     return a:entry
   endfunction
+  norm! ggdG
+  norm! iline1
+  norm! oline2
   AssertEqual F({'lnum': 3}).lnum, 2
   AssertEqual F({'lnum': 1}).lnum, 1
