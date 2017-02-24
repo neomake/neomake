@@ -687,8 +687,10 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let ignored_signs = []
     unlet! s:postprocess  " vim73
     let s:postprocess = get(maker, 'postprocess', function('neomake#utils#CompressWhitespace'))
-    if type(s:postprocess) == type({})
-        let s:postprocess = s:postprocess.fn
+    if type(s:postprocess) != type([])
+        let s:postprocessors = [s:postprocess]
+    else
+        let s:postprocessors = s:postprocess
     endif
     let debug = get(g:, 'neomake_verbose', 1) >= 3
 
@@ -698,21 +700,16 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         let index += 1
 
         let before = copy(entry)
-        if type(s:postprocess) == type([])
-            for s:f in s:postprocess
-                if type(s:f) == type({})
-                    let s:this = extend(copy(s:f), {'maker': maker})
-                    call call(s:f.fn, [entry], s:this)
-                else
-                    let s:this = {'maker': maker}
-                    call call(s:f, [entry], s:this)
-                endif
-                unlet s:f  " vim73
-            endfor
-        else
-            let s:this = {'maker': maker}
-            call call(s:postprocess, [entry], s:this)
-        endif
+        for s:f in s:postprocessors
+            if type(s:f) == type({})
+                let s:this = extend(copy(s:f), {'maker': maker})
+                call call(s:f.fn, [entry], s:this)
+            else
+                let s:this = {'maker': maker}
+                call call(s:f, [entry], s:this)
+            endif
+            unlet! s:f  " vim73
+        endfor
         if entry != before
             let list_modified = 1
             if debug
