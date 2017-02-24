@@ -28,6 +28,7 @@ Include (Text): ft_text.vader
 Include (Elixir): ft_elixir.vader
 Include (PHP): ft_php.vader
 Include (Cs): ft_cs.vader
+Include (Vim): ft_vim.vader
 
 * Old/unorganized tests
 Execute (neomake#GetMakers):
@@ -42,6 +43,9 @@ Execute (neomake#GetMaker with non-existent maker throws errors):
   AssertEqual g:vader_exception, 'Neomake: Maker not found: nonexistent'
 
 Execute (Neomake with unknown maker):
+  " Prevent 'Skipping User autocmd NeomakeCountsChanged: no hooks.' message.
+  runtime autoload/neomake/statusline.vim
+
   Neomake doesnotexist
   AssertEqual g:neomake_test_messages, [
   \ [0, 'Maker not found: doesnotexist', {}],

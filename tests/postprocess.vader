@@ -165,3 +165,31 @@ Execute (Postprocess: removes entries with valid -1):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'check: foo!'}]
+
+Execute (Postprocess: can be disabled with empty string):
+  let maker = {
+  \ 'exe': 'printf',
+  \ 'args': ['success'],
+  \ 'errorformat': '%E%m',
+  \ 'append_file': 0,
+  \ 'postprocess': '',
+  \ }
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['success']
+
+Execute (Postprocess: can be disabled with empty list):
+  let maker = {
+  \ 'exe': 'printf',
+  \ 'args': ['success'],
+  \ 'errorformat': '%E%m',
+  \ 'append_file': 0,
+  \ 'postprocess': [],
+  \ }
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['success']
