@@ -12,6 +12,7 @@ Execute (neomake#CompleteMakers: completes makers for b:):
   bwipe
 
 Execute (neomake#CompleteMakers: completes makers for g:):
+  Save g:neomake_c_lint_maker
   new
   let g:neomake_c_lint_maker = {
     \ 'exe': 'lint',
