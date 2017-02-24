@@ -4,6 +4,7 @@
 Include: include/setup.vader
 
 ~ Features
+Include (Completion): completion.vader
 Include (Error handling): errors.vader
 Include (Hooks): hooks.vader
 Include (Integration tests): integration.vader
@@ -28,6 +29,8 @@ Include (Text): ft_text.vader
 Include (Elixir): ft_elixir.vader
 Include (PHP): ft_php.vader
 Include (Cs): ft_cs.vader
+Include (Css): ft_css.vader
+Include (Idris): ft_idris.vader
 Include (Vim): ft_vim.vader
 
 * Old/unorganized tests
