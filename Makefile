@@ -163,6 +163,14 @@ docker_run: $(TESTS_VADER_DIR)
 docker_run:
 	$(DOCKER) $(if $(DOCKER_RUN),$(DOCKER_RUN),bash)
 
+check:
+	ret=0; \
+	for f in $(filter-out neomake.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
+		if ! grep -q "^Include.*: $$f" tests/neomake.vader; then \
+			echo "Test not included: $$f" >&2; ret=1; \
+		fi; \
+	done; exit $$ret
+
 .PHONY: vint vint-errors vimlint vimlint-errors
 .PHONY: test testnvim testvim testnvim_interactive testvim_interactive
 .PHONY: runvim runnvim tags _run_tests
