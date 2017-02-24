@@ -1,6 +1,8 @@
 Include: include/setup.vader
 
 Execute (Vint: generic postprocessing for highlights):
+  runtime autoload/neomake/highlights.vim
+
   file file1.vim
   norm! iecho l:undefined_var
   let vint_maker = neomake#makers#ft#vim#vint()
@@ -26,7 +28,7 @@ Execute (Vint: generic postprocessing for highlights):
   " Test that length has been used with the highlight.
   let highlights = neomake#highlights#_get()
   if has('nvim')
-    AssertEqual highlights, {'file': {bufnr('%'): 1}, 'project': {}}
+    AssertEqual has_key(highlights['file'], bufnr('%')), 1, "highlight for file"
   else
     AssertEqual highlights.file[bufnr('%')].NeomakeWarning, [[1, 6, 15]]
   endif
