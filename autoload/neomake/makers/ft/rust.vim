@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#rust#EnabledMakers() abort
-    return ['rustc']
+    return ['cargo']
 endfunction
 
 function! neomake#makers#ft#rust#rustc() abort
@@ -20,5 +20,23 @@ function! neomake#makers#ft#rust#rustc() abort
             \ '%I%>help:\ %#%m,'.
             \ '%Z\ %#%m,'.
             \ '%-G%s',
+        \ }
+endfunction
+
+function! neomake#makers#ft#rust#cargo() abort
+    return {
+        \ 'args': ['build'],
+        \ 'append_file': 0,
+        \ 'errorformat':
+            \ ',' .
+            \ '%-G,' .
+            \ '%-Gerror: aborting %.%#,' .
+            \ '%-Gerror: Could not compile %.%#,' .
+            \ '%Eerror: %m,' .
+            \ '%Eerror[E%n]: %m,' .
+            \ '%-Gwarning: the option `Z` is unstable %.%#,' .
+            \ '%Wwarning: %m,' .
+            \ '%Inote: %m,' .
+            \ '%C %#--> %f:%l:%c',
         \ }
 endfunction
