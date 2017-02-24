@@ -26,6 +26,9 @@ TEST_VIM_PREFIX:=SHELL=/bin/bash
 testx: export VADER_OPTIONS=-x
 testx: test
 
+testnvimx: export VADER_OPTIONS=-x
+testnvimx: testnvim
+
 # Neovim might quit after ~5s with stdin being closed.  Use --headless mode to
 # work around this.
 # > Vim: Error reading input, exiting...
