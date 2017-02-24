@@ -73,3 +73,32 @@ Execute (neomake#GetEnabledMakers with configuration):
   let makers = neomake#GetEnabledMakers(&ft)
   AssertEqual map(copy(makers), 'v:val.auto_enabled'), [0]
   AssertEqual len(g:neomake_test_messages), 0
+
+Execute (neomake#GetEnabledMakers without filetype):
+  Save g:neomake_enabled_makers
+  unlet! g:neomake_enabled_makers
+
+  let makers = neomake#GetEnabledMakers()
+  AssertEqual makers, []
+
+  Save g:neomake_mymaker_maker
+  let g:neomake_mymaker_maker = {}
+  let g:neomake_enabled_makers = ['mymaker']
+  let makers = neomake#GetEnabledMakers()
+  AssertEqual map(copy(makers), '[v:val.name, v:val.auto_enabled]'),
+  \ [['mymaker', 0]]
+
+  " Should use a more specific maker based on &filetype.
+  set filetype=myft
+  let g:neomake_myft_mymaker_maker = {}
+  let makers = neomake#GetEnabledMakers()
+  AssertEqual map(copy(makers), '[v:val.name, v:val.auto_enabled]'),
+  \ [['mymaker', 0]]
+
+  " Should fallback to global maker if not found through filetype.
+  unlet g:neomake_myft_mymaker_maker
+  let makers = neomake#GetEnabledMakers()
+  AssertEqual map(copy(makers), '[v:val.name, v:val.auto_enabled]'),
+  \ [['mymaker', 0]]
+
+  AssertEqual len(g:neomake_test_messages), 0
