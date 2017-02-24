@@ -366,7 +366,8 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                 endif
                 unlet m
             endfor
-        elseif exists('g:neomake_'.a:name_or_maker.'_maker')
+        endif
+        if !exists('maker') && exists('g:neomake_'.a:name_or_maker.'_maker')
             let maker = get(g:, 'neomake_'.a:name_or_maker.'_maker')
         endif
         if !exists('maker')
@@ -470,8 +471,9 @@ function! neomake#GetEnabledMakers(...) abort
         " If we have no filetype, use the global default makers.
         " This variable is also used for project jobs, so it has no
         " buffer local ('b:') counterpart for now.
-        let enabled_makers = get(g:, 'neomake_enabled_makers', [])
-        call map(enabled_makers, 'neomake#GetMaker(v:val, ft)')
+        let enabled_makers = copy(get(g:, 'neomake_enabled_makers', []))
+        call map(enabled_makers, "extend(neomake#GetMaker(v:val, &filetype),
+                    \ {'auto_enabled': 0}, 'error')")
     else
         " If a filetype was passed, get the makers that are enabled for each of
         " the filetypes represented.
