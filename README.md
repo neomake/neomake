@@ -173,6 +173,12 @@ of Neovim at the moment.
 
     make docker_test_all
 
+## Donate
+
+ * Bitcoin: 1JscK5VaHyBhdE2ayVr63hDc6Mx94m9Y7R
+ * Flattr: [![Flattr](http://api.flattr.com/button/flattr-badge-large.png)](
+https://flattr.com/submit/auto?user_id=blueyed&url=https://github.com/neomake/neomake&title=Neomake&language=en_GB&tags=github&category=software)
+
 
 [Neovim]: http://neovim.org/
 [Vim]: http://vim.org/
