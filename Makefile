@@ -64,9 +64,11 @@ _run_interactive: _REDIR_STDOUT:=
 _run_interactive: _run_vim
 
 testvim_interactive: TEST_VIM:=vim -X
+testvim_interactive: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim_interactive: _run_interactive
 
 testnvim_interactive: TEST_VIM:=nvim
+testnvim_interactive: TEST_VIM_PREFIX+=HOME=build/neovim-test-home
 testnvim_interactive: _run_interactive
 
 
