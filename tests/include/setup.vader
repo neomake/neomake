@@ -1,10 +1,8 @@
 " Setup and helpers for all tests.
 
-Execute(Setup):
+Before:
   " One-time setup.
-  if exists(':NeomakeTestsWaitForFinishedJobs') == 2
-    try | exe 'return' | catch /^Vim\%((\a\+)\)\=:E133/ | finish | endtry
-  endif
+  if exists(':NeomakeTestsGlobalBefore') != 2
 
   function! s:wait_for_jobs(filter)
     let max = 45
@@ -316,8 +314,7 @@ Execute(Setup):
     endif
   endfunction
   command! NeomakeTestsGlobalAfter call s:After()
-
-Before:
+  endif
   NeomakeTestsGlobalBefore
 
 After:
