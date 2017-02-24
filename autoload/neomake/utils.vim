@@ -1,12 +1,7 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
-let s:level_to_name = {
-            \ 0: 'error',
-            \ 1: 'quiet',
-            \ 2: 'verb ',
-            \ 3: 'debug',
-            \ }
+let s:level_to_name = {0: 'error', 1: 'quiet', 2: 'verb ', 3: 'debug'}
 
 if has('reltime')
     let s:reltime_start = reltime()
@@ -18,8 +13,6 @@ function! s:timestr() abort
     endif
     return strftime('%H:%M:%S')
 endfunction
-
-let s:unset = {}
 
 function! neomake#utils#LogMessage(level, msg, ...) abort
     let jobinfo = a:0 ? a:1 : {}
@@ -219,6 +212,8 @@ function! neomake#utils#GetSortedFiletypes(ft) abort
 
     return sort(split(a:ft, '\.'), function('CompareFiletypes'))
 endfunction
+
+let s:unset = {}  " Sentinel.
 
 " Get a setting by key, based on filetypes, from the buffer or global
 " namespace, defaulting to default.

@@ -467,7 +467,7 @@ function! neomake#GetProjectMakers() abort
 endfunction
 
 function! neomake#GetEnabledMakers(...) abort
-    if !a:0 || type(a:1) !=# type('')
+    if !a:0
         " If we have no filetype, use the global default makers.
         " This variable is also used for project jobs, so it has no
         " buffer local ('b:') counterpart for now.
@@ -523,7 +523,6 @@ function! neomake#GetEnabledMakers(...) abort
                 let enabled_makers += [maker]
             endfor
         endfor
-
     endif
     return enabled_makers
 endfunction
