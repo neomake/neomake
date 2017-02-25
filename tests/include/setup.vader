@@ -284,11 +284,9 @@ Before:
     " exit handler, but that is OK.
     let jobs = filter(neomake#GetJobs(), "!get(v:val, 'canceled', 0)")
     if len(jobs)
-      if neomake#has_async_support()
-        for job in jobs
-          call neomake#CancelJob(job.id)
-        endfor
-      endif
+      for job in jobs
+        call neomake#CancelJob(job.id, !neomake#has_async_support())
+      endfor
       throw 'There were '.len(jobs).' jobs left: '.string(map(jobs, 'v:val.make_id.".".v:val.id'))
     endif
 
