@@ -1,7 +1,6 @@
 " Main entry point to run all Vader tests.
 " You can run the included files by itself (since they also include
 " include/setup.vader).
-Include: include/setup.vader
 
 ~ Features
 Include (Completion): completion.vader
@@ -36,7 +35,10 @@ Include (Vim): ft_vim.vader
 ~ Regression tests
 Include (cwd: tcd): cwd-tcd.vader
 
+
 * Old/unorganized tests
+Include: include/setup.vader
+
 Execute (neomake#GetMakers):
   AssertEqual neomake#GetMakers('non-existent'), []
   AssertEqual neomake#GetMakers('pug'), ['puglint']
