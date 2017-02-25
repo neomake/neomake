@@ -9,9 +9,9 @@ Execute (neomake#utils#LogMessage writes to logfile always):
   Assert logfile_msg =~# '\v\[\d+-\d\d-\d\dT\d\d:\d\d:\d\d\+\d+ \@\d+\.\d\d\d, quiet\] msg1$'
 
 Execute (NeomakeTestsEnsureExe creates exe):
-  Assert !executable('boobar')
+  Assert !executable('boobar'), 'boobar is not executable'
   call g:NeomakeTestsEnsureExe('boobar')
-  Assert executable('boobar')
+  Assert executable('boobar'), 'boobar is now executable'
 
 Execute (neomake#utils#CompressWhitespace):
   function! F(text)

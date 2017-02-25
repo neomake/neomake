@@ -82,7 +82,10 @@ Before:
     let dir_separator = exists('+shellslash') ? '\' : '/'
     let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
     if $PATH !~# tmpbindir . path_separator
-      call mkdir(tmpbindir, 'p', 0770)
+      Save $PATH
+      if !isdirectory(tmpbindir)
+        call mkdir(tmpbindir, 'p', 0770)
+      endif
       let $PATH = tmpbindir . ':' . $PATH
     endif
     let exe = tmpbindir.dir_separator.a:name
