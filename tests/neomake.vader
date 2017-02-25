@@ -283,8 +283,7 @@ Execute (neomake#Make handles invalid cwd):
       \ }
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  let cd = exists(':tcd') ? 'tcd' : 'cd'
-  AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(".cd."):E344: Can't find directory \"/doesnotexist\" in cdpath", 0
+  AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath", 0
 
 Execute (Neomake picks up custom maker correctly):
   let g:neomake_c_lint_maker = {
