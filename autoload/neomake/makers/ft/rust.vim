@@ -30,70 +30,40 @@ function! neomake#makers#ft#rust#cargo() abort
         \ 'errorformat':
             \ '[%t%n] "%f" %l:%v %m,'.
             \ '[%t] "%f" %l:%v %m',
-        \ 'mapexpr': 'neomake#makers#ft#rust#CargoParseJSON(v:val)',
+        \ 'mapexpr': 'neomake#makers#ft#rust#CargoMapexpr(v:val)',
         \ 'postprocess': function('neomake#makers#ft#rust#CargoPostProcess')
         \ }
 endfunction
 
-function! neomake#makers#ft#rust#CargoParseJSON(val) abort
-    let l:text = a:val
-    if l:text[0] ==# '{'
-        if exists('*json_decode')
-            let l:decoded = json_decode(text)
-        elseif (has('python') && exists('*pyeval'))
-                    \ || (has('python3') && exists('*pyeval'))
-            if has('python')
-                python import json, vim
-                python text = vim.eval('l:text')
-            else
-                python3 import json, vim
-                python3 text = vim.eval('l:text')
-            endif
-            try
-                if has('python')
-                    let l:decoded = pyeval('json.loads(text)')
-                else
-                    let l:decoded = py3eval('json.loads(text)')
-                endif
-            catch
-                redir => out
-                silent mess
-                redir END
-                call neomake#utils#DebugMessage('JSON Python Error: '.v:exception.': '.out)
-                return
-            endtry
-        else
-            call neomake#utils#DebugMessage('No support for json available')
-            return
-        endif
-        let l:data = get(l:decoded, 'message', -1)
-        if type(l:data) == type({}) && len(l:data['spans'])
-            let l:code = get(l:data, 'code', -1)
+function! neomake#makers#ft#rust#CargoMapexpr(val) abort
+    let l:decoded = neomake#utils#JSONdecode(a:val)
+    let l:data = get(l:decoded, 'message', -1)
+    if type(l:data) == type({}) && len(l:data['spans'])
+        let l:code_dict = get(l:data, 'code', -1)
 
-            if type(l:code) == type({})
-                let l:code = l:code['code']
+        if l:code_dict is g:neomake#compat#json_null
+            if get(l:data, 'level', '') ==# 'warning'
+                let l:code = 'W'
             else
-                if get(l:data, 'level', '') ==# 'warning'
-                    let l:code = 'W'
-                else
-                    let l:code = 'E'
-                endif
+                let l:code = 'E'
             endif
-            let l:message = l:data['message']
-            let l:span = l:data['spans'][0]
-            let l:detail = l:span['label']
-            let l:col = l:span['column_start']
-            let l:row = l:span['line_start']
-            let l:file = l:span['file_name']
-            let l:length = l:span['byte_end'] - l:span['byte_start']
-            let l:error = '[' . l:code . '] "' . l:file . '" ' .
-                        \ l:row . ':' . l:col .  ' ' . l:length . ' ' .
-                        \ l:message
-            if type(l:detail) == type('') && len(l:detail)
-                let l:error = l:error . ': ' . l:detail
-            endif
-            return l:error
+        else
+            let l:code = l:code_dict['code']
         endif
+        let l:message = l:data['message']
+        let l:span = l:data['spans'][0]
+        let l:detail = l:span['label']
+        let l:col = l:span['column_start']
+        let l:row = l:span['line_start']
+        let l:file = l:span['file_name']
+        let l:length = l:span['byte_end'] - l:span['byte_start']
+        let l:error = '[' . l:code . '] "' . l:file . '" ' .
+                    \ l:row . ':' . l:col .  ' ' . l:length . ' ' .
+                    \ l:message
+        if type(l:detail) == type('') && len(l:detail)
+            let l:error = l:error . ': ' . l:detail
+        endif
+        return l:error
     endif
 endfunction
 
