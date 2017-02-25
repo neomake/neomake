@@ -180,3 +180,39 @@ Execute (Correct function binding from base maker):
   " representation of the object's function, when dumping the object.  This was
   " different before, when assigning the function from the base maker dict.
   Assert string(maker) =~# '\v''_get_argv'': function\(''\d+''\),', 'Simple _get_argv'
+
+Execute (Makers: process_output):
+  Save g:neomake_test_entries
+  let g:neomake_test_entries = [{
+    \ 'bufnr': bufnr('%'),
+    \ 'filename': 'not_used_with_valid_bufnr',
+    \ 'lnum': 23,
+    \ 'pattern': '',
+    \ 'col': 42,
+    \ 'vcol': 0,
+    \ 'nr': 4711,
+    \ 'text': 'error message',
+    \ 'type': 'E',
+    \ }]
+
+  Save Neomake_test_maker_get_entries
+  function! Neomake_test_maker_get_entries(context) abort
+    return g:neomake_test_entries
+  endfunction
+
+  let maker = {
+  \ 'exe': 'printf',
+  \ 'args': ['foo'],
+  \ 'append_file': 0,
+  \ 'process_output': function('Neomake_test_maker_get_entries')}
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  " valid=1 gets added
+  let expected = map(copy(g:neomake_test_entries), "extend(v:val, {'valid': 1})")
+  " filename is removed
+  let expected = map(expected, "filter(v:val, 'v:key != \"filename\"')")
+  AssertEqual getloclist(0), g:neomake_test_entries
+
+  AssertNeomakeMessage 'Skipping User autocmd NeomakeCountsChanged: no hooks.'
