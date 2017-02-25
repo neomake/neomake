@@ -173,9 +173,10 @@ function! s:MakeJob(make_id, options) abort
     let cwd = get(maker, 'cwd', s:make_info[a:make_id].cwd)
     if len(cwd)
         let old_wd = getcwd()
+        let cd = haslocaldir() ? 'lcd' : (exists(':tcd') == 2 && haslocaldir(-1, 0)) ? 'tcd' : 'cd'
         let cwd = expand(cwd, 1)
         try
-            exe 'cd' fnameescape(cwd)
+            exe cd fnameescape(cwd)
         " Tests fail with E344, but in reality it is E472?!
         " If uncaught, both are shown.  Let's just catch every error here.
         catch
@@ -265,8 +266,8 @@ function! s:MakeJob(make_id, options) abort
             let r = -1
         endif
     finally
-        if exists('old_wd')
-            exe 'cd' fnameescape(old_wd)
+        if exists('cd') && exists('old_wd')
+            exe cd fnameescape(old_wd)
         endif
     endtry
     return r
