@@ -228,20 +228,15 @@ function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
         break
     endif
     let config_var = 'neomake_'.part.'_'.a:key
+    let bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
+    if bufcfgvar isnot s:unset
+        return copy(bufcfgvar)
+    endif
     if has_key(g:, config_var)
-          \ || neomake#compat#getbufvar(a:bufnr, config_var, s:unset) isnot s:unset
-      break
+        return copy(get(g:, config_var))
     endif
   endfor
 
-  if exists('config_var')
-    let bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
-    if bufcfgvar isnot s:unset
-      return copy(bufcfgvar)
-    elseif has_key(g:, config_var)
-      return copy(get(g:, config_var))
-    endif
-  endif
   if has_key(a:maker, a:key)
     return a:maker[a:key]
   endif
