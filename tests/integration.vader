@@ -349,7 +349,7 @@ Execute (Neomake! for project maker via g:neomake_enabled_makers):
   let g:neomake_enabled_makers = ['mycargo']
   let g:neomake_mycargo_maker = {
   \ 'exe': 'echo',
-  \ 'args': ['mycargo']
+  \ 'args': ['mycargo'],
   \ }
   Neomake!
   NeomakeTestsWaitForFinishedJobs

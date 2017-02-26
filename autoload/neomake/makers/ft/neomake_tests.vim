@@ -20,3 +20,7 @@ function! neomake#makers#ft#neomake_tests#echo_maker() abort
         \ 'append_file': 0,
         \ }
 endfunction
+
+function! neomake#makers#ft#neomake_tests#true() abort
+  return {}
+endfunction
