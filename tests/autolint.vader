@@ -7,6 +7,7 @@ Execute (Autolinting):
   else
     new
     setfiletype neomake_tests
+    Save g:neomake_test_enabledmakers
     let g:neomake_test_enabledmakers = ['true']
     norm iline1
     norm oline2
