@@ -15,23 +15,23 @@ Execute (Autolinting):
     call g:NeomakeSetupAutocmdWrappers()
 
     doautocmd CursorMoved
-    sleep 20m
+    sleep 50m
     AssertEqual len(g:neomake_test_jobfinished), 1
 
     " Should not run without changes to the buffer.
     doautocmd CursorMoved
-    sleep 20m
+    sleep 50m
     AssertEqual len(g:neomake_test_jobfinished), 1
 
     " Should run with changes to the buffer.
     norm oline3
     doautocmd CursorMoved
-    sleep 20m
+    sleep 50m
     AssertEqual len(g:neomake_test_jobfinished), 2
 
     new
     doautocmd CursorMoved
-    sleep 20m
+    sleep 50m
     AssertNeomakeMessage 'Nothing to make: no enabled makers.'
 
     call neomake#configure#autolint('nw', 10)
