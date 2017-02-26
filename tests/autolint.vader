@@ -22,7 +22,7 @@ Execute (Autolinting):
     sleep 20m
     AssertEqual len(g:neomake_test_jobfinished), 1
 
-    " Should not run without changes to the buffer.
+    " Should run with changes to the buffer.
     norm oline3
     doautocmd CursorMoved
     sleep 20m
