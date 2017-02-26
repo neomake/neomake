@@ -1,12 +1,19 @@
 Include: include/setup.vader
 
-Before:
-  NeomakeTestsGlobalBefore
+After:
+  NeomakeTestsGlobalAfter
 
+  if exists('tab1')
+    exe 'tabclose' tab1
+    exe 'tabclose' tab2
+    unlet! tab1 tab2 dir1 dir2
+  endif
+
+Execute (tcd is handled properly):
   if exists(':tcd') != 2
     Log 'SKIP: no :tcd'
   else
-    let sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05')
+    let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05')
 
     for d in ['build/path1', 'build/path2']
       if !isdirectory(d)
@@ -23,19 +30,7 @@ Before:
     tcd ../../build/path2
     let tab2 = tabpagenr()
     let dir2 = getcwd()
-  endif
 
-After:
-  NeomakeTestsGlobalAfter
-
-  if exists('tab1')
-    exe 'tabclose' tab1
-    exe 'tabclose' tab2
-    unlet! tab1 tab2 dir1 dir2
-  endif
-
-Execute (tcd is handled properly):
-  if exists(':tcd') == 2
     call neomake#Make(1, [g:sleep_maker])
 
     exe 'tabnext' tab1

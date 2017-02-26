@@ -1,8 +1,15 @@
 " Setup and helpers for all tests.
 
 Before:
+  let g:neomake_test_messages = []
+  let g:neomake_test_log_all_messages = 1
+  let g:neomake_test_messages_last_idx = -1
+
+  cgetexpr ''
+  lgetexpr ''
+
   " One-time setup.
-  if exists(':NeomakeTestsGlobalBefore') != 2
+  if exists(':NeomakeTestsWaitForFinishedJobs') != 2
 
   function! s:wait_for_jobs(filter)
     let max = 45
@@ -267,16 +274,6 @@ Before:
         \ 'append_file': 0,
         \ }
 
-  function! s:Before()
-    let g:neomake_test_messages = []
-    let g:neomake_test_log_all_messages = 1
-    let g:neomake_test_messages_last_idx = -1
-
-    cgetexpr ''
-    lgetexpr ''
-  endfunction
-  command! NeomakeTestsGlobalBefore call s:Before()
-
   function! s:After()
     Restore
 
@@ -316,7 +313,6 @@ Before:
   endfunction
   command! NeomakeTestsGlobalAfter call s:After()
   endif
-  NeomakeTestsGlobalBefore
 
 After:
   NeomakeTestsGlobalAfter
