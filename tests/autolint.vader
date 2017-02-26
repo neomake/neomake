@@ -102,8 +102,9 @@ Execute (neomake#configure#autolint_for_buffer handles current buffer only):
   AssertNotEqual autocmds, "\n--- Auto-Commands ---"
 
   " First buffer should be still configured.
-  b#
+  wincmd p
   AssertEqual NeomakeTestsGetAutocommands(), autocmds
 
   bwipe
+  wincmd p
   bwipe
