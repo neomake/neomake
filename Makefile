@@ -174,7 +174,12 @@ check:
 		if ! grep -q "^Include.*: $$f" tests/neomake.vader; then \
 			echo "Test not included: $$f" >&2; ret=1; \
 		fi; \
-	done; exit $$ret
+	done; \
+	if grep '^Before:' tests/*.vader; then \
+	  echo "Before: should not be used in tests itself, because it overrides the global one."; \
+		(( ret+=2 )); \
+	fi; \
+	exit $$ret
 
 .PHONY: vint vint-errors vimlint vimlint-errors
 .PHONY: test testnvim testvim testnvim_interactive testvim_interactive
