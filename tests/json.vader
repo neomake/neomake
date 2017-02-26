@@ -18,6 +18,7 @@ Execute (neomake#utils#JSONdecode):
     AssertEqual g:neomake#compat#json_false, v:false
   else
     AssertEqual type(g:neomake#compat#json_null), type([])
+    AssertEqual type(g:neomake#compat#json_null[0]), type(function('tr'))
     AssertEqual g:neomake#compat#json_true, 1
     AssertEqual g:neomake#compat#json_false, 0
   endif
