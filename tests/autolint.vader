@@ -33,6 +33,10 @@ Execute (Autolinting):
     sleep 20m
     AssertNeomakeMessage 'Nothing to make: no enabled makers.'
 
+    call neomake#configure#autolint('nw', 10)
+    exe 'write' tempname()
+    AssertNeomakeMessage 'Nothing to make: no enabled makers.'
+
     bwipe!
     bwipe!
   endif

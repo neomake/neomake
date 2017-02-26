@@ -39,6 +39,9 @@ function! neomake#configure#autolint(modes, ...) abort
       if a:modes =~# 'i'
         autocmd InsertEnter,CursorMovedI * call <SID>neomake_autolint_delayed('i')
       endif
+      if a:modes =~# 'w'
+        autocmd BufWritePost * Neomake
+      endif
     endif
   augroup END
 endfunction
