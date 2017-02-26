@@ -15,6 +15,7 @@ CONTENTS                                                    *neomake-contents*
     1. Introduction ............................... |neomake-introduction|
     2. Commands ....................................... |neomake-commands|
     3. Configuration ............................. |neomake-configuration|
+    3.1. Automake
     4. Functions ..................................... |neomake-functions|
     5. Autocommands/Hooks ............................. |neomake-autocmds|
     6. Frequently Asked Questions (FAQ) .................... |neomake-faq|
@@ -103,6 +104,61 @@ If you just want an easy way to run |:make| asynchronously, you're all set.
 Just set your |'makeprg'| and |'errorformat'| as usual, and run |:Neomake!|.
 If you want more, read on.
 
+3.1 Automaking                                              *neomake-automake*
+
+To configure Neomake to automatically run on certain events you can use
+`neomake#configure#automake()`.
+
+The first argument can either be a dictionary (mapping autocommand event
+names to config dicts for fine grained control), or a string (as a shortcut to
+configure certain modes). The 2nd argument is the default delay to use.
+
+String usage (simple setup):~
+
+  n: normal mode~
+  This uses the |TextChanged| (falling back to |CursorHold|) and |InsertLeave|
+  events.
+
+  i: insert mode~
+  This uses the |TextChangedI| event (falling back to |CursorHoldI|).
+
+  r: "read" mode - when a buffer gets read/open~
+  This will hook into the |BufWinEnter|, |FileType| and |FileChangedShellPost|
+  events.
+
+  w: "write" mode - when a buffer gets written~
+  This uses the |BufWritePost| event, with an explicit timeout of 0.
+
+Examples: >
+
+  call neomake#configure#automake('w')
+  call neomake#configure#automake('nrw', 500)
+
+  call neomake#configure#automake('wr', 250)
+
+Dictionary usage (advanced setup):~
+>
+  call neomake#configure#automake({
+  \ 'TextChanged': {},
+  \ 'InsertLeave': {},
+  \ 'BufWritePost': {'delay': 0},
+  \ 'BufWinEnter': {},
+  \ }, 500)
+<
+This will trigger Neomake on |TextChanged|, |InsertLeave|, |BufWritePost| and
+|BufWinEnter|, with a delay of 500ms by default, but 0 for |BufWritePost|.
+
+You could do some advanced setup, based on if your laptop is running on
+battery: >
+  function! MyOnBattery()
+    return readfile('/sys/class/power_supply/AC/online') == ['0']
+  endfunction
+  if MyOnBattery()
+    call neomake#configure#automake('w')
+  else
+    call neomake#configure#automake('nrw', 1000)
+  endif
+<
 Makers                                                        *neomake-makers*
 A maker is an object that tells Neomake how to run a job for you.
 
