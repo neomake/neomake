@@ -31,6 +31,7 @@ function! neomake#configure#autolint(modes, ...) abort
     au!
     if len(a:modes)
       if !has('timers')
+        call neomake#utils#ErrorMessage('Timer support is required for autolinting.')
       endif
       if a:modes =~# 'n'
         autocmd WinEnter,CursorMoved <buffer> call <SID>neomake_autolint_delayed('n')

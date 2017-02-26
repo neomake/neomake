@@ -3,6 +3,7 @@
 " include/setup.vader).
 
 ~ Features
+Include (Autolinting): autolint.vader
 Include (Completion): completion.vader
 Include (Error handling): errors.vader
 Include (Filetype handling): filetypes.vader

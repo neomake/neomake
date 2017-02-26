@@ -1,0 +1,32 @@
+Include: include/setup.vader
+
+Execute (Autolinting):
+  call neomake#configure#autolint('n', 10)
+  if !has('timers')
+    AssertNeomakeMessage 'Timer support is required for autolinting.', 0
+  else
+    new
+    setfiletype neomake_tests
+    let g:neomake_test_enabledmakers = ['true']
+    norm iline1
+    norm oline2
+
+    call g:NeomakeSetupAutocmdWrappers()
+
+    doautocmd CursorMoved
+    sleep 20m
+    AssertEqual len(g:neomake_test_jobfinished), 1
+
+    " Should not run without changes to the buffer.
+    doautocmd CursorMoved
+    sleep 20m
+    AssertEqual len(g:neomake_test_jobfinished), 1
+
+    " Should not run without changes to the buffer.
+    norm oline3
+    doautocmd CursorMoved
+    sleep 20m
+    AssertEqual len(g:neomake_test_jobfinished), 2
+
+    bwipe!
+  endif
