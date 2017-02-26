@@ -188,6 +188,8 @@ Execute (Sleep in postprocess gets handled correctly):
 
 Execute (Pending output with restarted job when not in normal/insert mode (loclist)):
   if NeomakeAsyncTestsSetup()
+    let g:neomake_test_inc_maker_counter = 0
+
     file b1
     let first_jobs = neomake#Make(1, [g:neomake_test_inc_maker])
     let make_id = neomake#GetStatus().last_make_id
@@ -196,18 +198,24 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
     AssertNeomakeMessage 'Not processing output for mode V', 3
     exe "norm! \<Esc>"
     call neomake#Make(1, [g:neomake_test_inc_maker])
-    AssertNeomakeMessage 'Restarting already running job ('
+    AssertNeomakeMessageAbsent 'Restarting already running job ('
       \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ ['2:0: buf: b1', '2:1: buf: b1']
     doautocmd CursorHold
 
-    " TODO: should have output from 2nd job, should work on serialize branch.
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
+    " TODO: should not overwrite later job!
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ ['1:0: buf: b1']
+
+    AssertEqual len(g:neomake_test_finished), 2
   endif
 
 Execute (Pending output with restarted job when not in normal/insert mode (quickfix)):
   if NeomakeAsyncTestsSetup()
+    let g:neomake_test_inc_maker_counter = 0
+
     file b1
     let first_jobs = neomake#Make(0, [g:neomake_test_inc_maker])
     let make_id = neomake#GetStatus().last_make_id
@@ -216,14 +224,18 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
     AssertNeomakeMessage 'Not processing output for mode V', 3
     exe "norm! \<Esc>"
     call neomake#Make(0, [g:neomake_test_inc_maker])
-    AssertNeomakeMessage 'Restarting already running job ('
+    AssertNeomakeMessageAbsent 'Restarting already running job ('
       \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getqflist()), 'v:val.text'), []
+    AssertEqual map(copy(getqflist()), 'v:val.text'),
+    \ ['2:0: buf: b1', '2:1: buf: b1']
     doautocmd CursorHold
 
-    " TODO: should have output from 2nd job, should work on serialize branch.
-    AssertEqual map(copy(getqflist()), 'v:val.text'), []
+    " TODO: should not overwrite later job!
+    AssertEqual map(copy(getqflist()), 'v:val.text'),
+    \ ['1:0: buf: b1']
+
+    AssertEqual len(g:neomake_test_finished), 2
   endif
 
 Execute (100 lines of output should not get processed one by one):
