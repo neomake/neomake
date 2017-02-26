@@ -228,6 +228,7 @@ function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
         break
     endif
     let config_var = 'neomake_'.part.'_'.a:key
+    unlet! bufcfgvar  " vim73
     let bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
     if bufcfgvar isnot s:unset
         return copy(bufcfgvar)
