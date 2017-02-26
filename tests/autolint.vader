@@ -28,5 +28,11 @@ Execute (Autolinting):
     sleep 20m
     AssertEqual len(g:neomake_test_jobfinished), 2
 
+    new
+    doautocmd CursorMoved
+    sleep 20m
+    AssertNeomakeMessage 'Nothing to make: no enabled makers.'
+
+    bwipe!
     bwipe!
   endif
