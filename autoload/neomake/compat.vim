@@ -21,7 +21,9 @@ if exists('*json_decode')
 else
   let neomake#compat#json_true = 1
   let neomake#compat#json_false = 0
-  let neomake#compat#json_null = {}
+  function! s:json_null() abort
+  endfunction
+  let neomake#compat#json_null = [function('s:json_null')]
 
   " Via Syntastic (https://github.com/vim-syntastic/syntastic/blob/6fb14d624b6081459360fdbba743f82cf84c8f92/autoload/syntastic/preprocess.vim#L576-L607),
   " based on https://github.com/MarcWeber/vim-addon-json-encoding/blob/master/autoload/json_encoding.vim.

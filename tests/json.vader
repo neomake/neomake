@@ -7,19 +7,19 @@ Execute (neomake#utils#JSONdecode):
 
   AssertEqual neomake#utils#JSONdecode(json), {
   \ 'dict': {
-  \   'false': neomake#compat#json_false,
-  \   'true': neomake#compat#json_true,
+  \   'false': g:neomake#compat#json_false,
+  \   'true': g:neomake#compat#json_true,
   \   'children': [],
-  \   'null': neomake#compat#json_null}}
+  \   'null': g:neomake#compat#json_null}}
 
   if exists('v:null')
-    AssertEqual neomake#compat#json_null, v:null
-    AssertEqual neomake#compat#json_true, v:true
-    AssertEqual neomake#compat#json_false, v:false
+    AssertEqual g:neomake#compat#json_null, v:null
+    AssertEqual g:neomake#compat#json_true, v:true
+    AssertEqual g:neomake#compat#json_false, v:false
   else
-    AssertEqual neomake#compat#json_null, {}
-    AssertEqual neomake#compat#json_true, 1
-    AssertEqual neomake#compat#json_false, 0
+    AssertEqual type(g:neomake#compat#json_null), type([])
+    AssertEqual g:neomake#compat#json_true, 1
+    AssertEqual g:neomake#compat#json_false, 0
   endif
 
 Execute (neomake#compat#json_null cannot be changed):
