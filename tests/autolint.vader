@@ -2,9 +2,12 @@ Include: include/setup.vader
 
 Execute (Autolinting):
   call neomake#configure#autolint('n', 10)
+
   if !has('timers')
     AssertNeomakeMessage 'Timer support is required for autolinting.', 0
   else
+    AssertEqual &buftype, 'nofile'
+    AssertNeomakeMessage 'autolint: skipping setup for buftype=nofile (bufnr='.bufnr('%').')'
     new
     setfiletype neomake_tests
     Save g:neomake_test_enabledmakers
@@ -14,23 +17,32 @@ Execute (Autolinting):
 
     call g:NeomakeSetupAutocmdWrappers()
 
-    doautocmd CursorMoved
+    doautocmd TextChanged
     sleep 50m
     AssertEqual len(g:neomake_test_jobfinished), 1
 
     " Should not run without changes to the buffer.
-    doautocmd CursorMoved
+    doautocmd TextChanged
     sleep 50m
     AssertEqual len(g:neomake_test_jobfinished), 1
 
     " Should run with changes to the buffer.
     norm oline3
-    doautocmd CursorMoved
+    doautocmd TextChanged
     sleep 50m
     AssertEqual len(g:neomake_test_jobfinished), 2
 
+    norm oline4
+    AssertEqual len(g:neomake_test_jobfinished), 2
+    doautocmd TextChanged
+    AssertEqual len(g:neomake_test_jobfinished), 2
+    doautocmd TextChanged
+    AssertEqual len(g:neomake_test_jobfinished), 2
+    sleep 50m
+    AssertEqual len(g:neomake_test_jobfinished), 3
+
     new
-    doautocmd CursorMoved
+    doautocmd TextChanged
     sleep 50m
     AssertNeomakeMessage 'Nothing to make: no enabled makers.'
 
@@ -41,3 +53,57 @@ Execute (Autolinting):
     bwipe!
     bwipe!
   endif
+
+Execute (Autolinting: skips non-default buftypes):
+  call neomake#configure#autolint('n', 10)
+  if !has('timers')
+    AssertNeomakeMessage 'Timer support is required for autolinting.', 0
+  else
+    new
+    setfiletype neomake_tests
+    Save g:neomake_test_enabledmakers
+    let g:neomake_test_enabledmakers = ['true']
+    set buftype=nofile
+
+    call g:NeomakeSetupAutocmdWrappers()
+
+    doautocmd TextChanged
+    sleep 50m
+    AssertEqual len(g:neomake_test_jobfinished), 0
+    bwipe!
+  endif
+
+Execute (neomake#configure#autolint_for_buffer skips non-default buftypes):
+  new
+  set buftype=nofile
+  call neomake#configure#autolint_for_buffer('n', 10)
+  AssertNeomakeMessage 'autolint: skipping setup for buftype=nofile (bufnr='.bufnr('%').')'
+  bwipe
+
+Execute (neomake#configure#autolint_for_buffer handles current buffer only):
+  call neomake#configure#autolint('')
+
+  function! NeomakeTestsGetAutocommands()
+    return neomake#utils#redir('au neomake_autolint_buffer * <buffer='.bufnr('%').'>')
+  endfunction
+
+  " Configure first buffer only.
+  new
+  call neomake#configure#autolint_for_buffer('n', 10)
+  let autocmds = NeomakeTestsGetAutocommands()
+  AssertNotEqual autocmds, "\n--- Auto-Commands ---"
+
+  " New buffer should not be configured.
+  new
+  AssertEqual NeomakeTestsGetAutocommands(), "\n--- Auto-Commands ---"
+
+  " Now configure 2nd buffer.
+  call neomake#configure#autolint_for_buffer('n', 2000)
+  AssertNotEqual autocmds, "\n--- Auto-Commands ---"
+
+  " First buffer should be still configured.
+  b#
+  AssertEqual NeomakeTestsGetAutocommands(), autocmds
+
+  bwipe
+  bwipe
