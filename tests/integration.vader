@@ -232,6 +232,7 @@ Execute (NeomakeInfo with FuncRef):
   let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
   let idx = 0
   for line in [
+      \ 'Current filetype: c',
       \ 'For the current filetype (with :Neomake):',
       \ ' - doesnotexist',
       \ '   - args: function(''getcwd'')',

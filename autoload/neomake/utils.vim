@@ -342,7 +342,7 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
   if bufvar isnot s:unset
       return bufvar
   endif
-  if has_key(g:, 'neomake_'.a:key)
+  if a:key !=# 'enabled_makers' && has_key(g:, 'neomake_'.a:key)
       return get(g:, 'neomake_'.a:key)
   endif
   return a:default

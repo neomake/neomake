@@ -182,6 +182,9 @@ Execute (Correct function binding from base maker):
   Assert string(maker) =~# '\v''_get_argv'': function\(''\d+''\),', 'Simple _get_argv'
 
 Execute (Makers: process_output):
+  call neomake#statusline#ResetCounts()
+  call g:NeomakeSetupAutocmdWrappers()
+
   Save g:neomake_test_entries
   let g:neomake_test_entries = [{
     \ 'bufnr': bufnr('%'),
@@ -195,24 +198,141 @@ Execute (Makers: process_output):
     \ 'type': 'E',
     \ }]
 
-  Save Neomake_test_maker_get_entries
-  function! Neomake_test_maker_get_entries(context) abort
-    return g:neomake_test_entries
+  function! Neomake_test_maker_process_output(context) abort
+    AssertEqual ['maker_output'], a:context.output
+    AssertEqual 'stdout', a:context.source
+    return deepcopy(g:neomake_test_entries)
   endfunction
 
   let maker = {
+  \ 'name': 'mymaker',
   \ 'exe': 'printf',
-  \ 'args': ['foo'],
+  \ 'args': ['maker_output'],
   \ 'append_file': 0,
-  \ 'process_output': function('Neomake_test_maker_get_entries')}
+  \ 'process_output': function('Neomake_test_maker_process_output')}
 
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  let expected = copy(g:neomake_test_entries)[0]
+  " valid=1 gets added
+  let expected.valid = 1
+  " filename is removed
+  unlet expected.filename
+  AssertEqual getloclist(0), [expected]
+
+  AssertEqual len(g:neomake_test_countschanged), 1
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_finished), 1
+
+Execute (Makers: get_list_entries):
+  call neomake#statusline#ResetCounts()
+  call g:NeomakeSetupAutocmdWrappers()
+
+  Save g:neomake_test_entries
+  let g:neomake_test_entries = [{
+    \ 'bufnr': bufnr('%'),
+    \ 'filename': 'not_used_with_valid_bufnr',
+    \ 'lnum': 23,
+    \ 'pattern': '',
+    \ 'col': 42,
+    \ 'vcol': 0,
+    \ 'nr': 4711,
+    \ 'text': 'error message',
+    \ 'type': 'E',
+    \ }]
+
+  let maker = {}
+  function! maker.get_list_entries(...) abort dict
+    let jobinfo = a:1
+    AssertEqual keys(jobinfo.maker), ['name', 'get_list_entries']
+    Assert !has_key(self, 'errorformat'), 'errorformat is not required'
+    return deepcopy(g:neomake_test_entries)
+  endfunction
+
+  let maker = neomake#GetMaker(maker)
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
   " valid=1 gets added
   let expected = map(copy(g:neomake_test_entries), "extend(v:val, {'valid': 1})")
-  " filename is removed
+  " filename and maker_name is removed
   let expected = map(expected, "filter(v:val, 'v:key != \"filename\"')")
   AssertEqual getloclist(0), g:neomake_test_entries
 
-  AssertNeomakeMessage 'Skipping User autocmd NeomakeCountsChanged: no hooks.'
+  AssertEqual len(g:neomake_test_countschanged), 1
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_finished), 1
+
+Execute (Makers: get_list_entries via config):
+  let maker = {'name': 'mymaker', 'exe': 'doesnotexist'}
+
+  Save g:neomake_test_entries
+  let g:neomake_test_entries = [{
+    \ 'filename': 'not_used_with_valid_bufnr',
+    \ 'lnum': 23,
+    \ 'pattern': '',
+    \ 'col': 42,
+    \ 'vcol': 0,
+    \ 'nr': 4711,
+    \ 'text': 'error message',
+    \ 'type': 'E',
+    \ }]
+
+  function! NeomakeTestGetEntries(...) abort dict
+    let a = a:000
+    Assert !has_key(self, 'errorformat'), 'errorformat is not required'
+    return deepcopy(g:neomake_test_entries)
+  endfunction
+
+  new
+  let bufnr = bufnr('%')
+  set filetype=neomake_tests
+  let b:neomake_neomake_tests_enabled_makers = [maker]
+  let b:neomake_neomake_tests_mymaker_get_list_entries = function('NeomakeTestGetEntries')
+  RunNeomake
+
+  " valid=1 gets added
+  let expected = map(copy(g:neomake_test_entries), "extend(v:val, {'valid': 1})")
+  " filename is removed
+  let expected = map(expected, "filter(v:val, 'v:key != \"filename\"')")
+  " bufnr gets added from jobinfo
+  let expected = map(expected, "extend(v:val, {'bufnr': bufnr})")
+  AssertEqual getloclist(0), g:neomake_test_entries
+
+  AssertEqual len(g:neomake_test_countschanged), 1
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_finished), 1
+  bwipe
+
+Execute (get_list_entries: minimal example (from doc)):
+  new
+  call g:NeomakeSetupAutocmdWrappers()
+  let bufnr = bufnr('%')
+
+  let maker = {'name': 'My maker'}
+  function! maker.get_list_entries(jobinfo) abort
+    " Change bufnr.
+    new
+    return [
+      \ {'text': 'Some error', 'lnum': 1},
+      \ {'text': 'Some warning', 'type': 'W', 'lnum': 2, 'col': 1, 'length': 5},
+      \ ]
+  endfunction
+  call neomake#Make(1, [maker])
+  " .length was transformed into a highlight.
+  if !has('nvim')
+    AssertEqual neomake#highlights#_get()['file'][bufnr]['NeomakeWarning'], [[2, 1, 5]]
+  endif
+
+  AssertEqual getloclist(0), [
+  \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'E', 'pattern': '', 'text': 'Some error'},
+  \ {'lnum': 2, 'bufnr': bufnr, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'pattern': '', 'text': 'Some warning'}]
+  bwipe
+  bwipe
+
+  AssertEqual len(g:neomake_test_countschanged), 1
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_jobfinished), 1
