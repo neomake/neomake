@@ -626,7 +626,7 @@ function! s:Make(options) abort
                 call neomake#utils#LoudMessage(printf(
                             \ 'Restarting already running job (%d.%d) for the same maker.',
                             \ jobinfo.make_id, jobinfo.id), {'make_id': s:make_id})
-                let jobinfo.restarting = 1
+                let jobinfo.restarting = s:make_id
                 call neomake#CancelJob(jobinfo.id)
                 continue
             endif
@@ -814,7 +814,8 @@ function! s:CleanJobinfo(jobinfo) abort
     call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
 
     " Trigger autocmd if all jobs for a s:Make instance have finished.
-    if !len(filter(copy(s:jobs), 'v:val.make_id == a:jobinfo.make_id'))
+    if !len(filter(copy(s:jobs), 'v:val.make_id == a:jobinfo.make_id'
+                \ . "|| get(v:val, 'restarting', 0) == a:jobinfo.make_id"))
         call s:init_job_output(a:jobinfo)
 
         " If signs were not cleared before this point, then the maker did not return
@@ -1168,7 +1169,7 @@ function! s:exit_handler(job_id, data, event_type) abort
     let jobinfo = s:jobs[a:job_id]
     if get(jobinfo, 'restarting')
         call neomake#utils#DebugMessage('exit: job is restarting.', jobinfo)
-        call s:MakeJob(jobinfo.make_id, jobinfo)
+        call s:MakeJob(jobinfo.restarting, jobinfo)
         call remove(s:jobs, jobinfo.id)
         return
     endif

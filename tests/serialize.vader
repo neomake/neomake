@@ -104,7 +104,7 @@ Execute (NeomakeSh: serialized after doesnotexist: abort):
 
 Execute (Neomake#Make cancels previous jobs):
   if NeomakeAsyncTestsSetup()
-    let first_jobs = neomake#Make(0, [g:sleep_maker, g:maker_error])
+    let first_jobs = neomake#GetJobs(neomake#Make(0, [g:sleep_maker, g:maker_error]))
     let make_id = neomake#GetStatus().last_make_id
     call neomake#Make(0, [g:sleep_maker, g:maker_error])
     NeomakeTestsWaitForFinishedJobs
@@ -114,10 +114,15 @@ Execute (Neomake#Make cancels previous jobs):
 
     AssertEqual neomake#GetStatus().last_make_id, make_id + 1, 'two make instance'
 
-    for j in first_jobs
-      AssertNeomakeMessage 'Restarting already running job ('
-      \ .make_id.'.'.j.') for the same maker.', 2, {'make_id': make_id+1}
+    for jobinfo in first_jobs
+      AssertNeomakeMessage printf('Restarting already running job (%d.%d) for the same maker.',
+      \ make_id, jobinfo.id), 2, {'make_id': make_id+1}
+      AssertNeomakeMessage 'Stopping job', 3, jobinfo
     endfor
+
+    " Restarted job should use new make_id.
+    AssertNeomakeMessage "Starting async job: ['/bin/bash', '-c', 'echo error; false']",
+    \ 2, {'make_id': make_id+1}
   endif
 
 Execute (Neomake#Make does not cancel maker from same run):
