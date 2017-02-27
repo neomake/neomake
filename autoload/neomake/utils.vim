@@ -411,3 +411,7 @@ function! neomake#utils#FindGlobFile(startDir, file) abort
 
     return fileFound
 endfunction
+
+function! neomake#utils#JSONdecode(json) abort
+    return neomake#compat#json_decode(a:json)
+endfunction
