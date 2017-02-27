@@ -189,7 +189,7 @@ function! s:MakeJob(make_id, options) abort
 
     try
         let error = ''
-        let argv = maker.get_argv(jobinfo.file_mode ? jobinfo.bufnr : 0)
+        let argv = maker._get_argv(jobinfo.file_mode ? jobinfo.bufnr : 0)
         if neomake#has_async_support()
             if has('nvim')
                 let opts = {
@@ -274,7 +274,7 @@ function! s:MakeJob(make_id, options) abort
 endfunction
 
 let s:maker_base = {}
-function! s:maker_base.get_argv(...) abort dict
+function! s:maker_base._get_argv(...) abort dict
     let bufnr = a:0 ? a:1 : 0
 
     " Resolve exe/args, which might be a function or dictionary.
@@ -401,7 +401,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             let maker.name = 'unnamed_maker'
         endif
     endif
-    let maker.get_argv = s:maker_base.get_argv
+    let maker._get_argv = s:maker_base._get_argv
     let defaults = copy(s:maker_defaults)
     call extend(defaults, {
         \ 'exe': maker.name,
@@ -1443,8 +1443,11 @@ function! s:display_maker_info(...) abort
     for maker_name in maker_names
         let maker = call('neomake#GetMaker', [maker_name] + a:000)
         echo ' - '.maker.name
-        for [k, V] in items(maker)
+        for [k, V] in sort(copy(items(maker)))
             if k ==# 'name' || k ==# 'ft'
+                continue
+            endif
+            if k =~# '^_'
                 continue
             endif
             if has_key(s:maker_defaults, k)
@@ -1452,7 +1455,7 @@ function! s:display_maker_info(...) abort
                         \ && V ==# s:maker_defaults[k]
                 continue
             endif
-            echo '   '.k.': '.string(V)
+            echo '   - '.k.': '.string(V)
             unlet V
         endfor
     endfor
@@ -1486,7 +1489,7 @@ function! neomake#DisplayInfo() abort
     echo "\n"
     echo '##### Settings'
     echo '```'
-    for [k, V] in items(filter(copy(g:), "v:key =~# '^neomake_'"))
+    for [k, V] in sort(items(filter(copy(g:), "v:key =~# '^neomake_'")))
         echo 'g:'.k.' = '.string(V)
         unlet! V  " Fix variable type mismatch with Vim 7.3.
     endfor
