@@ -222,6 +222,7 @@ Execute (NeomakeInfo):
 
 Execute (NeomakeInfo with FuncRef):
   Save g:neomake_c_enabled_makers
+  new
   set filetype=c
   let g:neomake_c_enabled_makers = ['doesnotexist']
   let g:neomake_c_doesnotexist_maker = {
@@ -233,13 +234,14 @@ Execute (NeomakeInfo with FuncRef):
   for line in [
       \ 'For the current filetype (with :Neomake):',
       \ ' - doesnotexist',
-      \ '   errorformat: ''custom_efm: %m''',
-      \ '   args: function(''getcwd'')',
-      \ '   exe: ''doesnotexist''']
+      \ '   - args: function(''getcwd'')',
+      \ '   - errorformat: ''custom_efm: %m''',
+      \ '   - exe: ''doesnotexist''']
     let i = index(info, line)
     Assert i > idx, 'line not found: '.line
     let idx = i
   endfor
+  bwipe
 
 Execute (Having an invalid &errorformat is OK):
   Save &errorformat
