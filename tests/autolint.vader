@@ -91,7 +91,12 @@ Execute (neomake#configure#autolint_for_buffer handles current buffer only):
   new
   call neomake#configure#autolint_for_buffer('n', 10)
   let autocmds = NeomakeTestsGetAutocommands()
-  AssertNotEqual autocmds, "\n--- Auto-Commands ---"
+  if has('timers')
+    AssertNotEqual autocmds, "\n--- Auto-Commands ---"
+  else
+    AssertEqual NeomakeTestsGetAutocommands(), "\n--- Auto-Commands ---"
+    AssertNeomakeMessage 'Timer support is required for autolinting.'
+  endif
 
   " New buffer should not be configured.
   new
@@ -99,7 +104,9 @@ Execute (neomake#configure#autolint_for_buffer handles current buffer only):
 
   " Now configure 2nd buffer.
   call neomake#configure#autolint_for_buffer('n', 2000)
-  AssertNotEqual autocmds, "\n--- Auto-Commands ---"
+  if has('timers')
+    AssertNotEqual autocmds, "\n--- Auto-Commands ---"
+  endif
 
   " First buffer should be still configured.
   wincmd p

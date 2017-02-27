@@ -72,17 +72,22 @@ function! neomake#configure#autolint_for_buffer(...) abort
   augroup neomake_autolint_buffer
     let modes = s:get_setting('autolint_modes', '')
     if len(modes)
-      if modes =~# 'n'
-        autocmd WinEnter <buffer> call <SID>neomake_autolint_delayed('n')
-        autocmd TextChanged <buffer> call <SID>neomake_autolint_delayed('n')
+      if modes =~# 'n' || modes =~# 'i'
+        if !has('timers')
+          call neomake#utils#ErrorMessage('Timer support is required for autolinting.')
+        else
+          if modes =~# 'n'
+            autocmd WinEnter <buffer> call <SID>neomake_autolint_delayed('n')
+            autocmd TextChanged <buffer> call <SID>neomake_autolint_delayed('n')
+          endif
+          if modes =~# 'i'
+            autocmd TextChangedI <buffer> call <SID>neomake_autolint_delayed('i')
+          endif
+        endif
       endif
-      if modes =~# 'i'
-        autocmd TextChangedI <buffer> call <SID>neomake_autolint_delayed('i')
-      endif
-      if modes =~# 'w'
-        autocmd BufWritePost <buffer> Neomake
-      endif
-    else
+    endif
+    if modes =~# 'w'
+      autocmd BufWritePost <buffer> Neomake
     endif
   augroup END
   " Log neomake#utils#redir('au neomake_autolint_buffer')
