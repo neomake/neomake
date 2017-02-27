@@ -1468,19 +1468,14 @@ function! s:display_maker_info(...) abort
         let maker = call('neomake#GetMaker', [maker_name] + a:000)
         echo ' - '.maker.name
         for [k, V] in sort(copy(items(maker)))
-            if k ==# 'name' || k ==# 'ft'
-                continue
+            if k !=# 'name' && k !=# 'ft' && k !~# '^_'
+                if !has_key(s:maker_defaults, k)
+                            \ || type(V) != type(s:maker_defaults[k])
+                            \ || V !=# s:maker_defaults[k]
+                    echo '   - '.k.': '.string(V)
+                endif
             endif
-            if k =~# '^_'
-                continue
-            endif
-            if has_key(s:maker_defaults, k)
-                        \ && type(V) == type(s:maker_defaults[k])
-                        \ && V ==# s:maker_defaults[k]
-                continue
-            endif
-            echo '   - '.k.': '.string(V)
-            unlet V
+            unlet V  " vim73
         endfor
     endfor
 endfunction
