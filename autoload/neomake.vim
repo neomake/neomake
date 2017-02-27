@@ -1695,6 +1695,19 @@ function! s:display_maker_info(...) abort
             endif
             unlet V  " vim73
         endfor
+
+        let issues = neomake#debug#validate_maker(maker)
+        if !empty(issues)
+            for type in sort(copy(keys(issues)))
+                let items = issues[type]
+                if len(items)
+                    echo '   '.toupper(type) . ':'
+                    for issue in items
+                        echo '    - ' . issue
+                    endfor
+                endif
+            endfor
+        endif
     endfor
 endfunction
 
