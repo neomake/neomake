@@ -26,7 +26,6 @@ if s:nvim_api
         else
             let s:highlights[a:type][a:buf] = nvim_buf_add_highlight(a:buf, 0, '', 0, 0, -1)
         endif
-        let s:highlights[a:type][a:buf] = nvim_buf_add_highlight(a:buf, 0, '', 0, 0, -1)
     endfunction
 
     function! neomake#highlights#ResetFile(buf) abort
