@@ -32,6 +32,7 @@ Include (Cs): ft_cs.vader
 Include (Css): ft_css.vader
 Include (Idris): ft_idris.vader
 Include (Vim): ft_vim.vader
+Include (SQL): ft_sql.vader
 
 ~ Regression tests
 Include (cwd: tcd): cwd-tcd.vader
