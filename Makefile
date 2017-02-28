@@ -87,7 +87,7 @@ TESTS:=$(wildcard tests/*.vader tests/*/*.vader)
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 _TESTS_REL_AND_ABS:=$(call uniq,$(abspath $(TESTS)) $(TESTS))
 $(_TESTS_REL_AND_ABS):
-	make $(TEST_TARGET) VADER_ARGS='$@'
+	make $(TEST_TARGET) VADER_ARGS='$@ $(VADER_OPTIONS)'
 .PHONY: $(_TESTS_REL_AND_ABS)
 
 tags:
