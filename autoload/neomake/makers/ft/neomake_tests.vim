@@ -11,3 +11,12 @@ endfunction
 function! neomake#makers#ft#neomake_tests#maker_without_exe() abort
   return {}
 endfunction
+
+function! neomake#makers#ft#neomake_tests#echo_maker() abort
+  return {
+        \ 'exe': 'printf',
+        \ 'args': 'neomake_tests_echo_maker',
+        \ 'errorformat': '%m',
+        \ 'append_file': 0,
+        \ }
+endfunction

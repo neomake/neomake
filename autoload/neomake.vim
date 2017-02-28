@@ -149,7 +149,17 @@ function! s:MakeJob(make_id, options) abort
     " Call .fn function in maker object, if any.
     if has_key(maker, 'fn')
         " TODO: Allow to throw and/or return 0 to abort/skip?!
-        let maker = call(maker.fn, [jobinfo], maker)
+        " Currently this needs to be copied here for the restart check (which
+        " compares the makers directly).
+        let maker = copy(maker)
+        let returned_maker = call(maker.fn, [jobinfo], maker)
+        if returned_maker isnot# 0
+            " This conditional assignment allows to both return a copy
+            " (factory), while also can be used as a init method.  The maker
+            " is deepcopied usually here already though anyway (via
+            " s:map_makers).
+            let maker = returned_maker
+        endif
     endif
 
     if !executable(maker.exe)

@@ -102,3 +102,37 @@ Execute (neomake#GetEnabledMakers without filetype):
   \ [['mymaker', 0]]
 
   AssertEqual len(g:neomake_test_messages), 0
+
+Execute (maker.fn can set env var):
+  let maker = {
+  \ 'exe': 'sh',
+  \ 'args': ['-c', 'echo MYENV:$MYENV'],
+  \ 'append_file': 0,
+  \ 'errorformat': '%m',
+  \ }
+
+  function! maker.fn(jobinfo)
+    let self.args = ['MYENV=custom', self.exe] + self.args
+    let self.exe = 'env'
+
+    let self.errorformat = '%m'
+    return self
+  endfunction
+
+  let prev_maker = deepcopy(maker)
+  call neomake#Make(1, [maker])
+  AssertEqual maker, prev_maker
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['MYENV:custom']
+
+Execute (Set env from maker config):
+  Save g:neomake_rust_rustc_maker
+
+  let maker = neomake#GetMaker('rustc', 'rust')
+  let maker.args = ['-c', 'env MYENV:$MYENV'] + [maker.exe] + maker.args
+  let maker.exe = 'sh'
+
+  let g:neomake_rust_rustc_maker = maker
+
+  let makers = neomake#GetEnabledMakers('rust')
+  AssertEqual makers[0], extend(maker, {'auto_enabled': 1})
