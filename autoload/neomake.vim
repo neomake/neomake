@@ -141,7 +141,6 @@ function! s:MakeJob(make_id, options) abort
         \ 'name': 'neomake_'.job_id,
         \ 'bufnr': a:options.bufnr,
         \ 'file_mode': a:options.file_mode,
-        \ 'maker': maker,
         \ 'make_id': a:make_id,
         \ 'next': get(a:options, 'next', {}),
         \ }
@@ -149,9 +148,6 @@ function! s:MakeJob(make_id, options) abort
     " Call .fn function in maker object, if any.
     if has_key(maker, 'fn')
         " TODO: Allow to throw and/or return 0 to abort/skip?!
-        " Currently this needs to be copied here for the restart check (which
-        " compares the makers directly).
-        let maker = copy(maker)
         let returned_maker = call(maker.fn, [jobinfo], maker)
         if returned_maker isnot# 0
             " This conditional assignment allows to both return a copy
@@ -159,6 +155,33 @@ function! s:MakeJob(make_id, options) abort
             " is deepcopied usually here already though anyway (via
             " s:map_makers).
             let maker = returned_maker
+        endif
+    endif
+    lockvar maker
+    let jobinfo.maker = maker
+
+    " Check for already running job for the same maker (from other runs).
+    " This used to use this key: maker.name.',ft='.maker.ft.',buf='.maker.bufnr
+    if len(s:jobs)
+        let running_already = values(filter(copy(s:jobs),
+                    \ 'v:val.make_id != s:make_id && v:val.maker == maker'
+                    \ .' && v:val.bufnr == jobinfo.bufnr'
+                    \ ." && !get(v:val, 'restarting')"))
+        if len(running_already)
+            let jobinfo = running_already[0]
+            " let jobinfo.next = copy(options)
+            " TODO: required?! (
+            " let jobinfo.next.enabled_makers = [maker]
+            call neomake#utils#LoudMessage(printf(
+                        \ 'Restarting already running job (%d.%d) for the same maker.',
+                        \ jobinfo.make_id, jobinfo.id), {'make_id': s:make_id})
+            let jobinfo.restarting = s:make_id
+            if neomake#CancelJob(jobinfo.id)
+                return -2
+            endif
+            " Previous job was not running anymore, and we are not being
+            " restarted through its exit handler.
+            return s:MakeJob(a:make_id, a:options)
         endif
     endif
 
@@ -622,26 +645,6 @@ function! s:Make(options) abort
         endif
         " call neomake#utils#DebugMessage('Maker: '.string(enabled_makers), {'make_id': s:make_id})
 
-        " Check for already running job for the same maker (from other runs).
-        " This used to use this key: maker.name.',ft='.maker.ft.',buf='.maker.bufnr
-        if len(s:jobs)
-            let running_already = values(filter(copy(s:jobs),
-                        \ 'v:val.make_id != s:make_id && v:val.maker == maker'
-                        \ ." && v:val.bufnr == bufnr && !get(v:val, 'restarting')"))
-            if len(running_already)
-                let jobinfo = running_already[0]
-                " let jobinfo.next = copy(options)
-                " TODO: required?! (
-                " let jobinfo.next.enabled_makers = [maker]
-                call neomake#utils#LoudMessage(printf(
-                            \ 'Restarting already running job (%d.%d) for the same maker.',
-                            \ jobinfo.make_id, jobinfo.id), {'make_id': s:make_id})
-                let jobinfo.restarting = s:make_id
-                call neomake#CancelJob(jobinfo.id)
-                continue
-            endif
-        endif
-
         if neomake#has_async_support()
             let serialize = neomake#utils#GetSetting('serialize', maker, 0, [ft], bufnr)
         else
@@ -662,6 +665,8 @@ function! s:Make(options) abort
         let options.maker = maker
         try
             let job_id = s:MakeJob(s:make_id, options)
+        catch /^Neomake: restarting job/
+            continue
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '')
             call neomake#utils#ErrorMessage(error, {'make_id': s:make_id})
@@ -673,7 +678,7 @@ function! s:Make(options) abort
             endif
             continue
         endtry
-        if job_id != -1
+        if job_id >= 0
             call add(job_ids, job_id)
         endif
         " If we are serializing makers, stop after the first one. The
