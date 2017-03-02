@@ -27,7 +27,7 @@ function! neomake#makers#ft#python#pylint() abort
     return {
         \ 'args': [
             \ '--output-format=text',
-            \ '--msg-template="{path}:{line}:{column}:{C}: [{symbol}] {msg}"',
+            \ '--msg-template="{path}:{line}:{column}:{C}: [{symbol}] {msg} [{msg_id}]"',
             \ '--reports=no'
         \ ],
         \ 'errorformat':
