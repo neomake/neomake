@@ -109,8 +109,8 @@ function! neomake#CancelJob(job_id, ...) abort
 endfunction
 
 function! neomake#CancelJobs(bang) abort
-    for job in neomake#GetJobs()
-        call neomake#CancelJob(job.id, a:bang)
+    for job_id in keys(s:jobs)
+        call neomake#CancelJob(job_id, a:bang)
     endfor
 endfunction
 

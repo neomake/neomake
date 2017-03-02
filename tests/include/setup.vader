@@ -27,6 +27,7 @@ Before:
         for j in jobs
           Log "Remaining job: ".string(j)
         endfor
+        NeomakeCancelJobs!
         throw len(jobs).' jobs did not finish after 3s.'
       endif
       exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
