@@ -17,10 +17,10 @@ let s:need_errors_cleaning = {
     \ 'file': {}
     \ }
 let s:maker_defaults = {
-            \ 'buffer_output': 1,
-            \ 'remove_invalid_entries': get(g:,'neomake_remove_invalid_entries', 0),
-            \ 'place_signs': get(g:, 'neomake_place_signs', 1),
-            \ 'open_list': get(g:, 'neomake_open_list', 0)}
+            \ 'buffer_output': 1}
+            " \ 'remove_invalid_entries': get(g:,'neomake_remove_invalid_entries', 0),
+            " \ 'place_signs': get(g:, 'neomake_place_signs', 1),
+            " \ 'open_list': get(g:, 'neomake_open_list', 0)}
 let s:project_job_output = {}
 " List of job ids with pending output per buffer.
 let s:buffer_job_output = {}
@@ -408,7 +408,10 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         \ 'exe': maker.name,
         \ 'args': [],
         \ 'errorformat': &errorformat,
-        \ })
+        \ 'remove_invalid_entries': get(g:,'neomake_remove_invalid_entries', 0),
+        \ 'place_signs': get(g:, 'neomake_place_signs', 1),
+        \ 'open_list': get(g:, 'neomake_open_list', 0)
+        \ }, "keep")
     let bufnr = bufnr('%')
     for [key, default] in items(defaults)
         let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
@@ -530,16 +533,16 @@ function! neomake#GetEnabledMakers(...) abort
     return enabled_makers
 endfunction
 
-function! s:HandleLoclistQflistDisplay(open_val, file_mode) abort
-    if a:open_val
+function! s:HandleLoclistQflistDisplay(jobinfo) abort
+    if a:jobinfo.open_list
         let height = get(g:, 'neomake_list_height', 10)
         let win_val = winnr()
-        if a:file_mode
+        if a:jobinfo.file_mode
             exe 'lwindow' height
         else
             exe 'cwindow' height
         endif
-        if a:open_val == 2 && win_val != winnr()
+        if a:jobinfo.open_list == 2 && win_val != winnr()
             wincmd p
         endif
     endif
@@ -874,7 +877,7 @@ function! s:init_job_output(jobinfo) abort
     finally
         let &errorformat = l:efm
     endtry
-    call s:HandleLoclistQflistDisplay(a:jobinfo.maker.open_list, a:jobinfo.file_mode)
+    call s:HandleLoclistQflistDisplay(a:jobinfo)
 
     if a:jobinfo.file_mode
         if a:jobinfo.maker.place_signs
@@ -934,7 +937,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
         let &errorformat = olderrformat
     endtry
 
-    call s:HandleLoclistQflistDisplay(a:jobinfo.maker.open_list, a:jobinfo.file_mode)
+    call s:HandleLoclistQflistDisplay(a:jobinfo)
     call neomake#EchoCurrentError()
 endfunction
 
