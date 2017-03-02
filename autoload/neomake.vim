@@ -18,7 +18,9 @@ let s:need_errors_cleaning = {
     \ }
 let s:maker_defaults = {
             \ 'buffer_output': 1,
-            \ 'remove_invalid_entries': 0}
+            \ 'remove_invalid_entries': get(g:,'neomake_remove_invalid_entries', 0),
+            \ 'place_signs': get(g:, 'neomake_place_signs', 1),
+            \ 'open_list': get(g:, 'neomake_open_list', 0)}
 let s:project_job_output = {}
 " List of job ids with pending output per buffer.
 let s:buffer_job_output = {}
@@ -528,9 +530,8 @@ function! neomake#GetEnabledMakers(...) abort
     return enabled_makers
 endfunction
 
-function! s:HandleLoclistQflistDisplay(file_mode) abort
-    let open_val = get(g:, 'neomake_open_list')
-    if open_val
+function! s:HandleLoclistQflistDisplay(open_val, file_mode) abort
+    if a:open_val
         let height = get(g:, 'neomake_list_height', 10)
         let win_val = winnr()
         if a:file_mode
@@ -538,7 +539,7 @@ function! s:HandleLoclistQflistDisplay(file_mode) abort
         else
             exe 'cwindow' height
         endif
-        if open_val == 2 && win_val != winnr()
+        if a:open_val == 2 && win_val != winnr()
             wincmd p
         endif
     endif
@@ -873,15 +874,15 @@ function! s:init_job_output(jobinfo) abort
     finally
         let &errorformat = l:efm
     endtry
-    call s:HandleLoclistQflistDisplay(a:jobinfo.file_mode)
+    call s:HandleLoclistQflistDisplay(a:jobinfo.maker.open_list, a:jobinfo.file_mode)
 
     if a:jobinfo.file_mode
-        if g:neomake_place_signs
+        if a:jobinfo.maker.place_signs
             call neomake#signs#ResetFile(a:jobinfo.bufnr)
         endif
         let s:need_errors_cleaning['file'][a:jobinfo.bufnr] = 1
     else
-        if g:neomake_place_signs
+        if a:jobinfo.maker.place_signs
             call neomake#signs#ResetProject()
         endif
         let s:need_errors_cleaning['project'] = 1
@@ -933,7 +934,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
         let &errorformat = olderrformat
     endtry
 
-    call s:HandleLoclistQflistDisplay(a:jobinfo.file_mode)
+    call s:HandleLoclistQflistDisplay(a:jobinfo.maker.open_list, a:jobinfo.file_mode)
     call neomake#EchoCurrentError()
 endfunction
 
