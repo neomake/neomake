@@ -97,7 +97,9 @@ function! neomake#CancelJob(job_id, ...) abort
             endtry
         else
             let vim_job = jobinfo.vim_job
-            if job_status(vim_job) !=# 'run'
+            " Use ch_status here, since job_status might be 'dead' already,
+            " without the exit handler being called yet.
+            if ch_status(vim_job) !=# 'open'
                 call neomake#utils#LoudMessage(
                             \ 'job_stop: job was not running anymore', jobinfo)
                 return 0
