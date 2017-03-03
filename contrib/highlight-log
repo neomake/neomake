@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# This script adds color highlighting to the output from Neomake's Vader tests
+# (when called with "vader"), or to the file that gets written into according
+# to `neomake_logfile`.
+#
+# You can use the following to watch colored logs in a terminal window, after
+# having used `let g:neomake_logfile = '/tmp/neomake.log'` in Neovim/Vim:
+#
+#     tail -f /tmp/neomake.log | /path/to/neomake/contrib/highlight-log
+
+# Use 256-color mode for dark grey.
+debug_color='[38;5;8m'
+
+if [ "$1" = vader ]; then
+  if [ -n "$CI" ]; then
+    # Travis does not seem to understand 256 color mode; use bright black.
+    debug_color='[30;1m'
+  fi
+
+  # Add coloring to Vader's output:
+  # 1. failures (includes pending) in red "(X)"
+  # 2. test case header in bold "(2/2)"
+  # 3. Neomake's debug log messages in less intense grey
+  # 4. non-Neomake log lines (e.g. from :Log) in bold/bright yellow.
+  sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/' \
+      -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+)/[1m\0[0m/' \
+      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0[0m/' \
+      -e '/\[\(verbose\|warning\|error  \|\(\(V\|W\|\E\) +[.[:digit:]]\+\)\)\]/! s/^ \+> .*/[33;1m\0[0m/'
+else
+  # Output from neomake_logfile.
+  error='^[:[:digit:]]\+ \[E .*'
+  warn='^[:[:digit:]]\+ \[W .*'
+  debug='^[:[:digit:]]\+ \[D .*'
+  sed -e "s/$error/[31m[1m\0[0m/" \
+      -e "s/$warn/w:[33m\0[0m/" \
+      -e "s/$debug/$debug_color\\0[0m/"
+fi
