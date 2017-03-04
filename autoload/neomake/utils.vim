@@ -326,7 +326,7 @@ function! neomake#utils#ExpandArgs(args) abort
     try
         let ret = map(a:args,
                     \ 'substitute(v:val, '
-                    \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre]\+\)*\)\ze\)\w\@!'', '
+                    \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre]\+\)*\)\ze\)\(\w\|[{(]\)\@!'', '
                     \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
                     \ . '''g'')')
     finally

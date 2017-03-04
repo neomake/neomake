@@ -170,6 +170,9 @@ Execute (neomake#utils#ExpandArgs):
   \ '^%$',
   \ 'C:\\%\\',
   \ 'C:\\%:r\\',
+  \ '%{path}',
+  \ '%(path)',
+  \ '(%)',
   \ ]
   let expected_args = [
   \ 'file1.ext',
@@ -189,6 +192,9 @@ Execute (neomake#utils#ExpandArgs):
   \ '^file1.ext$',
   \ 'C:\\file1.ext\\',
   \ 'C:\\file1\\',
+  \ '%{path}',
+  \ '%(path)',
+  \ '(file1.ext)',
   \ ]
 
   call neomake#utils#ExpandArgs(args)
