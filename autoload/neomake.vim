@@ -1063,7 +1063,7 @@ function! s:vim_output_handler(channel, output, event_type) abort
     let job_id = ch_info(a:channel)['id']
     let jobinfo = s:jobs[job_id]
 
-    let data = split(a:output, "\n", 1)
+    let data = split(a:output, '\v\r?\n', 1)
 
     if exists('jobinfo._vim_in_handler')
         call neomake#utils#DebugMessage(printf('Queueing: %s: %s: %s',
