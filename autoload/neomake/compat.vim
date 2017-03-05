@@ -72,12 +72,10 @@ if has('patch-7.4.503')
 else
     " Assume v7.3.150 with fix for readline()
     function! neomake#compat#writefile(lines, fname, flags) abort
-        if a:flags =~# 'a'
-          if filereadable(a:fname)
-            let lines = readfile(a:fname, a:flags) + a:lines
-          else
-            let lines = a:lines
-          endif
+        if a:flags =~# 'a' && filereadable(a:fname)
+          let lines = readfile(a:fname, a:flags) + a:lines
+        else
+          let lines = a:lines
         endif
         return writefile(lines, a:fname, a:flags)
     endfunction
