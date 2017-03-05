@@ -129,12 +129,20 @@ function! neomake#utils#Stringify(obj) abort
         return '['.join(ls, ', ').']'
     elseif type(a:obj) == type({})
         let ls = []
-        for key in keys(a:obj)
-            call add(ls, key.': '.neomake#utils#Stringify(a:obj[key]))
+        for [k, V] in items(a:obj)
+            if type(V) == type(function('tr'))
+                let fname = substitute(string(V), ', {\zs.*\ze})', '…', '')
+                call add(ls, k.': '.fname)
+            else
+                call add(ls, k.': '.neomake#utils#Stringify(V))
+            endif
+            unlet V  " vim73
         endfor
         return '{'.join(ls, ', ').'}'
+    elseif type(a:obj) == type(function('tr'))
+        return string(a:obj)
     else
-        return ''.a:obj
+        return a:obj
     endif
 endfunction
 
