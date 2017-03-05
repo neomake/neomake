@@ -380,9 +380,11 @@ endfunction
 
 function! neomake#GetMaker(name_or_maker, ...) abort
     if a:0
+        let file_mode = 1
         let real_ft = a:1
         let fts = neomake#utils#GetSortedFiletypes(real_ft)
     else
+        let file_mode = 0
         let fts = []
     endif
     if type(a:name_or_maker) == type({})
@@ -423,7 +425,12 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             endif
         endif
         if !exists('maker')
-            throw 'Neomake: Maker not found: '.a:name_or_maker
+            if file_mode
+                throw printf('Neomake: Maker not found (for filetypes %s): %s',
+                            \ string(fts), a:name_or_maker)
+            else
+                throw 'Neomake: project maker not found: '.a:name_or_maker
+            endif
         endif
     endif
 
@@ -508,7 +515,7 @@ function! neomake#GetEnabledMakers(...) abort
         " This variable is also used for project jobs, so it has no
         " buffer local ('b:') counterpart for now.
         let enabled_makers = copy(get(g:, 'neomake_enabled_makers', []))
-        call map(enabled_makers, "extend(neomake#GetMaker(v:val, &filetype),
+        call map(enabled_makers, "extend(neomake#GetMaker(v:val),
                     \ {'auto_enabled': 0}, 'error')")
     else
         " If a filetype was passed, get the makers that are enabled for each of
