@@ -50,7 +50,7 @@ Execute (neomake#GetMaker with non-existent maker throws errors):
   AssertEqual neomake#GetMaker('non-existent'), {}
   AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent', {}]
   AssertThrows call neomake#GetMaker('nonexistent')
-  AssertEqual g:vader_exception, 'Neomake: Maker not found: nonexistent'
+  AssertEqual g:vader_exception, 'Neomake: project maker not found: nonexistent'
 
 Execute (Neomake with unknown maker):
   " Prevent 'Skipping User autocmd NeomakeCountsChanged: no hooks.' message.
@@ -58,7 +58,7 @@ Execute (Neomake with unknown maker):
 
   Neomake doesnotexist
   AssertEqual g:neomake_test_messages, [
-  \ [0, 'Maker not found: doesnotexist', {}],
+  \ [0, 'Maker not found (for filetypes []): doesnotexist', {}],
   \ [3, 'Nothing to make: no enabled makers.', {}],
   \ ]
 
