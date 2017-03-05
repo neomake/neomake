@@ -230,13 +230,15 @@ Before:
     augroup END
   endfunction
 
+  command! -nargs=1 NeomakeTestsSkip call vader#log('SKIP: ' . <args>)
+
   function! NeomakeAsyncTestsSetup()
     if neomake#has_async_support()
       call neomake#statusline#ResetCounts()
       call g:NeomakeSetupAutocmdWrappers()
       return 1
     endif
-    Log "SKIP: no async support."
+    NeomakeTestsSkip 'no async support.'
   endfunction
 
   function! NeomakeTestsCommandMaker(name, cmd)
