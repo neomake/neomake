@@ -193,6 +193,11 @@ function! neomake#utils#DevNull() abort
     return '/dev/null'
 endfunction
 
+" Get directory separator
+function! neomake#utils#Slash() abort " {{{2
+    return (!exists('+shellslash') || &shellslash) ? '/' : '\'
+endfunction " }}}2
+
 function! neomake#utils#Exists(exe) abort
     " DEPRECATED: just use executable() directly.
     return executable(a:exe)
