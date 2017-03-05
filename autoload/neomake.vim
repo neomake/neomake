@@ -428,7 +428,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     endif
 
     " Create the maker object.
-    let maker = deepcopy(maker)
+    let maker = extend(copy(s:maker_base), deepcopy(maker))
     if !has_key(maker, 'name')
         if type(a:name_or_maker) == type('')
             let maker.name = a:name_or_maker
@@ -436,7 +436,6 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             let maker.name = 'unnamed_maker'
         endif
     endif
-    let maker._get_argv = s:maker_base._get_argv
     let defaults = copy(s:maker_defaults)
     call extend(defaults, {
         \ 'exe': maker.name,

@@ -136,3 +136,11 @@ Execute (Set env from maker config):
 
   let makers = neomake#GetEnabledMakers('rust')
   AssertEqual makers[0], extend(maker, {'auto_enabled': 1})
+
+Execute (Correct function binding from base maker):
+  let maker = neomake#GetMaker({'name': 'maker1'})
+  AssertEqual maker.exe, 'maker1'
+  " Not sure about this one, but it asserts that there is no dict in the string
+  " representation of the object's function, when dumping the object.  This was
+  " different before, when assigning the function from the base maker dict.
+  Assert string(maker) =~# '\v''_get_argv'': function\(''\d+''\),', 'Simple _get_argv'
