@@ -1540,9 +1540,8 @@ function! neomake#DisplayInfo() abort
         unlet! V  " Fix variable type mismatch with Vim 7.3.
     endfor
     echo "\n"
-    echo 'shell:' &shell
-    echo 'shellcmdflag:' &shellcmdflag
     echo 'Windows: '.neomake#utils#IsRunningWindows()
+    echo '[shell, shellcmdflag, shellslash]:' [&shell, &shellcmdflag, &shellslash]
     echo '```'
     if &verbose
         echo "\n"
