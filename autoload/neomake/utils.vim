@@ -100,7 +100,7 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
         if !exists('timediff')
             let timediff = s:reltime_lastmsg()
         endif
-        call writefile([printf('%s [%s %s] %s',
+        call neomake#compat#writefile([printf('%s [%s %s] %s',
                     \ date, s:short_level_to_name[a:level], timediff, msg)],
                     \ logfile, 'a')
     endif
