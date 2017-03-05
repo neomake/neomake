@@ -282,3 +282,62 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode):
   AssertEqual maker.fn(jobinfo), {
   \ 'args': [&shellcmdflag, 'foo '.fnameescape(fname)], 'append_file': 0,
   \ 'exe': &shell, 'remove_invalid_entries': 0}
+
+Execute (neomake#utils#Stringify):
+  AssertEqual neomake#utils#Stringify(1), 1
+  AssertEqual neomake#utils#Stringify('2'), '2'
+  AssertEqual neomake#utils#Stringify([1, [2, 3]]), '[1, [2, 3]]'
+  AssertEqual neomake#utils#Stringify([1, function('tr')]), "[1, function('tr')]"
+
+  let obj = {'k': 'v'}
+  function! obj.f(args) abort dict
+  endfunction
+
+  let fnr_base = substitute(string(obj.f), '\v.*''(\d+)''.*', '\1', '')
+  AssertEqual neomake#utils#Stringify(obj), "{f: function('".fnr_base."'), k: v}"
+
+  let base = {'base': 1}
+  function! base.f2(arg) abort dict
+    return a:arg
+  endfunction
+
+  let displays_dict_with_methods = has('nvim') || has('patch-7.4.1689')  " patch number is arbritrary (based on versions tested in Docker)
+
+  let obj = {}
+  let obj.f2 = base.f2
+  AssertEqual obj.f2('called1'), 'called1'
+  if displays_dict_with_methods
+    AssertEqual neomake#utils#Stringify(obj), "{f2: function('".(fnr_base + 1)."', {…})}"
+  else
+    AssertEqual neomake#utils#Stringify(obj), "{f2: function('".(fnr_base + 1)."')}"
+  endif
+
+  AssertEqual base.f2('called2'), 'called2'
+  AssertEqual neomake#utils#Stringify(base), "{f2: function('".(fnr_base + 1)."'), base: 1}"
+
+  let obj = copy(base)
+  AssertEqual obj.f2, base.f2
+  let obj.base = 0
+  AssertEqual neomake#utils#Stringify(obj), "{f2: function('".(fnr_base + 1)."'), base: 0}"
+  if displays_dict_with_methods
+    " Uses string() for 7.4.1689.
+    AssertNotEqual string(obj.f2), string(base.f2)
+  else
+    AssertEqual obj.f2, base.f2
+  endif
+
+  let obj.f2 = base.f2
+  if displays_dict_with_methods
+    AssertEqual neomake#utils#Stringify(obj.f2), "function('".(fnr_base + 1)."', ".string(obj).")"
+  else
+    AssertEqual neomake#utils#Stringify(obj.f2), "function('".(fnr_base + 1)."')"
+  endif
+
+  let obj = extend(copy(base), {})
+  AssertEqual obj.f2('called2'), 'called2'
+  if displays_dict_with_methods
+    AssertEqual neomake#utils#Stringify(obj.f2), "function('".(fnr_base + 1)."', ".string(obj).")"
+  else
+    AssertEqual neomake#utils#Stringify(obj.f2), "function('".(fnr_base + 1)."')"
+  endif
+  AssertEqual neomake#utils#Stringify(obj), "{f2: function('".(fnr_base + 1)."'), base: 1}"
