@@ -66,7 +66,7 @@ script:
       echo "Skipping job: $SKIP_BUILD_REASON"
     elif [ "$ENV" = "vint-diff" ]; then
       if [ -n "$CHANGED_VIM_FILES" ]; then
-        make vint LINT_FILES="${CHANGED_VIM_FILES[*]}"
+        make vint LINT_ARGS="${CHANGED_VIM_FILES[*]}"
       fi
     else
       if [[ "$ENV" = "testvim" ]]; then

@@ -11,7 +11,7 @@ After:
 
 Execute (tcd is handled properly):
   if exists(':tcd') != 2
-    Log 'SKIP: no :tcd'
+    NeomakeTestsSkip 'no :tcd'
   else
     let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05')
 

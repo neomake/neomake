@@ -94,14 +94,14 @@ tags:
 	ctags -R --langmap=vim:+.vader
 
 # Linters, called from .travis.yml.
-LINT_FILES:=./plugin ./autoload
+LINT_ARGS:=./plugin ./autoload
 build/vint: | build
 	virtualenv $@
 	$@/bin/pip install vim-vint
 vint: build/vint
-	build/vint/bin/vint $(LINT_FILES)
+	build/vint/bin/vint $(LINT_ARGS)
 vint-errors: build/vint
-	build/vint/bin/vint --error $(LINT_FILES)
+	build/vint/bin/vint --error $(LINT_ARGS)
 
 # vimlint
 build/vimlint: | build
@@ -109,9 +109,9 @@ build/vimlint: | build
 build/vimlparser: | build
 	git clone --depth=1 https://github.com/ynkdir/vim-vimlparser $@
 vimlint: build/vimlint build/vimlparser
-	build/vimlint/bin/vimlint.sh -l build/vimlint -p build/vimlparser $(LINT_FILES)
+	build/vimlint/bin/vimlint.sh -l build/vimlint -p build/vimlparser $(LINT_ARGS)
 vimlint-errors: build/vimlint build/vimlparser
-	build/vimlint/bin/vimlint.sh -E -l build/vimlint -p build/vimlparser $(LINT_FILES)
+	build/vimlint/bin/vimlint.sh -E -l build/vimlint -p build/vimlparser $(LINT_ARGS)
 
 build build/neovim-test-home:
 	mkdir $@
@@ -167,14 +167,21 @@ docker_run:
 
 check:
 	ret=0; \
+	echo '== Checking that all tests are included'; \
 	for f in $(filter-out neomake.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
 		if ! grep -q "^Include.*: $$f" tests/neomake.vader; then \
 			echo "Test not included: $$f" >&2; ret=1; \
 		fi; \
 	done; \
+	echo '== Checking for absent Before sections in tests'; \
 	if grep '^Before:' tests/*.vader; then \
 	  echo "Before: should not be used in tests itself, because it overrides the global one."; \
 		(( ret+=2 )); \
+	fi; \
+	echo '== Checking for absent :Log calls'; \
+	if grep '^\s*Log\b' $(shell git ls-files tests/*.vader $(LINT_ARGS)); then \
+	  echo "Found Log commands."; \
+		(( ret+=4 )); \
 	fi; \
 	exit $$ret
 
