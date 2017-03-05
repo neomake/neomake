@@ -461,6 +461,27 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     return maker
 endfunction
 
+function! s:get_makers_for_pattern(pattern) abort
+    if exists('*getcompletion')
+        " Get function prefix based on pattern, until the first backslash.
+        let prefix = substitute(a:pattern, '\v\\.*', '', '')
+
+        " NOTE: the pattern uses &ignorecase.
+        let funcs = getcompletion(prefix.'[a-z]', 'function')
+        call filter(funcs, 'v:val =~# a:pattern')
+        " Remove prefix.
+        call map(funcs, 'v:val['.len(prefix).':]')
+        " Only keep lowercase function names.
+        call filter(funcs, "v:val =~# '\\m^[a-z].*()'")
+        " Remove parenthesis and #.* (for project makers).
+        return map(funcs, "substitute(v:val, '\\v[(#].*', '', '')")
+    endif
+
+    let funcs_output = neomake#utils#redir('fun /'.a:pattern)
+    return map(split(funcs_output, '\n'),
+                \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')")
+endfunction
+
 function! neomake#GetMakers(ft) abort
     " Get all makers for a given filetype.  This is used from completion.
     " XXX: this should probably use a callback or some other more stable
@@ -478,9 +499,10 @@ function! neomake#GetMakers(ft) abort
         catch /^Vim\%((\a\+)\)\=:E117/
             continue
         endtry
-        let funcs_output = neomake#utils#redir('fun /neomake#makers#ft#'.ft.'#\l')
-        for maker_name in map(split(funcs_output, '\n'),
-                    \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')")
+
+        let maker_names = s:get_makers_for_pattern('neomake#makers#ft#'.ft.'#\l')
+
+        for maker_name in maker_names
             let c = get(makers_count, maker_name, 0)
             let makers_count[maker_name] = c + 1
             " Add each maker only once, but keep the order.
@@ -503,9 +525,7 @@ endfunction
 
 function! neomake#GetProjectMakers() abort
     runtime! autoload/neomake/makers/*.vim
-    let funcs_output = neomake#utils#redir('fun /neomake#makers#\(ft#\)\@!\l')
-    return map(split(funcs_output, '\n'),
-                \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')")
+    return s:get_makers_for_pattern('neomake#makers#\(ft#\)\@!\l')
 endfunction
 
 function! neomake#GetEnabledMakers(...) abort
@@ -1400,6 +1420,10 @@ endfunction
 function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
     if a:ArgLead =~# '[^A-Za-z0-9]'
         return []
+    endif
+    if a:CmdLine !~# '\s'
+        " Just 'Neomake!' without following space.
+        return [' ']
     endif
     let file_mode = a:CmdLine =~# '\v^(Neomake|NeomakeFile)\s'
     let makers = file_mode ? neomake#GetMakers(&filetype) : neomake#GetProjectMakers()
