@@ -87,7 +87,7 @@ TESTS:=$(wildcard tests/*.vader tests/*/*.vader)
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 _TESTS_REL_AND_ABS:=$(call uniq,$(abspath $(TESTS)) $(TESTS))
 $(_TESTS_REL_AND_ABS):
-	make $(TEST_TARGET) VADER_ARGS='$@'
+	make $(TEST_TARGET) VADER_ARGS='$@ $(VADER_OPTIONS)'
 .PHONY: $(_TESTS_REL_AND_ABS)
 
 tags:
@@ -166,7 +166,7 @@ docker_run:
 	$(DOCKER) $(if $(DOCKER_RUN),$(DOCKER_RUN),bash)
 
 check:
-	ret=0; \
+	@:; ret=0; \
 	echo '== Checking that all tests are included'; \
 	for f in $(filter-out neomake.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
 		if ! grep -q "^Include.*: $$f" tests/neomake.vader; then \
