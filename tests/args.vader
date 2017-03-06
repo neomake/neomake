@@ -1,6 +1,6 @@
 Include: include/setup.vader
 
-Execute (maker.args as string gets not escaped):
+Execute (maker.args as list gets escaped):
   let maker = {
         \ 'exe': '/usr/bin/printf',
         \ 'args': ['%s\n', '1', '2', '3a 3b'],
@@ -17,7 +17,18 @@ Execute (maker.args as string gets not escaped):
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
     \ ['1', '2', '3a 3b', fname_abs]
 
-  let maker.args = "'%s\\n' 1 2 '3a 3b' 4"
+Execute (maker.args as string gets not escaped):
+  let maker = {
+        \ 'exe': '/usr/bin/printf',
+        \ 'args': "'%s\\n' 1 2 '3a 3b' 4",
+        \ 'errorformat': '%f: %m',
+        \ 'mapexpr': 'expand("%:p") . ": " . v:val',
+        \ }
+
+  let fname = 'tests/fixtures/a filename with spaces'
+  e! tests/fixtures/a\ filename\ with\ spaces
+  let fname_abs = expand('%:p')
+
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
