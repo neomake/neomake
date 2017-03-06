@@ -166,7 +166,7 @@ docker_run:
 	$(DOCKER) $(if $(DOCKER_RUN),$(DOCKER_RUN),bash)
 
 check:
-	ret=0; \
+	@:; ret=0; \
 	echo '== Checking that all tests are included'; \
 	for f in $(filter-out neomake.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
 		if ! grep -q "^Include.*: $$f" tests/neomake.vader; then \
