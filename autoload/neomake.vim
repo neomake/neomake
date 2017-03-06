@@ -529,7 +529,8 @@ function! neomake#GetProjectMakers() abort
 endfunction
 
 function! neomake#GetEnabledMakers(...) abort
-    if !a:0
+    let file_mode = a:0
+    if !file_mode
         " If we have no filetype, use the global default makers.
         " This variable is also used for project jobs, so it has no
         " buffer local ('b:') counterpart for now.
@@ -625,14 +626,16 @@ function! s:Make(options) abort
                     \ }
 
         if !has_key(options, 'enabled_makers')
-            let options.enabled_makers = neomake#GetEnabledMakers(file_mode ? ft : '')
-            if !len(options.enabled_makers)
+            let makers = call('neomake#GetEnabledMakers', file_mode ? [ft] : [])
+            if !len(makers)
                 if file_mode
-                    call neomake#utils#DebugMessage('Nothing to make: no enabled makers.', {'make_id': s:make_id})
+                    call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers.', {'make_id': s:make_id})
                     return []
+                else
+                    let makers = ['makeprg']
                 endif
-                let options.enabled_makers = ['makeprg']
             endif
+            let options.enabled_makers = makers
         endif
 
         if file_mode
@@ -653,7 +656,7 @@ function! s:Make(options) abort
     endif
     let enabled_makers = call('s:map_makers', args)
     if !len(enabled_makers)
-        call neomake#utils#DebugMessage('Nothing to make: no enabled makers.')
+        call neomake#utils#DebugMessage('Nothing to make: no valid makers.')
         return []
     endif
 

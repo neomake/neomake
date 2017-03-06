@@ -295,7 +295,7 @@ Execute (NeomakeSh: two jobs after each other):
     AssertEqual len(g:neomake_test_finished), 2, 'two jobs have run'
   endif
 
-Execute (Neomake#Make: two jobs after each other):
+Execute (Neomake!: two jobs after each other):
   if NeomakeAsyncTestsSetup()
     let g:neomake_maker1_maker = {
         \ 'name': '1',
@@ -317,7 +317,7 @@ Execute (Neomake#Make: two jobs after each other):
     AssertEqual len(g:neomake_test_finished), 1
   endif
 
-Execute (Neomake: non-existing and proper job):
+Execute (Neomake!: non-existing and proper job):
   if NeomakeAsyncTestsSetup()
     " TODO: Trigger failed job (but raising an exception) with Vim.
     " Should find a way to trigger a "failed" job by itself!
@@ -343,6 +343,17 @@ Execute (Neomake: non-existing and proper job):
     AssertEqual len(g:neomake_test_countschanged), 1,
       \ 'counts have changed'
   endif
+
+Execute (Neomake! for project maker via g:neomake_enabled_makers):
+  Save g:neomake_enabled_makers, g:neomake_mycargo_maker
+  let g:neomake_enabled_makers = ['mycargo']
+  let g:neomake_mycargo_maker = {
+  \ 'exe': 'echo',
+  \ 'args': ['mycargo']
+  \ }
+  Neomake!
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['mycargo']
 
 Execute (Neomake: remove_invalid_entries):
   let maker = neomake#utils#MakerFromCommand('echo invalid; echo "E: valid"')

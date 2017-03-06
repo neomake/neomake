@@ -32,7 +32,7 @@ Execute (Neomake with non-existing maker (configured)):
   RunNeomake
   let make_id = neomake#GetStatus().last_make_id
   AssertNeomakeMessage "Maker not found (for filetypes ['myft']): nonexisting_custom", 0, {'make_id': make_id}
-  AssertNeomakeMessage 'Nothing to make: no enabled makers.', 3, {'make_id': make_id}
+  AssertNeomakeMessage 'Nothing to make: no enabled file mode makers.', 3, {'make_id': make_id}
   AssertEqual len(g:neomake_test_messages), 2
   AssertEqua make_id_before + 1, neomake#GetStatus().last_make_id
 
@@ -107,7 +107,7 @@ Execute (neomake#GetMaker errors):
   AssertThrows call neomake#GetMaker('cargo', 'foo')
   AssertEqual g:vader_exception, "Neomake: Maker not found (for filetypes ['foo']): cargo"
 
-Execute (neomake#GetMaker errors):
+Execute (neomake#GetMaker for project maker):
   Save g:neomake_enabled_makers
   let g:neomake_enabled_makers = ['cargo']
   set ft=myft
