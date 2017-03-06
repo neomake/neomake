@@ -65,7 +65,7 @@ Execute (Neomake with unknown maker):
   Neomake doesnotexist
   AssertEqual g:neomake_test_messages, [
   \ [0, 'Maker not found (for filetypes []): doesnotexist', {}],
-  \ [3, 'Nothing to make: no enabled makers.', {}],
+  \ [3, 'Nothing to make: no valid makers.', {}],
   \ ]
 
 Execute (neomake#GetMaker uses defined errorformat with makeprg):
@@ -107,7 +107,7 @@ Execute (neomake#Make in file mode with no filetype and no makers):
   AssertEqual neomake#Make(1, []), []
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages[-1],
-  \ [3, 'Nothing to make: no enabled makers.', {'make_id': make_id}]
+  \ [3, 'Nothing to make: no enabled file mode makers.', {'make_id': make_id}]
 
 Execute (neomake#Make in project mode with no filetype and no makers):
   Save makeprg
