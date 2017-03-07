@@ -404,10 +404,6 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     endif
     let maker.get_argv = s:maker_base.get_argv
     let defaults = copy(s:maker_defaults)
-
-            " \ 'remove_invalid_entries': get(g:,'neomake_remove_invalid_entries', 0),
-            " \ 'place_signs': get(g:, 'neomake_place_signs', 1),
-            " \ 'open_list': get(g:, 'neomake_open_list', 0)}
     call extend(defaults, {
         \ 'exe': maker.name,
         \ 'args': [],
@@ -415,7 +411,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         \ 'remove_invalid_entries': get(maker, 'remove_invalid_entries',
                 \       get(g:,'neomake_remove_invalid_entries', 0)),
         \ 'place_signs': get(maker, 'place_signs', get(g:, 'neomake_place_signs', 1)),
-        \ 'open_list': get(maker, 'open_list', get(g:, 'neomake_open_list', 0))
+        \ 'open_list': get(maker, 'open_list', get(g:, 'neomake_open_list', 0)),
         \ }, 'keep')
     let bufnr = bufnr('%')
     for [key, default] in items(defaults)
@@ -539,7 +535,7 @@ function! neomake#GetEnabledMakers(...) abort
 endfunction
 
 function! s:HandleLoclistQflistDisplay(jobinfo) abort
-    if a:jobinfo.open_list
+    if a:jobinfo.maker.open_list
         let height = get(g:, 'neomake_list_height', 10)
         let win_val = winnr()
         if a:jobinfo.file_mode
@@ -547,7 +543,7 @@ function! s:HandleLoclistQflistDisplay(jobinfo) abort
         else
             exe 'cwindow' height
         endif
-        if a:jobinfo.open_list == 2 && win_val != winnr()
+        if a:jobinfo.maker.open_list == 2 && win_val != winnr()
             wincmd p
         endif
     endif
