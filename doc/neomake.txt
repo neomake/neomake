@@ -459,7 +459,7 @@ is called when the command exits.  The callback is given the following
 dictionary as its sole argument: >
     { 'status': <exit status of maker>,
     \ 'name': <maker name>,
-    \ 'has_next': <true if another maker follows, false otherwise> }
+    \ 'has_next': <1 if another maker follows, 0 otherwise> }
 
 *neomake#Sh* (command[, callback])
 This function is called by the |:NeomakeSh| command. It runs the specified
@@ -472,7 +472,10 @@ the command exits. The callback is given the following dictionary as its
 sole argument: >
     { 'status': <exit status of command>,
     \ 'name': 'sh: <command>',
-    \ 'has_next': false }
+    \ 'has_next': 0 }
+<
+The callback will receive a `jobinfo` object dict as `self`
+(|dict-functions|).
 
 *neomake#ListJobs*
 Invoked via |:NeomakeListJobs|. Echoes a list of running jobs in the format

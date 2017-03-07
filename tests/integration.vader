@@ -344,6 +344,80 @@ Execute (Neomake!: non-existing and proper job):
       \ 'counts have changed'
   endif
 
+Execute (Neomake#Make: error with failing job via jobstart/argv):
+  call g:NeomakeSetupAutocmdWrappers()
+
+  let maker = {'exe': 'true'}
+  function! maker._get_argv(...) dict
+    return neomake#has_async_support() ? ['doesnotexist'] : 'doesnotexist'
+  endfunction
+
+  call neomake#Make(0, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: ['doesnotexist']"
+  else
+    AssertNeomakeMessage "Starting: doesnotexist"
+  endif
+
+  if has('nvim-0.1.8')
+    AssertNeomakeMessage "Failed to start Neovim job: Executable not found: ['doesnotexist']", 0
+  elseif has('nvim')
+    AssertNeomakeMessage 'Failed to start Neovim job: [''doesnotexist'']: '
+      \ .'Vim(let):E902: "doesnotexist" is not an executable'
+  elseif neomake#has_async_support()
+    AssertNeomakeMessage 'Vim job failed to run: executing job failed: No such file or directory'
+  else
+    AssertNeomakeMessage 'exit: unnamed_maker: 127', 3
+  endif
+
+  if neomake#has_async_support()
+    AssertEqual len(g:neomake_test_jobfinished), 0
+    AssertEqual len(g:neomake_test_finished), 0
+  else
+    AssertEqual len(g:neomake_test_jobfinished), 1
+    AssertEqual len(g:neomake_test_finished), 1
+  endif
+
+
+Execute (Neomake#Make: error with failing job via jobstart/argv + true):
+  call g:NeomakeSetupAutocmdWrappers()
+
+  let maker = {'exe': 'true'}
+  function! maker._get_argv(...) dict
+    return neomake#has_async_support() ? ['doesnotexist'] : 'doesnotexist'
+  endfunction
+
+  call neomake#Make(0, [maker, {'exe': 'true'}])
+  NeomakeTestsWaitForFinishedJobs
+
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: ['doesnotexist']"
+  else
+    AssertNeomakeMessage "Starting: doesnotexist"
+  endif
+
+  if has('nvim-0.1.8')
+    AssertNeomakeMessage "Failed to start Neovim job: Executable not found: ['doesnotexist']", 0
+  elseif has('nvim')
+    AssertNeomakeMessage 'Failed to start Neovim job: [''doesnotexist'']: '
+      \ .'Vim(let):E902: "doesnotexist" is not an executable'
+  elseif neomake#has_async_support()
+    AssertNeomakeMessage 'Vim job failed to run: executing job failed: No such file or directory'
+  else
+    AssertNeomakeMessage 'exit: unnamed_maker: 127', 3
+  endif
+
+  if neomake#has_async_support()
+    AssertEqual len(g:neomake_test_jobfinished), 1
+    AssertEqual len(g:neomake_test_finished), 1
+  else
+    AssertEqual len(g:neomake_test_jobfinished), 2
+    AssertEqual len(g:neomake_test_finished), 1
+  endif
+
+
 Execute (Neomake! for project maker via g:neomake_enabled_makers):
   Save g:neomake_enabled_makers, g:neomake_mycargo_maker
   let g:neomake_enabled_makers = ['mycargo']
@@ -445,34 +519,40 @@ Execute (Quickfix list should be cleared only after maker finished):
   endif
 
 Execute (neomake#Sh: exit_callback):
-  let g:neomake_test_cb = 0
-  function! g:NeomakeTestsAfterExit(job_status)
-    let g:neomake_test_cb = 1
+  Save g:neomake_test_cb
+  let g:neomake_test_cb = []
+  function! g:NeomakeTestsAfterExit(job_status) dict
+    call add(g:neomake_test_cb, [self, a:job_status])
   endfunction
   call neomake#Sh('true', function('g:NeomakeTestsAfterExit'))
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual g:neomake_test_cb, 1
+  AssertEqual len(g:neomake_test_cb), 1
+  AssertEqual g:neomake_test_cb[0][1], {'status': 0, 'name': 'sh: true', 'has_next': 0}
 
 Execute (neomake#Make: exit_callback):
-  let g:neomake_test_cb = 0
-  function! g:NeomakeTestsAfterExit(job_status)
-    let g:neomake_test_cb = 1
+  Save g:neomake_test_cb
+  let g:neomake_test_cb = []
+  function! g:NeomakeTestsAfterExit(job_status) dict
+    call add(g:neomake_test_cb, [self, a:job_status])
   endfunction
-  let maker = {'exe': 'true'}
-  call neomake#Make(0, [maker], function('g:NeomakeTestsAfterExit'))
+  let maker = {'exe': 'true', 'serialize': 1}
+  call neomake#Make(0, [maker, maker], function('g:NeomakeTestsAfterExit'))
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual g:neomake_test_cb, 1
+  AssertEqual len(g:neomake_test_cb), 2
+  AssertEqual g:neomake_test_cb[0][1], {'status': 0, 'name': 'unnamed_maker', 'has_next': 1}
+  AssertEqual g:neomake_test_cb[1][1], {'status': 0, 'name': 'unnamed_maker', 'has_next': 0}
 
 Execute (neomake#Make: exit_callback with maker names):
-  let g:neomake_test_cb = 0
-  function! g:NeomakeTestsAfterExit(job_status)
-    let g:neomake_test_cb = 1
+  Save g:neomake_test_cb
+  let g:neomake_test_cb = []
+  function! g:NeomakeTestsAfterExit(job_status) dict
+    call add(g:neomake_test_cb, [self, a:job_status])
   endfunction
   Save g:neomake_mymaker_maker
   let g:neomake_mymaker_maker = {'exe': 'true'}
   call neomake#Make(0, ['mymaker'], function('g:NeomakeTestsAfterExit'))
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual g:neomake_test_cb, 1
+  AssertEqual g:neomake_test_cb[0][1], {'status': 0, 'name': 'mymaker', 'has_next': 0}
 
 Execute (Location list should be cleared only after first output):
   call g:NeomakeSetupAutocmdWrappers()
