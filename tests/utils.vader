@@ -254,7 +254,7 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   if neomake#has_async_support()
     let expected_argv = ['/bin/bash', '-o', 'pipefail', '-c', 'echo 1']
   else
-    let expected_argv = "/bin/bash '-o' 'pipefail' '-c' 'echo 1'"
+    let expected_argv = "/bin/bash -o pipefail -c 'echo 1'"
   endif
   let bound_maker = neomake#GetMaker(maker.fn(jobinfo))
   AssertEqual bound_maker._get_argv(), expected_argv
@@ -265,7 +265,7 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   if neomake#has_async_support()
     let expected_argv = ['/bin/bash', '-o', 'pipefail', '-c', 'echo 2']
   else
-    let expected_argv = "/bin/bash '-o' 'pipefail' '-c' 'echo 2'"
+    let expected_argv = "/bin/bash -o pipefail -c 'echo 2'"
   endif
   let bound_maker = neomake#GetMaker(maker.fn(jobinfo))
   AssertEqual bound_maker._get_argv(), expected_argv

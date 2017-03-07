@@ -348,31 +348,35 @@ function! s:maker_base._get_argv(...) abort dict
         endif
     endif
 
-    if neomake#has_async_support()
+    if has('nvim')
         if args_is_list
             let argv = [exe] + args
         else
             let argv = exe . (len(args) ? ' ' . args : '')
         endif
-        if !has('nvim')
-            if !args_is_list
-                " Have to use a shell to handle argv properly (Vim splits it
-                " at spaces).
-                let argv = [&shell, &shellcmdflag, argv]
+    elseif neomake#has_async_support()
+        " Vim jobs, need special treatment on Windows..
+        if neomake#utils#IsRunningWindows()
+            " Windows needs a subshell to handle PATH/%PATHEXT% etc.
+            if args_is_list
+                let argv = join(map(copy([exe] + args), 'neomake#utils#shellescape(v:val)'))
+            else
+                let argv = exe.' '.args
             endif
+            let argv = &shell.' '.&shellcmdflag.' '.argv
+
+        elseif !args_is_list
+            " Use a shell to handle argv properly (Vim splits at spaces).
+            let argv = [&shell, &shellcmdflag, exe.' '.args]
+        else
+            let argv = [exe] + args
         endif
     else
-        let argv = exe
-        if len(args)
-            if args_is_list
-                if neomake#utils#IsRunningWindows()
-                    let argv .= ' '.join(args)
-                else
-                    let argv .= ' '.join(map(args, 'shellescape(v:val)'))
-                endif
-            else
-                let argv .= ' '.args
-            endif
+        " Vim-async, via system().
+        if args_is_list
+            let argv = join(map(copy([exe] + args), 'neomake#utils#shellescape(v:val)'))
+        else
+            let argv = exe.' '.args
         endif
     endif
     return argv
@@ -1540,9 +1544,8 @@ function! neomake#DisplayInfo() abort
         unlet! V  " Fix variable type mismatch with Vim 7.3.
     endfor
     echo "\n"
-    echo 'shell:' &shell
-    echo 'shellcmdflag:' &shellcmdflag
     echo 'Windows: '.neomake#utils#IsRunningWindows()
+    echo '[shell, shellcmdflag, shellslash]:' [&shell, &shellcmdflag, &shellslash]
     echo '```'
     if &verbose
         echo "\n"

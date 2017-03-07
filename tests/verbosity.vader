@@ -71,7 +71,7 @@ Execute (neomake#Make uses &verbose):
     \ [[2, "Starting async job: ['echo', '1']", {'make_id': make_id}]]
   else
     AssertEqual g:neomake_test_messages,
-    \ [[2, "Starting: echo '1'", {'make_id': make_id}]]
+    \ [[2, "Starting: echo 1", {'make_id': make_id}]]
   endif
   AssertEqual len(g:neomake_test_messages), 1
 

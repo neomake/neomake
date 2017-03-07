@@ -468,3 +468,18 @@ endfunction
 function! neomake#utils#JSONdecode(json) abort
     return neomake#compat#json_decode(a:json)
 endfunction
+
+" Smarter shellescape, via vim-fugitive.
+function! s:gsub(str,pat,rep) abort
+  return substitute(a:str,'\v\C'.a:pat,a:rep,'g')
+endfunction
+
+function! neomake#utils#shellescape(arg) abort
+  if a:arg =~# '^[A-Za-z0-9_/.-]\+$'
+    return a:arg
+  elseif &shell =~? 'cmd' || exists('+shellslash') && !&shellslash
+    return '"'.s:gsub(s:gsub(a:arg, '"', '""'), '\%', '"%"').'"'
+  else
+    return shellescape(a:arg)
+  endif
+endfunction

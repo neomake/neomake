@@ -300,5 +300,5 @@ Execute (Neomake picks up custom maker correctly):
     AssertNeomakeMessage "Starting async job: ['echo', '".fname."', '--foo', 'bar']"
     NeomakeTestsWaitForFinishedJobs
   else
-    AssertNeomakeMessage "Starting: echo '".fname."' '--foo' 'bar'"
+    AssertNeomakeMessage "Starting: echo ".fname." --foo bar"
   endif
