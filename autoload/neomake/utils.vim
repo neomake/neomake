@@ -261,13 +261,13 @@ endfunction
 function! neomake#utils#GetSupersetOf(ft) abort
     try
         return eval('neomake#makers#ft#' . a:ft . '#SupersetOf()')
-    catch /^Vim\%((\a\+)\)\=:E117/
+    catch /^Vim\%((\a\+)\)\=:\(E117\|E121\)/
         return ''
     endtry
 endfunction
 
 " Attempt to get list of filetypes in order of most specific to least specific.
-function! neomake#utils#GetSortedFiletypes(ft) abort
+function! neomake#utils#GetSortedFiletypes(fts) abort
     function! CompareFiletypes(ft1, ft2) abort
         if neomake#utils#GetSupersetOf(a:ft1) ==# a:ft2
             return -1
@@ -278,7 +278,8 @@ function! neomake#utils#GetSortedFiletypes(ft) abort
         endif
     endfunction
 
-    return sort(split(a:ft, '\.'), function('CompareFiletypes'))
+    let fts = type(a:fts) == type('') ? split(a:fts, '\.') : a:fts
+    return sort(copy(fts), function('CompareFiletypes'))
 endfunction
 
 let s:unset = {}  " Sentinel.

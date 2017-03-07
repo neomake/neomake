@@ -369,3 +369,16 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   AssertNotEqual temp_file, fnameescape(temp_file)
 
   bwipe
+
+Execute (neomake#utils#GetSortedFiletypes):
+  AssertEqual neomake#utils#GetSortedFiletypes('foo'), ['foo']
+  AssertEqual neomake#utils#GetSortedFiletypes('foo.bar'), ['foo', 'bar']
+  AssertEqual neomake#utils#GetSortedFiletypes('jsx.javascript'), ['jsx', 'javascript']
+  AssertEqual neomake#utils#GetSortedFiletypes('javascript.jsx'), ['jsx', 'javascript']
+  AssertEqual neomake#utils#GetSortedFiletypes('foo.jsx.javascript'), ['foo', 'jsx', 'javascript']
+  AssertEqual neomake#utils#GetSortedFiletypes('jsx.javascript.foo'), ['jsx', 'javascript', 'foo']
+
+  AssertEqual neomake#utils#GetSortedFiletypes(['foo']), ['foo']
+  AssertEqual neomake#utils#GetSortedFiletypes(['foo', 'bar']), ['foo', 'bar']
+  " If a list is passed, this gets not split on dots recursively.
+  AssertEqual neomake#utils#GetSortedFiletypes(['foo', 'bar.baz']), ['foo', 'bar.baz']
