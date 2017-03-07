@@ -626,8 +626,15 @@ function! s:Make(options) abort
         let s:make_id += 1
         let s:make_info[s:make_id] = {
                     \ 'cwd': getcwd(),
-                    \ 'verbosity': get(g:, 'neomake_verbose', 1) + &verbose,
+                    \ 'verbosity': get(g:, 'neomake_verbose', 1),
                     \ }
+        if &verbose
+            let s:make_info[s:make_id].verbosity += &verbose
+            call neomake#utils#DebugMessage(printf(
+                        \ 'Adding &verbose (%d) to verbosity level: %d',
+                        \ &verbose, s:make_info[s:make_id].verbosity),
+                        \ {'make_id': s:make_id})
+        endif
 
         if !has_key(options, 'enabled_makers')
             let makers = call('neomake#GetEnabledMakers', file_mode ? [ft] : [])
