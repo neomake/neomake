@@ -404,14 +404,19 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     endif
     let maker.get_argv = s:maker_base.get_argv
     let defaults = copy(s:maker_defaults)
+
+            " \ 'remove_invalid_entries': get(g:,'neomake_remove_invalid_entries', 0),
+            " \ 'place_signs': get(g:, 'neomake_place_signs', 1),
+            " \ 'open_list': get(g:, 'neomake_open_list', 0)}
     call extend(defaults, {
         \ 'exe': maker.name,
         \ 'args': [],
         \ 'errorformat': &errorformat,
-        \ 'remove_invalid_entries': get(g:,'neomake_remove_invalid_entries', 0),
-        \ 'place_signs': get(g:, 'neomake_place_signs', 1),
-        \ 'open_list': get(g:, 'neomake_open_list', 0)
-        \ }, "keep")
+        \ 'remove_invalid_entries': get(maker, 'remove_invalid_entries',
+                \       get(g:,'neomake_remove_invalid_entries', 0)),
+        \ 'place_signs': get(maker, 'place_signs', get(g:, 'neomake_place_signs', 1)),
+        \ 'open_list': get(maker, 'open_list', get(g:, 'neomake_open_list', 0))
+        \ }, 'keep')
     let bufnr = bufnr('%')
     for [key, default] in items(defaults)
         let maker[key] = neomake#utils#GetSetting(key, maker, default, fts, bufnr)
