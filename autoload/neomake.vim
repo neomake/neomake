@@ -399,12 +399,14 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     else
         if len(fts)
             for ft in fts
-                let m = get(g:, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
-                if type(m) == type({})
-                    let maker = m
-                    break
-                endif
-                unlet m
+                for scope in [b:, g:]
+                    let m = get(scope, 'neomake_'.ft.'_'.a:name_or_maker.'_maker')
+                    if type(m) == type({})
+                        let maker = m
+                        break
+                    endif
+                    unlet m
+                endfor
             endfor
         endif
         if !exists('maker') && exists('g:neomake_'.a:name_or_maker.'_maker')
