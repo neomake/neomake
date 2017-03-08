@@ -384,6 +384,11 @@ function! neomake#utils#ExpandArgs(args) abort
                     \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre]\+\)*\)\ze\)\w\@!'', '
                     \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
                     \ . '''g'')')
+        let ret = map(ret,
+                    \ 'substitute(v:val, '
+                    \ . '''\(\%(\\\@<!\\\)\@<!\~\)'', '
+                    \ . 'expand(''~''), '
+                    \ . '''g'')')
     finally
         let &iskeyword = isk
     endtry
