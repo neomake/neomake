@@ -232,10 +232,9 @@ function! s:MakeJob(make_id, options) abort
                     \ 'on_stderr': function('s:nvim_output_handler'),
                     \ 'on_exit': function('s:exit_handler')
                     \ }
+                call neomake#utils#LoudMessage(printf('Starting async job: %s',
+                            \ string(argv)), jobinfo)
                 try
-                    call neomake#utils#LoudMessage(printf(
-                                \ 'Starting async job: %s',
-                                \ string(argv)), jobinfo)
                     let job = jobstart(argv, opts)
                 catch
                     let error = printf('Failed to start Neovim job: %s: %s',
@@ -261,20 +260,19 @@ function! s:MakeJob(make_id, options) abort
                             \ 'close_cb': function('s:vim_exit_handler'),
                             \ 'mode': 'raw',
                             \ }
+                call neomake#utils#LoudMessage(printf('Starting async job: %s',
+                            \ string(argv)), jobinfo)
                 try
-                    call neomake#utils#LoudMessage(printf(
-                                \ 'Starting async job: %s',
-                                \ string(argv)), jobinfo)
                     let job = job_start(argv, opts)
                     " Get this as early as possible!
                     let jobinfo.id = ch_info(job)['id']
-                    let jobinfo.vim_job = job
-                    let s:jobs[jobinfo.id] = jobinfo
                 catch
                     let error = printf('Failed to start Vim job: %s: %s',
                                 \ argv, v:exception)
                 endtry
                 if empty(error)
+                    let jobinfo.vim_job = job
+                    let s:jobs[jobinfo.id] = jobinfo
                     call neomake#utils#DebugMessage(printf('Vim job: %s',
                                 \ string(job_info(job))), jobinfo)
                     call neomake#utils#DebugMessage(printf('Vim channel: %s',
@@ -564,8 +562,8 @@ function! neomake#GetEnabledMakers(...) abort
                 let auto_enabled = 0
             else
                 let auto_enabled = 1
+                let fnname = 'neomake#makers#ft#'.ft.'#EnabledMakers'
                 try
-                    let fnname = 'neomake#makers#ft#'.ft.'#EnabledMakers'
                     let makers = eval(fnname . '()')
                 catch /^Vim\%((\a\+)\)\=:E117/
                     let makers = []
