@@ -36,6 +36,9 @@ function! neomake#makers#ft#rust#cargo() abort
 endfunction
 
 function! neomake#makers#ft#rust#CargoMapexpr(val) abort
+    if a:val[0] !=# '{'
+        return
+    endif
     let l:decoded = neomake#utils#JSONdecode(a:val)
     let l:data = get(l:decoded, 'message', -1)
     if type(l:data) == type({}) && len(l:data['spans'])
