@@ -161,13 +161,13 @@ Execute (maker.fn can set env var):
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['MYENV:custom']
 
 Execute (Set env from maker config):
-  Save g:neomake_rust_rustc_maker
+  Save g:neomake_rust_cargo_maker
 
-  let maker = neomake#GetMaker('rustc', 'rust')
+  let maker = neomake#GetMaker('cargo', 'rust')
   let maker.args = ['-c', 'env MYENV:$MYENV'] + [maker.exe] + maker.args
   let maker.exe = 'sh'
 
-  let g:neomake_rust_rustc_maker = maker
+  let g:neomake_rust_cargo_maker = maker
 
   let makers = neomake#GetEnabledMakers('rust')
   AssertEqual makers[0], extend(maker, {'auto_enabled': 1})
