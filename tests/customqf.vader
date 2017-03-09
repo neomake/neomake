@@ -1,0 +1,54 @@
+Include: include/setup.vader
+
+Execute (Custom quickfix setup):
+  call g:NeomakeTestsEnsureExe('shellcheck')
+  let enabled_makers = neomake#GetEnabledMakers('sh')
+  call map(enabled_makers, 'v:val.name')
+  AssertEqual enabled_makers, ['sh', 'shellcheck']
+
+Execute (Displays custom formatted quickfix buffer):
+  call g:NeomakeTestsEnsureExe('shellcheck')
+  e! tests/fixtures/errors.sh
+  call neomake#quickfix#enable()
+  RunNeomake sh shellcheck
+
+  lopen
+  let llist = getloclist(0)
+  Assert llist[0].text =~# '\<nmcfg:{.*}$', 'Neomake config not attached to first item'
+
+  AssertEqual getline(1, '$'),
+    \ ['  sh 5:- syntax error near unexpected token `newline'' ',
+    \  '  sh 5:- `foo(''', 'shel 1:1 this is just a stub ']
+
+  Assert exists('#neomake_qf#CursorMoved'), 'autocmd not setup'
+  Assert b:neomake_start_col, 'b:neomake_start_col was not set'
+
+  normal! 0
+  " :normal! ignores autocmd's here?
+  doautocmd CursorMoved
+  AssertEqual expand('<cWORD>'), 'syntax'
+  AssertNotEqual col('.'), 1
+  close
+
+Execute (Disable custom formatted quickfix buffer after enabling):
+  call g:NeomakeTestsEnsureExe('shellcheck')
+  e! tests/fixtures/errors.sh
+  call neomake#quickfix#disable()
+  RunNeomake sh shellcheck
+
+  lopen
+  let llist = getloclist(0)
+  Assert llist[0].text !~# '\<nmcfg:{.*}$', 'Neomake config still attached to first item'
+
+  AssertEqual getline(1, '$'),
+    \ ['tests/fixtures/errors.sh|5| syntax error near unexpected token `newline''',
+    \  'tests/fixtures/errors.sh|5| `foo(''', '-fgcc|1 col 1 warning| this is just a stub']
+
+  Assert !exists('#neomake_qf#CursorMoved'), 'autocmd was setup'
+  Assert !exists('b:neomake_start_col'), 'b:neomake_start_col was is still set'
+
+  normal! 0
+  doautocmd CursorMoved
+  AssertEqual expand('<cWORD>'), 'tests/fixtures/errors.sh|5|'
+
+  close
