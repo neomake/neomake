@@ -129,3 +129,14 @@ function! neomake#highlights#DefineHighlights() abort
     endfor
 endfunction
 call neomake#highlights#DefineHighlights()
+
+function! s:wipe_highlights(bufnr) abort
+    for type in ['file', 'project']
+        if has_key(s:highlights[type], a:bufnr)
+            unlet s:highlights[type][a:bufnr]
+        endif
+    endfor
+endfunction
+augroup neomake_highlights
+    autocmd! BufWipeout * call s:wipe_highlights(expand('<abuf>'))
+augroup END
