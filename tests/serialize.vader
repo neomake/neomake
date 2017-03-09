@@ -148,7 +148,6 @@ Execute (Neomake#Make handles cwd properly):
 
       " Create a new window/buffer, with a different working dir.
       new
-      let unreadable_bufnr = bufnr('%')
       file file2
       if !isdirectory('dir1')
         call mkdir('dir1', '', 0770)
@@ -187,11 +186,9 @@ Execute (Neomake#Make handles cwd properly):
       exe 'cd '.orig_cwd
     endtry
 
-    let temp_file = g:neomake_test_jobfinished[2].jobinfo.maker.tempfile_name
-    AssertNeomakeMessage printf('Using tempfile for unreadable buffer %d: %s',
-    \ unreadable_bufnr,  temp_file)
+    Assert !has_key(g:neomake_test_jobfinished[2].jobinfo.maker, 'tempfile_name'), 'No tempfile is used'
 
     AssertEqual g:neomake_test_exit_cb, [jobinfo1, {'status': 0, 'name': 'maker1', 'has_next': 0}]
     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
-    \ ['maker_1 build: '.file1, 'maker_2 build: '.file1, 'maker_3 '.temp_file]
+    \ ['maker_1 build: '.file1, 'maker_2 build: '.file1, 'maker_3 '.file1]
   endif

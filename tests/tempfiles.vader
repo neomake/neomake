@@ -131,3 +131,24 @@ Execute (Maker can specify temporary file to use via fn):
     AssertNeomakeMessage "Starting: true '".g:neomake_test_tempfile."'"
   endif
   bwipe
+
+Execute (maker._get_argv uses jobinfo for bufnr):
+  let maker = neomake#GetMaker({'name': 'my_maker', 'append_file': 1})
+
+  new
+  let bufnr = bufnr('%')
+  let jobinfo = {'file_mode': 1, 'bufnr': bufnr}
+  call maker._get_argv(jobinfo)
+  Assert !empty(maker.tempfile_name)
+
+  let maker = neomake#GetMaker({'name': 'my_maker', 'append_file': 1})
+  e! tests/fixtures/errors.py
+  call maker._get_argv(jobinfo)
+  Assert !has_key(maker, 'tempfile_name')
+
+  wincmd p
+  let jobinfo = {'file_mode': 1, 'bufnr': bufnr}
+  AssertEqual maker._get_argv(jobinfo), ['my_maker', fnamemodify(bufname(bufnr), ':p')]
+
+  wincmd p
+  bwipe

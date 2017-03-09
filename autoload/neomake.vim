@@ -297,19 +297,18 @@ function! s:MakeJob(make_id, options) abort
 endfunction
 
 let s:maker_base = {}
-function! s:maker_base._get_tempfilename() abort dict
+function! s:maker_base._get_tempfilename(bufnr) abort dict
     if has_key(self, 'tempfile_name')
         return self.tempfile_name
     endif
 
-    let bufnr = bufnr('%')
     let fts = has_key(self, 'ft') ? [self.ft] : []
-    let tempfile_enabled = neomake#utils#GetSetting('tempfile_enabled', self, 1, fts, bufnr)
+    let tempfile_enabled = neomake#utils#GetSetting('tempfile_enabled', self, 1, fts, a:bufnr)
     if !tempfile_enabled
         return ''
     endif
 
-    let bufname = bufname(bufnr)
+    let bufname = bufname(a:bufnr)
     if len(bufname)
         let bufname = fnamemodify(bufname, ':t')
     else
@@ -320,33 +319,32 @@ function! s:maker_base._get_tempfilename() abort dict
 endfunction
 
 " Check if a temporary file is used, and set self.tempfile_name in case it is.
-function! s:maker_base._get_fname_for_buffer() abort
-    let bufnr = bufnr('%')
-    let bufname = bufname(bufnr)
+function! s:maker_base._get_fname_for_buffer(bufnr) abort
+    let bufname = bufname(a:bufnr)
     if !len(bufname)
-        let temp_file = self._get_tempfilename()
+        let temp_file = self._get_tempfilename(a:bufnr)
         if !empty(temp_file)
             call neomake#utils#DebugMessage(printf(
-                        \ 'Using tempfile for unnamed buffer %s: %s', bufnr, temp_file))
+                        \ 'Using tempfile for unnamed buffer %s: %s', a:bufnr, temp_file))
         else
             throw 'Neomake: no file name'
         endif
 
-    elseif &modified
-        let temp_file = self._get_tempfilename()
+    elseif getbufvar(a:bufnr, '&modified')
+        let temp_file = self._get_tempfilename(a:bufnr)
         if !empty(temp_file)
             call neomake#utils#DebugMessage(printf(
-                        \ 'Using tempfile for modified buffer %s: %s', bufnr, temp_file))
+                        \ 'Using tempfile for modified buffer %s: %s', a:bufnr, temp_file))
         else
             call neomake#utils#DebugMessage(printf(
-                        \ 'warning: buffer is modified: %s', bufnr))
+                        \ 'warning: buffer is modified: %s', a:bufnr))
         endif
 
     elseif !filereadable(bufname)
-        let temp_file = self._get_tempfilename()
+        let temp_file = self._get_tempfilename(a:bufnr)
         if !empty(temp_file)
             call neomake#utils#DebugMessage(printf(
-                        \ 'Using tempfile for unreadable buffer %s: %s', bufnr, temp_file))
+                        \ 'Using tempfile for unreadable buffer %s: %s', a:bufnr, temp_file))
         else
             throw 'Neomake: file is not readable ('.fnamemodify(bufname, ':p').')'
         endif
@@ -359,7 +357,7 @@ function! s:maker_base._get_fname_for_buffer() abort
         if !isdirectory(temp_dir)
             call mkdir(temp_dir, 'p', 0750)
         endif
-        call writefile(getbufline(bufnr, 1, '$'), temp_file)
+        call writefile(getbufline(a:bufnr, 1, '$'), temp_file)
 
         let bufname = temp_file
         let self.tempfile_name = temp_file
@@ -398,7 +396,7 @@ function! s:maker_base._get_argv(jobinfo) abort dict
 
     let fts = has_key(self, 'ft') ? [self.ft] : []
     if a:jobinfo.file_mode && neomake#utils#GetSetting('append_file', self, 1, fts, a:jobinfo.bufnr)
-        let filename = self._get_fname_for_buffer()
+        let filename = self._get_fname_for_buffer(a:jobinfo.bufnr)
         if args_is_list
             call add(args, filename)
         else
