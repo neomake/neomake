@@ -302,12 +302,12 @@ Execute (neomake#utils#Stringify):
     return a:arg
   endfunction
 
-  let displays_dict_with_methods = has('nvim') || has('patch-7.4.1689')  " patch number is arbritrary (based on versions tested in Docker)
+  let string_displays_partial = has('patch-7.4.1608')
 
   let obj = {}
   let obj.f2 = base.f2
   AssertEqual obj.f2('called1'), 'called1'
-  if displays_dict_with_methods
+  if string_displays_partial
     AssertEqual neomake#utils#Stringify(obj), "{f2: function('".(fnr_base + 1)."', {…})}"
   else
     AssertEqual neomake#utils#Stringify(obj), "{f2: function('".(fnr_base + 1)."')}"
@@ -320,7 +320,7 @@ Execute (neomake#utils#Stringify):
   AssertEqual obj.f2, base.f2
   let obj.base = 0
   AssertEqual neomake#utils#Stringify(obj), "{f2: function('".(fnr_base + 1)."'), base: 0}"
-  if displays_dict_with_methods
+  if string_displays_partial
     " Uses string() for 7.4.1689.
     AssertNotEqual string(obj.f2), string(base.f2)
   else
@@ -328,7 +328,7 @@ Execute (neomake#utils#Stringify):
   endif
 
   let obj.f2 = base.f2
-  if displays_dict_with_methods
+  if string_displays_partial
     AssertEqual neomake#utils#Stringify(obj.f2), "function('".(fnr_base + 1)."', ".string(obj).")"
   else
     AssertEqual neomake#utils#Stringify(obj.f2), "function('".(fnr_base + 1)."')"
@@ -336,7 +336,7 @@ Execute (neomake#utils#Stringify):
 
   let obj = extend(copy(base), {})
   AssertEqual obj.f2('called2'), 'called2'
-  if displays_dict_with_methods
+  if string_displays_partial
     AssertEqual neomake#utils#Stringify(obj.f2), "function('".(fnr_base + 1)."', ".string(obj).")"
   else
     AssertEqual neomake#utils#Stringify(obj.f2), "function('".(fnr_base + 1)."')"
