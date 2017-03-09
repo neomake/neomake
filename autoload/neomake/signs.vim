@@ -96,13 +96,11 @@ function! neomake#signs#CleanOldSigns(bufnr, type) abort
         return
     endif
     call neomake#utils#DebugObject('Cleaning old signs in buffer '.a:bufnr.': ', s:last_placed_signs[a:type])
-    if bufexists(str2nr(a:bufnr))
-        for ln in keys(s:last_placed_signs[a:type][a:bufnr])
-            let cmd = 'sign unplace '.s:last_placed_signs[a:type][a:bufnr][ln].' buffer='.a:bufnr
-            call neomake#utils#DebugMessage('Unplacing sign: '.cmd)
-            exe cmd
-        endfor
-    endif
+    for ln in keys(s:last_placed_signs[a:type][a:bufnr])
+        let cmd = 'sign unplace '.s:last_placed_signs[a:type][a:bufnr][ln].' buffer='.a:bufnr
+        call neomake#utils#DebugMessage('Unplacing sign: '.cmd)
+        exe cmd
+    endfor
     unlet s:last_placed_signs[a:type][a:bufnr]
 endfunction
 
@@ -217,3 +215,17 @@ endfunction
 " Init.
 call neomake#signs#DefineHighlights()
 call neomake#signs#DefineSigns()
+
+function! s:wipe_signs(bufnr) abort
+    for type in ['file', 'project']
+        if has_key(s:placed_signs[type], a:bufnr)
+            unlet s:placed_signs[type][a:bufnr]
+        endif
+        if has_key(s:last_placed_signs[type], a:bufnr)
+            unlet s:last_placed_signs[type][a:bufnr]
+        endif
+    endfor
+endfunction
+augroup neomake_signs
+    autocmd! BufWipeout * call s:wipe_signs(expand('<abuf>'))
+augroup END
