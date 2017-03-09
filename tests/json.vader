@@ -24,5 +24,6 @@ Execute (neomake#utils#JSONdecode):
   endif
 
 Execute (neomake#compat#json_null cannot be changed):
+  runtime autoload/neomake/compat.vim
   AssertThrows let g:neomake#compat#json_null = 'changed'
   AssertEqual g:vader_exception, 'Vim(let):E741: Value is locked: g:neomake#compat#json_null'

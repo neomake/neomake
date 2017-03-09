@@ -44,9 +44,12 @@ Execute (AddExprCallback with changed windows inbetween):
     " Start 2 makers.
     call neomake#Make(1, [maker_1, maker_2])
     " Wait until partly finished.
-    while g:neomake_tests_postprocess_count < 2
+    let maxwait = 50
+    while g:neomake_tests_postprocess_count < 2 && maxwait
       sleep 10m
+      let maxwait -= 1
     endwhile
+    Assert maxwait > 0, 'Postprocessing was not triggered.'
     let loclist_texts = map(copy(getloclist(0)), 'v:val.text')
     AssertEqual sort(copy(loclist_texts)), ['1a SUFFIX:0', '2 SUFFIX:0']
 

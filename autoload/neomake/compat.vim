@@ -10,6 +10,10 @@ else
   endfunction
 endif
 
+unlockvar neomake#compat#json_true
+unlockvar neomake#compat#json_false
+unlockvar neomake#compat#json_null
+
 if exists('*json_decode')
   let neomake#compat#json_true = v:true
   let neomake#compat#json_false = v:false
