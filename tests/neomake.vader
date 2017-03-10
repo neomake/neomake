@@ -6,6 +6,7 @@
 Include (Completion): completion.vader
 Include (Error handling): errors.vader
 Include (Hooks): hooks.vader
+Include (Highlights): highlights.vader
 Include (Integration tests): integration.vader
 Include (JSON): json.vader
 Include (Lists): lists.vader
