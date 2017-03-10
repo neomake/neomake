@@ -1,0 +1,9 @@
+Execute (No error when matches are cleared manually):
+  new
+
+  call neomake#highlights#AddHighlight({'bufnr': bufnr('%'), 'type': 'E', 'col': 1, 'lnum': 1}, 'file')
+  call neomake#highlights#ShowHighlights()
+  call clearmatches()
+  call neomake#highlights#ShowHighlights()
+
+  bwipe

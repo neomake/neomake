@@ -84,7 +84,10 @@ else
     function! neomake#highlights#ShowHighlights() abort
         if exists('w:current_highlights')
             for l:highlight in w:current_highlights
-                call matchdelete(l:highlight)
+                try
+                    call matchdelete(l:highlight)
+                catch /^Vim\%((\a\+)\)\=:E803/
+                endtry
             endfor
         endif
         let w:current_highlights = []
