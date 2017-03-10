@@ -82,27 +82,27 @@ if s:nvim_api
     endfunction
 else
     function! neomake#highlights#ShowHighlights() abort
-        if exists('w:current_highlights')
-            for l:highlight in w:current_highlights
+        if exists('w:neomake_highlights')
+            for l:highlight in w:neomake_highlights
                 try
                     call matchdelete(l:highlight)
                 catch /^Vim\%((\a\+)\)\=:E803/
                 endtry
             endfor
         endif
-        let w:current_highlights = []
+        let w:neomake_highlights = []
 
         let l:buf = bufnr('%')
         for l:type in ['file', 'project']
-            for l:hi in keys(get(s:highlights[l:type], l:buf, {}))
+            for [l:hi, l:locs] in items(filter(copy(get(s:highlights[l:type], l:buf, {})), '!empty(v:val)'))
                 if exists('*matchaddpos')
-                    call add(w:current_highlights, matchaddpos(l:hi, s:highlights[l:type][l:buf][l:hi]))
+                    call add(w:neomake_highlights, matchaddpos(l:hi, l:locs))
                 else
-                    for l:loc in s:highlights[l:type][l:buf][l:hi]
+                    for l:loc in l:locs
                         if len(l:loc) == 1
-                            call add(w:current_highlights, matchadd(l:hi, '\%' . l:loc[0] . 'l'))
+                            call add(w:neomake_highlights, matchadd(l:hi, '\%' . l:loc[0] . 'l'))
                         else
-                            call add(w:current_highlights, matchadd(l:hi, '\%' . l:loc[0] . 'l\%' . l:loc[1] . 'c.\{' . l:loc[2] . '}'))
+                            call add(w:neomake_highlights, matchadd(l:hi, '\%' . l:loc[0] . 'l\%' . l:loc[1] . 'c.\{' . l:loc[2] . '}'))
                         endif
                     endfor
                 endif
