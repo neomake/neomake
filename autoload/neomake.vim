@@ -1168,14 +1168,15 @@ endfunction
 " NOTE: can be skipped with Neovim 0.2.0+.
 let s:nvim_output_handler_queue = []
 function! s:nvim_output_handler(job_id, data, event_type) abort
+    let data = map(copy(a:data), "substitute(v:val, '\\r$', '', '')")
     " @vimlint(EVL108, 1)
     if has('nvim-0.2.0')
-        call s:output_handler(a:job_id, a:data, a:event_type)
+        call s:output_handler(a:job_id, data, a:event_type)
         return
     endif
     " @vimlint(EVL108, 0)
     let jobinfo = s:jobs[a:job_id]
-    let args = [a:job_id, a:data, a:event_type]
+    let args = [a:job_id, data, a:event_type]
     call add(s:nvim_output_handler_queue, args)
     if !exists('jobinfo._nvim_in_handler')
         let jobinfo._nvim_in_handler = 1

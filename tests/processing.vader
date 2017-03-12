@@ -237,16 +237,12 @@ Execute (100 lines of output should not get processed one by one):
   Assert len(c) < 50, 'There were 50+ count changes: '.len(c)
 
 Execute (Mixed newlines get handled correctly):
-  if has('nvim')
-    NeomakeTestsSkip 'only for Vim/Windows'
-  else
-    let maker = {
-    \ 'exe': 'printf',
-    \ 'args': 'line1\\nline2\\r\\nline3',
-    \ 'errorformat': '%m',
-    \ }
-    call neomake#Make(0, [maker])
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getqflist()), 'v:val.text'),
-    \ ['line1', 'line2', 'line3']
-  endif
+  let maker = {
+  \ 'exe': 'printf',
+  \ 'args': 'line1\\nline2\\r\\nline3',
+  \ 'errorformat': '%m',
+  \ }
+  call neomake#Make(0, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getqflist()), 'v:val.text'),
+  \ ['line1', 'line2', 'line3']
