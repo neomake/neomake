@@ -116,19 +116,14 @@ vimlint-errors: build/vimlint build/vimlparser
 build build/neovim-test-home:
 	mkdir $@
 build/neovim-test-home: | build
-build/vim-vimhelplint-master: | build
+build/vimhelplint: | build
 	cd build \
 	&& wget -O- https://github.com/machakann/vim-vimhelplint/archive/master.tar.gz \
-	  | tar xz
-vimhelplint: VIMHELPLINT_VIM:=vim
-vimhelplint: | build/vim-vimhelplint-master
-	out="$$($(VIMHELPLINT_VIM) -esN -c 'e doc/neomake.txt' -c 'set ft=help' \
-	  -c 'source build/vim-vimhelplint-master/ftplugin/help_lint.vim' \
-	  -c 'verb VimhelpLintEcho' -c q 2>&1)"; \
-	  if [ -n "$$out" ]; then \
-	    echo "$$out"; \
-	    exit 1; \
-	  fi
+	  | tar xz \
+	&& mv vim-vimhelplint-master vimhelplint
+vimhelplint: export VIMHELPLINT_VIM:=vim
+vimhelplint: | build/vimhelplint
+	contrib/vimhelplint doc/neomake.txt
 
 # Run tests in dockerized Vims.
 DOCKER_IMAGE:=neomake/vims-for-tests
