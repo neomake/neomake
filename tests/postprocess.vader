@@ -1,6 +1,7 @@
 Include: include/setup.vader
 
 Execute (neomake#postprocess#GenericLengthPostprocess):
+  new
   norm! iimport foo bar
   let entry = {
   \ 'bufnr': bufnr('%'),
@@ -44,10 +45,12 @@ Execute (neomake#postprocess#GenericLengthPostprocess):
   let new = deepcopy(entry)
   call call('neomake#postprocess#GenericLengthPostprocess', [new], this)
   AssertEqual new.length, 3
+  bwipe!
 
 Execute (Postprocess: called with dict+maker as self for list):
   runtime autoload/neomake/highlights.vim
 
+  new
   file file1.vim
   norm! ifoo = bar - 5
 
@@ -99,6 +102,7 @@ Execute (Postprocess: called with dict+maker as self for list):
   AssertEqual g:neomake_tests_called_self[1].maker._maker_marker, 1
   AssertEqual g:neomake_tests_called_self[1].pattern, 'custom_pattern'
   AssertEqual g:neomake_tests_called_self[1].custom_var, 42
+  bwipe!
 
 Execute (Postprocess: called with dict+maker as self for non-list):
   let g:neomake_tests_called_self = []
@@ -115,6 +119,8 @@ Execute (Postprocess: called with dict+maker as self for non-list):
   \ 'postprocess': 'NeomakeTestPostprocess',
   \ }
 
+  new
+  file file1.vim
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
@@ -130,6 +136,7 @@ Execute (Postprocess: called with dict+maker as self for non-list):
   \ 'text': 'check: bar!'}]
   AssertEqual len(g:neomake_tests_called_self), 1
   AssertEqual g:neomake_tests_called_self[0].maker._maker_marker, 1
+  bwipe
 
 Execute (Postprocess: removes entries with valid -1):
   let g:neomake_tests_called_self = []
@@ -149,6 +156,8 @@ Execute (Postprocess: removes entries with valid -1):
   \ 'postprocess': 'NeomakeTestPostprocess',
   \ }
 
+  new
+  file file1.vim
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
@@ -165,6 +174,7 @@ Execute (Postprocess: removes entries with valid -1):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'check: foo!'}]
+  bwipe
 
 Execute (Postprocess: can be disabled with empty string):
   let maker = {

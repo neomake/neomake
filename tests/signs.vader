@@ -62,3 +62,10 @@ Execute (Placing signs in project mode):
   call neomake#signs#CleanAllOldSigns('project')
   AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.':  {'.bufnr.': {1: 7000}}', 3, {}
   AssertNeomakeMessage 'Unplacing sign: sign unplace 7000 buffer='.bufnr
+
+Execute (Signs are wiped when buffer gets wiped):
+  new
+  call neomake#signs#PlaceSign({'type': 'E', 'bufnr': bufnr('%'), 'lnum': 1}, 'file')
+  bwipe
+  " Should not cause 'E158: Invalid buffer name'
+  call neomake#signs#RedefineSign('neomake_foobar', {})
