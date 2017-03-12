@@ -159,7 +159,6 @@ function! s:MakeJob(make_id, options) abort
             let maker = returned_maker
         endif
     endif
-    lockvar maker
     let jobinfo.maker = maker
 
     " Check for already running job for the same maker (from other runs).
@@ -225,6 +224,9 @@ function! s:MakeJob(make_id, options) abort
     try
         let error = ''
         let argv = maker._get_argv(jobinfo.file_mode ? jobinfo.bufnr : 0)
+        " Lock maker to make sure it does not get changed accidentally, but
+        " only with depth=1, so that a postprocess object can change itself.
+        lockvar 1 maker
         if neomake#has_async_support()
             if has('nvim')
                 let opts = {
@@ -437,7 +439,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     endif
 
     " Create the maker object.
-    let maker = extend(copy(s:maker_base), deepcopy(maker))
+    let maker = extend(copy(s:maker_base), copy(maker))
     if !has_key(maker, 'name')
         if type(a:name_or_maker) == type('')
             let maker.name = a:name_or_maker
@@ -744,22 +746,25 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     endif
     let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3
 
+    " For postprocess functions.
     while index < len(list)
         let entry = list[index]
         let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
         let index += 1
 
         let before = copy(entry)
-        for s:f in s:postprocessors
-            if type(s:f) == type({})
-                let s:this = extend(copy(s:f), {'maker': maker})
-                call call(s:f.fn, [entry], s:this)
-            else
-                let s:this = {'maker': maker}
-                call call(s:f, [entry], s:this)
-            endif
-            unlet! s:f  " vim73
-        endfor
+        if !empty(s:postprocessors)
+            let g:neomake_hook_context = {'jobinfo': a:jobinfo}
+            for s:f in s:postprocessors
+                if type(s:f) == type({})
+                    call call(s:f.fn, [entry], s:f)
+                else
+                    call call(s:f, [entry], maker)
+                endif
+                unlet! s:f  " vim73
+            endfor
+            unlet! g:neomake_hook_context  " Might be unset already with sleep in postprocess.
+        endif
         if entry != before
             let list_modified = 1
             if debug
