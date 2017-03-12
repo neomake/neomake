@@ -742,7 +742,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     else
         let s:postprocessors = s:postprocess
     endif
-    let debug = get(g:, 'neomake_verbose', 1) >= 3
+    let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3
 
     while index < len(list)
         let entry = list[index]
