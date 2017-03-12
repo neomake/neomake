@@ -40,12 +40,21 @@ function! s:reltime_lastmsg() abort
     return printf(format, diff)
 endfunction
 
+" Get verbosity, optionally based on jobinfo's make_id (a:1).
+function! neomake#utils#get_verbosity(...) abort
+    if a:0 && has_key(a:1, 'make_id')
+        return neomake#GetMakeOptions(a:1.make_id).verbosity
+    endif
+    return get(g:, 'neomake_verbose', 1) + &verbose
+endfunction
+
 function! neomake#utils#LogMessage(level, msg, ...) abort
-    let jobinfo = a:0 ? a:1 : {}
-    if has_key(jobinfo, 'make_id')
-        let verbosity = neomake#GetMakeOptions(jobinfo.make_id).verbosity
+    if a:0
+        let jobinfo = a:1
+        let verbosity = neomake#utils#get_verbosity(jobinfo)
     else
-        let verbosity = get(g:, 'neomake_verbose', 1) + &verbose
+        let jobinfo = {}  " just for vimlint (EVL104)
+        let verbosity = neomake#utils#get_verbosity()
     endif
     let logfile = get(g:, 'neomake_logfile', '')
 
@@ -76,8 +85,10 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
 
         call vader#log(test_msg)
         " Only keep jobinfo entries that are relevant for / used in the message.
-        let g:neomake_test_messages += [[a:level, a:msg,
-                    \ filter(copy(jobinfo), "index(['id', 'make_id'], v:key) != -1")]]
+        let context = a:0
+                    \ ? filter(copy(jobinfo), "index(['id', 'make_id'], v:key) != -1")
+                    \ : {}
+        call add(g:neomake_test_messages, [a:level, a:msg, context])
     elseif verbosity >= a:level
         redraw
         if a:level ==# 0
