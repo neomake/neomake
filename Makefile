@@ -130,13 +130,6 @@ vimhelplint: | build/vim-vimhelplint-master
 	    exit 1; \
 	  fi
 
-docker_vimhelplint:
-	$(MAKE) docker_make "DOCKER_MAKE_TARGET=vimhelplint \
-	  VIMHELPLINT_VIM=/vim-build/bin/vim-master"
-
-docker_make: DOCKER_RUN=make -C /testplugin $(DOCKER_MAKE_TARGET)
-docker_make: docker_run
-
 # Run tests in dockerized Vims.
 DOCKER_IMAGE:=neomake/vims-for-tests
 DOCKER_STREAMS:=-ti
@@ -164,6 +157,13 @@ docker_test: docker_make
 docker_run: $(TESTS_VADER_DIR)
 docker_run:
 	$(DOCKER) $(if $(DOCKER_RUN),$(DOCKER_RUN),bash)
+
+docker_make: DOCKER_RUN=make -C /testplugin $(DOCKER_MAKE_TARGET)
+docker_make: docker_run
+
+docker_vimhelplint:
+	$(MAKE) docker_make "DOCKER_MAKE_TARGET=vimhelplint \
+	  VIMHELPLINT_VIM=/vim-build/bin/vim-master"
 
 check:
 	@:; ret=0; \
