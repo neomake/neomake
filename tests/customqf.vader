@@ -1,54 +1,92 @@
 Include: include/setup.vader
 
-Execute (Custom quickfix setup):
-  call g:NeomakeTestsEnsureExe('shellcheck')
-  let enabled_makers = neomake#GetEnabledMakers('sh')
-  call map(enabled_makers, 'v:val.name')
-  AssertEqual enabled_makers, ['sh', 'shellcheck']
-
 Execute (Displays custom formatted quickfix buffer):
-  call g:NeomakeTestsEnsureExe('shellcheck')
-  e! tests/fixtures/errors.sh
   call neomake#quickfix#enable()
-  RunNeomake sh shellcheck
+  call setloclist(0, [{
+      \   'lnum': 1,
+      \   'bufnr': 1,
+      \   'text': 'Line 1 nmcfg:{"name": "Alpha", "short": "Alph"}',
+      \ },
+      \ {
+      \   'lnum': 2,
+      \   'col': 5,
+      \   'bufnr': 1,
+      \   'text': 'Line 2',
+      \ }])
 
   lopen
-  let llist = getloclist(0)
-  Assert llist[0].text =~# '\<nmcfg:{.*}$', 'Neomake config not attached to first item'
 
   AssertEqual getline(1, '$'),
-    \ ['  sh 5:- syntax error near unexpected token `newline'' ',
-    \  '  sh 5:- `foo(''', 'shel 1:1 this is just a stub ']
-
-  Assert exists('#neomake_qf#CursorMoved'), 'autocmd not setup'
-  Assert b:neomake_start_col, 'b:neomake_start_col was not set'
+    \ ['Alph 1:- Line 1 ', 'Alph 2:5 Line 2']
 
   normal! 0
   " :normal! ignores autocmd's here?
   doautocmd CursorMoved
-  AssertEqual expand('<cWORD>'), 'syntax'
-  AssertNotEqual col('.'), 1
-  close
+  AssertEqual expand('<cWORD>'), 'Line'
+  AssertEqual getpos('.')[1:2], [1, 10]
 
-Execute (Disable custom formatted quickfix buffer after enabling):
-  call g:NeomakeTestsEnsureExe('shellcheck')
-  e! tests/fixtures/errors.sh
-  call neomake#quickfix#disable()
-  RunNeomake sh shellcheck
+  wincmd p
 
-  lopen
-  let llist = getloclist(0)
-  Assert llist[0].text !~# '\<nmcfg:{.*}$', 'Neomake config still attached to first item'
+  " Test changing the location list while it's open
+  call setloclist(0, [{
+      \   'lnum': 1,
+      \   'bufnr': 1,
+      \   'text': 'Line 1 nmcfg:{"name": "Beta", "short": "Beta"}',
+      \ },
+      \ {
+      \   'lnum': 2,
+      \   'col': 5,
+      \   'bufnr': 1,
+      \   'text': 'Line 2',
+      \ },
+      \ {
+      \   'lnum': 3,
+      \   'bufnr': 1,
+      \   'text': 'Line 3 nmcfg:{"name": "Gamma", "short": "Gamm"}',
+      \ },
+      \ {
+      \   'lnum': 4,
+      \   'col': 5,
+      \   'bufnr': 1,
+      \   'text': 'Line 4',
+      \ }])
+
+  wincmd p
 
   AssertEqual getline(1, '$'),
-    \ ['tests/fixtures/errors.sh|5| syntax error near unexpected token `newline''',
-    \  'tests/fixtures/errors.sh|5| `foo(''', '-fgcc|1 col 1 warning| this is just a stub']
+    \ ['Beta 1:- Line 1 ', 'Beta 2:5 Line 2',
+    \  'Gamm 3:- Line 3 ', 'Gamm 4:5 Line 4']
 
-  Assert !exists('#neomake_qf#CursorMoved'), 'autocmd was setup'
-  Assert !exists('b:neomake_start_col'), 'b:neomake_start_col was is still set'
+  normal! G0
+  doautocmd CursorMoved
+  AssertEqual expand('<cWORD>'), 'Line'
+  AssertEqual getpos('.')[1:2], [4, 10]
+
+  close
+
+Execute (Disable custom formatted quickfix buffer):
+  Assert neomake#quickfix#is_enabled()
+  call neomake#quickfix#disable()
+  call setloclist(0, [{
+      \   'lnum': 1,
+      \   'bufnr': 1,
+      \   'text': 'Line 1',
+      \ },
+      \ {
+      \   'lnum': 2,
+      \   'col': 5,
+      \   'bufnr': 1,
+      \   'text': 'Line 2',
+      \ }])
+
+  lopen
+
+  AssertEqual getline(1, '$'),
+    \ ['|1| Line 1', '|2 col 5| Line 2']
 
   normal! 0
   doautocmd CursorMoved
-  AssertEqual expand('<cWORD>'), 'tests/fixtures/errors.sh|5|'
+  AssertEqual expand('<cWORD>'), '|1|'
+  AssertEqual getpos('.')[1:2], [1, 1]
 
   close
