@@ -1,0 +1,42 @@
+Include: include/setup.vader
+
+Execute (No vimhelplint issues in doc/neomake.txt):
+  if !filereadable(fnamemodify(g:vader_file, ':p:h:h').'/build/vimhelplint/ftplugin/help_lint.vim')
+    NeomakeTestsSkip 'vimhelplint not installed'
+  elseif !executable('vim')
+    NeomakeTestsSkip 'vim not found in PATH'
+  else
+    new
+    e doc/neomake.txt
+    set filetype=help
+    RunNeomake vimhelplint
+    AssertNeomakeMessage 'exit: vimhelplint: 0'
+    bwipe
+  endif
+
+Execute (vimhelplint reports errors):
+  if !filereadable(fnamemodify(g:vader_file, ':p:h:h').'/build/vimhelplint/ftplugin/help_lint.vim')
+    NeomakeTestsSkip 'vimhelplint not installed'
+  elseif !executable('vim')
+    NeomakeTestsSkip 'vim not found in PATH'
+  else
+    call writefile(['*duplicate-tag*', '*duplicate-tag*'], 'build/help.txt')
+    new
+    e build/help.txt
+    set filetype=help
+    RunNeomake vimhelplint
+    AssertEqual getloclist(0), [
+    \ {'lnum': 1, 'bufnr': bufnr('%'), 'col': 2, 'valid': 1, 'vcol': 0,
+    \  'nr': 2, 'type': 'E', 'pattern': '', 'text': 'A tag "duplicate-tag" is duplicate with another in this file.'},
+    \ {'lnum': 2, 'bufnr': bufnr('%'), 'col': 2, 'valid': 1, 'vcol': 0,
+    \  'nr': 2, 'type': 'E', 'pattern': '', 'text': 'A tag "duplicate-tag" is duplicate with another in this file.'}]
+    call delete('build/help.txt')
+    bwipe
+  endif
+
+Execute (neomake#makers#ft#help#EnabledMakers):
+  let expected = ['proselint', 'writegood']
+  if executable('vim')
+    call insert(expected, 'vimhelplint')
+  endif
+  AssertEqual expected, neomake#makers#ft#help#EnabledMakers()
