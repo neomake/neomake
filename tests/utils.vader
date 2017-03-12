@@ -156,6 +156,9 @@ Execute(neomake#utils#redir):
   AssertThrows neomake#utils#redir(['NeomakeTestCommand', 'echoerr 3'])
 
 Execute (neomake#utils#ExpandArgs):
+  Save $HOME
+  let $HOME='/home/sweet'
+
   file file1.ext
   let isk = &iskeyword
   let args = [
@@ -176,6 +179,8 @@ Execute (neomake#utils#ExpandArgs):
   \ '^%$',
   \ 'C:\\%\\',
   \ 'C:\\%:r\\',
+  \ '~',
+  \ '\~',
   \ ]
   let expected_args = [
   \ 'file1.ext',
@@ -195,6 +200,8 @@ Execute (neomake#utils#ExpandArgs):
   \ '^file1.ext$',
   \ 'C:\\file1.ext\\',
   \ 'C:\\file1\\',
+  \ '/home/sweet',
+  \ '\~',
   \ ]
 
   call neomake#utils#ExpandArgs(args)
