@@ -9,7 +9,7 @@ cd - >/dev/null || exit
 
 if ! [ -f "$vimhelplint" ]; then
   echo "$vimhelplint not found." >&2
-  echo "Run 'make build/vim-vimhelplint' Neomake's root directory to install it." >&2
+  echo "Run 'make build/vimhelplint' Neomake's root directory to install it." >&2
   exit 64
 fi
 
