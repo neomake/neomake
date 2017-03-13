@@ -57,4 +57,4 @@ Execute (TODO: LoclistCounts for wiped buffer should clean s:loclist_counts):
   call neomake#statusline#ResetCounts()
   AssertEqual bufnr, g:neomake_test_countschanged[0].bufnr
   call setbufvar(g:neomake_test_countschanged[0].bufnr, 'test', 1)
-  AssertEqual -1, getbufvar(g:neomake_test_countschanged[0].bufnr, 'test', -1)
+  AssertEqual '', getbufvar(g:neomake_test_countschanged[0].bufnr, 'test')
