@@ -128,7 +128,7 @@ Execute (Maker can specify temporary file to use via fn):
   if neomake#has_async_support()
     AssertNeomakeMessage "Starting async job: ['true', '".g:neomake_test_tempfile."']"
   else
-    AssertNeomakeMessage "Starting: true '".g:neomake_test_tempfile."'"
+    AssertNeomakeMessage "Starting: true ".fnameescape(g:neomake_test_tempfile)
   endif
   bwipe
 
@@ -148,7 +148,12 @@ Execute (maker._get_argv uses jobinfo for bufnr):
 
   wincmd p
   let jobinfo = {'file_mode': 1, 'bufnr': bufnr}
-  AssertEqual maker._get_argv(jobinfo), ['my_maker', fnamemodify(bufname(bufnr), ':p')]
+  let expected = ['my_maker', fnameescape(fnamemodify(bufname(bufnr), ':p'))]
+  if neomake#has_async_support()
+    AssertEqual expected, maker._get_argv(jobinfo)
+  else
+    AssertEqual join(expected), maker._get_argv(jobinfo)
+  endif
 
   wincmd p
   bwipe
