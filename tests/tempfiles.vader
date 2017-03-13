@@ -1,0 +1,159 @@
+Include: include/setup.vader
+
+Execute (Neomake uses temporary file for unsaved buffer):
+  new
+  norm iline1
+  norm oline2
+
+  let maker = {
+  \ 'exe': 'cat',
+  \ 'append_file': 1,
+  \ 'errorformat': '%m',
+  \ 'tempfile_enabled': 1,
+  \ }
+  call neomake#Make(1, [maker])
+  if neomake#has_async_support()
+    let jobinfo = neomake#GetJobs()[0]
+
+    let temp_file = jobinfo.maker.tempfile_name
+    AssertEqual fnamemodify(temp_file, ':h:h'), fnamemodify(tempname(), ':h')
+    AssertEqual getfperm(temp_file), 'rw-r--r--'
+    NeomakeTestsWaitForFinishedJobs
+  endif
+
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 0,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 0,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': '',
+  \ 'pattern': '',
+  \ 'text': 'line1'},
+  \ {
+  \ 'lnum': 0,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 0,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': '',
+  \ 'pattern': '',
+  \ 'text': 'line2'}]
+
+  if neomake#has_async_support()
+    AssertEqual filereadable(temp_file), 0, 'temp_file was removed'
+    AssertNeomakeMessage 'Removing temporary file: '.temp_file
+  else
+    AssertEqual len(filter(copy(g:neomake_test_messages), "v:val[1] =~# '^Removing temporary file:'")), 1, 'msg found'
+  endif
+
+  bwipe!
+
+Execute (Uses temporary file for unreadable buffer):
+  new
+  set ft=neomake_tests
+  let b:neomake_neomake_tests_enabled_makers = ['true']
+  let b:neomake_neomake_tests_true_tempfile_enabled = 1
+  file doesnotexist
+
+  let fname = fnamemodify(bufname('%'), ':p')
+  RunNeomake
+
+  let bufnr = bufnr('%')
+  AssertEqual len(filter(copy(g:neomake_test_messages),
+  \ "v:val[1] =~ '^Using tempfile for unreadable buffer '.bufnr")), 1, 'message found'
+
+  bd!
+
+Execute (2nd maker uses temporary file):
+  call g:NeomakeSetupAutocmdWrappers()
+
+  new
+  set ft=python
+  file doesnotexist
+
+  let maker1 = {
+      \ 'exe': 'true',
+      \ 'name': 'true_maker',
+      \ 'errorformat': '%m',
+      \ 'append_file': 0,
+      \ 'tempfile_enabled': 1,
+      \ }
+  let maker2 = copy(maker1)
+  let maker2.append_file = 1
+  let maker3 = copy(maker1)
+
+  let fname = fnamemodify(bufname('%'), ':p')
+  call neomake#Make(1, [maker1, maker2, maker3])
+  let make_id = neomake#GetStatus().last_make_id
+
+  let bufnr = bufnr('%')
+  AssertEqual len(filter(copy(g:neomake_test_messages),
+  \ "v:val[1] =~ '^Using tempfile for unreadable buffer '.bufnr")), 1, 'message not found'
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_jobfinished), 3
+  bd!
+
+Execute (Maker can specify temporary file to use via fn):
+  Save g:neomake_test_tempfile
+  let g:neomake_test_tempfile = tempname() . 'injected/with/subdir'
+
+  function! NeomakeTestsF(jobinfo) abort dict
+    let self.tempfile_name = g:neomake_test_tempfile
+  endfunction
+  let maker = {
+  \ 'exe': 'true',
+  \ 'fn': function('NeomakeTestsF'),
+  \ }
+
+  new
+  let bufnr = bufnr('%')
+  file unreadable
+  let maker = neomake#GetMaker(maker)
+  AssertEqual maker.args, []
+  let jobinfo = {'file_mode': 1, 'bufnr': bufnr}
+  call maker.fn(jobinfo)
+  AssertEqual maker.args, []
+  call maker._get_argv(jobinfo)
+  AssertEqual maker.args, []
+  AssertEqual maker.tempfile_name, g:neomake_test_tempfile
+  AssertNeomakeMessage 'Using tempfile for unreadable buffer '.bufnr.': '.g:neomake_test_tempfile
+
+  call neomake#Make(1, [maker])
+  AssertNeomakeMessage 'Using tempfile for unreadable buffer '.bufnr.': '.g:neomake_test_tempfile
+  NeomakeTestsWaitForFinishedJobs
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: ['true', '".g:neomake_test_tempfile."']"
+  else
+    AssertNeomakeMessage "Starting: true ".fnameescape(g:neomake_test_tempfile)
+  endif
+  bwipe
+
+Execute (maker._get_argv uses jobinfo for bufnr):
+  let maker = neomake#GetMaker({'name': 'my_maker', 'append_file': 1})
+
+  new
+  let bufnr = bufnr('%')
+  let jobinfo = {'file_mode': 1, 'bufnr': bufnr}
+  call maker._get_argv(jobinfo)
+  Assert !empty(maker.tempfile_name)
+
+  let maker = neomake#GetMaker({'name': 'my_maker', 'append_file': 1})
+  e! tests/fixtures/errors.py
+  call maker._get_argv(jobinfo)
+  Assert !has_key(maker, 'tempfile_name')
+
+  wincmd p
+  let jobinfo = {'file_mode': 1, 'bufnr': bufnr}
+  let expected = ['my_maker', fnameescape(fnamemodify(bufname(bufnr), ':p'))]
+  if neomake#has_async_support()
+    AssertEqual expected, maker._get_argv(jobinfo)
+  else
+    AssertEqual join(expected), maker._get_argv(jobinfo)
+  endif
+
+  wincmd p
+  bwipe

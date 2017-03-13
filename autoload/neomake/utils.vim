@@ -237,14 +237,17 @@ function! s:command_maker.fn(jobinfo) dict abort
     let argv = split(&shell) + split(&shellcmdflag)
 
     if a:jobinfo.file_mode && get(self, 'append_file', 1)
-        let command .= ' '.fnameescape(fnamemodify(bufname(a:jobinfo.bufnr), ':p'))
+        let fname = self._get_fname_for_buffer(a:jobinfo.bufnr)
+        let command .= ' '.fnamemodify(fname, ':p')
         let self.append_file = 0
     endif
     call extend(self, {
                 \ 'exe': argv[0],
                 \ 'args': argv[1:] + [command],
                 \ })
-    return filter(copy(self), "v:key !~# '^__' && v:key !~# 'fn'")
+
+    " Return a cleaned up copy of self.
+    return filter(copy(self), "v:key !~# '^__' && v:key !=# 'fn'")
 endfunction
 
 function! neomake#utils#MakerFromCommand(command) abort
