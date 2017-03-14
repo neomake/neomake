@@ -240,15 +240,17 @@ property: >
         \ }
 <
                                              *neomake-makers-tempfile_enabled*
-Default: 1
+Default: 0
 In case the buffer is not readable or modified, the maker will get passed a
 temporary file with the buffer's contents.
 The temporary filename is based on |tempname()| by default, and will be set as
 `tempfile_name` in the maker dict.  You can set it dynamically through the
 experimental `maker.fn` callback (which is not documented on purpose yet).
 
-If some maker has problems with temporary files outside the source tree, you
-can disable this behaviour using: >
+This feature is considered to be experimental, and therefore disabled by
+default.  You can set it like other settings, i.e. to enable it globally,
+but disable it for some maker only: >
+        let g:neomake_tempfile_enabled = 1
         let g:neomake_<ft>_<name>_tempfile_enabled = 0
 <
 
