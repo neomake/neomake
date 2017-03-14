@@ -253,7 +253,7 @@ Execute (neomake#utils#sort_by_col):
 Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   Save &shell, &shellcmdflag
 
-  let jobinfo = {'file_mode': 0}
+  let jobinfo = {'file_mode': 0, 'bufnr': 0}
 
   let &shell = '/bin/bash -o pipefail'
   let &shellcmdflag = '-c'
@@ -264,7 +264,7 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
     let expected_argv = "/bin/bash -o pipefail -c 'echo 1'"
   endif
   let bound_maker = neomake#GetMaker(maker.fn(jobinfo))
-  AssertEqual bound_maker._get_argv(), expected_argv
+  AssertEqual bound_maker._get_argv(jobinfo), expected_argv
 
   let &shell = '/bin/bash'
   let &shellcmdflag = '-o pipefail -c'
@@ -275,21 +275,23 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
     let expected_argv = "/bin/bash -o pipefail -c 'echo 2'"
   endif
   let bound_maker = neomake#GetMaker(maker.fn(jobinfo))
-  AssertEqual bound_maker._get_argv(), expected_argv
+  AssertEqual bound_maker._get_argv(jobinfo), expected_argv
 
 Execute (neomake#utils#MakerFromCommand appends args for file_mode):
-  let maker = neomake#utils#MakerFromCommand('foo')
-  let jobinfo = {'file_mode': 0}
+  let maker = neomake#utils#MakerFromCommand('echo')
+  let jobinfo = {'file_mode': 0, 'bufnr': 0}
 
   AssertEqual maker.fn(jobinfo), {
-  \ 'args': [&shellcmdflag, 'foo'], 'exe': &shell, 'remove_invalid_entries': 0}
+  \ 'args': [&shellcmdflag, 'echo'], 'exe': &shell, 'remove_invalid_entries': 0}
 
-  file file\ with\ space
+  e! tests/fixtures/a\ filename\ with\ spaces
   let fname = expand('%:p')
   let jobinfo = {'maker': maker, 'file_mode': 1, 'bufnr': bufnr('%')}
-  AssertEqual maker.fn(jobinfo), {
-  \ 'args': [&shellcmdflag, 'foo '.fnameescape(fname)], 'append_file': 0,
-  \ 'exe': &shell, 'remove_invalid_entries': 0}
+  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
+  AssertEqual bound_maker.args, [&shellcmdflag, 'echo '.fname]
+  AssertEqual bound_maker.append_file, 0
+  AssertEqual bound_maker.exe, &shell
+  AssertEqual bound_maker.remove_invalid_entries, 0
 
 Execute (neomake#utils#Stringify):
   AssertEqual neomake#utils#Stringify(1), 1
@@ -349,3 +351,34 @@ Execute (neomake#utils#Stringify):
     AssertEqual neomake#utils#Stringify(obj.f2), "function('".(fnr_base + 1)."')"
   endif
   AssertEqual neomake#utils#Stringify(obj), "{f2: function('".(fnr_base + 1)."'), base: 1}"
+
+Execute (neomake#utils#MakerFromCommand uses tempfile):
+  let maker = neomake#utils#MakerFromCommand('echo')
+
+  new
+  let jobinfo = {'file_mode': 1, 'bufnr': bufnr('%')}
+  file dir/\ with\ spaces
+
+  set buftype=nofile
+  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
+  let temp_file = bound_maker.tempfile_name
+  AssertEqual bound_maker.args, [&shellcmdflag, 'echo '.temp_file]
+  AssertEqual bound_maker.append_file, 0
+  AssertEqual bound_maker.exe, &shell
+  AssertEqual bound_maker.remove_invalid_entries, 0
+  AssertNotEqual temp_file, fnameescape(temp_file)
+
+  bwipe
+
+Execute (neomake#utils#GetSortedFiletypes):
+  AssertEqual neomake#utils#GetSortedFiletypes('foo'), ['foo']
+  AssertEqual neomake#utils#GetSortedFiletypes('foo.bar'), ['foo', 'bar']
+  AssertEqual neomake#utils#GetSortedFiletypes('jsx.javascript'), ['jsx', 'javascript']
+  AssertEqual neomake#utils#GetSortedFiletypes('javascript.jsx'), ['jsx', 'javascript']
+  AssertEqual neomake#utils#GetSortedFiletypes('foo.jsx.javascript'), ['foo', 'jsx', 'javascript']
+  AssertEqual neomake#utils#GetSortedFiletypes('jsx.javascript.foo'), ['jsx', 'javascript', 'foo']
+
+  AssertEqual neomake#utils#GetSortedFiletypes(['foo']), ['foo']
+  AssertEqual neomake#utils#GetSortedFiletypes(['foo', 'bar']), ['foo', 'bar']
+  " If a list is passed, this gets not split on dots recursively.
+  AssertEqual neomake#utils#GetSortedFiletypes(['foo', 'bar.baz']), ['foo', 'bar.baz']

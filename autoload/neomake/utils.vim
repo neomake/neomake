@@ -237,14 +237,17 @@ function! s:command_maker.fn(jobinfo) dict abort
     let argv = split(&shell) + split(&shellcmdflag)
 
     if a:jobinfo.file_mode && get(self, 'append_file', 1)
-        let command .= ' '.fnameescape(fnamemodify(bufname(a:jobinfo.bufnr), ':p'))
+        let fname = self._get_fname_for_buffer(a:jobinfo.bufnr)
+        let command .= ' '.fnamemodify(fname, ':p')
         let self.append_file = 0
     endif
     call extend(self, {
                 \ 'exe': argv[0],
                 \ 'args': argv[1:] + [command],
                 \ })
-    return filter(copy(self), "v:key !~# '^__' && v:key !~# 'fn'")
+
+    " Return a cleaned up copy of self.
+    return filter(copy(self), "v:key !~# '^__' && v:key !=# 'fn'")
 endfunction
 
 function! neomake#utils#MakerFromCommand(command) abort
@@ -258,13 +261,13 @@ endfunction
 function! neomake#utils#GetSupersetOf(ft) abort
     try
         return eval('neomake#makers#ft#' . a:ft . '#SupersetOf()')
-    catch /^Vim\%((\a\+)\)\=:E117/
+    catch /^Vim\%((\a\+)\)\=:\(E117\|E121\)/
         return ''
     endtry
 endfunction
 
 " Attempt to get list of filetypes in order of most specific to least specific.
-function! neomake#utils#GetSortedFiletypes(ft) abort
+function! neomake#utils#GetSortedFiletypes(fts) abort
     function! CompareFiletypes(ft1, ft2) abort
         if neomake#utils#GetSupersetOf(a:ft1) ==# a:ft2
             return -1
@@ -275,7 +278,8 @@ function! neomake#utils#GetSortedFiletypes(ft) abort
         endif
     endfunction
 
-    return sort(split(a:ft, '\.'), function('CompareFiletypes'))
+    let fts = type(a:fts) == type('') ? split(a:fts, '\.') : a:fts
+    return sort(copy(fts), function('CompareFiletypes'))
 endfunction
 
 let s:unset = {}  " Sentinel.

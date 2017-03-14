@@ -2,7 +2,9 @@ Include: include/setup.vader
 
 Execute (Error with no filename):
   new
-  set ft=python
+  set ft=neomake_tests
+  let b:neomake_neomake_tests_enabled_makers = ['true']
+  let b:neomake_neomake_tests_true_tempfile_enabled = 0
 
   Neomake
   let make_id = neomake#GetStatus().last_make_id
@@ -11,7 +13,9 @@ Execute (Error with no filename):
 
 Execute (Error with non-existing filename):
   new
-  set ft=python
+  set ft=neomake_tests
+  let b:neomake_neomake_tests_enabled_makers = ['true']
+  let b:neomake_neomake_tests_true_tempfile_enabled = 0
   file doesnotexist
 
   let fname = fnamemodify(bufname('%'), ':p')
@@ -24,7 +28,9 @@ Execute (Error with non-existing filename for 2nd maker):
   call g:NeomakeSetupAutocmdWrappers()
 
   new
-  set ft=python
+  set ft=neomake_tests
+  let b:neomake_neomake_tests_enabled_makers = ['true']
+  let b:neomake_neomake_tests_true_tempfile_enabled = 0
   file doesnotexist
 
   let maker1 = {
@@ -35,13 +41,14 @@ Execute (Error with non-existing filename for 2nd maker):
       \ }
   let maker2 = copy(maker1)
   let maker2.append_file = 1
+  let maker2.tempfile_enabled = 0
   let maker3 = copy(maker1)
 
   let fname = fnamemodify(bufname('%'), ':p')
   call neomake#Make(1, [maker1, maker2, maker3])
   let make_id = neomake#GetStatus().last_make_id
-  AssertNeomakeMessage 'file is not readable ('.fname.')', 0, {'make_id': make_id}
   NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'file is not readable ('.fname.')', 0, {'make_id': make_id}
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_jobfinished), 2
   bd!

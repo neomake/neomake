@@ -50,6 +50,7 @@ Execute (AddExprCallback with changed windows inbetween):
       let maxwait -= 1
     endwhile
     Assert maxwait > 0, 'Postprocessing was not triggered.'
+    AssertEqual g:neomake_tests_postprocess_count, 2, 'postprocess count is != 2: '.g:neomake_tests_postprocess_count
     let loclist_texts = map(copy(getloclist(0)), 'v:val.text')
     AssertEqual sort(copy(loclist_texts)), ['1a SUFFIX:0', '2 SUFFIX:0']
 
@@ -59,6 +60,7 @@ Execute (AddExprCallback with changed windows inbetween):
     " Go to previous window, let previous job finish.
     wincmd j
     NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.'
     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
       \ loclist_texts + ['1b SUFFIX:1']
     wincmd k

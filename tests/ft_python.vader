@@ -1,7 +1,8 @@
 Include: include/setup.vader
 
 Execute (python: errorformat):
-  e! tests/fixtures/errors.py
+  new
+  e tests/fixtures/errors.py
   Neomake python
   NeomakeTestsWaitForFinishedJobs
 
@@ -15,10 +16,12 @@ Execute (python: errorformat):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'invalid syntax'}]
+  bwipe
 
 Execute (python: pylama: errorformat):
   Save &errorformat
   let &errorformat = neomake#makers#ft#python#pylama().errorformat
+  new
   file file1.py
   lgetexpr "file1.py:16:1: [C] C901 'load_library' is too complex (13) [mccabe]"
   AssertEqual getloclist(0), [
@@ -38,11 +41,13 @@ Execute (python: pylama: errorformat):
   \ 'type': 'I',
   \ 'pattern': '',
   \ 'text': "C901 'load_library' is too complex (13) [mccabe]"}
+  bwipe
 
 Execute (python: flake8: errorformat/postprocess: F811):
   Save &errorformat
   let &errorformat = neomake#makers#ft#python#flake8().errorformat
 
+  new
   file file1.py
   norm Iimport os
   norm oimport os . path as os
@@ -88,3 +93,4 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'length': 2,
   \ 'type': 'E',
   \ 'text': "F811 redefinition of unused 'os' from line 2"}, e
+  bwipe!

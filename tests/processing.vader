@@ -188,42 +188,68 @@ Execute (Sleep in postprocess gets handled correctly):
 
 Execute (Pending output with restarted job when not in normal/insert mode (loclist)):
   if NeomakeAsyncTestsSetup()
+    let g:neomake_test_inc_maker_counter = 0
+
     file b1
     let first_jobs = neomake#Make(1, [g:neomake_test_inc_maker])
+    let jobinfo1 = neomake#GetJob(first_jobs[0])
     let make_id = neomake#GetStatus().last_make_id
     norm! V
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'Not processing output for mode V', 3
     exe "norm! \<Esc>"
     call neomake#Make(1, [g:neomake_test_inc_maker])
-    AssertNeomakeMessage 'Restarting already running job ('
+
+    " Maker is different because of args.
+    AssertNeomakeMessageAbsent 'Restarting already running job ('
       \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
+    AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ ['2:0: buf: b1', '2:1: buf: b1']
     doautocmd CursorHold
 
-    " TODO: should have output from 2nd job, should work on serialize branch.
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
+    " TODO: Should have still the output from 2nd job.
+    " Discard output from earlier makes?"
+"     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+"     \ ['2:0: buf: b1', '2:1: buf: b1']
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ ['1:0: buf: b1']
+    AssertEqual len(g:neomake_test_finished), 2
+    AssertEqual len(g:neomake_test_jobfinished), 2
   endif
 
 Execute (Pending output with restarted job when not in normal/insert mode (quickfix)):
   if NeomakeAsyncTestsSetup()
+    let g:neomake_test_inc_maker_counter = 0
+
     file b1
     let first_jobs = neomake#Make(0, [g:neomake_test_inc_maker])
+    let jobinfo1 = neomake#GetJob(first_jobs[0])
     let make_id = neomake#GetStatus().last_make_id
     norm! V
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'Not processing output for mode V', 3
     exe "norm! \<Esc>"
     call neomake#Make(0, [g:neomake_test_inc_maker])
-    AssertNeomakeMessage 'Restarting already running job ('
+
+    " Maker is different because of args.
+    AssertNeomakeMessageAbsent 'Restarting already running job ('
       \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
+    AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getqflist()), 'v:val.text'), []
+    AssertEqual map(copy(getqflist()), 'v:val.text'),
+    \ ['2:0: buf: b1', '2:1: buf: b1']
     doautocmd CursorHold
 
-    " TODO: should have output from 2nd job, should work on serialize branch.
-    AssertEqual map(copy(getqflist()), 'v:val.text'), []
+    " TODO: Should have still the output from 2nd job.
+"     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+"     \ ['2:0: buf: b1', '2:1: buf: b1']
+    AssertEqual map(copy(getqflist()), 'v:val.text'),
+    \ ['1:0: buf: b1']
+
+    AssertEqual len(g:neomake_test_finished), 2
+    AssertEqual len(g:neomake_test_jobfinished), 2
   endif
 
 Execute (100 lines of output should not get processed one by one):
