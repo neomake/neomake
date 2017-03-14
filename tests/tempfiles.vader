@@ -136,6 +136,7 @@ Execute (maker._get_argv uses jobinfo for bufnr):
   let maker = neomake#GetMaker({'name': 'my_maker', 'append_file': 1})
 
   new
+  let b:neomake_tempfile_enabled = 1
   let bufnr = bufnr('%')
   let jobinfo = {'file_mode': 1, 'bufnr': bufnr}
   call maker._get_argv(jobinfo)

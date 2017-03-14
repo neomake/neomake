@@ -306,7 +306,7 @@ function! s:maker_base._get_tempfilename(bufnr) abort dict
         return self.tempfile_name
     endif
 
-    let tempfile_enabled = neomake#utils#GetSetting('tempfile_enabled', self, 1, self.fts, a:bufnr)
+    let tempfile_enabled = neomake#utils#GetSetting('tempfile_enabled', self, 0, self.fts, a:bufnr)
     if !tempfile_enabled
         return ''
     endif
