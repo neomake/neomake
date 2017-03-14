@@ -158,3 +158,13 @@ Execute (maker._get_argv uses jobinfo for bufnr):
 
   wincmd p
   bwipe
+
+Execute (_get_fname_for_buffer handles modified buffer with disabled tempfiles):
+  new
+  let b:neomake_tempfile_enabled = 0
+  file file1
+  set modified
+  let maker = neomake#GetMaker({})
+  let fname = maker._get_fname_for_buffer(bufnr('%'))
+  AssertEqual fname, 'file1'
+  bwipe!
