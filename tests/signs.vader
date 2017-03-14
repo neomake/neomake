@@ -16,6 +16,7 @@ Execute (neomake#signs#RedefineErrorSign):
   call extend(maker, {
         \ 'name': 'custom_maker',
         \ 'errorformat': '%E%f:%l: %t: %m,%E%f: %t: %m',
+        \ 'append_file': 0,
         \ }, 'error')
 
   new
