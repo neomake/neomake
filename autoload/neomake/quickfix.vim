@@ -33,10 +33,18 @@ function! s:cursor_moved() abort
         endif
 
         silent! call matchdelete(s:cursor_match_id)
-        call matchaddpos('neomakeCursorListNr',
-                    \ [[line('.'), (b:neomake_start_col - b:neomake_number_len) + 2, b:neomake_number_len]],
-                    \ s:cursor_match_id,
-                    \ s:cursor_match_id)
+        if exists('*matchaddpos')
+            call matchaddpos('neomakeCursorListNr',
+                        \ [[line('.'), (b:neomake_start_col - b:neomake_number_len) + 2, b:neomake_number_len]],
+                        \ s:cursor_match_id,
+                        \ s:cursor_match_id)
+        else
+            call matchadd('neomakeCursorListNr',
+                        \  '\%' . line('.') . 'c'
+                        \. '\%' . ((b:neomake_start_col - b:neomake_number_len) + 2) . 'c'
+                        \. '.\{' . b:neomake_number_len . '}',
+                        \ s:cursor_match_id, s:cursor_match_id)
+        endif
     endif
 endfunction
 
