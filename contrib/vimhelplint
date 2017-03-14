@@ -1,0 +1,40 @@
+#!/bin/sh
+# A wrapper around vim-vimhelp (https://github.com/machakann/vim-vimhelplint).
+# It uses vimhelplint from Neomake's build dir.
+
+# Change to parent dir (POSIXly).
+CDPATH='' cd -P -- "$(dirname -- "$0")/.." || exit
+vimhelplint=$PWD/build/vimhelplint/ftplugin/help_lint.vim
+cd - >/dev/null || exit
+
+if ! [ -f "$vimhelplint" ]; then
+  echo "$vimhelplint not found." >&2
+  echo "Run 'make build/vimhelplint' Neomake's root directory to install it." >&2
+  exit 64
+fi
+
+file="$1"
+if [ -z "$file" ]; then
+  echo 'No input file specified.' >&2
+  exit 64
+fi
+if ! [ -e "$file" ]; then
+  echo "File $file is not readable." >&2
+  exit 1
+fi
+
+out=$(${VIMHELPLINT_VIM:-vim} -esN -u NONE -i NONE \
+  -c "silent edit $1" \
+  -c 'set ft=help' \
+  -c "source $vimhelplint" \
+  -c 'verb VimhelpLintEcho' \
+  -c 'qall!' 2>&1)
+if [ -z "$out" ]; then
+  exit 0
+fi
+echo "$out"
+exit 1
+
+# \   'watchdogs_checker/vimhelplint' : {
+# \     'command': 'vim',
+# \     'exec' : '%C -X -N -u NONE -i NONE -V1 -e -s -c "set rtp+=' . s:get_plugin_dir() . '" -c "silent filetype plugin on" -c "silent edit %s" -c "VimhelpLintEcho" -c "qall!"',

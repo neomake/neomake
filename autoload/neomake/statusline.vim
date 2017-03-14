@@ -17,7 +17,7 @@ function! neomake#statusline#ResetCountsForBuf(...) abort
     if r
         call neomake#utils#hook('NeomakeCountsChanged', {
                     \ 'file_mode': 1,
-                    \ 'bufnr': bufnr})
+                    \ 'bufnr': bufnr + 0})
     endif
     return r
 endfunction
@@ -33,6 +33,7 @@ function! neomake#statusline#ResetCountsForProject(...) abort
     return r
 endfunction
 
+" TODO: deprecate/remove.
 function! neomake#statusline#ResetCounts() abort
     let r = neomake#statusline#ResetCountsForProject()
     for bufnr in keys(s:loclist_counts)

@@ -47,6 +47,9 @@ install:
       fi
     elif [ "$ENV" = "testnvim" ]; then
       eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
+
+      # Install vim-vimhelplint for one build.
+      make build/vimhelplint
     fi
 
 script:

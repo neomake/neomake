@@ -159,7 +159,6 @@ function! s:MakeJob(make_id, options) abort
             let maker = returned_maker
         endif
     endif
-    lockvar maker
     let jobinfo.maker = maker
 
     " Check for already running job for the same maker (from other runs).
@@ -225,6 +224,9 @@ function! s:MakeJob(make_id, options) abort
     try
         let error = ''
         let argv = maker._get_argv(jobinfo.file_mode ? jobinfo.bufnr : 0)
+        " Lock maker to make sure it does not get changed accidentally, but
+        " only with depth=1, so that a postprocess object can change itself.
+        lockvar 1 maker
         if neomake#has_async_support()
             if has('nvim')
                 let opts = {
@@ -437,7 +439,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     endif
 
     " Create the maker object.
-    let maker = extend(copy(s:maker_base), deepcopy(maker))
+    let maker = extend(copy(s:maker_base), copy(maker))
     if !has_key(maker, 'name')
         if type(a:name_or_maker) == type('')
             let maker.name = a:name_or_maker
@@ -624,8 +626,15 @@ function! s:Make(options) abort
         let s:make_id += 1
         let s:make_info[s:make_id] = {
                     \ 'cwd': getcwd(),
-                    \ 'verbosity': get(g:, 'neomake_verbose', 1) + &verbose,
+                    \ 'verbosity': get(g:, 'neomake_verbose', 1),
                     \ }
+        if &verbose
+            let s:make_info[s:make_id].verbosity += &verbose
+            call neomake#utils#DebugMessage(printf(
+                        \ 'Adding &verbose (%d) to verbosity level: %d',
+                        \ &verbose, s:make_info[s:make_id].verbosity),
+                        \ {'make_id': s:make_id})
+        endif
 
         if !has_key(options, 'enabled_makers')
             let makers = call('neomake#GetEnabledMakers', file_mode ? [ft] : [])
@@ -742,26 +751,29 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     else
         let s:postprocessors = s:postprocess
     endif
-    let debug = get(g:, 'neomake_verbose', 1) >= 3
+    let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3
     let custom_qf = neomake#quickfix#is_enabled()
     let maker_name = get(maker, 'name', 'makeprg')
 
+    " For postprocess functions.
     while index < len(list)
         let entry = list[index]
         let entry.maker_name = maker_name
         let index += 1
 
         let before = copy(entry)
-        for s:f in s:postprocessors
-            if type(s:f) == type({})
-                let s:this = extend(copy(s:f), {'maker': maker})
-                call call(s:f.fn, [entry], s:this)
-            else
-                let s:this = {'maker': maker}
-                call call(s:f, [entry], s:this)
-            endif
-            unlet! s:f  " vim73
-        endfor
+        if !empty(s:postprocessors)
+            let g:neomake_hook_context = {'jobinfo': a:jobinfo}
+            for s:f in s:postprocessors
+                if type(s:f) == type({})
+                    call call(s:f.fn, [entry], s:f)
+                else
+                    call call(s:f, [entry], maker)
+                endif
+                unlet! s:f  " vim73
+            endfor
+            unlet! g:neomake_hook_context  " Might be unset already with sleep in postprocess.
+        endif
         if entry != before
             let list_modified = 1
             if debug
@@ -1181,14 +1193,15 @@ endfunction
 " NOTE: can be skipped with Neovim 0.2.0+.
 let s:nvim_output_handler_queue = []
 function! s:nvim_output_handler(job_id, data, event_type) abort
+    let data = map(copy(a:data), "substitute(v:val, '\\r$', '', '')")
     " @vimlint(EVL108, 1)
     if has('nvim-0.2.0')
-        call s:output_handler(a:job_id, a:data, a:event_type)
+        call s:output_handler(a:job_id, data, a:event_type)
         return
     endif
     " @vimlint(EVL108, 0)
     let jobinfo = s:jobs[a:job_id]
-    let args = [a:job_id, a:data, a:event_type]
+    let args = [a:job_id, data, a:event_type]
     call add(s:nvim_output_handler_queue, args)
     if !exists('jobinfo._nvim_in_handler')
         let jobinfo._nvim_in_handler = 1

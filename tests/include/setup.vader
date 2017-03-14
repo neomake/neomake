@@ -83,12 +83,10 @@ Before:
   let s:tempname = tempname()
 
   function! g:NeomakeTestsEnsureExe(name)
-    if executable(a:name)
-      return
-    endif
     let path_separator = exists('+shellslash') ? ';' : ':'
     let dir_separator = exists('+shellslash') ? '\' : '/'
     let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
+    let exe = tmpbindir.dir_separator.a:name
     if $PATH !~# tmpbindir . path_separator
       Save $PATH
       if !isdirectory(tmpbindir)
@@ -96,7 +94,6 @@ Before:
       endif
       let $PATH = tmpbindir . ':' . $PATH
     endif
-    let exe = tmpbindir.dir_separator.a:name
     if !filereadable(exe)
       " XXX: this is dirty (for 'Test Neomake on errors.sh with two makers').
       if a:name == 'shellcheck'

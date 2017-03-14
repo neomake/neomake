@@ -30,3 +30,31 @@ Execute (neomake#statusline#ResetCounts):
   call neomake#statusline#ResetCounts()
   AssertEqual neomake#statusline#LoclistCounts('all'), {}
   AssertEqual neomake#statusline#QflistCounts(), {}
+
+Execute (LoclistCounts returns number):
+  call g:NeomakeSetupAutocmdWrappers()
+  new
+  let bufnr = bufnr('%')
+  call neomake#statusline#AddLoclistCount(bufnr, {'type': 'E', 'bufnr': bufnr})
+  AssertEqual neomake#statusline#LoclistCounts(bufnr), {'E': 1}
+  AssertEqual [], g:neomake_test_countschanged
+  call neomake#statusline#ResetCountsForBuf(bufnr)
+  AssertEqual bufnr, g:neomake_test_countschanged[0].bufnr
+  call setbufvar(g:neomake_test_countschanged[0].bufnr, 'test', 1)
+  AssertEqual 1, getbufvar(g:neomake_test_countschanged[0].bufnr, 'test')
+  bwipe
+
+Execute (TODO: LoclistCounts for wiped buffer should clean s:loclist_counts):
+  call g:NeomakeSetupAutocmdWrappers()
+  new
+  let bufnr = bufnr('%')
+  call neomake#statusline#AddLoclistCount(bufnr, {'type': 'E', 'bufnr': bufnr})
+  AssertEqual neomake#statusline#LoclistCounts(bufnr), {'E': 1}
+  bwipe
+  AssertEqual neomake#statusline#LoclistCounts(bufnr), {'E': 1}
+  AssertEqual [], g:neomake_test_countschanged
+
+  call neomake#statusline#ResetCounts()
+  AssertEqual bufnr, g:neomake_test_countschanged[0].bufnr
+  call setbufvar(g:neomake_test_countschanged[0].bufnr, 'test', 1)
+  AssertEqual '', getbufvar(g:neomake_test_countschanged[0].bufnr, 'test')
