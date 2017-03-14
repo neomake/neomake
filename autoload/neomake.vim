@@ -324,6 +324,7 @@ endfunction
 " Check if a temporary file is used, and set self.tempfile_name in case it is.
 function! s:maker_base._get_fname_for_buffer(bufnr) abort
     let bufname = bufname(a:bufnr)
+    let temp_file = ''
     if !len(bufname)
         let temp_file = self._get_tempfilename(a:bufnr)
         if !empty(temp_file)
@@ -355,7 +356,7 @@ function! s:maker_base._get_fname_for_buffer(bufnr) abort
         let bufname = fnamemodify(bufname, ':p')
     endif
 
-    if exists('temp_file')
+    if len(temp_file)
         let temp_dir = fnamemodify(temp_file, ':h')
         if !isdirectory(temp_dir)
             call mkdir(temp_dir, 'p', 0750)
