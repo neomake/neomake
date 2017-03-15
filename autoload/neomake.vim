@@ -1445,7 +1445,10 @@ function! s:handle_next_maker(prev_jobinfo) abort
         endif
 
         try
-            return s:MakeJob(make_id, options)
+            let jobinfo = s:MakeJob(make_id, options)
+            if !empty(jobinfo)
+                return jobinfo
+            endif
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '')
             call neomake#utils#ErrorMessage(error, {'make_id': s:make_id})
