@@ -18,7 +18,7 @@ function! neomake#makers#ft#python#EnabledMakers() abort
         if executable('flake8')
             call add(makers, 'flake8')
         else
-            call extend(makers, ['pyflakes', 'pep8', 'pydocstyle'])
+            call extend(makers, ['pyflakes', 'pycodestyle', 'pydocstyle'])
         endif
 
         call add(makers, 'pylint')  " Last because it is the slowest
@@ -167,11 +167,21 @@ function! neomake#makers#ft#python#pyflakes() abort
         \ }
 endfunction
 
-function! neomake#makers#ft#python#pep8() abort
+function! neomake#makers#ft#python#pycodestyle() abort
+  if !exists('s:_pycodestyle_exe')
+    " Use the preferred exe to avoid deprecation warnings.
+    let s:_pycodestyle_exe = executable('pycodestyle') ? 'pycodestyle' : 'pep8'
+  endif
     return {
+        \ 'exe': s:_pycodestyle_exe,
         \ 'errorformat': '%f:%l:%c: %m',
         \ 'postprocess': function('neomake#makers#ft#python#Pep8EntryProcess')
         \ }
+endfunction
+
+" Note: pep8 has been renamed to pycodestyle, but is kept also as alias.
+function! neomake#makers#ft#python#pep8() abort
+    return neomake#makers#ft#python#pycodestyle()
 endfunction
 
 function! neomake#makers#ft#python#Pep8EntryProcess(entry) abort
