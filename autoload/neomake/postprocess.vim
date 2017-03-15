@@ -11,7 +11,6 @@ function! neomake#postprocess#GenericLengthPostprocess(entry) abort dict
     let start = 0
     let best = 0
     while 1
-      let text = a:entry.text
       let m = matchlist(a:entry.text, pattern, start)
       if empty(m)
         break
