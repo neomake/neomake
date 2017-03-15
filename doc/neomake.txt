@@ -178,7 +178,7 @@ The `postprocess` property is a function reference that will be applied to the
 entry in the location or quickfix list.
 Example: change the entry type to a warning. >
     function SetWarningType(entry)
-        a:entry.type = 'W'
+        let a:entry.type = 'W'
     endfunction
     let g:neomake_c_lint_maker = {
         \ 'exe': 'lint',
