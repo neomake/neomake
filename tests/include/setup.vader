@@ -309,12 +309,14 @@ Before:
         \ .string(map(range(1, winnr('$')),
         \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
       try
-        let bufs = sort(tabpagebuflist())
+        let bufs = sort(tabpagebuflist(), 'N')
         if exists('*uniq')
           let bufs = uniq(bufs)
         endif
         for b in bufs
-          silent exe 'bd!' b
+          if bufname(b) !=# '[Vader-workbench]'
+            exe 'bwipe!' b
+          endif
         endfor
       catch
         Log "Error while cleaning windows: ".v:exception
