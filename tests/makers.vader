@@ -46,6 +46,23 @@ Execute (Neomake with non-existing default makers):
   RunNeomake
   AssertNeomakeMessage "Exe (maker_without_exe) of auto-configured maker maker_without_exe is not executable, skipping.", 3
 
+Execute (Neomake with non-existing default maker handles following makers):
+  call g:NeomakeSetupAutocmdWrappers()
+
+  new
+  set filetype=neomake_tests
+  Save g:neomake_test_enabledmakers
+  let g:neomake_test_enabledmakers = ['maker_without_exe', 'echo_maker']
+  RunNeomake
+  AssertNeomakeMessage 'Running makers: maker_without_exe (auto), echo_maker (auto)'
+  AssertNeomakeMessage "Exe (maker_without_exe) of auto-configured maker maker_without_exe is not executable, skipping.", 3
+  AssertEqual 1, len(g:neomake_test_jobfinished), 'echo_maker should have run'
+  AssertEqual 1, len(g:neomake_test_finished)
+
+  RunNeomake
+  AssertNeomakeMessage "Exe (maker_without_exe) of auto-configured maker maker_without_exe is not executable, skipping.", 3
+  bwipe
+
 Execute (Neomake with non-existing default makers, explicitly called):
   Save &filetype
   set filetype=neomake_tests
