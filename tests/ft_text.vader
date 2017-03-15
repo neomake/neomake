@@ -18,3 +18,52 @@ Execute (writegood: postprocess increments column):
     return a:entry
   endfunction
   AssertEqual F({'col': 2, 'text': 'foo'}), {'col': 3, 'text': 'foo'}
+
+Execute (proselint):
+  new
+  file file.txt
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#text#proselint().errorformat
+  call append(0, [
+  \ "file.txt:1:1: typography.symbols.ellipsis '...' is an approximation, use the ellipsis symbol '…'.",
+  \ "file.txt:2:9: uncomparables.misc Comparison of an uncomparable: 'very unique.' is not comparable.",
+  \ "file.txt:2:9: weasel_words.very Substitute 'damn' every time you're inclined to write 'very;' your editor will delete it and the writing will be just as it should be."])
+  norm! Gdd
+  lgetbuffer
+  AssertEqual getloclist(0), [
+  \ {'lnum': 1, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'pattern': '', 'text': 'typography.symbols.ellipsis ''...'' is an approximation, use the ellipsis symbol ''…''.'},
+  \ {'lnum': 2, 'bufnr': bufnr('%'), 'col': 9, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'pattern': '', 'text': 'uncomparables.misc Comparison of an uncomparable: ''very unique.'' is not comparable.'},
+  \ {'lnum': 2, 'bufnr': bufnr('%'), 'col': 9, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'pattern': '', 'text': 'weasel_words.very Substitute ''damn'' every time you''re inclined to write ''very;'' your editor will delete it and the writing will be just as it should be.'},
+  \ ]
+
+  Save g:neomake_test_highlights_called
+  let g:neomake_test_highlights_called = []
+  function! neomake#highlights#AddHighlight(...)
+    call add(g:neomake_test_highlights_called, a:000)
+  endfunction
+
+  norm! ggdGcc...
+
+  function! F(entry)
+    call neomake#makers#ft#text#proselint().postprocess(a:entry)
+    return a:entry
+  endfunction
+  AssertEqual 3, F(getloclist(0)[0]).length
+
+  let maker = neomake#GetMaker('proselint', 'text')
+  let maker.append_file = 0
+  call extend(maker, neomake#utils#MakerFromCommand(
+  \ "echo \"file.txt:1:1: typography.symbols.ellipsis '...' is an approximation, use the ellipsis symbol '…'.\""),
+  \ 'keep')
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual g:neomake_test_highlights_called, [[
+  \ {'lnum': 1, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'maker_name': 'proselint', 'pattern': '', 'length': 3,
+  \  'text': 'typography.symbols.ellipsis ''...'' is an approximation, use the ellipsis symbol ''…''.'},
+  \ 'file']]
+
+  bwipe!

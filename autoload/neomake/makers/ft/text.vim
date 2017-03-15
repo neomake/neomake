@@ -5,8 +5,9 @@ endfunction
 
 function! neomake#makers#ft#text#proselint() abort
     return {
-                \ 'errorformat': '%W%f:%l:%c: %m'
-                \ }
+          \ 'errorformat': '%W%f:%l:%c: %m',
+          \ 'postprocess': function('neomake#postprocess#GenericLengthPostprocess'),
+          \ }
 endfunction
 
 function! neomake#makers#ft#text#PostprocessWritegood(entry) abort
