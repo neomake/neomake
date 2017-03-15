@@ -29,3 +29,7 @@ endfunction
 function! neomake#makers#ft#jsx#rjsx()
     return neomake#makers#ft#javascript#rjsx()
 endfunction
+
+function! neomake#makers#ft#jsx#flow()
+    return neomake#makers#ft#javascript#flow()
+endfunction
