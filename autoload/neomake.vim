@@ -178,24 +178,6 @@ function! s:MakeJob(make_id, options) abort
         endif
     endif
 
-    if !executable(maker.exe)
-        if !get(maker, 'auto_enabled', 0)
-            let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)
-            if !has_key(s:exe_error_thrown, maker.exe)
-                let s:exe_error_thrown[maker.exe] = 1
-                call neomake#utils#ErrorMessage(error)
-            else
-                call neomake#utils#DebugMessage(error)
-            endif
-            throw 'Neomake: '.error
-        endif
-
-        " XXX: mark it as to be skipped earlier?!
-        call neomake#utils#DebugMessage(printf(
-                    \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name))
-        return {}
-    endif
-
     let cwd = get(maker, 'cwd', s:make_info[a:make_id].cwd)
     if len(cwd)
         let old_wd = getcwd()
@@ -1584,6 +1566,23 @@ function! s:map_makers(jobinfo, makers, ...) abort
                     " s:map_makers).
                     let maker = returned_maker
                 endif
+            endif
+
+            if !executable(maker.exe)
+                if !get(maker, 'auto_enabled', 0)
+                    let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)
+                    if !has_key(s:exe_error_thrown, maker.exe)
+                        let s:exe_error_thrown[maker.exe] = 1
+                        call neomake#utils#ErrorMessage(error)
+                    else
+                        call neomake#utils#DebugMessage(error)
+                    endif
+                    throw 'Neomake: '.error
+                endif
+
+                call neomake#utils#DebugMessage(printf(
+                            \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name))
+                continue
             endif
 
         catch /^Neomake: /
