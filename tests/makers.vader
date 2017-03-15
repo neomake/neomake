@@ -34,7 +34,7 @@ Execute (Neomake with non-existing maker (configured)):
   AssertNeomakeMessage "Maker not found (for filetypes ['myft']): nonexisting_custom", 0, {'make_id': make_id}
   AssertNeomakeMessage 'Nothing to make: no enabled file mode makers.', 3, {'make_id': make_id}
   AssertEqual len(g:neomake_test_messages), 2
-  AssertEqua make_id_before + 1, neomake#GetStatus().last_make_id
+  AssertEqual make_id_before + 1, neomake#GetStatus().last_make_id
 
 Execute (Neomake with non-existing default makers):
   call g:NeomakeSetupAutocmdWrappers()
@@ -44,6 +44,7 @@ Execute (Neomake with non-existing default makers):
   Save g:neomake_test_enabledmakers
   let g:neomake_test_enabledmakers = ['maker_without_exe', 'nonexisting']
   RunNeomake
+  AssertNeomakeMessage "Maker not found (for filetypes ['neomake_tests']): nonexisting", 3
   AssertNeomakeMessage "Exe (maker_without_exe) of auto-configured maker maker_without_exe is not executable, skipping.", 3
   AssertNeomakeMessage 'Nothing to make: no valid makers.', 3
   AssertEqual 0, len(g:neomake_test_jobfinished)
@@ -82,7 +83,8 @@ Execute (neomake#GetEnabledMakers with defaults):
   set filetype=neomake_tests
   let makers = neomake#GetEnabledMakers(&ft)
   AssertEqual map(copy(makers), 'v:val.auto_enabled'), [1]
-  AssertEqual len(g:neomake_test_messages), 0
+  AssertNeomakeMessage "Maker not found (for filetypes ['neomake_tests']): nonexisting", 3
+  AssertEqual len(g:neomake_test_messages), 1
 
 Execute (neomake#GetEnabledMakers with configuration):
   Save &filetype
