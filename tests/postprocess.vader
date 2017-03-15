@@ -244,50 +244,54 @@ Execute (maker.postprocess interface for maker):
   AssertEqual ['Vim(let):E741: Value is locked: self.called = 1'], g:neomake_test_called
 
 Execute (neomake#postprocess#GenericLengthPostprocess for multiple matches):
-  new
-  norm! i...
-  let entry = {'text': "'...' is bad, use '…'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
-  call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
-  AssertEqual entry.length, 3
+  if !exists('*matchstrpos')
+    NeomakeTestsSkip 'only supported with matchstrpos'
+  else
+    new
+    norm! i...
+    let entry = {'text': "'...' is bad, use '…'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
+    call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
+    AssertEqual entry.length, 3
 
-  let entry = {'text': "'…' is better than '...'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
-  call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
-  AssertEqual entry.length, 3
+    let entry = {'text': "'…' is better than '...'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
+    call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
+    AssertEqual entry.length, 3
 
-  let entry = {'text': "'…''...'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
-  call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
-  AssertEqual entry.length, 3
+    let entry = {'text': "'…''...'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
+    call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
+    AssertEqual entry.length, 3
 
-  " Now reversed.
-  " Note that is uses bytes, so the length for '…' is also 3 here.
-  norm! cc…
-  let entry = {'text': "'...' is bad, use '…'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
-  call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
-  AssertEqual entry.length, 3
+    " Now reversed.
+    " Note that is uses bytes, so the length for '…' is also 3 here.
+    norm! cc…
+    let entry = {'text': "'...' is bad, use '…'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
+    call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
+    AssertEqual entry.length, 3
 
-  let entry = {'text': "'…' is better than '...'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
-  call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
-  AssertEqual entry.length, 3
+    let entry = {'text': "'…' is better than '...'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
+    call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
+    AssertEqual entry.length, 3
 
-  let entry = {'text': "'…''...'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
-  call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
-  AssertEqual entry.length, 3
+    let entry = {'text': "'…''...'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
+    call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
+    AssertEqual entry.length, 3
 
-  let entry = {'text': "'...''…'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
-  call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
-  AssertEqual entry.length, 3
+    let entry = {'text': "'...''…'", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
+    call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
+    AssertEqual entry.length, 3
 
-  let entry = {'text': "STARTfooENDSTART…END", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
-  call call('neomake#postprocess#GenericLengthPostprocess', [entry], {
-  \ 'pattern': "\\v(START)\\zs.{-}\\ze(END)"
-  \ })
-  AssertEqual entry.length, 3
+    let entry = {'text': "STARTfooENDSTART…END", 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
+    call call('neomake#postprocess#GenericLengthPostprocess', [entry], {
+    \ 'pattern': "\\v(START)\\zs.{-}\\ze(END)"
+    \ })
+    AssertEqual entry.length, 3
 
-  " Should use the best/longest match.
-  norm! ccchairman
-  let entry = {'text': "sexism.misc Gender bias. Use 'chair' instead of 'chairman'.",
-  \ 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
-  call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
-  AssertEqual entry.length, len('chairman')
+    " Should use the best/longest match.
+    norm! ccchairman
+    let entry = {'text': "sexism.misc Gender bias. Use 'chair' instead of 'chairman'.",
+    \ 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
+    call call('neomake#postprocess#GenericLengthPostprocess', [entry], {})
+    AssertEqual entry.length, len('chairman')
 
-  bwipe!
+    bwipe!
+  endif

@@ -12,24 +12,26 @@ function! neomake#postprocess#GenericLengthPostprocess(entry) abort dict
     let best = 0
     while 1
       let text = a:entry.text
-      let pos = matchstrpos(a:entry.text, pattern, start)
-      let t = a:entry.text
-      if pos[1] == -1
-        break
-      endif
       let m = matchlist(a:entry.text, pattern, start)
       if empty(m)
         break
       endif
       let l = len(m[0])
       if l > best
-        " AssertEqual l, pos[2]-pos[1]
         " Ensure that the text is there.
         if getline(a:entry.lnum)[a:entry.col-1 : a:entry.col-2+l] == m[0]
           let best = l
         endif
       endif
-      let start += pos[2] + len(m[2])
+      if exists('*matchstrpos')  " vim73
+        let pos = matchstrpos(a:entry.text, pattern, start)
+        if pos[1] == -1
+          break
+        endif
+        let start += pos[2] + len(m[2])
+      else
+        break
+      endif
     endwhile
     if best
       let a:entry.length = best
