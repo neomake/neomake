@@ -8,6 +8,10 @@ function! neomake#makers#ft#jsx#EnabledMakers()
     return ['jshint', 'eslint']
 endfunction
 
+function! neomake#makers#ft#jsx#flow()
+    return neomake#makers#ft#javascript#flow()
+endfunction
+
 function! neomake#makers#ft#jsx#jshint()
     let maker = neomake#makers#ft#javascript#jshint()
     let maker.exe = 'jsxhint'
