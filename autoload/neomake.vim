@@ -515,12 +515,12 @@ function! s:get_makers_for_pattern(pattern) abort
         " Only keep lowercase function names.
         call filter(funcs, "v:val =~# '\\m^[a-z].*()'")
         " Remove parenthesis and #.* (for project makers).
-        return map(funcs, "substitute(v:val, '\\v[(#].*', '', '')")
+        return sort(map(funcs, "substitute(v:val, '\\v[(#].*', '', '')"))
     endif
 
     let funcs_output = neomake#utils#redir('fun /'.a:pattern)
-    return map(split(funcs_output, '\n'),
-                \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')")
+    return sort(map(split(funcs_output, '\n'),
+                \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')"))
 endfunction
 
 function! neomake#GetMakers(ft) abort
@@ -680,7 +680,7 @@ function! s:Make(options) abort
         let makers = options.enabled_makers
         unlet options.enabled_makers
     else
-        let makers = call('neomake#GetEnabledMakers', file_mode ? options.fts : [])
+        let makers = call('neomake#GetEnabledMakers', file_mode ? [options.fts] : [])
         if !len(makers)
             if file_mode
                 call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers.', {'make_id': make_id})
