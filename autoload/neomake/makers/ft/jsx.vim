@@ -26,6 +26,14 @@ function! neomake#makers#ft#jsx#eslint_d() abort
     return neomake#makers#ft#javascript#eslint_d()
 endfunction
 
+function! neomake#makers#ft#jsx#standard() abort
+    return neomake#makers#ft#javascript#standard()
+endfunction
+
+function! neomake#makers#ft#jsx#semistandard() abort
+    return neomake#makers#ft#javascript#semistandard()
+endfunction
+
 function! neomake#makers#ft#jsx#rjsx() abort
     return neomake#makers#ft#javascript#rjsx()
 endfunction
