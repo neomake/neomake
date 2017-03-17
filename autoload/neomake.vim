@@ -160,7 +160,7 @@ function! s:MakeJob(make_id, options) abort
     " This used to use this key: maker.name.',ft='.maker.ft.',buf='.maker.bufnr
     if len(s:jobs)
         let running_already = values(filter(copy(s:jobs),
-                    \ 'v:val.make_id != s:make_id && v:val.maker == maker'
+                    \ 'v:val.make_id != a:make_id && v:val.maker == maker'
                     \ .' && v:val.bufnr == jobinfo.bufnr'
                     \ ." && !get(v:val, 'restarting')"))
         if len(running_already)
@@ -170,11 +170,11 @@ function! s:MakeJob(make_id, options) abort
             " let jobinfo.next.enabled_makers = [maker]
             call neomake#utils#LoudMessage(printf(
                         \ 'Restarting already running job (%d.%d) for the same maker.',
-                        \ jobinfo.make_id, jobinfo.id), {'make_id': s:make_id})
-            let jobinfo.restarting = s:make_id
+                        \ jobinfo.make_id, jobinfo.id), {'make_id': a:make_id})
+            let jobinfo.restarting = a:make_id
 
             call neomake#CancelJob(jobinfo.id)
-            return s:MakeJob(s:make_id, a:options)
+            return s:MakeJob(a:make_id, a:options)
         endif
     endif
 
@@ -268,7 +268,7 @@ function! s:MakeJob(make_id, options) abort
 
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
-            let s:make_info[s:make_id].active_jobs[jobinfo.id] += 1
+            let s:make_info[a:make_id].active_jobs += 1
             call s:output_handler(job_id, split(system(argv), '\r\?\n', 1), 'stdout')
             call s:exit_handler(job_id, v:shell_error, 'exit')
             return {}
@@ -278,7 +278,7 @@ function! s:MakeJob(make_id, options) abort
             exe cd fnameescape(old_wd)
         endif
     endtry
-    let s:make_info[s:make_id].active_jobs += 1
+    let s:make_info[a:make_id].active_jobs += 1
     return jobinfo
 endfunction
 
@@ -661,11 +661,11 @@ function! s:Make(options) abort
                 \ 'options': options,
                 \ }
     if &verbose
-        let s:make_info[s:make_id].verbosity += &verbose
+        let s:make_info[make_id].verbosity += &verbose
         call neomake#utils#DebugMessage(printf(
                     \ 'Adding &verbose (%d) to verbosity level: %d',
-                    \ &verbose, s:make_info[s:make_id].verbosity),
-                    \ {'make_id': s:make_id})
+                    \ &verbose, s:make_info[make_id].verbosity),
+                    \ {'make_id': make_id})
     endif
 
     if has_key(options, 'enabled_makers')
@@ -1426,7 +1426,7 @@ function! s:handle_next_maker(prev_jobinfo) abort
             endif
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '')
-            call neomake#utils#ErrorMessage(error, {'make_id': s:make_id})
+            call neomake#utils#ErrorMessage(error, {'make_id': make_id})
 
             if get(options, 'serialize', 0)
                         \ && neomake#utils#GetSetting('serialize_abort_on_error', maker, 0, options.fts, options.bufnr)

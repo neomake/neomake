@@ -23,6 +23,37 @@ Execute (NeomakeSh: simple serialized makers):
   AssertNeomakeMessage 'exit: sleep-maker: 0'
   AssertNeomakeMessage 'exit: success-maker: 0'
 
+Execute (NeomakeSh: simple serialized makers: two buffers in parallel):
+  if NeomakeAsyncTestsSetup()
+    let sleep_maker1 = NeomakeTestsCommandMaker('sleep-maker1', 'sleep .01; echo slept1')
+    let sleep_maker2 = NeomakeTestsCommandMaker('sleep-maker2', 'sleep .05; echo slept2')
+
+    call g:NeomakeSetupAutocmdWrappers()
+    Save g:neomake_serialize
+    let g:neomake_serialize = 1
+
+    new
+    call neomake#Make(1, [sleep_maker1, g:maker_success])
+    new
+    call neomake#Make(1, [sleep_maker2, g:maker_success])
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual len(g:neomake_test_finished), 1
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ ['slept2', 'success']
+    AssertNeomakeMessage 'Running makers: sleep-maker1, success-maker', 3
+    AssertNeomakeMessage 'Running makers: sleep-maker2, success-maker', 3
+    AssertNeomakeMessage 'exit: sleep-maker1: 0'
+    AssertNeomakeMessage 'exit: success-maker: 0'
+    AssertNeomakeMessage 'exit: sleep-maker2: 0'
+    AssertNeomakeMessage 'exit: success-maker: 0'
+
+    bwipe
+    AssertEqual len(g:neomake_test_finished), 2
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ ['slept1', 'success']
+    bwipe
+  endif
+
 Execute (NeomakeSh: simple serialized maker with error):
   call g:NeomakeSetupAutocmdWrappers()
   Save g:neomake_serialize
