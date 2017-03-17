@@ -151,7 +151,6 @@ function! s:MakeJob(make_id, options) abort
         \ 'bufnr': a:options.bufnr,
         \ 'file_mode': a:options.file_mode,
         \ 'fts': a:options.fts,
-        \ 'make_id': a:make_id,
         \ }, a:options)
 
     let maker = jobinfo.maker
@@ -642,17 +641,18 @@ function! s:HandleLoclistQflistDisplay(file_mode) abort
 endfunction
 
 function! s:Make(options) abort
+    let s:make_id += 1
+    let make_id = s:make_id
     let options = copy(a:options)
     call extend(options, {
                 \ 'file_mode': 0,
                 \ 'bufnr': bufnr('%'),
                 \ 'fts': [],
+                \ 'make_id': make_id,
                 \ }, 'keep')
     let bufnr = options.bufnr
     let file_mode = options.file_mode
 
-    let s:make_id += 1
-    let make_id = s:make_id
     let s:make_info[make_id] = {
                 \ 'cwd': getcwd(),
                 \ 'verbosity': get(g:, 'neomake_verbose', 1),
@@ -1580,7 +1580,7 @@ function! s:map_makers(jobinfo, makers, ...) abort
 
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '')
-            call neomake#utils#ErrorMessage(error, {'make_id': s:make_id})
+            call neomake#utils#ErrorMessage(error, {'make_id': a:jobinfo.make_id})
             continue
         endtry
         let r += [maker]
