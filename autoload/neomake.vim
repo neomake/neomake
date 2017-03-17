@@ -530,7 +530,6 @@ function! neomake#GetMakers(ft) abort
     " functions)?!
 
     let makers = []
-    let makers_count = {}
     let fts = neomake#utils#GetSortedFiletypes(a:ft)
     for ft in fts
         let ft = substitute(ft, '\W', '_', 'g')
@@ -542,26 +541,19 @@ function! neomake#GetMakers(ft) abort
         endtry
 
         let maker_names = s:get_makers_for_pattern('neomake#makers#ft#'.ft.'#\l')
-
         for maker_name in maker_names
-            let c = get(makers_count, maker_name, 0)
-            let makers_count[maker_name] = c + 1
-            " Add each maker only once, but keep the order.
-            if c == 0
+            if index(makers, maker_name) == -1
                 let makers += [maker_name]
             endif
         endfor
         for v in extend(keys(g:), keys(b:))
             let maker_name = matchstr(v, '\v^neomake_'.ft.'_\zs\l+\ze_maker$')
             if len(maker_name)
-                let c = get(makers_count, maker_name, 0)
-                let makers_count[maker_name] = c + 1
                 let makers += [maker_name]
             endif
         endfor
     endfor
-    let l = len(fts)
-    return filter(makers, 'makers_count[v:val] ==# l')
+    return makers
 endfunction
 
 function! neomake#GetProjectMakers() abort

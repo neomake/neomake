@@ -15,8 +15,7 @@ Execute (GetEnabledMakers for jsx):
 
 Execute (GetMakers for javascript.jsx):
   AssertEqual neomake#GetMakers('javascript.jsx'),
-  \ ['eslint', 'eslint_d', 'jshint', 'rjsx']
-"   \ ['eslint', 'eslint_d', 'jshint', 'jsxhint', 'rjsx', 'flow', 'gjslint', 'jscs', 'semistandard', 'standard', 'xo']
+  \ ['eslint', 'eslint_d', 'jshint', 'jsxhint', 'rjsx', 'flow', 'gjslint', 'jscs', 'semistandard', 'standard', 'xo']
 
 Execute (GetMakers for javascript):
   AssertEqual neomake#GetMakers('javascript'),
