@@ -321,7 +321,7 @@ Before:
       catch
         Log "Error while cleaning windows: ".v:exception
       endtry
-      throw error
+      Log error
     endif
   endfunction
   command! NeomakeTestsGlobalAfter call s:After()
