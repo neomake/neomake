@@ -151,7 +151,6 @@ function! s:MakeJob(make_id, options) abort
         \ 'bufnr': a:options.bufnr,
         \ 'file_mode': a:options.file_mode,
         \ 'fts': a:options.fts,
-        \ 'make_id': a:make_id,
         \ }, a:options)
 
     let maker = jobinfo.maker
@@ -160,7 +159,7 @@ function! s:MakeJob(make_id, options) abort
     " This used to use this key: maker.name.',ft='.maker.ft.',buf='.maker.bufnr
     if len(s:jobs)
         let running_already = values(filter(copy(s:jobs),
-                    \ 'v:val.make_id != s:make_id && v:val.maker == maker'
+                    \ 'v:val.make_id != a:make_id && v:val.maker == maker'
                     \ .' && v:val.bufnr == jobinfo.bufnr'
                     \ ." && !get(v:val, 'restarting')"))
         if len(running_already)
@@ -170,11 +169,11 @@ function! s:MakeJob(make_id, options) abort
             " let jobinfo.next.enabled_makers = [maker]
             call neomake#utils#LoudMessage(printf(
                         \ 'Restarting already running job (%d.%d) for the same maker.',
-                        \ jobinfo.make_id, jobinfo.id), {'make_id': s:make_id})
-            let jobinfo.restarting = s:make_id
+                        \ jobinfo.make_id, jobinfo.id), {'make_id': a:make_id})
+            let jobinfo.restarting = a:make_id
 
             call neomake#CancelJob(jobinfo.id)
-            return s:MakeJob(s:make_id, a:options)
+            return s:MakeJob(a:make_id, a:options)
         endif
     endif
 
@@ -268,7 +267,7 @@ function! s:MakeJob(make_id, options) abort
 
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
-            let s:make_info[s:make_id].active_jobs[jobinfo.id] = jobinfo
+            let s:make_info[a:make_id].active_jobs += 1
             call s:output_handler(job_id, split(system(argv), '\r\?\n', 1), 'stdout')
             call s:exit_handler(job_id, v:shell_error, 'exit')
             return {}
@@ -278,7 +277,7 @@ function! s:MakeJob(make_id, options) abort
             exe cd fnameescape(old_wd)
         endif
     endtry
-    let s:make_info[s:make_id].active_jobs[jobinfo.id] = jobinfo
+    let s:make_info[a:make_id].active_jobs += 1
     return jobinfo
 endfunction
 
@@ -642,30 +641,31 @@ function! s:HandleLoclistQflistDisplay(file_mode) abort
 endfunction
 
 function! s:Make(options) abort
+    let s:make_id += 1
+    let make_id = s:make_id
     let options = copy(a:options)
     call extend(options, {
                 \ 'file_mode': 0,
                 \ 'bufnr': bufnr('%'),
                 \ 'fts': [],
+                \ 'make_id': make_id,
                 \ }, 'keep')
     let bufnr = options.bufnr
     let file_mode = options.file_mode
 
-    let s:make_id += 1
-    let make_id = s:make_id
     let s:make_info[make_id] = {
                 \ 'cwd': getcwd(),
                 \ 'verbosity': get(g:, 'neomake_verbose', 1),
-                \ 'active_jobs': {},
+                \ 'active_jobs': 0,
                 \ 'finished_jobs': [],
                 \ 'options': options,
                 \ }
     if &verbose
-        let s:make_info[s:make_id].verbosity += &verbose
+        let s:make_info[make_id].verbosity += &verbose
         call neomake#utils#DebugMessage(printf(
                     \ 'Adding &verbose (%d) to verbosity level: %d',
-                    \ &verbose, s:make_info[s:make_id].verbosity),
-                    \ {'make_id': s:make_id})
+                    \ &verbose, s:make_info[make_id].verbosity),
+                    \ {'make_id': make_id})
     endif
 
     if has_key(options, 'enabled_makers')
@@ -730,7 +730,7 @@ function! s:Make(options) abort
         endif
     endwhile
 
-    if has_key(s:make_info, make_id) && !len(s:make_info[make_id].active_jobs)
+    if has_key(s:make_info, make_id) && !s:make_info[make_id].active_jobs
         " Might have been removed through s:CleanJobinfo already.
         unlet s:make_info[make_id]
     endif
@@ -872,11 +872,10 @@ function! s:CleanJobinfo(jobinfo) abort
     call neomake#utils#DebugMessage('Cleaning jobinfo', a:jobinfo)
 
     let make_info = s:make_info[a:jobinfo.make_id]
-    let active_jobs = make_info.active_jobs
 
     if has_key(s:jobs, get(a:jobinfo, 'id', -1))
         call remove(s:jobs, a:jobinfo.id)
-        call remove(active_jobs, a:jobinfo.id)
+        let make_info.active_jobs -= 1
 
         let [t, w] = s:GetTabWinForMakeId(a:jobinfo.make_id)
         let jobs_output = s:gettabwinvar(t, w, 'neomake_jobs_output', {})
@@ -907,7 +906,7 @@ function! s:CleanJobinfo(jobinfo) abort
     endif
 
     " Trigger autocmd if all jobs for a s:Make instance have finished.
-    if len(active_jobs)
+    if make_info.active_jobs
         return
     endif
 
@@ -1427,7 +1426,7 @@ function! s:handle_next_maker(prev_jobinfo) abort
             endif
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '')
-            call neomake#utils#ErrorMessage(error, {'make_id': s:make_id})
+            call neomake#utils#ErrorMessage(error, {'make_id': make_id})
 
             if get(options, 'serialize', 0)
                         \ && neomake#utils#GetSetting('serialize_abort_on_error', maker, 0, options.fts, options.bufnr)
@@ -1581,7 +1580,7 @@ function! s:map_makers(jobinfo, makers, ...) abort
 
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '')
-            call neomake#utils#ErrorMessage(error, {'make_id': s:make_id})
+            call neomake#utils#ErrorMessage(error, {'make_id': a:jobinfo.make_id})
             continue
         endtry
         let r += [maker]
