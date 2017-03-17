@@ -268,7 +268,7 @@ function! s:MakeJob(make_id, options) abort
 
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
-            let s:make_info[s:make_id].active_jobs[jobinfo.id] = jobinfo
+            let s:make_info[s:make_id].active_jobs[jobinfo.id] += 1
             call s:output_handler(job_id, split(system(argv), '\r\?\n', 1), 'stdout')
             call s:exit_handler(job_id, v:shell_error, 'exit')
             return {}
@@ -278,7 +278,7 @@ function! s:MakeJob(make_id, options) abort
             exe cd fnameescape(old_wd)
         endif
     endtry
-    let s:make_info[s:make_id].active_jobs[jobinfo.id] = jobinfo
+    let s:make_info[s:make_id].active_jobs += 1
     return jobinfo
 endfunction
 
@@ -656,7 +656,7 @@ function! s:Make(options) abort
     let s:make_info[make_id] = {
                 \ 'cwd': getcwd(),
                 \ 'verbosity': get(g:, 'neomake_verbose', 1),
-                \ 'active_jobs': {},
+                \ 'active_jobs': 0,
                 \ 'finished_jobs': [],
                 \ 'options': options,
                 \ }
@@ -730,7 +730,7 @@ function! s:Make(options) abort
         endif
     endwhile
 
-    if has_key(s:make_info, make_id) && !len(s:make_info[make_id].active_jobs)
+    if has_key(s:make_info, make_id) && !s:make_info[make_id].active_jobs
         " Might have been removed through s:CleanJobinfo already.
         unlet s:make_info[make_id]
     endif
@@ -872,11 +872,10 @@ function! s:CleanJobinfo(jobinfo) abort
     call neomake#utils#DebugMessage('Cleaning jobinfo', a:jobinfo)
 
     let make_info = s:make_info[a:jobinfo.make_id]
-    let active_jobs = make_info.active_jobs
 
     if has_key(s:jobs, get(a:jobinfo, 'id', -1))
         call remove(s:jobs, a:jobinfo.id)
-        call remove(active_jobs, a:jobinfo.id)
+        let make_info.active_jobs -= 1
 
         let [t, w] = s:GetTabWinForMakeId(a:jobinfo.make_id)
         let jobs_output = s:gettabwinvar(t, w, 'neomake_jobs_output', {})
@@ -907,7 +906,7 @@ function! s:CleanJobinfo(jobinfo) abort
     endif
 
     " Trigger autocmd if all jobs for a s:Make instance have finished.
-    if len(active_jobs)
+    if make_info.active_jobs
         return
     endif
 
