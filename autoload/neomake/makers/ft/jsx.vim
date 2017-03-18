@@ -22,6 +22,14 @@ function! neomake#makers#ft#jsx#eslint()
     return neomake#makers#ft#javascript#eslint()
 endfunction
 
+function! neomake#makers#ft#jsx#standard()
+    return neomake#makers#ft#javascript#standard()
+endfunction
+
+function! neomake#makers#ft#jsx#semistandard()
+    return neomake#makers#ft#javascript#semistandard()
+endfunction
+
 function! neomake#makers#ft#jsx#eslint_d()
     return neomake#makers#ft#javascript#eslint_d()
 endfunction
