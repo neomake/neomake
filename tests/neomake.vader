@@ -38,6 +38,7 @@ Include (Vim): ft_vim.vader
 Include (SQL): ft_sql.vader
 Include (Help): ft_help.vader
 Include (Asciidoc): ft_asciidoc.vader
+Include (Markdown): ft_markdown.vader
 
 ~ Regression tests
 Include (cwd: tcd): cwd-tcd.vader

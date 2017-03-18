@@ -1,3 +1,7 @@
+function! neomake#makers#ft#asciidoc#SupersetOf() abort
+  return 'text'
+endfunction
+
 function! neomake#makers#ft#asciidoc#EnabledMakers() abort
   return ['asciidoc'] + neomake#makers#ft#text#EnabledMakers()
 endfunction
