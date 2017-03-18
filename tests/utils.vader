@@ -39,9 +39,10 @@ Execute (neomake#utils#GetSetting serialize):
   let g:maker = {'name': 'mymaker'}
   function! GetSetting()
     return neomake#utils#GetSetting('serialize', g:maker, 'default',
-                                  \ ['myft'], bufnr('%'))
+                                  \ 'myft', bufnr('%'))
   endfunction
 
+  new
   Save g:neomake_serialize, b:neomake_serialize
   Save g:neomake_mymaker_serialize, b:neomake_mymaker_serialize
   Save g:neomake_myft_mymaker_serialize, b:neomake_myft_mymaker_serialize
@@ -103,13 +104,24 @@ Execute (neomake#utils#GetSetting serialize):
   AssertEqual GetSetting(), 98
   let g:maker = {}
   AssertEqual GetSetting(), 98
+  bwipe
+
+Execute (neomake#utils#GetSetting for multiple fts):
+  new
+  function! GetSetting(key)
+    return neomake#utils#GetSetting(a:key, {}, 'default',
+                                  \ 'jsx.javascript', bufnr('%'))
+  endfunction
+  let b:neomake_jsx_javascript_setting = '1'
+  AssertEqual GetSetting('setting'), '1'
+  bwipe
 
 Execute (neomake#utils#GetSetting accepts lists):
   Save g:maker
   let g:maker = {'name': 'mymaker'}
   function! GetSetting()
     return neomake#utils#GetSetting('args', g:maker, 'default',
-                                  \ ['myft'], bufnr('%'))
+                                  \ 'myft', bufnr('%'))
   endfunction
 
   Save g:neomake_myft_mymaker_args, b:neomake_myft_mymaker_args
@@ -130,7 +142,7 @@ Execute (neomake#utils#GetSetting without name):
   let g:maker = {}
   function! GetSetting(key)
     return neomake#utils#GetSetting(a:key, g:maker, [],
-                                  \ ['myft'], bufnr('%'))
+                                  \ 'myft', bufnr('%'))
   endfunction
   AssertEqual GetSetting('args'), []
 
@@ -383,3 +395,14 @@ Execute (neomake#utils#GetSortedFiletypes):
   AssertEqual neomake#utils#GetSortedFiletypes(['foo', 'bar']), ['foo', 'bar']
   " If a list is passed, this gets not split on dots recursively.
   AssertEqual neomake#utils#GetSortedFiletypes(['foo', 'bar.baz']), ['foo', 'bar.baz']
+
+Execute (neomake#utils#get_config_fts):
+  function! F(ft) abort
+    return neomake#utils#get_config_fts(a:ft)
+  endfunction
+  AssertEqual F('foo'), ['foo']
+  AssertEqual F('foo.bar'), ['foo_bar', 'foo', 'bar']
+  AssertEqual F('bar.foo'), ['bar_foo', 'bar', 'foo']
+  AssertEqual F('jsx.javascript'), ['jsx_javascript', 'jsx', 'javascript']
+  AssertEqual F('javascript.jsx'), ['javascript_jsx', 'javascript', 'jsx']
+  AssertEqual F('jsx'), ['jsx', 'javascript']

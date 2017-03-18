@@ -1,26 +1,9 @@
-" vim: ts=4 sw=4 et
-
-function! neomake#makers#ft#angular#SupersetOf()
+function! neomake#makers#ft#angular#SupersetOf() abort
     return 'javascript'
 endfunction
 
-function! neomake#makers#ft#angular#EnabledMakers()
+function! neomake#makers#ft#angular#EnabledMakers() abort
     return ['jshint', 'eslint', 'jscs']
 endfunction
 
-function! neomake#makers#ft#angular#jshint()
-    return neomake#makers#ft#javascript#jshint()
-endfunction
-
-function! neomake#makers#ft#angular#eslint()
-    return neomake#makers#ft#javascript#eslint()
-endfunction
-
-function! neomake#makers#ft#angular#eslint_d()
-    return neomake#makers#ft#javascript#eslint_d()
-endfunction
-
-function! neomake#makers#ft#angular#jscs()
-    return neomake#makers#ft#javascript#jscs()
-endfunction
-
+" vim: ts=4 sw=4 et

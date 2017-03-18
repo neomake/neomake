@@ -243,6 +243,14 @@ Execute (NeomakeInfo with FuncRef):
   endfor
   bwipe
 
+Execute (NeomakeInfo with unusual filetype):
+  new
+  " Workaround for Vim's runtime/ftplugin/ruby.vim not liking HOME=/dev/null.
+  set filetype=ft1.gentoo-package-keywords
+  let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+  Assert index(info, 'NOTE: you can define g:neomake_ft1_gentoo_package_keywords_enabled_makers to configure it (or b:neomake_ft1_gentoo_package_keywords_enabled_makers).') != -1, 'Line was found'
+  bwipe
+
 Execute (Having an invalid &errorformat is OK):
   Save &errorformat
   let &efm = '%E%W'
