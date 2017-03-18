@@ -282,23 +282,6 @@ function! neomake#utils#load_ft_maker(ft) abort
     endif
 endfunction
 
-" Attempt to get list of filetypes in order of most specific to least specific.
-" NOTE: Obsolete, not used anymore.
-function! neomake#utils#GetSortedFiletypes(fts) abort
-    function! CompareFiletypes(ft1, ft2) abort
-        if neomake#utils#GetSupersetOf(a:ft1) ==# a:ft2
-            return -1
-        elseif neomake#utils#GetSupersetOf(a:ft2) ==# a:ft1
-            return 1
-        else
-            return 0
-        endif
-    endfunction
-
-    let fts = type(a:fts) == type('') ? split(a:fts, '\.') : a:fts
-    return sort(copy(fts), function('CompareFiletypes'))
-endfunction
-
 function! neomake#utils#get_ft_confname(ft) abort
     return substitute(a:ft, '\W', '_', 'g')
 endfunction

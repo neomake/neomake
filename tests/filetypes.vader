@@ -48,7 +48,6 @@ Execute (standard maker in javascript.jsx):
   AssertEqual map(neomake#GetEnabledMakers('javascript'), 'v:val.name'), ['standard']
   AssertEqual map(neomake#GetEnabledMakers('jsx'), 'v:val.name'), ['standard']
   AssertEqual map(neomake#GetEnabledMakers('jsx.javascript'), 'v:val.name'), ['standard']
-  AssertEqual neomake#utils#GetSortedFiletypes('jsx.javascript'), ['jsx', 'javascript']
   Neomake
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Running makers: standard'
