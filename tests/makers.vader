@@ -19,7 +19,7 @@ Execute (neomake#GetEnabledMakers without make_id):
   Save g:neomake_myft_enabled_makers
   let g:neomake_myft_enabled_makers = ['nonexisting_custom']
   let makers = neomake#GetEnabledMakers('myft')
-  AssertNeomakeMessage "Maker not found (for filetypes ['myft']): nonexisting_custom", 0, {}
+  AssertNeomakeMessage "Maker not found (for filetype myft): nonexisting_custom", 0, {}
 
 Execute (Neomake with non-existing maker (configured)):
   Save &filetype
@@ -31,7 +31,7 @@ Execute (Neomake with non-existing maker (configured)):
   let make_id_before = neomake#GetStatus().last_make_id
   RunNeomake
   let make_id = neomake#GetStatus().last_make_id
-  AssertNeomakeMessage "Maker not found (for filetypes ['myft']): nonexisting_custom", 0, {'make_id': make_id}
+  AssertNeomakeMessage "Maker not found (for filetype myft): nonexisting_custom", 0, {'make_id': make_id}
   AssertNeomakeMessage 'Nothing to make: no enabled file mode makers.', 3, {'make_id': make_id}
   AssertEqual len(g:neomake_test_messages), 2
   AssertEqual make_id_before + 1, neomake#GetStatus().last_make_id
@@ -44,7 +44,7 @@ Execute (Neomake with non-existing default makers):
   Save g:neomake_test_enabledmakers
   let g:neomake_test_enabledmakers = ['maker_without_exe', 'nonexisting']
   RunNeomake
-  AssertNeomakeMessage "Maker not found (for filetypes ['neomake_tests']): nonexisting", 3
+  AssertNeomakeMessage "Maker not found (for filetype neomake_tests): nonexisting", 3
   AssertNeomakeMessage "Exe (maker_without_exe) of auto-configured maker maker_without_exe is not executable, skipping.", 3
   AssertNeomakeMessage 'Nothing to make: no valid makers.', 3
   AssertEqual 0, len(g:neomake_test_jobfinished)
@@ -79,12 +79,13 @@ Execute (Neomake with non-existing default makers, explicitly called):
   AssertNeomakeMessage "Exe (maker_without_exe) of maker maker_without_exe is not executable.", 3
 
 Execute (neomake#GetEnabledMakers with defaults):
-  Save &filetype
+  new
   set filetype=neomake_tests
   let makers = neomake#GetEnabledMakers(&ft)
   AssertEqual map(copy(makers), 'v:val.auto_enabled'), [1]
-  AssertNeomakeMessage "Maker not found (for filetypes ['neomake_tests']): nonexisting", 3
+  AssertNeomakeMessage "Maker not found (for filetype neomake_tests): nonexisting", 3
   AssertEqual len(g:neomake_test_messages), 1
+  bwipe
 
 Execute (neomake#GetEnabledMakers with configuration):
   Save &filetype
@@ -128,7 +129,7 @@ Execute (neomake#GetEnabledMakers without filetype):
 
 Execute (neomake#GetMaker errors):
   AssertThrows call neomake#GetMaker('cargo', 'foo')
-  AssertEqual g:vader_exception, "Neomake: Maker not found (for filetypes ['foo']): cargo"
+  AssertEqual g:vader_exception, "Neomake: Maker not found (for filetype foo): cargo"
 
 Execute (neomake#GetMaker for project maker):
   Save g:neomake_enabled_makers
@@ -136,7 +137,7 @@ Execute (neomake#GetMaker for project maker):
   set ft=myft
 
   AssertThrows call neomake#GetMaker('cargo', 'foo')
-  AssertEqual g:vader_exception, "Neomake: Maker not found (for filetypes ['foo']): cargo"
+  AssertEqual g:vader_exception, "Neomake: Maker not found (for filetype foo): cargo"
 
 Execute (maker.fn can set env var):
   let maker = {

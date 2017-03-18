@@ -19,6 +19,9 @@ Execute (Postprocessing should update list):
   RunNeomake sh
   AssertEqual getloclist(0), expected_list
 
+  " Undo monkeypatching.
+  runtime autoload/neomake/makers/ft/sh.vim
+
 Execute (AddExprCallback with changed windows inbetween):
   if NeomakeAsyncTestsSetup()
     let g:neomake_tests_postprocess_count = 0

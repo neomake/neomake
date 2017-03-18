@@ -258,37 +258,64 @@ function! neomake#utils#MakerFromCommand(command) abort
     return maker
 endfunction
 
+let s:super_ft_cache = {}
 function! neomake#utils#GetSupersetOf(ft) abort
-    try
-        return eval('neomake#makers#ft#' . a:ft . '#SupersetOf()')
-    catch /^Vim\%((\a\+)\)\=:\(E117\|E121\)/
-        return ''
-    endtry
+    if !has_key(s:super_ft_cache, a:ft)
+        call neomake#utils#load_ft_maker(a:ft)
+        let SupersetOf = 'neomake#makers#ft#'.a:ft.'#SupersetOf'
+        if exists('*'.SupersetOf)
+            let s:super_ft_cache[a:ft] = call(SupersetOf, [])
+        else
+            let s:super_ft_cache[a:ft] = ''
+        endif
+    endif
+    return s:super_ft_cache[a:ft]
 endfunction
 
-" Attempt to get list of filetypes in order of most specific to least specific.
-function! neomake#utils#GetSortedFiletypes(fts) abort
-    function! CompareFiletypes(ft1, ft2) abort
-        if neomake#utils#GetSupersetOf(a:ft1) ==# a:ft2
-            return -1
-        elseif neomake#utils#GetSupersetOf(a:ft2) ==# a:ft1
-            return 1
-        else
-            return 0
-        endif
-    endfunction
+let s:loaded_ft_maker_runtime = []
+function! neomake#utils#load_ft_maker(ft) abort
+    " Load ft maker, but only once (for performance reasons and to allow for
+    " monkeypatching it in tests).
+    if index(s:loaded_ft_maker_runtime, a:ft) == -1
+        exe 'runtime autoload/neomake/makers/ft/'.a:ft.'.vim'
+        call add(s:loaded_ft_maker_runtime, a:ft)
+    endif
+endfunction
 
-    let fts = type(a:fts) == type('') ? split(a:fts, '\.') : a:fts
-    return sort(copy(fts), function('CompareFiletypes'))
+function! neomake#utils#get_ft_confname(ft) abort
+    return substitute(a:ft, '\W', '_', 'g')
+endfunction
+
+" Resolve filetype a:ft into a list of filetypes suitable for config vars
+" (i.e. 'foo.bar' => ['foo_bar', 'foo', 'bar']).
+function! neomake#utils#get_config_fts(ft) abort
+    let r = []
+    let fts = split(a:ft, '\.')
+    for ft in fts
+        call add(r, ft)
+        let super_ft = neomake#utils#GetSupersetOf(ft)
+        if !empty(super_ft) && index(fts, super_ft) == -1
+            call add(r, super_ft)
+        endif
+    endfor
+    if len(fts) > 1
+      call insert(r, a:ft, 0)
+    endif
+    return map(r, 'neomake#utils#get_ft_confname(v:val)')
 endfunction
 
 let s:unset = {}  " Sentinel.
 
 " Get a setting by key, based on filetypes, from the buffer or global
 " namespace, defaulting to default.
-function! neomake#utils#GetSetting(key, maker, default, fts, bufnr) abort
+function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
   let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
-  for ft in a:fts + ['']
+  if len(a:ft)
+      let fts = neomake#utils#get_config_fts(a:ft) + ['']
+  else
+      let fts = ['']
+  endif
+  for ft in fts
     " Look through the override vars for a filetype maker, like
     " neomake_scss_sasslint_exe (should be a string), and
     " neomake_scss_sasslint_args (should be a list).
