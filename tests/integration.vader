@@ -210,7 +210,7 @@ Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
   AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
 
 Execute (NeomakeInfo):
-  Save g:neomake_c_enabled_makers
+  Save g:neomake_c_enabled_makers, g:neomaker_not_a_setting
   let g:neomake_c_enabled_makers = ['doesnotexist']
   let g:neomaker_not_a_setting = 1
 
@@ -221,7 +221,7 @@ Execute (NeomakeInfo):
   AssertEqual filter(copy(info), "v:val =~ 'neomaker'"), []
 
 Execute (NeomakeInfo with FuncRef):
-  Save g:neomake_c_enabled_makers
+  Save g:neomake_c_enabled_makers, g:neomake_c_doesnotexist_maker
   new
   set filetype=c
   let g:neomake_c_enabled_makers = ['doesnotexist']
@@ -297,24 +297,28 @@ Execute (NeomakeSh: two jobs after each other):
 
 Execute (Neomake!: two jobs after each other):
   if NeomakeAsyncTestsSetup()
+    Save g:neomake_maker1_maker
     let g:neomake_maker1_maker = {
         \ 'name': '1',
         \ 'exe': 'sh',
         \ 'args': ['-c', 'echo 1'],
         \ 'errorformat': '%m',
         \ }
+    Save g:neomake_maker2_maker
     let g:neomake_maker2_maker = {
         \ 'name': '2',
         \ 'exe': 'sh',
         \ 'args': ['-c', 'echo 2'],
         \ 'errorformat': '%m',
         \ }
+    new
     let b:neomake_enabled_makers = ['maker1', 'maker2']
     Neomake! maker1 maker2
     NeomakeTestsWaitForFinishedJobs
     AssertEqual sort(map(copy(getqflist()), 'v:val.text')), ['1', '2']
     AssertEqual len(g:neomake_test_countschanged), 2, 'counts have changed: '.len(g:neomake_test_countschanged)
     AssertEqual len(g:neomake_test_finished), 1
+    bwipe
   endif
 
 Execute (Neomake!: non-existing and proper job):
@@ -327,13 +331,16 @@ Execute (Neomake!: non-existing and proper job):
     "             \ 'in_name': '/doesnotexist',
     "             \ }
 
+    Save g:neomake_maker1_maker
     let g:neomake_maker1_maker = {
         \ 'name': '1',
         \ 'exe': 'doesnotexist',
         \ 'args': [],
         \ 'errorformat': '%m',
         \ }
+    Save g:neomake_maker2_maker
     let g:neomake_maker2_maker = neomake#utils#MakerFromCommand('echo 1')
+    new
     let b:neomake_enabled_makers = ['maker1', 'maker2']
     Neomake! maker1 maker2
     NeomakeTestsWaitForFinishedJobs
@@ -342,6 +349,7 @@ Execute (Neomake!: non-existing and proper job):
     " AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_countschanged), 1,
       \ 'counts have changed'
+    bwipe
   endif
 
 Execute (Neomake#Make: error with failing job via jobstart/argv):
@@ -481,6 +489,7 @@ Execute (Neomake: append_file from settings):
   AssertEqual getloclist(0),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output '.bufname}]
 
+  Save g:neomake_myft_custom_maker_maker, g:neomake_myft_custom_maker_append_file
   let g:neomake_myft_custom_maker_maker = copy(maker)
   let g:neomake_myft_custom_maker_append_file = 0
   RunNeomake custom_maker
@@ -558,10 +567,10 @@ Execute (Location list should be cleared only after first output):
   call g:NeomakeSetupAutocmdWrappers()
   lgetexpr 'init'
 
-  let g:maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
-  let g:maker_sleep = NeomakeTestsCommandMaker('sleep-maker', 'sleep .1; echo slept')
+  let maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
+  let maker_sleep = NeomakeTestsCommandMaker('sleep-maker', 'sleep .1; echo slept')
 
-  call neomake#Make(1, [g:maker_success, g:maker_sleep])
+  call neomake#Make(1, [maker_success, maker_sleep])
 
   if neomake#has_async_support()
     NeomakeTestsWaitForNextFinishedJob
@@ -581,9 +590,9 @@ Execute (Location list should be cleared after jobs finished):
   call g:NeomakeSetupAutocmdWrappers()
   lgetexpr 'init'
 
-  let g:maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
+  let maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
 
-  call neomake#Make(1, [g:maker_success])
+  call neomake#Make(1, [maker_success])
   NeomakeTestsWaitForFinishedJobs
 
   AssertEqual getloclist(0), []
@@ -595,9 +604,9 @@ Execute (Highlights should be cleared after successful run):
 
   runtime autoload/neomake/highlights.vim
 
-  let g:maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
-  let g:maker_error = NeomakeTestsCommandMaker('error-maker', 'echo error')
-  let g:maker_error.errorformat = '%E%m'
+  let maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
+  let maker_error = NeomakeTestsCommandMaker('error-maker', 'echo error')
+  let maker_error.errorformat = '%E%m'
   function! PostProcess(entry) abort
     let e = a:entry
     let a:entry.lnum = 1
@@ -605,9 +614,9 @@ Execute (Highlights should be cleared after successful run):
     let a:entry.length = 5
     let a:entry.bufnr = bufnr('%')
   endfunction
-  let g:maker_error.postprocess = function('PostProcess')
+  let maker_error.postprocess = function('PostProcess')
 
-  call neomake#Make(1, [g:maker_error])
+  call neomake#Make(1, [maker_error])
   NeomakeTestsWaitForFinishedJobs
 
   AssertEqual getloclist(0)[0].text, 'error'
@@ -633,7 +642,7 @@ Execute (Highlights should be cleared after successful run):
   endif
   AssertEqual len(highlights['file']), 1
 
-  call neomake#Make(1, [g:maker_success])
+  call neomake#Make(1, [maker_success])
   NeomakeTestsWaitForFinishedJobs
 
   let highlights = neomake#highlights#_get()
