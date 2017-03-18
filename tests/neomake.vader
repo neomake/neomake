@@ -69,9 +69,18 @@ Execute (Neomake with unknown maker):
   Neomake doesnotexist
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages, [
-  \ [0, 'Maker not found (for filetypes []): doesnotexist', {'make_id': make_id}],
-  \ [3, 'Nothing to make: no valid makers.', {}],
-  \ ]
+  \ [0, 'Maker not found (for no filetypes): doesnotexist', {'make_id': make_id}],
+  \ [3, 'Nothing to make: no valid makers.', {}]]
+
+Execute (Neomake with unknown maker for multiple fts):
+  new
+  set filetype=ft1.ft2
+  Neomake doesnotexist
+  let make_id = neomake#GetStatus().last_make_id
+  AssertEqual g:neomake_test_messages, [
+  \ [0, 'Maker not found (for filetypes ft1, ft2): doesnotexist', {'make_id': make_id}],
+  \ [3, 'Nothing to make: no valid makers.', {}]]
+  bwipe
 
 Execute (neomake#GetMaker uses defined errorformat with makeprg):
   Save &errorformat

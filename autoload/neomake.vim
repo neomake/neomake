@@ -469,8 +469,13 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         endif
         if !exists('maker')
             if file_mode
-                throw printf('Neomake: Maker not found (for filetypes %s): %s',
-                            \ string(fts), a:name_or_maker)
+                let ft_info = len(fts)
+                            \ ? len(fts) > 1
+                            \   ? 'filetypes '.join(fts, ', ')
+                            \   : 'filetype '.fts[0]
+                            \ : 'no filetypes'
+                throw printf('Neomake: Maker not found (for %s): %s',
+                            \ ft_info, a:name_or_maker)
             else
                 throw 'Neomake: project maker not found: '.a:name_or_maker
             endif
