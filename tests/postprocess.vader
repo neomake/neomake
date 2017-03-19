@@ -226,6 +226,7 @@ Execute (maker.postprocess interface for obj):
   Assert 1, g:neomake_test_called
 
 Execute (maker.postprocess interface for maker):
+  call g:NeomakeSetupAutocmdWrappers()
   Save g:neomake_test_called
   let g:neomake_test_called = []
   let maker = neomake#makers#ft#neomake_tests#echo_maker()
@@ -242,6 +243,7 @@ Execute (maker.postprocess interface for maker):
   NeomakeTestsWaitForFinishedJobs
   Assert !has_key(maker, 'called'), 'Property not set, since maker was copied'
   AssertEqual ['Vim(let):E741: Value is locked: self.called = 1'], g:neomake_test_called
+  AssertEqual len(g:neomake_test_finished), 1
 
 Execute (neomake#postprocess#GenericLengthPostprocess for multiple matches):
   if !exists('*matchstrpos')
