@@ -429,6 +429,8 @@ Execute (Neomake#Make: error with failing job via jobstart/argv):
     AssertEqual len(g:neomake_test_jobfinished), 1
     AssertEqual len(g:neomake_test_finished), 1
   endif
+  " make IDs should have been removed from the window.
+  AssertEqual w:neomake_make_ids, []
 
 
 Execute (Neomake#Make: error with failing job via jobstart/argv + true):
