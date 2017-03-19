@@ -1,20 +1,11 @@
 Include: include/setup.vader
 
-Execute (Setup):
-  let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .1; echo slept')
-  let g:maker_error = NeomakeTestsCommandMaker('error-maker', 'echo error; false')
-  let g:maker_success = NeomakeTestsCommandMaker('success-maker', 'echo success')
-
-  let g:doesnotexist_maker = {
-      \ 'exe': 'doesnotexist',
-      \ }
-
 Execute (NeomakeSh: simple serialized makers):
   call g:NeomakeSetupAutocmdWrappers()
   Save g:neomake_serialize
   let g:neomake_serialize = 1
 
-  call neomake#Make(1, [g:sleep_maker, g:maker_success])
+  call neomake#Make(1, [g:sleep_maker, g:success_maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
@@ -33,9 +24,9 @@ Execute (NeomakeSh: simple serialized makers: two buffers in parallel):
     let g:neomake_serialize = 1
 
     new
-    call neomake#Make(1, [sleep_maker1, g:maker_success])
+    call neomake#Make(1, [sleep_maker1, g:success_maker])
     new
-    call neomake#Make(1, [sleep_maker2, g:maker_success])
+    call neomake#Make(1, [sleep_maker2, g:success_maker])
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
@@ -59,7 +50,7 @@ Execute (NeomakeSh: simple serialized maker with error):
   Save g:neomake_serialize
   let g:neomake_serialize = 1
 
-  call neomake#Make(1, [g:maker_error, g:maker_success])
+  call neomake#Make(1, [g:error_maker, g:success_maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
@@ -76,7 +67,7 @@ Execute (NeomakeSh: serialized with global abort):
   Save g:neomake_serialize_abort_on_error
   let g:neomake_serialize_abort_on_error = 1
 
-  call neomake#Make(1, [g:maker_error, g:maker_success])
+  call neomake#Make(1, [g:error_maker, g:success_maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error']
 
@@ -86,7 +77,7 @@ Execute (NeomakeSh: serialized with buffer overriding global abort):
   Save g:neomake_serialize
   let g:neomake_serialize = 1
 
-  call neomake#Make(0, [g:maker_error, g:maker_success])
+  call neomake#Make(0, [g:error_maker, g:success_maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 2
   AssertEqual len(g:neomake_test_finished), 1
@@ -95,11 +86,11 @@ Execute (NeomakeSh: serialized with buffer overriding global abort):
 Execute (NeomakeSh: serialized with abort from maker):
   call g:NeomakeSetupAutocmdWrappers()
 
-  let maker_error_abort = copy(g:maker_error)
-  let maker_error_abort.serialize = 1
-  let maker_error_abort.serialize_abort_on_error = 1
+  let error_abort_maker = copy(g:error_maker)
+  let error_abort_maker.serialize = 1
+  let error_abort_maker.serialize_abort_on_error = 1
 
-  call neomake#Make(1, [maker_error_abort, g:maker_success])
+  call neomake#Make(1, [error_abort_maker, g:success_maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 1
   AssertEqual len(g:neomake_test_finished), 1
@@ -111,10 +102,9 @@ Execute (NeomakeSh: serialized with previous buffer overriding global abort):
     Save g:neomake_serialize, b:neomake_serialize_abort_on_error
     let g:neomake_serialize = 1
     let b:neomake_serialize_abort_on_error = 1
-    call neomake#Make(1, [g:sleep_maker, g:maker_error, g:maker_success])
+    call neomake#Make(1, [g:sleep_maker, g:error_maker, g:success_maker])
 
     let bufnr = bufnr('%')
-    lgetexpr ''
     new
     NeomakeTestsWaitForFinishedJobs
     AssertEqual getloclist(0), []
@@ -133,7 +123,7 @@ Execute (NeomakeSh: serialized after doesnotexist: continue):
     Save g:neomake_serialize
     let g:neomake_serialize = 1
 
-    call neomake#Make(0, [g:doesnotexist_maker, g:maker_success])
+    call neomake#Make(0, [g:doesnotexist_maker, g:success_maker])
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual map(copy(getqflist()), 'v:val.text'), ['success']
@@ -145,16 +135,16 @@ Execute (NeomakeSh: serialized after doesnotexist with abort: continue):
   let g:neomake_serialize = 1
 
   let g:doesnotexist_maker.serialize_abort_on_error = 1
-  call neomake#Make(0, [g:doesnotexist_maker, g:maker_success])
+  call neomake#Make(0, [g:doesnotexist_maker, g:success_maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_finished), 1
   AssertNeomakeMessage "Exe (doesnotexist) of maker unnamed_maker is not executable."
 
 Execute (Neomake#Make cancels previous jobs):
   if NeomakeAsyncTestsSetup()
-    let first_jobs = neomake#GetJobs(neomake#Make(0, [g:sleep_maker, g:maker_error]))
+    let first_jobs = neomake#GetJobs(neomake#Make(0, [g:sleep_maker, g:error_maker]))
     let make_id = neomake#GetStatus().last_make_id
-    call neomake#Make(0, [g:sleep_maker, g:maker_error])
+    call neomake#Make(0, [g:sleep_maker, g:error_maker])
     AssertEqual has_key(neomake#GetStatus().make_info, make_id), 1
     NeomakeTestsWaitForFinishedJobs
     AssertEqual has_key(neomake#GetStatus().make_info, make_id), 0
@@ -197,7 +187,7 @@ Execute (Neomake#Make starts new jobs before waiting for the old to finish):
 
 Execute (Neomake#Make does not cancel maker from same run):
   if NeomakeAsyncTestsSetup()
-    call neomake#Make(0, [g:maker_success, g:maker_success])
+    call neomake#Make(0, [g:success_maker, g:success_maker])
     NeomakeTestsWaitForFinishedJobs
     AssertEqual map(copy(getqflist()), 'v:val.text'), ['success', 'success']
   endif
