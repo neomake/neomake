@@ -237,7 +237,7 @@ function! s:command_maker.fn(jobinfo) dict abort
     let argv = split(&shell) + split(&shellcmdflag)
 
     if a:jobinfo.file_mode && get(self, 'append_file', 1)
-        let fname = self._get_fname_for_buffer(a:jobinfo.bufnr)
+        let fname = self._get_fname_for_buffer(a:jobinfo)
         let command .= ' '.fnamemodify(fname, ':p')
         let self.append_file = 0
     endif

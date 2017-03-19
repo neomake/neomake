@@ -286,54 +286,55 @@ function! s:MakeJob(make_id, options) abort
 endfunction
 
 let s:maker_base = {}
-function! s:maker_base._get_tempfilename(bufnr) abort dict
+function! s:maker_base._get_tempfilename(jobinfo) abort dict
     if has_key(self, 'tempfile_name')
         return self.tempfile_name
     endif
 
-    let tempfile_enabled = neomake#utils#GetSetting('tempfile_enabled', self, 0, self.ft, a:bufnr)
+    let tempfile_enabled = neomake#utils#GetSetting('tempfile_enabled', self, 0, a:jobinfo.ft, a:jobinfo.bufnr)
     if !tempfile_enabled
         return ''
     endif
 
-    let bufname = bufname(a:bufnr)
+    let bufname = bufname(a:jobinfo.bufnr)
     if len(bufname)
         let bufname = fnamemodify(bufname, ':t')
     else
-        let bufname = 'neomake_tmp.' . self.ft
+        let bufname = 'neomake_tmp.'.a:jobinfo.ft
     endif
 
     return tempname() . (has('win32') ? '\' : '/') . bufname
 endfunction
 
 " Check if a temporary file is used, and set self.tempfile_name in case it is.
-function! s:maker_base._get_fname_for_buffer(bufnr) abort
-    let bufname = bufname(a:bufnr)
+function! s:maker_base._get_fname_for_buffer(jobinfo) abort
+    let bufnr = a:jobinfo.bufnr
+    let bufname = bufname(bufnr)
     let temp_file = ''
     if !len(bufname)
-        let temp_file = self._get_tempfilename(a:bufnr)
+        let temp_file = self._get_tempfilename(a:jobinfo)
         if !empty(temp_file)
             call neomake#utils#DebugMessage(printf(
-                        \ 'Using tempfile for unnamed buffer %s: %s', a:bufnr, temp_file))
+                        \ 'Using tempfile for unnamed buffer %s: %s', bufnr, temp_file))
         else
             throw 'Neomake: no file name'
         endif
 
-    elseif getbufvar(a:bufnr, '&modified')
-        let temp_file = self._get_tempfilename(a:bufnr)
+    elseif getbufvar(bufnr, '&modified')
+        let temp_file = self._get_tempfilename(a:jobinfo)
         if !empty(temp_file)
             call neomake#utils#DebugMessage(printf(
-                        \ 'Using tempfile for modified buffer %s: %s', a:bufnr, temp_file))
+                        \ 'Using tempfile for modified buffer %s: %s', bufnr, temp_file))
         else
             call neomake#utils#DebugMessage(printf(
-                        \ 'warning: buffer is modified: %s', a:bufnr))
+                        \ 'warning: buffer is modified: %s', bufnr))
         endif
 
     elseif !filereadable(bufname)
-        let temp_file = self._get_tempfilename(a:bufnr)
+        let temp_file = self._get_tempfilename(a:jobinfo)
         if !empty(temp_file)
             call neomake#utils#DebugMessage(printf(
-                        \ 'Using tempfile for unreadable buffer %s: %s', a:bufnr, temp_file))
+                        \ 'Using tempfile for unreadable buffer %s: %s', bufnr, temp_file))
         else
             throw 'Neomake: file is not readable ('.fnamemodify(bufname, ':p').')'
         endif
@@ -346,7 +347,7 @@ function! s:maker_base._get_fname_for_buffer(bufnr) abort
         if !isdirectory(temp_dir)
             call mkdir(temp_dir, 'p', 0750)
         endif
-        call writefile(getbufline(a:bufnr, 1, '$'), temp_file)
+        call writefile(getbufline(bufnr, 1, '$'), temp_file)
 
         let bufname = temp_file
         let self.tempfile_name = temp_file
@@ -383,8 +384,8 @@ function! s:maker_base._get_argv(jobinfo) abort dict
     let args = copy(self.args)
     let args_is_list = type(args) == type([])
 
-    if a:jobinfo.file_mode && neomake#utils#GetSetting('append_file', self, 1, self.ft, a:jobinfo.bufnr)
-        let filename = self._get_fname_for_buffer(a:jobinfo.bufnr)
+    if a:jobinfo.file_mode && neomake#utils#GetSetting('append_file', self, 1, a:jobinfo.ft, a:jobinfo.bufnr)
+        let filename = self._get_fname_for_buffer(a:jobinfo)
         if args_is_list
             call add(args, filename)
         else
@@ -485,7 +486,6 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         \ 'exe': maker.name,
         \ 'args': [],
         \ 'errorformat': &errorformat,
-        \ 'ft': ft,
         \ })
     let bufnr = bufnr('%')
     for [key, default] in items(defaults)
