@@ -121,9 +121,9 @@ Execute (Unbuffered output handled correctly (qflist)):
     exe "norm! <Esc>"
     doautocmd CursorHold
     NeomakeTestsWaitForRemovedJobs
-    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 0}"
+    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'jobinfo': '…', 'file_mode': 0}"
     let make_id = neomake#GetStatus().last_make_id
-    AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 0, 'make_id': ".make_id."}", 2
+    AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'jobinfo': '…', 'file_mode': 0, 'make_id': ".make_id."}", 2
     AssertEqual len(g:neomake_test_countschanged), 1
     AssertEqual map(copy(getqflist()), 'v:val.text'), map(range(1, 5), 'v:val . ""')
   endif
@@ -162,23 +162,23 @@ Execute (Sleep in postprocess gets handled correctly):
     AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
     if !has('nvim-0.2.0')
       AssertNeomakeMessage 'exit (delayed): unnamed_maker: 0', 3, jobinfo
-      AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+      AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'jobinfo': '…', 'file_mode': 1}"
     endif
 
     AssertNeomakeMessage "stdout: unnamed_maker: ['out-22', '']", 3, jobinfo
     AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
-    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'jobinfo': '…', 'file_mode': 1}"
 
     AssertNeomakeMessage "stdout: unnamed_maker: ['out-333', '']", 3, jobinfo
     AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
-    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'file_mode': 1}"
+    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'bufnr': ".bufnr('%').", 'jobinfo': '…', 'file_mode': 1}"
 
     if !has('nvim-0.2.0')
       AssertNeomakeMessage 'Trigger delayed exit', 3, jobinfo
     endif
 
     let make_id = neomake#GetStatus().last_make_id
-    AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'file_mode': 1, 'make_id': ".make_id."}", 2
+    AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'jobinfo': '…', 'file_mode': 1, 'make_id': ".make_id."}", 2
 
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['out-1', 'out-22', 'out-333']
     AssertEqual g:neomake_test_postprocess_count, 3, 'postprocess count should be 3, but is '.g:neomake_test_postprocess_count

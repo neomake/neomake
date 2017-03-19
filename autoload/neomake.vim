@@ -897,7 +897,8 @@ function! s:CleanJobinfo(jobinfo) abort
         endif
         call neomake#utils#hook('NeomakeFinished', {
                     \ 'file_mode': a:jobinfo.file_mode,
-                    \ 'make_id': a:jobinfo.make_id}, a:jobinfo)
+                    \ 'make_id': a:jobinfo.make_id,
+                    \ 'jobinfo': a:jobinfo})
     endif
     unlet s:make_info[a:jobinfo.make_id]
 endfunction
@@ -1038,7 +1039,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         call neomake#utils#hook('NeomakeCountsChanged', {
                     \ 'file_mode': file_mode,
                     \ 'bufnr': a:jobinfo.bufnr,
-                    \ }, a:jobinfo)
+                    \ 'jobinfo': a:jobinfo})
     endif
 
     call s:HandleLoclistQflistDisplay(a:jobinfo.file_mode)
