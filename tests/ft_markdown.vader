@@ -1,0 +1,3 @@
+Execute (markdown: makers):
+  AssertEqual neomake#GetMakers('markdown'),
+  \ ['alex', 'markdownlint', 'mdl', 'proselint', 'writegood']
