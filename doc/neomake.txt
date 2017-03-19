@@ -16,7 +16,7 @@ CONTENTS                                                    *neomake-contents*
     2. Commands ....................................... |neomake-commands|
     3. Configuration ............................. |neomake-configuration|
     4. Functions ..................................... |neomake-functions|
-    5. Autocommands ................................... |neomake-autocmds|
+    5. Autocommands/Hooks ............................. |neomake-autocmds|
     6. Frequently Asked Questions (FAQ) .................... |neomake-faq|
 
 ==============================================================================
@@ -575,7 +575,7 @@ directly if you need to force it. This function is not currently used for
 |:Neomake!|, which always processes its output as it arrives.
 
 ==============================================================================
-5. Autocommands                                             *neomake-autocmds*
+5. Autocommands/Hooks                                       *neomake-autocmds*
 
 Neomake will trigger |User| autocommands on certain events.  With all these
 events a dictionary `g:neomake_hook_context` will be set, with key/value pairs
@@ -587,26 +587,28 @@ You can register your own function as a callback like this: >
     augroup END
 <
                                                              *NeomakeFinished*
-The NeomakeFinished autocommand is triggered after all jobs for a call to
-|:Neomake| etc have finished.  This can be used to e.g. close an empty
-location or quickfix window.
-For this event `g:neomake_hook_context.file_mode` and
-`g:neomake_hook_context.make_id` will be set.
+The NeomakeFinished autocommand gets triggered after all jobs for a call to
+|:Neomake| etc have finished.
+You can use this to e.g. close an empty location or quickfix window.
+Context:
+ - `g:neomake_hook_context.jobinfo`: see |neomake-object-jobinfo|.
 
                                                         *NeomakeCountsChanged*
-The NeomakeCountsChanged autocommand is triggered after counts for the
+The NeomakeCountsChanged autocommand gets triggered after counts for the
 location/quickfix list have changed, i.e. the list got reset or new errors
-have been added.  This can be used to e.g. update the statusline.
-For this event `g:neomake_hook_context.file_mode` and
-`g:neomake_hook_context.bufnr` will be set.  If counts changed because of a
-maker's output being processed, the maker object itself will be passed in
-(which also has these attributes).
+have been added.
+You can use this to e.g. update the statusline.
+Context:
+ - `g:neomake_hook_context.reset`: 1 if the list got reset, 0 otherwise.
+ - `g:neomake_hook_context.jobinfo`: when the list is not reset; see
+   |neomake-object-jobinfo|.
 
                                                           *NeomakeJobFinished*
-The NeomakeJobFinished autocommand is triggered after a single job has
+The NeomakeJobFinished autocommand gets triggered after a single job has
 finished.
-For this event `g:neomake_hook_context.jobinfo` will be set, where `exit_code`
-is available.
+Context:
+ - `g:neomake_hook_context.jobinfo`: see |neomake-object-jobinfo|; `exit_code`
+   is available there.
 
 ==============================================================================
 5. Objects                                                   *neomake-objects*

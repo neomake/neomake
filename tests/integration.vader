@@ -126,13 +126,16 @@ Execute (NeomakeSh: echo foo):
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
     \   'type': '', 'pattern': '', 'text': 'foo'}]
   AssertEqual len(g:neomake_test_finished), 1
-  AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
+  AssertEqual g:neomake_test_countschanged[0].bufnr, bufnr
+  AssertEqual g:neomake_test_countschanged[0].file_mode, 0
+  AssertEqual sort(keys(g:neomake_test_countschanged[0])),
+  \ ['bufnr', 'file_mode', 'jobinfo']
 
 Execute (NeomakeSh: non-existing command):
   call g:NeomakeSetupAutocmdWrappers()
   RunNeomakeSh 'nonexistingcommand'
   AssertEqual len(g:neomake_test_finished), 1
-  AssertEqual g:neomake_test_countschanged, [{'file_mode': 0, 'bufnr': bufnr('%')}]
+  AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(getqflist()), 1
   AssertNeomakeMessage "exit: sh: 'nonexistingcommand': 127", 3
   if neomake#has_async_support()
@@ -188,10 +191,9 @@ Execute (NeomakeSh: project: handle removed window on exit (quit)):
     AssertEqual len(g:neomake_test_finished), 0
     NeomakeTestsWaitForFinishedJobs
   endif
-  AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
-  AssertEqual g:neomake_test_finished, [{'file_mode': 0, 'make_id': make_id}]
-  AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_countschanged), 1
 
 Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
   call g:NeomakeSetupAutocmdWrappers()
@@ -206,8 +208,8 @@ Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
-  AssertEqual g:neomake_test_finished, [{'file_mode': 0, 'make_id': make_id}]
-  AssertEqual g:neomake_test_countschanged, [{'bufnr': bufnr, 'file_mode': 0}]
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_countschanged), 1
 
 Execute (NeomakeInfo):
   Save g:neomake_c_enabled_makers, g:neomaker_not_a_setting
