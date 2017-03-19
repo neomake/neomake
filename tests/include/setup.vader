@@ -279,6 +279,7 @@ Before:
 
   function! s:After()
     Restore
+    unlet! g:expected  " for old Vim with Vader, that does not wrap tests in a function.
 
     " Stop any (non-canceled) jobs.  Canceled jobs might take a while to call the
     " exit handler, but that is OK.
