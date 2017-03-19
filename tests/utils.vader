@@ -171,6 +171,7 @@ Execute (neomake#utils#ExpandArgs):
   Save $HOME
   let $HOME='/home/sweet'
 
+  new
   file file1.ext
   let isk = &iskeyword
   let args = [
@@ -219,6 +220,7 @@ Execute (neomake#utils#ExpandArgs):
   call neomake#utils#ExpandArgs(args)
   AssertEqual expected_args, args
   AssertEqual isk, &iskeyword
+  bwipe
 
 Execute (neomake#utils#diff_dict):
   AssertEqual neomake#utils#diff_dict({}, {}), [{}, {}, {}]
@@ -265,7 +267,7 @@ Execute (neomake#utils#sort_by_col):
 Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   Save &shell, &shellcmdflag
 
-  let jobinfo = {'file_mode': 0, 'bufnr': 0}
+  let jobinfo = {'file_mode': 0, 'bufnr': 0, 'ft': ''}
 
   let &shell = '/bin/bash -o pipefail'
   let &shellcmdflag = '-c'
@@ -369,7 +371,7 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
 
   new
   let b:neomake_tempfile_enabled = 1
-  let jobinfo = {'file_mode': 1, 'bufnr': bufnr('%')}
+  let jobinfo = {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': ''}
   file dir/\ with\ spaces
 
   set buftype=nofile
@@ -380,7 +382,6 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   AssertEqual bound_maker.exe, &shell
   AssertEqual bound_maker.remove_invalid_entries, 0
   AssertNotEqual temp_file, fnameescape(temp_file)
-
   bwipe
 
 Execute (neomake#utils#get_config_fts):

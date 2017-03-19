@@ -289,7 +289,7 @@ Execute (Uses correct maker filetypes when started in another buffer):
     NeomakeTestsWaitForFinishedJobs
 
     AssertEqual g:neomake_test_exit_cb[1], {'status': 0, 'name': 'maker2', 'has_next': 0}
-    AssertEqual g:neomake_test_exit_cb[0].maker.ft, 'orig_ft'
+    AssertEqual g:neomake_test_exit_cb[0].ft, 'orig_ft'
 
     bwipe
   endif

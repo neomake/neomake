@@ -80,9 +80,31 @@ Just set your |'makeprg'| and |'errorformat'| as usual, and run |:Neomake!|.
 If you want more, read on.
 
 Makers                                                        *neomake-makers*
-A maker is an object that tells Neomake how to run a job for you. A maker may
-be run with a file as input (great for linting), or with no file as input
-(great for building, project-level tasks).
+A maker is an object that tells Neomake how to run a job for you.
+
+                                             *neomake-makers-get_list_entries*
+If a maker has a `get_list_entries` function, this gets used to retrieve
+entries for the location or quickfix list directly.
+The function gets passed a jobinfo (|neomake-object-jobinfo|) object, and
+should return a list of entries that will be used to fill the
+location/quickfix list: >
+    let maker = {'name': 'My maker'}
+    function! maker.get_list_entries(jobinfo) abort
+      return [
+        \ {'text': 'Some error', 'lnum': 1},
+        \ {'text': 'Some warning', 'type': 'W', 'lnum': 2, 'col': 1,
+        \  'length': 5},
+        \ ]
+    endfunction
+<
+The required keys for entries are `text` and `lnum`.
+The `length` entry in the example is internal to Neomake, and sets the length
+for an highlight (see |neomake-highlight|).
+
+                                                          *neomake-job-makers*
+Otherwise a maker gets run as a job with a file as input ("file mode", good
+for linting), or with no file as input ("project mode", good for building and
+project-level tasks).
 
 Here is a sample maker definition: >
     let g:neomake_make_maker = {
@@ -148,6 +170,25 @@ This can be useful for makers that are filetype dependent but are typically
 run on an whole project rather than a specific file.
 
                                                    *neomake-makers-processing*
+A job maker's output gets processed in two ways:
+1. through a maker's `process_output` function, or
+2. via its `errorformat` (together with `mapexpr` and `postprocess`).
+
+                                               *neomake-makers-process_output*
+If a maker has a `process_output` function, this gets used to retrieve
+entries for the location or quickfix list for the job's output directly.
+
+The function gets called with a `context` dictionary, with the following
+entries:
+ - `output`: a list of lines
+ - `source`: the source of the output (`stderr`, `stdout`)
+ - `jobinfo`: the jobinfo object, see |neomake-object-jobinfo|
+It should return a list of entries (dictionaries), where `text` and `lnum`
+are required.
+
+Using this method skips the processing based on `errorformat` (including
+`mapexpr` and `postprocess`).
+
                                                       *neomake-makers-mapexpr*
 You can define two optional properties on a maker object to process its
 output: `mapexpr` is applied to the maker's output before any processing, and
@@ -566,6 +607,26 @@ The NeomakeJobFinished autocommand is triggered after a single job has
 finished.
 For this event `g:neomake_hook_context.jobinfo` will be set, where `exit_code`
 is available.
+
+==============================================================================
+5. Objects                                                   *neomake-objects*
+
+                                                      *neomake-object-jobinfo*
+The `jobinfo` dictionary contains information about a job.
+(this is experimental, so not everything is documented)
+ - `maker`: a dictionary containing information about the maker that ran
+   this job.  See |neomake-object-maker|.
+ - `file_mode`: 1 for file mode, 0 for project/directory mode.
+ - `make_id`: the ID of the make run
+
+ - Relevant for file mode:
+   - `bufnr`: the number of the buffer.
+   - `ft`: the filetype.
+                                                        *neomake-object-maker*
+The `maker` dictionary contains the following keys:
+(this is experimental, so not everything is documented)
+ - `name`: name of the maker.
+ - `exe`: executable of the maker.
 
 ==============================================================================
 6. Frequently Asked Questions (FAQ)                              *neomake-faq*

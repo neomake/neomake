@@ -237,7 +237,7 @@ function! s:command_maker.fn(jobinfo) dict abort
     let argv = split(&shell) + split(&shellcmdflag)
 
     if a:jobinfo.file_mode && get(self, 'append_file', 1)
-        let fname = self._get_fname_for_buffer(a:jobinfo.bufnr)
+        let fname = self._get_fname_for_buffer(a:jobinfo)
         let command .= ' '.fnamemodify(fname, ':p')
         let self.append_file = 0
     endif
@@ -324,10 +324,10 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
         break
     endif
     let config_var = 'neomake_'.part.'_'.a:key
-    unlet! bufcfgvar  " vim73
-    let bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
-    if bufcfgvar isnot s:unset
-        return copy(bufcfgvar)
+    unlet! Bufcfgvar  " vim73
+    let Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
+    if Bufcfgvar isnot s:unset
+        return copy(Bufcfgvar)
     endif
     if has_key(g:, config_var)
         return copy(get(g:, config_var))
@@ -342,7 +342,7 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
   if bufvar isnot s:unset
       return bufvar
   endif
-  if has_key(g:, 'neomake_'.a:key)
+  if a:key !=# 'enabled_makers' && has_key(g:, 'neomake_'.a:key)
       return get(g:, 'neomake_'.a:key)
   endif
   return a:default

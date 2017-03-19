@@ -232,13 +232,14 @@ Execute (NeomakeInfo with FuncRef):
   let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
   let idx = 0
   for line in [
+      \ 'Current filetype: c',
       \ 'For the current filetype (with :Neomake):',
       \ ' - doesnotexist',
       \ '   - args: function(''getcwd'')',
       \ '   - errorformat: ''custom_efm: %m''',
       \ '   - exe: ''doesnotexist''']
     let i = index(info, line)
-    Assert i > idx, 'line not found: '.line
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'
     let idx = i
   endfor
   bwipe
@@ -250,6 +251,37 @@ Execute (NeomakeInfo with unusual filetype):
   let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
   Assert index(info, 'NOTE: you can define g:neomake_ft1_gentoo_package_keywords_enabled_makers to configure it (or b:neomake_ft1_gentoo_package_keywords_enabled_makers).') != -1, 'Line was found'
   bwipe
+
+Execute (NeomakeInfo: displays issues):
+  Save g:neomake_enabled_makers, g:neomake_mymaker_maker
+
+  let g:neomake_enabled_makers = ['mymaker']
+  let g:neomake_mymaker_maker = {
+  \ 'exe': 'doesnotexist',
+  \ 'args': function('getcwd'),
+  \ 'errorformat': 'custom_efm: %m',
+  \ 'mapexpr': '',
+  \ 'postprocess': function('tr'),
+  \ 'process_output': function('tr'),
+  \ }
+
+  let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+  let idx = 0
+  for line in [
+      \ 'For the project (with :Neomake!):',
+      \ ' - mymaker',
+      \ '   - args: function(''getcwd'')',
+      \ '   - errorformat: ''custom_efm: %m''',
+      \ '   - exe: ''doesnotexist''',
+      \ '   ERRORS:',
+      \ "    - maker's exe (doesnotexist) is not executable.",
+      \ '   WARNINGS:',
+      \ '    - maker has mapexpr, but only process_output will be used.',
+      \ ]
+    let i = index(info, line)
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'
+    let idx = i
+  endfor
 
 Execute (Having an invalid &errorformat is OK):
   Save &errorformat
