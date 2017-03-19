@@ -683,7 +683,7 @@ function! s:Make(options) abort
         if !len(makers)
             if file_mode
                 call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers.', {'make_id': make_id})
-                unlet s:make_info[make_id]
+                call s:clean_make_info(make_id)
                 return []
             else
                 let makers = ['makeprg']
@@ -700,7 +700,7 @@ function! s:Make(options) abort
     let makers = call('s:map_makers', args)
     if !len(makers)
         call neomake#utils#DebugMessage('Nothing to make: no valid makers.')
-        unlet s:make_info[make_id]
+        call s:clean_make_info(make_id)
         return []
     endif
 
@@ -739,7 +739,7 @@ function! s:Make(options) abort
 
     if has_key(s:make_info, make_id) && !s:make_info[make_id].active_jobs
         " Might have been removed through s:CleanJobinfo already.
-        unlet s:make_info[make_id]
+        call s:clean_make_info(make_id)
     endif
     return job_ids
 endfunction
@@ -883,24 +883,25 @@ function! s:CleanJobinfo(jobinfo) abort
             call neomake#CleanOldProjectSignsAndErrors()
         endif
 
-        " Remove make_id from its window.
-        if !exists('l:t')
-            let [t, w] = s:GetTabWinForMakeId(a:jobinfo.make_id)
-        endif
-        " @vimlint(EVL104, 1, l:t)
-        " @vimlint(EVL104, 1, l:w)
-        let make_ids = s:gettabwinvar(t, w, 'neomake_make_ids', [])
-        let idx = index(make_ids, a:jobinfo.make_id)
-        if idx != -1
-            call remove(make_ids, idx)
-            call settabwinvar(t, w, 'neomake_make_ids', make_ids)
-        endif
         call neomake#utils#hook('NeomakeFinished', {
                     \ 'file_mode': a:jobinfo.file_mode,
                     \ 'make_id': a:jobinfo.make_id,
                     \ 'jobinfo': a:jobinfo})
     endif
-    unlet s:make_info[a:jobinfo.make_id]
+
+    call s:clean_make_info(a:jobinfo.make_id)
+endfunction
+
+function! s:clean_make_info(make_id) abort
+    " Remove make_id from its window.
+    let [t, w] = s:GetTabWinForMakeId(a:make_id)
+    let make_ids = s:gettabwinvar(t, w, 'neomake_make_ids', [])
+    let idx = index(make_ids, a:make_id)
+    if idx != -1
+        call remove(make_ids, idx)
+        call settabwinvar(t, w, 'neomake_make_ids', make_ids)
+    endif
+    unlet s:make_info[a:make_id]
 endfunction
 
 function! s:CanProcessJobOutput() abort
