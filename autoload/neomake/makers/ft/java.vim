@@ -12,10 +12,10 @@
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
-if exists('g:neomake_java_javac_maker')
+if exists('g:loaded_neomake_java_javac_maker')
     finish
 endif
-let g:neomake_java_javac_maker = 1
+let g:loaded_neomake_java_javac_maker = 1
 
 let g:neomake_java_javac_maven_pom_tags = ['build', 'properties']
 let g:neomake_java_javac_maven_pom_properties = {}
