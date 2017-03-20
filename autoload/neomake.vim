@@ -541,7 +541,7 @@ function! s:get_makers_for_pattern(pattern) abort
         " Remove prefix.
         call map(funcs, 'v:val['.len(prefix).':]')
         " Only keep lowercase function names.
-        call filter(funcs, "v:val =~# '\\m^[a-z].*()'")
+        call filter(funcs, "v:val =~# '\\m^[a-z].*('")
         " Remove parenthesis and #.* (for project makers).
         return sort(map(funcs, "substitute(v:val, '\\v[(#].*', '', '')"))
     endif
