@@ -294,9 +294,15 @@ function! neomake#utils#get_config_fts(ft) abort
     for ft in fts
         call add(r, ft)
         let super_ft = neomake#utils#GetSupersetOf(ft)
-        if !empty(super_ft) && index(fts, super_ft) == -1
-            call add(r, super_ft)
-        endif
+        while !empty(super_ft)
+            if empty(super_ft)
+                break
+            endif
+            if index(fts, super_ft) == -1
+                call add(r, super_ft)
+            endif
+            let super_ft = neomake#utils#GetSupersetOf(super_ft)
+        endwhile
     endfor
     if len(fts) > 1
       call insert(r, a:ft, 0)
