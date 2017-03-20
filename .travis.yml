@@ -12,6 +12,7 @@ branches:
 
 env:
   matrix:
+    - ENV=vimlint
     - ENV=testnvim
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-trusty
@@ -23,7 +24,6 @@ env:
     - ENV=vint-errors
     - ENV=testvim
     - ENV=vint
-    - ENV=vimlint
     - ENV=docker_vimhelplint
 
 matrix:
