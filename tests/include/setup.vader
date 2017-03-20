@@ -250,14 +250,19 @@ Before:
   endfunction
 
   " Fixtures
-  let g:neomake_test_sleep_efm_maker = {
+  let g:sleep_efm_maker = {
       \ 'name': 'sleep_efm_maker',
       \ 'exe': 'sh',
-      \ 'args': ['-c', 'sleep 0.1; echo file1:1:E:error message; '
-      \         .'echo file1:2:W:warning; echo file1:1:E:error2'],
+      \ 'args': ['-c', 'sleep 0.1; echo file_sleep_efm:1:E:error message; '
+      \         .'echo file_sleep_efm:2:W:warning; '
+      \         .'echo file_sleep_efm:1:E:error2'],
       \ 'errorformat': '%f:%l:%t:%m',
       \ 'append_file': 0,
       \ }
+  let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .1; echo slept')
+  let g:error_maker = NeomakeTestsCommandMaker('error-maker', 'echo error; false')
+  let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
+  let g:doesnotexist_maker = {'exe': 'doesnotexist'}
 
   " A maker that generates incrementing errors.
   let g:neomake_test_inc_maker_counter = 0
