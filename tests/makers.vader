@@ -1,17 +1,40 @@
 Include: include/setup.vader
 
-Execute (Run EnabledMakers for all filetype makers):
+Execute (Instantiate all default makers):
   " This is meant to catch issues like https://github.com/neomake/neomake/pull/555.
   let glob_args = [fnamemodify(g:vader_file, ':p:h')
                  \ .'/../autoload/neomake/makers/ft/*.vim', 1, 1]
   " NOTE: not using a list to support older Vim (on Travis).
   let ft_makers = split(call('glob', glob_args[0:-2]), '\n')
 
+  let errors = []
   for maker_file in ft_makers
     let ft = fnamemodify(maker_file, ':t:r')
-    let enabled = call('neomake#makers#ft#'.ft.'#EnabledMakers', [])
+    let f = 'neomake#makers#ft#'.ft.'#EnabledMakers'
+    try
+      call call(f, [])
+    catch
+      call add(errors, 'Error when calling '.f.': '.v:exception)
+    endtry
+
+    for m in neomake#GetMakers(ft)
+      try
+        let maker = neomake#GetMaker(m, ft)
+      catch
+        call add(errors, 'Could not load maker '.string(m).' for filetype '.ft.': '.v:exception)
+      endtry
+    endfor
+  endfor
+
+  for m in neomake#GetProjectMakers()
+    try
+      let maker = neomake#GetMaker(m)
+    catch
+      call add(errors, 'Could not load project maker '.string(m).': '.v:exception)
+    endtry
   endfor
   AssertEqual exists('*neomake#makers#ft#neomake_tests#EnabledMakers'), 1
+  Assert empty(errors), "Errors when loading makers:\n - ".join(errors, "\n - ")
 
 Execute (neomake#GetEnabledMakers without make_id):
   runtime autoload/neomake.vim
