@@ -50,10 +50,10 @@ endfunction
 
 function! neomake#utils#LogMessage(level, msg, ...) abort
     if a:0
-        let jobinfo = a:1
-        let verbosity = neomake#utils#get_verbosity(jobinfo)
+        let context = a:1
+        let verbosity = neomake#utils#get_verbosity(context)
     else
-        let jobinfo = {}  " just for vimlint (EVL104)
+        let context = {}  " just for vimlint (EVL104)
         let verbosity = neomake#utils#get_verbosity()
     endif
     let logfile = get(g:, 'neomake_logfile', '')
@@ -64,11 +64,11 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
     endif
 
     if a:0
-        if has_key(jobinfo, 'id')
-            let msg = printf('[%s.%d] %s', get(jobinfo, 'make_id', '-'), jobinfo.id, a:msg)
-        else
-            let msg = printf('[%s] %s', get(jobinfo, 'make_id', '?'), a:msg)
-        endif
+        let msg = printf('[%s.%s:%s] %s',
+                    \ get(context, 'make_id', '-'),
+                    \ get(context, 'id', '-'),
+                    \ get(context, 'bufnr', get(context, 'file_mode', 0) ? '?' : '-'),
+                    \ a:msg)
     else
         let msg = a:msg
     endif
@@ -84,9 +84,9 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
         endif
 
         call vader#log(test_msg)
-        " Only keep jobinfo entries that are relevant for / used in the message.
+        " Only keep context entries that are relevant for / used in the message.
         let context = a:0
-                    \ ? filter(copy(jobinfo), "index(['id', 'make_id'], v:key) != -1")
+                    \ ? filter(copy(context), "index(['id', 'make_id', 'bufnr'], v:key) != -1")
                     \ : {}
         call add(g:neomake_test_messages, [a:level, a:msg, context])
     elseif verbosity >= a:level

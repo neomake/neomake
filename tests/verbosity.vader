@@ -53,6 +53,7 @@ Execute (neomake#Make uses &verbose):
   \ 'exe': 'echo',
   \ 'args': ['1'],
   \ }
+  let bufnr = bufnr('%')
 
   unlet g:neomake_test_log_all_messages
 
@@ -61,7 +62,7 @@ Execute (neomake#Make uses &verbose):
   let make_id = neomake#GetStatus().last_make_id
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Adding &verbose (2) to verbosity level: 3', 3, {'make_id': make_id}
-  AssertNeomakeMessage 'Running makers: unnamed_maker', 3, {'make_id': make_id}
+  AssertNeomakeMessage 'Running makers: unnamed_maker', 3, {'make_id': make_id, 'bufnr': bufnr}
 
   NeomakeTestsResetMessages
   1verb call neomake#Make(1, [maker])
@@ -69,10 +70,10 @@ Execute (neomake#Make uses &verbose):
   NeomakeTestsWaitForFinishedJobs
   if neomake#has_async_support()
     AssertEqual g:neomake_test_messages,
-    \ [[2, "Starting async job: ['echo', '1']", {'make_id': make_id}]]
+    \ [[2, "Starting async job: ['echo', '1']", {'make_id': make_id, 'bufnr': bufnr}]]
   else
     AssertEqual g:neomake_test_messages,
-    \ [[2, "Starting: echo 1", {'make_id': make_id}]]
+    \ [[2, "Starting: echo 1", {'make_id': make_id, 'bufnr': bufnr}]]
   endif
   AssertEqual len(g:neomake_test_messages), 1
 
@@ -80,4 +81,4 @@ Execute (neomake#Make uses &verbose):
   0verb call neomake#Make(1, [maker])
   let make_id = neomake#GetStatus().last_make_id
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Running makers: unnamed_maker', 3, {'make_id': make_id}
+  AssertNeomakeMessage 'Running makers: unnamed_maker', 3, {'make_id': make_id, 'bufnr': bufnr}
