@@ -115,7 +115,7 @@ Before:
 
   function! s:AssertNeomakeMessage(msg, ...)
     let level = a:0 ? a:1 : -1
-    let jobinfo = a:0 > 1 ? copy(a:2) : -1
+    let context = a:0 > 1 ? copy(a:2) : -1
     let found_but_before = 0
     let found_but_other_level = -1
     let r = 0
@@ -144,33 +144,33 @@ Before:
       endif
     endfor
     if r == 1
-      if type(jobinfo) == type({})
+      if type(context) == type({})
         " Only compare entries relevant for messages.
-        call filter(jobinfo, "index(['id', 'make_id'], v:key) != -1")
+        call filter(context, "index(['id', 'make_id', 'bufnr'], v:key) != -1")
         let l:UNDEF = {}
         for [k, v] in items(info)
-          let expected = get(jobinfo, k, l:UNDEF)
+          let expected = get(context, k, l:UNDEF)
           if expected is l:UNDEF
-            throw printf("[%s] Missing value for jobinfo.%s: "
+            throw printf("[%s] Missing value for context.%s: "
                 \  ."expected nothing, but got '%s'.", a:msg, k, string(v))
           else
             try
               let same = v ==# expected
             catch
               throw printf(
-                \ "Could not compare jobinfo entries (expected: %s, actual: %s): %s",
+                \ "Could not compare context entries (expected: %s, actual: %s): %s",
                 \ string(expected), string(v), v:exception)
             endtry
             if !same
-              throw printf("Got unexpected value for jobinfo.%s: "
+              throw printf("Got unexpected value for context.%s: "
                 \  ."expected '%s', but got '%s'.", k, string(expected), string(v))
             endif
           endif
-          unlet jobinfo[k]
+          unlet context[k]
           unlet v  " for old Vim
         endfor
-        for [k, expected] in items(jobinfo)
-          throw printf("[%s] Missing entry for jobinfo.%s: "
+        for [k, expected] in items(context)
+          throw printf("[%s] Missing entry for context.%s: "
             \  ."expected '%s', but got nothing.", a:msg, k, string(expected))
 
         endfor

@@ -144,6 +144,7 @@ Execute (Neomake#Make cancels previous jobs):
   if NeomakeAsyncTestsSetup()
     let first_jobs = neomake#GetJobs(neomake#Make(0, [g:sleep_maker, g:error_maker]))
     let make_id = neomake#GetStatus().last_make_id
+    let bufnr = bufnr('%')
     call neomake#Make(0, [g:sleep_maker, g:error_maker])
     AssertEqual has_key(neomake#GetStatus().make_info, make_id), 1
     NeomakeTestsWaitForFinishedJobs
@@ -162,7 +163,7 @@ Execute (Neomake#Make cancels previous jobs):
 
     " Restarted job should use new make_id.
     AssertNeomakeMessage "Starting async job: ['/bin/bash', '-c', 'echo error; false']",
-    \ 2, {'make_id': make_id+1}
+    \ 2, {'make_id': make_id+1, 'bufnr': bufnr}
   endif
 
 Execute (Neomake#Make starts new jobs before waiting for the old to finish):

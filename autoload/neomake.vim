@@ -667,11 +667,12 @@ function! s:Make(options) abort
                 \ 'finished_jobs': 0,
                 \ 'options': options,
                 \ }
+    let make_info = s:make_info[make_id]
     if &verbose
-        let s:make_info[make_id].verbosity += &verbose
+        let make_info.verbosity += &verbose
         call neomake#utils#DebugMessage(printf(
                     \ 'Adding &verbose (%d) to verbosity level: %d',
-                    \ &verbose, s:make_info[make_id].verbosity),
+                    \ &verbose, make_info.verbosity),
                     \ {'make_id': make_id})
     endif
 
@@ -706,10 +707,14 @@ function! s:Make(options) abort
 
     let maker_info = join(map(copy(makers),
                 \ "v:val.name . (get(v:val, 'auto_enabled', 0) ? ' (auto)' : '')"), ', ')
-    call neomake#utils#DebugMessage(printf('Running makers: %s', maker_info),
-                \ {'make_id': make_id})
+    let log_context = {'make_id': make_id}
+    if file_mode
+        let log_context.bufnr = bufnr
+    endif
+    call neomake#utils#DebugMessage(printf(
+                \ 'Running makers: %s', maker_info), log_context)
 
-    let s:make_info[make_id].makers_queue = makers
+    let make_info.makers_queue = makers
 
     if file_mode
         " XXX: this clears counts for job's buffer only, but we add counts for
