@@ -849,9 +849,9 @@ function! s:CleanJobinfo(jobinfo) abort
         call neomake#utils#DebugMessage(printf('Removing temporary file: %s',
                     \ temp_file))
         call delete(temp_file)
-        " XXX: old Vim has no support for flags.. the patch version is not
-        " exact here!
-        if v:version >= 705 || (v:version == 704 && has('patch1689'))
+        " Only delete the dir, if Vim supports it.  It will be cleaned up
+        " when quitting Vim in any case.
+        if v:version >= 705 || (v:version == 704 && has('patch1107'))
             call delete(fnamemodify(temp_file, ':h'), 'd')
         endif
     endif
