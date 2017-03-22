@@ -980,7 +980,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     endif
 
     let counts_changed = 0
-    let cleaned_signs = 0
+    let cleaned_signs = []
     let ignored_signs = []
     let maker_type = file_mode ? 'file' : 'project'
     let do_highlight = get(g:, 'neomake_highlight_columns', 1)
@@ -1002,13 +1002,13 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
             endif
         endif
 
-        if !cleaned_signs
+        if index(cleaned_signs, entry.bufnr) == -1
             if file_mode
                 call neomake#CleanOldFileSignsAndErrors(entry.bufnr)
             else
                 call neomake#CleanOldProjectSignsAndErrors()
             endif
-            let cleaned_signs = 1
+            call add(cleaned_signs, entry.bufnr)
         endif
 
         " Track all errors by buffer and line
