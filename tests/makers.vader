@@ -331,27 +331,27 @@ Execute (Makers: get_list_entries via config):
 Execute (get_list_entries: minimal example (from doc)):
   new
   call g:NeomakeSetupAutocmdWrappers()
-  let bufnr = bufnr('%')
+  let buf1 = bufnr('%')
 
   let maker = {'name': 'My maker'}
   function! maker.get_list_entries(jobinfo) abort
     " Change bufnr.
     new
     return [
-      \ {'text': 'Some error', 'lnum': 1},
+      \ {'text': 'Some error', 'lnum': 1, 'bufnr': bufnr('%')},
       \ {'text': 'Some warning', 'type': 'W', 'lnum': 2, 'col': 1, 'length': 5},
       \ ]
   endfunction
   call neomake#Make(1, [maker])
   " .length was transformed into a highlight.
   if !has('nvim')
-    AssertEqual neomake#highlights#_get()['file'][bufnr]['NeomakeWarning'], [[2, 1, 5]]
+    AssertEqual neomake#highlights#_get()['file'][buf1]['NeomakeWarning'], [[2, 1, 5]]
   endif
 
   AssertEqual getloclist(0), [
-  \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \ {'lnum': 1, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
   \  'type': 'E', 'pattern': '', 'text': 'Some error'},
-  \ {'lnum': 2, 'bufnr': bufnr, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \ {'lnum': 2, 'bufnr': buf1, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
   \  'type': 'W', 'pattern': '', 'text': 'Some warning'}]
   bwipe
   bwipe
