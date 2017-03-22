@@ -86,12 +86,12 @@ else
 endif
 
 if exists('*uniq')
-    function! neomake#compat#uniq(l)
+    function! neomake#compat#uniq(l) abort
 	return uniq(a:l)
     endfunction
 else
     " From ingo#collections#UniqueSorted.
-    function! neomake#compat#uniq(l)
+    function! neomake#compat#uniq(l) abort
         if len(a:l) < 2
             return a:l
         endif
