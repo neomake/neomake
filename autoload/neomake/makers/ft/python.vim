@@ -122,10 +122,10 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
                 " this discards the module part
                 let l:token = split(l:token, '\.')[-1]
 
-                " Also the searhch should be started at the import keyword.
+                " Also the search should be started at the import keyword.
                 " Otherwise for 'from os import os' the first os will be
                 " found. This moves the cursor there.
-                echom search('\<import\>', 'cW', a:entry.lnum + l:search_lines)
+                call search('\<import\>', 'cW', a:entry.lnum + l:search_lines)
             endif
 
             " Search for the first occurrence of the token and highlight in
