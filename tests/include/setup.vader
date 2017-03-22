@@ -116,11 +116,14 @@ Before:
   function! s:AssertNeomakeMessage(msg, ...)
     let level = a:0 ? a:1 : -1
     let context = a:0 > 1 ? copy(a:2) : -1
+    let options = a:0 > 2 ? a:3 : {}
     let found_but_before = 0
+    let found_but_context_diff = []
+    let ignore_order = get(options, 'ignore_order', 0)
     let found_but_other_level = -1
-    let r = 0
     let idx = -1
     for [l, m, info] in g:neomake_test_messages
+      let r = 0
       let idx += 1
       if m ==# a:msg
         if level == -1
@@ -134,57 +137,69 @@ Before:
         endif
       endif
       if r
-        if idx > g:neomake_test_messages_last_idx
-          break
+        if !ignore_order && idx <= g:neomake_test_messages_last_idx
+          if idx < g:neomake_test_messages_last_idx
+            let found_but_before = 1
+          endif
+          let r = 0
         endif
-        if idx < g:neomake_test_messages_last_idx
-          let found_but_before = 1
-        endif
-        let r = 0
       endif
-    endfor
-    if r == 1
+      if !r
+        continue
+      endif
+
       if type(context) == type({})
+        let context_diff = []
         " Only compare entries relevant for messages.
         call filter(context, "index(['id', 'make_id', 'bufnr'], v:key) != -1")
         let l:UNDEF = {}
         for [k, v] in items(info)
           let expected = get(context, k, l:UNDEF)
           if expected is l:UNDEF
-            throw printf("[%s] Missing value for context.%s: "
-                \  ."expected nothing, but got '%s'.", a:msg, k, string(v))
-          else
-            try
-              let same = v ==# expected
-            catch
-              throw printf(
-                \ "Could not compare context entries (expected: %s, actual: %s): %s",
-                \ string(expected), string(v), v:exception)
-            endtry
-            if !same
-              throw printf("Got unexpected value for context.%s: "
-                \  ."expected '%s', but got '%s'.", k, string(expected), string(v))
-            endif
+            call add(context_diff, printf("[%s] Missing value for context.%s: "
+                \  ."expected nothing, but got '%s'.", a:msg, k, string(v)))
+            continue
           endif
-          unlet context[k]
+          try
+            let same = v ==# expected
+          catch
+            call add(context_diff, printf(
+              \ "Could not compare context entries (expected: %s, actual: %s): %s",
+              \ string(expected), string(v), v:exception))
+            continue
+          endtry
+          if !same
+            call add(context_diff, printf("Got unexpected value for context.%s: "
+              \  ."expected '%s', but got '%s'.", k, string(expected), string(v)))
+          endif
           unlet v  " for old Vim
         endfor
-        for [k, expected] in items(context)
-          throw printf("[%s] Missing entry for context.%s: "
-            \  ."expected '%s', but got nothing.", a:msg, k, string(expected))
-
+        let missing = filter(copy(context), 'index(keys(info), v:key) == -1')
+        for [k, expected] in items(missing)
+          call add(context_diff, printf("[%s] Missing entry for context.%s: "
+            \  ."expected '%s', but got nothing.", a:msg, k, string(expected)))
         endfor
+        let found_but_context_diff = context_diff
+        if len(context_diff)
+          if ignore_order
+            continue
+          endif
+          throw join(context_diff, "\n")
+        endif
       endif
       let g:neomake_test_messages_last_idx = idx
       " Make it count as a successful assertion.
       Assert 1
       return 1
-    endif
+    endfor
     if found_but_other_level != -1
       throw "Message '".a:msg."' found, but for level ".found_but_other_level
     endif
     if found_but_before
       throw "Message '".a:msg."' was found _before_ last asserted one."
+    endif
+    if !empty(found_but_context_diff)
+      throw join(found_but_context_diff, "\n")
     endif
     throw "Message '".a:msg."' not found."
   endfunction
