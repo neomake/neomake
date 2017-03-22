@@ -330,11 +330,7 @@ Before:
         \ .string(map(range(1, winnr('$')),
         \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
       try
-        let bufs = sort(tabpagebuflist())
-        if exists('*uniq')
-          let bufs = uniq(bufs)
-        endif
-        for b in bufs
+        for b in neomake#compat#uniq(sort(tabpagebuflist()))
           if bufname(b) !=# '[Vader-workbench]'
             exe 'bwipe!' b
           endif
