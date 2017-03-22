@@ -91,13 +91,14 @@ location/quickfix list: >
     let maker = {'name': 'My maker'}
     function! maker.get_list_entries(jobinfo) abort
       return [
-        \ {'text': 'Some error', 'lnum': 1},
+        \ {'text': 'Some error', 'lnum': 1, 'bufnr': bufnr('%')},
         \ {'text': 'Some warning', 'type': 'W', 'lnum': 2, 'col': 1,
         \  'length': 5},
         \ ]
     endfunction
 <
-The required keys for entries are `text` and `lnum`.
+The required keys for entries are `text` and `lnum`.  `bufnr` defaults to the
+jobs's buffer.
 The `length` entry in the example is internal to Neomake, and sets the length
 for an highlight (see |neomake-highlight|).
 
@@ -184,7 +185,7 @@ entries:
  - `source`: the source of the output (`stderr`, `stdout`)
  - `jobinfo`: the jobinfo object, see |neomake-object-jobinfo|
 It should return a list of entries (dictionaries), where `text` and `lnum`
-are required.
+are required.  `bufnr` defaults to the jobs's buffer.
 
 Using this method skips the processing based on `errorformat` (including
 `mapexpr` and `postprocess`).

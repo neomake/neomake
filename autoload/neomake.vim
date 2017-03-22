@@ -961,7 +961,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     else
         " Fix entries with get_list_entries/process_output.
         call map(a:entries, 'extend(v:val, {'
-                    \ . "'bufnr': a:jobinfo.bufnr,"
+                    \ . "'bufnr': str2nr(get(v:val, 'bufnr', a:jobinfo.bufnr)),"
                     \ . "'lnum': str2nr(v:val.lnum),"
                     \ . "'col': str2nr(get(v:val, 'col', 0)),"
                     \ . "'vcol': str2nr(get(v:val, 'vcol', 0)),"
