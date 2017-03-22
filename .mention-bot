@@ -1,0 +1,3 @@
+{
+  "userBlacklistForPR": ["blueyed"], // PR made by users in this list will be ignored
+}
