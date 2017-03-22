@@ -84,3 +84,26 @@ else
         return writefile(lines, a:fname, a:flags)
     endfunction
 endif
+
+if exists('*uniq')
+    function! neomake#compat#uniq(l) abort
+	return uniq(a:l)
+    endfunction
+else
+    " From ingo#collections#UniqueSorted.
+    function! neomake#compat#uniq(l) abort
+        if len(a:l) < 2
+            return a:l
+        endif
+
+        let l:previousItem = a:l[0]
+        let l:result = [a:l[0]]
+        for l:item in a:l[1:]
+            if l:item !=# l:previousItem
+                call add(l:result, l:item)
+                let l:previousItem = l:item
+            endif
+        endfor
+        return l:result
+    endfunction
+endif

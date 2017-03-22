@@ -1,0 +1,7 @@
+Include: include/setup.vader
+
+Execute (neomake#compat#uniq):
+  AssertEqual neomake#compat#uniq([]), []
+  AssertEqual neomake#compat#uniq([1, 2]), [1, 2]
+  AssertEqual neomake#compat#uniq([1, 2, 1]), [1, 2, 1]
+  AssertEqual neomake#compat#uniq([1, 1, 2]), [1, 2]
