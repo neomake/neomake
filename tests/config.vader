@@ -1,0 +1,118 @@
+Include: include/setup.vader
+
+Execute (neomake#config#get: basic):
+  Save g:neomake
+  new
+
+  AssertEqual neomake#config#get('foo', 'default'), 'default'
+  let g:neomake = {}
+  AssertEqual neomake#config#get('foo', 'default'), 'default'
+  let g:neomake = {'foo': 'global'}
+  AssertEqual neomake#config#get('foo', 'default'), 'global'
+  let b:neomake = {}
+  AssertEqual neomake#config#get('foo', 'default'), 'global'
+  let b:neomake = {'foo': 'buffer'}
+  AssertEqual neomake#config#get('foo', 'default'), 'buffer'
+
+  let maker = {'foo': 'maker'}
+  let jobinfo = {'maker': maker}
+  AssertEqual neomake#config#get('foo', 'default', jobinfo), 'buffer'
+  unlet b:neomake
+  AssertEqual neomake#config#get('foo', 'default', jobinfo), 'global'
+  unlet g:neomake
+  AssertEqual neomake#config#get('foo', 'default', jobinfo), 'maker'
+  let jobinfo.maker = {}
+  AssertEqual neomake#config#get('foo', 'default', jobinfo), 'default'
+
+  bwipe
+
+Execute (neomake#config#get with filetypes):
+  Save g:neomake
+  new
+
+  set filetype=myft
+
+  AssertEqual neomake#config#get('foo', []), []
+  let g:neomake = {'foo': ['maker1']}
+  AssertEqual neomake#config#get('foo', 'default'), ['maker1']
+
+  let g:neomake = {'ft': {'myft': {'foo': ['myft_maker']}}}
+  AssertEqual neomake#config#get('foo', 'default'), ['myft_maker']
+
+  bwipe
+
+Execute (neomake#config#get with b: prefix, no default and bufnr context):
+  new
+  let b:neomake = {'foo': 'bar'}
+  AssertEqual neomake#config#get('b:foo'), 'bar'
+  unlet b:neomake
+
+  let b:neomake = {'autolint': {'ignore_filetypes': ['startify']}}
+  AssertEqual neomake#config#get('b:autolint.ignore_filetypes'), ['startify']
+
+  let bufnr = bufnr('%')
+  new
+  AssertEqual neomake#config#get('b:autolint.ignore_filetypes', [],
+  \ {'bufnr': bufnr}), ['startify']
+
+  bwipe
+  bwipe
+
+Execute (neomake#config#set):
+  Save g:neomake
+  let config = neomake#config#set('foo', 'bar')
+  AssertEqual config, {'foo': 'bar'}
+  AssertEqual g:neomake, {'foo': 'bar'}
+  unlet g:neomake
+
+  call neomake#config#set('autolint.ignore_filetypes', ['startify'])
+  AssertEqual g:neomake, {'autolint': {'ignore_filetypes': ['startify']}}
+
+Execute (neomake#config#set_buffer):
+  new
+  let bufnr = bufnr('%')
+  call neomake#config#set_buffer(bufnr, 'foo', 'bar')
+  AssertEqual b:neomake, {'foo': 'bar'}
+  unlet b:neomake
+
+  call neomake#config#set_buffer(bufnr, 'autolint.ignore_filetypes', ['startify'])
+  let expected = {'autolint': {'ignore_filetypes': ['startify']}}
+  AssertEqual b:neomake, expected
+  b#
+
+  AssertEqual getbufvar(bufnr, 'neomake'), expected
+  b#
+  bwipe!
+
+Execute (neomake#config#set with b: prefix):
+  new
+  call neomake#config#set('b:foo', 'bar')
+  AssertEqual b:neomake, {'foo': 'bar'}
+  unlet b:neomake
+
+  call neomake#config#set('b:autolint.ignore_filetypes', ['startify'])
+  AssertEqual b:neomake, {'autolint': {'ignore_filetypes': ['startify']}}
+  bwipe!
+
+Execute (neomake#config#get handles Funcref variables):
+  new
+
+  function! NeomakeTestsF()
+  endfunction
+  let Funcref = function('NeomakeTestsF')
+
+  call neomake#config#set('b:function', Funcref)
+  AssertEqual neomake#config#get('b:function'), Funcref
+  AssertEqual neomake#config#get_with_source('b:function'), [Funcref, 'buffer']
+
+  bwipe
+
+Execute (neomake#config#{un,}set_dict):
+  let foo = {}
+  call neomake#config#set_dict(foo, 'bar.baz', 42)
+  AssertEqual foo, {'bar': {'baz': 42}}
+
+  call neomake#config#unset_dict(foo, 'bar.baz')
+  AssertEqual foo, {'bar': {}}
+  call neomake#config#unset_dict(foo, 'bar')
+  AssertEqual foo, {}
