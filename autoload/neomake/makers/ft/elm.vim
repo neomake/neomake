@@ -13,39 +13,39 @@ function! neomake#makers#ft#elm#elmMake() abort
 endfunction
 
 function! neomake#makers#ft#elm#ElmMakeProcessOutput(context) abort
-    " output will be a List, containing a JSON string of an array of objects
-    if a:context.output[0][0] !=# '['
-        return []
-    endif
-    let l:decoded = neomake#utils#JSONdecode(a:context.output[0])
-    if type(l:decoded) == type([])
-        let l:errors = []
-        for item in l:decoded
-            if get(item, 'type', '') ==# 'warning'
-                let l:code = 'W'
-            else
-                let l:code = 'E'
-            endif
+    let l:errors = []
+    " output will be a List, containing either:
+    " 1) A success message
+    " 2) A string holding a JSON array for both warnings and errors
 
-            let l:compiler_error = item['tag']
-            let l:message = item['overview']
-            let l:region_start = item['region']['start']
-            let l:region_end = item['region']['end']
-            let l:row = l:region_start['line']
-            let l:col = l:region_start['column']
-            let l:length = l:region_end['column'] - l:region_start['column']
+    for line in a:context.output
+        if line[0] ==# '['
+            let l:decoded = neomake#utils#JSONdecode(line)
+            for item in l:decoded
+                if get(item, 'type', '') ==# 'warning'
+                    let l:code = 'W'
+                else
+                    let l:code = 'E'
+                endif
 
-            let l:error = {
-                        \ 'text': l:compiler_error . ' : ' . l:message,
-                        \ 'type': l:code,
-                        \ 'lnum': l:row,
-                        \ 'col': l:col,
-                        \ 'length': l:length,
-                        \ }
-            call add(l:errors, l:error)
-        endfor
-        return l:errors
-    else
-        return []
-    endif
+                let l:compiler_error = item['tag']
+                let l:message = item['overview']
+                let l:region_start = item['region']['start']
+                let l:region_end = item['region']['end']
+                let l:row = l:region_start['line']
+                let l:col = l:region_start['column']
+                let l:length = l:region_end['column'] - l:region_start['column']
+
+                let l:error = {
+                            \ 'text': l:compiler_error . ' : ' . l:message,
+                            \ 'type': l:code,
+                            \ 'lnum': l:row,
+                            \ 'col': l:col,
+                            \ 'length': l:length,
+                            \ }
+                call add(l:errors, l:error)
+            endfor
+        endif
+    endfor
+    return l:errors
 endfunction
