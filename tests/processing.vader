@@ -262,6 +262,15 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
     AssertEqual len(g:neomake_test_jobfinished), 2
   endif
 
+Execute (Handle finished job that got canceled):
+  " Should not cause infinite recursion (#1158).
+  norm! V
+  let jobs = neomake#Make(0, [g:success_maker])
+  NeomakeTestsWaitForFinishedJobs
+  let jobs = neomake#Make(0, [g:success_maker])
+  NeomakeTestsWaitForFinishedJobs
+  call neomake#CancelJob(jobs[0])
+
 Execute (Job does not get restarted when canceled):
   if NeomakeAsyncTestsSetup()
     let maker = NeomakeTestsCommandMaker('mymaker', 'echo output; sleep .1')
