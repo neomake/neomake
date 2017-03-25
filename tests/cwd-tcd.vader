@@ -3,11 +3,13 @@ Include: include/setup.vader
 After:
   NeomakeTestsGlobalAfter
 
+  if exists('tab2')
+    exe 'tabclose' tab2
+  endif
   if exists('tab1')
     exe 'tabclose' tab1
-    exe 'tabclose' tab2
-    unlet! tab1 tab2 dir1 dir2
   endif
+  unlet! tab1 tab2 dir1 dir2
 
 Execute (tcd is handled properly):
   if exists(':tcd') != 2
