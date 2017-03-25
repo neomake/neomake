@@ -262,6 +262,21 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
     AssertEqual len(g:neomake_test_jobfinished), 2
   endif
 
+Execute (Handle finished job that got canceled (#1158)):
+  call g:NeomakeSetupAutocmdWrappers()
+  norm! V
+  let jobs = neomake#Make(0, [g:success_maker])
+  NeomakeTestsWaitForFinishedJobs
+  let jobs = neomake#Make(0, [g:success_maker])
+  NeomakeTestsWaitForFinishedJobs
+  if neomake#has_async_support()
+    call neomake#CancelJob(jobs[0])
+    AssertEqual len(g:neomake_test_jobfinished), 0
+  else
+    " XXX: should not run in non-async Vim (in this constructed case).
+    AssertEqual len(g:neomake_test_jobfinished), 2
+  endif
+
 Execute (Job does not get restarted when canceled):
   if NeomakeAsyncTestsSetup()
     let maker = NeomakeTestsCommandMaker('mymaker', 'echo output; sleep .1')

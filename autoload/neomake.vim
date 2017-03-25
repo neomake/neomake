@@ -83,11 +83,11 @@ function! neomake#CancelJob(job_id, ...) abort
     endif
     let ret = 0
     let jobinfo = s:jobs[job_id]
+    " Mark it as canceled for the exit handler.
+    let jobinfo.canceled = 1
     if get(jobinfo, 'finished')
         call neomake#utils#DebugMessage('Removing already finished job', jobinfo)
     else
-        " Mark it as canceled for the exit handler.
-        let jobinfo.canceled = 1
         call neomake#utils#DebugMessage('Stopping job', jobinfo)
         if has('nvim')
             try
