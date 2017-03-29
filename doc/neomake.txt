@@ -263,7 +263,7 @@ Example: remove some entry for a specific maker (using |expr-lambda|): >
 <
 
 The default is to use `neomake#utils#CompressWhitespace` here, which fixes
-whitespace issues (especially with multiline error messages).
+whitespace issues (important with multiline error messages).
 
 This can also be used to set the `length` property of an entry, which is used
 to highlight entries in the text (|neomake-highlight|).
