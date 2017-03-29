@@ -500,17 +500,24 @@ to 1.
 This list is non-exhaustive at the moment, but you may find some of these
 functions useful.
 
-*neomake#Make* (filemode, makers[, callback])
-This function is called by the |:Neomake| (and |:Neomake!|) command. It runs
-all the `makers` specified, in order. If `filemode` is 1, then the current
-file is used as input to the makers.
+*neomake#Make* (options)
+This is the main entrypoint to Neomake, used by the |:Neomake| (and
+|:Neomake!|) command.
+It will run all the given makers, in order.
 
-It returns an array of job ids that were created; you can potentially cancel
-these jobs with |neomake#CancelJob|.
+`options` is a dictionary, and might include:
+- `file_mode`: 1 if the makers should get run against a single file (typically
+  used for linting). Default: 1.
+- `enabled_makers`: the makers to use (list). Default: uses configuration.
 
-It also accepts a third, optional callback argument that
-is called when the command exits.  The callback is given the following
-dictionary as its sole argument: >
+Returns: a list of job ids.
+
+Deprecated~
+The old and deprecated API will accept the following arguments instead of the
+`options` dict: filemode, enabled_makers[, exit_callback].
+The `exit_callback` (which should get replaced by using the
+|NeomakeJobFinished| or |NeomakeFinished| hooks) gets the following dictionary
+as its sole argument: >
     { 'status': <exit status of maker>,
     \ 'name': <maker name>,
     \ 'has_next': <1 if another maker follows, 0 otherwise> }
