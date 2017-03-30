@@ -295,3 +295,66 @@ Execute (neomake#postprocess#GenericLengthPostprocess for multiple matches):
 
     bwipe!
   endif
+
+Execute (Postprocess: can be lambda):
+  if !has('lambda')
+    NeomakeTestsSkip 'no lambda feature'
+  else
+    let maker = {
+    \ 'exe': 'printf',
+    \ 'args': ['file1.vim:1:7: check: bar!\nfile1.vim:2:5: check: foo!'],
+    \ 'errorformat': '%E%f:%l:%c: %m',
+    \ 'append_file': 0,
+    \ 'postprocess': {entry -> entry.text ==# 'check: bar!' ? extend(entry, {'valid': -1}) : entry}
+    \ }
+
+    new
+    file file1.vim
+    call neomake#Make(1, [maker])
+    NeomakeTestsWaitForFinishedJobs
+
+    AssertEqual getloclist(0), [{
+    \ 'lnum': 2,
+    \ 'bufnr': bufnr('%'),
+    \ 'col': 5,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'nr': -1,
+    \ 'type': 'E',
+    \ 'pattern': '',
+    \ 'text': 'check: foo!'}]
+    bwipe
+  endif
+
+Execute (Postprocess: lambda from conf):
+  if !has('lambda')
+    NeomakeTestsSkip 'no lambda feature'
+  else
+    let maker = {
+    \ 'exe': 'printf',
+    \ 'args': ['%s\n',
+    \   'WARNING: file.adoc: line 162: illegal system attribute name: font-style',
+    \   'WARNING: file.adoc: line 1: something else'],
+    \ 'errorformat': '%tARNING: %f: line %l: %m',
+    \ 'append_file': 0,
+    \ }
+    let maker.postprocess = {
+    \ entry -> entry.text =~# 'illegal system attribute name: font-style'
+    \ ? extend(entry, {'valid': -1}) : entry}
+
+    new
+    file file.adoc
+    call neomake#Make(1, [maker])
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual getloclist(0), [{
+    \ 'lnum': 1,
+    \ 'bufnr': bufnr('%'),
+    \ 'col': 0,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'nr': -1,
+    \ 'type': 'W',
+    \ 'pattern': '',
+    \ 'text': 'something else'}]
+    bwipe
+  endif

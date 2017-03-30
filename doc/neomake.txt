@@ -216,18 +216,28 @@ The following `mapexpr` could be used to prefix the output type: >
     "printf('[%s] %s', neomake_output_source, v:val)"
 <
                                                   *neomake-makers-postprocess*
-The `postprocess` property is a function reference that will be applied to the
-entry in the location or quickfix list.
-Example: change the entry type to a warning. >
-    function SetWarningType(entry)
+The `postprocess` property is a function that gets called for each entry in
+the location or quickfix list. It allows to change entries there or remove
+them by setting the `valid` entry to `-1`.
+
+Example: make all entries a warning where `nr` is in the range of 100-199: >
+    function PostprocessLintMaker(entry)
+      if a:entry.nr >= 100 && a:entry.nr < 200
         let a:entry.type = 'W'
+      endif
     endfunction
-    let g:neomake_c_lint_maker = {
+    let g:neomake_ft_lint_maker = {
         \ 'exe': 'lint',
         \ 'args': ['--option', 'x'],
-        \ 'errorformat': '%f:%l:%c: %m',
-        \ 'postprocess': function('SetWarningType')
+        \ 'errorformat': '%f:%l:%c:%n: %m',
+        \ 'postprocess': function('PostprocessLintMaker)
         \ }
+<
+Example: remove some entry for a specific maker (using |expr-lambda|): >
+    let g:neomake_asciidoc_asciidoc_postprocess = {
+        \ entry -> entry.text =~# 'illegal system attribute name: font-style'
+        \ ? extend(entry, {'valid': -1})
+        \ : entry}
 <
 
 The default is to use `neomake#utils#CompressWhitespace` here, which fixes
