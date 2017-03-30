@@ -55,7 +55,7 @@ _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log vader
 _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
 _run_vim: | build $(TESTS_VADER_DIR)
 _run_vim:
-	@echo $(TEST_VIM_PREFIX) $(TEST_VIM) -u $(TEST_VIMRC) -i NONE $(VIM_ARGS)
+	@echo $(TEST_VIM_PREFIX) $(TEST_VIM) -u $(TEST_VIMRC) -i NONE $(VIM_ARGS) >&2
 	@$(TEST_VIM_PREFIX) $(TEST_VIM) -u $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 
 # Interactive tests, keep Vader open.
