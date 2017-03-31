@@ -409,6 +409,8 @@ the verbosity temporarily: >
 Setting this to a file path will write all messages (regardless of the level
 configured through |g:neomake_verbose|) into it.
 This is useful for debugging/hacking, and when reporting issues.
+It requires Vim 7.4.503+ (or Neovim) to work properly, otherwise it will not
+append, but overwrite the file with each message.
 
                                                                *neomake-signs*
 *g:neomake_place_signs*
