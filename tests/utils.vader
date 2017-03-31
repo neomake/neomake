@@ -376,7 +376,7 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
 
   set buftype=nofile
   let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
-  let temp_file = bound_maker.tempfile_name
+  let temp_file = jobinfo.tempfile_name
   AssertEqual bound_maker.args, [&shellcmdflag, 'echo '.temp_file]
   AssertEqual bound_maker.append_file, 0
   AssertEqual bound_maker.exe, &shell
