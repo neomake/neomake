@@ -372,7 +372,7 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         if !isdirectory(temp_dir)
             call mkdir(temp_dir, 'p', 0750)
         endif
-        call writefile(getbufline(bufnr, 1, '$'), temp_file)
+        call writefile(getbufline(bufnr, 1, '$'), temp_file, 'b')
 
         let bufname = temp_file
         let a:jobinfo.tempfile_name = temp_file

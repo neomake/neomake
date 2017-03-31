@@ -171,3 +171,13 @@ Execute (_get_fname_for_buffer handles modified buffer with disabled tempfiles):
   let fname = maker._get_fname_for_buffer(jobinfo)
   AssertEqual fname, 'file1'
   bwipe!
+
+Execute (_get_fname_for_buffer does not add trailing newline):
+  new
+  normal! iline1
+  let b:neomake_tempfile_enabled = 1
+  let maker = neomake#GetMaker({})
+  let jobinfo = {'bufnr': bufnr('%'), 'ft': ''}
+  call maker._get_fname_for_buffer(jobinfo)
+  AssertEqual readfile(jobinfo.tempfile_name), ['line1']
+  bwipe!
