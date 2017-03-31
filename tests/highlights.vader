@@ -25,3 +25,43 @@ Execute (No error when matches are cleared manually):
   endif
 
   bwipe
+
+Execute (neomake#highlights#AddHighlight with off-columns):
+  " This documents the current behavior.
+  " I have tried to limit it to the length of the current line etc, but it
+  " seems to better use the given values as-is.
+  " Currently it will highlight an empty line completely, if there is an error
+  " reported for column 1.
+  new
+  let bufnr = bufnr('%')
+  let entry = {'bufnr': bufnr, 'type': 'E', 'col': 1, 'lnum': 1}
+
+  call neomake#highlights#AddHighlight(entry, 'file')
+  let highlights = neomake#highlights#_get()['file'][bufnr]
+  if !has('nvim')
+    AssertEqual highlights['NeomakeError'], [[1, 1, 1]]
+  endif
+
+  normal! ifoo
+
+  call neomake#highlights#ResetFile(bufnr)
+  call neomake#highlights#AddHighlight(entry, 'file')
+  let highlights = neomake#highlights#_get()['file'][bufnr]
+  if !has('nvim')
+    AssertEqual highlights['NeomakeError'], [[1, 1, 1]]
+  endif
+
+  call neomake#highlights#ResetFile(bufnr)
+  let highlights = neomake#highlights#_get()['file'][bufnr]
+  if !has('nvim')
+    AssertEqual highlights['NeomakeError'], []
+  endif
+
+  let entry = {'bufnr': bufnr, 'type': 'E', 'col': 1, 'lnum': 1, 'length': 4}
+  call neomake#highlights#AddHighlight(entry, 'file')
+  let highlights = neomake#highlights#_get()['file'][bufnr]
+  if !has('nvim')
+    AssertEqual highlights['NeomakeError'], [[1, 1, 4]]
+  endif
+
+  bwipe!
