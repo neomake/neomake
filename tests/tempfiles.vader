@@ -15,7 +15,7 @@ Execute (Neomake uses temporary file for unsaved buffer):
   if neomake#has_async_support()
     let jobinfo = neomake#GetJobs()[0]
 
-    let temp_file = jobinfo.maker.tempfile_name
+    let temp_file = jobinfo.tempfile_name
     AssertEqual fnamemodify(temp_file, ':h:h'), fnamemodify(tempname(), ':h')
     AssertEqual getfperm(temp_file), 'rw-r--r--'
     NeomakeTestsWaitForFinishedJobs
@@ -120,6 +120,7 @@ Execute (Maker can specify temporary file to use via fn):
   call maker._get_argv(jobinfo)
   AssertEqual maker.args, []
   AssertEqual maker.tempfile_name, g:neomake_test_tempfile
+  AssertEqual jobinfo.tempfile_name, maker.tempfile_name
   AssertNeomakeMessage 'Using tempfile for unreadable buffer '.bufnr.': '.g:neomake_test_tempfile
 
   call neomake#Make(1, [maker])
@@ -140,12 +141,13 @@ Execute (maker._get_argv uses jobinfo for bufnr):
   let bufnr = bufnr('%')
   let jobinfo = {'file_mode': 1, 'bufnr': bufnr, 'ft': ''}
   call maker._get_argv(jobinfo)
-  Assert !empty(maker.tempfile_name)
+  Assert !empty(jobinfo.tempfile_name), 'jobinfo has tempfile_name'
 
+  let jobinfo = {'file_mode': 1, 'bufnr': bufnr, 'ft': ''}
   let maker = neomake#GetMaker({'name': 'my_maker', 'append_file': 1})
   e! tests/fixtures/errors.py
   call maker._get_argv(jobinfo)
-  Assert !has_key(maker, 'tempfile_name')
+  Assert !has_key(jobinfo, 'tempfile_name')
 
   wincmd p
   let jobinfo = {'file_mode': 1, 'bufnr': bufnr, 'ft': ''}

@@ -330,7 +330,8 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
     return tempname() . (has('win32') ? '\' : '/') . bufname
 endfunction
 
-" Check if a temporary file is used, and set self.tempfile_name in case it is.
+" Check if a temporary file is used, and set a:jobinfo.tempfile_name in case
+" it is.
 function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
     let bufnr = a:jobinfo.bufnr
     let bufname = bufname(bufnr)
@@ -374,7 +375,7 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         call writefile(getbufline(bufnr, 1, '$'), temp_file)
 
         let bufname = temp_file
-        let self.tempfile_name = temp_file
+        let a:jobinfo.tempfile_name = temp_file
     endif
     return bufname
 endfunction
@@ -769,7 +770,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         let index += 1
 
         let before = copy(entry)
-        if file_mode && has_key(a:jobinfo.maker, 'tempfile_name')
+        if file_mode && has_key(a:jobinfo, 'tempfile_name')
             let entry.bufnr = a:jobinfo.bufnr
         endif
         if !empty(s:postprocessors)
@@ -847,7 +848,7 @@ function! s:CleanJobinfo(jobinfo) abort
         endif
     endif
 
-    let temp_file = get(a:jobinfo.maker, 'tempfile_name', '')
+    let temp_file = get(a:jobinfo, 'tempfile_name', '')
     if !empty(temp_file)
         call neomake#utils#DebugMessage(printf('Removing temporary file: %s',
                     \ temp_file))
