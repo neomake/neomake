@@ -589,14 +589,30 @@ directly if you need to force it. This function is not currently used for
 
 ==============================================================================
 5. Autocommands/Hooks                                       *neomake-autocmds*
+                                                               *neomake-hooks*
+Neomake will trigger |User| autocommands on certain events.
+With all these events a dictionary `g:neomake_hook_context` is available,
+with key/value pairs depending on the autocommand/hook.
 
-Neomake will trigger |User| autocommands on certain events.  With all these
-events a dictionary `g:neomake_hook_context` will be set, with key/value pairs
-depending on the autocommand.
-You can register your own function as a callback like this: >
-    augroup my_neomake
+Example: display a message for every maker that exits non-zero: >
+    function! OnNeomakeJobFinished() abort
+      let context = g:neomake_hook_context
+      if context.jobinfo.exit_code != 0
+        echom printf('The job for maker %s exited non-zero: %s',
+        \ context.jobinfo.maker.name, context.jobinfo.exit_code)
+      endif
+    endfunction
+    augroup my_neomake_hooks
         au!
-        autocmd User NeomakeFinished call OnNeomakeFinished()
+        autocmd User NeomakeJobFinished call MyOnNeomakeJobFinished()
+    augroup END
+<
+Note: you might want to use |autocmd-nested| (in particular when handling
+opening of the location/quickfix window yourself, so that other autocommands
+get triggered, e.g. |WinEnter| for the qf window that gets opened/created): >
+    augroup my_neomake_hooks
+        au!
+        autocmd User NeomakeFinished nested call MyOnNeomakeFinished()
     augroup END
 <
                                                              *NeomakeFinished*
