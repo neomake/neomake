@@ -126,14 +126,15 @@ vimhelplint: | build/vimhelplint
 	contrib/vimhelplint doc/neomake.txt
 
 # Run tests in dockerized Vims.
-DOCKER_IMAGE:=neomake/vims-for-tests:1@sha256:1f24527dfe3eb8688c6afde514ec86ffeb1189211d4f0d09b5ee42799cb78737
+DOCKER_REPO:=neomake/vims-for-tests
+DOCKER_IMAGE?=$(DOCKER_REPO)$(DOCKER_IMAGE_DIGEST)
 DOCKER_STREAMS:=-ti
 DOCKER=docker run $(DOCKER_STREAMS) --rm \
        -v $(PWD):/testplugin -v $(abspath $(TESTS_VADER_DIR)):/home/plugins/vader $(DOCKER_IMAGE)
 docker_image:
-	docker build -f Dockerfile.tests -t $(DOCKER_IMAGE) .
+	docker build -f Dockerfile.tests -t $(DOCKER_REPO) .
 docker_push:
-	docker push $(DOCKER_IMAGE)
+	docker push $(DOCKER_REPO)
 
 # docker run --rm $(DOCKER_IMAGE) sh -c 'cd /vim-build/bin && ls vim*'
 DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8069 vim-master
