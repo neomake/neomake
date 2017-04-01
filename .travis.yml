@@ -12,7 +12,7 @@ branches:
 
 env:
   global:
-    - DOCKER_IMAGE_DIGEST=:1@sha256:1f24527dfe3eb8688c6afde514ec86ffeb1189211d4f0d09b5ee42799cb78737
+    - DOCKER_IMAGE_DIGEST=:1@sha256:62ddb415ffccaa7c75e49833bc657d9410e1c9d248b27a40ab07e3bec21131cc
   matrix:
     - ENV=vimlint
     - ENV=testnvim
