@@ -4,6 +4,10 @@ scriptencoding utf-8
 let s:level_to_name = {0: 'error  ', 1: 'warning', 2: 'verbose', 3: 'debug  '}
 let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 
+" Use 'append' with writefile, but only if it is available.  Otherwise, just
+" overwrite the file.
+let s:logfile_writefile_opts = has('patch-7.4.503') ? 'a' : ''
+
 if exists('*reltimefloat')
     function! s:reltimefloat() abort
         return reltimefloat(reltime())
@@ -111,9 +115,9 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
         if !exists('timediff')
             let timediff = s:reltime_lastmsg()
         endif
-        call neomake#compat#writefile([printf('%s [%s %s] %s',
+        call writefile([printf('%s [%s %s] %s',
                     \ date, s:short_level_to_name[a:level], timediff, msg)],
-                    \ logfile, 'a')
+                    \ logfile, s:logfile_writefile_opts)
     endif
     " @vimlint(EVL104, 0, l:timediff)
 endfunction
