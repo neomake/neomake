@@ -55,8 +55,7 @@ _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log vader
 _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
 _run_vim: | build $(TESTS_VADER_DIR)
 _run_vim:
-	@echo $(TEST_VIM_PREFIX) $(TEST_VIM) -u $(TEST_VIMRC) -i NONE $(VIM_ARGS) >&2
-	@$(TEST_VIM_PREFIX) $(TEST_VIM) -u $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
+	$(TEST_VIM_PREFIX) $(TEST_VIM) --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 
 # Interactive tests, keep Vader open.
 _run_interactive: VADER:=Vader
@@ -132,7 +131,7 @@ DOCKER_IMAGE_DIGEST=:$(DOCKER_TAG)
 DOCKER_IMAGE=$(DOCKER_REPO)$(DOCKER_IMAGE_DIGEST)
 DOCKER_STREAMS:=-ti
 DOCKER=docker run $(DOCKER_STREAMS) --rm \
-       -v $(PWD):/testplugin -v $(abspath $(TESTS_VADER_DIR)):/home/plugins/vader $(DOCKER_IMAGE)
+       -v $(PWD):/testplugin -v $(abspath $(TESTS_VADER_DIR)):/testplugin/tests/vim/plugins/vader $(DOCKER_IMAGE)
 docker_image:
 	docker build -f Dockerfile.tests -t $(DOCKER_REPO):$(DOCKER_TAG) .
 docker_push:
