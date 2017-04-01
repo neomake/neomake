@@ -1,5 +1,5 @@
 # From https://github.com/tweekmonster/vim-testbed.
-FROM testbed/vim:latest
+FROM testbed/vim:1@sha256:4600277311c7406bb230d1c54738e93e2fb71bd7340ad9f8a6792f0966e78f84
 
 # Install make and openssl for docker_vimhelplint.
 # openssl for https support with wget.
