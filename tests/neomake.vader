@@ -44,9 +44,6 @@ Include (Asciidoc): ft_asciidoc.vader
 Include (Markdown): ft_markdown.vader
 Include (Pandoc): ft_pandoc.vader
 
-~ Regression tests
-Include (cwd: tcd): cwd-tcd.vader
-
 
 * Old/unorganized tests
 Include: include/setup.vader
