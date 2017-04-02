@@ -540,3 +540,16 @@ function! neomake#utils#shellescape(arg) abort
     return shellescape(a:arg)
   endif
 endfunction
+
+function! neomake#utils#write_tempfile(bufnr, temp_file) abort
+    let buflines = getbufline(a:bufnr, 1, '$')
+    " Special case: empty buffer; do not write an empty line in this case.
+    if len(buflines) > 1 || buflines != ['']
+        if getbufvar(a:bufnr, '&endofline')
+                    \ || (!getbufvar(a:bufnr, '&binary')
+                    \     && (!exists('+fixendofline') || getbufvar(a:bufnr, '&fixendofline')))
+            call add(buflines, '')
+        endif
+    endif
+    call writefile(buflines, a:temp_file, 'b')
+endfunction
