@@ -174,10 +174,60 @@ Execute (_get_fname_for_buffer handles modified buffer with disabled tempfiles):
 
 Execute (_get_fname_for_buffer does not add trailing newline):
   new
-  normal! iline1
-  let b:neomake_tempfile_enabled = 1
   let maker = neomake#GetMaker({})
   let jobinfo = {'bufnr': bufnr('%'), 'ft': ''}
+  let b:neomake_tempfile_enabled = 1
+  call maker._get_fname_for_buffer(jobinfo)
+  AssertEqual readfile(jobinfo.tempfile_name), []
+  normal! iline1
   call maker._get_fname_for_buffer(jobinfo)
   AssertEqual readfile(jobinfo.tempfile_name), ['line1']
   bwipe!
+
+Execute (neomake#utils#write_tempfile):
+  Save &endofline, &binary
+  let vim_temp = tempname()
+  let neomake_temp = tempname()
+
+  if !exists('+fixeol')
+    NeomakeTestsSkip 'Skipping +fixeol variants'
+    let variants = [
+    \ 'endofline   binary',
+    \ 'endofline   nobinary',
+    \ 'noendofline binary',
+    \ 'noendofline nobinary',
+    \ ]
+  else
+    Save &fixeol
+    let variants = [
+    \ 'fixeol   endofline   binary',
+    \ 'fixeol   endofline   nobinary',
+    \ 'fixeol   noendofline binary',
+    \ 'fixeol   noendofline nobinary',
+    \ 'nofixeol endofline   binary',
+    \ 'nofixeol endofline   nobinary',
+    \ 'nofixeol noendofline binary',
+    \ 'nofixeol noendofline nobinary',
+    \ ]
+  endif
+
+  for variant in variants
+    new
+    let bufnr = bufnr('%')
+    exe 'set' variant
+
+    exe 'w!' vim_temp
+    new
+    call neomake#utils#write_tempfile(bufnr, neomake_temp)
+    AssertEqual readfile(vim_temp, 'b'), readfile(neomake_temp, 'b')
+
+    b#
+    normal! ifoo
+    exe 'w!' vim_temp
+    b#
+    call neomake#utils#write_tempfile(bufnr, neomake_temp)
+    AssertEqual readfile(vim_temp, 'b'), readfile(neomake_temp, 'b')
+
+    bwipe!
+    bwipe
+  endfor
