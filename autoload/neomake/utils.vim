@@ -553,3 +553,15 @@ function! neomake#utils#write_tempfile(bufnr, temp_file) abort
     endif
     call writefile(buflines, a:temp_file, 'b')
 endfunction
+
+" Wrapper around fnamemodify that handles special buffers (e.g. fugitive).
+function! neomake#utils#fnamemodify(bufnr, modifier) abort
+    let bufnr = +a:bufnr
+    if !empty(getbufvar(bufnr, 'fugitive_type'))
+        let fug_buffer = fugitive#buffer(bufnr)
+        let path = fnamemodify(fug_buffer.repo().translate(fug_buffer.path()), ':.')
+    else
+        let path = bufname(bufnr)
+    endif
+    return fnamemodify(path, a:modifier)
+endfunction

@@ -284,8 +284,14 @@ Makers should handle this properly through |errorformat|, e.g. by using '%-G'
 |g:neomake_remove_invalid_entries|.
 
                                                           *neomake-makers-cwd*
-The working directory used to run a maker can be changed by setting its `cwd`
-property: >
+The working directory of a maker defaults to the current working directory
+of the make run (|getcwd()|).
+The `cwd` property overrides this, and gets expanded in the context of the
+current buffer. Special buffers (like fugitive blobs) get handled for values
+starting with `%:` (typically used in this context), falling back to
+|expand()|. See |filename-modifiers|.
+   >
+Example: change to the buffer's directory: >
         let g:neomake_my_example_maker = {
         \ 'exe': 'pwd',
         \ 'cwd': '%:p:h'

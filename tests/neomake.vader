@@ -5,6 +5,7 @@
 ~ Features
 Include (Completion): completion.vader
 Include (Compat): compat.vader
+Include (Current working dir): cwd.vader
 Include (Error handling): errors.vader
 Include (Filetype handling): filetypes.vader
 Include (Hooks): hooks.vader
