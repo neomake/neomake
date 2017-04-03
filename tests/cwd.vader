@@ -1,0 +1,111 @@
+Include: include/setup.vader
+
+Execute (tcd is handled properly):
+  if exists(':tcd') != 2
+    NeomakeTestsSkip 'no :tcd'
+  else
+    let maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05')
+    for d in ['build/path1', 'build/path2']
+      if !isdirectory(d)
+        call mkdir(d, 'p')
+      endif
+    endfor
+    let tab = tabpagenr()
+    try
+      tabnew
+      let tab1 = tabpagenr()
+      tcd build/path1
+      let dir1 = getcwd()
+
+      tabnew
+      tcd ../../build/path2
+      let tab2 = tabpagenr()
+      let dir2 = getcwd()
+
+      call neomake#Make(1, [maker])
+
+      exe 'tabnext' tab1
+      AssertEqual dir1, getcwd()
+      call neomake#Make(1, [maker])
+
+      exe 'tabnext' tab2
+      AssertEqual dir2, getcwd()
+
+      NeomakeTestsWaitForRemovedJobs
+    finally
+      if exists('tab2')
+        exe 'tabclose' tab2
+      endif
+      if exists('tab1')
+        exe 'tabclose' tab1
+      endif
+    endtry
+  endif
+
+Execute (tempfile with pwd):
+  let maker = NeomakeTestsCommandMaker('pwd', 'pwd; printf')
+  let maker.cwd = '%:p:h'
+  let maker.errorformat = '%m'
+  let maker.append_file = 1
+  new
+  let b:neomake_tempfile_enabled = 1
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertNeomakeMessage '\vRemoving temporary file: (.*)'
+  let tempfile_name = g:neomake_test_matchlist[1]
+
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), [getcwd(), tempfile_name]
+  bwipe
+
+Execute (cwd handles fugitive buffer):
+  NeomakeTestsLoadPlugin 'fugitive'
+  let maker = NeomakeTestsCommandMaker('pwd', 'pwd; printf')
+  let maker.cwd = '%:p:h'
+  let maker.errorformat = '%m'
+  let maker.append_file = 1
+  new
+  e! autoload/neomake.vim
+  let expected_cwd = fnamemodify(bufname('%'), ':p:h')
+  Gedit
+  Assert bufname('%') =~# '^fugitive://', bufname('%')
+
+  let b:neomake_tempfile_enabled = 1
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertNeomakeMessage '\vRemoving temporary file: (.*)'
+  let tempfile_name = g:neomake_test_matchlist[1]
+
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
+  \ expected_cwd, tempfile_name]
+  bwipe
+
+Execute (cwd gets expanded correctly: relative and in another buffer):
+  if NeomakeAsyncTestsSetup()
+    let maker = NeomakeTestsCommandMaker('pwd', 'pwd; printf')
+    let maker.cwd = '%:.:h'
+    let maker.errorformat = '%m'
+    let maker.append_file = 1
+    new
+    e! tests/fixtures/errors.py
+    let b:neomake_serialize = 1
+    let bufname = expand('%:p')
+    let expected_cwd = fnamemodify(bufname, ':p:h')
+
+    let jobinfo = neomake#GetJob(neomake#Make(1, [g:sleep_maker, maker])[0])
+    new
+    let old_cwd = getcwd()
+    try
+      cd build
+      NeomakeTestsWaitForFinishedJobs
+      bwipe
+
+      AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
+      \ 'slept', expected_cwd, bufname]
+    finally
+      exe 'cd' old_cwd
+    endtry
+    bwipe
+  endif

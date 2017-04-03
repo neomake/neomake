@@ -125,7 +125,13 @@ Before:
     for [l, m, info] in g:neomake_test_messages
       let r = 0
       let idx += 1
-      if m ==# a:msg
+      if a:msg[0] == '\'
+        let g:neomake_test_matchlist = matchlist(m, a:msg)
+        let matches = len(g:neomake_test_matchlist)
+      else
+        let matches = m ==# a:msg
+      endif
+      if matches
         if level == -1
           let r = 1
         else

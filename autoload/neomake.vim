@@ -204,11 +204,10 @@ function! s:MakeJob(make_id, options) abort
         return {}
     endif
 
-    let cwd = get(maker, 'cwd', s:make_info[a:make_id].cwd)
+    let cwd = get(jobinfo, 'cwd', s:make_info[a:make_id].cwd)
     if len(cwd)
         let old_wd = getcwd()
         let cd = haslocaldir() ? 'lcd' : (exists(':tcd') == 2 && haslocaldir(-1, 0)) ? 'tcd' : 'cd'
-        let cwd = expand(cwd, 1)
         try
             exe cd fnameescape(cwd)
         " Tests fail with E344, but in reality it is E472?!
@@ -1615,6 +1614,16 @@ function! s:map_makers(jobinfo, makers, ...) abort
                     " s:map_makers).
                     let maker = returned_maker
                 endif
+            endif
+
+            if has_key(maker, 'cwd')
+                let cwd = maker.cwd
+                if cwd =~# '\m^%:'
+                    let cwd = neomake#utils#fnamemodify(a:jobinfo.bufnr, cwd[1:])
+                else
+                    let cwd = expand(cwd, 1)
+                endif
+                let a:jobinfo.cwd = fnamemodify(cwd, ':p')
             endif
 
             if has_key(maker, '_bind_args')

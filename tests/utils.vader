@@ -398,3 +398,17 @@ Execute (neomake#utils#get_config_fts):
   AssertEqual F('jsx.javascript'), ['jsx_javascript', 'jsx', 'javascript']
   AssertEqual F('javascript.jsx'), ['javascript_jsx', 'javascript', 'jsx']
   AssertEqual F('jsx'), ['jsx', 'javascript']
+
+Execute (neomake#utils#fnamemodify handles fugitive buffer):
+  NeomakeTestsLoadPlugin 'fugitive'
+  new
+  e! autoload/neomake.vim
+  let bufname = bufname('%')
+  Gedit
+  AssertNotEqual bufname, bufname('%')
+  Assert bufname('%') =~# '^fugitive://'
+
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ''), bufname
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), fnamemodify(bufname, ':p')
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname, ':p:h')
+  bwipe
