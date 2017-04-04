@@ -54,6 +54,9 @@ install:
       make build/vimhelplint
     fi
 
+    python3 -V
+    python2 -V
+
 script:
   - |
     if [ -n "$SKIP_BUILD_REASON" ]; then
