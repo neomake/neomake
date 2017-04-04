@@ -649,7 +649,7 @@ function! s:Make(options) abort
     let make_id = s:make_id
     let options = copy(a:options)
     call extend(options, {
-                \ 'file_mode': 0,
+                \ 'file_mode': 1,
                 \ 'bufnr': bufnr('%'),
                 \ 'ft': '',
                 \ 'make_id': make_id,
@@ -1656,16 +1656,23 @@ function! s:map_makers(jobinfo, makers, ...) abort
     return r
 endfunction
 
-function! neomake#Make(file_mode, enabled_makers, ...) abort
-    let options = {'file_mode': a:file_mode}
-    if a:0
-        let options.exit_callback = a:1
+function! neomake#Make(file_mode_or_options, ...) abort
+    if type(a:file_mode_or_options) == type({})
+        return s:Make(a:file_mode_or_options)
     endif
-    if a:file_mode
+
+    let file_mode = a:file_mode_or_options
+    let options = {'file_mode': file_mode}
+    if file_mode
         let options.ft = &filetype
     endif
-    if len(a:enabled_makers)
-        let options.enabled_makers = a:enabled_makers
+    if a:0
+        if len(a:1)
+            let options.enabled_makers = a:1
+        endif
+        if a:0 > 1
+            let options.exit_callback = a:2
+        endif
     endif
     return s:Make(options)
 endfunction
@@ -1675,7 +1682,7 @@ function! neomake#ShCommand(bang, sh_command, ...) abort
     let maker.name = 'sh: '.a:sh_command
     let maker.buffer_output = !a:bang
     let maker.errorformat = '%m'
-    let options = {'enabled_makers': [maker]}
+    let options = {'enabled_makers': [maker], 'file_mode': 0}
     if a:0
         call extend(options, a:1)
     endif
