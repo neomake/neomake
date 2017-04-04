@@ -54,11 +54,8 @@ install:
       make build/vimhelplint
     fi
 
-    if [ "$ENV" = "testvim" ]; then
-      set -x
-      python -V
-      python2 -V
-    fi
+    python3 -V
+    python2 -V
 
 script:
   - |

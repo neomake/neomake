@@ -35,20 +35,19 @@ endfunction
 function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
     let errors = []
     for line in a:context['output']
+        " TODO: should log an error instead, since this is unexpected.
         if line[0] !=# '{'
             continue
         endif
 
         let decoded = neomake#utils#JSONdecode(line)
         let data = get(decoded, 'message', -1)
-
         if type(data) != type({}) || !len(data['spans'])
             continue
         endif
+
         let error = {'maker_name': 'cargo'}
-
         let code_dict = get(data, 'code', -1)
-
         if code_dict is g:neomake#compat#json_null
             if get(data, 'level', '') ==# 'warning'
                 let error.type = 'W'
@@ -81,7 +80,6 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
             call neomake#makers#ft#rust#FillErrorFromSpan(error,
                         \ span.expansion.span)
             call add(errors, error)
-
         endif
     endfor
     return errors
