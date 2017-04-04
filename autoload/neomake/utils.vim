@@ -5,8 +5,9 @@ let s:level_to_name = {0: 'error  ', 1: 'warning', 2: 'verbose', 3: 'debug  '}
 let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 
 " Use 'append' with writefile, but only if it is available.  Otherwise, just
-" overwrite the file.
-let s:logfile_writefile_opts = has('patch-7.4.503') ? 'a' : ''
+" overwrite the file.  'S' is used to disable fsync in Neovim
+" (https://github.com/neovim/neovim/pull/6427).
+let s:logfile_writefile_opts = has('patch-7.4.503') ? 'aS' : ''
 
 if exists('*reltimefloat')
     function! s:reltimefloat() abort
