@@ -35,7 +35,6 @@ endfunction
 function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
     let errors = []
     for line in a:context['output']
-        " TODO: should log an error instead, since this is unexpected.
         if line[0] !=# '{'
             continue
         endif
