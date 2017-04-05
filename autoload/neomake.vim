@@ -680,7 +680,7 @@ function! s:Make(options) abort
         let makers = call('neomake#GetEnabledMakers', file_mode ? [options.ft] : [])
         if !len(makers)
             if file_mode
-                call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers.', {'make_id': make_id})
+                call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers (filetype='.options.ft.').', {'make_id': make_id})
                 call s:clean_make_info(make_id)
                 return []
             else

@@ -125,7 +125,7 @@ Execute (neomake#Make in file mode with no filetype and no makers):
   AssertEqual neomake#Make(1, []), []
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages[-1],
-  \ [3, 'Nothing to make: no enabled file mode makers.', {'make_id': make_id}]
+  \ [3, 'Nothing to make: no enabled file mode makers (filetype=).', {'make_id': make_id}]
 
 Execute (neomake#Make in project mode with no filetype and no makers):
   Save makeprg
