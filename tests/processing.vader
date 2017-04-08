@@ -268,8 +268,9 @@ Execute (Handle finished job that got canceled (#1158)):
   let jobs = neomake#Make(0, [g:success_maker])
   NeomakeTestsWaitForFinishedJobs
   let jobs = neomake#Make(0, [g:success_maker])
-  NeomakeTestsWaitForFinishedJobs
   if neomake#has_async_support()
+    AssertNeomakeMessage '\mRestarting already running job (\d\+.\d\+) for the same maker.'
+    NeomakeTestsWaitForFinishedJobs
     call neomake#CancelJob(jobs[0])
     AssertEqual len(g:neomake_test_jobfinished), 0
   else

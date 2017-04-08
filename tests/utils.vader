@@ -281,7 +281,7 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   else
     let expected_argv = "/bin/bash -o pipefail -c 'echo 1'"
   endif
-  let bound_maker = neomake#GetMaker(maker.fn(jobinfo))
+  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
   AssertEqual bound_maker._get_argv(jobinfo), expected_argv
 
   let &shell = '/bin/bash'
@@ -292,7 +292,7 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   else
     let expected_argv = "/bin/bash -o pipefail -c 'echo 2'"
   endif
-  let bound_maker = neomake#GetMaker(maker.fn(jobinfo))
+  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
   AssertEqual bound_maker._get_argv(jobinfo), expected_argv
 
 Execute (neomake#utils#MakerFromCommand appends args for file_mode):
@@ -375,7 +375,7 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
 
   new
   let b:neomake_tempfile_enabled = 1
-  let jobinfo = {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': ''}
+  let jobinfo = NeomakeTestsFakeJobinfo()
   file dir/\ with\ spaces
 
   set buftype=nofile

@@ -166,26 +166,6 @@ function! s:MakeJob(make_id, options) abort
         return
     endif
 
-    " Check for already running job for the same maker (from other runs).
-    " This used to use this key: maker.name.',ft='.maker.ft.',buf='.maker.bufnr
-    if len(s:jobs)
-        let running_already = values(filter(copy(s:jobs),
-                    \ 'v:val.make_id != a:make_id && v:val.maker == maker'
-                    \ .' && v:val.bufnr == jobinfo.bufnr'
-                    \ ." && !get(v:val, 'canceled')"))
-        if len(running_already)
-            let jobinfo = running_already[0]
-            " let jobinfo.next = copy(options)
-            " TODO: required?! (
-            " let jobinfo.next.enabled_makers = [maker]
-            call neomake#utils#LoudMessage(printf(
-                        \ 'Restarting already running job (%d.%d) for the same maker.',
-                        \ jobinfo.make_id, jobinfo.id), {'make_id': a:make_id})
-            call neomake#CancelJob(jobinfo.id)
-            return s:MakeJob(a:make_id, a:options)
-        endif
-    endif
-
     if !executable(maker.exe)
         if !get(maker, 'auto_enabled', 0)
             let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)
@@ -223,6 +203,24 @@ function! s:MakeJob(make_id, options) abort
     try
         let error = ''
         let argv = maker._get_argv(jobinfo)
+
+        " Check for already running job for the same maker (from other runs).
+        " This used to use this key: maker.name.',ft='.maker.ft.',buf='.maker.bufnr
+        if len(s:jobs)
+            let running_already = values(filter(copy(s:jobs),
+                        \ 'v:val.make_id != a:make_id && v:val.maker == maker'
+                        \ .' && v:val.bufnr == jobinfo.bufnr'
+                        \ ." && !get(v:val, 'canceled')"))
+            if len(running_already)
+                let jobinfo = running_already[0]
+                call neomake#utils#LoudMessage(printf(
+                            \ 'Restarting already running job (%d.%d) for the same maker.',
+                            \ jobinfo.make_id, jobinfo.id), {'make_id': a:make_id})
+                call neomake#CancelJob(jobinfo.id)
+                return s:MakeJob(a:make_id, a:options)
+            endif
+        endif
+
         " Lock maker to make sure it does not get changed accidentally, but
         " only with depth=1, so that a postprocess object can change itself.
         lockvar 1 maker

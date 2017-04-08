@@ -270,6 +270,12 @@ Before:
     \ 'append_file': 0})
   endfunction
 
+  function! NeomakeTestsFakeJobinfo() abort
+    let make_info = neomake#GetStatus().make_info
+    let make_info[-42] = {}
+    return {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': '', 'make_id': -42}
+  endfunction
+
   " Fixtures
   let g:sleep_efm_maker = {
       \ 'name': 'sleep_efm_maker',
@@ -318,6 +324,9 @@ Before:
     endif
 
     let make_info = neomake#GetStatus().make_info
+    if has_key(make_info, -42)
+      unlet make_info[-42]
+    endif
     if !empty(make_info)
       let error = 'make_info is not empty: '.string(make_info)
       for k in keys(make_info)
