@@ -114,7 +114,7 @@ Execute (Maker can specify temporary file to use via fn):
   file unreadable
   let maker = neomake#GetMaker(maker)
   AssertEqual maker.args, []
-  let jobinfo = {'file_mode': 1, 'bufnr': bufnr, 'ft': ''}
+  let jobinfo = NeomakeTestsFakeJobinfo()
   call maker.fn(jobinfo)
   AssertEqual maker.args, []
   call maker._get_argv(jobinfo)
@@ -139,11 +139,11 @@ Execute (maker._get_argv uses jobinfo for bufnr):
   new
   let b:neomake_tempfile_enabled = 1
   let bufnr = bufnr('%')
-  let jobinfo = {'file_mode': 1, 'bufnr': bufnr, 'ft': ''}
+  let jobinfo = NeomakeTestsFakeJobinfo()
   call maker._get_argv(jobinfo)
   Assert !empty(jobinfo.tempfile_name), 'jobinfo has tempfile_name'
 
-  let jobinfo = {'file_mode': 1, 'bufnr': bufnr, 'ft': ''}
+  let jobinfo = NeomakeTestsFakeJobinfo()
   let maker = neomake#GetMaker({'name': 'my_maker', 'append_file': 1})
   e! tests/fixtures/errors.py
   call maker._get_argv(jobinfo)
@@ -175,7 +175,7 @@ Execute (_get_fname_for_buffer handles modified buffer with disabled tempfiles):
 Execute (_get_fname_for_buffer does not add trailing newline):
   new
   let maker = neomake#GetMaker({})
-  let jobinfo = {'bufnr': bufnr('%'), 'ft': ''}
+  let jobinfo = NeomakeTestsFakeJobinfo()
   let b:neomake_tempfile_enabled = 1
   call maker._get_fname_for_buffer(jobinfo)
   AssertEqual readfile(jobinfo.tempfile_name), []
