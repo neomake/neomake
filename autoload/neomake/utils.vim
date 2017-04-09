@@ -422,6 +422,7 @@ function! neomake#utils#redir(cmd) abort
     return neomake_redir
 endfunction
 
+" @vimlint(EVL103, 1, a.jobinfo)
 function! neomake#utils#ExpandArgs(args, jobinfo) abort
     " Expand % in args like when using :!
     " \% is ignored
@@ -451,6 +452,7 @@ function! neomake#utils#ExpandArgs(args, jobinfo) abort
     endtry
     return ret
 endfunction
+" @vimlint(EVL103, 0)
 
 function! neomake#utils#hook(event, context, ...) abort
     if exists('#User#'.a:event)
