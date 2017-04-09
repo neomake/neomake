@@ -338,6 +338,7 @@ Before:
 
     if exists('#neomake_tests')
       autocmd! neomake_tests
+      augroup! neomake_tests
     endif
 
     if winnr('$') > 1
