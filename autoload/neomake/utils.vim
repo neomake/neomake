@@ -238,7 +238,7 @@ let s:command_maker = {
             \ 'remove_invalid_entries': 0,
             \ }
 function! s:command_maker.fn(jobinfo) dict abort
-    let command = self.__command
+    let command = neomake#utils#ExpandArgs([self.__command], a:jobinfo)[0]
     let argv = split(&shell) + split(&shellcmdflag)
 
     if a:jobinfo.file_mode && get(self, 'append_file', 1)
@@ -256,10 +256,9 @@ function! s:command_maker.fn(jobinfo) dict abort
 endfunction
 
 function! neomake#utils#MakerFromCommand(command) abort
-    let command = neomake#utils#ExpandArgs([a:command])[0]
     " Create a maker object, with a "fn" callback.
     let maker = copy(s:command_maker)
-    let maker.__command = command
+    let maker.__command = a:command
     return maker
 endfunction
 
@@ -423,7 +422,7 @@ function! neomake#utils#redir(cmd) abort
     return neomake_redir
 endfunction
 
-function! neomake#utils#ExpandArgs(args) abort
+function! neomake#utils#ExpandArgs(args, jobinfo) abort
     " Expand % in args like when using :!
     " \% is ignored
     " \\% is expanded to \\file.ext
@@ -433,6 +432,11 @@ function! neomake#utils#ExpandArgs(args) abort
     set iskeyword=p,h,t,r,e,%,:
     try
         let ret = map(a:args,
+                    \ 'substitute(v:val, '
+                    \ . '''%f'', '
+                    \ . '''\=fnameescape(a:jobinfo.maker._get_fname_for_buffer(a:jobinfo))'', '
+                    \ . '''g'')')
+        let ret = map(ret,
                     \ 'substitute(v:val, '
                     \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre]\+\)*\)\ze\)\w\@!'', '
                     \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
