@@ -705,15 +705,16 @@ function! s:Make(options) abort
     if file_mode
         let args += [options.ft]
     endif
-    let makers = call('s:map_makers', args)
-    if !len(makers)
+    lockvar options
+    let jobs = call('s:map_makers', args)
+    if !len(jobs)
         call neomake#utils#DebugMessage('Nothing to make: no valid makers.')
         call s:clean_make_info(make_id)
         return []
     endif
 
-    let maker_info = join(map(copy(makers),
-                \ "v:val.name . (get(v:val, 'auto_enabled', 0) ? ' (auto)' : '')"), ', ')
+    let maker_info = join(map(copy(jobs),
+                \ "v:val.maker.name . (get(v:val.maker, 'auto_enabled', 0) ? ' (auto)' : '')"), ', ')
     let log_context = {'make_id': make_id}
     if file_mode
         let log_context.bufnr = bufnr
@@ -721,7 +722,7 @@ function! s:Make(options) abort
     call neomake#utils#DebugMessage(printf(
                 \ 'Running makers: %s', maker_info), log_context)
 
-    let make_info.makers_queue = makers
+    let make_info.jobs_queue = jobs
 
     if file_mode
         " XXX: this clears counts for job's buffer only, but we add counts for
@@ -868,8 +869,7 @@ function! s:CleanJobinfo(jobinfo) abort
         return
     endif
 
-    let makers_queue = s:make_info[a:jobinfo.make_id].makers_queue
-    if len(makers_queue)
+    if len(s:make_info[a:jobinfo.make_id].jobs_queue)
         return
     endif
 
@@ -1383,7 +1383,7 @@ function! s:exit_handler(job_id, data, event_type) abort
         if l:ExitCallback isnot# 0
             let callback_dict = { 'status': status,
                                 \ 'name': maker.name,
-                                \ 'has_next': len(s:make_info[jobinfo.make_id].makers_queue) > 0 }
+                                \ 'has_next': len(s:make_info[jobinfo.make_id].jobs_queue) > 0 }
             if type(l:ExitCallback) == type('')
                 let l:ExitCallback = function(l:ExitCallback)
             endif
@@ -1442,11 +1442,11 @@ function! s:output_handler(job_id, data, event_type) abort
 endfunction
 
 function! s:abort_next_makers(make_id) abort
-    let makers_queue = s:make_info[a:make_id].makers_queue
-    if len(makers_queue)
-        let next_makers = '['.join(map(copy(makers_queue), 'v:val.name'), ', ').']'
+    let jobs_queue = s:make_info[a:make_id].jobs_queue
+    if len(jobs_queue)
+        let next_makers = '['.join(map(copy(jobs_queue), 'v:val.maker.name'), ', ').']'
         call neomake#utils#LoudMessage('Aborting next makers '.next_makers)
-        let s:make_info[a:make_id].makers_queue = []
+        let s:make_info[a:make_id].jobs_queue = []
     endif
 endfunction
 
@@ -1473,13 +1473,12 @@ function! s:handle_next_maker(prev_jobinfo) abort
         endif
     endif
 
-    while len(make_info.makers_queue)
-        let maker = remove(make_info.makers_queue, 0)
+    while len(make_info.jobs_queue)
+        let options = remove(make_info.jobs_queue, 0)
+        let maker = options.maker
         if empty(maker)
             continue
         endif
-
-        let options = extend(deepcopy(make_info.options), {'maker': maker})
 
         " Serialization of jobs, always for non-async Vim.
         if !neomake#has_async_support()
@@ -1609,21 +1608,21 @@ function! neomake#CompleteJobs(...) abort
     return join(map(neomake#GetJobs(), "v:val.id.': '.v:val.maker.name"), "\n")
 endfunction
 
-function! s:map_makers(jobinfo, makers, ...) abort
+" Map/bind a:makers to a list of job options, using a:options.
+function! s:map_makers(options, makers, ...) abort
     let r = []
     for maker_or_name in a:makers
+        let options = copy(a:options)
         try
             let maker = call('neomake#GetMaker', [maker_or_name] + a:000)
 
             " Call .fn function in maker object, if any.
             if has_key(maker, 'fn')
                 " TODO: Allow to throw and/or return 0 to abort/skip?!
-                let returned_maker = call(maker.fn, [a:jobinfo], maker)
+                let returned_maker = call(maker.fn, [options], maker)
                 if returned_maker isnot# 0
                     " This conditional assignment allows to both return a copy
-                    " (factory), while also can be used as a init method.  The maker
-                    " is deepcopied usually here already though anyway (via
-                    " s:map_makers).
+                    " (factory), while also can be used as a init method.
                     let maker = returned_maker
                 endif
             endif
@@ -1631,11 +1630,11 @@ function! s:map_makers(jobinfo, makers, ...) abort
             if has_key(maker, 'cwd')
                 let cwd = maker.cwd
                 if cwd =~# '\m^%:'
-                    let cwd = neomake#utils#fnamemodify(a:jobinfo.bufnr, cwd[1:])
+                    let cwd = neomake#utils#fnamemodify(options.bufnr, cwd[1:])
                 else
                     let cwd = expand(cwd, 1)
                 endif
-                let a:jobinfo.cwd = fnamemodify(cwd, ':p')
+                let options.cwd = fnamemodify(cwd, ':p')
             endif
 
             if has_key(maker, '_bind_args')
@@ -1660,10 +1659,11 @@ function! s:map_makers(jobinfo, makers, ...) abort
 
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '')
-            call neomake#utils#ErrorMessage(error, {'make_id': a:jobinfo.make_id})
+            call neomake#utils#ErrorMessage(error, {'make_id': options.make_id})
             continue
         endtry
-        let r += [maker]
+        let options.maker = maker
+        let r += [options]
     endfor
     return r
 endfunction
