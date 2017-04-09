@@ -109,3 +109,17 @@ Execute (cwd gets expanded correctly: relative and in another buffer):
     endtry
     bwipe
   endif
+
+Execute (cwd per maker):
+  let maker1 = {'exe': 'pwd', 'cwd': tempname()}
+  let maker2 = {'exe': 'pwd', 'cwd': tempname()}
+  call mkdir(maker1.cwd)
+  call mkdir(maker2.cwd)
+
+  call neomake#Make({
+  \ 'file_mode': 0,
+  \ 'enabled_makers': [maker1, maker2],
+  \ 'serialize': 1})
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual map(copy(getqflist()), 'v:val.text'), [maker1.cwd, maker2.cwd]
