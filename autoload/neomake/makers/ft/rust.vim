@@ -82,6 +82,29 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
                         \ span.expansion.span)
             call add(errors, error)
         endif
+
+        if len(children) > 1
+            for child in children[1:]
+                if !has_key(child, 'message')
+                    continue
+                endif
+                let info = deepcopy(error)
+                let info.type = 'I'
+                let info.text = child.message
+                if has_key(child, 'rendered') && !(child.rendered is g:neomake#compat#json_null)
+                    let info.text = info.text . ': ' . child.rendered
+                endif
+                " if len(child.spans)
+                    " let span = child.spans[0]
+                    " call neomake#makers#ft#rust#FillErrorFromSpan(info, span)
+                    " let detail = span.label
+                    " if type(detail) == type('') && len(detail)
+                        " let info.text = info.text . ': ' . detail
+                    " endif
+                " endif
+                call add(errors, info)
+            endfor
+        endif
     endfor
     return errors
 endfunction
