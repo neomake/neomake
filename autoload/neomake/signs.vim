@@ -77,7 +77,7 @@ function! neomake#signs#PlaceSign(entry, type) abort
         let cmd = ''
     endif
 
-    if len(cmd)
+    if !empty(cmd)
         call neomake#utils#DebugMessage('Placing sign: '.cmd)
         exe cmd
     endif

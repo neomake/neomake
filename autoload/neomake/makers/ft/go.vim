@@ -60,7 +60,7 @@ function! neomake#makers#ft#go#Paths() abort
         endif
     endif
 
-    if len(s:goroot) != 0 && isdirectory(s:goroot)
+    if !empty(s:goroot) && isdirectory(s:goroot)
         let dirs += [s:goroot]
     endif
 
@@ -79,7 +79,7 @@ function! neomake#makers#ft#go#ImportPath(arg) abort
 
     let workspace = ''
     for dir in dirs
-        if len(dir) && match(path, dir) == 0
+        if !empty(dir) && match(path, dir) == 0
             let workspace = dir
         endif
     endfor

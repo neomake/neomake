@@ -3,7 +3,7 @@ let s:loclist_counts = {}
 
 function! s:incCount(counts, item, buf) abort
     let type = toupper(a:item.type)
-    if len(type) && (!a:buf || a:item.bufnr ==# a:buf)
+    if !empty(type) && (!a:buf || a:item.bufnr ==# a:buf)
         let a:counts[type] = get(a:counts, type, 0) + 1
         return 1
     endif

@@ -217,7 +217,7 @@ function! neomake#makers#ft#python#PylamaEntryProcess(entry) abort
     if a:entry.nr == -1
         " Get number from the beginning of text.
         let nr = matchstr(a:entry.text, '\v^\u\zs\d+')
-        if len(nr)
+        if !empty(nr)
             let a:entry.nr = nr + 0
         endif
     endif
