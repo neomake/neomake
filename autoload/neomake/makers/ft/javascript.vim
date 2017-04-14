@@ -82,7 +82,7 @@ endfunction
 
 function! neomake#makers#ft#javascript#FlowProcess(entry) abort
     let l:lines = split(a:entry.text, '\n')
-    if len(l:lines)
+    if !empty(l:lines)
         let a:entry.text = join(l:lines[1:])
         let a:entry.length = l:lines[0] - a:entry.col + 1
     endif

@@ -43,7 +43,7 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
 
         let decoded = neomake#utils#JSONdecode(line)
         let data = get(decoded, 'message', -1)
-        if type(data) != type({}) || !len(data['spans'])
+        if type(data) != type({}) || empty(data['spans'])
             continue
         endif
 
@@ -66,9 +66,9 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
         let error.text = data.message
         let detail = span.label
         let children = data.children
-        if type(detail) == type('') && len(detail)
+        if type(detail) == type('') && !empty(detail)
             let error.text = error.text . ': ' . detail
-        elseif len(children) && has_key(children[0], 'message')
+        elseif !empty(children) && has_key(children[0], 'message')
             let error.text = error.text . '. ' . children[0].message
         endif
 

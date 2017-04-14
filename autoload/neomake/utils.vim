@@ -111,7 +111,7 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
             echohl None
         endif
     endif
-    if type(logfile) ==# type('') && len(logfile)
+    if type(logfile) ==# type('') && !empty(logfile)
         let date = strftime('%H:%M:%S')
         if !exists('timediff')
             let timediff = s:reltime_lastmsg()
@@ -321,7 +321,7 @@ let s:unset = {}  " Sentinel.
 " namespace, defaulting to default.
 function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
   let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
-  if len(a:ft)
+  if !empty(a:ft)
       let fts = neomake#utils#get_config_fts(a:ft) + ['']
   else
       let fts = ['']
@@ -330,8 +330,8 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
     " Look through the override vars for a filetype maker, like
     " neomake_scss_sasslint_exe (should be a string), and
     " neomake_scss_sasslint_args (should be a list).
-    let part = join(filter([ft, maker_name], 'len(v:val)'), '_')
-    if !len(part)
+    let part = join(filter([ft, maker_name], '!empty(v:val)'), '_')
+    if empty(part)
         break
     endif
     let config_var = 'neomake_'.part.'_'.a:key
@@ -456,7 +456,7 @@ function! neomake#utils#hook(event, context, ...) abort
 
         let args = ['Calling User autocmd '.a:event
                     \ .' with context: '.string(map(copy(a:context), "v:key ==# 'jobinfo' ? '…' : v:val"))]
-        if len(jobinfo)
+        if !empty(jobinfo)
             let args += [jobinfo]
         endif
         call call('neomake#utils#LoudMessage', args)
