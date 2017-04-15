@@ -149,7 +149,8 @@ Execute (maker._get_argv uses jobinfo for bufnr):
   Assert !has_key(jobinfo, 'tempfile_name')
 
   wincmd p
-  let jobinfo = {'file_mode': 1, 'bufnr': bufnr, 'ft': ''}
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let jobinfo.bufnr = bufnr
   let expected = ['my_maker', fnameescape(fnamemodify(bufname(bufnr), ':p'))]
   if neomake#has_async_support()
     AssertEqual expected, maker._get_argv(jobinfo)
@@ -166,7 +167,7 @@ Execute (_get_fname_for_buffer handles modified buffer with disabled tempfiles):
   file file1
   set modified
   let maker = neomake#GetMaker({})
-  let jobinfo = {'bufnr': bufnr('%'), 'ft': ''}
+  let jobinfo = NeomakeTestsFakeJobinfo()
   let fname = maker._get_fname_for_buffer(jobinfo)
   AssertEqual fname, 'file1'
   bwipe!

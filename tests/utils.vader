@@ -304,7 +304,8 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode):
 
   e! tests/fixtures/a\ filename\ with\ spaces
   let fname = expand('%:p')
-  let jobinfo = {'maker': maker, 'file_mode': 1, 'bufnr': bufnr('%')}
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let jobinfo.maker = maker
   let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
   AssertEqual bound_maker.args, [&shellcmdflag, 'echo '.fname]
   AssertEqual bound_maker.append_file, 0
