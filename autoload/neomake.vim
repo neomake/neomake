@@ -204,6 +204,10 @@ function! s:MakeJob(make_id, options) abort
         let error = ''
         let argv = maker._get_argv(jobinfo)
 
+        if has_key(jobinfo, 'filename')
+            let save_env_file = $NEOMAKE_FILE
+            let $NEOMAKE_FILE = jobinfo.filename
+        endif
         " Check for already running job for the same maker (from other runs).
         " This used to use this key: maker.name.',ft='.maker.ft.',buf='.maker.bufnr
         if !empty(s:jobs)
@@ -300,6 +304,13 @@ function! s:MakeJob(make_id, options) abort
         if exists('cd') && exists('old_wd')
             exe cd fnameescape(old_wd)
         endif
+        if exists('save_env_file')
+            " Not possible to unlet environment vars
+            " (https://github.com/vim/vim/issues/1116).
+            " Should only set it for the job
+            " (https://github.com/vim/vim/pull/1160).
+            let $NEOMAKE_FILE = save_env_file
+        endif
     endtry
     let s:make_info[a:make_id].active_jobs += 1
     return jobinfo
@@ -385,6 +396,7 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         endif
         let bufname = temp_file
     endif
+    let a:jobinfo.filename = bufname
     return bufname
 endfunction
 
