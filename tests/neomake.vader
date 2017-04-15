@@ -44,7 +44,7 @@ Include (Help): ft_help.vader
 Include (Asciidoc): ft_asciidoc.vader
 Include (Markdown): ft_markdown.vader
 Include (Pandoc): ft_pandoc.vader
-
+Include (Typescript): ft_typescript.vader
 
 * Old/unorganized tests
 Include: include/setup.vader
