@@ -414,3 +414,10 @@ Execute (neomake#utils#fnamemodify handles fugitive buffer):
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), fnamemodify(bufname, ':p')
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname, ':p:h')
   bwipe
+
+Execute (neomake#utils#fnamemodify handles empty bufname):
+  new
+  AssertEqual bufname('%'), ''
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ''), ''
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), ''
+  bwipe

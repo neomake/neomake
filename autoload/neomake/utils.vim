@@ -575,5 +575,5 @@ function! neomake#utils#fnamemodify(bufnr, modifier) abort
     else
         let path = bufname(bufnr)
     endif
-    return fnamemodify(path, a:modifier)
+    return empty(path) ? '' : fnamemodify(path, a:modifier)
 endfunction
