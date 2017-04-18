@@ -7,7 +7,7 @@
 " See tests/postprocess.vader for tests/examples.
 function! neomake#postprocess#GenericLengthPostprocess(entry) abort dict
   if a:entry.bufnr == bufnr('%') && a:entry.lnum > 0 && a:entry.col
-    let pattern = get(self, 'pattern', "\\v([\"'])\\zs[^\\1]{-}\\ze(\\1)")
+    let pattern = get(self, 'pattern', '\v(["''`])\zs[^\1]{-}\ze(\1)')
     let start = 0
     let best = 0
     while 1
