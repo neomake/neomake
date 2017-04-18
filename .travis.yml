@@ -38,7 +38,7 @@ install:
     if [ "$ENV" = "vint-diff" ]; then
       # Run full vint against changed files.
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
-      CHANGED_VIM_FILES=($(git diff --name-only --diff-filter=AM "$TRAVIS_COMMIT_RANGE" | grep '\.vim$'))
+      CHANGED_VIM_FILES=($(git diff --name-only --diff-filter=AM "$TRAVIS_COMMIT_RANGE" | grep '\.vim$' | grep -v '^tests/fixtures'))
       if [ -z "$CHANGED_VIM_FILES" ]; then
         SKIP_BUILD_REASON="vint-diff: No changed .vim files."
       fi
