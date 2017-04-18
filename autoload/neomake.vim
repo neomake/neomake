@@ -12,10 +12,6 @@ let s:current_errors = {
     \ 'project': {},
     \ 'file': {}
     \ }
-let s:need_errors_cleaning = {
-    \ 'project': 1,
-    \ 'file': {}
-    \ }
 let s:maker_defaults = {
             \ 'buffer_output': 1,
             \ 'remove_invalid_entries': 0}
@@ -740,8 +736,14 @@ function! s:Make(options) abort
         " XXX: this clears counts for job's buffer only, but we add counts for
         " the entry's buffers, which might be different!
         call neomake#statusline#ResetCountsForBuf(bufnr)
+        if g:neomake_place_signs
+            call neomake#signs#Reset(bufnr, 'file')
+        endif
     else
         call neomake#statusline#ResetCountsForProject()
+        if g:neomake_place_signs
+            call neomake#signs#ResetProject()
+        endif
     endif
 
     call s:AddMakeInfoForCurrentWin(make_id)
@@ -907,14 +909,16 @@ function! s:CleanJobinfo(jobinfo) abort
     endif
 
     if make_info.finished_jobs
-        call s:init_job_output(a:jobinfo)
+        call s:clean_for_new_make(a:jobinfo)
 
-        " If signs were not cleared before this point, then the maker did not return
-        " any errors, so all signs must be removed
-        if a:jobinfo.file_mode
-            call neomake#CleanOldFileSignsAndErrors(a:jobinfo.bufnr)
-        else
-            call neomake#CleanOldProjectSignsAndErrors()
+        " Clean old signs after all jobs have finished, so that they can be
+        " reused, avoiding flicker and keeping them for longer in general.
+        if g:neomake_place_signs
+            if a:jobinfo.file_mode
+                call neomake#signs#CleanOldSigns(a:jobinfo.bufnr, 'file')
+            else
+                call neomake#signs#CleanAllOldSigns('project')
+            endif
         endif
 
         call neomake#utils#hook('NeomakeFinished', {
@@ -964,43 +968,70 @@ function! s:CanProcessJobOutput() abort
     return 0
 endfunction
 
-function! s:init_job_output(jobinfo) abort
-    if get(s:make_info[a:jobinfo.make_id], 'initialized_for_output', 0)
+function! s:create_locqf_list(jobinfo) abort
+    " TODO: queue this when in non-normal mode(s)
+    " Error detected while processing function Tabline[29]..TabLabel[16]..<SNR>134_exit_handler[71]..<SNR>134_handle_next_maker[16]..<SNR>134_CleanJobinfo[40]..<SNR>134_clean_for_new_make[5]..<SNR>134_create_locqf_list:
+    " E523: Not allowed here:             lgetexpr ''
+    if get(s:make_info[a:jobinfo.make_id], 'created_locqf_list', 0)
         return
     endif
+    let s:make_info[a:jobinfo.make_id].created_locqf_list = 1
 
+    let file_mode = a:jobinfo.file_mode
+    call neomake#utils#DebugMessage(printf(
+                \ 'Creating %s list',
+                \ file_mode ? 'location' : 'quickfix'), a:jobinfo)
     " Empty the quickfix/location list (using a valid 'errorformat' setting).
-    let l:efm = &errorformat
+    let save_efm = &errorformat
+    let &errorformat = '%-G'
     try
-        let &errorformat = '%-G'
-        if a:jobinfo.file_mode
+        if file_mode
             lgetexpr ''
         else
             cgetexpr ''
         endif
     finally
-        let &errorformat = l:efm
+        let &errorformat = save_efm
     endtry
+    " TODO: correct?!
     call s:HandleLoclistQflistDisplay(a:jobinfo.file_mode)
+endfunction
 
-    if a:jobinfo.file_mode
-        if g:neomake_place_signs
-            call neomake#signs#ResetFile(a:jobinfo.bufnr)
-        endif
-        let s:need_errors_cleaning['file'][a:jobinfo.bufnr] = 1
-    else
-        if g:neomake_place_signs
-            call neomake#signs#ResetProject()
-        endif
-        let s:need_errors_cleaning['project'] = 1
+function! s:clean_for_new_make(jobinfo) abort
+    if get(s:make_info[a:jobinfo.make_id], 'cleaned_for_make', 0)
+        return
     endif
-    let s:make_info[a:jobinfo.make_id].initialized_for_output = 1
+    call s:create_locqf_list(a:jobinfo)
+    " XXX: needs to handle buffers for list entries?!
+    " See "get_list_entries: minimal example (from doc)" in
+    " tests/makers.vader.
+    if a:jobinfo.file_mode
+        if has_key(s:current_errors['file'], a:jobinfo.bufnr)
+            unlet s:current_errors['file'][a:jobinfo.bufnr]
+        endif
+        call neomake#highlights#ResetFile(a:jobinfo.bufnr)
+        " TODO: reword/move
+        call neomake#utils#DebugMessage('File-level errors cleaned in buffer '.a:jobinfo.bufnr)
+    else
+        " TODO: test
+        for buf in keys(s:current_errors.project)
+            unlet s:current_errors['project'][buf]
+            call neomake#highlights#ResetProject(+buf)
+        endfor
+    endif
+    let s:make_info[a:jobinfo.make_id].cleaned_for_make = 1
 endfunction
 
 function! s:ProcessEntries(jobinfo, entries, ...) abort
     let file_mode = a:jobinfo.file_mode
 
+    call neomake#utils#DebugMessage(printf(
+                \ 'Processing %d entries', len(a:entries)), a:jobinfo)
+
+    call s:clean_for_new_make(a:jobinfo)
+
     if a:0
+        " Via errorformat processing, where the list has been set already.
         let prev_list = a:1
     else
         " Fix entries with get_list_entries/process_output.
@@ -1014,7 +1045,6 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                     \ . "'maker_name': a:jobinfo.maker.name,"
                     \ . '})')
 
-        call s:init_job_output(a:jobinfo)
         let prev_list = file_mode ? getloclist(0) : getqflist()
         if file_mode
             call setloclist(0, a:entries, 'a')
@@ -1024,11 +1054,11 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     endif
 
     let counts_changed = 0
-    let cleaned_signs = []
     let ignored_signs = []
     let maker_type = file_mode ? 'file' : 'project'
     let do_highlight = get(g:, 'neomake_highlight_columns', 1)
                 \ || get(g:, 'neomake_highlight_lines', 0)
+    let signs_by_bufnr = {}
     for entry in a:entries
         if !file_mode
             if neomake#statusline#AddQflistCount(entry)
@@ -1046,15 +1076,6 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
             endif
         endif
 
-        if index(cleaned_signs, entry.bufnr) == -1
-            if file_mode
-                call neomake#CleanOldFileSignsAndErrors(entry.bufnr)
-            else
-                call neomake#CleanOldProjectSignsAndErrors()
-            endif
-            call add(cleaned_signs, entry.bufnr)
-        endif
-
         " Track all errors by buffer and line
         let s:current_errors[maker_type][entry.bufnr] = get(s:current_errors[maker_type], entry.bufnr, {})
         let s:current_errors[maker_type][entry.bufnr][entry.lnum] = get(
@@ -1065,12 +1086,19 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
             if entry.lnum is 0
                 let ignored_signs += [entry]
             else
-                call neomake#signs#PlaceSign(entry, maker_type)
+                if !has_key(signs_by_bufnr, entry.bufnr)
+                    let signs_by_bufnr[entry.bufnr] = []
+                endif
+                call add(signs_by_bufnr[entry.bufnr], entry)
             endif
         endif
         if do_highlight
             call neomake#highlights#AddHighlight(entry, maker_type)
         endif
+    endfor
+
+    for [bufnr, entries] in items(signs_by_bufnr)
+        call neomake#signs#PlaceSigns(bufnr, entries, maker_type)
     endfor
 
     if !empty(ignored_signs)
@@ -1111,7 +1139,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
         return
     endif
 
-    call s:init_job_output(a:jobinfo)
+    call s:create_locqf_list(a:jobinfo)
 
     " Old-school handling through errorformat.
     let prev_list = file_mode ? getloclist(0) : getqflist()
@@ -1536,35 +1564,6 @@ function! s:handle_next_maker(prev_jobinfo) abort
         endtry
     endwhile
     return {}
-endfunction
-
-function! neomake#CleanOldProjectSignsAndErrors() abort
-    if s:need_errors_cleaning['project']
-        for buf in keys(s:current_errors.project)
-            unlet s:current_errors['project'][buf]
-            call neomake#highlights#ResetProject(buf + 0)
-        endfor
-        let s:need_errors_cleaning['project'] = 0
-        call neomake#utils#DebugMessage('All project-level errors cleaned.')
-    endif
-    if g:neomake_place_signs
-        call neomake#signs#CleanAllOldSigns('project')
-    endif
-endfunction
-
-function! neomake#CleanOldFileSignsAndErrors(...) abort
-    let bufnr = a:0 ? a:1 : bufnr('%')
-    if get(s:need_errors_cleaning['file'], bufnr, 0)
-        if has_key(s:current_errors['file'], bufnr)
-            unlet s:current_errors['file'][bufnr]
-        endif
-        unlet s:need_errors_cleaning['file'][bufnr]
-        call neomake#highlights#ResetFile(bufnr)
-        call neomake#utils#DebugMessage('File-level errors cleaned in buffer '.bufnr)
-    endif
-    if g:neomake_place_signs
-        call neomake#signs#CleanOldSigns(bufnr, 'file')
-    endif
 endfunction
 
 function! neomake#EchoCurrentError(...) abort

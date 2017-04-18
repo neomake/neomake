@@ -309,6 +309,12 @@ Before:
         \ 'append_file': 0,
         \ }
 
+  function! NeomakeTestsGetSigns()
+    let signs = split(neomake#utils#redir('sign place'), '\n')
+    call map(signs, "substitute(substitute(v:val, '\\m^\\s\\+', '', ''), '\\m\\s\\+$', '', '')")
+    return signs[1:-1]
+  endfunction
+
   function! s:After()
     Restore
     unlet! g:expected  " for old Vim with Vader, that does not wrap tests in a function.
