@@ -32,3 +32,51 @@ Execute (Vint: generic postprocessing for highlights):
   else
     AssertEqual highlights.file[bufnr('%')].NeomakeWarning, [[1, 6, 15]]
   endif
+
+Execute (vimlint: length postprocessing):
+  " Monkeypatch to check setting of length.
+  runtime autoload/neomake/highlights.vim
+  Save g:lengths
+  let g:lengths = []
+  function! neomake#highlights#AddHighlight(entry, type) abort
+    call add(g:lengths, [a:entry.lnum, a:entry.length])
+  endfunction
+
+  new
+  edit tests/fixtures/vim/func-with-errors.vim
+  let maker = neomake#makers#ft#vim#vimlint()
+  let maker.exe = 'cat'
+  let maker.args = 'tests/fixtures/vim/func-with-errors.vim.output'
+  let maker.append_file = 0
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  let bufnr = bufnr('%')
+  AssertEqual [{
+    \ 'lnum': 2,
+    \ 'bufnr': bufnr,
+    \ 'col': 6,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'nr': 101,
+    \ 'type': 'E',
+    \ 'pattern': '',
+    \ 'text': 'undefined variable `l:something`',
+    \ }, {
+    \ 'lnum': 5,
+    \ 'bufnr': bufnr,
+    \ 'col': 9,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'nr': 104,
+    \ 'type': 'E',
+    \ 'pattern': '',
+    \ 'text': 'variable may not be initialized on some execution path: `l:foo`',
+    \ }], getloclist(0)
+
+  AssertEqual [[2, 11], [5, 3]], g:lengths
+
+  bwipe
+  " Undo monkeypatch.
+  runtime autoload/neomake/highlights.vim
