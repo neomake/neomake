@@ -67,6 +67,6 @@ function! neomake#makers#ft#go#gometalinter() abort
         \ 'append_file': 0,
         \ 'cwd': '%:h',
         \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
-        \ 'errorformat': '%W%f:%l:%c:%m',
+        \ 'errorformat': '%f:%l:%c:%t%*[^:]: %m',
         \ }
 endfunction
