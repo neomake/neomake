@@ -1,7 +1,13 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#go#EnabledMakers() abort
-    return ['go', 'golint', 'govet', 'gometalinter']
+    let makers = ['go']
+    if executable('gometalinter')
+        call add(makers, 'gometalinter')
+    else
+        call extend(makers, ['golint', 'govet'])
+    endif
+    return makers
 endfunction
 
 " The mapexprs in these are needed because cwd will make the command print out
