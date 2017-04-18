@@ -361,7 +361,7 @@ Before:
       for w in range(1, tabpagewinnr(t, '$'))
         let val = gettabwinvar(t, w, 'neomake_make_ids')
         if !empty(val)  " '' (default) or [] (used and emptied).
-          call add(errors, 'neomake_make_ids left for tab '.t.', win '.w.': '.string(val)
+          call add(errors, 'neomake_make_ids left for tab '.t.', win '.w.': '.string(val))
         endif
         unlet! val  " old Vim
       endfor
