@@ -14,19 +14,7 @@ env:
   global:
     - DOCKER_IMAGE_DIGEST=:1@sha256:62ddb415ffccaa7c75e49833bc657d9410e1c9d248b27a40ab07e3bec21131cc
   matrix:
-    - ENV=vimlint
-    - ENV=testnvim
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-trusty
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-xenial
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
-    - ENV=check
     - ENV=vint-diff
-    - ENV=vint-errors
-    - ENV=testvim
-    - ENV=vint
-    - ENV=docker_vimhelplint
 
 matrix:
   allow_failures:
