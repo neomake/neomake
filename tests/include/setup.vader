@@ -313,6 +313,8 @@ Before:
     Restore
     unlet! g:expected  " for old Vim with Vader, that does not wrap tests in a function.
 
+    let errors = []
+
     " Stop any (non-canceled) jobs.  Canceled jobs might take a while to call the
     " exit handler, but that is OK.
     let jobs = filter(neomake#GetJobs(), "!get(v:val, 'canceled', 0)")
@@ -320,7 +322,8 @@ Before:
       for job in jobs
         call neomake#CancelJob(job.id, !neomake#has_async_support())
       endfor
-      throw 'There were '.len(jobs).' jobs left: '.string(map(jobs, 'v:val.make_id.".".v:val.id'))
+      call add(errors, 'There were '.len(jobs).' jobs left: '
+      \ .string(map(jobs, 'v:val.make_id.".".v:val.id')))
     endif
 
     let make_info = neomake#GetStatus().make_info
@@ -328,11 +331,7 @@ Before:
       unlet make_info[-42]
     endif
     if !empty(make_info)
-      let error = 'make_info is not empty: '.string(make_info)
-      for k in keys(make_info)
-        unlet make_info[k]
-      endfor
-      throw error
+      call add(errors, 'make_info is not empty: '.string(make_info))
     endif
     NeomakeTestsWaitForRemovedJobs
 
@@ -354,19 +353,27 @@ Before:
       catch
         Log "Error while cleaning windows: ".v:exception
       endtry
-      throw error
+      call add(errors, error)
     endif
 
     " Ensure that all w:neomake_make_ids lists have been removed.
     for t in [tabpagenr()] + range(1, tabpagenr()-1) + range(tabpagenr()+1, tabpagenr('$'))
-        for w in range(1, tabpagewinnr(t, '$'))
-            let val = gettabwinvar(t, w, 'neomake_make_ids')
-            if !empty(val)  " '' (default) or [] (used and emptied).
-                throw 'neomake_make_ids left for tab '.t.', win '.w.': '.string(val)
-            endif
-            unlet! val  " old Vim
-        endfor
+      for w in range(1, tabpagewinnr(t, '$'))
+        let val = gettabwinvar(t, w, 'neomake_make_ids')
+        if !empty(val)  " '' (default) or [] (used and emptied).
+          call add(errors, 'neomake_make_ids left for tab '.t.', win '.w.': '.string(val)
+        endif
+        unlet! val  " old Vim
+      endfor
     endfor
+
+    for k in keys(make_info)
+      unlet make_info[k]
+    endfor
+
+    if !empty(errors)
+      throw len(errors).' error(s) in teardown: '.join(errors, "\n")
+    endif
   endfunction
   command! NeomakeTestsGlobalAfter call s:After()
   endif
