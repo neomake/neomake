@@ -16,6 +16,8 @@ function! neomake#makers#ft#go#go() abort
         \ ],
         \ 'append_file': 0,
         \ 'cwd': '%:h',
+        \ 'serialize': 1,
+        \ 'serialize_abort_on_error': 1,
         \ 'mapexpr': 'neomake_bufdir . "/" . v:val',
         \ 'errorformat':
             \ '%W%f:%l: warning: %m,' .
