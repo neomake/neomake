@@ -131,7 +131,6 @@ endfunction
 
 function! neomake#makers#ft#rust#FillErrorFromSpan(error, span) abort
     let a:error.filename = a:span.file_name
-    let a:error.bufnr = neomake#utils#get_or_create_buffer(a:error.filename)
     let a:error.col = a:span.column_start
     let a:error.lnum = a:span.line_start
     let a:error.length = a:span.byte_end - a:span.byte_start
