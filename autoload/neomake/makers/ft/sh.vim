@@ -64,7 +64,7 @@ function! neomake#makers#ft#sh#sh() abort
         \ 'exe': exe,
         \ 'args': args,
         \ 'errorformat':
-            \ '%f: line %l: %m,' .
-            \ '%f: %l: %m'
+            \ '%E%f: line %l: %m,' .
+            \ '%E%f: %l: %m'
         \}
 endfunction
