@@ -144,7 +144,7 @@ Execute (maker._get_argv uses jobinfo for bufnr):
 
   let jobinfo = NeomakeTestsFakeJobinfo()
   let maker = neomake#GetMaker({'name': 'my_maker', 'append_file': 1})
-  e! tests/fixtures/errors.py
+  edit tests/fixtures/errors.py
   call maker._get_argv(jobinfo)
   Assert !has_key(jobinfo, 'tempfile_name')
 

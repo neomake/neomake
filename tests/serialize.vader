@@ -200,7 +200,8 @@ Execute (Neomake#Make handles cwd properly):
 
     let orig_cwd = getcwd()
 
-    e! tests/fixtures/errors.sh
+    new
+    edit tests/fixtures/errors.sh
     let file1 = expand('%:p')
 
     cd build
@@ -253,6 +254,7 @@ Execute (Neomake#Make handles cwd properly):
     AssertEqual g:neomake_test_exit_cb[1], {'status': 0, 'name': 'maker1', 'has_next': 1}
     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
     \ ['maker_1 build: '.file1, 'maker_2 build: '.file1, 'maker_3 '.file1]
+    bwipe
   endif
 
 Execute (Uses correct maker filetypes when started in another buffer):

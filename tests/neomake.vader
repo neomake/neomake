@@ -316,6 +316,7 @@ Execute (Neomake picks up custom maker correctly):
     \ 'append_file': 0,
     \ 'errorformat': '%f:%l:%c: %m',
     \ }
+  new
   file file1
   let fname = expand('%:p')
   Save &filetype
@@ -328,3 +329,4 @@ Execute (Neomake picks up custom maker correctly):
   else
     AssertNeomakeMessage "Starting: echo ".fname." --foo bar"
   endif
+  bwipe

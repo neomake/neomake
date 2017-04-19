@@ -2,7 +2,8 @@ Include: include/setup.vader
 
 Execute (Test Neomake on errors.sh with one maker):
   call g:NeomakeSetupAutocmdWrappers()
-  e! tests/fixtures/errors.sh
+  new
+  edit tests/fixtures/errors.sh
   AssertEqual getline(1), '#! /bin/bash'
 
   call g:NeomakeTestsEnsureExe('shellcheck')
@@ -36,15 +37,18 @@ Execute (Test Neomake on errors.sh with one maker):
     \ '--- Signs ---',
     \ 'Signs for tests/fixtures/errors.sh:',
     \ 'line=5  id=5000  name=neomake_err']
+  bwipe
 
 Execute (Test Neomake on errors.sh with two makers):
   call g:NeomakeSetupAutocmdWrappers()
   call g:NeomakeTestsEnsureExe('shellcheck')
-  e! tests/fixtures/errors.sh
+  new
+  edit tests/fixtures/errors.sh
   RunNeomake sh shellcheck
   AssertEqual len(g:neomake_test_countschanged), 2
   AssertEqual len(g:neomake_test_finished), 1
   AssertNeomakeMessage 'Running makers: sh, shellcheck'
+  bwipe
 
 Execute (Neomake: handle result for current window):
   call g:NeomakeSetupAutocmdWrappers()
@@ -68,13 +72,10 @@ Execute (Neomake: handle result for current window):
 
 Execute (Neomake: handle output for removed window):
   if NeomakeAsyncTestsSetup()
-    call g:NeomakeSetupAutocmdWrappers()
-    let orig_winnr = winnr()
+    new
     call neomake#Make(1, [g:sleep_efm_maker])
     let jobinfo = neomake#GetJobs()[0]
-    let bufnr = bufnr('%')
-    new
-    exe 'bd' bufnr
+    bd
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0,
       \ "counts changed (".len(g:neomake_test_countschanged).")"
@@ -88,7 +89,7 @@ Execute (Neomake: handle wiped buffer):
   " Check that there is no error, e.g. for highlights.
   if NeomakeAsyncTestsSetup()
     new
-    e! tests/fixtures/errors.sh
+    edit tests/fixtures/errors.sh
     let bufnr = bufnr('%')
     Neomake sh
     bwipe
@@ -526,7 +527,8 @@ Execute (Neomake: append_file from settings):
       \ 'name': 'custom_maker',
       \ 'errorformat': '%m',
       \ }
-  e! tests/fixtures/errors.sh
+  new
+  edit tests/fixtures/errors.sh
   set ft=myft
 
   call neomake#Make(1, [maker])
@@ -557,6 +559,7 @@ Execute (Neomake: append_file from settings):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual getloclist(0),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output'}]
+  bwipe
 
 Execute (Quickfix list should be cleared only after maker finished):
   cgetexpr 'init'
