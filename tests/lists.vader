@@ -1,7 +1,8 @@
 Include: include/setup.vader
 
 Execute (Postprocessing should update list):
-  e! tests/fixtures/errors.sh
+  new
+  edit tests/fixtures/errors.sh
   Save &filetype
   set ft=sh
   RunNeomake sh
@@ -22,6 +23,7 @@ Execute (Postprocessing should update list):
   " Undo monkeypatching.
   runtime autoload/neomake/makers/ft/sh.vim
   delfunction Postprocess
+  bwipe
 
 Execute (AddExprCallback with changed windows inbetween):
   if NeomakeAsyncTestsSetup()

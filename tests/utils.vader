@@ -302,7 +302,8 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode):
   AssertEqual maker.fn(jobinfo), {
   \ 'args': [&shellcmdflag, 'echo'], 'exe': &shell, 'remove_invalid_entries': 0}
 
-  e! tests/fixtures/a\ filename\ with\ spaces
+  new
+  edit tests/fixtures/a\ filename\ with\ spaces
   let fname = expand('%:p')
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.maker = maker
@@ -311,6 +312,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode):
   AssertEqual bound_maker.append_file, 0
   AssertEqual bound_maker.exe, &shell
   AssertEqual bound_maker.remove_invalid_entries, 0
+  bwipe
 
 Execute (neomake#utils#Stringify):
   AssertEqual neomake#utils#Stringify(1), 1
@@ -404,7 +406,7 @@ Execute (neomake#utils#get_config_fts):
 Execute (neomake#utils#fnamemodify handles fugitive buffer):
   NeomakeTestsLoadPlugin 'fugitive'
   new
-  e! autoload/neomake.vim
+  edit autoload/neomake.vim
   let bufname = bufname('%')
   Gedit
   AssertNotEqual bufname, bufname('%')

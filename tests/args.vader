@@ -9,13 +9,15 @@ Execute (maker.args as list gets escaped):
         \ }
 
   let fname = 'tests/fixtures/a filename with spaces'
-  e! tests/fixtures/a\ filename\ with\ spaces
+  new
+  edit tests/fixtures/a\ filename\ with\ spaces
   let fname_abs = expand('%:p')
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
     \ ['1', '2', '3a 3b', fname_abs]
+  bwipe
 
 Execute (maker.args as string gets not escaped):
   let maker = {
@@ -26,10 +28,12 @@ Execute (maker.args as string gets not escaped):
         \ }
 
   let fname = 'tests/fixtures/a filename with spaces'
-  e! tests/fixtures/a\ filename\ with\ spaces
+  new
+  edit tests/fixtures/a\ filename\ with\ spaces
   let fname_abs = expand('%:p')
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
     \ ['1', '2', '3a 3b', '4', fname_abs]
+  bwipe

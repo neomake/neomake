@@ -354,6 +354,8 @@ Before:
         Log "Error while cleaning windows: ".v:exception
       endtry
       call add(errors, error)
+    elseif bufname(winbufnr(1)) !=# '[Vader-workbench]'
+      call add(errors, 'Vader-workbench has been renamed: '.bufname(winbufnr(1)))
     endif
 
     " Ensure that all w:neomake_make_ids lists have been removed.
