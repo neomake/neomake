@@ -13,10 +13,10 @@ Execute (Error with no filename):
 
 Execute (Error with non-existing filename):
   new
+  file doesnotexist
   set ft=neomake_tests
   let b:neomake_neomake_tests_enabled_makers = ['true']
   let b:neomake_neomake_tests_true_tempfile_enabled = 0
-  file doesnotexist
 
   let fname = fnamemodify(bufname('%'), ':p')
   Neomake
@@ -28,10 +28,10 @@ Execute (Error with non-existing filename for 2nd maker):
   call g:NeomakeSetupAutocmdWrappers()
 
   new
+  file doesnotexist
   set ft=neomake_tests
   let b:neomake_neomake_tests_enabled_makers = ['true']
   let b:neomake_neomake_tests_true_tempfile_enabled = 0
-  file doesnotexist
 
   let maker1 = {
       \ 'exe': 'true',

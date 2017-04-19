@@ -375,9 +375,9 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   let maker = neomake#utils#MakerFromCommand('echo')
 
   new
+  file dir/\ with\ spaces
   let b:neomake_tempfile_enabled = 1
   let jobinfo = NeomakeTestsFakeJobinfo()
-  file dir/\ with\ spaces
 
   set buftype=nofile
   let bound_maker = neomake#GetMaker(maker).fn(jobinfo)

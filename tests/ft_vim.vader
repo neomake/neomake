@@ -3,6 +3,7 @@ Include: include/setup.vader
 Execute (Vint: generic postprocessing for highlights):
   runtime autoload/neomake/highlights.vim
 
+  new
   file file1.vim
   norm! iecho l:undefined_var
   let vint_maker = neomake#makers#ft#vim#vint()
@@ -32,6 +33,7 @@ Execute (Vint: generic postprocessing for highlights):
   else
     AssertEqual highlights.file[bufnr('%')].NeomakeWarning, [[1, 6, 15]]
   endif
+  bwipe!
 
 Execute (vimlint: length postprocessing):
   " Monkeypatch to check setting of length.

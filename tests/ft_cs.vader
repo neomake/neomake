@@ -3,6 +3,7 @@ Include: include/setup.vader
 Execute (cs: msbuild: errorformat):
   Save &errorformat
   let &errorformat = neomake#makers#ft#cs#msbuild().errorformat
+  new
   file FooBar.cs
 
   lgetexpr "FooBar.cs(21,63): error CS1002: ; expected [Foo\Foobar.csproj]"
@@ -28,3 +29,4 @@ Execute (cs: msbuild: errorformat):
     \ 'type': 'W',
     \ 'pattern': '',
     \ 'text': "The variable 'ex' is declared but never used"}]
+  bwipe

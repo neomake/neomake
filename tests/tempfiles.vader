@@ -52,10 +52,10 @@ Execute (Neomake uses temporary file for unsaved buffer):
 
 Execute (Uses temporary file for unreadable buffer):
   new
+  file doesnotexist
   set ft=neomake_tests
   let b:neomake_neomake_tests_enabled_makers = ['true']
   let b:neomake_neomake_tests_true_tempfile_enabled = 1
-  file doesnotexist
 
   let fname = fnamemodify(bufname('%'), ':p')
   RunNeomake
@@ -69,8 +69,8 @@ Execute (2nd maker uses temporary file):
   call g:NeomakeSetupAutocmdWrappers()
 
   new
-  set ft=python
   file doesnotexist
+  set ft=python
 
   let maker1 = {
       \ 'exe': 'true',
@@ -107,8 +107,8 @@ Execute (Maker can specify temporary file to use via fn):
   \ }
 
   new
-  let bufnr = bufnr('%')
   file unreadable
+  let bufnr = bufnr('%')
   let maker = neomake#GetMaker(maker)
   AssertEqual maker.args, []
   let jobinfo = NeomakeTestsFakeJobinfo()
@@ -163,8 +163,8 @@ Execute (maker._get_argv uses jobinfo for bufnr):
 
 Execute (_get_fname_for_buffer handles modified buffer with disabled tempfiles):
   new
-  let b:neomake_tempfile_enabled = 0
   file file1
+  let b:neomake_tempfile_enabled = 0
   set modified
   let maker = neomake#GetMaker({})
   let jobinfo = NeomakeTestsFakeJobinfo()
