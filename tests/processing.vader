@@ -200,6 +200,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
   if NeomakeAsyncTestsSetup()
     let g:neomake_test_inc_maker_counter = 0
 
+    new
     file b1
     let first_jobs = neomake#Make(1, [g:neomake_test_inc_maker])
     let jobinfo1 = neomake#GetJob(first_jobs[0])
@@ -227,12 +228,14 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
     \ ['1:0: buf: b1']
     AssertEqual len(g:neomake_test_finished), 2
     AssertEqual len(g:neomake_test_jobfinished), 2
+    bwipe
   endif
 
 Execute (Pending output with restarted job when not in normal/insert mode (quickfix)):
   if NeomakeAsyncTestsSetup()
     let g:neomake_test_inc_maker_counter = 0
 
+    new
     file b1
     let first_jobs = neomake#Make(0, [g:neomake_test_inc_maker])
     let jobinfo1 = neomake#GetJob(first_jobs[0])
@@ -260,6 +263,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
 
     AssertEqual len(g:neomake_test_finished), 2
     AssertEqual len(g:neomake_test_jobfinished), 2
+    bwipe
   endif
 
 Execute (Handle finished job that got canceled (#1158)):

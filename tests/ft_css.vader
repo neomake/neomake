@@ -1,6 +1,7 @@
 Include: include/setup.vader
 
 Execute (csslint: errorformat):
+  new
   file file1
   let output = [
   \ "file1: line 315, col 1, Warning - Don't use IDs in selectors. (ids)",
@@ -17,3 +18,4 @@ Execute (csslint: errorformat):
   \ {'lnum': 0, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0,
   \  'nr': -1, 'type': 'W', 'pattern': '',
   \  'text': 'You have 2 h1s, 3 h2s defined in this stylesheet. (unique-headings)'''}]
+  bwipe

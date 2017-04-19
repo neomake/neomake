@@ -52,8 +52,8 @@ Execute (Placing signs in project mode):
         \ }, 'error')
 
   new
-  let bufnr = bufnr('%')
   file 1
+  let bufnr = bufnr('%')
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Placing sign: sign place 7000 line=1 name=neomake_warn buffer='.bufnr
