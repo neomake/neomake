@@ -786,7 +786,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
 
     let entries = []
     let changed_entries = {}
-    let removed = {}  " sentinel
+    let removed_entries = []
     let llen = len(list)
     while index < llen - 1
         let index += 1
@@ -822,7 +822,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
 
         if entry.valid <= 0
             if entry.valid < 0 || maker.remove_invalid_entries
-                let changed_entries[index] = removed
+                call add(removed_entries, index)
                 let entry_copy = copy(entry)
                 call neomake#utils#DebugMessage(printf(
                             \ 'Removing invalid entry: %s (%s)',
@@ -835,16 +835,18 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         call add(entries, entry)
     endwhile
 
-    if !empty(changed_entries)
+    if !empty(changed_entries) || !empty(removed_entries)
         let list = file_mode ? getloclist(0) : getqflist()
-        for k in reverse(sort(keys(changed_entries), 'N'))
-            let v = changed_entries[k]
-            if v is removed
+        if !empty(changed_entries)
+            for k in keys(changed_entries)
+                let list[k] = changed_entries[k]
+            endfor
+        endif
+        if !empty(removed_entries)
+            for k in removed_entries
                 call remove(list, k)
-            else
-                let list[k] = v
-            endif
-        endfor
+            endfor
+        endif
         if file_mode
             call setloclist(0, list, 'r')
         else
