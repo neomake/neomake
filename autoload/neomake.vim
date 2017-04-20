@@ -783,6 +783,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     endif
     let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3
     let make_info = s:make_info[a:jobinfo.make_id]
+    let default_type = 'unset'
 
     let entries = []
     let changed_entries = {}
@@ -832,6 +833,15 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             continue
         endif
 
+        if empty(entry.type)
+            if default_type ==# 'unset'
+                let default_type = neomake#utils#GetSetting('default_entry_type', maker, 'W', a:jobinfo.ft, a:jobinfo.bufnr)
+            endif
+            if !empty(default_type)
+                let entry.type = default_type
+                let changed_entries[index] = entry
+            endif
+        endif
         call add(entries, entry)
     endwhile
 
@@ -1717,6 +1727,7 @@ function! neomake#ShCommand(bang, sh_command, ...) abort
     let maker.name = 'sh: '.a:sh_command
     let maker.buffer_output = !a:bang
     let maker.errorformat = '%m'
+    let maker.default_entry_type = ''
     let options = {'enabled_makers': [maker], 'file_mode': 0}
     if a:0
         call extend(options, a:1)
