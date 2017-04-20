@@ -76,9 +76,19 @@ Execute (cargo error message):
     \ 'vcol': 0,
     \ 'pattern': '',
     \ 'text': 'mismatched types: expected str, found struct `proc_macro::TokenStream`'
+    \ }, {
+    \ 'type': 'I',
+    \ 'bufnr':  bufnr('%'),
+    \ 'nr': 308,
+    \ 'lnum': 25,
+    \ 'col': 1,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'pattern': '',
+    \ 'text': 'found type `&proc_macro::TokenStream`'
     \ }], getloclist(0)
 
-  AssertEqual [2, 40], g:lengths
+  AssertEqual [2, 40, 40], g:lengths
 
   bwipe
   " Undo monkeypatch.
