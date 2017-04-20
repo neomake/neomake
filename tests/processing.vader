@@ -157,13 +157,13 @@ Execute (Sleep in postprocess gets handled correctly):
       endif
     endfunction
 
-    let maker_1 = extend(neomake#utils#MakerFromCommand(
+    let maker = extend(neomake#utils#MakerFromCommand(
       \ 'echo out-1; sleep '.s:sleep.'; echo out-22; sleep '.s:sleep.'; echo out-333'), {
       \ 'buffer_output': 0, 'errorformat': '%m',
       \ 'append_file': 0,
       \ 'postprocess': function('s:postprocess')})
 
-    let job_ids = neomake#Make(1, [maker_1])
+    let job_ids = neomake#Make(1, [maker])
     let jobinfo = neomake#GetJob(job_ids[0])
     " norm! V
     NeomakeTestsWaitForFinishedJobs
