@@ -38,10 +38,10 @@ function! neomake#makers#ft#vim#PostprocessVimlint(entry) abort
 
     " Ensure that the text is there.
     let l = len(m[0])
-    let text = getline(a:entry.lnum)[a:entry.col-1 : a:entry.col-2+l]
-    if text == m[0]
+    let line = getline(a:entry.lnum)
+    if line[a:entry.col-1 : a:entry.col-2+l] == m[0]
         let a:entry.length = l
-    elseif m[0][0:1] ==# 'l:' && text == m[0][2:]
+    elseif m[0][0:1] ==# 'l:' && line[a:entry.col-1 : a:entry.col-4+l] == m[0][2:]
         " Ignore implicit 'l:' prefix.
         let a:entry.length = l - 2
     endif
