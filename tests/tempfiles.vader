@@ -10,6 +10,7 @@ Execute (Neomake uses temporary file for unsaved buffer):
   \ 'append_file': 1,
   \ 'errorformat': '%m',
   \ 'tempfile_enabled': 1,
+  \ 'default_entry_type': '',
   \ }
   call neomake#Make(1, [maker])
   if neomake#has_async_support()

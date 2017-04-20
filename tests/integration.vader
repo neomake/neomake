@@ -484,7 +484,7 @@ Execute (Neomake! for project maker via g:neomake_enabled_makers):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['mycargo']
 
-Execute (Neomake: remove_invalid_entries):
+Execute (Neomake: remove_invalid_entries and default entry type):
   let maker = neomake#utils#MakerFromCommand('echo invalid; echo "E: valid"')
   call extend(maker, {
       \ 'name': 'custom_maker',
@@ -495,17 +495,19 @@ Execute (Neomake: remove_invalid_entries):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage "Removing invalid entry: invalid ({'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'maker_name': 'custom_maker', 'pattern': ''})"
-  " XXX: the setloclist() makes the entry invalid?!
+  " NOTE: the setloclist() makes the entry invalid?!
+  " https://github.com/vim/vim/issues/1642
   AssertEqual getloclist(0),
-    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'valid'}]
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': 'W', 'pattern': '', 'text': 'valid'}]
 
-Execute (Neomake: entry.valid < 0):
+Execute (Neomake: entry.valid < 0 and configured entry type):
   let maker = neomake#utils#MakerFromCommand('echo invalid; echo "E: valid"')
   call extend(maker, {
       \ 'name': 'custom_maker',
       \ 'remove_invalid_entries': 0,
       \ 'errorformat': 'E: %m',
       \ 'append_file': 0,
+      \ 'default_entry_type': 'I',
       \ })
 
   function maker.postprocess(entry) abort
@@ -517,15 +519,18 @@ Execute (Neomake: entry.valid < 0):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage "Removing invalid entry: invalid ({'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': -1, 'vcol': 0, 'nr': -1, 'type': '', 'maker_name': 'custom_maker', 'pattern': ''})"
+  " NOTE: the setloclist() makes the entry invalid?!
+  " https://github.com/vim/vim/issues/1642
   AssertEqual getloclist(0),
-    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'valid'}]
+    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': 'I', 'pattern': '', 'text': 'valid'}]
 
-Execute (Neomake: append_file from settings):
+Execute (Neomake: append_file from settings and empty entry type):
   let maker = {
       \ 'exe': 'echo',
       \ 'args': ['output'],
       \ 'name': 'custom_maker',
       \ 'errorformat': '%m',
+      \ 'default_entry_type': '',
       \ }
   new
   edit tests/fixtures/errors.sh
