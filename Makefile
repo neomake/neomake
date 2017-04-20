@@ -114,9 +114,9 @@ build/vimlint: | build
 build/vimlparser: | build
 	git clone --depth=1 https://github.com/ynkdir/vim-vimlparser $@
 vimlint: build/vimlint build/vimlparser
-	build/vimlint/bin/vimlint.sh -l build/vimlint -p build/vimlparser $(LINT_ARGS)
+	build/vimlint/bin/vimlint.sh -u -l build/vimlint -p build/vimlparser $(LINT_ARGS)
 vimlint-errors: build/vimlint build/vimlparser
-	build/vimlint/bin/vimlint.sh -E -l build/vimlint -p build/vimlparser $(LINT_ARGS)
+	build/vimlint/bin/vimlint.sh -u -E -l build/vimlint -p build/vimlparser $(LINT_ARGS)
 
 build build/neovim-test-home:
 	mkdir $@
