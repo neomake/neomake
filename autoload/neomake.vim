@@ -1080,8 +1080,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     endif
 
     if !counts_changed
-        let counts_changed = (file_mode && getloclist(0) != prev_list)
-                    \ || (!file_mode && getqflist() != prev_list)
+        let counts_changed = (file_mode ? getloclist(0) : getqflist()) != prev_list
     endif
     if counts_changed
         call neomake#utils#hook('NeomakeCountsChanged', {
