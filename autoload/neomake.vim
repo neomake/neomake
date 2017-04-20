@@ -789,6 +789,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     while index < len(list)
         let entry = list[index]
         let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
+        let entry.job_id = a:jobinfo.id
         let index += 1
 
         let before = copy(entry)
@@ -823,6 +824,9 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
                 let index -= 1
                 call remove(list, index)
                 let list_modified = 1
+                " Remove job_id from entry because of remove_invalid_entries
+                " integeration test
+                unlet entry.job_id
                 let entry_copy = copy(entry)
                 call neomake#utils#DebugMessage(printf(
                             \ 'Removing invalid entry: %s (%s)',
