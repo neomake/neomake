@@ -773,7 +773,6 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let maker = a:jobinfo.maker
     let file_mode = a:jobinfo.file_mode
     let list = file_mode ? getloclist(0) : getqflist()
-    let list_modified = 0
     let index = a:prev_index
     unlet! s:postprocess  " vim73
     let s:postprocess = get(maker, 'postprocess', function('neomake#utils#CompressWhitespace'))
@@ -786,10 +785,13 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let make_info = s:make_info[a:jobinfo.make_id]
 
     let entries = []
-    while index < len(list)
+    let changed_entries = {}
+    let removed = {}  " sentinel
+    let llen = len(list)
+    while index < llen - 1
+        let index += 1
         let entry = list[index]
         let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
-        let index += 1
 
         let before = copy(entry)
         if file_mode && has_key(make_info, 'tempfile')
@@ -808,7 +810,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             unlet! g:neomake_hook_context  " Might be unset already with sleep in postprocess.
         endif
         if entry != before
-            let list_modified = 1
+            let changed_entries[index] = entry
             if debug
                 call neomake#utils#DebugMessage(printf(
                   \ 'Modified list entry (postprocess): %s',
@@ -820,9 +822,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
 
         if entry.valid <= 0
             if entry.valid < 0 || maker.remove_invalid_entries
-                let index -= 1
-                call remove(list, index)
-                let list_modified = 1
+                let changed_entries[index] = removed
                 let entry_copy = copy(entry)
                 call neomake#utils#DebugMessage(printf(
                             \ 'Removing invalid entry: %s (%s)',
@@ -835,7 +835,16 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         call add(entries, entry)
     endwhile
 
-    if list_modified
+    if !empty(changed_entries)
+        let list = file_mode ? getloclist(0) : getqflist()
+        for k in reverse(sort(keys(changed_entries), 'N'))
+            let v = changed_entries[k]
+            if v is removed
+                call remove(list, k)
+            else
+                let list[k] = v
+            endif
+        endfor
         if file_mode
             call setloclist(0, list, 'r')
         else
@@ -1116,7 +1125,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
         let &errorformat = olderrformat
     endtry
 
-    let entries = s:AddExprCallback(a:jobinfo, len(prev_list))
+    let entries = s:AddExprCallback(a:jobinfo, len(prev_list)-1)
     call s:ProcessEntries(a:jobinfo, entries, prev_list)
 endfunction
 
