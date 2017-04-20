@@ -92,6 +92,17 @@ Execute (neomake#GetMaker uses defined errorformat with makeprg):
   let &errorformat = '%Gcustom'
   AssertEqual neomake#GetMaker('makeprg', '').errorformat, '%Gcustom'
 
+Execute (neomake#GetMaker for makeprg):
+  Save &makeprg
+  let &makeprg = 'mymakeprg'
+  AssertEqual neomake#GetMaker('makeprg'), {
+    \ 'errorformat': '%+G',
+    \ 'args': ['-c', 'mymakeprg'],
+    \ 'exe': &shell,
+    \ 'remove_invalid_entries': 0,
+    \ 'buffer_output': 1,
+    \ 'name': 'makeprg'}
+
 Execute (neomake#GetMaker uses defaults from b:/g:):
   Save g:neomake_test_remove_invalid_entries
   Save b:neomake_test_remove_invalid_entries
