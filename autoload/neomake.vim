@@ -823,7 +823,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
 
         if entry.valid <= 0
             if entry.valid < 0 || maker.remove_invalid_entries
-                call add(removed_entries, index)
+                call insert(removed_entries, index)
                 let entry_copy = copy(entry)
                 call neomake#utils#DebugMessage(printf(
                             \ 'Removing invalid entry: %s (%s)',
