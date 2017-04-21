@@ -1767,9 +1767,9 @@ function! s:display_maker_info(...) abort
             for type in sort(copy(keys(issues)))
                 let items = issues[type]
                 if !empty(items)
-                    echo '   '.toupper(type) . ':'
+                    echo '   - '.toupper(type) . ':'
                     for issue in items
-                        echo '    - ' . issue
+                        echo '     - ' . issue
                     endfor
                 endif
             endfor

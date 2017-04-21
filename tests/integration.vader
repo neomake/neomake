@@ -277,11 +277,11 @@ Execute (NeomakeInfo: displays issues):
       \ '   - args: function(''getcwd'')',
       \ '   - errorformat: ''custom_efm: %m''',
       \ '   - exe: ''doesnotexist''',
-      \ '   ERRORS:',
-      \ "    - maker's exe (doesnotexist) is not executable.",
-      \ '   WARNINGS:',
-      \ '    - maker has mapexpr, but only process_output will be used.',
-      \ '    - maker has postprocess, but only process_output will be used.',
+      \ '   - ERRORS:',
+      \ "     - maker's exe (doesnotexist) is not executable.",
+      \ '   - WARNINGS:',
+      \ '     - maker has mapexpr, but only process_output will be used.',
+      \ '     - maker has postprocess, but only process_output will be used.',
       \ ]
     let i = index(info, line)
     Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'
