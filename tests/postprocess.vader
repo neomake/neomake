@@ -150,7 +150,10 @@ Execute (Postprocess: removes entries with valid -1):
 
   let maker = {
   \ 'exe': 'printf',
-  \ 'args': ['file1.vim:1:7: check: bar!\nfile1.vim:2:5: check: foo!'],
+  \ 'args': [join([
+  \   'file1.vim:1:7: check: bar!',
+  \   'file1.vim:2:5: check: foo!',
+  \   'file1.vim:1:7: check: bar!'], '\n')],
   \ 'errorformat': '%E%f:%l:%c: %m',
   \ 'append_file': 0,
   \ '_maker_marker': 1,
@@ -162,7 +165,7 @@ Execute (Postprocess: removes entries with valid -1):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual len(g:neomake_test_called), 2
+  AssertEqual len(g:neomake_test_called), 3
   AssertEqual g:neomake_test_called[0][1].jobinfo.maker._maker_marker, 1
 
   AssertEqual getloclist(0), [{
