@@ -61,7 +61,18 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
         endif
 
         let span = data.spans[0]
-        call neomake#makers#ft#rust#FillErrorFromSpan(error, span)
+        let expanded = 0
+        let has_expansion = type(span.expansion) == type({})
+                    \ && type(span.expansion.span) == type({})
+                    \ && type(span.expansion.def_site_span) == type({})
+
+        if span.file_name =~# '^<.*>$' && has_expansion
+            let expanded = 1
+            call neomake#makers#ft#rust#FillErrorFromSpan(error,
+                        \ span.expansion.span)
+        else
+            call neomake#makers#ft#rust#FillErrorFromSpan(error, span)
+        endif
 
         let error.text = data.message
         let detail = span.label
@@ -74,14 +85,46 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
 
         call add(errors, error)
 
-        if type(span.expansion) == type({})
-                    \ && type(span.expansion.span) == type({})
-                    \ && type(span.expansion.def_site_span) == type({})
+        if has_expansion && !expanded
             let error = copy(error)
             call neomake#makers#ft#rust#FillErrorFromSpan(error,
                         \ span.expansion.span)
             call add(errors, error)
         endif
+
+        for child in children[1:]
+            if !has_key(child, 'message')
+                continue
+            endif
+
+            let info = deepcopy(error)
+            let info.type = 'I'
+            let info.text = child.message
+            call neomake#utils#CompressWhitespace(info)
+            if has_key(child, 'rendered')
+                        \ && !(child.rendered is g:neomake#compat#json_null)
+                let info.text = info.text . ': ' . child.rendered
+            endif
+
+            if len(child.spans)
+                let span = child.spans[0]
+                if span.file_name =~# '^<.*>$'
+                            \ && type(span.expansion) == type({})
+                            \ && type(span.expansion.span) == type({})
+                            \ && type(span.expansion.def_site_span) == type({})
+                    call neomake#makers#ft#rust#FillErrorFromSpan(info,
+                                \ span.expansion.span)
+                else
+                    call neomake#makers#ft#rust#FillErrorFromSpan(info, span)
+                endif
+                let detail = span.label
+                if type(detail) == type('') && len(detail)
+                    let info.text = info.text . ': ' . detail
+                endif
+            endif
+
+            call add(errors, info)
+        endfor
     endfor
     return errors
 endfunction
