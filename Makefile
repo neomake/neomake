@@ -174,19 +174,19 @@ check:
 	@:; ret=0; \
 	echo '== Checking that all tests are included'; \
 	for f in $(filter-out neomake.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
-		if ! grep -q "^Include.*: $$f" tests/neomake.vader; then \
-			echo "Test not included: $$f" >&2; ret=1; \
-		fi; \
+	  if ! grep -q "^Include.*: $$f" tests/neomake.vader; then \
+	    echo "Test not included: $$f" >&2; ret=1; \
+	  fi; \
 	done; \
 	echo '== Checking for absent Before sections in tests'; \
 	if grep '^Before:' tests/*.vader; then \
 	  echo "Before: should not be used in tests itself, because it overrides the global one."; \
-		(( ret+=2 )); \
+	  (( ret+=2 )); \
 	fi; \
 	echo '== Checking for absent :Log calls'; \
 	if grep '^\s*Log\b' $(shell git ls-files tests/*.vader $(LINT_ARGS)); then \
 	  echo "Found Log commands."; \
-		(( ret+=4 )); \
+	  (( ret+=4 )); \
 	fi; \
 	echo '== Checking for DOCKER_VIMS to be in sync'; \
 	vims=$$(docker run --rm $(DOCKER_IMAGE) ls /vim-build/bin | grep vim | sort | paste -s -d\ ); \
