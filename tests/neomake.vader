@@ -3,6 +3,7 @@
 " include/setup.vader).
 
 ~ Features
+Include (Autolinting): autolint.vader
 Include (Completion): completion.vader
 Include (Compat): compat.vader
 Include (Current working dir): cwd.vader
