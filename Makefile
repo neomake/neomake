@@ -39,7 +39,7 @@ testnvimx: testnvim
 # work around this.
 # > Vim: Error reading input, exiting...
 # > Vim: Finished.
-testnvim: TEST_VIM:=nvim --headless
+testnvim: TEST_VIM:=nvim
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 testnvim: build/neovim-test-home
 testnvim: TEST_VIM_PREFIX+=HOME=build/neovim-test-home
@@ -47,7 +47,7 @@ testnvim: TEST_VIM_PREFIX+=VADER_OUTPUT_FILE=/dev/stderr
 testnvim: | build $(DEP_PLUGINS)
 	$(call func-run-vim)
 	
-testvim: TEST_VIM:=vim -X
+testvim: TEST_VIM:=vim
 testvim: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim: | build $(DEP_PLUGINS)
 	$(call func-run-vim)
@@ -63,7 +63,7 @@ _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log vader
 _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
 
 define func-run-vim
-	$(TEST_VIM_PREFIX) $(TEST_VIM) --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
+	$(TEST_VIM_PREFIX) $(TEST_VIM) $(if $(IS_NEOVIM),--headless,-X) --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 endef
 
 # Interactive tests, keep Vader open.
