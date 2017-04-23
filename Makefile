@@ -153,7 +153,7 @@ $(_DOCKER_VIM_TARGETS):
 	$(MAKE) docker_test DOCKER_VIM=$(patsubst docker_test-%,%,$@)
 
 docker_test: DOCKER_VIM:=vim-master
-docker_test: DOCKER_STREAMS:=-a stderr
+docker_test: DOCKER_STREAMS:=-t
 docker_test: DOCKER_MAKE_TARGET:=testvim TEST_VIM=/vim-build/bin/$(DOCKER_VIM) VIM_ARGS="$(VIM_ARGS)"
 docker_test: docker_make
 
