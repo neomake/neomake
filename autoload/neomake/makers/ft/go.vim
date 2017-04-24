@@ -51,7 +51,7 @@ endfunction
 
 function! neomake#makers#ft#go#gometalinter() abort
     " Only run a subset of gometalinter for speed, users can override with:
-    " let g:let g:neomake_go_gometalinter_args = ['--disable-all', '--enable=X', ...]
+    " let g:neomake_go_gometalinter_args = ['--disable-all', '--enable=X', ...]
     "
     " All linters are only warnings, the go compiler will report errors
     return {
