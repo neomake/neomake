@@ -62,7 +62,7 @@ function! neomake#makers#ft#javascript#rjsx() abort
   return {
         \ 'exe': 'emacs',
         \ 'args': ['%','--quick','--batch','--eval='
-        \ .'(progn(package-initialize)(require ''rjsx-mode)'
+        \ .'(progn(setq package-load-list ''((js2-mode t)(rjsx-mode t)))(package-initialize)(require ''rjsx-mode)'
         \ .'  (setq js2-include-node-externs t js2-include-rhino-externs t js2-include-browser-externs t js2-strict-missing-semi-warning nil)'
         \ .'  (rjsx-mode)(js2-reparse)(js2-display-error-list)'
         \ .'  (princ(replace-regexp-in-string "^" (concat buffer-file-name " ")'
