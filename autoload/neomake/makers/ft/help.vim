@@ -7,7 +7,9 @@ function! neomake#makers#ft#help#EnabledMakers() abort
 endfunction
 
 let s:slash = neomake#utils#Slash()
-let s:vimhelplint = expand('<sfile>:p:h:h:h:h:h', 1).s:slash.'contrib'.s:slash.'vimhelplint'
+let s:vimhelplint = executable('vimhelplint')
+      \ ? 'vimhelplint'
+      \ : expand('<sfile>:p:h:h:h:h:h', 1).s:slash.'contrib'.s:slash.'vimhelplint'
 
 function! neomake#makers#ft#help#vimhelplint() abort
   return {
