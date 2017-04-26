@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#tex#EnabledMakers() abort
-    return ['chktex', 'lacheck', 'rubberinfo', 'proselint']
+    return ['chktex', 'lacheck', 'rubberinfo', 'proselint', 'pdflatex']
 endfunction
 
 function! neomake#makers#ft#tex#chktex()
@@ -47,6 +47,14 @@ function! neomake#makers#ft#tex#latexrun()
                 \ 'args': ['--color', 'never'],
                 \ 'errorformat':
                 \ '%f:%l: %m'
+                \ }
+endfunction
+
+function! neomake#makers#ft#tex#pdflatex()
+    return {
+                \ 'exe': 'pdflatex',
+                \ 'args': ['-file-line-error', '-interaction', 'nonstopmode'],
+                \ 'errorformat': '%E%f:%l: %m'
                 \ }
 endfunction
 
