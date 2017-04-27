@@ -1,12 +1,12 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#c#EnabledMakers()
+function! neomake#makers#ft#c#EnabledMakers() abort
     let makers = executable('clang') ? ['clang', 'clangtidy', 'clangcheck'] : ['gcc']
     call add(makers, 'checkpatch')
     return makers
 endfunction
 
-function! neomake#makers#ft#c#clang()
+function! neomake#makers#ft#c#clang() abort
     return {
         \ 'args': ['-fsyntax-only', '-Wall', '-Wextra'],
         \ 'errorformat':
@@ -22,7 +22,7 @@ function! neomake#makers#ft#c#clang()
         \ }
 endfunction
 
-function! neomake#makers#ft#c#clangcheck()
+function! neomake#makers#ft#c#clangcheck() abort
     return {
         \ 'exe': 'clang-check',
         \ 'args': ['%:p'],
@@ -39,7 +39,7 @@ function! neomake#makers#ft#c#clangcheck()
         \ }
 endfunction
 
-function! neomake#makers#ft#c#gcc()
+function! neomake#makers#ft#c#gcc() abort
     return {
         \ 'args': ['-fsyntax-only', '-Wall', '-Wextra'],
         \ 'errorformat':
@@ -62,7 +62,7 @@ endfunction
 " The -p option followed by the path to the build directory should be set in
 " the maker's arguments. That directory should contain the compile command
 " database (compile_commands.json).
-function! neomake#makers#ft#c#clangtidy()
+function! neomake#makers#ft#c#clangtidy() abort
     return {
         \ 'exe': 'clang-tidy',
         \ 'errorformat':
@@ -74,7 +74,7 @@ function! neomake#makers#ft#c#clangtidy()
         \ }
 endfunction
 
-function! neomake#makers#ft#c#checkpatch()
+function! neomake#makers#ft#c#checkpatch() abort
     return {
         \ 'exe': 'checkpatch.pl',
         \ 'args': ['--no-summary', '--no-tree', '--terse', '--file'],

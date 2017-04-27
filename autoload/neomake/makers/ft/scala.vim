@@ -1,11 +1,11 @@
 " vim: ts=4 sw=4 et
-function! neomake#makers#ft#scala#EnabledMakers()
+function! neomake#makers#ft#scala#EnabledMakers() abort
     " use let g:neomake_scala_enabled_makers = ['fsc','scalastyle'] for fsc
     let makers = ['scalac', 'scalastyle']
     return makers
 endfunction
 
-function! neomake#makers#ft#scala#fsc()
+function! neomake#makers#ft#scala#fsc() abort
     return {
         \ 'args': [
             \ '-Ystop-after:parser'
@@ -17,7 +17,7 @@ function! neomake#makers#ft#scala#fsc()
         \ }
 endfunction
 
-function! neomake#makers#ft#scala#scalac()
+function! neomake#makers#ft#scala#scalac() abort
     return {
         \ 'args': [
             \ '-Ystop-after:parser'
@@ -29,7 +29,7 @@ function! neomake#makers#ft#scala#scalac()
         \ }
 endfunction
 
-function! neomake#makers#ft#scala#scalastyle()
+function! neomake#makers#ft#scala#scalastyle() abort
     return {
         \ 'errorformat':
             \ '%trror file=%f message=%m line=%l column=%c,' .

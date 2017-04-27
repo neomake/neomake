@@ -1,6 +1,6 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#gradle#gradle()
+function! neomake#makers#gradle#gradle() abort
     let g:gradleBin = filereadable('./gradlew') ? './gradlew' : 'gradle'
 
     return {
