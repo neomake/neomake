@@ -27,8 +27,8 @@ function! s:UpdateDub() abort
     let l:tmp_file = s:findDubRoot()
     if executable('dub') && !empty(l:tmp_file)
         let l:tmp_dir = fnamemodify(l:tmp_file,':p:h')
-        let l:dubCmd = 'dub describe --data=import-paths --annotate \
-                    \--skip-registry=all --vquiet --data-list --root='
+        let l:dubCmd = 'dub describe --data=import-paths --annotate '
+                    \ .'--skip-registry=all --vquiet --data-list --root='
         let l:output = system(l:dubCmd . tmp_dir)
         if(v:shell_error == 0 && !empty(l:output))
             " Is \n portable?
