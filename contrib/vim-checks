@@ -1,0 +1,79 @@
+#!/bin/bash -eu
+
+# This Bash script implements custom sanity checks for scripts beyond what
+# Vint covers, which are easy to check with regex.
+#
+# Adopted from ALE (https://github.com/w0rp/ale/blob/10679b29/custom-checks)
+
+# A flag for automatically fixing some errors.
+FIX_ERRORS=0
+RETURN_CODE=0
+
+function print_help() {
+    echo "Usage: ./custom-checks [--fix] [DIRECTORY]" 1>&2
+    echo 1>&2
+    echo "  -h, --help    Print this help text" 1>&2
+    echo "      --fix     Automatically fix some errors" 1>&2
+    exit 1
+}
+
+while [ $# -ne 0 ]; do
+    case $1 in
+    -h) ;& --help)
+        print_help
+    ;;
+    --fix)
+        FIX_ERRORS=1
+        shift
+    ;;
+    --)
+        shift
+        break
+    ;;
+    -?*)
+        echo "Invalid argument: $1" 1>&2
+        exit 1
+    ;;
+    *)
+        break
+    ;;
+    esac
+done
+
+if [ $# -eq 0 ] || [ -z "$1" ]; then
+    print_help
+fi
+
+shopt -s globstar
+
+directories=("$@")
+
+check_errors() {
+    regex="$1"
+    message="$2"
+
+    for directory in "${directories[@]}"; do
+        while IFS= read -r match; do
+            RETURN_CODE=1
+            echo "$match $message"
+        done < <(grep -n "$regex" "$directory"/**/*.vim \
+            | grep -o '^[^:]\+:[0-9]\+' \
+            | sed 's:^\./::')
+    done
+}
+
+if (( FIX_ERRORS )); then
+    for directory in "${directories[@]}"; do
+        sed -i "s/^\(function.*)\) *$/\1 abort/" "$directory"/**/*.vim
+    done
+fi
+
+check_errors \
+    '^function.*) *$' \
+    'Function without abort keyword (See :help except-compat)'
+check_errors ' \+$' 'Trailing whitespace'
+check_errors '^ * end\?i\? *$' 'Write endif, not en, end, or endi'
+check_errors '^  [^ ]' 'Use four spaces, not two spaces'
+check_errors $'\t' 'Use four spaces, not tabs'
+
+exit $RETURN_CODE

@@ -197,6 +197,8 @@ check:
 	  echo "in image:    $$vims"; \
 	  (( ret+=8 )); \
 	fi; \
+	echo '== Running custom checks'; \
+	contrib/vim-checks $(LINT_ARGS) || (( ret+= 16 )); \
 	exit $$ret
 
 .PHONY: vint vint-errors vimlint vimlint-errors
