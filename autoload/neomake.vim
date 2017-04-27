@@ -1157,8 +1157,10 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
     try
         if file_mode
             laddexpr a:lines
+            silent doautocmd QuickFixCmdPost lgetfile
         else
             caddexpr a:lines
+            silent doautocmd QuickFixCmdPost cgetfile
         endif
     finally
         let &errorformat = olderrformat
