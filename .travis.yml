@@ -23,7 +23,6 @@ env:
     - ENV=testnvim
     - ENV=testvim
     - ENV=check
-    - ENV=vint-diff
     - ENV=vint
     - ENV=docker_vimhelplint
 
@@ -32,14 +31,7 @@ matrix:
 
 install:
   - |
-    if [ "$ENV" = "vint-diff" ]; then
-      # Run full vint against changed files.
-      echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
-      CHANGED_VIM_FILES=($(git diff --name-only --diff-filter=AM "$TRAVIS_COMMIT_RANGE" | grep '\.vim$' | grep -v '^tests/fixtures'))
-      if [ -z "$CHANGED_VIM_FILES" ]; then
-        SKIP_BUILD_REASON="vint-diff: No changed .vim files."
-      fi
-    elif [ "$ENV" = "docker_vimhelplint" ]; then
+    if [ "$ENV" = "docker_vimhelplint" ]; then
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       if git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
         SKIP_BUILD_REASON="docker_vimhelplint: No changed doc files."
@@ -58,10 +50,6 @@ script:
   - |
     if [ -n "$SKIP_BUILD_REASON" ]; then
       echo "Skipping job: $SKIP_BUILD_REASON"
-    elif [ "$ENV" = "vint-diff" ]; then
-      if [ -n "$CHANGED_VIM_FILES" ]; then
-        make vint LINT_ARGS="${CHANGED_VIM_FILES[*]}"
-      fi
     else
       if [[ "$ENV" = "testvim" ]]; then
         vim --version
