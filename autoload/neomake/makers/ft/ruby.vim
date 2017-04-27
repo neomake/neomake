@@ -6,7 +6,7 @@ endfunction
 
 function! neomake#makers#ft#ruby#rubocop() abort
     return {
-        \ 'args': ['--format', 'emacs'],
+        \ 'args': ['--format', 'emacs', '--force-exclusion'],
         \ 'errorformat': '%f:%l:%c: %t: %m,%E%f:%l: %m',
         \ 'postprocess': function('neomake#makers#ft#ruby#RubocopEntryProcess')
         \ }
