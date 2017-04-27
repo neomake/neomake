@@ -1,10 +1,10 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#stylus#EnabledMakers()
+function! neomake#makers#ft#stylus#EnabledMakers() abort
     return ['stylint']
 endfunction
 
-function! neomake#makers#ft#stylus#stylint()
+function! neomake#makers#ft#stylus#stylint() abort
     return {
         \ 'errorformat':
             \ '%WWarning: %m,' .

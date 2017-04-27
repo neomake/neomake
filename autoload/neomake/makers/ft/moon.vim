@@ -1,8 +1,8 @@
-function! neomake#makers#ft#moon#EnabledMakers()
+function! neomake#makers#ft#moon#EnabledMakers() abort
     return ['moonc']
 endfunction
 
-function! neomake#makers#ft#moon#moonc()
+function! neomake#makers#ft#moon#moonc() abort
     return {
         \ 'args': ['-l', '%:p'],
         \ 'errorformat':

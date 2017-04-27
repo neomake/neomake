@@ -1,8 +1,8 @@
-function! neomake#makers#ft#tcl#EnabledMakers()
+function! neomake#makers#ft#tcl#EnabledMakers() abort
    return ['nagelfar']
 endfunction
 
-function! neomake#makers#ft#tcl#nagelfar()
+function! neomake#makers#ft#tcl#nagelfar() abort
    return {
       \ 'exe': 'nagelfar',
       \ 'args': ['-H'],

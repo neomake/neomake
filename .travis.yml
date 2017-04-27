@@ -24,13 +24,10 @@ env:
     - ENV=testvim
     - ENV=check
     - ENV=vint-diff
-    - ENV=vint-errors
     - ENV=vint
     - ENV=docker_vimhelplint
 
 matrix:
-  allow_failures:
-    - env: ENV=vint
   fast_finish: true
 
 install:

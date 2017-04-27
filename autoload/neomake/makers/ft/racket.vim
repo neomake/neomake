@@ -1,6 +1,6 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#racket#EnabledMakers()
+function! neomake#makers#ft#racket#EnabledMakers() abort
     return ['raco']
 endfunction
 
@@ -23,7 +23,7 @@ endfunction
 "        /usr/local/Cellar/racket/6.5/share/racket/pkgs/compiler-lib/compiler/commands/expand.rkt: [running body]
 "        /usr/local/Cellar/minimal-racket/6.6/share/racket/collects/raco/raco.rkt: [running body]
 "        /usr/local/Cellar/minimal-racket/6.6/share/racket/collects/raco/main.rkt: [running body]
-function! neomake#makers#ft#racket#raco()
+function! neomake#makers#ft#racket#raco() abort
     return {
         \ 'exe': 'raco',
         \ 'args': ['expand'],

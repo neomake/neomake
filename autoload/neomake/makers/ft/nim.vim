@@ -1,8 +1,8 @@
-function! neomake#makers#ft#nim#EnabledMakers()
+function! neomake#makers#ft#nim#EnabledMakers() abort
     return ['nim']
 endfunction
 
-function! neomake#makers#ft#nim#nim()
+function! neomake#makers#ft#nim#nim() abort
     return {
                 \ 'exe': 'nim',
                 \ 'args': ['--listFullPaths', '--verbosity:0', '--colors:off',

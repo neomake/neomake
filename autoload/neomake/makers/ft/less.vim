@@ -1,10 +1,10 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#less#EnabledMakers()
+function! neomake#makers#ft#less#EnabledMakers() abort
     return executable('stylelint') ? ['stylelint'] : ['lessc']
 endfunction
 
-function! neomake#makers#ft#less#lessc()
+function! neomake#makers#ft#less#lessc() abort
     return {
         \ 'args': ['--lint', '--no-color'],
         \ 'errorformat':
