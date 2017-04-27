@@ -3,7 +3,7 @@ function! neomake#makers#ft#css#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#css#csslint() abort
-  return {
+    return {
         \ 'args': ['--format=compact'],
         \ 'errorformat':
         \   '%-G,'.

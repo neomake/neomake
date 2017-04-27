@@ -59,7 +59,7 @@ function! neomake#makers#ft#javascript#semistandard() abort
 endfunction
 
 function! neomake#makers#ft#javascript#rjsx() abort
-  return {
+    return {
         \ 'exe': 'emacs',
         \ 'args': ['%','--quick','--batch','--eval='
         \ .'(progn(setq package-load-list ''((js2-mode t)(rjsx-mode t)))(package-initialize)(require ''rjsx-mode)'

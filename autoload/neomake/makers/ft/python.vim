@@ -168,10 +168,10 @@ function! neomake#makers#ft#python#pyflakes() abort
 endfunction
 
 function! neomake#makers#ft#python#pycodestyle() abort
-  if !exists('s:_pycodestyle_exe')
-    " Use the preferred exe to avoid deprecation warnings.
-    let s:_pycodestyle_exe = executable('pycodestyle') ? 'pycodestyle' : 'pep8'
-  endif
+    if !exists('s:_pycodestyle_exe')
+        " Use the preferred exe to avoid deprecation warnings.
+        let s:_pycodestyle_exe = executable('pycodestyle') ? 'pycodestyle' : 'pep8'
+    endif
     return {
         \ 'exe': s:_pycodestyle_exe,
         \ 'errorformat': '%f:%l:%c: %m',
@@ -195,11 +195,11 @@ function! neomake#makers#ft#python#Pep8EntryProcess(entry) abort
 endfunction
 
 function! neomake#makers#ft#python#pydocstyle() abort
-  if !exists('s:_pydocstyle_exe')
-    " Use the preferred exe to avoid deprecation warnings.
-    let s:_pydocstyle_exe = executable('pydocstyle') ? 'pydocstyle' : 'pep257'
-  endif
-  return {
+    if !exists('s:_pydocstyle_exe')
+        " Use the preferred exe to avoid deprecation warnings.
+        let s:_pydocstyle_exe = executable('pydocstyle') ? 'pydocstyle' : 'pep257'
+    endif
+    return {
         \ 'exe': s:_pydocstyle_exe,
         \ 'errorformat':
         \   '%W%f:%l %.%#:,' .
