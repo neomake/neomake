@@ -18,7 +18,7 @@ endfunction
 function! neomake#makers#ft#css#stylelint() abort
     return {
           \ 'errorformat':
-          \   '%+P%f,'. 
+          \   '%+P%f,'.
           \   '%*\s%l:%c  %t  %m,'.
           \   '%-Q'
           \ }

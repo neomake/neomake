@@ -71,7 +71,7 @@ lockvar neomake#compat#json_null
 
 if exists('*uniq')
     function! neomake#compat#uniq(l) abort
-	return uniq(a:l)
+        return uniq(a:l)
     endfunction
 else
     " From ingo#collections#UniqueSorted.
