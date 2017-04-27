@@ -167,7 +167,7 @@ function! neomake#utils#DebugObject(msg, obj) abort
 endfunction
 
 function! neomake#utils#wstrpart(mb_string, start, len) abort
-  return matchstr(a:mb_string, '.\{,'.a:len.'}', 0, a:start+1)
+    return matchstr(a:mb_string, '.\{,'.a:len.'}', 0, a:start+1)
 endfunction
 
 " This comes straight out of syntastic.
@@ -310,7 +310,7 @@ function! neomake#utils#get_config_fts(ft) abort
         endwhile
     endfor
     if len(fts) > 1
-      call insert(r, a:ft, 0)
+        call insert(r, a:ft, 0)
     endif
     return map(r, 'neomake#utils#get_ft_confname(v:val)')
 endfunction
@@ -320,74 +320,74 @@ let s:unset = {}  " Sentinel.
 " Get a setting by key, based on filetypes, from the buffer or global
 " namespace, defaulting to default.
 function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
-  let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
-  if !empty(a:ft)
-      let fts = neomake#utils#get_config_fts(a:ft) + ['']
-  else
-      let fts = ['']
-  endif
-  for ft in fts
-    " Look through the override vars for a filetype maker, like
-    " neomake_scss_sasslint_exe (should be a string), and
-    " neomake_scss_sasslint_args (should be a list).
-    let part = join(filter([ft, maker_name], '!empty(v:val)'), '_')
-    if empty(part)
-        break
+    let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
+    if !empty(a:ft)
+        let fts = neomake#utils#get_config_fts(a:ft) + ['']
+    else
+        let fts = ['']
     endif
-    let config_var = 'neomake_'.part.'_'.a:key
-    unlet! Bufcfgvar  " vim73
-    let Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
-    if Bufcfgvar isnot s:unset
-        return copy(Bufcfgvar)
-    endif
-    if has_key(g:, config_var)
-        return copy(get(g:, config_var))
-    endif
-  endfor
+    for ft in fts
+        " Look through the override vars for a filetype maker, like
+        " neomake_scss_sasslint_exe (should be a string), and
+        " neomake_scss_sasslint_args (should be a list).
+        let part = join(filter([ft, maker_name], '!empty(v:val)'), '_')
+        if empty(part)
+            break
+        endif
+        let config_var = 'neomake_'.part.'_'.a:key
+        unlet! Bufcfgvar  " vim73
+        let Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
+        if Bufcfgvar isnot s:unset
+            return copy(Bufcfgvar)
+        endif
+        if has_key(g:, config_var)
+            return copy(get(g:, config_var))
+        endif
+    endfor
 
-  if has_key(a:maker, a:key)
-    return a:maker[a:key]
-  endif
-  " Look for 'neomake_'.key in the buffer and global namespace.
-  let bufvar = neomake#compat#getbufvar(a:bufnr, 'neomake_'.a:key, s:unset)
-  if bufvar isnot s:unset
-      return bufvar
-  endif
-  if a:key !=# 'enabled_makers' && has_key(g:, 'neomake_'.a:key)
-      return get(g:, 'neomake_'.a:key)
-  endif
-  return a:default
+    if has_key(a:maker, a:key)
+        return a:maker[a:key]
+    endif
+    " Look for 'neomake_'.key in the buffer and global namespace.
+    let bufvar = neomake#compat#getbufvar(a:bufnr, 'neomake_'.a:key, s:unset)
+    if bufvar isnot s:unset
+        return bufvar
+    endif
+    if a:key !=# 'enabled_makers' && has_key(g:, 'neomake_'.a:key)
+        return get(g:, 'neomake_'.a:key)
+    endif
+    return a:default
 endfunction
 
 " Get property from highlighting group.
 function! neomake#utils#GetHighlight(group, what) abort
-  let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
-  let what = a:what
-  if reverse
-    let what = neomake#utils#ReverseSynIDattr(what)
-  endif
-  if what[-1:] ==# '#'
-      let val = synIDattr(synIDtrans(hlID(a:group)), what, 'gui')
-  else
-      let val = synIDattr(synIDtrans(hlID(a:group)), what, 'cterm')
-  endif
-  if empty(val) || val == -1
-    let val = 'NONE'
-  endif
-  return val
+    let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
+    let what = a:what
+    if reverse
+        let what = neomake#utils#ReverseSynIDattr(what)
+    endif
+    if what[-1:] ==# '#'
+        let val = synIDattr(synIDtrans(hlID(a:group)), what, 'gui')
+    else
+        let val = synIDattr(synIDtrans(hlID(a:group)), what, 'cterm')
+    endif
+    if empty(val) || val == -1
+        let val = 'NONE'
+    endif
+    return val
 endfunction
 
 function! neomake#utils#ReverseSynIDattr(attr) abort
-  if a:attr ==# 'fg'
-    return 'bg'
-  elseif a:attr ==# 'bg'
-    return 'fg'
-  elseif a:attr ==# 'fg#'
-    return 'bg#'
-  elseif a:attr ==# 'bg#'
-    return 'fg#'
-  endif
-  return a:attr
+    if a:attr ==# 'fg'
+        return 'bg'
+    elseif a:attr ==# 'bg'
+        return 'fg'
+    elseif a:attr ==# 'fg#'
+        return 'bg#'
+    elseif a:attr ==# 'bg#'
+        return 'fg#'
+    endif
+    return a:attr
 endfunction
 
 function! neomake#utils#CompressWhitespace(entry) abort
@@ -529,17 +529,17 @@ endfunction
 
 " Smarter shellescape, via vim-fugitive.
 function! s:gsub(str,pat,rep) abort
-  return substitute(a:str,'\v\C'.a:pat,a:rep,'g')
+    return substitute(a:str,'\v\C'.a:pat,a:rep,'g')
 endfunction
 
 function! neomake#utils#shellescape(arg) abort
-  if a:arg =~# '^[A-Za-z0-9_/.-]\+$'
-    return a:arg
-  elseif &shell =~? 'cmd' || exists('+shellslash') && !&shellslash
-    return '"'.s:gsub(s:gsub(a:arg, '"', '""'), '\%', '"%"').'"'
-  else
-    return shellescape(a:arg)
-  endif
+    if a:arg =~# '^[A-Za-z0-9_/.-]\+$'
+        return a:arg
+    elseif &shell =~? 'cmd' || exists('+shellslash') && !&shellslash
+        return '"'.s:gsub(s:gsub(a:arg, '"', '""'), '\%', '"%"').'"'
+    else
+        return shellescape(a:arg)
+    endif
 endfunction
 
 function! neomake#utils#write_tempfile(bufnr, temp_file) abort

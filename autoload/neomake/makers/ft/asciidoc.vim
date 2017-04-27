@@ -1,13 +1,13 @@
 function! neomake#makers#ft#asciidoc#SupersetOf() abort
-  return 'text'
+    return 'text'
 endfunction
 
 function! neomake#makers#ft#asciidoc#EnabledMakers() abort
-  return ['asciidoc'] + neomake#makers#ft#text#EnabledMakers()
+    return ['asciidoc'] + neomake#makers#ft#text#EnabledMakers()
 endfunction
 
 function! neomake#makers#ft#asciidoc#asciidoc() abort
-  return {
+    return {
         \ 'errorformat':
         \   '%E%\w%\+: %tRROR: %f: line %l: %m,' .
         \   '%E%\w%\+: %tRROR: %f: %m,' .
@@ -21,5 +21,5 @@ function! neomake#makers#ft#asciidoc#asciidoc() abort
 endfunction
 
 function! neomake#makers#ft#asciidoc#asciidoctor() abort
-  return neomake#makers#ft#asciidoc#asciidoc()
+    return neomake#makers#ft#asciidoc#asciidoc()
 endfunction
