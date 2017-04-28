@@ -1,0 +1,56 @@
+Include: include/setup.vader
+
+Execute (javascript: eslint: errorformat):
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#javascript#eslint().errorformat
+  new
+  file errors.js
+  let bufnr = bufnr('%')
+
+  let output = [
+  \ "errors.js: line 2, col 10, Error - 'some_unused_var' is defined but never used. (no-unused-vars)",
+  \ '',
+  \ '1 problem',
+  \ ]
+
+  lgetexpr output
+  AssertEqual getloclist(0), [{
+    \ 'lnum': 2,
+    \ 'bufnr': bufnr,
+    \ 'col': 10,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'nr': -1,
+    \ 'type': 'E',
+    \ 'pattern': '',
+    \ 'text': "'some_unused_var' is defined but never used. (no-unused-vars)"}]
+
+  let output = [
+  \ "errors.js: line 2, col 10, Error - 'some_unused_var' is defined but never used. (no-unused-vars)",
+  \ "errors.js: line 3, col 20, Warning - Missing semicolon. (semi)",
+  \ '',
+  \ '2 problems',
+  \ ]
+
+  lgetexpr output
+  AssertEqual getloclist(0), [{
+    \ 'lnum': 2,
+    \ 'bufnr': bufnr,
+    \ 'col': 10,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'nr': -1,
+    \ 'type': 'E',
+    \ 'pattern': '',
+    \ 'text': "'some_unused_var' is defined but never used. (no-unused-vars)",
+    \ }, {
+    \ 'lnum': 3,
+    \ 'bufnr': bufnr,
+    \ 'col': 20,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'nr': -1,
+    \ 'type': 'W',
+    \ 'pattern': '',
+    \ 'text': 'Missing semicolon. (semi)'}]
+  bwipe
