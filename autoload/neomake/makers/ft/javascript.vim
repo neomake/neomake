@@ -39,11 +39,7 @@ function! neomake#makers#ft#javascript#eslint() abort
 endfunction
 
 function! neomake#makers#ft#javascript#eslint_d() abort
-    return {
-        \ 'args': ['-f', 'compact'],
-        \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
-        \ '%W%f: line %l\, col %c\, Warning - %m'
-        \ }
+    return neomake#makers#ft#javascript#eslint()
 endfunction
 
 function! neomake#makers#ft#javascript#standard() abort
