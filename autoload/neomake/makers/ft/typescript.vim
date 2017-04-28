@@ -7,7 +7,7 @@ endfunction
 function! neomake#makers#ft#typescript#tsc() abort
     " tsc should not be passed a single file.
     return {
-        \ 'args': ['--project', neomake#utils#FindGlobFile(expand('%:p:h'), 'tsconfig.json'), '--noEmit'],
+        \ 'args': ['--project', neomake#utils#FindGlobFile('tsconfig.json'), '--noEmit'],
         \ 'append_file': 0,
         \ 'errorformat':
             \ '%E%f %#(%l\,%c): error %m,' .

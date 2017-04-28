@@ -423,3 +423,36 @@ Execute (neomake#utils#fnamemodify handles empty bufname):
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ''), ''
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), ''
   bwipe
+
+Execute (neomake#utils#FindGlobFile):
+  let tempdir = tempname()
+  let slash = neomake#utils#Slash()
+  let subdir = tempdir . slash . 'sub'
+  call mkdir(subdir, 'p', 0700)
+
+  let tempfile = tempdir.slash.'temp-file'
+  call writefile([], tempfile)
+  let file_in_tempdir = tempdir.slash.'common-file'
+  call writefile([], file_in_tempdir)
+  let subfile = subdir.slash.'sub-file'
+  call writefile([], subfile)
+  let file_in_subdir = subdir.slash.'common-file'
+  call writefile([], file_in_subdir)
+
+  new
+  exe 'lcd' subdir
+  AssertEqual neomake#utils#FindGlobFile('doesnotexist'), ''
+  AssertEqual neomake#utils#FindGlobFile('sub-file'), subfile
+  AssertEqual neomake#utils#FindGlobFile('sub-file', tempdir), ''
+  AssertEqual neomake#utils#FindGlobFile('common-file'), file_in_subdir
+  AssertEqual neomake#utils#FindGlobFile('common-file', tempdir), file_in_tempdir
+
+  exe 'lcd' tempdir
+  AssertEqual neomake#utils#FindGlobFile('sub-file'), ''
+  AssertEqual neomake#utils#FindGlobFile('sub-file', subdir), subfile
+  AssertEqual neomake#utils#FindGlobFile('sub-file', tempdir), ''
+  AssertEqual neomake#utils#FindGlobFile('sub-file', tempname()), ''
+  AssertEqual neomake#utils#FindGlobFile('common-file'), file_in_tempdir
+  AssertEqual neomake#utils#FindGlobFile('common-file'), file_in_tempdir
+  AssertEqual neomake#utils#FindGlobFile('common-file', subdir), file_in_subdir
+  bwipe

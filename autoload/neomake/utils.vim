@@ -505,21 +505,20 @@ function! neomake#utils#path_sep() abort
     return neomake#utils#IsRunningWindows() ? ';' : ':'
 endfunction
 
-" Find a file by going up the directories from the start directory
-" and performing glob search for the file.
-function! neomake#utils#FindGlobFile(startDir, file) abort
-    let curDir = a:startDir
+" Find a file matching `a:glob` (using `globpath()`) by going up the
+" directories from the start directory (a:1, defaults to `expand('%:p:h')`,
+" i.e. the directory of the current buffer's file).)
+function! neomake#utils#FindGlobFile(glob, ...) abort
+    let curDir = a:0 ? a:1 : expand('%:p:h')
     let fileFound = ''
-
     while empty(fileFound)
-        let fileFound = globpath(curDir, a:file, 1)
+        let fileFound = globpath(curDir, a:glob, 1)
         let lastFolder = curDir
         let curDir = fnamemodify(curDir, ':h')
         if curDir ==# lastFolder
             break
         endif
     endwhile
-
     return fileFound
 endfunction
 
