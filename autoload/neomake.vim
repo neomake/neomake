@@ -1130,42 +1130,54 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
                 \ '%s: processing %d lines of output.',
                 \ maker.name, len(a:lines)), a:jobinfo)
 
-    if has_key(maker, 'process_output')
-        let entries = call(maker.process_output, [{
-                    \ 'output': a:lines,
-                    \ 'source': a:source,
-                    \ 'jobinfo': a:jobinfo}])
-        call s:ProcessEntries(a:jobinfo, entries)
-        return
-    endif
-
-    call s:create_locqf_list(a:jobinfo)
-
-    " Old-school handling through errorformat.
-    let prev_list = file_mode ? getloclist(0) : getqflist()
-    if has_key(maker, 'mapexpr')
-        let l:neomake_bufname = bufname(a:jobinfo.bufnr)
-        " @vimlint(EVL102, 1, l:neomake_bufdir)
-        let l:neomake_bufdir = fnamemodify(neomake_bufname, ':h')
-        " @vimlint(EVL102, 1, l:neomake_output_source)
-        let l:neomake_output_source = a:source
-        call map(a:lines, maker.mapexpr)
-    endif
-
-    let olderrformat = &errorformat
-    let &errorformat = maker.errorformat
     try
-        if file_mode
-            laddexpr a:lines
-        else
-            caddexpr a:lines
+        if has_key(maker, 'process_output')
+            let entries = call(maker.process_output, [{
+                        \ 'output': a:lines,
+                        \ 'source': a:source,
+                        \ 'jobinfo': a:jobinfo}])
+            call s:ProcessEntries(a:jobinfo, entries)
+            return
         endif
-    finally
-        let &errorformat = olderrformat
-    endtry
 
-    let entries = s:AddExprCallback(a:jobinfo, len(prev_list)-1)
-    call s:ProcessEntries(a:jobinfo, entries, prev_list)
+        " Old-school handling through errorformat.
+        if has_key(maker, 'mapexpr')
+            let l:neomake_bufname = bufname(a:jobinfo.bufnr)
+            " @vimlint(EVL102, 1, l:neomake_bufdir)
+            let l:neomake_bufdir = fnamemodify(neomake_bufname, ':h')
+            " @vimlint(EVL102, 1, l:neomake_output_source)
+            let l:neomake_output_source = a:source
+            call map(a:lines, maker.mapexpr)
+        endif
+
+        call s:create_locqf_list(a:jobinfo)
+        let prev_list = file_mode ? getloclist(0) : getqflist()
+        let olderrformat = &errorformat
+        let &errorformat = maker.errorformat
+        try
+            if file_mode
+                laddexpr a:lines
+            else
+                caddexpr a:lines
+            endif
+        finally
+            let &errorformat = olderrformat
+        endtry
+
+        let entries = s:AddExprCallback(a:jobinfo, len(prev_list)-1)
+        call s:ProcessEntries(a:jobinfo, entries, prev_list)
+    catch
+        if v:exception ==# 'NeomakeTestsException'
+            throw v:exception
+        endif
+        redraw
+        echom printf('Neomake error in: %s', v:throwpoint)
+        call neomake#utils#ErrorMessage(printf(
+                    \ 'Error during output processing for %s: %s',
+                    \ a:jobinfo.maker.name, v:exception), a:jobinfo)
+        call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), a:jobinfo)
+        return
+    endtry
 endfunction
 
 function! neomake#ProcessCurrentWindow() abort

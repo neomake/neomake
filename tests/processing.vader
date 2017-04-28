@@ -323,3 +323,76 @@ Execute (Mixed newlines get handled correctly):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(copy(getqflist()), 'v:val.text'),
   \ ['line1', 'line2', 'line3']
+
+Execute (Exception in process_output gets logged as error):
+  if NeomakeAsyncTestsSetup()
+    function! Neomake_test_maker_process_output(context) abort
+      throw "TEST_ERROR"
+    endfunction
+
+    let maker = {
+    \ 'exe': 'printf',
+    \ 'args': ['foo'],
+    \ 'append_file': 0,
+    \ 'process_output': function('Neomake_test_maker_process_output')}
+
+    let jobinfo = neomake#GetJob(neomake#Make(1, [maker])[0])
+    let make_id = neomake#GetStatus().last_make_id
+
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.'
+    AssertNeomakeMessage 'Error during output processing for unnamed_maker: TEST_ERROR', 0, jobinfo
+  endif
+
+Execute (Already running job gets restarted in case of exception):
+  if NeomakeAsyncTestsSetup()
+    Save g:neomake_test_counter
+    let g:neomake_test_counter = 0
+    function! Neomake_test_maker_process_output(context) abort
+      let g:neomake_test_counter += 1
+      if g:neomake_test_counter == 1
+        throw 'NeomakeTestsException'
+      endif
+      return []
+    endfunction
+
+    let maker = {
+    \ 'exe': 'printf',
+    \ 'args': ['foo'],
+    \ 'append_file': 0,
+    \ 'process_output': function('Neomake_test_maker_process_output')}
+
+    let jobinfo = neomake#GetJob(neomake#Make(1, [maker])[0])
+    let make_id = neomake#GetStatus().last_make_id
+
+    AssertThrows NeomakeTestsWaitForFinishedJobs
+    AssertEqual g:vader_exception, 'NeomakeTestsException'
+    AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.'
+
+    AssertEqual len(neomake#GetJobs()), 1, 'the job has not been clean because of the exception'
+
+    " Restart, which should work directly.
+    call neomake#Make(1, [maker])
+
+    AssertNeomakeMessage printf('Restarting already running job (%d.%d) for the same maker.',
+    \ make_id, jobinfo.id), 2, {'make_id': make_id+1}
+
+    if has('nvim')
+      AssertNeomakeMessage 'jobstop failed: Vim(call):E900: Invalid job id', 2, jobinfo
+    else
+      try
+        AssertNeomakeMessage 'job_stop: job was not running anymore', 2, jobinfo
+      catch
+        " Happens at least on Vim 8.0.69.
+        if !has('patch-8.0.70')
+          throw v:exception.' (might be a flaky test)'
+        endif
+      endtry
+    endif
+
+    AssertNeomakeMessage "Starting async job: ['printf', 'foo']"
+
+    " Needs careful cleanup after exception.
+    NeomakeTestsWaitForMessage 'Cleaning jobinfo'
+    NeomakeCancelJobs!
+  endif
