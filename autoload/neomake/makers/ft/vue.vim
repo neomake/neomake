@@ -15,13 +15,13 @@ function! neomake#makers#ft#vue#eslint_d() abort
 endfunction
 
 function! neomake#makers#ft#vue#standard() abort
-    let maker = neomake#makers#ft#vue#standard()
+    let maker = neomake#makers#ft#javascript#standard()
     call extend(maker.args, ['--plugin', 'html'])
     return maker
 endfunction
 
 function! neomake#makers#ft#vue#semistandard() abort
-    let maker = neomake#makers#ft#vue#semistandard()
+    let maker = neomake#makers#ft#javascript#semistandard()
     call extend(maker.args, ['--plugin', 'html'])
     return maker
 endfunction
