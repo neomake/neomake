@@ -157,6 +157,23 @@ Execute (neomake#utils#GetSetting without name):
   let g:neomake_myft_setting = {'custom': 1}
   AssertEqual GetSetting('setting'), {'custom': 1}
 
+Execute (neomake#utils#GetSetting with new-style config):
+  Save g:neomake
+  new
+  set ft=neomake_tests
+
+  let b:neomake_neomake_tests_foo = 'bar'
+  let maker = {'foo': 'baz'}
+  AssertEqual neomake#utils#GetSetting(
+  \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), 'bar'
+
+  " New-style global setting overrides old-style buffer setting?!
+  call neomake#config#set('ft.neomake_tests.foo', 'new_bar')
+  AssertEqual neomake#utils#GetSetting(
+  \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), 'new_bar'
+
+  bwipe
+
 Execute(neomake#utils#redir):
   command! NeomakeTestCommand echo 1 | echo 2
   command! NeomakeTestErrorCommand echoerr 'error'

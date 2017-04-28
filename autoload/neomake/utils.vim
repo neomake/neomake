@@ -320,6 +320,17 @@ let s:unset = {}  " Sentinel.
 " Get a setting by key, based on filetypes, from the buffer or global
 " namespace, defaulting to default.
 function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
+    " Check new-style config.
+    " Add maker and bufnr to context only if g:neomake or b:neomake exist.
+    let context = {'ft': a:ft}
+    if exists('g:neomake') || !empty(getbufvar(a:bufnr, 'neomake'))
+        call extend(context, {'maker': a:maker, 'bufnr': a:bufnr})
+    endif
+    let Ret = neomake#config#get(a:key, g:neomake#config#undefined, context)
+    if Ret isnot g:neomake#config#undefined
+        return Ret
+    endif
+
     let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
     if !empty(a:ft)
         let fts = neomake#utils#get_config_fts(a:ft) + ['']

@@ -5,6 +5,7 @@
 ~ Features
 Include (Completion): completion.vader
 Include (Compat): compat.vader
+Include (Config): config.vader
 Include (Current working dir): cwd.vader
 Include (Environment variables): env.vader
 Include (Error handling): errors.vader
