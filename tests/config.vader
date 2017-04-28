@@ -96,7 +96,6 @@ Execute (neomake#config#set with b: prefix):
 
 Execute (neomake#config#get handles Funcref variables):
   new
-
   function! NeomakeTestsF()
   endfunction
   let Funcref = function('NeomakeTestsF')
@@ -104,7 +103,6 @@ Execute (neomake#config#get handles Funcref variables):
   call neomake#config#set('b:function', Funcref)
   AssertEqual neomake#config#get('b:function'), Funcref
   AssertEqual neomake#config#get_with_source('b:function'), [Funcref, 'buffer']
-
   bwipe
 
 Execute (neomake#config#{un,}set_dict):
