@@ -4,8 +4,9 @@ if !exists('g:neomake_test_messages')
 endif
 
 function! neomake#makers#ft#neomake_tests#EnabledMakers() abort
-    return get(g:, 'neomake_test_enabledmakers',
-                \ ['maker_without_exe', 'nonexisting'])
+    return get(b:, 'neomake_test_enabledmakers',
+                \ get(g:, 'neomake_test_enabledmakers',
+                \ ['maker_without_exe', 'nonexisting']))
 endfunction
 
 function! neomake#makers#ft#neomake_tests#maker_without_exe() abort
