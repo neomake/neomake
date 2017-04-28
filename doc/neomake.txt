@@ -271,17 +271,17 @@ multiline output this will likely cause issues (depending on how the maker
 flushes its output).
 
                                        *neomake-makers-remove_invalid_entries*
-Makers can be configured to filter invalid entries from the location/quickfix
+Default: 0
+This option filters invalid entries from makers from the location/quickfix
 list (i.e. entries that do not match the |'errorformat'|, and that would show
 up with a `||` prefix in the location/quickfix list): >
     let g:neomake_ft_maker_remove_invalid_entries = 1
 <
-NOTE: the default for this used to be 1, but it was changed because it is
-usually better to see unhandled output in case something is not working as
-expected, e.g. when the program displays some error.
+NOTE: the default for this is 0, because unhandled/unexpected output might be
+useful, e.g. when the program displays some error.
 Makers should handle this properly through |errorformat|, e.g. by using '%-G'
-(see |efm-ignore|).  You can specify the default for this via
-|g:neomake_remove_invalid_entries|.
+(see |efm-ignore| and |neomake-faq-errorformat|).
+You can specify the default for this via |g:neomake_remove_invalid_entries|.
 
                                                           *neomake-makers-cwd*
 The working directory of a maker defaults to the current working directory
@@ -690,16 +690,15 @@ using this option: >
 
 See |g:neomake_<ft>_enabled_makers| (press `<C-]>` on the link to go there).
 
+                                                     *neomake-faq-errorformat*
 6.3 How to develop/debug the errorformat setting?~
 
-Here are some tips to develop the 'errorformat' setting for makers:
+Here are some tips to develop the |'errorformat'| setting for makers:
 
 1. Get the output from the linter into a buffer (see also |:read!|).
 2. Set the errorformat, e.g. `:let &efm = '%E%f:%l:%c\,%n: %m,%Z%m`.
 3. Load the buffer into the quickfix list: `:cgetbuffer`.
 4. Use `:echo getqflist()` to display the raw data.
-5. Pay attention to the "`valid`" property of entries.  Invalid entries are
-   currently removed by default in Neomake, but that is supposed to change
-   likely: it is better to ignore them through the |'errorformat'| already.
+5. Pay attention to the "`valid`" property of entries.
 
 vim: ft=help tw=78 isk+=<,>,\:,-,'
