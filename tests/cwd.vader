@@ -44,10 +44,10 @@ Execute (tcd is handled properly):
       NeomakeTestsWaitForRemovedJobs
     finally
       if exists('tab2')
-        exe 'tabclose' tab2
+        bwipe
       endif
       if exists('tab1')
-        exe 'tabclose' tab1
+        bwipe
       endif
     endtry
   endif
@@ -91,6 +91,7 @@ Execute (cwd handles fugitive buffer):
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
   \ expected_cwd, tempfile_name]
   bwipe
+  bwipe autoload/neomake/debug.vim
 
 Execute (cwd gets expanded correctly: relative and in another buffer):
   if NeomakeAsyncTestsSetup()

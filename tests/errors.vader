@@ -9,7 +9,7 @@ Execute (Error with no filename):
   Neomake
   let make_id = neomake#GetStatus().last_make_id
   AssertNeomakeMessage 'no file name.', 0, {'make_id': make_id}
-  bd!
+  bwipe
 
 Execute (Error with non-existing filename):
   new
@@ -20,7 +20,7 @@ Execute (Error with non-existing filename):
 
   let fname = fnamemodify(bufname('%'), ':p')
   Neomake
-  bd!
+  bwipe!
   let make_id = neomake#GetStatus().last_make_id
   AssertNeomakeMessage 'file is not readable ('.fname.')', 0, {'make_id': make_id}
 
@@ -51,4 +51,4 @@ Execute (Error with non-existing filename for 2nd maker):
   AssertNeomakeMessage 'file is not readable ('.fname.')', 0, {'make_id': make_id}
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_jobfinished), 2
-  bd!
+  bwipe!

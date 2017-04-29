@@ -72,7 +72,7 @@ Execute (AddExprCallback with changed windows inbetween):
       \ loclist_texts + ['1b SUFFIX:1']
     wincmd k
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['2 SUFFIX:1']
-    q
+    bwipe
     AssertNeomakeMessage "Modified list entry (postprocess): text: '2' => '2 SUFFIX:1'."
 
     delfunction Postprocess

@@ -439,6 +439,7 @@ Execute (neomake#utils#fnamemodify handles fugitive buffer):
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), fnamemodify(bufname, ':p')
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname, ':p:h')
   bwipe
+  bwipe autoload/neomake/debug.vim
 
 Execute (neomake#utils#fnamemodify handles empty bufname):
   new
