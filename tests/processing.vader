@@ -44,15 +44,20 @@ Execute (Output is only processed in normal/insert mode (qflist)):
     NeomakeTestsWaitForRemovedJobs
     call neomake#signs#ResetProject()
     call neomake#signs#CleanAllOldSigns('project')
-    bwipe!
+    bwipe
+
+    " Work around https://github.com/vim/vim/issues/1676 for next test(s).
+    cgetexpr 'bust_cache:1:E:workaround_vim_issue'
+    bwipe bust_cache
   endif
 
 Execute (Output is only processed in normal/insert mode (from loclist)):
   if NeomakeAsyncTestsSetup()
+    new
     call neomake#Make(1, [g:sleep_efm_maker])
     lopen
     AssertEqual &buftype, 'quickfix'
-    AssertEqual winnr(), 2
+    AssertEqual winnr(), 3
     AssertEqual line('$'), 1
     norm! V
     NeomakeTestsWaitForFinishedJobs
@@ -66,7 +71,13 @@ Execute (Output is only processed in normal/insert mode (from loclist)):
     wincmd p
     AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+
+    " NOTE: needs cache busting above ("bust_cache").
+    let ll_bufnr = bufnr('file_sleep_efm')
+    AssertEqual map(copy(getloclist(0)), 'v:val.bufnr'), [ll_bufnr, ll_bufnr, ll_bufnr]
     lclose
+    bwipe
+    bwipe file_sleep_efm
   endif
 
 Execute (Output gets not processed from loclist):
@@ -229,6 +240,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
     AssertEqual len(g:neomake_test_finished), 2
     AssertEqual len(g:neomake_test_jobfinished), 2
     bwipe
+    bwipe b2
   endif
 
 Execute (Pending output with restarted job when not in normal/insert mode (quickfix)):
@@ -264,6 +276,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
     AssertEqual len(g:neomake_test_finished), 2
     AssertEqual len(g:neomake_test_jobfinished), 2
     bwipe
+    bwipe b2
   endif
 
 Execute (Handle finished job that got canceled (#1158)):

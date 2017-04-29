@@ -14,6 +14,8 @@ Execute (php):
   AssertEqual loclist[0].type, 'E'
   AssertEqual loclist[0].text, 'Call to undefined function hello()'
 
+  bwipe /app/src/hello.php
+
 Execute (phpcs):
   let phpcs_output =
   \"\"/app/src/TaskService.php\",28,6,error,\"Missing @return tag in functioncomment\",PEAR.Commenting.FunctionComment.MissingReturn,5,0\n
@@ -34,6 +36,8 @@ Execute (phpcs):
   AssertEqual loclist[1].text, 'Missing short description in doc comment'
   AssertEqual loclist[1].type, 'e'
 
+  bwipe /app/src/TaskService.php
+
 Execute (phpmd):
   let phpmd_output =
   \"/app/src/AppBundle/Controller/DefaultController.php:16     Avoid unused parameters such as '$request'.\n
@@ -51,3 +55,5 @@ Execute (phpmd):
   AssertEqual loclist[1].lnum, 48
   AssertEqual loclist[1].text, "Avoid variables with short names like $id. Configured minimumlength is 3."
   AssertEqual loclist[1].type, 'W'
+
+  bwipe /app/src/AppBundle/Controller/DefaultController.php

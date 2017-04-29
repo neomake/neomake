@@ -14,3 +14,4 @@ Execute (perl: errorformat):
   let syntax_ok = "/home/test/test.pl syntax OK"
   lgetexpr syntax_ok
   AssertEqual getloclist(0), []
+  bwipe /home/test/test.pl
