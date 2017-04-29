@@ -300,6 +300,18 @@ Before:
     return {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': '', 'make_id': -42}
   endfunction
 
+  function! s:monkeypatch_highlights() abort
+    " Monkeypatch to check setting of length.
+    runtime autoload/neomake/highlights.vim
+    Save g:neomake_tests_highlight_lengths
+    let g:neomake_tests_highlight_lengths = []
+    function! neomake#highlights#AddHighlight(entry, type) abort
+      call add(g:neomake_tests_highlight_lengths,
+      \ [get(a:entry, 'lnum', -1), get(a:entry, 'length', -1)])
+    endfunction
+  endfunction
+  command! NeomakeTestsMonkeypatchHighlights call s:monkeypatch_highlights()
+
   " Fixtures
   let g:sleep_efm_maker = {
       \ 'name': 'sleep_efm_maker',
@@ -340,6 +352,11 @@ Before:
   endfunction
 
   function! s:After()
+    if exists('g:neomake_tests_highlight_lengths')
+      " Undo monkeypatch.
+      runtime autoload/neomake/highlights.vim
+    endif
+
     Restore
     unlet! g:expected  " for old Vim with Vader, that does not wrap tests in a function.
 
