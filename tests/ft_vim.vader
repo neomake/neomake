@@ -36,13 +36,7 @@ Execute (Vint: generic postprocessing for highlights):
   bwipe!
 
 Execute (vimlint: length postprocessing):
-  " Monkeypatch to check setting of length.
-  runtime autoload/neomake/highlights.vim
-  Save g:lengths
-  let g:lengths = []
-  function! neomake#highlights#AddHighlight(entry, type) abort
-    call add(g:lengths, [a:entry.lnum, a:entry.length])
-  endfunction
+  NeomakeTestsMonkeypatchHighlights
 
   new
   edit tests/fixtures/vim/func-with-errors.vim
@@ -77,8 +71,6 @@ Execute (vimlint: length postprocessing):
     \ 'text': 'variable may not be initialized on some execution path: `l:foo`',
     \ }], getloclist(0)
 
-  AssertEqual [[2, 11], [5, 3]], g:lengths
+  AssertEqual [[2, 11], [5, 3]], g:neomake_tests_highlight_lengths
 
   bwipe
-  " Undo monkeypatch.
-  runtime autoload/neomake/highlights.vim

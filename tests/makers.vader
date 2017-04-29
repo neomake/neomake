@@ -329,6 +329,8 @@ Execute (Makers: get_list_entries via config):
   bwipe
 
 Execute (get_list_entries: minimal example (from doc)):
+  NeomakeTestsMonkeypatchHighlights
+
   new
   call g:NeomakeSetupAutocmdWrappers()
   let buf1 = bufnr('%')
@@ -343,10 +345,9 @@ Execute (get_list_entries: minimal example (from doc)):
       \ ]
   endfunction
   call neomake#Make(1, [maker])
+
   " .length was transformed into a highlight.
-  if !has('nvim')
-    AssertEqual neomake#highlights#_get()['file'][buf1]['NeomakeWarning'], [[2, 1, 5]]
-  endif
+  AssertEqual [[1, -1], [2, 5]], g:neomake_tests_highlight_lengths
 
   AssertEqual getloclist(0), [
   \ {'lnum': 1, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
