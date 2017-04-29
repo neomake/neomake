@@ -40,12 +40,7 @@ Execute (cargo error without span):
   bwipe
 
 Execute (cargo error message):
-  " Monkeypatch to check setting of length.
-  Save g:lengths
-  let g:lengths = []
-  function! neomake#highlights#AddHighlight(entry, type) abort
-      call add(g:lengths, a:entry.length)
-  endfunction
+  NeomakeTestsMonkeypatchHighlights
 
   new
   file src/lib.rs
@@ -88,19 +83,13 @@ Execute (cargo error message):
     \ 'text': 'found type `&proc_macro::TokenStream`'
     \ }], getloclist(0)
 
-  AssertEqual [2, 40, 40], g:lengths
+  " TODO: should not call it for the same highlight twice?!
+  AssertEqual [[19, 2], [25, 40], [25, 40]], g:neomake_tests_highlight_lengths
 
   bwipe
-  " Undo monkeypatch.
-  runtime autoload/neomake/highlights.vim
 
 Execute (cargo warning message):
-  " Monkeypatch to check setting of length.
-  Save g:lengths
-  let g:lengths = []
-  function! neomake#highlights#AddHighlight(entry, type) abort
-      call add(g:lengths, a:entry.length)
-  endfunction
+  NeomakeTestsMonkeypatchHighlights
 
   new
   file src/add_assign_like.rs
@@ -122,18 +111,11 @@ Execute (cargo warning message):
     \ 'pattern': '',
     \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}], getloclist(0)
 
-  AssertEqual [7], g:lengths
+  AssertEqual [[2, 7]], g:neomake_tests_highlight_lengths
   bwipe
-  " Undo monkeypatch.
-  runtime autoload/neomake/highlights.vim
 
 Execute (cargo error message children):
-  " Monkeypatch to check setting of length.
-  Save g:lengths
-  let g:lengths = []
-  function! neomake#highlights#AddHighlight(entry, type) abort
-      call add(g:lengths, a:entry.length)
-  endfunction
+  NeomakeTestsMonkeypatchHighlights
 
   new
   file tests/from.rs
@@ -155,8 +137,6 @@ Execute (cargo error message children):
     \ 'pattern': '',
     \ 'text': 'custom derive attribute panicked. message: Only structs and enums can derive From'}], getloclist(0)
 
-  AssertEqual [4], g:lengths
+  AssertEqual [[11, 4]], g:neomake_tests_highlight_lengths
 
   bwipe
-  " Undo monkeypatch.
-  runtime autoload/neomake/highlights.vim

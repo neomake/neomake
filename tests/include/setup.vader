@@ -353,7 +353,6 @@ Before:
 
   function! s:After()
     if exists('g:neomake_tests_highlight_lengths')
-      Log "undo"
       " Undo monkeypatch.
       runtime autoload/neomake/highlights.vim
     endif
