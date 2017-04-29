@@ -91,14 +91,14 @@ location/quickfix list: >
     let maker = {'name': 'My maker'}
     function! maker.get_list_entries(jobinfo) abort
       return [
-        \ {'text': 'Some error', 'lnum': 1, 'bufnr': bufnr('%')},
+        \ {'text': 'Some error', 'lnum': 1, 'bufnr': a:jobinfo.bufnr},
         \ {'text': 'Some warning', 'type': 'W', 'lnum': 2, 'col': 1,
-        \  'length': 5},
+        \  'length': 5, 'filename': '/path/to/file'},
         \ ]
     endfunction
 <
-The required keys for entries are `text` and `lnum`.  `bufnr` defaults to the
-jobs's buffer.
+The required keys for entries are `text` and `lnum`, and you should set one of
+`bufnr` or `filename` (otherwise the entry will not be valid).
 The `length` entry in the example is internal to Neomake, and sets the length
 for an highlight (see |neomake-highlight|).
 

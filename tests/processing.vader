@@ -309,6 +309,7 @@ Execute (100 lines of output should not get processed one by one):
   NeomakeTestsWaitForFinishedJobs
   let c = g:neomake_test_countschanged
   Assert len(c) < 50, 'There were 50+ count changes: '.len(c)
+  AssertNeomakeMessage '\v^Skipped \d+ entries without bufnr\.'
 
 Execute (Mixed newlines get handled correctly):
   let maker = {

@@ -222,7 +222,8 @@ Execute (neomake#signs#PlaceSigns with E and I):
 
 Execute (Signs get handled across multiple jobs):
   function! NeomakeTestsEntries(jobinfo) abort dict
-    return g:neomake_test_entries[self._idx]
+    return map(copy(g:neomake_test_entries[self._idx]),
+    \ "extend(v:val, {'bufnr': bufnr('%')}, 'keep')")
   endfunction
 
   let maker1 = {'get_list_entries': function('NeomakeTestsEntries'),
