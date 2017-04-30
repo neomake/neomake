@@ -147,7 +147,7 @@ Execute (NeomakeSh: non-existing command):
 
 Execute (NeomakeSh!: handle unfinished output on exit):
   call g:NeomakeSetupAutocmdWrappers()
-  NeomakeSh! sh -c 'echo 1; printf 2; sleep 0.1; echo -n 3'
+  NeomakeSh! sh -c 'echo 1; printf 2; sleep 0.01; echo -n 3'
   if neomake#has_async_support()
     for i in range(0, 10)
       if len(g:neomake_test_countschanged) == 1
@@ -155,7 +155,7 @@ Execute (NeomakeSh!: handle unfinished output on exit):
         \ "only the first line should be there (buffer_output=0)"
         break
       endif
-      sleep 50m
+      sleep 5m
     endfor
     AssertNotEqual i, 10, "counts should have changed after 500ms"
     NeomakeTestsWaitForFinishedJobs
@@ -166,7 +166,7 @@ Execute (NeomakeSh!: handle unfinished output on exit):
 
 Execute (NeomakeSh: buffers output):
   call g:NeomakeSetupAutocmdWrappers()
-  NeomakeSh sh -c 'echo 1; printf 2; sleep 0.1; echo -n 3'
+  NeomakeSh sh -c 'echo 1; printf 2; sleep 0.01; echo -n 3'
   if neomake#has_async_support()
     for i in range(0, 10)
       if len(g:neomake_test_countschanged)
@@ -185,7 +185,7 @@ Execute (NeomakeSh: project: handle removed window on exit (quit)):
   call g:NeomakeSetupAutocmdWrappers()
   new
   let bufnr = bufnr('%')
-  NeomakeSh sh -c 'sleep 0.1; echo finished'
+  NeomakeSh sh -c 'sleep 0.01; echo finished'
   let make_id = neomake#GetStatus().last_make_id
   quit
   if neomake#has_async_support()
@@ -200,7 +200,7 @@ Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
   call g:NeomakeSetupAutocmdWrappers()
   new
   let bufnr = bufnr('%')
-  NeomakeSh sh -c 'sleep 0.1; echo finished'
+  NeomakeSh sh -c 'sleep 0.01; echo finished'
   let make_id = neomake#GetStatus().last_make_id
   bwipe
   Assert bufnr != bufnr('%'), 'buffer has been wiped'
@@ -619,7 +619,7 @@ Execute (Location list should be cleared only after first output):
   lgetexpr 'init'
 
   let maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
-  let maker_sleep = NeomakeTestsCommandMaker('sleep-maker', 'sleep .1; echo slept')
+  let maker_sleep = NeomakeTestsCommandMaker('sleep-maker', 'sleep .01; echo slept')
 
   call neomake#Make(1, [maker_success, maker_sleep])
 

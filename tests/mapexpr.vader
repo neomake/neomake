@@ -26,7 +26,7 @@ Execute (mapexpr: file mode vars):
 
 Execute (mapexpr: file mode vars with cd):
   if NeomakeAsyncTestsSetup()
-    let maker = neomake#utils#MakerFromCommand('sleep 0.1; echo on_stdout')
+    let maker = neomake#utils#MakerFromCommand('sleep 0.01; echo on_stdout')
     new
     edit tests/fixtures/errors.sh
     let maker.mapexpr = "printf('%s (%s): %s', neomake_bufname, neomake_bufdir, v:val)"

@@ -4,7 +4,7 @@ Execute (tcd is handled properly):
   if exists(':tcd') != 2
     NeomakeTestsSkip 'no :tcd'
   else
-    let maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05')
+    let maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .01')
     for d in ['build/path1', 'build/path2']
       if !isdirectory(d)
         call mkdir(d, 'p')

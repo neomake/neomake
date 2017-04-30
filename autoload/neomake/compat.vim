@@ -91,3 +91,14 @@ else
         return l:result
     endfunction
 endif
+
+if exists('*reltimefloat')
+    function! neomake#compat#reltimefloat() abort
+        return reltimefloat(reltime())
+    endfunction
+else
+    function! neomake#compat#reltimefloat() abort
+        let t = split(reltimestr(reltime()), '\V.')
+        return str2float(t[0] . '.' . t[1])
+    endfunction
+endif

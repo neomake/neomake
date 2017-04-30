@@ -5,3 +5,9 @@ Execute (neomake#compat#uniq):
   AssertEqual neomake#compat#uniq([1, 2]), [1, 2]
   AssertEqual neomake#compat#uniq([1, 2, 1]), [1, 2, 1]
   AssertEqual neomake#compat#uniq([1, 1, 2]), [1, 2]
+
+Execute (neomake#compat#reltimefloat):
+  let r = neomake#compat#reltimefloat()
+  AssertEqual type(r), type(0.0)
+  let r2 = neomake#compat#reltimefloat()
+  Assert r2 > r, '2nd result is bigger'
