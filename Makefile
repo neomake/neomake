@@ -2,15 +2,14 @@
 CDPATH:=
 SHELL:=/bin/bash -o pipefail
 
-
 IS_NEOVIM=$(findstring nvim,$(TEST_VIM))$(findstring neovim,$(TEST_VIM))
 # Run testnvim and testvim by default, and only one if TEST_VIM is given.
 test: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim,testvim),testnvim testvim)
 
 VADER:=Vader!
-VADER_OPTIONS?=
-VADER_ARGS=tests/neomake.vader $(VADER_OPTIONS)
-VIM_ARGS='+$(VADER) $(VADER_ARGS)'
+VADER_OPTIONS:=
+VADER_ARGS=tests/neomake.vader
+VIM_ARGS='+$(VADER) $(VADER_ARGS) $(VADER_OPTIONS)'
 
 DEFAULT_VADER_DIR:=tests/vim/plugins/vader
 export TESTS_VADER_DIR:=$(firstword $(realpath $(wildcard tests/vim/plugins/vader.override)) $(DEFAULT_VADER_DIR))
@@ -29,10 +28,17 @@ TEST_VIMRC:=tests/vim/vimrc
 # This is expected in tests.
 TEST_VIM_PREFIX:=SHELL=/bin/bash
 
-testx: export VADER_OPTIONS=-x
+testwatch: override export VADER_OPTIONS+=-q
+testwatch:
+	contrib/run-tests-watch
+
+testwatchx: override export VADER_OPTIONS+=-x
+testwatchx: testwatch
+
+testx: VADER_OPTIONS=-x
 testx: test
 
-testnvimx: export VADER_OPTIONS=-x
+testnvimx: VADER_OPTIONS=-x
 testnvimx: testnvim
 
 # Neovim might quit after ~5s with stdin being closed.  Use --headless mode to
@@ -88,15 +94,15 @@ runvim: testvim_interactive
 runnvim: VIM_ARGS:=
 runnvim: testnvim_interactive
 
-TEST_TARGET:=test
-
 # Add targets for .vader files, absolute and relative.
 # This can be used with `b:dispatch = ':Make %'` in Vim.
 TESTS:=$(wildcard tests/*.vader tests/*/*.vader)
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 _TESTS_REL_AND_ABS:=$(call uniq,$(abspath $(TESTS)) $(TESTS))
+# Use nvim if it is installed, otherwise vim.
+FILE_TEST_TARGET=$(shell command -v nvim >/dev/null && echo testnvim || echo testvim)
 $(_TESTS_REL_AND_ABS):
-	make $(TEST_TARGET) VADER_ARGS='$@ $(VADER_OPTIONS)'
+	make $(FILE_TEST_TARGET) VADER_ARGS='$@'
 .PHONY: $(_TESTS_REL_AND_ABS)
 
 tags:
