@@ -28,11 +28,12 @@ TEST_VIMRC:=tests/vim/vimrc
 # This is expected in tests.
 TEST_VIM_PREFIX:=SHELL=/bin/bash
 
+testwatch: override export VADER_OPTIONS+=-q
 testwatch:
 	contrib/run-tests-watch
 
-testwatchx:
-	VADER_OPTIONS=-x contrib/run-tests-watch
+testwatchx: override export VADER_OPTIONS+=-x
+testwatchx: testwatch
 
 testx: VADER_OPTIONS=-x
 testx: test
