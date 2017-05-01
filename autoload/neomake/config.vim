@@ -57,8 +57,9 @@ function! neomake#config#get(name, ...) abort
             if R isnot# g:neomake#config#undefined
                 return R
             endif
+            unlet R  " for Vim without patch-7.4.1546
         endif
-        unlet! lookup R  " old vim
+        unlet lookup  " for Vim without patch-7.4.1546
     endfor
     return Default
 endfunction
@@ -92,8 +93,9 @@ function! neomake#config#get_with_source(name, ...) abort
             if R isnot# g:neomake#config#undefined
                 return [R, source]
             endif
+            unlet R  " for Vim without patch-7.4.1546
         endif
-        unlet! lookup R  " old vim
+        unlet lookup  " for Vim without patch-7.4.1546
     endfor
     return [Default, 'default']
 endfunction
@@ -121,8 +123,8 @@ endfunction
 function! neomake#config#set_buffer(bufnr, name, value) abort
     let bufnr = +a:bufnr
     let bneomake = getbufvar(bufnr, 'neomake')
-    if bneomake is# ''
-        unlet bneomake  " old vim
+    if bneomake ==# ''
+        unlet bneomake  " for Vim without patch-7.4.1546
         let bneomake = {}
         call setbufvar(bufnr, 'neomake', bneomake)
     endif

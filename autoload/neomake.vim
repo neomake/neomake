@@ -539,7 +539,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             \ })
         for [key, default] in items(defaults)
             let maker[key] = neomake#utils#GetSetting(key, maker, default, ft, bufnr)
-            unlet! default  " workaround for old Vim (7.3.429)
+            unlet default  " for Vim without patch-7.4.1546
         endfor
     endif
     return maker
