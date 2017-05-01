@@ -423,7 +423,7 @@ Execute (neomake#utils#get_config_fts):
 Execute (neomake#utils#fnamemodify handles fugitive buffer):
   NeomakeTestsLoadPlugin 'fugitive'
   new
-  edit autoload/neomake.vim
+  edit autoload/neomake/debug.vim
   let bufname = bufname('%')
   Gedit
   AssertNotEqual bufname, bufname('%')

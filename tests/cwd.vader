@@ -66,7 +66,7 @@ Execute (cwd handles fugitive buffer):
   let maker.errorformat = '%m'
   let maker.append_file = 1
   new
-  edit autoload/neomake.vim
+  edit autoload/neomake/debug.vim
   let expected_cwd = fnamemodify(bufname('%'), ':p:h')
   Gedit
   Assert bufname('%') =~# '^fugitive://', bufname('%')
