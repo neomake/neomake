@@ -183,6 +183,10 @@ docker_vimhelplint:
 	$(MAKE) docker_make "DOCKER_MAKE_TARGET=vimhelplint \
 	  VIMHELPLINT_VIM=/vim-build/bin/vim-master"
 
+GET_DOCKER_VIMS=$(shell docker run --rm $(DOCKER_IMAGE) ls /vim-build/bin | grep vim | sort | paste -s -d\ )
+docker_list_vims:
+	@echo $(GET_DOCKER_VIMS)
+
 check:
 	@:; ret=0; \
 	echo '== Checking that all tests are included'; \
@@ -202,7 +206,7 @@ check:
 	  (( ret+=4 )); \
 	fi; \
 	echo '== Checking for DOCKER_VIMS to be in sync'; \
-	vims=$$(docker run --rm $(DOCKER_IMAGE) ls /vim-build/bin | grep vim | sort | paste -s -d\ ); \
+	vims="$(GET_DOCKER_VIMS)"; \
 	docker_vims=$$(printf '%s\n' $(DOCKER_VIMS) | sort | paste -s -d\ ); \
 	if ! [ "$$vims" = "$$docker_vims" ]; then \
 	  echo "DOCKER_VIMS is out of sync with Vims in image."; \
