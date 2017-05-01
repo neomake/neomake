@@ -9,25 +9,14 @@ let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 " (https://github.com/neovim/neovim/pull/6427).
 let s:logfile_writefile_opts = has('patch-7.4.503') ? 'aS' : ''
 
-if exists('*reltimefloat')
-    function! s:reltimefloat() abort
-        return reltimefloat(reltime())
-    endfunction
-else
-    function! s:reltimefloat() abort
-        let t = split(reltimestr(reltime()), '\V.')
-        return str2float(t[0] . '.' . t[1])
-    endfunction
-endif
-
 function! s:reltime_lastmsg() abort
     if exists('s:last_msg_ts')
-        let cur = s:reltimefloat()
+        let cur = neomake#compat#reltimefloat()
         let diff = (cur - s:last_msg_ts)
     else
         let diff = 0
     endif
-    let s:last_msg_ts = s:reltimefloat()
+    let s:last_msg_ts = neomake#compat#reltimefloat()
 
     if diff < 0.01
         return '     '
