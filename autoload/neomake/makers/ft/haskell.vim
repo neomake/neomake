@@ -74,7 +74,7 @@ function! neomake#makers#ft#haskell#hdevtools() abort
         let s:uses_cabal = 0
         if executable('stack')
             let rootdir = systemlist('stack --verbosity silent path --project-root')[0]
-            if empty(glob(rootdir . '/*.cabal'))
+            if !empty(glob(rootdir . '/*.cabal'))
                 let s:uses_cabal = 1
             endif
         endif
