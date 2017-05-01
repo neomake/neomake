@@ -102,3 +102,35 @@ else
         return str2float(t[0] . '.' . t[1])
     endfunction
 endif
+
+" Wrapper around systemlist() that supports a list for a:cmd.
+" It returns an empty string on error.
+" NOTE: Neovim before 0.2.0 would throw an error (which is caught), but it
+" does not set v:shell_error!
+function! neomake#compat#systemlist(cmd) abort
+    if empty(a:cmd)
+        return []
+    endif
+    if has('nvim') && exists('*systemlist')
+        " @vimlint(EVL108, 1)
+        if !has('nvim-0.2.0')
+            try
+                return systemlist(a:cmd)
+            catch /^Vim\%((\a\+)\)\=:E902/
+                return ''
+            endtry
+        endif
+        " @vimlint(EVL108, 0)
+        return systemlist(a:cmd)
+    endif
+
+    if type(a:cmd) == type([])
+        let cmd = join(map(a:cmd, 'neomake#utils#shellescape(v:val)'))
+    else
+        let cmd = a:cmd
+    endif
+    if exists('*systemlist')
+        return systemlist(cmd)
+    endif
+    return split(system(cmd), '\n')
+endfunction
