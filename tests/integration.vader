@@ -157,7 +157,7 @@ Execute (NeomakeSh!: handle unfinished output on exit):
       endif
       sleep 5m
     endfor
-    AssertNotEqual i, 10, "counts should have changed after 500ms"
+    AssertNotEqual i, 10, "counts should have changed after 50ms"
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual len(g:neomake_test_finished), 1
@@ -172,9 +172,9 @@ Execute (NeomakeSh: buffers output):
       if len(g:neomake_test_countschanged)
         break
       endif
-      sleep 50m
+      sleep 5m
     endfor
-    AssertNotEqual i, 10, "counts should have changed after 500ms"
+    AssertNotEqual i, 10, "counts should have changed after 50ms"
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual len(g:neomake_test_finished), 1
