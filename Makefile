@@ -201,7 +201,7 @@ check:
 	  (( ret+=2 )); \
 	fi; \
 	echo '== Checking for absent :Log calls'; \
-	if grep '^\s*Log\b' $(shell git ls-files tests/*.vader $(LINT_ARGS)); then \
+	if grep --color '^\s*Log\b' $(shell git ls-files tests/*.vader $(LINT_ARGS)); then \
 	  echo "Found Log commands."; \
 	  (( ret+=4 )); \
 	fi; \
@@ -213,6 +213,15 @@ check:
 	  echo "DOCKER_VIMS: $$docker_vims"; \
 	  echo "in image:    $$vims"; \
 	  (( ret+=8 )); \
+	fi; \
+	echo '== Checking tests'; \
+	output="$$(grep --color AssertThrows -A1 tests/*.vader \
+		| grep -E '^[^[:space:]]+- ' \
+		| grep -v g:vader_exception)"; \
+	if [[ -n "$$output" ]]; then \
+		echo 'AssertThrows used without checking g:vader_exception:' >&2; \
+		echo "$$output" >&2; \
+	  (( ret+=16 )); \
 	fi; \
 	echo '== Running custom checks'; \
 	contrib/vim-checks $(LINT_ARGS) || (( ret+= 16 )); \
