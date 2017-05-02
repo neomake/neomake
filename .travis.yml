@@ -26,17 +26,17 @@ env:
     - ENV=testvim
     - ENV=check
     - ENV=vint
-    - ENV=docker_vimhelplint
 
 matrix:
   fast_finish: true
 
 install:
   - |
-    if [ "$ENV" = "docker_vimhelplint" ]; then
+    if [ "$ENV" = "check" ]; then
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
-      if git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
-        SKIP_BUILD_REASON="docker_vimhelplint: No changed doc files."
+      if ! git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
+        MAKE_ARGS="$MAKE_ARGS docker_vimhelplint"
+        echo 'doc/neomake.txt changed, running docker_vimhelplint'
       fi
     elif [ "$ENV" = "testnvim" ]; then
       eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
@@ -50,16 +50,13 @@ install:
 
 script:
   - |
-    if [ -n "$SKIP_BUILD_REASON" ]; then
-      echo "Skipping job: $SKIP_BUILD_REASON"
-    else
-      if [[ "$ENV" = "testvim" ]]; then
-        vim --version
-        if ! vim --version 2>&1 | grep -F 'VIM - Vi IMproved 7.4' -A1 | grep -q '^Included patches: 1-52'; then
-          echo 'Unexpected Vim version (expected 7.4.52)' >&2
-          exit 1
-        fi
+    if [[ "$ENV" = "testvim" ]]; then
+      vim --version
+      if ! vim --version 2>&1 | grep -F 'VIM - Vi IMproved 7.4' -A1 | grep -q '^Included patches: 1-52'; then
+        echo 'Unexpected Vim version (expected 7.4.52)' >&2
+        exit 1
       fi
-      umask 022
-      make $ENV $MAKE_ARGS
     fi
+    umask 022
+    echo "===== running: make $ENV $MAKE_ARGS ====="
+    make $ENV $MAKE_ARGS
