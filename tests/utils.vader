@@ -18,10 +18,16 @@ Execute (neomake#utils#LogMessage writes to logfile always):
   let logfile_msg = readfile(g:neomake_logfile)[-1]
   Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \[W \+0.0\d\] msg2$', 'Message does not match: '.logfile_msg
 
-Execute (NeomakeTestsEnsureExe creates exe):
+Execute (NeomakeTestsCreateExe creates exe):
   Assert !executable('boobar'), 'boobar is not executable'
-  call g:NeomakeTestsEnsureExe('boobar')
+  call g:NeomakeTestsCreateExe('boobar', [])
   Assert executable('boobar'), 'boobar is now executable'
+
+Execute (NeomakeTestsCreateExe overrides existing exe):
+  let true = system('which true')
+  Assert executable('true'), 'true is now executable'
+  call g:NeomakeTestsCreateExe('true', [])
+  AssertNotEqual system('which true'), true
 
 Execute (neomake#utils#CompressWhitespace):
   function! F(text)
