@@ -201,7 +201,7 @@ check:
 	  (( ret+=2 )); \
 	fi; \
 	echo '== Checking for absent :Log calls'; \
-	if grep --color '^\s*Log\b' $(shell git ls-files tests/*.vader $(LINT_ARGS)); then \
+	if grep --line-number --color '^\s*Log\b' $(shell git ls-files tests/*.vader $(LINT_ARGS)); then \
 	  echo "Found Log commands."; \
 	  (( ret+=4 )); \
 	fi; \
@@ -215,9 +215,9 @@ check:
 	  (( ret+=8 )); \
 	fi; \
 	echo '== Checking tests'; \
-	output="$$(grep --color AssertThrows -A1 tests/*.vader \
+	output="$$(grep --line-number --color AssertThrows -A1 tests/*.vader \
 		| grep -E '^[^[:space:]]+- ' \
-		| grep -v g:vader_exception)"; \
+		| grep -v g:vader_exception | sed -e s/-/:/ -e s/-//)"; \
 	if [[ -n "$$output" ]]; then \
 		echo 'AssertThrows used without checking g:vader_exception:' >&2; \
 		echo "$$output" >&2; \
