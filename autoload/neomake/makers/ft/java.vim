@@ -86,35 +86,8 @@ let s:has_maven = executable(expand(g:neomake_java_maven_executable, 1))
 let s:has_gradle = executable(expand(g:neomake_java_gradle_executable, 1))
 
 function! s:tmpdir() abort
-    let tempdir = ''
-
-    if (has('unix') || has('mac')) && executable('mktemp') && !has('win32unix')
-        " TODO: option "-t" to mktemp(1) is not portable
-        let tmp = $TMPDIR !=# '' ? $TMPDIR : $TMP !=# '' ? $TMP : '/tmp'
-        let out = split(system('mktemp -q -d ' . tmp . '/neomake-java-' . getpid() . '-XXXXXXXX'), "\n")
-        if v:shell_error == 0 && len(out) == 1
-            let tempdir = out[0]
-        endif
-    endif
-
-    if tempdir ==# ''
-        if has('win32') || has('win64')
-            let tempdir = $TEMP . s:psep . 'neomake-java-' . getpid()
-        elseif has('win32unix')
-            let tempdir = substitute(system('cygpath -m ' . s:shescape('/neomake-java-'  . getpid())), "\n", '', 'g')
-        elseif $TMPDIR !=# ''
-            let tempdir = $TMPDIR . '/neomake-java-' . getpid()
-        else
-            let tempdir = '/tmp/neomake-java-' . getpid()
-        endif
-
-        try
-            call mkdir(tempdir, 'p', 0700)
-        catch /\m^Vim\%((\a\+)\)\=:E739/
-            let tempdir = '.'
-        endtry
-    endif
-
+    let tempdir = tempname()
+    call mkdir(tempdir, 'p', 0700)
     return tempdir
 endfunction
 
