@@ -621,10 +621,17 @@ get triggered, e.g. |WinEnter| for the qf window that gets opened/created): >
         autocmd User NeomakeFinished nested call MyOnNeomakeFinished()
     augroup END
 <
-                                                             *NeomakeFinished*
-The NeomakeFinished user autocommand gets triggered after all jobs of a build
-have finished.
-You can use this to e.g. close an empty location or quickfix window.
+                                                              *NeomakeJobInit*
+The NeomakeJobInit autocommand gets triggered before a job gets started.
+You can used this to change the command (`argv`).
+Context:
+ - `g:neomake_hook_context.jobinfo`: see |neomake-object-jobinfo|.
+ - `g:neomake_hook_context.argv`: the command to run (executable and
+   arguments). This can be a list or a string, depending on the maker and
+   the job backend.
+
+                                                           *NeomakeJobStarted*
+The NeomakeJobStarted autocommand gets triggered after a job started.
 Context:
  - `g:neomake_hook_context.jobinfo`: see |neomake-object-jobinfo|.
 
@@ -637,6 +644,13 @@ Context:
  - `g:neomake_hook_context.reset`: 1 if the list got reset, 0 otherwise.
  - `g:neomake_hook_context.jobinfo`: when the list is not reset; see
    |neomake-object-jobinfo|.
+
+                                                             *NeomakeFinished*
+The NeomakeFinished user autocommand gets triggered after all jobs of a build
+have finished.
+You can use this to e.g. close an empty location or quickfix window.
+Context:
+ - `g:neomake_hook_context.jobinfo`: see |neomake-object-jobinfo|.
 
                                                           *NeomakeJobFinished*
 The NeomakeJobFinished autocommand gets triggered after a single job has
