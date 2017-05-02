@@ -20,6 +20,7 @@ let s:project_job_output = {}
 let s:buffer_job_output = {}
 " Keep track of for what maker.exe an error was thrown.
 let s:exe_error_thrown = {}
+let s:kill_vim_timers = {}
 
 " Sentinels.
 let s:unset_list = []
@@ -101,8 +102,14 @@ function! neomake#CancelJob(job_id, ...) abort
                 call neomake#utils#LoudMessage(
                             \ 'job_stop: job was not running anymore', jobinfo)
             else
+                " NOTE: might be "dead" already, but that is fine.
                 call job_stop(vim_job)
                 let ret = 1
+
+                if job_status(vim_job) ==# 'run'
+                    let timer = timer_start(1000, function('s:kill_vimjob_cb'))
+                    let s:kill_vim_timers[timer] = jobinfo
+                endif
             endif
         endif
     endif
@@ -110,6 +117,16 @@ function! neomake#CancelJob(job_id, ...) abort
         call s:CleanJobinfo(jobinfo)
     endif
     return ret
+endfunction
+
+function! s:kill_vimjob_cb(timer) abort
+    let jobinfo = s:kill_vim_timers[a:timer]
+    let vim_job = jobinfo.vim_job
+    if job_status(vim_job) ==# 'run'
+        call neomake#utils#DebugMessage('Forcefully killing still running Vim job', jobinfo)
+        call job_stop(vim_job, 'kill')
+    endif
+    unlet s:kill_vim_timers[a:timer]
 endfunction
 
 function! neomake#CancelJobs(bang) abort

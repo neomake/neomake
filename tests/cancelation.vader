@@ -102,3 +102,27 @@ Execute (neomake#CancelJob! with invalid job):
     AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 0
   endif
 
+Execute (neomake#CancelJob with trapped TERM):
+  if NeomakeAsyncTestsSetup()
+    let trap_sh = fnamemodify(g:vader_file, ':p:h').'/helpers/trap.sh'
+    let job_id = neomake#Sh(trap_sh)
+    let jobinfo = neomake#GetJob(job_id)
+
+    " Ensure the script is running.
+    NeomakeTestsWaitForMessage '\vstdout: .*: \[''Started: (\d+)''', 3, jobinfo
+    let pid = g:neomake_test_matchlist[1]
+
+    AssertEqual neomake#CancelJob(job_id), 1
+    AssertNeomakeMessage 'Stopping job', 3, jobinfo
+
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage '\Mstdout: \.\*: [''not stopping on SIGTERM''', 3, jobinfo
+    AssertNeomakeMessage 'Ignoring output, job was canceled.', 3, jobinfo
+    if !has('nvim')
+      AssertNeomakeMessage 'Forcefully killing still running Vim job', 3, jobinfo
+    endif
+    AssertNeomakeMessage 'exit: job was canceled.', 3, jobinfo
+
+    AssertEqual neomake#CancelJob(job_id), 0
+    AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 0
+  endif
