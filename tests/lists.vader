@@ -56,7 +56,7 @@ Execute (AddExprCallback with changed windows inbetween):
       sleep 10m
       let maxwait -= 1
     endwhile
-    Assert maxwait > 0, 'Postprocessing was not triggered.'
+    Assert maxwait > 0, 'postprocessing was not triggered'
     AssertEqual g:neomake_tests_postprocess_count, 2, 'postprocess count is != 2: '.g:neomake_tests_postprocess_count
     let loclist_texts = map(copy(getloclist(0)), 'v:val.text')
     AssertEqual sort(copy(loclist_texts)), ['1a SUFFIX:0', '2 SUFFIX:0']
@@ -73,7 +73,7 @@ Execute (AddExprCallback with changed windows inbetween):
     wincmd k
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['2 SUFFIX:1']
     q
-    AssertNeomakeMessage "Modified list entry (postprocess): text: '2' => '2 SUFFIX:1'"
+    AssertNeomakeMessage "Modified list entry (postprocess): text: '2' => '2 SUFFIX:1'."
 
     delfunction Postprocess
   endif

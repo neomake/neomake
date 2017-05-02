@@ -44,7 +44,7 @@ Execute (Neomake uses temporary file for unsaved buffer):
 
   if neomake#has_async_support()
     AssertEqual filereadable(temp_file), 0, 'temp_file was removed'
-    AssertNeomakeMessage 'Removing temporary file: '.temp_file
+    AssertNeomakeMessage 'Removing temporary file: "'.temp_file.'".'
   else
     AssertEqual len(filter(copy(g:neomake_test_messages), "v:val[1] =~# '^Removing temporary file:'")), 1, 'msg found'
   endif
@@ -120,15 +120,15 @@ Execute (Maker can specify temporary file to use via fn):
   AssertEqual maker.tempfile_name, g:neomake_test_tempfile
   let make_info = values(neomake#GetStatus().make_info)[0]
   AssertEqual make_info.tempfile, maker.tempfile_name
-  AssertNeomakeMessage '\m^Using tempfile for unreadable buffer: '.g:neomake_test_tempfile, 3, {'jobinfo': jobinfo, 'make_id': jobinfo.make_id, 'bufnr': bufnr}
+  AssertNeomakeMessage '\m^Using tempfile for unreadable buffer: "'.g:neomake_test_tempfile.'".', 3, {'jobinfo': jobinfo, 'make_id': jobinfo.make_id, 'bufnr': bufnr}
 
   call neomake#Make(1, [maker])
-  AssertNeomakeMessage 'Using tempfile for unreadable buffer: '.g:neomake_test_tempfile, 3
+  AssertNeomakeMessage 'Using tempfile for unreadable buffer: "'.g:neomake_test_tempfile.'".', 3
   NeomakeTestsWaitForFinishedJobs
   if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: ['true', '".g:neomake_test_tempfile."']"
+    AssertNeomakeMessage "Starting async job: ['true', '".g:neomake_test_tempfile."']."
   else
-    AssertNeomakeMessage "Starting: true ".fnameescape(g:neomake_test_tempfile)
+    AssertNeomakeMessage "Starting: 'true ".fnameescape(g:neomake_test_tempfile)."'."
   endif
   bwipe
 
@@ -314,7 +314,7 @@ Execute (same tempfile contents is used for all jobs):
     NeomakeTestsWaitForFinishedJobs
 
     AssertEqual len(g:neomake_test_jobfinished), 2
-    AssertNeomakeMessage 'Using tempfile for unnamed buffer: '.g:maker2_tempfile
+    AssertNeomakeMessage 'Using tempfile for unnamed buffer: "'.g:maker2_tempfile.'".'
 
     let bound_maker2 = g:neomake_test_jobfinished[1].jobinfo.maker
     AssertEqual bound_maker2.tempfile_name, g:maker2_tempfile

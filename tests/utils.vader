@@ -4,19 +4,19 @@ Execute (neomake#utils#LogMessage writes to logfile always):
   Save g:neomake_verbose, g:neomake_logfile
   let neomake_verbose = 0
   let g:neomake_logfile = tempname()
-  call neomake#utils#LogMessage(1, 'msg0')
-  call neomake#utils#LogMessage(1, 'msg1')
+  call neomake#utils#LogMessage(1, 'msg0.')
+  call neomake#utils#LogMessage(1, 'msg1.')
   if has('patch-7.4.503')
     let logfile_msg = readfile(g:neomake_logfile)[1]
   else
     let logfile_msg = readfile(g:neomake_logfile)[0]
   endif
-  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \[W      \] msg1$', 'unexpected msg: '.logfile_msg
+  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \[W      \] msg1.$', 'unexpected msg: '.logfile_msg
 
   sleep 10m
-  call neomake#utils#LogMessage(1, 'msg2')
+  call neomake#utils#LogMessage(1, 'msg2.')
   let logfile_msg = readfile(g:neomake_logfile)[-1]
-  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \[W \+0.0\d\] msg2$', 'Message does not match: '.logfile_msg
+  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \[W \+0.0\d\] msg2.$', 'Message does not match: '.logfile_msg
 
 Execute (NeomakeTestsCreateExe creates exe):
   Assert !executable('boobar'), 'boobar is not executable'

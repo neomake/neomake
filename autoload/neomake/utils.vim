@@ -83,6 +83,9 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
                     \ ? filter(copy(context), "index(['id', 'make_id', 'bufnr'], v:key) != -1")
                     \ : {}
         call add(g:neomake_test_messages, [a:level, a:msg, context])
+        if index(['.', '!', ')'], a:msg[-1:-1]) == -1
+            Assert 0, 'Log msg does not end with punctuation: "'.a:msg.'".'
+        endif
     elseif verbosity >= a:level
         redraw
         if a:level ==# 0
@@ -152,7 +155,7 @@ function! neomake#utils#Stringify(obj) abort
 endfunction
 
 function! neomake#utils#DebugObject(msg, obj) abort
-    call neomake#utils#DebugMessage(a:msg.' '.neomake#utils#Stringify(a:obj))
+    call neomake#utils#DebugMessage(a:msg.': '.neomake#utils#Stringify(a:obj).'.')
 endfunction
 
 function! neomake#utils#wstrpart(mb_string, start, len) abort
@@ -178,7 +181,7 @@ function! neomake#utils#WideMessage(msg) abort " {{{2
     set noruler noshowcmd
     redraw
 
-    call neomake#utils#DebugMessage('WideMessage echo '.msg)
+    call neomake#utils#DebugMessage('WideMessage: echo '.msg.'.')
     echo msg
 
     let &ruler = old_ruler
@@ -454,8 +457,8 @@ function! neomake#utils#hook(event, context, ...) abort
                     \ has_key(a:context, 'jobinfo') ? a:context.jobinfo : {})
         let g:neomake_hook_context = a:context
 
-        let args = ['Calling User autocmd '.a:event
-                    \ .' with context: '.string(map(copy(a:context), "v:key ==# 'jobinfo' ? '…' : v:val"))]
+        let args = [printf('Calling User autocmd %s with context: %s.',
+                    \ a:event, string(map(copy(a:context), "v:key ==# 'jobinfo' ? '…' : v:val")))]
         if !empty(jobinfo)
             let args += [jobinfo]
         endif

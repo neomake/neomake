@@ -129,11 +129,11 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
             if !empty(existing_sign)
                 if existing_sign[1] == sign_type
                     call neomake#utils#DebugMessage(printf(
-                                \ 'Reusing sign: id=%d, type=%s, lnum=%d',
+                                \ 'Reusing sign: id=%d, type=%s, lnum=%d.',
                                 \ existing_sign[0], existing_sign[1], lnum))
                 else
                     let cmd = 'sign place '.existing_sign[0].' name='.sign_type.' buffer='.bufnr
-                    call neomake#utils#DebugMessage('Upgrading sign for lnum='.lnum.': '.cmd)
+                    call neomake#utils#DebugMessage('Upgrading sign for lnum='.lnum.': '.cmd.'.')
                     exe cmd
                 endif
                 call add(kept_signs, existing_sign[0])
@@ -155,7 +155,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
             let cmd = 'sign place '.next_sign_id.' line='.lnum.
                         \ ' name='.sign_type.
                         \ ' buffer='.bufnr
-            call neomake#utils#DebugMessage('Placing sign: '.cmd)
+            call neomake#utils#DebugMessage('Placing sign: '.cmd.'.')
             let placed_signs[lnum] = [next_sign_id, sign_type]
             exe cmd
         endfor
@@ -177,11 +177,11 @@ function! neomake#signs#CleanOldSigns(bufnr, type) abort
     endif
     let placed_signs = s:last_placed_signs[a:type][a:bufnr]
     unlet s:last_placed_signs[a:type][a:bufnr]
-    call neomake#utils#DebugObject('Cleaning old signs in buffer '.a:bufnr.':', placed_signs)
+    call neomake#utils#DebugObject('Cleaning old signs in buffer '.a:bufnr, placed_signs)
     for sign_info in values(placed_signs)
         let sign_id = sign_info[0]
         let cmd = 'sign unplace '.sign_id.' buffer='.a:bufnr
-        call neomake#utils#DebugMessage('Unplacing sign: '.cmd)
+        call neomake#utils#DebugMessage('Unplacing sign: '.cmd.'.')
         exe cmd
     endfor
 endfunction

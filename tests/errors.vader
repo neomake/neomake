@@ -8,7 +8,7 @@ Execute (Error with no filename):
 
   Neomake
   let make_id = neomake#GetStatus().last_make_id
-  AssertNeomakeMessage 'no file name', 0, {'make_id': make_id}
+  AssertNeomakeMessage 'no file name.', 0, {'make_id': make_id}
   bd!
 
 Execute (Error with non-existing filename):
