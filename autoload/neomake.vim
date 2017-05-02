@@ -256,6 +256,12 @@ function! s:MakeJob(make_id, options) abort
             call neomake#utils#DebugMessage('cwd: '.cwd.' (changed).', jobinfo)
         endif
 
+        if exists('#User#NeomakeJobInit')
+            let context = {'argv': argv, 'jobinfo': jobinfo}
+            call neomake#utils#hook('NeomakeJobInit', context)
+            let argv = context.argv
+        endif
+
         if has_key(jobinfo, 'filename')
             let save_env_file = $NEOMAKE_FILE
             let $NEOMAKE_FILE = jobinfo.filename
@@ -349,6 +355,8 @@ function! s:MakeJob(make_id, options) abort
             if !empty(error)
                 throw 'Neomake: '.error
             endif
+
+            call neomake#utils#hook('NeomakeJobStarted', {'jobinfo': jobinfo})
         else
             " vim-sync.
             let jobinfo.id = job_id
