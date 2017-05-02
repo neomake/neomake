@@ -597,7 +597,7 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
             let argv = [exe] + args
         endif
     else
-        " Vim-async, via system().
+        " Vim (synchronously), via system().
         if args_is_list
             let argv = join(map(copy([exe] + args), 'neomake#utils#shellescape(v:val)'))
         else
