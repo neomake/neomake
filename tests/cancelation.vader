@@ -3,13 +3,21 @@ Include: include/setup.vader
 Execute (neomake#CancelJob):
   if NeomakeAsyncTestsSetup()
     let job_id = neomake#Sh("sh -c 'while true; do sleep 0.01; done'")
+    let jobinfo = neomake#GetJob(job_id)
     AssertEqual neomake#CancelJob(job_id), 1
+    AssertNeomakeMessage 'Stopping job', 3, jobinfo
 
-    " The job is still in the table, therefore 'E900: Invalid job id'.
-    AssertThrows neomake#CancelJob(job_id)
-    AssertNeomakeMessage 'Stopping job', 3, neomake#GetJob(job_id)
-
+    call neomake#CancelJob(job_id)
     NeomakeTestsWaitForFinishedJobs
+
+    if has('nvim')
+      " The job is still in the table, therefore 'E900: Invalid job id'.
+      AssertNeomakeMessage 'jobstop failed: Vim(call):E900: Invalid job id', 2, jobinfo
+      NeomakeTestsWaitForMessage 'exit: job not found: '.jobinfo.id
+    else
+      AssertNeomakeMessage 'exit: job was canceled.', 3, jobinfo
+    endif
+
     AssertEqual neomake#CancelJob(job_id), 0
     AssertNeomakeMessage 'CancelJob: job not found: '.job_id, 0
   endif
