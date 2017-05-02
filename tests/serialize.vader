@@ -10,9 +10,9 @@ Execute (NeomakeSh: simple serialized makers):
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
   \ ['slept', 'success']
-  AssertNeomakeMessage 'Running makers: sleep-maker, success-maker', 3
-  AssertNeomakeMessage 'exit: sleep-maker: 0'
-  AssertNeomakeMessage 'exit: success-maker: 0'
+  AssertNeomakeMessage 'Running makers: sleep-maker, success-maker.', 3
+  AssertNeomakeMessage 'exit: sleep-maker: 0.'
+  AssertNeomakeMessage 'exit: success-maker: 0.'
 
 Execute (NeomakeSh: simple serialized makers: two buffers in parallel):
   if NeomakeAsyncTestsSetup()
@@ -31,12 +31,12 @@ Execute (NeomakeSh: simple serialized makers: two buffers in parallel):
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
     \ ['slept2', 'success']
-    AssertNeomakeMessage 'Running makers: sleep-maker1, success-maker', 3
-    AssertNeomakeMessage 'Running makers: sleep-maker2, success-maker', 3
-    AssertNeomakeMessage 'exit: sleep-maker1: 0'
-    AssertNeomakeMessage 'exit: success-maker: 0'
-    AssertNeomakeMessage 'exit: sleep-maker2: 0'
-    AssertNeomakeMessage 'exit: success-maker: 0'
+    AssertNeomakeMessage 'Running makers: sleep-maker1, success-maker.', 3
+    AssertNeomakeMessage 'Running makers: sleep-maker2, success-maker.', 3
+    AssertNeomakeMessage 'exit: sleep-maker1: 0.'
+    AssertNeomakeMessage 'exit: success-maker: 0.'
+    AssertNeomakeMessage 'exit: sleep-maker2: 0.'
+    AssertNeomakeMessage 'exit: success-maker: 0.'
 
     bwipe
     AssertEqual len(g:neomake_test_finished), 2
@@ -55,9 +55,9 @@ Execute (NeomakeSh: simple serialized maker with error):
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(copy(getloclist(0)), 'v:val.text'),
   \ ['error', 'success']
-  AssertNeomakeMessage 'Running makers: error-maker, success-maker', 3
-  AssertNeomakeMessage 'exit: error-maker: 1'
-  AssertNeomakeMessage 'exit: success-maker: 0'
+  AssertNeomakeMessage 'Running makers: error-maker, success-maker.', 3
+  AssertNeomakeMessage 'exit: error-maker: 1.'
+  AssertNeomakeMessage 'exit: success-maker: 0.'
 
 Execute (NeomakeSh: serialized with global abort):
   call g:NeomakeSetupAutocmdWrappers()
@@ -94,7 +94,7 @@ Execute (NeomakeSh: serialized with abort from maker):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 1
   AssertEqual len(g:neomake_test_finished), 1
-  AssertNeomakeMessage 'Aborting next makers [success-maker]'
+  AssertNeomakeMessage 'Aborting next makers: success-maker.'
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error']
 
 Execute (NeomakeSh: serialized with previous buffer overriding global abort):
@@ -115,7 +115,7 @@ Execute (NeomakeSh: serialized with previous buffer overriding global abort):
     wincmd p
     bd
 
-    AssertNeomakeMessage 'Aborting next makers [success-maker]'
+    AssertNeomakeMessage 'Aborting next makers: success-maker.'
   endif
 
 Execute (NeomakeSh: serialized after doesnotexist: continue):
@@ -158,11 +158,11 @@ Execute (Neomake#Make cancels previous jobs):
     for jobinfo in first_jobs
       AssertNeomakeMessage printf('Restarting already running job (%d.%d) for the same maker.',
       \ make_id, jobinfo.id), 2, {'make_id': make_id+1}
-      AssertNeomakeMessage 'Stopping job', 3, jobinfo
+      AssertNeomakeMessage 'Stopping job.', 3, jobinfo
     endfor
 
     " Restarted job should use new make_id.
-    AssertNeomakeMessage "Starting async job: ['/bin/bash', '-c', 'echo error; false']",
+    AssertNeomakeMessage "Starting async job: ['/bin/bash', '-c', 'echo error; false'].",
     \ 2, {'make_id': make_id+1, 'bufnr': bufnr}
   endif
 

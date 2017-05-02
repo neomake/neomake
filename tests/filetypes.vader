@@ -50,7 +50,7 @@ Execute (standard maker in javascript.jsx):
   AssertEqual map(neomake#GetEnabledMakers('jsx.javascript'), 'v:val.name'), ['standard']
   Neomake
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Running makers: standard'
+  AssertNeomakeMessage 'Running makers: standard.'
 
   function! F() abort
     return map(copy(neomake#GetEnabledMakers('jsx.javascript')),
@@ -66,7 +66,7 @@ Execute (standard maker in javascript.jsx):
 
   Neomake
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Running makers: standard'
+  AssertNeomakeMessage 'Running makers: standard.'
   bwipe
 
 Execute (standard maker in javascript.jsx):

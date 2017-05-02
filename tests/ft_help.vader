@@ -10,7 +10,7 @@ Execute (No vimhelplint issues in doc/neomake.txt):
     e doc/neomake.txt
     set filetype=help
     RunNeomake vimhelplint
-    AssertNeomakeMessage 'exit: vimhelplint: 0'
+    AssertNeomakeMessage 'exit: vimhelplint: 0.'
     bwipe
   endif
 

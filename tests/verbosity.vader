@@ -7,41 +7,41 @@ Execute (neomake#utils#LogMessage uses &verbose):
 
   unlet g:neomake_test_log_all_messages
 
-  call neomake#utils#LogMessage(1, 'msg')
-  AssertEqual g:neomake_test_messages, [[1, 'msg', {}]]
+  call neomake#utils#LogMessage(1, 'msg.')
+  AssertEqual g:neomake_test_messages, [[1, 'msg.', {}]]
 
   let g:neomake_test_messages = []
-  1verb call neomake#utils#LogMessage(1, 'msg')
-  AssertEqual g:neomake_test_messages, [[1, 'msg', {}]]
+  1verb call neomake#utils#LogMessage(1, 'msg.')
+  AssertEqual g:neomake_test_messages, [[1, 'msg.', {}]]
 
   let g:neomake_test_messages = []
-  1verb call neomake#utils#LogMessage(2, 'msg')
-  AssertEqual g:neomake_test_messages, [[2, 'msg', {}]]
+  1verb call neomake#utils#LogMessage(2, 'msg.')
+  AssertEqual g:neomake_test_messages, [[2, 'msg.', {}]]
 
   let g:neomake_test_messages = []
-  2verb call neomake#utils#LogMessage(2, 'msg')
-  AssertEqual g:neomake_test_messages, [[2, 'msg', {}]]
+  2verb call neomake#utils#LogMessage(2, 'msg.')
+  AssertEqual g:neomake_test_messages, [[2, 'msg.', {}]]
 
   let g:neomake_test_messages = []
   let g:neomake_verbose = 3
-  call neomake#utils#LogMessage(1, 'msg')
-  AssertEqual g:neomake_test_messages, [[1, 'msg', {}]]
+  call neomake#utils#LogMessage(1, 'msg.')
+  AssertEqual g:neomake_test_messages, [[1, 'msg.', {}]]
 
   let g:neomake_test_messages = []
   let g:neomake_verbose = 1
-  0verb call neomake#utils#LogMessage(1, 'msg')
-  AssertEqual g:neomake_test_messages, [[1, 'msg', {}]]
+  0verb call neomake#utils#LogMessage(1, 'msg.')
+  AssertEqual g:neomake_test_messages, [[1, 'msg.', {}]]
 
   let g:neomake_verbose = 0
   NeomakeTestsResetMessages
-  0verb call neomake#utils#LogMessage(1, 'msg')
+  0verb call neomake#utils#LogMessage(1, 'msg.')
   AssertEqual g:neomake_test_messages, []
 
-  1verb call neomake#utils#LogMessage(1, 'msg')
-  AssertNeomakeMessage 'msg', 1
+  1verb call neomake#utils#LogMessage(1, 'msg.')
+  AssertNeomakeMessage 'msg.', 1
 
-  3verb call neomake#utils#LogMessage(1, 'msg')
-  AssertNeomakeMessage 'msg', 1
+  3verb call neomake#utils#LogMessage(1, 'msg.')
+  AssertNeomakeMessage 'msg.', 1
 
 Execute (neomake#Make uses &verbose):
   Save g:neomake_verbose, &verbose
@@ -61,8 +61,8 @@ Execute (neomake#Make uses &verbose):
   2verb call neomake#Make(1, [maker])
   let make_id = neomake#GetStatus().last_make_id
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Adding &verbose (2) to verbosity level: 3', 3, {'make_id': make_id}
-  AssertNeomakeMessage 'Running makers: unnamed_maker', 3, {'make_id': make_id, 'bufnr': bufnr}
+  AssertNeomakeMessage 'Adding &verbose (2) to verbosity level: 3.', 3, {'make_id': make_id}
+  AssertNeomakeMessage 'Running makers: unnamed_maker.', 3, {'make_id': make_id, 'bufnr': bufnr}
 
   NeomakeTestsResetMessages
   1verb call neomake#Make(1, [maker])
@@ -70,10 +70,10 @@ Execute (neomake#Make uses &verbose):
   NeomakeTestsWaitForFinishedJobs
   if neomake#has_async_support()
     AssertEqual g:neomake_test_messages,
-    \ [[2, "Starting async job: ['echo', '1']", {'make_id': make_id, 'bufnr': bufnr}]]
+    \ [[2, "Starting async job: ['echo', '1'].", {'make_id': make_id, 'bufnr': bufnr}]]
   else
     AssertEqual g:neomake_test_messages,
-    \ [[2, "Starting: echo 1", {'make_id': make_id, 'bufnr': bufnr}]]
+    \ [[2, "Starting: 'echo 1'.", {'make_id': make_id, 'bufnr': bufnr}]]
   endif
   AssertEqual len(g:neomake_test_messages), 1
 
@@ -81,4 +81,4 @@ Execute (neomake#Make uses &verbose):
   0verb call neomake#Make(1, [maker])
   let make_id = neomake#GetStatus().last_make_id
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Running makers: unnamed_maker', 3, {'make_id': make_id, 'bufnr': bufnr}
+  AssertNeomakeMessage 'Running makers: unnamed_maker.', 3, {'make_id': make_id, 'bufnr': bufnr}

@@ -25,7 +25,7 @@ Execute (neomake#signs#RedefineErrorSign):
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Placing sign: sign place 5000 line=2 name=neomake_warn buffer='.bufnr('%')
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=2 name=neomake_warn buffer='.bufnr('%').'.'
 
   AssertNeomakeMessage printf("Could not place signs for 1 entries without line number: %s.",
   \ string([{'lnum': 0, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
@@ -43,16 +43,16 @@ Execute (neomake#signs#RedefineErrorSign):
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_warn, lnum=2'
-  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {}'
+  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_warn, lnum=2.'
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {}.'
 
 "   AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.':
 "   \ {'.bufnr.': {2: [5000, neomake_warn]}}', 3, {}
 
   call neomake#signs#Reset(bufnr, 'file')
   call neomake#signs#CleanAllOldSigns('file')
-  AssertNeomakeMessage 'Removing signs {file: {'.bufnr.': '
-  \ .'{2: [5000, neomake_warn]}}, project: {}}'
+  AssertNeomakeMessage 'Removing signs: {file: {'.bufnr.': '
+  \ .'{2: [5000, neomake_warn]}}, project: {}}.'
   bwipe
 
 Execute (Placing signs in project mode):
@@ -67,13 +67,13 @@ Execute (Placing signs in project mode):
   let bufnr = bufnr('%')
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Placing sign: sign place 7000 line=1 name=neomake_warn buffer='.bufnr
+  AssertNeomakeMessage 'Placing sign: sign place 7000 line=1 name=neomake_warn buffer='.bufnr.'.'
   bd!
 
   call neomake#signs#Reset(bufnr, 'project')
   call neomake#signs#CleanAllOldSigns('project')
-  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {1: [7000, neomake_warn]}', 3, {}
-  AssertNeomakeMessage 'Unplacing sign: sign unplace 7000 buffer='.bufnr
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {1: [7000, neomake_warn]}.', 3, {}
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 7000 buffer='.bufnr.'.'
 
 Execute (Signs are wiped when buffer gets wiped):
   new

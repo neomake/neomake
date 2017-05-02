@@ -66,9 +66,10 @@ Execute (neomake#GetMakers):
 
 Execute (neomake#GetMaker with non-existent maker throws errors):
   AssertEqual neomake#GetMaker('non-existent'), {}
-  AssertEqual g:neomake_test_messages[-1], [0, 'Invalid maker name: non-existent', {}]
+  AssertNeomakeMessage 'Invalid maker name: "non-existent".', 0, {}
   AssertThrows call neomake#GetMaker('nonexistent')
   AssertEqual g:vader_exception, 'Neomake: project maker not found: nonexistent'
+  Assert len(g:neomake_test_messages), 1
 
 Execute (Neomake with unknown maker):
   " Prevent 'Skipping User autocmd NeomakeCountsChanged: no hooks.' message.
@@ -77,7 +78,7 @@ Execute (Neomake with unknown maker):
   Neomake doesnotexist
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages, [
-  \ [0, 'Maker not found (for empty filetype): doesnotexist', {'make_id': make_id}],
+  \ [0, 'Maker not found (for empty filetype): doesnotexist.', {'make_id': make_id}],
   \ [3, 'Nothing to make: no valid makers.', {}]]
 
 Execute (Neomake with unknown maker for multiple fts):
@@ -86,7 +87,7 @@ Execute (Neomake with unknown maker for multiple fts):
   Neomake doesnotexist
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages, [
-  \ [0, 'Maker not found (for filetype ft1.ft2): doesnotexist', {'make_id': make_id}],
+  \ [0, 'Maker not found (for filetype ft1.ft2): doesnotexist.', {'make_id': make_id}],
   \ [3, 'Nothing to make: no valid makers.', {}]]
   bwipe
 
@@ -169,12 +170,12 @@ Execute (Reports exit status: 7):
   if neomake#has_async_support()
     let jobinfo = neomake#GetJobs()[-1]
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3, jobinfo
+    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7.', 3, jobinfo
     AssertNeomakeMessage exit_msg, 3, jobinfo
   else
     " XXX: jobinfo gets used in messages, but is hard to get here, so we do not
     "      compare it.
-    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7', 3
+    AssertNeomakeMessage 'exit: sh: sh -c ''exit 7'': 7.', 3
     AssertThrows AssertNeomakeMessage exit_msg, 3
     AssertEqual g:vader_exception, 'Vim(call):E121: Undefined variable: exit_msg'
   endif
@@ -208,7 +209,7 @@ Execute (neomake#Make handles invalid cwd):
       \ }
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath", 0
+  AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath.", 0
 
 Execute (Neomake picks up custom maker correctly):
   let g:neomake_c_lint_maker = {
@@ -225,9 +226,9 @@ Execute (Neomake picks up custom maker correctly):
 
   Neomake lint
   if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: ['echo', '".fname."', '--foo', 'bar']"
+    AssertNeomakeMessage "Starting async job: ['echo', '".fname."', '--foo', 'bar']."
     NeomakeTestsWaitForFinishedJobs
   else
-    AssertNeomakeMessage "Starting: echo ".fname." --foo bar"
+    AssertNeomakeMessage "Starting: 'echo ".fname." --foo bar'."
   endif
   bwipe
