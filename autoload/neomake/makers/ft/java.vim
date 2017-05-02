@@ -123,7 +123,7 @@ function! s:ClassSep() abort
 endfunction
 
 function! s:shescape(string) abort
-    return a:string =~# '\m^[A-Za-z0-9_/.-]\+$' ? a:string : shellescape(a:string)
+    return neomake#utils#shellescape(a:string)
 endfunction
 
 function! s:AddToClasspath(classpath, path) abort
