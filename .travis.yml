@@ -12,15 +12,17 @@ branches:
 
 env:
   global:
-    - NEOMAKE_DOCKER_IMAGE: neomake/vims-for-tests:2@sha256:46ce366ce5b2dcb9c4d81097f2858155e2d3b30b9045278652adeb9b6f93b93c
+    - NEOMAKE_DOCKER_IMAGE: neomake/vims-for-tests:4@sha256:8ca565fa0c8c0c3ae40b3f705c05a084e260b07022559fc56636c3675321c38b
   matrix:
     - ENV=vimlint
+    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.2.0
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.1.7
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-xenial
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
-    - ENV=testnvim
+    # Same as neovim-v0.2.0 and the bot-ci script is broken currently, so skip it for now.
+    # - ENV=testnvim
     - ENV=testvim
     - ENV=check
     - ENV=vint
