@@ -201,16 +201,6 @@ Execute (neomake#CompleteJobs):
     NeomakeTestsWaitForFinishedJobs
   endif
 
-Execute (neomake#Make handles invalid cwd):
-  let maker = {
-      \ 'name': 'custom_maker',
-      \ 'exe': 'true',
-      \ 'cwd': '/doesnotexist',
-      \ }
-  call neomake#Make(1, [maker])
-  NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath.", 0
-
 Execute (Neomake picks up custom maker correctly):
   let g:neomake_c_lint_maker = {
     \ 'exe': 'echo',

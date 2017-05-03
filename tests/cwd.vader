@@ -1,5 +1,15 @@
 Include: include/setup.vader
 
+Execute (neomake#Make handles invalid cwd):
+  let maker = {
+      \ 'name': 'custom_maker',
+      \ 'exe': 'true',
+      \ 'cwd': '/doesnotexist',
+      \ }
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath.", 0
+
 Execute (tcd is handled properly):
   if exists(':tcd') != 2
     NeomakeTestsSkip 'no :tcd'
