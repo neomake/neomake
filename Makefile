@@ -42,11 +42,12 @@ testwatch:
 testwatchx: override export VADER_OPTIONS+=-x
 testwatchx: testwatch
 
-testx: VADER_OPTIONS=-x
+testx: override VADER_OPTIONS+=-x
 testx: test
-
-testnvimx: VADER_OPTIONS=-x
+testnvimx: override VADER_OPTIONS+=-x
 testnvimx: testnvim
+testvimx: override VADER_OPTIONS+=-x
+testvimx: testvim
 
 # Neovim might quit after ~5s with stdin being closed.  Use --headless mode to
 # work around this.
