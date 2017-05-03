@@ -68,3 +68,10 @@ function! neomake#makers#ft#sh#sh() abort
             \ '%E%f: %l: %m'
         \}
 endfunction
+
+function! neomake#makers#ft#sh#dash() abort
+    return {
+        \ 'args': ['-n'],
+        \ 'errorformat': '%E%f: %l: %m',
+        \}
+endfunction
