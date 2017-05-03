@@ -1152,7 +1152,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
             let entries = call(maker.process_output, [{
                         \ 'output': a:lines,
                         \ 'source': a:source,
-                        \ 'jobinfo': a:jobinfo}])
+                        \ 'jobinfo': a:jobinfo}], maker)
             call s:ProcessEntries(a:jobinfo, entries)
             return
         endif
