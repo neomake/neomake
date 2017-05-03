@@ -124,6 +124,7 @@ Execute (cargo warning for file that is not open):
 
   new
   file src/some_other_file.rs
+
   let cargo = neomake#makers#ft#rust#cargo()
   let cargo.exe = 'cat'
   let cargo.args = 'tests/fixtures/rust/cargo_warning.json'
@@ -131,8 +132,7 @@ Execute (cargo warning for file that is not open):
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
 
-  new
-  file src/add_assign_like.rs
+  edit src/add_assign_like.rs
 
   AssertEqual [{
     \ 'type': 'W',
