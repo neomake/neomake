@@ -71,7 +71,7 @@ while true; do
     echo "================================================================="
     echo "$output"
 
-    read -r alltests_succeeded < $status_file
+    read -r alltests_succeeded < "$status_file"
 
     if [ "${output#tests/}" != "$output" ]; then
       last_changed_testsfile="$output"
@@ -84,9 +84,7 @@ while true; do
       fi
     else
       alltests_succeeded=0
-      if [ "$testfiles" != "$alltestsfile" ]; then
-        testfiles="$testfiles $alltestsfile"
-      fi
+      testfiles="$alltestsfile"
     fi
 
     if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
