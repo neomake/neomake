@@ -3,7 +3,7 @@
 " include/setup.vader).
 
 ~ Features
-Include (Cancelation): cancelation.vader
+Include (Cancellation): cancellation.vader
 Include (Completion): completion.vader
 Include (Compat): compat.vader
 Include (Config): config.vader
