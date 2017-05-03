@@ -17,7 +17,7 @@ function! s:wait_for_jobs(filter)
       for j in jobs
         Log "Remaining job: ".string(j)
       endfor
-      NeomakeCancelJobs!
+      call neomake#CancelJobs(1)
       throw len(jobs).' jobs did not finish after 3s.'
     endif
     exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
@@ -114,7 +114,7 @@ function! g:NeomakeTestsCreateExe(name, lines)
   endif
   call writefile(a:lines, exe)
   if exists('*setfperm')
-    call setfperm(exe, "rwxrwx---")
+    call setfperm(exe, 'rwxrwx---')
   else
     " XXX: Windows support
     call system('chmod 770 '.shellescape(exe))
@@ -133,7 +133,7 @@ function! s:AssertNeomakeMessage(msg, ...)
   for [l, m, info] in g:neomake_test_messages
     let r = 0
     let idx += 1
-    if a:msg[0] == '\'
+    if a:msg[0] ==# '\'
       let g:neomake_test_matchlist = matchlist(m, a:msg)
       let matches = len(g:neomake_test_matchlist)
     else
@@ -170,7 +170,7 @@ function! s:AssertNeomakeMessage(msg, ...)
       for [k, v] in items(info)
         let expected = get(context, k, l:UNDEF)
         if expected is l:UNDEF
-          call add(context_diff, printf("[%s] Missing value for context.%s: "
+          call add(context_diff, printf('[%s] Missing value for context.%s: '
               \  ."expected nothing, but got '%s'.", a:msg, k, string(v)))
           continue
         endif
@@ -178,19 +178,19 @@ function! s:AssertNeomakeMessage(msg, ...)
           let same = v ==# expected
         catch
           call add(context_diff, printf(
-            \ "Could not compare context entries (expected: %s, actual: %s): %s",
+            \ 'Could not compare context entries (expected: %s, actual: %s): %s',
             \ string(expected), string(v), v:exception))
           continue
         endtry
         if !same
-          call add(context_diff, printf("Got unexpected value for context.%s: "
+          call add(context_diff, printf('Got unexpected value for context.%s: '
             \  ."expected '%s', but got '%s'.", k, string(expected), string(v)))
         endif
         unlet v  " for Vim without patch-7.4.1546
       endfor
       let missing = filter(copy(context), 'index(keys(info), v:key) == -1')
       for [k, expected] in items(missing)
-        call add(context_diff, printf("[%s] Missing entry for context.%s: "
+        call add(context_diff, printf('[%s] Missing entry for context.%s: '
           \  ."expected '%s', but got nothing.", a:msg, k, string(expected)))
       endfor
       let found_but_context_diff = context_diff
@@ -225,7 +225,7 @@ function! s:AssertNeomakeMessageAbsent(msg, ...)
   catch /^Message/
     return 1
   endtry
-  throw "Found unexpected message: ".a:msg
+  throw 'Found unexpected message: '.a:msg
 endfunction
 command! -nargs=+ AssertNeomakeMessageAbsent call s:AssertNeomakeMessageAbsent(<args>)
 
@@ -354,7 +354,7 @@ function! s:After()
       call neomake#CancelJob(job.id, !neomake#has_async_support())
     endfor
     call add(errors, 'There were '.len(jobs).' jobs left: '
-    \ .string(map(jobs, 'v:val.make_id.".".v:val.id')))
+    \ .string(map(jobs, "v:val.make_id.'.'.v:val.id")))
   endif
 
   let make_info = neomake#GetStatus().make_info
@@ -372,7 +372,7 @@ function! s:After()
   endif
 
   if winnr('$') > 1
-    let error = "More than 1 window after tests: "
+    let error = 'More than 1 window after tests: '
       \ .string(map(range(1, winnr('$')),
       \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
     try
