@@ -57,7 +57,7 @@ Execute (neomake#GetMakers):
   AssertEqual neomake#GetMakers('non-existent'), []
   AssertEqual neomake#GetMakers('pug'), ['puglint']
 
-  let sh_makers = ['checkbashisms', 'sh', 'shellcheck']
+  let sh_makers = ['checkbashisms', 'dash', 'sh', 'shellcheck']
   AssertEqual sort(neomake#GetMakers('sh')), sh_makers
 
   Save g:neomake_sh_enabled_makers
