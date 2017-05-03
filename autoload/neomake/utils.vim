@@ -536,9 +536,8 @@ function! neomake#utils#shellescape(arg) abort
         return a:arg
     elseif &shell =~? 'cmd' || exists('+shellslash') && !&shellslash
         return '"'.s:gsub(s:gsub(a:arg, '"', '""'), '\%', '"%"').'"'
-    else
-        return shellescape(a:arg)
     endif
+    return shellescape(a:arg)
 endfunction
 
 function! neomake#utils#write_tempfile(bufnr, temp_file) abort
