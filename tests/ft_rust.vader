@@ -114,6 +114,42 @@ Execute (cargo warning message):
   AssertEqual [[2, 7]], g:neomake_tests_highlight_lengths
   bwipe
 
+  " Work around https://github.com/vim/vim/issues/1676 for next test(s).
+  cgetexpr 'bust_cache:1676:workaround_vim_issue'
+  bwipe bust_cache
+
+Execute (cargo warning for file that is not open):
+  NeomakeTestsMonkeypatchHighlights
+
+  new
+  file src/some_other_file.rs
+
+  let cargo = neomake#makers#ft#rust#cargo()
+  let cargo.exe = 'cat'
+  " Uses src/add_assign_like.rs.
+  let cargo.args = 'tests/fixtures/rust/cargo_warning.json'
+
+  call neomake#Make(1, [cargo])
+  NeomakeTestsWaitForFinishedJobs
+
+  let unlisted_bufnr = bufnr('^src/add_assign_like.rs$')
+  AssertNotEqual -1, unlisted_bufnr
+
+  AssertEqual [{
+    \ 'type': 'W',
+    \ 'bufnr': unlisted_bufnr,
+    \ 'nr': -1,
+    \ 'lnum': 2,
+    \ 'col': 24,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'pattern': '',
+    \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}], getloclist(0)
+
+  AssertEqual [[2, 7]], g:neomake_tests_highlight_lengths
+  bwipe
+  exe 'bwipe' unlisted_bufnr
+
 Execute (cargo error message children):
   NeomakeTestsMonkeypatchHighlights
 
