@@ -114,6 +114,42 @@ Execute (cargo warning message):
   AssertEqual [[2, 7]], g:neomake_tests_highlight_lengths
   bwipe
 
+Execute (cargo warning for file that is not open):
+  " Monkeypatch to check setting of length.
+  Save g:lengths
+  let g:lengths = []
+  function! neomake#highlights#AddHighlight(entry, type) abort
+      call add(g:lengths, a:entry.length)
+  endfunction
+
+  new
+  file src/some_other_file.rs
+  let cargo = neomake#makers#ft#rust#cargo()
+  let cargo.exe = 'cat'
+  let cargo.args = 'tests/fixtures/rust/cargo_warning.json'
+
+  call neomake#Make(1, [cargo])
+  NeomakeTestsWaitForFinishedJobs
+
+  new
+  file src/add_assign_like.rs
+
+  AssertEqual [{
+    \ 'type': 'W',
+    \ 'bufnr': bufnr('%'),
+    \ 'nr': -1,
+    \ 'lnum': 2,
+    \ 'col': 24,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'pattern': '',
+    \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}], getloclist(0)
+
+  AssertEqual [7], g:lengths
+  bwipe
+  " Undo monkeypatch.
+  runtime autoload/neomake/highlights.vim
+
 Execute (cargo error message children):
   NeomakeTestsMonkeypatchHighlights
 
