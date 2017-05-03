@@ -1693,7 +1693,7 @@ function! s:map_makers(options, makers, ...) abort
                 else
                     let cwd = expand(cwd, 1)
                 endif
-                let options.cwd = fnamemodify(cwd, ':p')
+                let options.cwd = substitute(fnamemodify(cwd, ':p'), '[\/]$', '', '')
             endif
 
             if has_key(maker, '_bind_args')
