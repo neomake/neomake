@@ -21,8 +21,7 @@ env:
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-xenial
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
-    # Same as neovim-v0.2.0 and the bot-ci script is broken currently, so skip it for now.
-    # - ENV=testnvim
+    - ENV=testnvim
     - ENV=testvim
     - ENV=check
     - ENV=vint
