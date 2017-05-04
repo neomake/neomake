@@ -540,7 +540,7 @@ Execute (Neomake: remove_invalid_entries and default entry type):
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1, 'type': 'W', 'pattern': '', 'text': 'valid'}]
 
 Execute (Neomake: entry.valid < 0 and configured entry type):
-  let maker = neomake#utils#MakerFromCommand('echo invalid; echo "E: valid"')
+  let maker = neomake#utils#MakerFromCommand('echo invalid; echo "E: valid"; echo invalid_but_kept')
   call extend(maker, {
       \ 'name': 'custom_maker',
       \ 'remove_invalid_entries': 0,
@@ -551,16 +551,23 @@ Execute (Neomake: entry.valid < 0 and configured entry type):
 
   function maker.postprocess(entry) abort
     if !a:entry.valid
-      let a:entry.valid = -1
+      if a:entry.text == 'invalid_but_kept'
+        let a:entry.type = 'I'
+      else
+        let a:entry.valid = -1
+      endif
     endif
   endfunction
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'custom_maker: processing 3 lines of output.'
   AssertNeomakeMessage "Removing invalid entry: invalid ({'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': -1, 'vcol': 0, 'nr': -1, 'type': '', 'maker_name': 'custom_maker', 'pattern': ''})."
   let valid = has('patch-8.0.0580')
-  AssertEqual getloclist(0),
-    \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1, 'type': 'I', 'pattern': '', 'text': 'valid'}]
+  AssertNeomakeMessage 'Processing 2 entries.'
+  AssertEqual getloclist(0), [
+    \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1, 'type': 'I', 'pattern': '', 'text': 'valid'},
+    \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1, 'type': 'I', 'pattern': '', 'text': 'invalid_but_kept'}]
 
 Execute (Neomake: append_file from settings and empty entry type):
   let maker = {
