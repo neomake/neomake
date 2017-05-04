@@ -304,7 +304,7 @@ function! s:MakeJob(make_id, options) abort
             endif
         else
             call neomake#utils#DebugMessage('Running synchronously.')
-            call neomake#utils#LoudMessage(printf('Starting: %s.', string(argv)), jobinfo)
+            call neomake#utils#LoudMessage(printf('Starting: %s.', argv), jobinfo)
 
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
