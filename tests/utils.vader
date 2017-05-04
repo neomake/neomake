@@ -221,6 +221,7 @@ Execute (neomake#utils#ExpandArgs):
   \ 'C:\\%:r\\',
   \ '~',
   \ '\~',
+  \ '%f',
   \ ]
   let expected_args = [
   \ 'file1.ext',
@@ -242,9 +243,16 @@ Execute (neomake#utils#ExpandArgs):
   \ 'C:\\file1\\',
   \ '/home/sweet',
   \ '\~',
+  \ 'FAKE_FILE',
   \ ]
 
-  call neomake#utils#ExpandArgs(args)
+  let maker = neomake#GetMaker({})
+  function! maker._get_fname_for_buffer(jobinfo)
+    return 'FAKE_FILE'
+  endfunction
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let jobinfo.maker = maker
+  call neomake#utils#ExpandArgs(args, jobinfo)
   AssertEqual expected_args, args
   AssertEqual isk, &iskeyword
   bwipe

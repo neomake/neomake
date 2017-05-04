@@ -405,7 +405,7 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
     return bufname
 endfunction
 
-function! s:command_maker_base._bind_args() abort dict
+function! s:command_maker_base._bind_args(jobinfo) abort dict
     " Resolve args, which might be a function or dictionary.
     if type(self.args) == type(function('tr'))
         let args = call(self.args, [])
@@ -416,7 +416,7 @@ function! s:command_maker_base._bind_args() abort dict
     endif
     let args_is_list = type(args) == type([])
     if args_is_list
-        call neomake#utils#ExpandArgs(args)
+        call neomake#utils#ExpandArgs(args, extend(copy(a:jobinfo), {'maker': self}))
     endif
     let self.args = args
 endfunction
@@ -1751,7 +1751,7 @@ function! s:map_makers(options, makers, ...) abort
             endif
 
             if has_key(maker, '_bind_args')
-                call maker._bind_args()
+                call maker._bind_args(a:jobinfo)
                 if !executable(maker.exe)
                     if !get(maker, 'auto_enabled', 0)
                         let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)
