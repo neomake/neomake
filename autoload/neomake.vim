@@ -840,8 +840,8 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
                             \ 'Removing invalid entry: %s (%s).',
                             \ remove(entry_copy, 'text'),
                             \ string(entry_copy)), a:jobinfo)
+                continue
             endif
-            continue
         endif
 
         if empty(entry.type)
