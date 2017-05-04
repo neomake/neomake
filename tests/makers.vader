@@ -292,7 +292,7 @@ Execute (Makers: get_list_entries via config):
 
   Save g:neomake_test_entries
   let g:neomake_test_entries = [{
-    \ 'filename': 'not_used_with_valid_bufnr',
+    \ 'filename': 'unloaded_filename_without_bufnr',
     \ 'lnum': 23,
     \ 'pattern': '',
     \ 'col': 42,
@@ -319,9 +319,12 @@ Execute (Makers: get_list_entries via config):
   let expected = map(copy(g:neomake_test_entries), "extend(v:val, {'valid': 1})")
   " filename is removed
   let expected = map(expected, "filter(v:val, 'v:key != \"filename\"')")
-  " bufnr gets added from jobinfo
-  let expected = map(expected, "extend(v:val, {'bufnr': bufnr})")
-  AssertEqual getloclist(0), g:neomake_test_entries
+  " Unlisted buffer gets added for filename.
+  let unlisted_bufnr = bufnr('unloaded_filename_without_bufnr')
+  Assert !empty(unlisted_bufnr), 'unlisted_bufnr is not empty'
+  let expected[0].bufnr = unlisted_bufnr
+
+  AssertEqual getloclist(0), expected
 
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
@@ -334,28 +337,52 @@ Execute (get_list_entries: minimal example (from doc)):
   new
   call g:NeomakeSetupAutocmdWrappers()
   let buf1 = bufnr('%')
+  file get_list_entries_buf1
 
-  let maker = {'name': 'My maker'}
+  let maker = {'name': 'My maker', 'my_orig_bufnr': buf1}
   function! maker.get_list_entries(jobinfo) abort
     " Change bufnr.
     new
     return [
-      \ {'text': 'Some error', 'lnum': 1, 'bufnr': bufnr('%')},
-      \ {'text': 'Some warning', 'type': 'W', 'lnum': 2, 'col': 1, 'length': 5},
+      \ {'text': 'Some error', 'lnum': 1, 'bufnr': a:jobinfo.bufnr},
+      \ {'text': 'Some warning without bufnr', 'type': 'W', 'lnum': 2,
+      \  'col': 1, 'length': 5},
+      \ {'text': 'Some warning', 'type': 'W', 'lnum': 2, 'col': 1,
+      \  'bufnr': a:jobinfo.maker.my_orig_bufnr, 'length': 2},
+      \ {'text': 'Some info', 'type': 'I', 'lnum': 3, 'col': 1,
+      \  'filename': '/path/to/file'},
+      \ {'text': 'Some non-type', 'type': '', 'lnum': 4, 'col': 1, 'length': 23,
+      \  'filename': 'get_list_entries_buf1'},
       \ ]
   endfunction
   call neomake#Make(1, [maker])
 
-  " .length was transformed into a highlight.
-  AssertEqual [[1, -1], [2, 5]], g:neomake_tests_highlight_lengths
+  AssertEqual [[1, -1], [2, 2], [3, -1], [4, 23]], g:neomake_tests_highlight_lengths
 
-  AssertEqual getloclist(0), [
-  \ {'lnum': 1, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
+  let llist = getloclist(0)
+
+  " Check that unlisted buffer was created for filename.
+  let unlisted_bufnr = bufnr('/path/to/file')
+  Assert !empty(unlisted_bufnr), 'Unlisted buffer was created (1)'
+  Assert !buflisted(unlisted_bufnr), 'Unlisted buffer was created (2)'
+
+  " Check that existing buffer was used for filename.
+  AssertEqual llist[4].bufnr, buf1, 'get_list_entries_buf1 was picked up'
+
+  AssertEqual llist, [
+  \ {'lnum': 1, 'bufnr': buf1, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
   \  'type': 'E', 'pattern': '', 'text': 'Some error'},
+  \ {'lnum': 2, 'bufnr': 0, 'col': 1, 'valid': 0, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'pattern': '', 'text': 'Some warning without bufnr'},
   \ {'lnum': 2, 'bufnr': buf1, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
-  \  'type': 'W', 'pattern': '', 'text': 'Some warning'}]
+  \  'type': 'W', 'pattern': '', 'text': 'Some warning'},
+  \ {'lnum': 3, 'bufnr': unlisted_bufnr, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'I', 'pattern': '', 'text': 'Some info'},
+  \ {'lnum': 4, 'bufnr': buf1, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': '', 'pattern': '', 'text': 'Some non-type'} ]
   bwipe
   bwipe
+  exe 'bwipe '.unlisted_bufnr
 
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_finished), 1
