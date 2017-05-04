@@ -128,7 +128,7 @@ Execute (Maker can specify temporary file to use via fn):
   if neomake#has_async_support()
     AssertNeomakeMessage "Starting async job: ['true', '".g:neomake_test_tempfile."']."
   else
-    AssertNeomakeMessage "Starting: 'true ".fnameescape(g:neomake_test_tempfile)."'."
+    AssertNeomakeMessage printf('Starting: true %s.', fnameescape(g:neomake_test_tempfile))
   endif
   bwipe
 

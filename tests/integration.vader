@@ -450,7 +450,7 @@ Execute (Neomake#Make: error with failing job via jobstart/argv):
   if neomake#has_async_support()
     AssertNeomakeMessage "Starting async job: ['doesnotexist']."
   else
-    AssertNeomakeMessage "Starting: 'doesnotexist'."
+    AssertNeomakeMessage "Starting: doesnotexist."
   endif
 
   if has('nvim-0.1.8')
@@ -489,7 +489,7 @@ Execute (Neomake#Make: error with failing job via jobstart/argv + true):
   if neomake#has_async_support()
     AssertNeomakeMessage "Starting async job: ['doesnotexist']."
   else
-    AssertNeomakeMessage "Starting: 'doesnotexist'."
+    AssertNeomakeMessage "Starting: doesnotexist."
   endif
 
   if has('nvim-0.1.8')
