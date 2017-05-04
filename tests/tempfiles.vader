@@ -108,7 +108,7 @@ Execute (Maker can specify temporary file to use via fn):
   \ }
 
   new
-  file unreadable
+  file unreadable_and_modified
   normal! iline1
   let bufnr = bufnr('%')
   let maker = neomake#GetMaker(maker)
@@ -195,13 +195,15 @@ Execute (maker._get_argv uses jobinfo for bufnr):
 
 Execute (_get_fname_for_buffer handles modified buffer with disabled tempfiles):
   new
-  file file1
+  let bufname = 'tests/fixtures/a filename with spaces'
+  edit tests/fixtures/a\ filename\ with\ spaces
   let b:neomake_tempfile_enabled = 0
   set modified
   let maker = neomake#GetMaker({})
   let jobinfo = NeomakeTestsFakeJobinfo()
   let fname = maker._get_fname_for_buffer(jobinfo)
-  AssertEqual fname, 'file1'
+  AssertEqual fname, bufname
+  AssertNeomakeMessage 'warning: buffer is modified. You might want to enable tempfiles.'
   bwipe!
 
 Execute (_get_fname_for_buffer does not add trailing newline):
@@ -309,7 +311,6 @@ Execute (same tempfile is used for all jobs (serialized)):
 
 Execute (same tempfile contents is used for all jobs):
   if NeomakeAsyncTestsSetup()
-    call g:NeomakeSetupAutocmdWrappers()
     new
     let b:neomake_serialize = 1
     let maker1 = {'name': 'maker1', 'exe': 'cat', 'append_file': 1}
@@ -344,6 +345,8 @@ Execute (same tempfile contents is used for all jobs):
     normal! oline2
     let g:neomake_test_messages = []
     NeomakeTestsWaitForFinishedJobs
+    let jobinfo1 = g:neomake_test_jobfinished[0].jobinfo
+    let jobinfo2 = g:neomake_test_jobfinished[1].jobinfo
 
     AssertEqual len(g:neomake_test_jobfinished), 2
     AssertNeomakeMessage 'Using tempfile for unnamed buffer: "'.g:maker2_tempfile.'".'
@@ -353,8 +356,10 @@ Execute (same tempfile contents is used for all jobs):
     AssertNotEqual make_info.tempfiles[0], bound_maker2.tempfile_name
     AssertEqual g:global_tempfile_contents, g:maker2_tempfile_contents
 
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
-    \ ['line1', 'line1']
+    AssertEqual make_info.tempfiles, [jobinfo1.filename, jobinfo2.filename]
+    AssertEqual make_info.tempfiles, [jobinfo1.tempfile, jobinfo2.tempfile]
+
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['line1', 'line1']
 
     bwipe!
     au! neomake_test_finished

@@ -365,7 +365,6 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         else
             throw 'Neomake: no file name.'
         endif
-
     elseif getbufvar(bufnr, '&modified')
         let temp_file = self._get_tempfilename(a:jobinfo)
         if !empty(temp_file)
@@ -373,10 +372,9 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
                         \ 'Using tempfile for modified buffer: "%s".', temp_file),
                         \ a:jobinfo)
         else
-            call neomake#utils#DebugMessage('warning: buffer is modified.',
+            call neomake#utils#DebugMessage('warning: buffer is modified. You might want to enable tempfiles.',
                         \ a:jobinfo)
         endif
-
     elseif !filereadable(bufname)
         let temp_file = self._get_tempfilename(a:jobinfo)
         if !empty(temp_file)
@@ -384,7 +382,8 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
                         \ 'Using tempfile for unreadable buffer: "%s".', temp_file),
                         \ a:jobinfo)
         else
-            throw 'Neomake: file is not readable ('.fnamemodify(bufname, ':p').')'
+            " Using ':p' as modifier is unpredictable as per doc, but OK.
+            throw printf('Neomake: file is not readable (%s)', fnamemodify(bufname, ':p'))
         endif
     else
         let bufname = fnamemodify(bufname, ':p')
