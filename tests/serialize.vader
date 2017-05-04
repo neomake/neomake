@@ -172,7 +172,8 @@ Execute (Neomake#Make starts new jobs before waiting for the old to finish):
     let start = reltime()
     call neomake#Make(0, [maker])
     call neomake#Make(0, [maker])
-    call neomake#Make(0, [maker])
+    let last = neomake#Make(0, [maker])
+    let last_jobinfo = neomake#GetJob(last[0])
     NeomakeTestsWaitForFinishedJobs
     let end = reltime()
     let duration = reltimefloat(end) - reltimefloat(start)
@@ -191,7 +192,7 @@ Execute (Neomake#Make starts new jobs before waiting for the old to finish):
     AssertNeomakeMessage '\m^Starting async job:'
     AssertNeomakeMessage 'exit: job was canceled.'
     AssertNeomakeMessage 'exit: job was canceled.'
-    AssertNeomakeMessage 'exit: sleep: 0.'
+    AssertNeomakeMessage 'exit: sleep: 0.', 3, last_jobinfo, {'ignore_order': 1}
 
     let restart_messages = filter(copy(g:neomake_test_messages),
         \ "v:val[1] =~# '\\vRestarting already running job \\(\\d+\\.\\d+\\) for the same maker.'")
