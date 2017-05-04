@@ -68,12 +68,13 @@ Execute (Placing signs in project mode):
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Placing sign: sign place 7000 line=1 name=neomake_warn buffer='.bufnr.'.'
-  bd!
+  bd
 
   call neomake#signs#Reset(bufnr, 'project')
   call neomake#signs#CleanAllOldSigns('project')
   AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {1: [7000, neomake_warn]}.', 3, {}
   AssertNeomakeMessage 'Unplacing sign: sign unplace 7000 buffer='.bufnr.'.'
+  exe 'bwipe' bufnr
 
 Execute (Signs are wiped when buffer gets wiped):
   new

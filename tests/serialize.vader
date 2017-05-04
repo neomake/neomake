@@ -113,7 +113,7 @@ Execute (NeomakeSh: serialized with previous buffer overriding global abort):
 
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['slept', 'error']
     wincmd p
-    bd
+    bwipe
 
     AssertNeomakeMessage 'Aborting next makers: success-maker.'
   endif
@@ -255,7 +255,7 @@ Execute (Neomake#Make handles cwd properly):
 
       " Cleanup.
       wincmd p
-      bd
+      bwipe
     finally
       exe 'cd '.orig_cwd
     endtry

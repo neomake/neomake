@@ -400,6 +400,15 @@ function! s:After()
     endfor
   endfor
 
+  let unlisted = filter(range(1, bufnr('$')), 'bufexists(v:val) && !buflisted(v:val)')
+  if !empty(unlisted)
+    call add(errors, 'Unlisted buffers: '.join(unlisted, ', '))
+    Log neomake#utils#redir('ls!')
+    for b in unlisted
+      exe 'bwipe!' b
+    endfor
+  endif
+
   for k in keys(make_info)
     unlet make_info[k]
   endfor
