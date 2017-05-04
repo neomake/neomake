@@ -114,29 +114,30 @@ Execute (cargo warning message):
   AssertEqual [[2, 7]], g:neomake_tests_highlight_lengths
   bwipe
 
+  " Work around https://github.com/vim/vim/issues/1676 for next test(s).
+  cgetexpr 'bust_cache:1676:workaround_vim_issue'
+  bwipe bust_cache
+
 Execute (cargo warning for file that is not open):
-  " Monkeypatch to check setting of length.
-  Save g:lengths
-  let g:lengths = []
-  function! neomake#highlights#AddHighlight(entry, type) abort
-      call add(g:lengths, a:entry.length)
-  endfunction
+  NeomakeTestsMonkeypatchHighlights
 
   new
   file src/some_other_file.rs
 
   let cargo = neomake#makers#ft#rust#cargo()
   let cargo.exe = 'cat'
+  " Uses src/add_assign_like.rs.
   let cargo.args = 'tests/fixtures/rust/cargo_warning.json'
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
 
-  edit src/add_assign_like.rs
+  let unlisted_bufnr = bufnr('^src/add_assign_like.rs$')
+  AssertNotEqual -1, unlisted_bufnr
 
   AssertEqual [{
     \ 'type': 'W',
-    \ 'bufnr': bufnr('%'),
+    \ 'bufnr': unlisted_bufnr,
     \ 'nr': -1,
     \ 'lnum': 2,
     \ 'col': 24,
@@ -145,10 +146,9 @@ Execute (cargo warning for file that is not open):
     \ 'pattern': '',
     \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}], getloclist(0)
 
-  AssertEqual [7], g:lengths
+  AssertEqual [[2, 7]], g:neomake_tests_highlight_lengths
   bwipe
-  " Undo monkeypatch.
-  runtime autoload/neomake/highlights.vim
+  exe 'bwipe' unlisted_bufnr
 
 Execute (cargo error message children):
   NeomakeTestsMonkeypatchHighlights
