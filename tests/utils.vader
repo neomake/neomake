@@ -400,11 +400,11 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   let maker = neomake#utils#MakerFromCommand('echo')
 
   new
-  file dir/filename\ with\ spaces
+  edit tests/fixtures/a\ filename\ with\ spaces
+  set modified
   let b:neomake_tempfile_enabled = 1
   let jobinfo = NeomakeTestsFakeJobinfo()
 
-  set buftype=nofile
   let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
   let make_info = values(neomake#GetStatus().make_info)[0]
   let temp_file = make_info.tempfiles[0]
@@ -413,7 +413,7 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   AssertEqual bound_maker.exe, &shell
   AssertEqual bound_maker.remove_invalid_entries, 0
   AssertNotEqual temp_file, fnameescape(temp_file)
-  bwipe
+  bwipe!
 
 Execute (neomake#utils#get_config_fts):
   function! F(ft) abort
