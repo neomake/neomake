@@ -306,7 +306,7 @@ let g:sleep_efm_maker = {
     \ 'errorformat': '%f:%l:%t:%m',
     \ 'append_file': 0,
     \ }
-let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .01; echo slept')
+let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05; echo slept')
 let g:error_maker = NeomakeTestsCommandMaker('error-maker', 'echo error; false')
 let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
 let g:doesnotexist_maker = {'exe': 'doesnotexist'}

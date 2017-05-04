@@ -289,6 +289,7 @@ Execute (Job does not get restarted when canceled):
     let jobinfo = neomake#GetJob(jobs[0])
     NeomakeTestsWaitForMessage "stdout: mymaker: ['output', ''].", 3, jobinfo
     call neomake#CancelJob(jobinfo.id)
+
     let jobinfo2 = neomake#GetJob(neomake#Make(1, [maker])[0])
     NeomakeTestsWaitForFinishedJobs
 
