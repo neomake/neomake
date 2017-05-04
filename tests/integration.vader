@@ -554,7 +554,7 @@ Execute (Neomake: entry.valid < 0 and configured entry type):
       if a:entry.text == 'invalid_but_kept'
         let a:entry.type = 'I'
       elseif a:entry.text == 'invalid_but_kept_as_valid'
-        let a:entry.valid = 'I'
+        let a:entry.valid = 1
       else
         let a:entry.valid = -1
       endif
