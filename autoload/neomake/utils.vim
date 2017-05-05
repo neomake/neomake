@@ -168,9 +168,9 @@ function! neomake#utils#WideMessage(msg) abort " {{{2
     let old_ruler = &ruler
     let old_showcmd = &showcmd
 
-    "This is here because it is possible for some error messages to
-    "begin with \n which will cause a "press enter" prompt.
-    let msg = substitute(a:msg, "\n", '', 'g')
+    " Replace newlines (typically in the msg) with a single space.  This
+    " might happen with writegood.
+    let msg = substitute(a:msg, '\r\?\n', ' ', 'g')
 
     "convert tabs to spaces so that the tabs count towards the window
     "width as the proper amount of characters
