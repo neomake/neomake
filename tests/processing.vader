@@ -45,10 +45,6 @@ Execute (Output is only processed in normal/insert mode (qflist)):
     call neomake#signs#ResetProject()
     call neomake#signs#CleanAllOldSigns('project')
     bwipe
-
-    " Work around https://github.com/vim/vim/issues/1676 for next test(s).
-    cgetexpr 'bust_cache:1676:workaround_vim_issue'
-    bwipe bust_cache
   endif
 
 Execute (Output is only processed in normal/insert mode (from loclist)):

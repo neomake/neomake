@@ -114,10 +114,6 @@ Execute (cargo warning message):
   AssertEqual [[2, 7]], g:neomake_tests_highlight_lengths
   bwipe
 
-  " Work around https://github.com/vim/vim/issues/1676 for next test(s).
-  cgetexpr 'bust_cache:1676:workaround_vim_issue'
-  bwipe bust_cache
-
 Execute (cargo warning for file that is not open):
   NeomakeTestsMonkeypatchHighlights
 
