@@ -231,10 +231,10 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
     \ ['2:0: buf: b1', '2:1: buf: b1']
     doautocmd CursorHold
 
-    " TODO: Should have still the output from 2nd job.
-    " Discard output from earlier makes?"
-"     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
-"     \ ['2:0: buf: b1', '2:1: buf: b1']
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ ['2:0: buf: b1', '2:1: buf: b1']
+
+    lolder
     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
     \ ['1:0: buf: b1']
     AssertEqual len(g:neomake_test_finished), 2
@@ -263,13 +263,17 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
       \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
     AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
     NeomakeTestsWaitForFinishedJobs
+    AssertEqual len(g:neomake_test_jobfinished), 2
+    AssertEqual len(g:neomake_test_finished), 2
+
     AssertEqual map(copy(getqflist()), 'v:val.text'),
     \ ['2:0: buf: b1', '2:1: buf: b1']
     doautocmd CursorHold
 
-    " TODO: Should have still the output from 2nd job.
-"     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
-"     \ ['2:0: buf: b1', '2:1: buf: b1']
+    AssertEqual map(copy(getqflist()), 'v:val.text'),
+    \ ['2:0: buf: b1', '2:1: buf: b1']
+
+    colder
     AssertEqual map(copy(getqflist()), 'v:val.text'),
     \ ['1:0: buf: b1']
 
