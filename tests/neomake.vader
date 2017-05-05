@@ -49,6 +49,7 @@ Include (Markdown): ft_markdown.vader
 Include (Pandoc): ft_pandoc.vader
 Include (TypeScript): ft_typescript.vader
 Include (JavaScript): ft_javascript.vader
+Include (PureScript): ft_purescript.vader
 
 * Old/unorganized tests
 Include: include/setup.vader
