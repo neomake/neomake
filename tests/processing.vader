@@ -283,6 +283,28 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
     bwipe b2
   endif
 
+Execute (Second make finishes before first (qflist)):
+  let maker1 = NeomakeTestsCommandMaker('maker1', 'sleep .1; echo 1')
+  let maker2 = NeomakeTestsCommandMaker('maker2', 'echo 2')
+  call neomake#Make(0, [maker1])
+  call neomake#Make(0, [maker2])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['1']
+  colder
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['2']
+
+Execute (Second make finishes before first (loclist)):
+  let maker1 = NeomakeTestsCommandMaker('maker1', 'sleep .1; echo 1')
+  let maker2 = NeomakeTestsCommandMaker('maker2', 'echo 2')
+  call neomake#Make(1, [maker1])
+  call neomake#Make(1, [maker2])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['1']
+  lolder
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['2']
+
 Execute (Handle finished job that got canceled (#1158)):
   call g:NeomakeSetupAutocmdWrappers()
   norm! V
