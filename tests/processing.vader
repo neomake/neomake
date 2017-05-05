@@ -290,8 +290,10 @@ Execute (Second make finishes before first (qflist)):
   call neomake#Make(0, [maker2])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual map(copy(getqflist()), 'v:val.text'), ['1']
-  colder
+  if neomake#has_async_support()
+    AssertEqual map(copy(getqflist()), 'v:val.text'), ['1']
+    colder
+  endif
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['2']
 
 Execute (Second make finishes before first (loclist)):
@@ -301,8 +303,10 @@ Execute (Second make finishes before first (loclist)):
   call neomake#Make(1, [maker2])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['1']
-  lolder
+  if neomake#has_async_support()
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['1']
+    lolder
+  endif
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['2']
 
 Execute (Handle finished job that got canceled (#1158)):
