@@ -1312,6 +1312,9 @@ endfunction
 function! s:RegisterJobOutput(jobinfo, lines, source) abort
     if !a:jobinfo.file_mode
         if s:CanProcessJobOutput()
+            " Process any pending output first.
+            call neomake#ProcessPendingOutput()
+
             call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
             return 0
         else
@@ -1328,6 +1331,9 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
 
     " Process the window directly if we can.
     if s:CanProcessJobOutput() && index(get(w:, 'neomake_make_ids', []), a:jobinfo.make_id) != -1
+        " Process any pending output first.
+        call neomake#ProcessPendingOutput()
+
         call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
         call neomake#highlights#ShowHighlights()
         return 0
