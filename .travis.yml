@@ -19,7 +19,6 @@ env:
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.1.7
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-xenial
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
     - ENV=testnvim
     - ENV=testvim
