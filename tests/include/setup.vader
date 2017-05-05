@@ -5,23 +5,21 @@ Before:
   let g:neomake_test_log_all_messages = 1
   let g:neomake_test_messages_last_idx = -1
 
-  if !empty(getloclist(0))
-    " Work around https://github.com/vim/vim/issues/1676.
-    lgetexpr 'bust_cache:1676:workaround_vim_issue'
-    bwipe bust_cache
-    lgetexpr ''
-  endif
-  if !empty(getqflist())
-    " Work around https://github.com/vim/vim/issues/1676.
-    cgetexpr 'bust_cache:1676:workaround_vim_issue'
-    bwipe bust_cache
-    cgetexpr ''
-  endif
-
   " One-time setup.
   if exists(':NeomakeTestsWaitForFinishedJobs') != 2
     exe 'source' fnamemodify(g:vader_file, ':p:h').'/include/init.vim'
+    let g:neomake_test_cache_bust = 1
   endif
+
+  if has('patch-7.4.2017')
+    " Work around https://github.com/vim/vim/issues/1676.
+    let bust_name = 'bust_cache_'.g:neomake_test_cache_bust
+    lgetexpr bust_name.':1676:workaround_vim_issue'
+    exe 'bwipe' bust_name
+    let g:neomake_test_cache_bust += 1
+  endif
+  lgetexpr ''
+  cgetexpr ''
 
 After:
   NeomakeTestsGlobalAfter
