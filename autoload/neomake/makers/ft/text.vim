@@ -23,7 +23,7 @@ endfunction
 function! neomake#makers#ft#text#writegood() abort
     return {
                 \ 'args': ['--parse'],
-                \ 'errorformat': '%W%f:%l:%c:%m',
+                \ 'errorformat': '%W%f:%l:%c:%m,%C%m',
                 \ 'postprocess': function('neomake#makers#ft#text#PostprocessWritegood'),
                 \ }
 endfunction

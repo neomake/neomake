@@ -67,3 +67,20 @@ Execute (proselint):
   \ 'file']]
 
   bwipe!
+
+Execute (writegood: handles wrapped message):
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#text#writegood().errorformat
+  lgetexpr [
+  \ 'README.md:1:73:"be',
+  \ 'used" may be passive voice',
+  \ 'README.md:2:1:something else']
+
+  let bufnr = bufnr('README.md')
+  AssertEqual getloclist(0), [
+  \ {'lnum': 1, 'bufnr': bufnr, 'col': 73, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'pattern': '', 'text': "\"be\nused\" may be passive voice"},
+  \ {'lnum': 2, 'bufnr': 5, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'pattern': '', 'text': 'something else'}]
+
+  exe 'bwipe' bufnr

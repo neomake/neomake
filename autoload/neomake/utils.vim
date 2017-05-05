@@ -83,7 +83,7 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
                     \ ? filter(copy(context), "index(['id', 'make_id', 'bufnr'], v:key) != -1")
                     \ : {}
         call add(g:neomake_test_messages, [a:level, a:msg, context])
-        if index(['.', '!', ')'], a:msg[-1:-1]) == -1
+        if index(['.', '!', ')', ']'], a:msg[-1:-1]) == -1
             Assert 0, 'Log msg does not end with punctuation: "'.a:msg.'".'
         endif
     elseif verbosity >= a:level
