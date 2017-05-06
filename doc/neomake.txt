@@ -590,16 +590,6 @@ By default, `LoclistCounts` returns the counts for the current buffer (i.e.
 will retrieve the counts for a particular buffer, while passing the string
 "`all`" will return a dictionary of counts for all buffers.
 
-*neomake#ProcessCurrentWindow*
-This is the function that takes the job output and puts it into the
-|location-list| or |quickfix| list, adds signs, etc. Currently, if you stay in
-the window you called |:Neomake| from, this will happen as the job output
-comes in. However, if you go to a different window, Neomake will wait until
-you return to that window for the job output to be processed. Currently, that
-will happen on |WinEnter| and |CursorHold|. You can also call this function
-directly if you need to force it. This function is not currently used for
-|:Neomake!|, which always processes its output as it arrives.
-
 ==============================================================================
 5. Autocommands/Hooks                                       *neomake-autocmds*
                                                                *neomake-hooks*
