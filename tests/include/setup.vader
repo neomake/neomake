@@ -17,6 +17,8 @@ Before:
 
   " One-time setup.
   if exists(':NeomakeTestsWaitForFinishedJobs') != 2
+    let g:neomake_test_buffers_before = filter(range(1, bufnr('$')), 'bufexists(v:val)')
+
     exe 'source' fnamemodify(g:vader_file, ':p:h').'/include/init.vim'
 
     " Work around https://github.com/vim/vim/issues/1676.
