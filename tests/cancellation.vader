@@ -123,7 +123,7 @@ Execute (neomake#CancelJob with trapped TERM):
     AssertEqual neomake#CancelJob(job_id), 1
     AssertNeomakeMessage 'Stopping job.', 3, jobinfo
 
-    NeomakeTestsWaitForMessage '\Mstdout: \.\*: [''not stopping on SIGTERM''', 3, jobinfo
+    NeomakeTestsWaitForMessage '\Mstdout: \.\*''not stopping on SIGTERM''', 3, jobinfo
     AssertNeomakeMessage 'Ignoring output (job was canceled).', 3, jobinfo
     NeomakeTestsWaitForMessage 'exit: job was canceled.', 3, jobinfo
     if !has('nvim')
