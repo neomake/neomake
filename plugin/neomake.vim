@@ -25,7 +25,9 @@ augroup neomake
   au!
   au WinEnter * call neomake#ProcessCurrentWindow()
   au CursorHold * call neomake#ProcessPendingOutput()
-  au BufEnter * call neomake#highlights#ShowHighlights()
+  if !exists('*nvim_buf_add_highlight')
+    au BufEnter * call neomake#highlights#ShowHighlights()
+  endif
   if has('timers')
     au CursorMoved * call neomake#CursorMovedDelayed()
     " Force-redraw display of current error after resizing Vim, which appears

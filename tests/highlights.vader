@@ -5,11 +5,12 @@ Execute (No error when matches are cleared manually):
   if !has('nvim')
     AssertEqual w:neomake_highlights, []
   endif
-  call neomake#highlights#ShowHighlights()
+  doautocmd BufEnter
   if !has('nvim')
     AssertEqual len(w:neomake_highlights), 1
   endif
   call clearmatches()
+  " No-op in Neovim (same as BufEnter above), but should be defined.
   call neomake#highlights#ShowHighlights()
   if !has('nvim')
     AssertEqual len(w:neomake_highlights), 1
