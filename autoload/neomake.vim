@@ -326,13 +326,26 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
 
     let make_id = a:jobinfo.make_id
     if !has_key(s:make_info[make_id], 'tempfile_name')
-        let bufname = bufname(a:jobinfo.bufnr)
-        if !empty(bufname)
-            let bufname = fnamemodify(bufname, ':t')
-        else
-            let bufname = 'neomake_tmp.'.a:jobinfo.ft
+        if !exists('s:pid')
+            let s:pid = getpid()
         endif
-        let temp_file = tempname() . (has('win32') ? '\' : '/') . bufname
+        let slash = neomake#utils#Slash()
+        let bufname = bufname(a:jobinfo.bufnr)
+        if empty(bufname)
+            let temp_file = tempname() . slash . 'neomaketmp.'.a:jobinfo.ft
+        else
+            let orig_file = neomake#utils#fnamemodify(a:jobinfo.bufnr, ':p')
+            if empty(orig_file)
+                let bufname = fnamemodify(bufname, ':t')
+                let s:make_info[make_id].tempfile_dir = tempname()
+                let temp_file = s:make_info[make_id].tempfile_dir . slash . bufname
+            else
+                let temp_file = fnamemodify(orig_file, ':h')
+                            \ .slash.'.'.fnamemodify(orig_file, ':t')
+                            \ .'@neomake_'.s:pid.'_'.make_id
+                            \ .'.'.fnamemodify(orig_file, ':e')
+            endif
+        endif
         let s:make_info[make_id].tempfile_name = temp_file
     endif
     return s:make_info[make_id].tempfile_name
@@ -352,7 +365,6 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         else
             throw 'Neomake: no file name.'
         endif
-
     elseif getbufvar(bufnr, '&modified')
         let temp_file = self._get_tempfilename(a:jobinfo)
         if !empty(temp_file)
@@ -360,10 +372,9 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
                         \ 'Using tempfile for modified buffer: "%s".', temp_file),
                         \ a:jobinfo)
         else
-            call neomake#utils#DebugMessage('warning: buffer is modified.',
+            call neomake#utils#DebugMessage('warning: buffer is modified. You might want to enable tempfiles.',
                         \ a:jobinfo)
         endif
-
     elseif !filereadable(bufname)
         let temp_file = self._get_tempfilename(a:jobinfo)
         if !empty(temp_file)
@@ -371,28 +382,46 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
                         \ 'Using tempfile for unreadable buffer: "%s".', temp_file),
                         \ a:jobinfo)
         else
-            throw 'Neomake: file is not readable ('.fnamemodify(bufname, ':p').')'
+            " Using ':p' as modifier is unpredictable as per doc, but OK.
+            throw printf('Neomake: file is not readable (%s)', fnamemodify(bufname, ':p'))
         endif
     else
         let bufname = fnamemodify(bufname, ':p')
     endif
 
+    let make_info = s:make_info[a:jobinfo.make_id]
     if !empty(temp_file)
-        let temp_dir = fnamemodify(temp_file, ':h')
-        if !isdirectory(temp_dir)
-            call mkdir(temp_dir, 'p', 0750)
-        endif
-        let make_info = s:make_info[a:jobinfo.make_id]
-        if !has_key(make_info, 'tempfile')
-            let make_info.tempfile = temp_file
+        if !has_key(make_info, 'tempfiles')
+            let make_info.tempfiles = [temp_file]
+            let make_info.created_dirs = s:create_dirs_for_file(temp_file)
             call neomake#utils#write_tempfile(bufnr, temp_file)
-        elseif temp_file !=# make_info.tempfile
-            call writefile(readfile(make_info.tempfile, 'b'), temp_file, 'b')
+        elseif temp_file !=# make_info.tempfiles[0]
+            call extend(make_info.created_dirs, s:create_dirs_for_file(temp_file))
+            call writefile(readfile(make_info.tempfiles[0], 'b'), temp_file, 'b')
+            call add(make_info.tempfiles, temp_file)
         endif
+        let a:jobinfo.tempfile = temp_file
         let bufname = temp_file
     endif
     let a:jobinfo.filename = bufname
     return bufname
+endfunction
+
+function! s:create_dirs_for_file(fpath) abort
+    let created_dirs = []
+    let last_dir = a:fpath
+    while 1
+        let temp_dir = fnamemodify(last_dir, ':h')
+        if isdirectory(temp_dir) || last_dir ==# temp_dir
+            break
+        endif
+        call insert(created_dirs, temp_dir)
+        let last_dir = temp_dir
+    endwhile
+    for dir in created_dirs
+        call mkdir(dir, '', 0700)
+    endfor
+    return created_dirs
 endfunction
 
 function! s:command_maker_base._bind_args() abort dict
@@ -796,8 +825,11 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
 
         let before = copy(entry)
-        if file_mode && has_key(make_info, 'tempfile')
+        " XXX: tests.  Related: https://github.com/neomake/neomake/pull/1257.
+        if file_mode && has_key(make_info, 'tempfiles')
             let entry.bufnr = a:jobinfo.bufnr
+        elseif has_key(entry, 'bufnr') && entry.bufnr != a:jobinfo.bufnr
+            call neomake#utils#DebugMessage(printf('WARN: entry.bufnr (%d) is different from jobinfo.bufnr (%d) (current buffer %d): %s.', entry.bufnr, a:jobinfo.bufnr, bufnr('%'), string(entry)))
         endif
         if !empty(s:postprocessors)
             let g:neomake_hook_context = {'jobinfo': a:jobinfo}
@@ -934,15 +966,20 @@ function! s:clean_make_info(make_id) abort
         call settabwinvar(t, w, 'neomake_make_ids', make_ids)
     endif
 
-    let tempfile = get(s:make_info[a:make_id], 'tempfile')
-    if !empty(tempfile)
-        call neomake#utils#DebugMessage(printf('Removing temporary file: "%s".',
-                    \ tempfile))
-        call delete(tempfile)
+    let tempfiles = get(s:make_info[a:make_id], 'tempfiles')
+    if !empty(tempfiles)
+        for tempfile in tempfiles
+            call neomake#utils#DebugMessage(printf('Removing temporary file: "%s".',
+                        \ tempfile))
+            call delete(tempfile)
+        endfor
+
         " Only delete the dir, if Vim supports it.  It will be cleaned up
         " when quitting Vim in any case.
         if v:version >= 705 || (v:version == 704 && has('patch1107'))
-            call delete(fnamemodify(tempfile, ':h'), 'd')
+            for dir in reverse(copy(get(s:make_info[a:make_id], 'created_dirs')))
+                call delete(dir, 'd')
+            endfor
         endif
     endif
 
