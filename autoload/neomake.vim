@@ -290,7 +290,7 @@ function! s:MakeJob(make_id, options) abort
 
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
-            let s:make_info[a:make_id].active_jobs += 1
+            let s:make_info[a:make_id].active_jobs += [jobinfo]
             call s:output_handler(job_id, split(system(argv), '\r\?\n', 1), 'stdout')
             call s:exit_handler(job_id, v:shell_error, 'exit')
             return {}
@@ -307,7 +307,7 @@ function! s:MakeJob(make_id, options) abort
             let $NEOMAKE_FILE = save_env_file
         endif
     endtry
-    let s:make_info[a:make_id].active_jobs += 1
+    let s:make_info[a:make_id].active_jobs += [jobinfo]
     return jobinfo
 endfunction
 
@@ -706,7 +706,7 @@ function! s:Make(options) abort
     let s:make_info[make_id] = {
                 \ 'cwd': getcwd(),
                 \ 'verbosity': get(g:, 'neomake_verbose', 1),
-                \ 'active_jobs': 0,
+                \ 'active_jobs': [],
                 \ 'finished_jobs': 0,
                 \ 'options': options,
                 \ }
@@ -792,7 +792,7 @@ function! s:Make(options) abort
         endif
     endwhile
 
-    if has_key(s:make_info, make_id) && !s:make_info[make_id].active_jobs
+    if has_key(s:make_info, make_id) && empty(s:make_info[make_id].active_jobs)
         " Might have been removed through s:CleanJobinfo already.
         call s:clean_make_info(make_id)
     endif
@@ -909,10 +909,10 @@ function! s:CleanJobinfo(jobinfo) abort
     call neomake#utils#DebugMessage('Cleaning jobinfo.', a:jobinfo)
 
     let make_info = s:make_info[a:jobinfo.make_id]
+    call filter(make_info.active_jobs, 'v:val != a:jobinfo')
 
     if has_key(s:jobs, get(a:jobinfo, 'id', -1))
         call remove(s:jobs, a:jobinfo.id)
-        let make_info.active_jobs -= 1
 
         if has_key(s:pending_outputs, a:jobinfo.id)
             unlet s:pending_outputs[a:jobinfo.id]
@@ -926,7 +926,7 @@ function! s:CleanJobinfo(jobinfo) abort
     endif
 
     " Trigger autocmd if all jobs for a s:Make instance have finished.
-    if make_info.active_jobs
+    if !empty(make_info.active_jobs)
         return
     endif
 
