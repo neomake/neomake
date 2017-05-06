@@ -34,12 +34,12 @@ status_file=$(mktemp)
 handle_cmd_result() {
   if [ "$1" = 0 ]; then
     title "✔ $2"
-    if [ "$last_changed_testsfile" = "$alltestsfile" ]; then
+    if [ "${2#*${alltestsfile}*}" != "$2" ]; then
       alltests_succeeded=1
     fi
   else
     title "✘ $2"
-    if [ "$last_changed_testsfile" = "$alltestsfile" ]; then
+    if [ "${2#*${alltestsfile}*}" != "$2" ]; then
       alltests_succeeded=0
     fi
   fi
