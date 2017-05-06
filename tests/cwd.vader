@@ -309,8 +309,6 @@ Execute (legacy errorformat maker: filename with cwd):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-"   AssertNeomakeMessage 'Updating entry bufnr: 0 => '.bufnr.'.'
-
   AssertEqual getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': bufnr('%'),
