@@ -12,10 +12,10 @@ function! s:resolve_name(dict, name, init) abort
             endif
             let c[p] = {}
         endif
-        let c = c[p]
-        if type(c) != type({})
+        if type(c[p]) != type({})
           return [g:neomake#config#undefined, '']
         endif
+        let c = c[p]
     endfor
     return [c, parts[-1]]
 endfunction
