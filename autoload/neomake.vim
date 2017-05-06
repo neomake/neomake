@@ -145,15 +145,6 @@ function! s:gettabwinvar(t, w, v, d) abort
     return r
 endfunction
 
-function! s:AddMakeInfoForCurrentWin(job_id) abort
-    " Add jobinfo.make_id to current window.
-    let tabpagenr = tabpagenr()
-    let winnr = winnr()
-    let w_ids = s:gettabwinvar(tabpagenr, winnr, 'neomake_make_ids', [])
-    let w_ids += [a:job_id]
-    call settabwinvar(tabpagenr, winnr, 'neomake_make_ids', w_ids)
-endfunction
-
 function! s:MakeJob(make_id, options) abort
     let job_id = s:job_id
     let s:job_id += 1
@@ -755,7 +746,7 @@ function! s:Make(options) abort
         endif
     endif
 
-    call s:AddMakeInfoForCurrentWin(make_id)
+    let w:neomake_make_ids = add(get(w:, 'neomake_make_ids', []), make_id)
 
     " TODO: return jobinfos?!
     let job_ids = []
