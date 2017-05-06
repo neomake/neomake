@@ -114,3 +114,17 @@ Execute (neomake#config#{un,}set_dict):
   AssertEqual foo, {'bar': {}}
   call neomake#config#unset_dict(foo, 'bar')
   AssertEqual foo, {}
+
+Execute (neomake#config#get does not create empty dicts during lookup):
+  new
+  let b:neomake = {'foo': 'bar'}
+  AssertEqual neomake#config#get('automake.setting', 'default'), 'default'
+  AssertEqual b:neomake, {'foo': 'bar'}
+  bwipe
+
+Execute (neomake#config#get handles non-dicts on the way):
+  new
+  let b:neomake = {'foo': {'bar': 'baz'}}
+  AssertEqual neomake#config#get('foo.bar', 'default'), 'baz'
+  AssertEqual neomake#config#get('foo.bar.baz', 'default'), 'default'
+  bwipe

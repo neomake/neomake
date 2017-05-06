@@ -1,12 +1,19 @@
 let g:neomake#config#undefined = {}
+lockvar! g:neomake#config#undefined
 
-" Resolve a:name (split on dots) and init a:dict accordingly.
-function! s:resolve_name(dict, name) abort
+" Resolve a:name (split on dots) and (optionally) init a:dict accordingly.
+function! s:resolve_name(dict, name, init) abort
     let c = a:dict
     let parts = split(a:name, '\.')
     for p in parts[0:-2]
         if !has_key(c, p)
+            if !a:init
+                return [g:neomake#config#undefined, '']
+            endif
             let c[p] = {}
+        endif
+        if type(c[p]) != type({})
+          return [g:neomake#config#undefined, '']
         endif
         let c = c[p]
     endfor
@@ -22,7 +29,7 @@ function! s:get(dict, name, context) abort
         call insert(prefixes, 'ft.'.ft.'.', 0)
     endif
     for prefix in prefixes
-        let [c, k] = s:resolve_name(a:dict, prefix.join(parts[0:-1], '.'))
+        let [c, k] = s:resolve_name(a:dict, prefix.join(parts[0:-1], '.'), 0)
         if has_key(c, k)
             return c[k]
         endif
@@ -103,7 +110,7 @@ endfunction
 
 " Set a:name in a:dict to a:value, after resolving it (split on dots).
 function! s:set(dict, name, value) abort
-    let [c, k] = s:resolve_name(a:dict, a:name)
+    let [c, k] = s:resolve_name(a:dict, a:name, 1)
     let c[k] = a:value
     return c
 endfunction
@@ -142,7 +149,7 @@ endfunction
 " This is meant for advanced usage, e.g.:
 "   unset_dict(t:, 'neomake.disabled', 1)
 function! neomake#config#unset_dict(dict, name) abort
-    let [c, k] = s:resolve_name(a:dict, a:name)
+    let [c, k] = s:resolve_name(a:dict, a:name, 0)
     if has_key(c, k)
         unlet c[k]
     endif
