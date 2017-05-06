@@ -137,7 +137,8 @@ Execute (Neomake: handle output for removed window):
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_countschanged), 1
 
-    bwipe
+    bwipe #
+    exe 'bwipe' bufnr
   endif
 
 Execute (Neomake: handle wiped buffer):
@@ -180,6 +181,7 @@ Execute (Neomake: handle pending output across windows/buffers):
 
     " Trigger processing of pending output.
     new
+    let new_bufnr = bufnr('%')
     AssertNeomakeMessage 'Skipped pending job output for another buffer.', 3, jobinfo
     AssertEqual len(g:neomake_test_jobfinished), 0
     AssertEqual len(g:neomake_test_finished), 0
@@ -192,7 +194,8 @@ Execute (Neomake: handle pending output across windows/buffers):
     AssertEqual len(g:neomake_test_finished), 1
 
     AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
-    bwipe
+    exe 'bwipe' bufnr
+    exe 'bwipe' new_bufnr
   endif
 
 Execute (NeomakeSh: true):

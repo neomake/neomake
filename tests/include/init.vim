@@ -400,11 +400,11 @@ function! s:After()
     endfor
   endfor
 
-  let unlisted = filter(range(1, bufnr('$')), 'bufexists(v:val) && !buflisted(v:val)')
-  if !empty(unlisted)
-    call add(errors, 'Unlisted buffers: '.join(unlisted, ', '))
+  let new_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val) && index(g:neomake_test_buffers_before, v:val) == -1')
+  if !empty(new_buffers)
+    call add(errors, 'Unexpected/not wiped buffers: '.join(new_buffers, ', '))
     Log neomake#utils#redir('ls!')
-    for b in unlisted
+    for b in new_buffers
       exe 'bwipe!' b
     endfor
   endif

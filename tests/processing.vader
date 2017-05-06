@@ -123,7 +123,7 @@ Execute (Unbuffered output handled correctly (loclist)):
     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
       \ ['1', '2', '3', '4', '5', '2_1', '2_2', '2_3', '2_4', '2_5']
     wincmd p
-    q
+    bwipe
   endif
 
 Execute (Unbuffered output handled correctly (qflist)):
