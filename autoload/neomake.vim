@@ -15,9 +15,8 @@ let s:current_errors = {
 let s:maker_defaults = {
             \ 'buffer_output': 1,
             \ 'remove_invalid_entries': 0}
-let s:project_job_output = {}
-" List of job ids with pending output per buffer.
-let s:buffer_job_output = {}
+" List of pending outputs by job ID.
+let s:pending_outputs = {}
 " Keep track of for what maker.exe an error was thrown.
 let s:exe_error_thrown = {}
 let s:kill_vim_timers = {}
@@ -883,13 +882,8 @@ function! s:CleanJobinfo(jobinfo) abort
         call remove(s:jobs, a:jobinfo.id)
         let make_info.active_jobs -= 1
 
-        let [t, w] = s:GetTabWinForMakeId(a:jobinfo.make_id)
-        let jobs_output = s:gettabwinvar(t, w, 'neomake_jobs_output', {})
-        if has_key(jobs_output, a:jobinfo.id)
-            unlet jobs_output[a:jobinfo.id]
-        endif
-        if has_key(s:project_job_output, a:jobinfo.id)
-            unlet s:project_job_output[a:jobinfo.id]
+        if has_key(s:pending_outputs, a:jobinfo.id)
+            unlet s:pending_outputs[a:jobinfo.id]
         endif
     endif
 
@@ -1242,52 +1236,75 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
     endtry
 endfunction
 
-function! neomake#ProcessCurrentWindow() abort
-    if s:CanProcessJobOutput()
-        let outputs = get(w:, 'neomake_jobs_output', {})
-        if !empty(outputs)
-            unlet w:neomake_jobs_output
-            call s:ProcessPendingOutput(outputs)
-        endif
-    endif
-endfunction
+function! s:ProcessPendingOutputs() abort
+    let bufnr = bufnr('%')
+    let window_make_ids = get(w:, 'neomake_make_ids', [])
 
-function! s:ProcessPendingOutput(outputs) abort
-    for job_id in sort(keys(a:outputs), 'N')
-        let output = a:outputs[job_id]
+    let skipped_other_buffer = []
+    let skipped_other_window = []
+    for job_id in sort(keys(s:pending_outputs), 'N')
+        let output = s:pending_outputs[job_id]
         let jobinfo = s:jobs[job_id]
+        if jobinfo.file_mode
+            if index(window_make_ids, jobinfo.make_id) == -1
+                if !bufexists(jobinfo.bufnr)
+                    call neomake#utils#LoudMessage('No buffer found for output!', jobinfo)
+                    let jobinfo.pending_output = 0
+                    call s:CleanJobinfo(jobinfo)
+                    continue
+                endif
+                if jobinfo.bufnr != bufnr
+                    let skipped_other_buffer += [jobinfo]
+                    continue
+                endif
+                if s:GetTabWinForMakeId(jobinfo.make_id) != [-1, -1]
+                    let skipped_other_window += [jobinfo]
+                    continue
+                endif
+                call neomake#utils#DebugMessage("Processing pending output for job's buffer in new window.", jobinfo)
+            endif
+        endif
         for [source, lines] in items(output)
             call s:ProcessJobOutput(jobinfo, lines, source)
         endfor
 
-        if jobinfo.file_mode
-            call filter(s:buffer_job_output[jobinfo.bufnr], 'v:val != job_id')
-        else
-            unlet a:outputs[job_id]
-        endif
-
         if has_key(jobinfo, 'pending_output')
-            if !s:has_pending_output(jobinfo)
-                call neomake#utils#DebugMessage('Processed pending output.', jobinfo)
-                let jobinfo.pending_output = 0
-                call s:CleanJobinfo(jobinfo)
-            endif
+            call neomake#utils#DebugMessage('Processed pending output.', jobinfo)
+            let jobinfo.pending_output = 0
+            call s:CleanJobinfo(jobinfo)
         endif
     endfor
+    for jobinfo in skipped_other_buffer
+        call neomake#utils#DebugMessage('Skipped pending job output for another buffer.', jobinfo)
+    endfor
+    for jobinfo in skipped_other_window
+        call neomake#utils#DebugMessage('Skipped pending job output (not in origin window).', jobinfo)
+    endfor
+    if empty(s:pending_outputs)
+        au! neomake_process_pending
+    endif
 endfunction
 
-function! neomake#ProcessPendingOutput() abort
-    if !s:CanProcessJobOutput()
-        return
+function! s:add_pending_output(jobinfo, source, lines) abort
+    if !exists('s:pending_outputs[a:jobinfo.id]')
+        let s:pending_outputs[a:jobinfo.id] = {}
     endif
-    call neomake#ProcessCurrentWindow()
-    if !empty(s:project_job_output)
-        call s:ProcessPendingOutput(s:project_job_output)
+    if !exists('s:pending_outputs[a:jobinfo.id][a:source]')
+        let s:pending_outputs[a:jobinfo.id][a:source] = []
     endif
-    call neomake#highlights#ShowHighlights()
+    call extend(s:pending_outputs[a:jobinfo.id][a:source], a:lines)
+
+    if !exists('#neomake_process_pending#BufEnter')
+        augroup neomake_process_pending
+            au!
+            au BufEnter * call s:ProcessPendingOutputs()
+            " TODO: could use more events or a timer here.
+            au CursorHold * call s:ProcessPendingOutputs()
+        augroup END
+    endif
 endfunction
 
-" Get tabnr and winnr for a given job ID.
+" Get tabnr and winnr for a given make ID.
 function! s:GetTabWinForMakeId(make_id) abort
     for t in [tabpagenr()] + range(1, tabpagenr()-1) + range(tabpagenr()+1, tabpagenr('$'))
         for w in range(1, tabpagewinnr(t, '$'))
@@ -1299,58 +1316,18 @@ function! s:GetTabWinForMakeId(make_id) abort
     return [-1, -1]
 endfunction
 
-" Returns 1 when output has been registered (needs further processing).
 function! s:RegisterJobOutput(jobinfo, lines, source) abort
-    if !a:jobinfo.file_mode
-        if s:CanProcessJobOutput()
-            " Process any pending output first.
-            call neomake#ProcessPendingOutput()
-
+    if s:CanProcessJobOutput()
+        if !a:jobinfo.file_mode
+                    \ || index(get(w:, 'neomake_make_ids', []), a:jobinfo.make_id) != -1
+            if !empty(s:pending_outputs)
+                call s:ProcessPendingOutputs()
+            endif
             call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
-            return 0
-        else
-            if !exists('s:project_job_output[a:jobinfo.id]')
-                let s:project_job_output[a:jobinfo.id] = {}
-            endif
-            if !exists('s:project_job_output[a:jobinfo.id][a:source]')
-                let s:project_job_output[a:jobinfo.id][a:source] = []
-            endif
-            let s:project_job_output[a:jobinfo.id][a:source] += a:lines
+            return
         endif
-        return 1
     endif
-
-    " Process the window directly if we can.
-    if s:CanProcessJobOutput() && index(get(w:, 'neomake_make_ids', []), a:jobinfo.make_id) != -1
-        " Process any pending output first.
-        call neomake#ProcessPendingOutput()
-
-        call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
-        call neomake#highlights#ShowHighlights()
-        return 0
-    endif
-
-    " file mode: append lines to jobs's window's output.
-    let [t, w] = s:GetTabWinForMakeId(a:jobinfo.make_id)
-    if w == -1
-        call neomake#utils#LoudMessage('No window found for output!', a:jobinfo)
-        return 0
-    endif
-    let w_output = s:gettabwinvar(t, w, 'neomake_jobs_output', {})
-    if !has_key(w_output, a:jobinfo.id)
-        let w_output[a:jobinfo.id] = {}
-    endif
-    if !has_key(w_output[a:jobinfo.id], a:source)
-        let w_output[a:jobinfo.id][a:source] = []
-
-        if !exists('s:buffer_job_output[a:jobinfo.bufnr]')
-            let s:buffer_job_output[a:jobinfo.bufnr] = []
-        endif
-        let s:buffer_job_output[a:jobinfo.bufnr] += [a:jobinfo.id]
-    endif
-    let w_output[a:jobinfo.id][a:source] += a:lines
-    call settabwinvar(t, w, 'neomake_jobs_output', w_output)
-    return 1
+    call s:add_pending_output(a:jobinfo, a:source, a:lines)
 endfunction
 
 function! s:vim_output_handler(channel, output, event_type) abort
@@ -1413,16 +1390,6 @@ function! s:vim_exit_handler(channel) abort
     else
         call s:exit_handler(job_id, status, 'exit')
     endif
-endfunction
-
-function! s:has_pending_output(jobinfo) abort
-    if index(get(s:buffer_job_output, a:jobinfo.bufnr, []), a:jobinfo.id) != -1
-        return 1
-    endif
-    if has_key(s:project_job_output, a:jobinfo.id)
-        return 1
-    endif
-    return 0
 endfunction
 
 " Noevim: register output from jobs as quick as possible, and trigger its
@@ -1496,7 +1463,6 @@ function! s:exit_handler(job_id, data, event_type) abort
                 \ a:event_type, maker.name, string(a:data)), jobinfo)
 
     " Handle any unfinished lines from stdout/stderr callbacks.
-    let has_pending_output = 0
     for event_type in ['stdout', 'stderr']
         if has_key(jobinfo, event_type)
             let lines = jobinfo[event_type]
@@ -1505,9 +1471,7 @@ function! s:exit_handler(job_id, data, event_type) abort
                     call remove(lines, -1)
                 endif
                 if !empty(lines)
-                    if s:RegisterJobOutput(jobinfo, lines, event_type)
-                        let has_pending_output = 1
-                    endif
+                    call s:RegisterJobOutput(jobinfo, lines, event_type)
                 endif
                 unlet jobinfo[event_type]
             endif
@@ -1539,7 +1503,7 @@ function! s:exit_handler(job_id, data, event_type) abort
                         \ '%s: completed with exit code %d.',
                         \ maker.name, status), jobinfo)
         endif
-        if has_pending_output || s:has_pending_output(jobinfo)
+        if has_key(s:pending_outputs, jobinfo.id)
             let jobinfo.pending_output = 1
             let jobinfo.finished = 1
         endif

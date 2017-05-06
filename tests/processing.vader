@@ -16,7 +16,9 @@ Execute (Output is only processed in normal/insert mode (loclist)):
     AssertEqual mode(), 'n'
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 0
+    Assert exists('#neomake_process_pending#CursorHold'), 'neomake_process_pending augroup exists'
     doautocmd CursorHold
+    Assert !exists('#neomake_process_pending#CursorHold'), 'neomake_process_pending is empty'
     AssertEqual len(g:neomake_test_countschanged), 1
     AssertEqual len(g:neomake_test_finished), 1, "b"
     AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
@@ -433,4 +435,46 @@ Execute (Already running job gets restarted in case of exception):
     " Needs careful cleanup after exception.
     NeomakeTestsWaitForMessage 'Cleaning jobinfo.'
     NeomakeCancelJobs!
+  endif
+
+Execute (Pending output gets processed in order of jobs (project first)):
+  if NeomakeAsyncTestsSetup()
+  let maker1 = NeomakeTestsCommandMaker('project_maker', 'sleep .1; echo project_maker')
+  let maker2 = NeomakeTestsCommandMaker('file_maker', 'echo file_maker')
+
+  call neomake#Make(0, [maker1])
+  call neomake#Make(1, [maker2])
+  norm! V
+
+  NeomakeTestsWaitForFinishedJobs
+  exe "norm! \<Esc>"
+  doautocmd CursorHold
+  NeomakeTestsWaitForRemovedJobs
+  AssertNeomakeMessage 'Not processing output for mode "V".'
+  AssertNeomakeMessage 'Creating quickfix list.'
+  AssertNeomakeMessage 'Creating location list.'
+
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['file_maker']
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['project_maker']
+  endif
+
+Execute (Pending output gets processed in order of jobs (file mode first)):
+  if NeomakeAsyncTestsSetup()
+  let maker1 = NeomakeTestsCommandMaker('project_maker', 'sleep .1; echo project_maker')
+  let maker2 = NeomakeTestsCommandMaker('file_maker', 'echo file_maker')
+
+  call neomake#Make(1, [maker2])
+  call neomake#Make(0, [maker1])
+  norm! V
+
+  NeomakeTestsWaitForFinishedJobs
+  exe "norm! \<Esc>"
+  doautocmd CursorHold
+  NeomakeTestsWaitForRemovedJobs
+  AssertNeomakeMessage 'Not processing output for mode "V".'
+  AssertNeomakeMessage 'Creating location list.'
+  AssertNeomakeMessage 'Creating quickfix list.'
+
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['file_maker']
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['project_maker']
   endif

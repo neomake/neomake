@@ -116,18 +116,28 @@ Execute (Neomake: handle result for current window):
 Execute (Neomake: handle output for removed window):
   if NeomakeAsyncTestsSetup()
     new
+    file file_sleep_efm
+    let bufnr = bufnr('%')
     call neomake#Make(1, [g:sleep_efm_maker])
     let jobinfo = neomake#GetJobs()[0]
-    let bufnr = bufnr('%')
     quit
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0,
       \ "counts changed (".len(g:neomake_test_countschanged).")"
-    AssertEqual len(g:neomake_test_finished), 1
+    AssertEqual len(g:neomake_test_finished), 0
+    AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.'
 
-    AssertNeomakeMessage 'No window found for output!', 2, jobinfo
-    AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
-    exe 'bwipe' bufnr
+    new
+    AssertEqual len(g:neomake_test_finished), 0
+    AssertNeomakeMessage 'Skipped pending job output for another buffer.', 3, jobinfo
+
+    " Opening the buffer in another window should process its output.
+    exe 'b' bufnr
+    AssertNeomakeMessage "Processing pending output for job's buffer in new window."
+    AssertEqual len(g:neomake_test_finished), 1
+    AssertEqual len(g:neomake_test_countschanged), 1
+
+    bwipe
   endif
 
 Execute (Neomake: handle wiped buffer):
@@ -142,11 +152,47 @@ Execute (Neomake: handle wiped buffer):
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0,
       \ "counts changed (".len(g:neomake_test_countschanged).")"
-    AssertEqual len(g:neomake_test_finished), 1
+    AssertEqual len(g:neomake_test_jobfinished), 0
+    AssertEqual len(g:neomake_test_finished), 0
 
-    AssertNeomakeMessage 'No window found for output!', 2, jobinfo
+    " Trigger processing of pending output.
+    new
+    AssertEqual len(g:neomake_test_jobfinished), 1
+    AssertEqual len(g:neomake_test_finished), 1
+    AssertNeomakeMessage 'No buffer found for output!', 2, jobinfo
     AssertNeomakeMessage 'File-level errors cleaned in buffer '.bufnr.'.'
     AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
+    bwipe
+  endif
+
+Execute (Neomake: handle pending output across windows/buffers):
+  " Check that there is no error, e.g. for highlights.
+  if NeomakeAsyncTestsSetup()
+    new
+    AssertEqual winnr(), 2
+    edit tests/fixtures/errors.sh
+    let bufnr = bufnr('%')
+    Neomake sh
+    new
+    let jobinfo = neomake#GetJobs()[0]
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.'
+
+    " Trigger processing of pending output.
+    new
+    AssertNeomakeMessage 'Skipped pending job output for another buffer.', 3, jobinfo
+    AssertEqual len(g:neomake_test_jobfinished), 0
+    AssertEqual len(g:neomake_test_finished), 0
+    exe 'b' bufnr
+    AssertNeomakeMessage 'Skipped pending job output (not in origin window).', 3, jobinfo
+    quit
+    AssertNeomakeMessage 'Skipped pending job output for another buffer.', 3, jobinfo
+    bwipe
+    AssertEqual len(g:neomake_test_jobfinished), 1
+    AssertEqual len(g:neomake_test_finished), 1
+
+    AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
+    bwipe
   endif
 
 Execute (NeomakeSh: true):

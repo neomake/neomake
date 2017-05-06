@@ -23,8 +23,6 @@ command! -bar NeomakeInfo call neomake#DisplayInfo()
 
 augroup neomake
   au!
-  au WinEnter * call neomake#ProcessCurrentWindow()
-  au CursorHold * call neomake#ProcessPendingOutput()
   if !exists('*nvim_buf_add_highlight')
     au BufEnter * call neomake#highlights#ShowHighlights()
   endif
