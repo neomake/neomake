@@ -71,7 +71,7 @@ while true; do
     echo "================================================================="
     echo "$output"
 
-    read -r alltests_succeeded < "$status_file"
+    read -r alltests_succeeded < "$status_file" || alltests_succeeded=0
 
     if [ "${output#tests/}" != "$output" ]; then
       last_changed_testsfile="$output"
