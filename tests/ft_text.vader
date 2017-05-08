@@ -84,3 +84,9 @@ Execute (writegood: handles wrapped message):
   \  'type': 'W', 'pattern': '', 'text': 'something else'}]
 
   exe 'bwipe' bufnr
+
+Execute (writegood: handles empty lines):
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#text#writegood().errorformat
+  lgetexpr ['']
+  AssertEqual getloclist(0), []
