@@ -21,9 +21,11 @@ Execute (Neomake uses temporary file for unsaved buffer):
     NeomakeTestsWaitForFinishedJobs
   endif
 
+  AssertNeomakeMessage 'Skipped 2 entries without bufnr.'
+
   AssertEqual getloclist(0), [{
   \ 'lnum': 0,
-  \ 'bufnr': bufnr('%'),
+  \ 'bufnr': 0,
   \ 'col': 0,
   \ 'valid': 1,
   \ 'vcol': 0,
@@ -33,7 +35,7 @@ Execute (Neomake uses temporary file for unsaved buffer):
   \ 'text': 'line1'},
   \ {
   \ 'lnum': 0,
-  \ 'bufnr': bufnr('%'),
+  \ 'bufnr': 0,
   \ 'col': 0,
   \ 'valid': 1,
   \ 'vcol': 0,
@@ -365,3 +367,57 @@ Execute (same tempfile contents is used for all jobs):
     au! neomake_test_finished
     augroup neomake_test_finished
   endif
+
+Execute (Existing bufnr is kept with tempfiles):
+  let maker = NeomakeTestsCommandMaker('echo-error', "printf '%s:1:error'")
+  let maker.errorformat = '%f:%l:%m'
+  let maker.append_file = 1
+
+  new
+  let bufnr = bufnr('%')
+  let b:neomake_tempfile_enabled = 1
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)".$'
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \ 'type': 'W', 'pattern': '', 'text': 'error'}]
+
+  let tempfile_name = g:neomake_test_matchlist[1]
+  Assert !bufexists(tempfile_name), 'temporary buffer has been removed'
+  bwipe
+
+Execute (Temporary buffer is not wiped if opened):
+  let maker = NeomakeTestsCommandMaker('echo-error', 'printf ''%s:1:error\nanother_file:2:another_error''')
+  let maker.errorformat = '%f:%l:%m'
+  let maker.append_file = 1
+
+  new
+  let bufnr = bufnr('%')
+  let b:neomake_tempfile_enabled = 1
+  call neomake#Make(1, [maker])
+
+  " Open the tempfile in a new buffer.
+  new
+  AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)".$'
+  let tempfile_name = g:neomake_test_matchlist[1]
+  Assert !bufexists(tempfile_name), 'temporary buffer does not exist yet'
+  exe 'e' tempfile_name
+
+  NeomakeTestsWaitForFinishedJobs
+  wincmd p
+
+  let unlisted_bufnr = bufnr('^another_file$')
+
+  AssertEqual getloclist(0), [
+  \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'pattern': '', 'text': 'error'},
+  \ {'lnum': 2, 'bufnr': unlisted_bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'W', 'pattern': '', 'text': 'another_error'}]
+
+  Assert bufexists(tempfile_name), 'temporary buffer has not been wiped'
+  bwipe
+  exe 'bwipe' tempfile_name
+  exe 'bwipe' unlisted_bufnr

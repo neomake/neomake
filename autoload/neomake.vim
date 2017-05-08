@@ -825,10 +825,18 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
 
         let before = copy(entry)
-        " XXX: tests.  Related: https://github.com/neomake/neomake/pull/1257.
+        " TODO: XXX
         if file_mode && has_key(make_info, 'tempfiles')
-            let entry.bufnr = a:jobinfo.bufnr
-        elseif has_key(entry, 'bufnr') && entry.bufnr != a:jobinfo.bufnr
+            if entry.bufnr
+                for tempfile in make_info.tempfiles
+                    let tempfile_bufnr = bufnr(tempfile)
+                    if entry.bufnr == tempfile_bufnr
+                        let entry.bufnr = a:jobinfo.bufnr
+                    endif
+                endfor
+            endif
+        endif
+        if has_key(entry, 'bufnr') && entry.bufnr != a:jobinfo.bufnr
             call neomake#utils#DebugMessage(printf('WARN: entry.bufnr (%d) is different from jobinfo.bufnr (%d) (current buffer %d): %s.', entry.bufnr, a:jobinfo.bufnr, bufnr('%'), string(entry)))
         endif
         if !empty(s:postprocessors)
@@ -980,6 +988,10 @@ function! s:clean_make_info(make_id) abort
             for dir in reverse(copy(get(s:make_info[a:make_id], 'created_dirs')))
                 call delete(dir, 'd')
             endfor
+        endif
+
+        if bufexists(tempfile) && !buflisted(tempfile)
+            exe 'bwipe' tempfile
         endif
     endif
 
