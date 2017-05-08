@@ -9,6 +9,7 @@ else
 	DEFAULT_VIM:=nvim
 endif
 
+TEST_VIM:=nvim
 IS_NEOVIM=$(findstring nvim,$(TEST_VIM))$(findstring neovim,$(TEST_VIM))
 # Run testnvim and testvim by default, and only one if TEST_VIM is given.
 test: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim,testvim),testnvim testvim)
@@ -115,6 +116,7 @@ $(_TESTS_REL_AND_ABS):
 
 tags:
 	ctags -R --langmap=vim:+.vader
+.PHONY: tags
 
 # Linters, called from .travis.yml.
 LINT_ARGS:=./plugin ./autoload
@@ -151,6 +153,7 @@ vimhelplint: | build/vimhelplint
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
 DOCKER_TAG:=4
+NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
 DOCKER=docker run $(DOCKER_STREAMS) --rm \
