@@ -381,18 +381,16 @@ Execute (Existing bufnr is kept with tempfiles):
   NeomakeTestsWaitForFinishedJobs
 
   AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)".$'
-  let tempfile_name = g:neomake_test_matchlist[1]
-
-  Log neomake#utils#redir('ls!')
   AssertEqual getloclist(0), [{
   \ 'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
   \ 'type': 'W', 'pattern': '', 'text': 'error'}]
 
+  let tempfile_name = g:neomake_test_matchlist[1]
   Assert !bufexists(tempfile_name), 'temporary buffer has been removed'
   bwipe
 
 Execute (Temporary buffer is not wiped if opened):
-  let maker = NeomakeTestsCommandMaker('echo-error', "printf '%s:1:error\nanother_file:2:another_error'")
+  let maker = NeomakeTestsCommandMaker('echo-error', 'printf ''%s:1:error\nanother_file:2:another_error''')
   let maker.errorformat = '%f:%l:%m'
   let maker.append_file = 1
 
