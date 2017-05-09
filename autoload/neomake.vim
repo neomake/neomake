@@ -453,7 +453,8 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
     let args = copy(self.args)
     let args_is_list = type(args) == type([])
 
-    if a:jobinfo.file_mode && neomake#utils#GetSetting('append_file', self, 1, a:jobinfo.ft, a:jobinfo.bufnr)
+    let append_file = neomake#utils#GetSetting('append_file', self, a:jobinfo.file_mode, a:jobinfo.ft, a:jobinfo.bufnr)
+    if append_file
         let filename = self._get_fname_for_buffer(a:jobinfo)
         if args_is_list
             call add(args, filename)
