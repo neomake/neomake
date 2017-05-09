@@ -248,6 +248,11 @@ function! s:MakeJob(make_id, options) abort
                     else
                         let jobinfo.id = job
                         let s:jobs[jobinfo.id] = jobinfo
+
+                        if get(jobinfo, 'uses_stdin', 0)
+                            call jobsend(job, s:make_info[a:make_id].buffer_lines)
+                            call jobclose(job, 'stdin')
+                        endif
                     endif
                 endif
             else
@@ -275,6 +280,11 @@ function! s:MakeJob(make_id, options) abort
                                 \ string(job_info(job))), jobinfo)
                     call neomake#utils#DebugMessage(printf('Vim channel: %s.',
                                 \ string(ch_info(job))), jobinfo)
+
+                    if get(jobinfo, 'uses_stdin', 0)
+                        call ch_sendraw(job, join(s:make_info[a:make_id].buffer_lines, "\n"))
+                        call ch_close_in(job)
+                    endif
                 endif
             endif
 
@@ -315,6 +325,11 @@ let s:maker_base = {}
 let s:command_maker_base = {}
 " Check if a temporary file is used, and set it in s:make_info in case it is.
 function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
+    if get(self, 'supports_stdin', 0)
+        let a:jobinfo.uses_stdin = 1
+        return get(self, 'tempfile_name', '-')
+    endif
+
     if has_key(self, 'tempfile_name')
         return self.tempfile_name
     endif
@@ -391,17 +406,31 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
 
     let make_info = s:make_info[a:jobinfo.make_id]
     if !empty(temp_file)
-        if !has_key(make_info, 'tempfiles')
-            let make_info.tempfiles = [temp_file]
-            let make_info.created_dirs = s:create_dirs_for_file(temp_file)
-            call neomake#utils#write_tempfile(bufnr, temp_file)
-        elseif temp_file !=# make_info.tempfiles[0]
-            call extend(make_info.created_dirs, s:create_dirs_for_file(temp_file))
-            call writefile(readfile(make_info.tempfiles[0], 'b'), temp_file, 'b')
-            call add(make_info.tempfiles, temp_file)
+        let bufname = temp_file
+        let uses_stdin = get(a:jobinfo, 'uses_stdin', 0)
+        if uses_stdin && neomake#has_async_support()
+            if !has_key(make_info, 'buffer_lines')
+                let make_info.buffer_lines = getbufline(bufnr, 1, '$')
+            endif
+        else
+            if uses_stdin
+                " Use a real temporary file to pass into system().
+                let temp_file = tempname()
+                call neomake#utils#DebugMessage(printf(
+                            \ 'Creating tempfile for non-async stdin: "%s".', temp_file),
+                            \ a:jobinfo)
+            endif
+            if !has_key(make_info, 'tempfiles')
+                let make_info.tempfiles = [temp_file]
+                let make_info.created_dirs = s:create_dirs_for_file(temp_file)
+                call neomake#utils#write_tempfile(bufnr, temp_file)
+            elseif temp_file !=# make_info.tempfiles[0]
+                call extend(make_info.created_dirs, s:create_dirs_for_file(temp_file))
+                call writefile(readfile(make_info.tempfiles[0], 'b'), temp_file, 'b')
+                call add(make_info.tempfiles, temp_file)
+            endif
         endif
         let a:jobinfo.tempfile = temp_file
-        let bufname = temp_file
     endif
     let a:jobinfo.filename = bufname
     return bufname
@@ -453,13 +482,18 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
     let args = copy(self.args)
     let args_is_list = type(args) == type([])
 
+    " Append file?  (defaults to 1 in file_mode)
     let append_file = neomake#utils#GetSetting('append_file', self, a:jobinfo.file_mode, a:jobinfo.ft, a:jobinfo.bufnr)
-    if append_file
+    " Use/generate a filename?  (defaults to 1 if tempfile_name is set)
+    let uses_filename = append_file || neomake#utils#GetSetting('uses_filename', self, has_key(self, 'tempfile_name'), a:jobinfo.ft, a:jobinfo.bufnr)
+    if append_file || uses_filename
         let filename = self._get_fname_for_buffer(a:jobinfo)
-        if args_is_list
-            call add(args, filename)
-        else
-            let args .= ' '.fnameescape(filename)
+        if append_file
+            if args_is_list
+                call add(args, filename)
+            else
+                let args .= (empty(args) ? '' : ' ').fnameescape(filename)
+            endif
         endif
     endif
 
@@ -492,6 +526,12 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
             let argv = join(map(copy([exe] + args), 'neomake#utils#shellescape(v:val)'))
         else
             let argv = exe.' '.args
+        endif
+        if get(a:jobinfo, 'uses_stdin', 0)
+            let tempfile = get(a:jobinfo, 'tempfile')
+            if !empty(tempfile)
+                let argv .= ' < '.tempfile
+            endif
         endif
     endif
     return argv

@@ -456,3 +456,109 @@ Execute (unlisted buffers created for tempfiles get wiped):
     Assert !bufexists(maker2.tempfile_name)
     bwipe!
   endif
+
+Execute (stdin maker):
+  let maker = {'exe': 'cat', 'supports_stdin': 1, 'errorformat': '%f:%m'}
+  new
+  " Stdin should be used also when tempfiles are disabled.
+  let b:neomake_tempfile_enabled = 0
+  normal! ifile1.test:line1
+  normal! ofile1.test:line2
+  call neomake#Make(1, [maker])
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: ['cat', '-'].", 2
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertNeomakeMessage '\mstdout: unnamed_maker: [''file1.test:line1.*'
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['line1', 'line2']
+  bwipe!
+  bwipe file1.test
+
+Execute (stdin maker (args as string)):
+  let maker = {'exe': 'cat', 'args': '', 'supports_stdin': 1, 'errorformat': '%f:%m'}
+  new
+  " Stdin should be used also when tempfiles are disabled.
+  let b:neomake_tempfile_enabled = 0
+  normal! ifile1.test:line1
+  normal! ofile1.test:line2
+  call neomake#Make(1, [maker])
+  if neomake#has_async_support()
+    if has('nvim')
+      AssertNeomakeMessage "Starting async job: 'cat \\-'.", 2
+    else
+      AssertNeomakeMessage "Starting async job: ['/bin/bash', '-c', 'cat \\-'].", 2
+    endif
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertNeomakeMessage '\mstdout: unnamed_maker: [''file1.test:line1.*'
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['line1', 'line2']
+  bwipe!
+  bwipe file1.test
+
+Execute (stdin maker (disabled tempfiles)):
+  let maker = {'exe': 'cat', 'supports_stdin': 1, 'tempfile_name': '-'}
+  new
+  " Stdin should be used also when tempfiles are disabled.
+  let b:neomake_tempfile_enabled = 0
+  normal! iline1
+  normal! oline2
+  call neomake#Make(1, [maker])
+  AssertNeomakeMessage 'Using tempfile for unnamed buffer: "-".'
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: ['cat', '-'].", 2
+    NeomakeTestsWaitForFinishedJobs
+  else
+    AssertNeomakeMessage '\v^Creating tempfile for non-async stdin: "(.*)".$', 3
+    let tempfile_for_stdin = g:neomake_test_matchlist[1]
+    AssertNeomakeMessage 'Starting: cat - < '.tempfile_for_stdin.'.', 2
+  endif
+  AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
+  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['line1', 'line2']
+  bwipe!
+
+Execute (stdin maker (project mode: append_file)):
+  let maker = {'exe': 'cat', 'supports_stdin': 1, 'tempfile_name': '-',
+  \ 'append_file': 1}
+  new
+  " Stdin should be used also when tempfiles are disabled.
+  let b:neomake_tempfile_enabled = 0
+  normal! iline1
+  normal! oline2
+  call neomake#Make(0, [maker])
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: ['cat', '-'].", 2
+    NeomakeTestsWaitForFinishedJobs
+  else
+    AssertNeomakeMessage '\v^Creating tempfile for non-async stdin: "(.*)".$', 3
+    let tempfile_for_stdin = g:neomake_test_matchlist[1]
+    AssertNeomakeMessage 'Starting: cat - < '.tempfile_for_stdin.'.', 2
+  endif
+  AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['line1', 'line2']
+  bwipe!
+
+Execute (stdin maker (project mode: uses_filename)):
+  let maker = {'exe': 'cat', 'args': '$NEOMAKE_FILE', 'supports_stdin': 1,
+  \ 'uses_filename': 1}
+  new
+  " Stdin should be used also when tempfiles are disabled.
+  let b:neomake_tempfile_enabled = 0
+  normal! iline1
+  normal! oline2
+  call neomake#Make(0, [maker])
+  AssertNeomakeMessage 'Using tempfile for unnamed buffer: "-".'
+  if neomake#has_async_support()
+    if has('nvim')
+      AssertNeomakeMessage "Starting async job: 'cat $NEOMAKE_FILE'.", 2
+    else
+      AssertNeomakeMessage "Starting async job: ['/bin/bash', '-c', 'cat $NEOMAKE_FILE'].", 2
+    endif
+    NeomakeTestsWaitForFinishedJobs
+  else
+    AssertNeomakeMessage '\v^Creating tempfile for non-async stdin: "(.*)".$', 3
+    let tempfile_for_stdin = g:neomake_test_matchlist[1]
+    AssertNeomakeMessage 'Starting: cat $NEOMAKE_FILE < '.tempfile_for_stdin.'.', 2
+  endif
+  AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
+  AssertEqual map(copy(getqflist()), 'v:val.text'), ['line1', 'line2']
+  bwipe!
