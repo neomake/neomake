@@ -169,9 +169,9 @@ Execute (Neomake#Make cancels previous jobs):
 Execute (Neomake#Make starts new jobs before waiting for the old to finish):
   if NeomakeAsyncTestsSetup()
     let maker = NeomakeTestsCommandMaker('sleep', 'sleep .1')
+    call neomake#Make(0, [maker])
+    call neomake#Make(0, [maker])
     let start = reltime()
-    call neomake#Make(0, [maker])
-    call neomake#Make(0, [maker])
     let last = neomake#Make(0, [maker])
     let last_jobinfo = neomake#GetJob(last[0])
     NeomakeTestsWaitForFinishedJobs

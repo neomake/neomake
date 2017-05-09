@@ -242,11 +242,10 @@ Execute (NeomakeSh: non-existing command):
   AssertNotEqual match(qflist_text, 'command not found'), -1, "error in qflist: ".qflist_text
 
 Execute (NeomakeSh!: handle unfinished output on exit):
-  " XXX: flaky on vim-master on Travis.
   call g:NeomakeSetupAutocmdWrappers()
   NeomakeSh! sh -c 'echo 1; printf 2; sleep 0.01; echo -n 3'
   if neomake#has_async_support()
-    for i in range(0, 10)
+    for i in range(0, 20)
       if len(g:neomake_test_countschanged) == 1
         AssertEqual map(copy(getqflist()), 'v:val.text'), ['1'],
         \ "only the first line should be there (buffer_output=0)"
@@ -254,7 +253,7 @@ Execute (NeomakeSh!: handle unfinished output on exit):
       endif
       sleep 5m
     endfor
-    AssertNotEqual i, 10, "counts should have changed after 50ms"
+    AssertNotEqual i, 20, 'counts should have changed after 100ms'
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual len(g:neomake_test_finished), 1
