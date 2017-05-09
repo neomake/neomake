@@ -830,7 +830,9 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             if entry.bufnr
                 for tempfile in make_info.tempfiles
                     let tempfile_bufnr = bufnr(tempfile)
-                    if entry.bufnr == tempfile_bufnr
+                    if tempfile_bufnr != -1 && entry.bufnr == tempfile_bufnr
+                        call neomake#utils#DebugMessage(printf(
+                                    \ 'Setting bufnr according to tempfile for entry: %s.', string(entry)), a:jobinfo)
                         let entry.bufnr = a:jobinfo.bufnr
                     endif
                 endfor
@@ -980,6 +982,9 @@ function! s:clean_make_info(make_id) abort
             call neomake#utils#DebugMessage(printf('Removing temporary file: "%s".',
                         \ tempfile))
             call delete(tempfile)
+            if bufexists(tempfile) && !buflisted(tempfile)
+                exe 'bwipe' tempfile
+            endif
         endfor
 
         " Only delete the dir, if Vim supports it.  It will be cleaned up
@@ -988,10 +993,6 @@ function! s:clean_make_info(make_id) abort
             for dir in reverse(copy(get(s:make_info[a:make_id], 'created_dirs')))
                 call delete(dir, 'd')
             endfor
-        endif
-
-        if bufexists(tempfile) && !buflisted(tempfile)
-            exe 'bwipe' tempfile
         endif
     endif
 
