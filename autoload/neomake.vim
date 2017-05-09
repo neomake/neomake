@@ -825,7 +825,6 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
 
         let before = copy(entry)
-        " TODO: XXX
         if file_mode && has_key(make_info, 'tempfiles')
             if entry.bufnr
                 for tempfile in make_info.tempfiles
