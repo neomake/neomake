@@ -421,3 +421,38 @@ Execute (Temporary buffer is not wiped if opened):
   bwipe
   exe 'bwipe' tempfile_name
   exe 'bwipe' unlisted_bufnr
+
+Execute (unlisted buffers created for tempfiles get wiped):
+  if NeomakeAsyncTestsSetup()
+    new
+    let maker1 = NeomakeTestsCommandMaker('echo_file', 'cat')
+    let maker1.append_file = 1
+    let maker1.tempfile_name = tempname()
+    let maker1.errorformat = '%f: %m'
+    let maker2 = NeomakeTestsCommandMaker('echo_file', 'cat')
+    let maker2.append_file = 1
+    let maker2.tempfile_name = tempname()
+    let maker2.errorformat = '%m: %f'
+    let b:neomake_tempfile_enabled = 1
+    let b:neomake_serialize = 1
+    call setline(1, maker1.tempfile_name.': '.maker2.tempfile_name)
+
+    call neomake#Make(1, [maker1, maker2])
+    let make_info = values(neomake#GetStatus().make_info)[0]
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual len(g:neomake_test_jobfinished), 2
+
+    AssertEqual [
+    \ 'cat '.maker1.tempfile_name,
+    \ 'cat '.maker2.tempfile_name], map(copy(g:neomake_test_jobfinished),
+    \                              'v:val.jobinfo.maker.args[-1]')
+
+    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    \ [maker2.tempfile_name, maker1.tempfile_name]
+
+    AssertNeomakeMessage '\mSetting bufnr according to tempfile for entry: {.*''text'': '''.maker2.tempfile_name
+    AssertNeomakeMessage '\mSetting bufnr according to tempfile for entry: {.*''text'': '''.maker1.tempfile_name
+    Assert !bufexists(maker1.tempfile_name)
+    Assert !bufexists(maker2.tempfile_name)
+    bwipe!
+  endif
