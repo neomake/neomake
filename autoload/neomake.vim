@@ -832,7 +832,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
                     let tempfile_bufnr = bufnr(tempfile)
                     if tempfile_bufnr != -1 && entry.bufnr == tempfile_bufnr
                         call neomake#utils#DebugMessage(printf(
-                                    \ 'Setting bufnr according to tempfile for entry: %s.', entry), a:jobinfo)
+                                    \ 'Setting bufnr according to tempfile for entry: %s.', string(entry)), a:jobinfo)
                         let entry.bufnr = a:jobinfo.bufnr
                     endif
                 endfor
