@@ -1065,20 +1065,11 @@ function! s:create_locqf_list(jobinfo) abort
     call neomake#utils#DebugMessage(printf(
                 \ 'Creating %s list.',
                 \ file_mode ? 'location' : 'quickfix'), a:jobinfo)
-    " Empty the quickfix/location list (using a valid 'errorformat' setting).
-    let save_efm = &errorformat
-    let &errorformat = '%-G'
-    try
-        if file_mode
-            lgetexpr ''
-        else
-            cgetexpr ''
-        endif
-    finally
-        let &errorformat = save_efm
-    endtry
-    " TODO: correct?!
-    call s:HandleLoclistQflistDisplay(a:jobinfo.file_mode)
+    if file_mode
+        call setloclist(0, [])
+    else
+        call setqflist([])
+    endif
 endfunction
 
 function! s:clean_for_new_make(jobinfo) abort
