@@ -1286,17 +1286,18 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
             call map(a:lines, maker.mapexpr)
         endif
 
-        call s:create_locqf_list(a:jobinfo)
-        let prev_list = file_mode ? getloclist(0) : getqflist()
-        let olderrformat = &errorformat
-        let &errorformat = maker.errorformat
-
         let [cd_error, cd_back_cmd] = s:cd_to_jobs_cwd(a:jobinfo)
         if !empty(cd_error)
             call neomake#utils#DebugMessage(printf(
                         \ "Could not change to job's cwd (%s): %s.",
                         \ cd_back_cmd, cd_error), a:jobinfo)
         endif
+
+        call s:create_locqf_list(a:jobinfo)
+        let prev_list = file_mode ? getloclist(0) : getqflist()
+
+        let olderrformat = &errorformat
+        let &errorformat = maker.errorformat
         try
             if file_mode
                 laddexpr a:lines
