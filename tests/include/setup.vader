@@ -5,15 +5,8 @@ Before:
   let g:neomake_test_log_all_messages = 1
   let g:neomake_test_messages_last_idx = -1
 
-  " Work around https://github.com/vim/vim/issues/1676.
-  if get(g:, 'neomake_test_cache_bust', [0])[0]
-    let bust_name = 'bust_cache_'.g:neomake_test_cache_bust[1]
-    lgetexpr bust_name.':1676:workaround_vim_issue'
-    exe 'bwipe' bust_name
-    let g:neomake_test_cache_bust = [0, g:neomake_test_cache_bust[1]+1]
-  endif
-  noautocmd lgetexpr ''
-  noautocmd cgetexpr ''
+  call setloclist(0, [])
+  call setqflist([])
 
   " One-time setup.
   if exists(':NeomakeTestsWaitForFinishedJobs') != 2
@@ -24,12 +17,16 @@ Before:
     " Work around https://github.com/vim/vim/issues/1676.
     if has('patch-7.4.2017')
       let g:neomake_test_cache_bust = [0, 0]
-      augroup neomake_test_cache_bust
-        au!
-        au QuickFixCmdPre * let g:neomake_test_cache_bust[0] = 1
-      augroup END
     endif
   endif
 
 After:
   NeomakeTestsGlobalAfter
+
+  " Work around https://github.com/vim/vim/issues/1676.
+  if has('patch-7.4.2017')
+    let bust_name = 'bust_cache_'.g:neomake_test_cache_bust[1]
+    lgetexpr bust_name.':1676:workaround_vim_issue'
+    exe 'bwipe' bust_name
+    let g:neomake_test_cache_bust = [0, g:neomake_test_cache_bust[1]+1]
+  endif

@@ -1065,20 +1065,11 @@ function! s:create_locqf_list(jobinfo) abort
     call neomake#utils#DebugMessage(printf(
                 \ 'Creating %s list.',
                 \ file_mode ? 'location' : 'quickfix'), a:jobinfo)
-    " Empty the quickfix/location list (using a valid 'errorformat' setting).
-    let save_efm = &errorformat
-    let &errorformat = '%-G'
-    try
-        if file_mode
-            lgetexpr ''
-        else
-            cgetexpr ''
-        endif
-    finally
-        let &errorformat = save_efm
-    endtry
-    " TODO: correct?!
-    call s:HandleLoclistQflistDisplay(a:jobinfo.file_mode)
+    if file_mode
+        call setloclist(0, [])
+    else
+        call setqflist([])
+    endif
 endfunction
 
 function! s:clean_for_new_make(jobinfo) abort
@@ -1286,17 +1277,18 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
             call map(a:lines, maker.mapexpr)
         endif
 
-        call s:create_locqf_list(a:jobinfo)
-        let prev_list = file_mode ? getloclist(0) : getqflist()
-        let olderrformat = &errorformat
-        let &errorformat = maker.errorformat
-
         let [cd_error, cd_back_cmd] = s:cd_to_jobs_cwd(a:jobinfo)
         if !empty(cd_error)
             call neomake#utils#DebugMessage(printf(
                         \ "Could not change to job's cwd (%s): %s.",
                         \ cd_back_cmd, cd_error), a:jobinfo)
         endif
+
+        call s:create_locqf_list(a:jobinfo)
+        let prev_list = file_mode ? getloclist(0) : getqflist()
+
+        let olderrformat = &errorformat
+        let &errorformat = maker.errorformat
         try
             if file_mode
                 laddexpr a:lines
