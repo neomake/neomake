@@ -1595,8 +1595,8 @@ function! s:exit_handler(job_id, data, event_type) abort
         endif
         if has_key(s:pending_outputs, jobinfo.id)
             let jobinfo.pending_output = 1
-            let jobinfo.finished = 1
         endif
+        let jobinfo.finished = 1
     endif
     call s:handle_next_maker(jobinfo)
 endfunction
