@@ -78,7 +78,7 @@ Execute (Output is only processed in normal/insert mode (from loclist)):
     bwipe file_sleep_efm
   endif
 
-Execute (Output gets not processed from loclist):
+Execute (Output gets not processed while in loclist):
   if NeomakeAsyncTestsSetup()
     new
     file file_sleep_efm
@@ -436,6 +436,69 @@ Execute (Already running job gets restarted in case of exception):
     NeomakeTestsWaitForMessage 'Cleaning jobinfo.'
     NeomakeCancelJobs!
   endif
+
+Execute (process_output: gets delayed for location list):
+  let maker = {'exe': 'echo', 'args': 'ignored', 'append_file': 0}
+  function! maker.process_output(context)
+    return [{
+    \ 'bufnr': bufnr('%'),
+    \ 'lnum': 23,
+    \ 'pattern': '',
+    \ 'col': 42,
+    \ 'vcol': 0,
+    \ 'nr': 4711,
+    \ 'text': 'error message',
+    \ 'type': 'E',
+    \ }]
+  endfunction
+
+  new
+  let bufnr = bufnr('%')
+
+  call neomake#Make(1, [maker])
+  if neomake#has_async_support()
+    new
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.'
+    AssertEqual getloclist(0), []
+    bwipe
+  endif
+  AssertEqual getloclist(0)[0].bufnr, bufnr
+  bwipe
+
+Execute (get_list_entries: delayed for location list (but in current context)):
+  let maker = {}
+  function! maker.get_list_entries(context)
+    return [{
+    \ 'bufnr': bufnr('%'),
+    \ 'lnum': 23,
+    \ 'pattern': '',
+    \ 'col': 42,
+    \ 'vcol': 0,
+    \ 'nr': 4711,
+    \ 'text': 'error message',
+    \ 'type': 'E',
+    \ }]
+  endfunction
+
+  augroup neomake_tests
+    au User NeomakeJobFinished 1wincmd w
+  augroup END
+
+  let win1_bufnr = bufnr('%')
+  new
+  let b:neomake_serialize = 1
+  let bufnr = bufnr('%')
+
+  call neomake#Make(1, [g:sleep_maker, maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'unnamed_maker: getting entries via get_list_entries.', 2
+
+  2wincmd w
+  AssertEqual map(getloclist(0), '[v:val.bufnr, v:val.text, v:val.type]'), [
+  \ [0, 'slept', 'W'],
+  \ [win1_bufnr, 'error message', 'E']]
+  bwipe
 
 Execute (Pending output gets processed in order of jobs (project first)):
   if NeomakeAsyncTestsSetup()

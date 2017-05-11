@@ -329,13 +329,15 @@ Execute (Makers: get_list_entries via config):
   bwipe
   bwipe unloaded_filename_without_bufnr
 
-Execute (get_list_entries: minimal example (from doc)):
+Execute (get_list_entries: based on example from doc):
   NeomakeTestsMonkeypatchHighlights
 
   new
   call g:NeomakeSetupAutocmdWrappers()
   let buf1 = bufnr('%')
   file get_list_entries_buf1
+
+  let winnr = winnr()
 
   let maker = {'name': 'My maker', 'my_orig_bufnr': buf1}
   function! maker.get_list_entries(jobinfo) abort
@@ -354,7 +356,12 @@ Execute (get_list_entries: minimal example (from doc)):
       \ ]
   endfunction
   call neomake#Make(1, [maker])
+  AssertNeomakeMessage 'Queueing action: s:ProcessEntries for WinEnter.'
+  AssertEqual [], g:neomake_tests_highlight_lengths, 'No highlights have been added yet'
+  AssertEqual [], getloclist(0)
 
+  wincmd p
+  AssertEqual winnr, winnr()
   AssertEqual [[1, -1], [2, 2], [3, -1], [4, 23]], g:neomake_tests_highlight_lengths
 
   let llist = getloclist(0)
@@ -378,6 +385,7 @@ Execute (get_list_entries: minimal example (from doc)):
   \  'type': 'I', 'pattern': '', 'text': 'Some info'},
   \ {'lnum': 4, 'bufnr': buf1, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
   \  'type': '', 'pattern': '', 'text': 'Some non-type'} ]
+  wincmd p
   bwipe
   bwipe
   exe 'bwipe '.unlisted_bufnr

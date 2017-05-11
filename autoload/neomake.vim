@@ -170,6 +170,9 @@ function! s:MakeJob(make_id, options) abort
     let maker = jobinfo.maker
 
     if has_key(maker, 'get_list_entries')
+        call neomake#utils#LoudMessage(printf(
+                    \ '%s: getting entries via get_list_entries.',
+                    \ maker.name), jobinfo)
         let entries = maker.get_list_entries(jobinfo)
         call s:ProcessEntries(jobinfo, entries)
         call s:CleanJobinfo(jobinfo)
@@ -701,18 +704,111 @@ function! neomake#GetEnabledMakers(...) abort
     return enabled_makers
 endfunction
 
-function! s:HandleLoclistQflistDisplay(file_mode) abort
-    let open_val = get(g:, 'neomake_open_list')
-    if open_val
-        let height = get(g:, 'neomake_list_height', 10)
-        let win_val = winnr()
-        if a:file_mode
-            exe 'lwindow' height
-        else
-            exe 'cwindow' height
+let s:prev_windows = []
+function! s:save_prev_windows() abort
+    let aw = winnr('#')
+    let pw = winnr()
+    if exists('*win_getid')
+        let aw_id = win_getid(aw)
+        let pw_id = win_getid(pw)
+    else
+        let aw_id = 0
+        let pw_id = 0
+    endif
+    call add(s:prev_windows, [aw, pw, aw_id, pw_id])
+endfunction
+
+function! s:restore_prev_windows() abort
+    let [aw, pw, aw_id, pw_id] = remove(s:prev_windows, 0)
+    if winnr() != pw
+        " Go back, maintaining the '#' window (CTRL-W_p).
+        if pw_id
+            let aw = win_id2win(aw_id)
+            let pw = win_id2win(pw_id)
         endif
-        if open_val == 2 && win_val != winnr()
-            wincmd p
+        if pw
+            if aw
+                exec aw . 'wincmd w'
+            endif
+            exec pw . 'wincmd w'
+        endif
+    endif
+endfunction
+
+function! s:HandleLoclistQflistDisplay(jobinfo) abort
+    let open_val = get(g:, 'neomake_open_list', 0)
+    if !open_val
+        return
+    endif
+    let height = get(g:, 'neomake_list_height', 10)
+    let cmd = a:jobinfo.file_mode ? 'lwindow' : 'cwindow'
+    if open_val == 2
+        call s:save_prev_windows()
+        exe cmd height
+        call s:restore_prev_windows()
+    else
+        exe cmd height
+    endif
+endfunction
+
+let s:action_queue = {}
+" Queue an action to be processed later for autocmd a:event.
+" It will call a:data[0], with a:data[1] as args (where the first should be
+" a jobinfo object).  The callback should return 1 if it was successful,
+" with 0 it will be re-queued.
+" When called recursively (queueing the same event/data again, it will be
+" re-queued also).
+function! s:queue_action(event, data) abort
+    if !has_key(s:action_queue, a:event)
+        let s:action_queue[a:event] = []
+    elseif get(s:action_queue[a:event], 0, []) == a:data
+        " Re-queueing currently being processed action.
+        return 0
+    endif
+    let jobinfo = a:data[1][0]
+    call neomake#utils#DebugMessage(printf('Queueing action: %s for %s.',
+                \ a:data[0], a:event), jobinfo)
+    call add(s:action_queue[a:event], a:data)
+    call add(s:make_info[jobinfo.make_id].queued_jobs, [jobinfo, a:event])
+
+    if !exists('#neomake_event_queue#'.a:event)
+        augroup neomake_event_queue
+            exe 'autocmd '.a:event.' * call s:process_action_queue('''.a:event.''')'
+        augroup END
+    endif
+endfunction
+
+function! s:process_action_queue(event) abort
+    let queue = s:action_queue[a:event]
+    let len = len(queue)
+    call neomake#utils#DebugMessage(printf('Processing action queue for %s (%d items).',
+                \ a:event, len))
+    let processed = []
+    for i in range(0, len-1)
+        let data = queue[i]
+        if call(data[0], data[1])
+            call add(processed, data)
+        endif
+    endfor
+    call filter(queue, 'index(processed, v:val) == -1')
+    for data in processed
+        let jobinfo = data[1][0]
+        let make_info = s:make_info[jobinfo.make_id]
+        let queued_jobs = make_info.queued_jobs
+        call remove(queued_jobs, index(queued_jobs, [jobinfo, a:event]))
+        if empty(queued_jobs)
+            call s:clean_make_info(jobinfo.make_id)
+        endif
+    endfor
+    if empty(queue)
+        unlet s:action_queue[a:event]
+        if empty(keys(s:action_queue))
+            autocmd! neomake_event_queue
+            augroup! neomake_event_queue
+        else
+            augroup neomake_event_queue
+                exe 'au! '.a:event
+            augroup END
         endif
     endif
 endfunction
@@ -734,6 +830,7 @@ function! s:Make(options) abort
                 \ 'cwd': getcwd(),
                 \ 'verbosity': get(g:, 'neomake_verbose', 1),
                 \ 'active_jobs': [],
+                \ 'queued_jobs': [],
                 \ 'finished_jobs': 0,
                 \ 'options': options,
                 \ }
@@ -814,7 +911,7 @@ function! s:Make(options) abort
         endif
     endwhile
 
-    if has_key(s:make_info, make_id) && empty(s:make_info[make_id].active_jobs)
+    if has_key(s:make_info, make_id)
         " Might have been removed through s:CleanJobinfo already.
         call s:clean_make_info(make_id)
     endif
@@ -961,7 +1058,7 @@ function! s:CleanJobinfo(jobinfo) abort
         return
     endif
 
-    if !empty(s:make_info[a:jobinfo.make_id].jobs_queue)
+    if !empty(make_info.jobs_queue)
         return
     endif
 
@@ -988,6 +1085,10 @@ function! s:CleanJobinfo(jobinfo) abort
 endfunction
 
 function! s:clean_make_info(make_id) abort
+    let make_info = s:make_info[a:make_id]
+    if !empty(make_info.active_jobs) || !empty(make_info.queued_jobs)
+        return
+    endif
     " Remove make_id from its window.
     let [t, w] = s:GetTabWinForMakeId(a:make_id)
     let make_ids = s:gettabwinvar(t, w, 'neomake_make_ids', [])
@@ -997,7 +1098,7 @@ function! s:clean_make_info(make_id) abort
         call settabwinvar(t, w, 'neomake_make_ids', make_ids)
     endif
 
-    let tempfiles = get(s:make_info[a:make_id], 'tempfiles')
+    let tempfiles = get(make_info, 'tempfiles')
     if !empty(tempfiles)
         for tempfile in tempfiles
             call neomake#utils#DebugMessage(printf('Removing temporary file: "%s".',
@@ -1011,7 +1112,7 @@ function! s:clean_make_info(make_id) abort
         " Only delete the dir, if Vim supports it.  It will be cleaned up
         " when quitting Vim in any case.
         if v:version >= 705 || (v:version == 704 && has('patch1107'))
-            for dir in reverse(copy(get(s:make_info[a:make_id], 'created_dirs')))
+            for dir in reverse(copy(get(make_info, 'created_dirs')))
                 call delete(dir, 'd')
             endfor
         endif
@@ -1099,6 +1200,10 @@ function! s:cd_to_jobs_cwd(jobinfo) abort
 endfunction
 
 function! s:ProcessEntries(jobinfo, entries, ...) abort
+    if s:need_to_postpone_loclist(a:jobinfo)
+        return s:queue_action('WinEnter', ['s:ProcessEntries',
+                    \ [a:jobinfo, a:entries] + a:000])
+    endif
     let file_mode = a:jobinfo.file_mode
 
     call neomake#utils#DebugMessage(printf(
@@ -1228,19 +1333,23 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                     \ 'jobinfo': a:jobinfo})
     endif
 
-    call s:HandleLoclistQflistDisplay(a:jobinfo.file_mode)
+    call s:HandleLoclistQflistDisplay(a:jobinfo)
     call neomake#highlights#ShowHighlights()
     call neomake#EchoCurrentError()
+    return 1
 endfunction
 
 function! s:ProcessJobOutput(jobinfo, lines, source) abort
+    if s:need_to_postpone_loclist(a:jobinfo)
+        return s:queue_action('WinEnter', ['s:ProcessJobOutput',
+                    \ [a:jobinfo, a:lines, a:source]])
+    endif
+
     let maker = a:jobinfo.maker
     let file_mode = a:jobinfo.file_mode
-
     call neomake#utils#DebugMessage(printf(
                 \ '%s: processing %d lines of output.',
                 \ maker.name, len(a:lines)), a:jobinfo)
-
     try
         if has_key(maker, 'process_output')
             let entries = call(maker.process_output, [{
@@ -1328,6 +1437,7 @@ function! s:ProcessPendingOutputs() abort
                     continue
                 endif
                 call neomake#utils#DebugMessage("Processing pending output for job's buffer in new window.", jobinfo)
+                let w:neomake_make_ids = add(get(w:, 'neomake_make_ids', []), jobinfo.make_id)
             endif
         endif
         for [source, lines] in items(output)
@@ -1382,16 +1492,24 @@ function! s:GetTabWinForMakeId(make_id) abort
     return [-1, -1]
 endfunction
 
+" Do we need to postpone location list processing (creation and :laddexpr)?
+function! s:need_to_postpone_loclist(jobinfo) abort
+    if !a:jobinfo.file_mode
+        return 0
+    endif
+    if index(get(w:, 'neomake_make_ids', []), a:jobinfo.make_id) != -1
+        return 0
+    endif
+    return 1
+endfunction
+
 function! s:RegisterJobOutput(jobinfo, lines, source) abort
-    if s:CanProcessJobOutput()
-        if !a:jobinfo.file_mode
-                    \ || index(get(w:, 'neomake_make_ids', []), a:jobinfo.make_id) != -1
-            if !empty(s:pending_outputs)
-                call s:ProcessPendingOutputs()
-            endif
-            call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
-            return
+    if s:CanProcessJobOutput() && !s:need_to_postpone_loclist(a:jobinfo)
+        if !empty(s:pending_outputs)
+            call s:ProcessPendingOutputs()
         endif
+        call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
+        return
     endif
     call s:add_pending_output(a:jobinfo, a:source, a:lines)
 endfunction
