@@ -1158,16 +1158,19 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         try
             if file_mode
                 call setloclist(0, a:entries, 'a')
-                let parsed_entries = getloclist(0)[len(prev_list):]
             else
                 call setqflist(a:entries, 'a')
-                let parsed_entries = getqflist()[len(prev_list):]
             endif
         finally
             if empty(cd_error)
                 exe cd_back_cmd
             endif
         endtry
+        if file_mode
+            let parsed_entries = getloclist(0)[len(prev_list):]
+        else
+            let parsed_entries = getqflist()[len(prev_list):]
+        endif
         let idx = 0
         for e in parsed_entries
             if a:entries[idx].bufnr != e.bufnr
