@@ -59,7 +59,14 @@ endfunction
 
 " Not documented, only used internally for now.
 function! neomake#GetMakeOptions(...) abort
-    return s:make_info[a:0 ? a:1 : s:make_id]
+    let make_id = a:0 ? a:1 : s:make_id
+    if !has_key(s:make_info, make_id)
+        if exists('*vader#log')
+            call vader#log('warning: missing make_info key: '.make_id)
+        endif
+        return {'verbosity': 3}
+    endif
+    return s:make_info[make_id]
 endfunction
 
 function! neomake#ListJobs() abort
