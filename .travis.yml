@@ -12,7 +12,7 @@ branches:
 
 env:
   global:
-    - NEOMAKE_DOCKER_IMAGE: neomake/vims-for-tests:4@sha256:8ca565fa0c8c0c3ae40b3f705c05a084e260b07022559fc56636c3675321c38b
+    - NEOMAKE_DOCKER_IMAGE: neomake/vims-for-tests:5@sha256:58d233a76e29436f10a5b0f9642ceb7f6a361f65f49dfedf0a821ef182568e8b
   matrix:
     - ENV=vimlint
     - ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.2.0
