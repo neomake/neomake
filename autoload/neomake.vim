@@ -686,14 +686,11 @@ function! neomake#GetEnabledMakers(...) abort
                 let maker = neomake#GetMaker(m, a:1)
             catch /^Neomake: /
                 let error = substitute(v:exception, '^Neomake: ', '', '').'.'
-                let jobinfo = {}
-                if has_key(s:make_info, s:make_id)
-                    let jobinfo.make_id = s:make_id
-                endif
+                let log_context = get(get(s:make_info, s:make_id, {}), 'options', {})
                 if auto_enabled
-                    call neomake#utils#DebugMessage(error, jobinfo)
+                    call neomake#utils#DebugMessage(error, log_context)
                 else
-                    call neomake#utils#ErrorMessage(error, jobinfo)
+                    call neomake#utils#ErrorMessage(error, log_context)
                 endif
                 continue
             endtry
@@ -1784,15 +1781,14 @@ function! s:map_makers(options, makers, ...) abort
                         let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)
                         if !has_key(s:exe_error_thrown, maker.exe)
                             let s:exe_error_thrown[maker.exe] = 1
-                            call neomake#utils#ErrorMessage(error)
+                            call neomake#utils#ErrorMessage(error, options)
                         else
-                            call neomake#utils#DebugMessage(error)
+                            call neomake#utils#DebugMessage(error, options)
                         endif
-                        throw 'Neomake: '.error
+                    else
+                        call neomake#utils#DebugMessage(printf(
+                                    \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name), options)
                     endif
-
-                    call neomake#utils#DebugMessage(printf(
-                                \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name))
                     continue
                 endif
             endif
