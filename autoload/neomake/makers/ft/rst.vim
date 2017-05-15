@@ -1,5 +1,9 @@
 " vim: ts=4 sw=4 et
 
+function! neomake#makers#ft#rst#SupersetOf() abort
+    return 'text'
+endfunction
+
 function! neomake#makers#ft#rst#EnabledMakers() abort
     return ['rstlint', 'rstcheck']
 endfunction
