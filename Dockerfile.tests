@@ -17,7 +17,7 @@ RUN install_vim -tag v7.3.429 -name vim73 -py -build \
                 -tag neovim:v0.1.7 -py2 -py3 -build \
                 -tag neovim:v0.2.0 -py2 -py3 -build
 
-ENV _UPDATE=2017-05-02
+ENV _UPDATE=2017-05-16
 
 # Git master in a separate layer, since the above is meant to be stable.
 RUN install_vim -tag master -py3 -build \
