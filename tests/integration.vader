@@ -473,6 +473,8 @@ Execute (Neomake!: non-existing and proper job):
     "             \ 'in_io': 'file',
     "             \ 'in_name': '/doesnotexist',
     "             \ }
+    " Reset s:exe_error_thrown.
+    runtime autoload/neomake.vim
 
     Save g:neomake_maker1_maker
     let g:neomake_maker1_maker = {

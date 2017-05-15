@@ -176,24 +176,6 @@ function! s:MakeJob(make_id, options) abort
         return
     endif
 
-    if !executable(maker.exe)
-        if !get(maker, 'auto_enabled', 0)
-            let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)
-            if !has_key(s:exe_error_thrown, maker.exe)
-                let s:exe_error_thrown[maker.exe] = 1
-                call neomake#utils#ErrorMessage(error)
-            else
-                call neomake#utils#DebugMessage(error)
-            endif
-            throw 'Neomake: '.error
-        endif
-
-        " XXX: mark it as to be skipped earlier?!
-        call neomake#utils#DebugMessage(printf(
-                    \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name))
-        return {}
-    endif
-
     let [cd_error, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
     if !empty(cd_error)
         call neomake#utils#ErrorMessage(printf(
@@ -704,14 +686,11 @@ function! neomake#GetEnabledMakers(...) abort
                 let maker = neomake#GetMaker(m, a:1)
             catch /^Neomake: /
                 let error = substitute(v:exception, '^Neomake: ', '', '').'.'
-                let jobinfo = {}
-                if has_key(s:make_info, s:make_id)
-                    let jobinfo.make_id = s:make_id
-                endif
+                let log_context = get(get(s:make_info, s:make_id, {}), 'options', {})
                 if auto_enabled
-                    call neomake#utils#DebugMessage(error, jobinfo)
+                    call neomake#utils#DebugMessage(error, log_context)
                 else
-                    call neomake#utils#ErrorMessage(error, jobinfo)
+                    call neomake#utils#ErrorMessage(error, log_context)
                 endif
                 continue
             endtry
@@ -763,8 +742,7 @@ function! s:Make(options) abort
         let make_info.verbosity += &verbose
         call neomake#utils#DebugMessage(printf(
                     \ 'Adding &verbose (%d) to verbosity level: %d.',
-                    \ &verbose, make_info.verbosity),
-                    \ {'make_id': make_id})
+                    \ &verbose, make_info.verbosity), options)
     endif
 
     if has_key(options, 'enabled_makers')
@@ -774,7 +752,7 @@ function! s:Make(options) abort
         let makers = call('neomake#GetEnabledMakers', file_mode ? [options.ft] : [])
         if empty(makers)
             if file_mode
-                call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers (filetype='.options.ft.').', {'make_id': make_id})
+                call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers (filetype='.options.ft.').', options)
                 call s:clean_make_info(make_id)
                 return []
             else
@@ -792,19 +770,15 @@ function! s:Make(options) abort
     lockvar options
     let jobs = call('s:map_makers', args)
     if empty(jobs)
-        call neomake#utils#DebugMessage('Nothing to make: no valid makers.')
+        call neomake#utils#DebugMessage('Nothing to make: no valid makers.', options)
         call s:clean_make_info(make_id)
         return []
     endif
 
     let maker_info = join(map(copy(jobs),
                 \ "v:val.maker.name . (get(v:val.maker, 'auto_enabled', 0) ? ' (auto)' : '')"), ', ')
-    let log_context = {'make_id': make_id}
-    if file_mode
-        let log_context.bufnr = bufnr
-    endif
     call neomake#utils#DebugMessage(printf(
-                \ 'Running makers: %s.', maker_info), log_context)
+                \ 'Running makers: %s.', maker_info), options)
 
     let make_info.jobs_queue = jobs
 
@@ -1810,15 +1784,14 @@ function! s:map_makers(options, makers, ...) abort
                         let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)
                         if !has_key(s:exe_error_thrown, maker.exe)
                             let s:exe_error_thrown[maker.exe] = 1
-                            call neomake#utils#ErrorMessage(error)
+                            call neomake#utils#ErrorMessage(error, options)
                         else
-                            call neomake#utils#DebugMessage(error)
+                            call neomake#utils#DebugMessage(error, options)
                         endif
-                        throw 'Neomake: '.error
+                    else
+                        call neomake#utils#DebugMessage(printf(
+                                    \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name), options)
                     endif
-
-                    call neomake#utils#DebugMessage(printf(
-                                \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name))
                     continue
                 endif
             endif
