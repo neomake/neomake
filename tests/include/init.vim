@@ -170,8 +170,8 @@ function! s:AssertNeomakeMessage(msg, ...)
       for [k, v] in items(info)
         let expected = get(context, k, l:UNDEF)
         if expected is l:UNDEF
-          call add(context_diff, printf('[%s] Missing value for context.%s: '
-              \  ."expected nothing, but got '%s'.", a:msg, k, string(v)))
+          call add(context_diff, printf('Missing value for context.%s: '
+              \  ."expected nothing, but got '%s'.", k, string(v)))
           continue
         endif
         try
@@ -190,8 +190,8 @@ function! s:AssertNeomakeMessage(msg, ...)
       endfor
       let missing = filter(copy(context), 'index(keys(info), v:key) == -1')
       for [k, expected] in items(missing)
-        call add(context_diff, printf('[%s] Missing entry for context.%s: '
-          \  ."expected '%s', but got nothing.", a:msg, k, string(expected)))
+        call add(context_diff, printf('Missing entry for context.%s: '
+          \  ."expected '%s', but got nothing.", k, string(expected)))
       endfor
       let found_but_context_diff = context_diff
       if len(context_diff)
