@@ -176,24 +176,6 @@ function! s:MakeJob(make_id, options) abort
         return
     endif
 
-    if !executable(maker.exe)
-        if !get(maker, 'auto_enabled', 0)
-            let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)
-            if !has_key(s:exe_error_thrown, maker.exe)
-                let s:exe_error_thrown[maker.exe] = 1
-                call neomake#utils#ErrorMessage(error)
-            else
-                call neomake#utils#DebugMessage(error)
-            endif
-            throw 'Neomake: '.error
-        endif
-
-        " XXX: mark it as to be skipped earlier?!
-        call neomake#utils#DebugMessage(printf(
-                    \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name))
-        return {}
-    endif
-
     let [cd_error, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
     if !empty(cd_error)
         call neomake#utils#ErrorMessage(printf(
