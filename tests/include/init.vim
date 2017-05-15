@@ -396,6 +396,7 @@ function! s:After()
       let val = gettabwinvar(t, w, 'neomake_make_ids')
       if !empty(val)  " '' (default) or [] (used and emptied).
         call add(errors, 'neomake_make_ids left for tab '.t.', win '.w.': '.string(val))
+        call settabwinvar(t, w, 'neomake_make_ids', [])
       endif
       unlet val  " for Vim without patch-7.4.1546
     endfor
