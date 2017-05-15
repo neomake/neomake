@@ -104,7 +104,6 @@ Execute (neomake#signs#by_lnum):
 
   AssertEqual neomake#signs#by_lnum(bufnr('%')), {
   \ '1': [5000, 'neomake_err'], '2': [5001, 'neomake_warn'], '3': [5002, 'neomake_info']}
-
   bwipe
 
 Execute (neomake#signs#by_lnum for invalid bufnr):
@@ -198,7 +197,6 @@ Execute (neomake#signs#PlaceSigns):
   call neomake#signs#CleanOldSigns(bufnr, 'file')
 
   AssertEqual neomake#signs#by_lnum(bufnr), {}
-
   bwipe
 
 Execute (neomake#signs#PlaceSigns with E and I):
@@ -218,7 +216,6 @@ Execute (neomake#signs#PlaceSigns with E and I):
   \ '1': [5000, 'neomake_err'],
   \ '2': [5001, 'neomake_warn'],
   \ '3': [5002, 'neomake_err']}
-
   bwipe
 
 Execute (Signs get handled across multiple jobs):
@@ -256,7 +253,6 @@ Execute (Signs get handled across multiple jobs):
   AssertEqual neomake#signs#by_lnum(bufnr), {
   \ '1': [5000, 'neomake_err'],
   \ }
-
   bwipe
 
 Execute (next sign_id based on max):
@@ -295,7 +291,6 @@ Execute (file mode signs get placed when job finishes):
     \ '2': [5002, 'neomake_err'],
     \ '3': [5001, 'neomake_warn'],
     \ }
-
     bwipe
   endif
 
@@ -331,7 +326,6 @@ Execute (project mode signs get placed when job finishes):
     \ '2': [7001, 'neomake_err'],
     \ '3': [7000, 'neomake_warn'],
     \ }
-
     bwipe
     bwipe
   endif

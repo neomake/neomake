@@ -61,7 +61,6 @@ Execute (Neomake with non-existing maker (configured)):
 
 Execute (Neomake with non-existing default makers):
   call g:NeomakeSetupAutocmdWrappers()
-
   new
   set filetype=neomake_tests
   Save g:neomake_test_enabledmakers
@@ -76,7 +75,6 @@ Execute (Neomake with non-existing default makers):
 
 Execute (Neomake with non-existing default maker handles following makers):
   call g:NeomakeSetupAutocmdWrappers()
-
   new
   set filetype=neomake_tests
   Save g:neomake_test_enabledmakers
@@ -169,11 +167,9 @@ Execute (maker.fn can set env var):
   \ 'append_file': 0,
   \ 'errorformat': '%m',
   \ }
-
   function! maker.fn(jobinfo)
     let self.args = ['MYENV=custom', self.exe] + self.args
     let self.exe = 'env'
-
     let self.errorformat = '%m'
     return self
   endfunction
