@@ -61,8 +61,10 @@ Execute (neomake#Make uses &verbose):
   2verb call neomake#Make(1, [maker])
   let make_id = neomake#GetStatus().last_make_id
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Adding &verbose (2) to verbosity level: 3.', 3, {'make_id': make_id}
-  AssertNeomakeMessage 'Running makers: unnamed_maker.', 3, {'make_id': make_id, 'bufnr': bufnr}
+
+  let log_context = {'make_id': make_id, 'bufnr': bufnr}
+  AssertNeomakeMessage 'Adding &verbose (2) to verbosity level: 3.', 3, log_context
+  AssertNeomakeMessage 'Running makers: unnamed_maker.', 3, log_context
 
   NeomakeTestsResetMessages
   1verb call neomake#Make(1, [maker])

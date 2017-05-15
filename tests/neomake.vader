@@ -80,7 +80,7 @@ Execute (Neomake with unknown maker):
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages, [
   \ [0, 'Maker not found (for empty filetype): doesnotexist.', {'make_id': make_id}],
-  \ [3, 'Nothing to make: no valid makers.', {}]]
+  \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr('%')}]]
 
 Execute (Neomake with unknown maker for multiple fts):
   new
@@ -89,7 +89,7 @@ Execute (Neomake with unknown maker for multiple fts):
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages, [
   \ [0, 'Maker not found (for filetype ft1.ft2): doesnotexist.', {'make_id': make_id}],
-  \ [3, 'Nothing to make: no valid makers.', {}]]
+  \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr('%')}]]
   bwipe
 
 Execute (neomake#GetMaker uses defined errorformat with makeprg):
@@ -130,8 +130,9 @@ Execute (neomake#Make in file mode with no filetype and no makers):
   AssertEqual &ft, ''
   AssertEqual neomake#Make(1, []), []
   let make_id = neomake#GetStatus().last_make_id
-  AssertEqual g:neomake_test_messages[-1],
-  \ [3, 'Nothing to make: no enabled file mode makers (filetype=).', {'make_id': make_id}]
+  AssertNeomakeMessage 'Nothing to make: no enabled file mode makers (filetype=).',
+  \ 3, {'make_id': make_id, 'bufnr': bufnr('%')}
+  Assert len(g:neomake_test_messages), 1
 
 Execute (neomake#Make in project mode with no filetype and no makers):
   Save makeprg

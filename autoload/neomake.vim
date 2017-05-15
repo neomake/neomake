@@ -745,8 +745,7 @@ function! s:Make(options) abort
         let make_info.verbosity += &verbose
         call neomake#utils#DebugMessage(printf(
                     \ 'Adding &verbose (%d) to verbosity level: %d.',
-                    \ &verbose, make_info.verbosity),
-                    \ {'make_id': make_id})
+                    \ &verbose, make_info.verbosity), options)
     endif
 
     if has_key(options, 'enabled_makers')
@@ -756,7 +755,7 @@ function! s:Make(options) abort
         let makers = call('neomake#GetEnabledMakers', file_mode ? [options.ft] : [])
         if empty(makers)
             if file_mode
-                call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers (filetype='.options.ft.').', {'make_id': make_id})
+                call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers (filetype='.options.ft.').', options)
                 call s:clean_make_info(make_id)
                 return []
             else
@@ -774,19 +773,15 @@ function! s:Make(options) abort
     lockvar options
     let jobs = call('s:map_makers', args)
     if empty(jobs)
-        call neomake#utils#DebugMessage('Nothing to make: no valid makers.')
+        call neomake#utils#DebugMessage('Nothing to make: no valid makers.', options)
         call s:clean_make_info(make_id)
         return []
     endif
 
     let maker_info = join(map(copy(jobs),
                 \ "v:val.maker.name . (get(v:val.maker, 'auto_enabled', 0) ? ' (auto)' : '')"), ', ')
-    let log_context = {'make_id': make_id}
-    if file_mode
-        let log_context.bufnr = bufnr
-    endif
     call neomake#utils#DebugMessage(printf(
-                \ 'Running makers: %s.', maker_info), log_context)
+                \ 'Running makers: %s.', maker_info), options)
 
     let make_info.jobs_queue = jobs
 

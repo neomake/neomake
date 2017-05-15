@@ -55,7 +55,7 @@ Execute (Neomake with non-existing maker (configured)):
   RunNeomake
   let make_id = neomake#GetStatus().last_make_id
   AssertNeomakeMessage 'Maker not found (for filetype myft): nonexisting_custom.', 0, {'make_id': make_id}
-  AssertNeomakeMessage 'Nothing to make: no enabled file mode makers (filetype=myft).', 3, {'make_id': make_id}
+  AssertNeomakeMessage 'Nothing to make: no enabled file mode makers (filetype=myft).', 3, {'make_id': make_id, 'bufnr': bufnr('%')}
   AssertEqual len(g:neomake_test_messages), 2
   AssertEqual make_id_before + 1, neomake#GetStatus().last_make_id
 
