@@ -247,15 +247,15 @@ Execute (NeomakeSh!: handle unfinished output on exit):
   call g:NeomakeSetupAutocmdWrappers()
   NeomakeSh! sh -c 'echo 1; printf 2; sleep 0.01; echo -n 3'
   if neomake#has_async_support()
-    for i in range(0, 20)
+    for i in range(0, 10)
       if len(g:neomake_test_countschanged) == 1
         AssertEqual map(copy(getqflist()), 'v:val.text'), ['1'],
         \ "only the first line should be there (buffer_output=0)"
         break
       endif
-      sleep 5m
+      sleep 20m
     endfor
-    AssertNotEqual i, 20, 'counts should have changed after 100ms'
+    AssertNotEqual i, 20, 'counts should have changed after 200ms: i='.i
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual len(g:neomake_test_finished), 1
