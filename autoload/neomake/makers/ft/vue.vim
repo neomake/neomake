@@ -5,11 +5,9 @@ function! neomake#makers#ft#vue#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#vue#eslint() abort
-    return {
-        \ 'args': ['--format', 'compact', '--plugin', 'html'],
-        \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
-        \ '%W%f: line %l\, col %c\, Warning - %m'
-        \ }
+    let maker = neomake#makers#ft#javascript#eslint()
+    call extend(get(maker, 'args', []), ['--plugin', 'html'])
+    return maker
 endfunction
 
 function! neomake#makers#ft#vue#eslint_d() abort
@@ -17,16 +15,14 @@ function! neomake#makers#ft#vue#eslint_d() abort
 endfunction
 
 function! neomake#makers#ft#vue#standard() abort
-    return {
-        \ 'args': ['--plugin', 'html'],
-        \ 'errorformat': '%W  %f:%l:%c: %m'
-        \ }
+    let maker = neomake#makers#ft#javascript#standard()
+    call extend(get(maker, 'args', []), ['--plugin', 'html'])
+    return maker
 endfunction
 
 function! neomake#makers#ft#vue#semistandard() abort
-    return {
-        \ 'args': ['--plugin', 'html'],
-        \ 'errorformat': '%W  %f:%l:%c: %m'
-        \ }
+    let maker = neomake#makers#ft#javascript#semistandard()
+    call extend(get(maker, 'args', []), ['--plugin', 'html'])
+    return maker
 endfunction
 
