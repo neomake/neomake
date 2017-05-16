@@ -705,11 +705,20 @@ function! s:HandleLoclistQflistDisplay(file_mode) abort
     let open_val = get(g:, 'neomake_open_list')
     if open_val
         let height = get(g:, 'neomake_list_height', 10)
+        let always_show = get(g:, 'neomake_always_show_list', 0)
         let win_val = winnr()
         if a:file_mode
-            exe 'lwindow' height
+            if always_show
+                exe 'lopen' height
+            else
+                exe 'lwindow' height
+            endif
         else
-            exe 'cwindow' height
+            if always_show
+                exe 'copen' height
+            else
+                exe 'cwindow' height
+            endif
         endif
         if open_val == 2 && win_val != winnr()
             wincmd p
