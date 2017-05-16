@@ -77,3 +77,110 @@ Execute (AddExprCallback with changed windows inbetween):
 
     delfunction Postprocess
   endif
+
+Execute (Goes back to original window after opening list):
+  Save g:neomake_open_list
+  let g:neomake_open_list = 2
+  new
+  let winnr = winnr()
+  let wincount = winnr('$')
+  call neomake#Make(1, [g:error_maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+
+  AssertEqual winnr, winnr()
+  AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
+  lclose
+  bwipe
+
+Execute (Stays in location window with :lwindow in QuickFixCmdPost (vim-qf)):
+  if !has('patch-7.4.2299')
+    NeomakeTestsSkip 'Only for 7.4.2299 (vim-qf issue)'
+  else
+    Save g:neomake_open_list
+    let g:neomake_open_list = 2
+    new
+    let winnr = winnr()
+    let wincount = winnr('$')
+
+    augroup neomake_tests
+      " Simulates vim-qf, opening the list on errors automatically.
+      " Should be fixed in vim-qf (https://github.com/romainl/vim-qf/pull/48).
+      " Using `:noautocmd` with Neomake's laddexpr is not really an option.
+      autocmd QuickFixCmdPost laddexpr lwindow
+    augroup END
+
+    call neomake#Make(1, [g:error_maker])
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+
+    AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
+    " Not what you expect when being unaware of the autocmd, but it is like that.
+    AssertNotEqual winnr, winnr()
+    exe winnr.'wincmd w'
+    lclose
+    bwipe
+  endif
+
+Execute (Goes back to original window after opening list (wincmd in autocmd)):
+  if !has('patch-7.4.2299')
+    NeomakeTestsSkip 'Only for 7.4.2299'
+  else
+    Save g:neomake_open_list
+    let g:neomake_open_list = 2
+    new
+    new
+    let winnr = winnr()
+    let wincount = winnr('$')
+
+    augroup neomake_tests
+      autocmd QuickFixCmdPost laddexpr 2wincmd w
+    augroup END
+
+    call neomake#Make(1, [g:error_maker])
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual map(copy(getloclist(winnr)), '[v:val.text, v:val.type]'), [['error', 'E']]
+    AssertEqual 2, winnr()
+
+    AssertNotEqual wincount + 1, winnr('$'), 'Location list has not appeared yet'
+    Assert exists('#neomake_event_queue#WinEnter'), 'autocmd was setup'
+    AssertNeomakeMessage 'Queueing action: s:ProcessEntries for WinEnter.'
+
+    " Go to first window for wincmd-p check.
+    1wincmd w
+    AssertNeomakeMessage 'Processing action queue for WinEnter (1 items).'
+    exe winnr.'wincmd w'
+    AssertNeomakeMessage 'Processing action queue for WinEnter (1 items).'
+    AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
+    AssertEqual winnr, winnr(), 'Moved back to original window'
+
+    Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
+    Assert !exists('#neomake_event_queue'), 'augroup was deleted'
+
+    wincmd p
+    AssertEqual 1, winnr()
+    3wincmd w
+    lclose
+    bwipe
+    bwipe
+  endif
+
+Execute (open_list=1: just opens location window):
+  Save g:neomake_open_list
+  let g:neomake_open_list = 1
+  new
+  new
+  let winnr = winnr()
+  let wincount = winnr('$')
+
+  call neomake#Make(1, [g:error_maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getloclist(winnr)), '[v:val.text, v:val.type]'), [['error', 'E']]
+  AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
+
+  Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was not setup'
+  Assert !exists('#neomake_event_queue'), 'augroup does not exist'
+
+  lclose
+  bwipe
+  bwipe
