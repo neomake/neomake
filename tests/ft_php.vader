@@ -57,3 +57,19 @@ Execute (phpmd):
   AssertEqual loclist[1].type, 'W'
 
   bwipe /app/src/AppBundle/Controller/DefaultController.php
+
+Execute (phpstan):
+  let phpstan_output =
+  \"/app/src/hello.php:6:Function dsdsd not found"
+
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#php#phpstan().errorformat
+  lgetexpr phpstan_output
+
+  let loclist = getloclist(0)
+  AssertEqual len(loclist), 1
+  AssertEqual loclist[0].lnum, 6
+  AssertEqual loclist[0].text, "Function dsdsd not found"
+  AssertEqual loclist[0].type, 'E'
+
+  bwipe /app/src/hello.php
