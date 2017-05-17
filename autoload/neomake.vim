@@ -1144,12 +1144,11 @@ function! s:create_locqf_list(jobinfo) abort
     let s:make_info[a:jobinfo.make_id].created_locqf_list = 1
 
     let file_mode = a:jobinfo.file_mode
-    call neomake#utils#DebugMessage(printf(
-                \ 'Creating %s list.',
-                \ file_mode ? 'location' : 'quickfix'), a:jobinfo)
     if file_mode
+        call neomake#utils#DebugMessage('Creating location list.', a:jobinfo)
         call setloclist(0, [])
     else
+        call neomake#utils#DebugMessage('Creating quickfix list.', a:jobinfo)
         call setqflist([])
     endif
 endfunction
