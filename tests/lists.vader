@@ -184,3 +184,18 @@ Execute (open_list=1: just opens location window):
   lclose
   bwipe
   bwipe
+
+Execute (open_list=0: does not open location window):
+  Save g:neomake_open_list
+  let g:neomake_open_list = 0
+  new
+  let wincount = winnr('$')
+
+  call neomake#Make(1, [g:error_maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+  AssertEqual wincount, winnr('$'), 'Location list has not appeared'
+
+  Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was not setup'
+  Assert !exists('#neomake_event_queue'), 'augroup does not exist'
+  bwipe
