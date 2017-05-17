@@ -25,9 +25,10 @@ let s:kill_vim_timers = {}
 let s:unset_list = []
 let s:unset_dict = {}
 
+let s:async = has('nvim')
+            \ || has('channel') && has('job') && has('patch-8.0.0027')
 function! neomake#has_async_support() abort
-    return has('nvim') ||
-                \ has('channel') && has('job') && has('patch-8.0.0027')
+    return s:async
 endfunction
 
 function! s:sort_jobs(a, b) abort
@@ -191,7 +192,7 @@ function! s:MakeJob(make_id, options) abort
         let error = ''
         let argv = maker._get_argv(jobinfo)
 
-        if neomake#has_async_support()
+        if s:async
             call neomake#utils#LoudMessage(printf('Starting async job: %s.', string(argv)), jobinfo)
         else
             call neomake#utils#LoudMessage(printf('Starting: %s.', argv), jobinfo)
@@ -226,7 +227,7 @@ function! s:MakeJob(make_id, options) abort
         " Lock maker to make sure it does not get changed accidentally, but
         " only with depth=1, so that a postprocess object can change itself.
         lockvar 1 maker
-        if neomake#has_async_support()
+        if s:async
             if has('nvim')
                 let opts = {
                     \ 'on_stdout': function('s:nvim_output_handler'),
@@ -404,7 +405,7 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
     if !empty(temp_file)
         let bufname = temp_file
         let uses_stdin = get(a:jobinfo, 'uses_stdin', 0)
-        if uses_stdin && neomake#has_async_support()
+        if uses_stdin && s:async
             if !has_key(make_info, 'buffer_lines')
                 let make_info.buffer_lines = getbufline(bufnr, 1, '$')
             endif
@@ -499,7 +500,7 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
         else
             let argv = exe . (!empty(args) ? ' ' . args : '')
         endif
-    elseif neomake#has_async_support()
+    elseif s:async
         " Vim jobs, need special treatment on Windows..
         if neomake#utils#IsRunningWindows()
             " Windows needs a subshell to handle PATH/%PATHEXT% etc.
@@ -1701,7 +1702,7 @@ function! s:exit_handler(job_id, data, event_type) abort
         endif
     endif
 
-    if neomake#has_async_support()
+    if s:async
         if has('nvim') || status != 122
             call neomake#utils#DebugMessage(printf(
                         \ '%s: completed with exit code %d.',
@@ -1788,7 +1789,7 @@ function! s:handle_next_maker(prev_jobinfo) abort
         endif
 
         " Serialization of jobs, always for non-async Vim.
-        if !neomake#has_async_support()
+        if !s:async
                     \ || neomake#utils#GetSetting('serialize', maker, 0, options.ft, options.bufnr)
             let options.serialize = 1
         endif
@@ -2024,7 +2025,7 @@ endfunction
 function! neomake#DisplayInfo() abort
     let ft = &filetype
     echo '#### Neomake debug information'
-    echo 'Async support: '.neomake#has_async_support()
+    echo 'Async support: '.s:async
     echo 'Current filetype: '.ft
     echo "\n"
     echo '##### Enabled makers'
