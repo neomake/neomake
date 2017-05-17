@@ -57,7 +57,7 @@ testvimx: testvim
 testnvim: TEST_VIM:=nvim
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 testnvim: build/neovim-test-home
-testnvim: TEST_VIM_PREFIX+=HOME=build/neovim-test-home
+testnvim: TEST_VIM_PREFIX+=HOME=$(CURDIR)/build/neovim-test-home
 testnvim: TEST_VIM_PREFIX+=VADER_OUTPUT_FILE=/dev/stderr
 testnvim: | build $(DEP_PLUGINS)
 	$(call func-run-vim)
@@ -93,7 +93,7 @@ testvim_interactive: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim_interactive: _run_interactive
 
 testnvim_interactive: TEST_VIM:=nvim
-testnvim_interactive: TEST_VIM_PREFIX+=HOME=build/neovim-test-home
+testnvim_interactive: TEST_VIM_PREFIX+=HOME=$(CURDIR)/build/neovim-test-home
 testnvim_interactive: _run_interactive
 
 
