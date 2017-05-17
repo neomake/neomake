@@ -737,11 +737,21 @@ endfunction
 
 function! s:HandleLoclistQflistDisplay(jobinfo) abort
     let open_val = get(g:, 'neomake_open_list', 0)
+    let height = get(g:, 'neomake_list_height', 10)
     if !open_val
         return
     endif
     let height = get(g:, 'neomake_list_height', 10)
-    let cmd = a:jobinfo.file_mode ? 'lwindow' : 'cwindow'
+    if !height
+        return
+    endif
+    if a:jobinfo.file_mode
+        call neomake#utils#DebugMessage('Opening location list.')
+        let cmd = 'lwindow'
+    else
+        call neomake#utils#DebugMessage('Opening quickfix list.')
+        let cmd = 'cwindow'
+    endif
     if open_val == 2
         call s:save_prev_windows()
         exe cmd height
