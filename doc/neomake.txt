@@ -195,21 +195,21 @@ You can define two optional properties on a maker object to process its
 output: `mapexpr` is applied to the maker's output before any processing, and
 `postprocess` is applied to each of the quickfix or location list entries.
 
-The `mapexpr` property will be passed directly into |map()| as the `expr`
-argument like so: >
+The `mapexpr` property gets passed directly into |map()| as the `expr`
+argument: >
     call map(lines, maker.mapexpr)
 <where `lines` contains the maker output.
 
 The following variables are available in the `mapexpr`:
 
  - `neomake_output_source`: either "stderr" or "stdout", depending on
-   where the output is coming from.  This will be "stdout" always for
+   where the output is coming from. This will be "stdout" always for
    non-async Vim.
  - `neomake_bufname` and `neomake_bufdir`: the buffer's name (|bufname()|) and
    directory, respectively.
 
-The `mapexpr` itself is being evaluated in the context of the affected buffer
-in file mode, and in the context of the buffer that is current when the maker
+The `mapexpr` itself gets evaluated in the context of the affected buffer in
+file mode, and in the context of the buffer that is current when the maker
 finished otherwise.
 
 The following `mapexpr` could be used to prefix the output type: >
