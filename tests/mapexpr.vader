@@ -29,7 +29,8 @@ Execute (mapexpr: file mode vars with cd):
     let maker = neomake#utils#MakerFromCommand('sleep 0.01; echo on_stdout')
     new
     edit tests/fixtures/errors.sh
-    let maker.mapexpr = "printf('%s (%s): %s', neomake_bufname, neomake_bufdir, v:val)"
+    let maker.mapexpr = "printf('[bufname:%s, bufdir:%s, cwd: %s]: %s', "
+    \ ."neomake_bufname, neomake_bufdir, getcwd(), v:val)"
     let start_cwd = getcwd()
     let maker.append_file = 0
     call neomake#Make(1, [maker])
@@ -37,7 +38,11 @@ Execute (mapexpr: file mode vars with cd):
     NeomakeTestsWaitForFinishedJobs
     cd -
 
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
-      \ start_cwd.'/tests/fixtures/errors.sh ('.start_cwd.'/tests/fixtures): on_stdout']
+    AssertEqual map(getloclist(0), 'v:val.text'), [
+      \ printf('[bufname:%s, bufdir:%s, cwd: %s]: %s',
+          \ start_cwd.'/tests/fixtures/errors.sh',
+          \ start_cwd.'/tests/fixtures',
+          \ getcwd().'/build',
+          \ 'on_stdout')]
     bwipe
   endif
