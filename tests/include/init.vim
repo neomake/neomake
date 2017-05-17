@@ -90,6 +90,8 @@ command! -nargs=* RunNeomake Neomake <args>
   \ | NeomakeTestsWaitForFinishedJobs
 command! -nargs=* RunNeomakeProject NeomakeProject <args>
   \ | NeomakeTestsWaitForFinishedJobs
+command! -nargs=* CallNeomake call neomake#Make(<args>)
+  \ | NeomakeTestsWaitForFinishedJobs
 
 " NOTE: NeomakeSh does not use '-bar'.
 command! -nargs=* RunNeomakeSh call RunNeomakeSh(<q-args>)

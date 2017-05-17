@@ -1,0 +1,28 @@
+Include: include/setup.vader
+
+Execute (go: go):
+  new
+  set ft=go
+  file build/proxier.go
+
+  let maker = neomake#makers#ft#go#go()
+  let maker.remove_invalid_entries = 0
+  " to work on an unreadable file.
+  let maker.append_file = 0
+  let maker.exe = 'printf'
+  let maker.args = ['%s\n',
+  \'proxier.go:24:2: cannot find package "bytes" in any of:',
+  \'	/home/user/bin/go1.x/src/bytes (from $GOROOT)',
+  \'	/home/user/go/src/bytes (from $GOPATH)']
+  CallNeomake 1, [maker]
+
+  AssertNeomakeMessage printf('cwd: %s/build (changed).', getcwd())
+  AssertNeomakeMessage 'unnamed_maker: processing 3 lines of output.'
+  AssertNeomakeMessage 'Processing 1 entries.'
+  AssertEqual getloclist(0), [
+  \ {'lnum': 24, 'bufnr': bufnr('%'), 'col': 2, 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'E', 'pattern': '',
+  \  'text': 'cannot find package "bytes" in any of: '
+  \  .'/home/user/bin/go1.x/src/bytes (from $GOROOT) '
+  \  .'/home/user/go/src/bytes (from $GOPATH)'}]
+  bwipe
