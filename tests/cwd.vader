@@ -10,6 +10,20 @@ Execute (neomake#Make handles invalid cwd):
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath.", 0
 
+Execute (cwd gets compared with trailing slash removed):
+  let cwd = getcwd()
+  let maker1 = {'name': 'maker1', 'exe': 'true', 'cwd': cwd.'/', 'append_file': 0}
+  let maker2 = {'name': 'maker2', 'exe': 'true', 'cwd': cwd, 'append_file': 0}
+
+  new
+  call neomake#Make(1, [maker1])
+  lcd build
+  call neomake#Make(1, [maker2])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'cwd: '.cwd.'.'
+  AssertNeomakeMessage 'cwd: '.cwd.' (changed).'
+  bwipe
+
 Execute (tcd is handled properly):
   if exists(':tcd') != 2
     NeomakeTestsSkip 'no :tcd'

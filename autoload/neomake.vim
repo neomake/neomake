@@ -179,17 +179,28 @@ function! s:MakeJob(make_id, options) abort
         return
     endif
 
-    let [cd_error, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
+    let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
     if !empty(cd_error)
         call neomake#utils#ErrorMessage(printf(
                     \ "%s: could not change to maker's cwd (%s): %s.",
-                    \ maker.name, cd_back_cmd, cd_error), jobinfo)
+                    \ maker.name, cwd, cd_error), jobinfo)
         return {}
     endif
 
     try
         let error = ''
         let argv = maker._get_argv(jobinfo)
+
+        if neomake#has_async_support()
+            call neomake#utils#LoudMessage(printf('Starting async job: %s.', string(argv)), jobinfo)
+        else
+            call neomake#utils#LoudMessage(printf('Starting: %s.', argv), jobinfo)
+        endif
+        if empty(cd_back_cmd)
+            call neomake#utils#DebugMessage('cwd: '.cwd.'.', jobinfo)
+        else
+            call neomake#utils#DebugMessage('cwd: '.cwd.' (changed).', jobinfo)
+        endif
 
         if has_key(jobinfo, 'filename')
             let save_env_file = $NEOMAKE_FILE
@@ -222,8 +233,6 @@ function! s:MakeJob(make_id, options) abort
                     \ 'on_stderr': function('s:nvim_output_handler'),
                     \ 'on_exit': function('s:exit_handler')
                     \ }
-                call neomake#utils#LoudMessage(printf('Starting async job: %s.',
-                            \ string(argv)), jobinfo)
                 try
                     let job = jobstart(argv, opts)
                 catch
@@ -255,8 +264,6 @@ function! s:MakeJob(make_id, options) abort
                             \ 'close_cb': function('s:vim_exit_handler'),
                             \ 'mode': 'raw',
                             \ }
-                call neomake#utils#LoudMessage(printf('Starting async job: %s.',
-                            \ string(argv)), jobinfo)
                 try
                     let job = job_start(argv, opts)
                     " Get this as early as possible!
@@ -287,9 +294,6 @@ function! s:MakeJob(make_id, options) abort
                 return s:handle_next_maker(jobinfo)
             endif
         else
-            call neomake#utils#DebugMessage('Running synchronously.')
-            call neomake#utils#LoudMessage(printf('Starting: %s.', argv), jobinfo)
-
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
             let s:make_info[a:make_id].active_jobs += [jobinfo]
@@ -1188,12 +1192,17 @@ function! s:clean_for_new_make(jobinfo) abort
     let s:make_info[a:jobinfo.make_id].cleaned_for_make = 1
 endfunction
 
+" Change to a job's cwd, if any.
+" Returns: a list:
+"  - error (empty for success)
+"  - directory changed into (empty if skipped)
+"  - command to change back to the current workding dir (might be empty)
 function! s:cd_to_jobs_cwd(jobinfo) abort
     let cwd = get(a:jobinfo, 'cwd', s:make_info[a:jobinfo.make_id].cwd)
     if empty(cwd)
-        return ['', '']
+        return ['', '', '']
     endif
-    let cwd = fnamemodify(cwd, ':p')
+    let cwd = substitute(fnamemodify(cwd, ':p'), '[\/]$', '', '')
     let cur_wd = getcwd()
     if cwd !=? cur_wd
         let cd = haslocaldir() ? 'lcd' : (exists(':tcd') == 2 && haslocaldir(-1, 0)) ? 'tcd' : 'cd'
@@ -1202,10 +1211,12 @@ function! s:cd_to_jobs_cwd(jobinfo) abort
         catch
             " Tests fail with E344, but in reality it is E472?!
             " If uncaught, both are shown - let's just catch everything.
-            return [v:exception, cwd]
+            let cd_back_cmd = cur_wd ==# getcwd() ? '' : cd.' '.fnameescape(cur_wd)
+            return [v:exception, cwd, cd_back_cmd]
         endtry
-        return ['', cd.' '.fnameescape(cur_wd)]
+        return ['', cwd, cd.' '.fnameescape(cur_wd)]
     endif
+    return ['', cwd, '']
 endfunction
 
 function! s:ProcessEntries(jobinfo, entries, ...) abort
@@ -1237,11 +1248,11 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
 
         let prev_list = file_mode ? getloclist(0) : getqflist()
 
-        let [cd_error, cd_back_cmd] = s:cd_to_jobs_cwd(a:jobinfo)
+        let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(a:jobinfo)
         if !empty(cd_error)
             call neomake#utils#DebugMessage(printf(
                         \ "Could not change to job's cwd (%s): %s.",
-                        \ cd_back_cmd, cd_error), a:jobinfo)
+                        \ cwd, cd_error), a:jobinfo)
         endif
         try
             if file_mode
@@ -1379,11 +1390,11 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
             call map(a:lines, maker.mapexpr)
         endif
 
-        let [cd_error, cd_back_cmd] = s:cd_to_jobs_cwd(a:jobinfo)
+        let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(a:jobinfo)
         if !empty(cd_error)
             call neomake#utils#DebugMessage(printf(
                         \ "Could not change to job's cwd (%s): %s.",
-                        \ cd_back_cmd, cd_error), a:jobinfo)
+                        \ cwd, cd_error), a:jobinfo)
         endif
 
         call s:create_locqf_list(a:jobinfo)
