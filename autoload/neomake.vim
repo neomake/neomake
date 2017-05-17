@@ -1597,53 +1597,55 @@ function! s:vim_exit_handler(channel) abort
     endif
 endfunction
 
-" Noevim: register output from jobs as quick as possible, and trigger its
-" processing through a timer.
-" This works around https://github.com/neovim/neovim/issues/5889).
-" NOTE: can be skipped with Neovim 0.2.0+.
-let s:nvim_output_handler_queue = []
-function! s:nvim_output_handler(job_id, data, event_type) abort
-    let data = map(copy(a:data), "substitute(v:val, '\\r$', '', '')")
-    " @vimlint(EVL108, 1)
-    if has('nvim-0.2.0')
+" @vimlint(EVL108, 1)
+if has('nvim-0.2.0')
+" @vimlint(EVL108, 0)
+    function! s:nvim_output_handler(job_id, data, event_type) abort
+        let data = map(copy(a:data), "substitute(v:val, '\\r$', '', '')")
         call s:output_handler(a:job_id, data, a:event_type)
-        return
-    endif
-    " @vimlint(EVL108, 0)
-    let jobinfo = s:jobs[a:job_id]
-    let args = [a:job_id, data, a:event_type]
-    call add(s:nvim_output_handler_queue, args)
-    if !exists('jobinfo._nvim_in_handler')
-        let jobinfo._nvim_in_handler = 1
-    else
-        let jobinfo._nvim_in_handler += 1
-    endif
-    if !exists('s:nvim_output_handler_timer')
-        let s:nvim_output_handler_timer = timer_start(0, function('s:nvim_output_handler_cb'))
-    endif
-endfunction
-
-" @vimlint(EVL103, 1, a:timer)
-function! s:nvim_output_handler_cb(timer) abort
-    while !empty(s:nvim_output_handler_queue)
-        let args = remove(s:nvim_output_handler_queue, 0)
-        let job_id = args[0]
-        let jobinfo = s:jobs[job_id]
-        call call('s:output_handler', args)
-        let jobinfo._nvim_in_handler -= 1
-
-        if !jobinfo._nvim_in_handler
-            " Trigger previously delayed exit handler.
-            unlet jobinfo._nvim_in_handler
-            if exists('jobinfo._exited_while_in_handler')
-                call neomake#utils#DebugMessage('Trigger delayed exit.', jobinfo)
-                call s:exit_handler(jobinfo.id, jobinfo._exited_while_in_handler, 'exit')
-            endif
+    endfunction
+else
+    " Noevim: register output from jobs as quick as possible, and trigger its
+    " processing through a timer.
+    " This works around https://github.com/neovim/neovim/issues/5889).
+    let s:nvim_output_handler_queue = []
+    function! s:nvim_output_handler(job_id, data, event_type) abort
+        let data = map(copy(a:data), "substitute(v:val, '\\r$', '', '')")
+        let jobinfo = s:jobs[a:job_id]
+        let args = [a:job_id, data, a:event_type]
+        call add(s:nvim_output_handler_queue, args)
+        if !exists('jobinfo._nvim_in_handler')
+            let jobinfo._nvim_in_handler = 1
+        else
+            let jobinfo._nvim_in_handler += 1
         endif
-    endwhile
-    unlet! s:nvim_output_handler_timer
-endfunction
-" @vimlint(EVL103, 0, a:timer)
+        if !exists('s:nvim_output_handler_timer')
+            let s:nvim_output_handler_timer = timer_start(0, function('s:nvim_output_handler_cb'))
+        endif
+    endfunction
+
+    " @vimlint(EVL103, 1, a:timer)
+    function! s:nvim_output_handler_cb(timer) abort
+        while !empty(s:nvim_output_handler_queue)
+            let args = remove(s:nvim_output_handler_queue, 0)
+            let job_id = args[0]
+            let jobinfo = s:jobs[job_id]
+            call call('s:output_handler', args)
+            let jobinfo._nvim_in_handler -= 1
+
+            if !jobinfo._nvim_in_handler
+                " Trigger previously delayed exit handler.
+                unlet jobinfo._nvim_in_handler
+                if exists('jobinfo._exited_while_in_handler')
+                    call neomake#utils#DebugMessage('Trigger delayed exit.', jobinfo)
+                    call s:exit_handler(jobinfo.id, jobinfo._exited_while_in_handler, 'exit')
+                endif
+            endif
+        endwhile
+        unlet! s:nvim_output_handler_timer
+    endfunction
+    " @vimlint(EVL103, 0, a:timer)
+endif
 
 function! s:exit_handler(job_id, data, event_type) abort
     if !has_key(s:jobs, a:job_id)
