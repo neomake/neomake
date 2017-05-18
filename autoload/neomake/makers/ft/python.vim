@@ -271,12 +271,8 @@ endfunction
 " --fast-parser: adds experimental support for async/await syntax
 " --silent-imports: replaced by --ignore-missing-imports --follow-imports=skip
 function! neomake#makers#ft#python#mypy() abort
-    let args = ['--ignore-missing-imports', '--follow-imports=skip']
-    if !neomake#utils#IsRunningWindows()
-        let args += ['--fast-parser']
-    endif
     return {
-        \ 'args': args,
+        \ 'args': ['--ignore-missing-imports', '--follow-imports=skip'],
         \ 'errorformat':
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .
