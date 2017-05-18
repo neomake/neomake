@@ -1090,10 +1090,7 @@ function! s:CleanJobinfo(jobinfo) abort
             endif
         endif
 
-        call neomake#utils#hook('NeomakeFinished', {
-                    \ 'file_mode': a:jobinfo.file_mode,
-                    \ 'make_id': a:jobinfo.make_id,
-                    \ 'jobinfo': a:jobinfo})
+        call neomake#utils#hook('NeomakeFinished', {'jobinfo': a:jobinfo})
     endif
 
     call s:clean_make_info(a:jobinfo.make_id)
@@ -1348,10 +1345,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         let counts_changed = (file_mode ? getloclist(0) : getqflist()) != prev_list
     endif
     if counts_changed
-        call neomake#utils#hook('NeomakeCountsChanged', {
-                    \ 'file_mode': file_mode,
-                    \ 'bufnr': a:jobinfo.bufnr,
-                    \ 'jobinfo': a:jobinfo})
+        call neomake#utils#hook('NeomakeCountsChanged', {'reset': 0, 'jobinfo': a:jobinfo})
     endif
 
     call s:HandleLoclistQflistDisplay(a:jobinfo)

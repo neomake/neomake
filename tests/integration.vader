@@ -225,10 +225,10 @@ Execute (NeomakeSh: echo foo):
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
     \   'type': '', 'pattern': '', 'text': 'foo'}]
   AssertEqual len(g:neomake_test_finished), 1
-  AssertEqual g:neomake_test_countschanged[0].bufnr, bufnr
-  AssertEqual g:neomake_test_countschanged[0].file_mode, 0
-  AssertEqual sort(keys(g:neomake_test_countschanged[0])),
-  \ ['bufnr', 'file_mode', 'jobinfo']
+  AssertEqual g:neomake_test_countschanged[0].jobinfo.bufnr, bufnr
+  AssertEqual g:neomake_test_countschanged[0].jobinfo.file_mode, 0
+  AssertEqual g:neomake_test_countschanged[0].reset, 0
+  AssertEqual sort(keys(g:neomake_test_countschanged[0])), ['jobinfo', 'reset']
 
 Execute (NeomakeSh: non-existing command):
   call g:NeomakeSetupAutocmdWrappers()

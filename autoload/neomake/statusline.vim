@@ -11,13 +11,12 @@ function! s:incCount(counts, item, buf) abort
 endfunction
 
 function! neomake#statusline#ResetCountsForBuf(...) abort
-    let bufnr = a:0 ? a:1 : bufnr('%')
+    let bufnr = a:0 ? +a:1 : bufnr('%')
     let r = (get(s:loclist_counts, bufnr, {}) != {})
     let s:loclist_counts[bufnr] = {}
     if r
         call neomake#utils#hook('NeomakeCountsChanged', {
-                    \ 'file_mode': 1,
-                    \ 'bufnr': bufnr + 0})
+              \ 'reset': 1, 'file_mode': 1, 'bufnr': bufnr})
     endif
     return r
 endfunction
@@ -27,8 +26,7 @@ function! neomake#statusline#ResetCountsForProject(...) abort
     let s:qflist_counts = {}
     if r
         call neomake#utils#hook('NeomakeCountsChanged', {
-                    \ 'file_mode': 0,
-                    \ 'bufnr': bufnr('%')})
+              \ 'reset': 1, 'file_mode': 0, 'bufnr': bufnr('%')})
     endif
     return r
 endfunction

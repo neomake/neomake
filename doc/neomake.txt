@@ -619,16 +619,16 @@ get triggered, e.g. |WinEnter| for the qf window that gets opened/created): >
     augroup END
 <
                                                              *NeomakeFinished*
-The NeomakeFinished autocommand gets triggered after all jobs for a call to
-|:Neomake| etc have finished.
+The NeomakeFinished user autocommand gets triggered after all jobs of a build
+have finished.
 You can use this to e.g. close an empty location or quickfix window.
 Context:
  - `g:neomake_hook_context.jobinfo`: see |neomake-object-jobinfo|.
 
                                                         *NeomakeCountsChanged*
-The NeomakeCountsChanged autocommand gets triggered after counts for the
-location/quickfix list have changed, i.e. the list got reset or new errors
-have been added.
+The NeomakeCountsChanged user autocommand gets triggered after counts for the
+location/quickfix list have changed, either because the list got reset or new
+entries got added.
 You can use this to e.g. update the statusline.
 Context:
  - `g:neomake_hook_context.reset`: 1 if the list got reset, 0 otherwise.
