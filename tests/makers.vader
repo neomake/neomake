@@ -10,6 +10,10 @@ Execute (Instantiate all default makers):
   let errors = []
   for maker_file in ft_makers
     let ft = fnamemodify(maker_file, ':t:r')
+    if ft ==# 'haskell'
+      NeomakeTestsSkip 'Skipping haskell - expensive setup'
+      continue
+    endif
     let f = 'neomake#makers#ft#'.ft.'#EnabledMakers'
     try
       call call(f, [])
