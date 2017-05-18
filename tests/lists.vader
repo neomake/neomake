@@ -187,7 +187,9 @@ Execute (open_list=1: just opens location window):
   bwipe
 
 Execute (open_list=0: does not open location window):
-  augroup! neomake_event_queue
+  if exists('#neomake_event_queue')
+    augroup! neomake_event_queue
+  endif
   Save g:neomake_open_list
   let g:neomake_open_list = 0
   new
