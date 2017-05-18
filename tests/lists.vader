@@ -148,15 +148,15 @@ Execute (Goes back to original window after opening list (wincmd in autocmd)):
 
     " Go to first window for wincmd-p check.
     1wincmd w
-    AssertNeomakeMessage 'Processing action queue for WinEnter (1 items).'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 1).'
+    AssertNeomakeMessage 'action queue: processed 0 items.'
     exe winnr.'wincmd w'
-    AssertNeomakeMessage 'Processing action queue for WinEnter (1 items).'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 3).'
     AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
-    AssertEqual winnr, winnr(), 'Moved back to original window'
 
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
-    Assert !exists('#neomake_event_queue'), 'augroup was deleted'
     AssertNeomakeMessage 'Opening location list.'
+    AssertNeomakeMessage 'action queue: processed 1 items.'
 
     wincmd p
     AssertEqual 1, winnr()
@@ -180,7 +180,6 @@ Execute (open_list=1: just opens location window):
   AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
 
   Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was not setup'
-  Assert !exists('#neomake_event_queue'), 'augroup does not exist'
   AssertNeomakeMessage 'Opening location list.'
 
   lclose
@@ -188,6 +187,7 @@ Execute (open_list=1: just opens location window):
   bwipe
 
 Execute (open_list=0: does not open location window):
+  augroup! neomake_event_queue
   Save g:neomake_open_list
   let g:neomake_open_list = 0
   new
