@@ -1597,7 +1597,7 @@ if has('nvim-0.2.0')
         call s:output_handler(a:job_id, data, a:event_type)
     endfunction
 else
-    " Noevim: register output from jobs as quick as possible, and trigger its
+    " Neovim: register output from jobs as quick as possible, and trigger
     " processing through a timer.
     " This works around https://github.com/neovim/neovim/issues/5889).
     let s:nvim_output_handler_queue = []
