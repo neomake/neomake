@@ -14,18 +14,18 @@ env:
 jobs:
   fast_finish: true
   include:
-    - stage: Basic test
+    - stage: Basic tests
       env: ENV=testvim
+    - env: ENV=check
+    - env: ENV=testnvim
+    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
     - stage: test
-      env: ENV=testnvim
-    - env: ENV=vimlint
+      env: ENV=vimlint
     - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.2.0
     - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.1.7
     - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
     - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
     - env: ENV=vint
-    - env: ENV=check
 
 install:
   - |
