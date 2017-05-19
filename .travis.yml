@@ -2,10 +2,7 @@ sudo: true
 services:
   - docker
 
-language: python
-python:
-  - "3.5"
-
+language: none
 branches:
   only:
     - master
@@ -13,20 +10,23 @@ branches:
 env:
   global:
     - NEOMAKE_DOCKER_IMAGE: neomake/vims-for-tests:5@sha256:58d233a76e29436f10a5b0f9642ceb7f6a361f65f49dfedf0a821ef182568e8b
-  matrix:
-    - ENV=vimlint
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.2.0
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.1.7
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
-    - ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
-    - ENV=testnvim
-    - ENV=testvim
-    - ENV=check
-    - ENV=vint
 
-matrix:
+jobs:
   fast_finish: true
+  include:
+    - stage: Basic tests
+      env: ENV=testvim
+    - env: ENV=check
+    - env: ENV=testnvim
+
+    - stage: test
+      env: ENV=vimlint
+    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.2.0
+    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.1.7
+    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
+    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
+    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
+    - env: ENV=vint
 
 install:
   - |

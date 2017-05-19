@@ -58,7 +58,7 @@ Execute (Test Neomake on errors.sh with shellcheck):
         \ "tests/fixtures/errors.sh:5:4: error: Trying to declare parameters? Don't. Use () and refer to params as $1, $2.. [SC1065]",
         \ ]
   if executable('shellcheck')
-    let real_output = systemlist('shellcheck -fgcc tests/fixtures/errors.sh')
+    let real_output = neomake#compat#systemlist('shellcheck -fgcc tests/fixtures/errors.sh')
     AssertEqual real_output, shellcheck_output
   endif
   let shellcheck_contents = ['#!/bin/sh']
