@@ -766,7 +766,7 @@ function! s:HandleLoclistQflistDisplay(jobinfo) abort
     endif
 endfunction
 
-let s:action_queue = {}
+let s:action_queue = {'WinEnter': []}
 " Queue an action to be processed later for autocmd a:event.
 " It will call a:data[0], with a:data[1] as args (where the first should be
 " a jobinfo object).  The callback should return 1 if it was successful,
@@ -774,9 +774,7 @@ let s:action_queue = {}
 " When called recursively (queueing the same event/data again, it will be
 " re-queued also).
 function! s:queue_action(event, data) abort
-    if !has_key(s:action_queue, a:event)
-        let s:action_queue[a:event] = []
-    elseif get(s:action_queue[a:event], 0, []) == a:data
+    if get(s:action_queue[a:event], 0, []) == a:data
         " Re-queueing currently being processed action.
         return 0
     endif
@@ -796,15 +794,17 @@ endfunction
 function! s:process_action_queue(event) abort
     let queue = s:action_queue[a:event]
     let len = len(queue)
-    call neomake#utils#DebugMessage(printf('Processing action queue for %s (%d items).',
-                \ a:event, len))
     let processed = []
+    call neomake#utils#DebugMessage(printf('action queue: processing for %s (%d items, winnr: %d).',
+                \ a:event, len, winnr()), {'bufnr': bufnr('%')})
     for i in range(0, len-1)
         let data = queue[i]
         if call(data[0], data[1])
             call add(processed, data)
         endif
     endfor
+    call neomake#utils#DebugMessage(printf('action queue: processed %d items.',
+                \ len(processed)), {'bufnr': bufnr('%')})
     call filter(queue, 'index(processed, v:val) == -1')
     for data in processed
         let jobinfo = data[1][0]
@@ -816,10 +816,8 @@ function! s:process_action_queue(event) abort
         endif
     endfor
     if empty(queue)
-        unlet s:action_queue[a:event]
         if empty(keys(s:action_queue))
             autocmd! neomake_event_queue
-            augroup! neomake_event_queue
         else
             augroup neomake_event_queue
                 exe 'au! '.a:event
