@@ -1395,6 +1395,19 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
 
         let olderrformat = &errorformat
         let &errorformat = maker.errorformat
+        if exists('g:loaded_qf')
+            if file_mode
+                if exists('g:qf_auto_open_loclist')
+                    let restore = {'qf_auto_open_loclist': g:qf_auto_open_loclist}
+                endif
+                let g:qf_auto_open_loclist = 0
+            else
+                if exists('g:qf_auto_open_quickfix')
+                    let restore = {'qf_auto_open_quickfix': g:qf_auto_open_quickfix}
+                endif
+                let g:qf_auto_open_quickfix = 0
+            endif
+        endif
         try
             if file_mode
                 laddexpr a:lines
@@ -1405,6 +1418,11 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
             let &errorformat = olderrformat
             if empty(cd_error)
                 exe cd_back_cmd
+            endif
+            if exists('restore')
+                for [k, v] in restore
+                    let g:[k] = v
+                endfor
             endif
         endtry
 
