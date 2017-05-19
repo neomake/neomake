@@ -59,7 +59,7 @@ Execute (Test Neomake on errors.sh with shellcheck):
         \ ]
   if executable('shellcheck')
     Log system('which shellcheck')
-    let real_output = systemlist('shellcheck -fgcc tests/fixtures/errors.sh')
+    let real_output = neomake#compat#systemlist('shellcheck -fgcc tests/fixtures/errors.sh')
     AssertEqual real_output, shellcheck_output
   endif
   let shellcheck_contents = ['#!/bin/sh']
