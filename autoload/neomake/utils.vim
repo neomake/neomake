@@ -279,13 +279,13 @@ function! neomake#utils#load_ft_maker(ft) abort
     endif
 endfunction
 
-function! neomake#utils#get_ft_confname(ft) abort
-    return substitute(a:ft, '\W', '_', 'g')
+function! neomake#utils#get_ft_confname(ft, ...) abort
+    return substitute(a:ft, '\W', a:0 ? a:1 : '_', 'g')
 endfunction
 
 " Resolve filetype a:ft into a list of filetypes suitable for config vars
 " (i.e. 'foo.bar' => ['foo_bar', 'foo', 'bar']).
-function! neomake#utils#get_config_fts(ft) abort
+function! neomake#utils#get_config_fts(ft, ...) abort
     let r = []
     let fts = split(a:ft, '\.')
     for ft in fts
@@ -304,7 +304,8 @@ function! neomake#utils#get_config_fts(ft) abort
     if len(fts) > 1
         call insert(r, a:ft, 0)
     endif
-    return map(r, 'neomake#utils#get_ft_confname(v:val)')
+    let delim = a:0 ? a:1 : '_'
+    return map(r, 'neomake#utils#get_ft_confname(v:val, delim)')
 endfunction
 
 let s:unset = {}  " Sentinel.
@@ -313,23 +314,22 @@ let s:unset = {}  " Sentinel.
 " namespace, defaulting to default.
 function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
     let maker_only = a:0 ? a:1 : 0
+
+    " Check new-style config.
+    if exists('g:neomake') || !empty(getbufvar(a:bufnr, 'neomake'))
+        let context = {'ft': a:ft, 'maker': a:maker, 'bufnr': a:bufnr, 'maker_only': maker_only}
+        let Ret = neomake#config#get(a:key, g:neomake#config#undefined, context)
+        if Ret isnot g:neomake#config#undefined
+            return Ret
+        endif
+    endif
+
     let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
     if maker_only && empty(maker_name)
         if has_key(a:maker, a:key)
             return a:maker[a:key]
         endif
         return a:default
-    endif
-
-    " Check new-style config.
-    " Add maker and bufnr to context only if g:neomake or b:neomake exist.
-    let context = {'ft': a:ft}
-    if exists('g:neomake') || !empty(getbufvar(a:bufnr, 'neomake'))
-        call extend(context, {'maker': a:maker, 'bufnr': a:bufnr})
-    endif
-    let Ret = neomake#config#get(a:key, g:neomake#config#undefined, context)
-    if Ret isnot g:neomake#config#undefined
-        return Ret
     endif
 
     if !empty(a:ft)
