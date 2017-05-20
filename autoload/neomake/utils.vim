@@ -311,7 +311,16 @@ let s:unset = {}  " Sentinel.
 
 " Get a setting by key, based on filetypes, from the buffer or global
 " namespace, defaulting to default.
-function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
+function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
+    let maker_only = a:0 ? a:1 : 0
+    let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
+    if maker_only && empty(maker_name)
+        if has_key(a:maker, a:key)
+            return a:maker[a:key]
+        endif
+        return a:default
+    endif
+
     " Check new-style config.
     " Add maker and bufnr to context only if g:neomake or b:neomake exist.
     let context = {'ft': a:ft}
@@ -323,7 +332,6 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
         return Ret
     endif
 
-    let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
     if !empty(a:ft)
         let fts = neomake#utils#get_config_fts(a:ft) + ['']
     else
@@ -351,13 +359,15 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr) abort
     if has_key(a:maker, a:key)
         return a:maker[a:key]
     endif
+
+    let key = maker_only ? maker_name.'_'.a:key : a:key
     " Look for 'neomake_'.key in the buffer and global namespace.
-    let bufvar = neomake#compat#getbufvar(a:bufnr, 'neomake_'.a:key, s:unset)
+    let bufvar = neomake#compat#getbufvar(a:bufnr, 'neomake_'.key, s:unset)
     if bufvar isnot s:unset
         return bufvar
     endif
-    if a:key !=# 'enabled_makers' && has_key(g:, 'neomake_'.a:key)
-        return get(g:, 'neomake_'.a:key)
+    if a:key !=# 'enabled_makers' && has_key(g:, 'neomake_'.key)
+        return get(g:, 'neomake_'.key)
     endif
     return a:default
 endfunction
