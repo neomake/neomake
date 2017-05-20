@@ -88,6 +88,8 @@ Execute (neomake#config#set with b: prefix):
   new
   call neomake#config#set('b:foo', 'bar')
   AssertEqual b:neomake, {'foo': 'bar'}
+  call neomake#config#set('b:foo2', 'baz')
+  AssertEqual b:neomake, {'foo': 'bar', 'foo2': 'baz'}
   unlet b:neomake
 
   call neomake#config#set('b:autolint.ignore_filetypes', ['startify'])
