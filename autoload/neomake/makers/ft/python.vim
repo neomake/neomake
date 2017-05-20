@@ -246,6 +246,7 @@ function! neomake#makers#ft#python#python() abort
         \ 'errorformat': '%E%f:%l:%c: %m',
         \ 'serialize': 1,
         \ 'serialize_abort_on_error': 1,
+        \ 'output_stream': 'stdout',
         \ }
 endfunction
 
