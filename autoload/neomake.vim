@@ -1397,7 +1397,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
             let vimqf_var = file_mode ? 'qf_auto_open_loclist' : 'qf_auto_open_quickfix'
             let vimqf_val = get(g:, vimqf_var, s:unset_dict)
             if vimqf_val isnot# 0
-                let restore_vimqf = vimqf_val
+                let restore_vimqf = [vimqf_var, vimqf_val]
                 let g:[vimqf_var] = 0
             endif
         endif
@@ -1415,10 +1415,10 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
                 exe cd_back_cmd
             endif
             if exists('restore_vimqf')
-                if restore_vimqf is# s:unset_dict
-                    unlet g:[vimqf_var]
+                if restore_vimqf[1] is# s:unset_dict
+                    unlet g:[restore_vimqf[0]]
                 else
-                    let g:[vimqf_var] = restore_vimqf
+                    let g:[restore_vimqf[0]] = restore_vimqf[1]
                 endif
             endif
         endtry
