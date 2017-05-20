@@ -43,7 +43,8 @@ function! neomake#makers#ft#ruby#mri() abort
     return {
         \ 'exe': 'ruby',
         \ 'args': ['-c', '-T1', '-w'],
-        \ 'errorformat': errorformat
+        \ 'errorformat': errorformat,
+        \ 'output_stream': 'stderr',
         \ }
 endfunction
 

@@ -66,7 +66,7 @@ function! neomake#makers#ft#sh#sh() abort
         \ 'errorformat':
             \ '%E%f: line %l: %m,' .
             \ '%E%f: %l: %m',
-        \ 'output_streams': ['stderr'],
+        \ 'output_stream': 'stderr',
         \}
 endfunction
 
