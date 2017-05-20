@@ -298,7 +298,17 @@ function! s:MakeJob(make_id, options) abort
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
             let s:make_info[a:make_id].active_jobs += [jobinfo]
+
+            let stderr_file = tempname()
+            let argv .= ' 2>'.stderr_file
             call s:output_handler(job_id, split(system(argv), '\r\?\n', 1), 'stdout')
+            let stderr_output = readfile(stderr_file)
+            if !empty(stderr_output)
+                call map(stderr_output, "substitute(v:val, '\\r$', '', '')")
+                call s:output_handler(job_id, stderr_output, 'stderr')
+            endif
+            call delete(stderr_file)
+
             call s:exit_handler(job_id, v:shell_error, 'exit')
             return {}
         endif

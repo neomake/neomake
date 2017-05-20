@@ -6,10 +6,8 @@ Execute (mapexpr: output source in mapexpr):
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  let stderr_source = neomake#has_async_support() ? 'stderr' : 'stdout'
-
   AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
-    \ ['['.stderr_source.'] on_stderr', '[stdout] on_stdout'])
+    \ ['[stderr] on_stderr', '[stdout] on_stdout'])
   NeomakeTestsWaitForFinishedJobs
 
 Execute (mapexpr: file mode vars):
