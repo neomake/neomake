@@ -152,6 +152,53 @@ Execute (Goes back to original window with vim-qf):
     exe winnr.'wincmd w'
     lclose
     AssertEqual wincount, winnr('$')
+    Assert !exists('g:qf_auto_open_loclist')
+
+    " Quickfix list.
+    call neomake#Make(0, [g:error_maker])
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+    Assert !exists('g:qf_auto_open_quickfix')
+
+    AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
+    AssertEqual winnr, winnr()
+    exe winnr.'wincmd w'
+    cclose
+    bwipe
+  endif
+
+Execute (Goes back to original window with vim-qf (0-setting)):
+  if !has('patch-7.4.2299')
+    NeomakeTestsSkip 'Only for 7.4.2299 (vim-qf issue)'
+  else
+    Save g:neomake_open_list
+    let g:neomake_open_list = 2
+
+    Save g:loaded_qf, g:qf_auto_open_quickfix, g:qf_auto_open_loclist
+    " Simulate vim-qf being used.
+    let g:loaded_qf = 1
+    let g:qf_auto_open_loclist = 0
+    let g:qf_auto_open_quickfix = 0
+
+    new
+    let winnr = winnr()
+    let wincount = winnr('$')
+
+    augroup neomake_tests
+      autocmd QuickFixCmdPost laddexpr AssertEqual g:qf_auto_open_loclist, 0
+      autocmd QuickFixCmdPost caddexpr AssertEqual g:qf_auto_open_quickfix, 0
+    augroup END
+
+    " Location list.
+    call neomake#Make(1, [g:error_maker])
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+
+    AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
+    AssertEqual winnr, winnr()
+    exe winnr.'wincmd w'
+    lclose
+    AssertEqual wincount, winnr('$')
 
     " Quickfix list.
     call neomake#Make(0, [g:error_maker])
