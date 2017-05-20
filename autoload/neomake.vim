@@ -1393,21 +1393,16 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
         call s:create_locqf_list(a:jobinfo)
         let prev_list = file_mode ? getloclist(0) : getqflist()
 
-        let olderrformat = &errorformat
-        let &errorformat = maker.errorformat
         if exists('g:loaded_qf')
-            if file_mode
-                if exists('g:qf_auto_open_loclist')
-                    let restore = {'qf_auto_open_loclist': g:qf_auto_open_loclist}
-                endif
-                let g:qf_auto_open_loclist = 0
-            else
-                if exists('g:qf_auto_open_quickfix')
-                    let restore = {'qf_auto_open_quickfix': g:qf_auto_open_quickfix}
-                endif
-                let g:qf_auto_open_quickfix = 0
+            let vimqf_var = file_mode ? 'qf_auto_open_loclist' : 'qf_auto_open_quickfix'
+            let vimqf_val = get(g:, vimqf_var, s:unset_dict)
+            if vimqf_val isnot# 0
+                let restore_vimqf = [vimqf_var, vimqf_val]
+                let g:[vimqf_var] = 0
             endif
         endif
+        let olderrformat = &errorformat
+        let &errorformat = maker.errorformat
         try
             if file_mode
                 laddexpr a:lines
@@ -1419,10 +1414,12 @@ function! s:ProcessJobOutput(jobinfo, lines, source) abort
             if empty(cd_error)
                 exe cd_back_cmd
             endif
-            if exists('restore')
-                for [k, v] in restore
-                    let g:[k] = v
-                endfor
+            if exists('restore_vimqf')
+                if restore_vimqf[1] is# s:unset_dict
+                    unlet g:[restore_vimqf[0]]
+                else
+                    let g:[restore_vimqf[0]] = restore_vimqf[1]
+                endif
             endif
         endtry
 
