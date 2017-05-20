@@ -143,12 +143,10 @@ name: >
     " working directory (runs "lint --option x"):
     :Neomake! c_lint
 <
-                                                        *neomake-{{makepath}}*
-                                                        *neomake-!!makepath!!*
+                                                           *neomake-args-file*
 When running a maker on a file with |:Neomake|, you may want to control where
 in the `args` list the file's path will appear. To do this, insert '%:p' in
-the `args` list. {{makepath}} and !!makepath!! are no longer used for this,
-but will be retained in the docs for discoverability: >
+the `args` list:  >
     let g:neomake_c_lint_maker = {
         \ 'exe': 'lint',
         \ 'args': ['%:p', '--option', 'x'],
@@ -675,7 +673,6 @@ using this option: >
 
     let g:quickfixsigns_protect_sign_rx = '^neomake_'
 <
-
 6.2 How to configure the makers to be used?~
 
 See |g:neomake_<ft>_enabled_makers| (press `<C-]>` on the link to go there).
