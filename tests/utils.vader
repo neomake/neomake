@@ -131,6 +131,27 @@ Execute (neomake#utils#GetSetting handles maker-only settings):
   AssertEqual neomake#GetMaker('mymaker', 'myft').exe, 'mymaker'
   bwipe
 
+Execute (neomake#utils#GetSetting handles maker-only settings (dict-config)):
+  new
+  set filetype=myft
+  AssertEqual 'default', neomake#utils#GetSetting('exe', {}, 'default', 'myft', bufnr('%'))
+  let b:neomake = {'exe': 'buffer_exe'}
+  AssertEqual 'buffer_exe', neomake#utils#GetSetting('exe', {}, 'default', 'myft', bufnr('%'))
+  AssertEqual 'default', neomake#utils#GetSetting('exe', {}, 'default', 'myft', bufnr('%'), 1)
+
+  call neomake#config#set('b:ft.myft.mymaker.maker', {})
+  AssertEqual neomake#GetMaker('mymaker', 'myft').exe, 'mymaker'
+  call neomake#config#set('b:ft.myft.mymaker.maker', {'exe': 'foo'})
+  AssertEqual neomake#GetMaker('mymaker', 'myft').exe, 'foo'
+
+  let maker = {}
+  AssertEqual neomake#config#get('mymaker.exe', 'default', {'ft': 'myft', 'bufnr': bufnr('%')}), 'default'
+  let maker = {'exe': 'maker_exe'}
+  AssertEqual neomake#config#get('mymaker.exe', 'default', {'ft': 'myft', 'bufnr': bufnr('%'), 'maker': maker}), 'default'
+  let maker = {'name': 'mymaker', 'exe': 'maker_exe'}
+  AssertEqual neomake#config#get('mymaker.exe', 'default', {'ft': 'myft', 'bufnr': bufnr('%'), 'maker': maker}), 'maker_exe'
+  bwipe
+
 Execute (neomake#utils#GetSetting for multiple fts):
   new
   function! GetSetting(key)
@@ -139,6 +160,26 @@ Execute (neomake#utils#GetSetting for multiple fts):
   endfunction
   let b:neomake_jsx_javascript_setting = '1'
   AssertEqual GetSetting('setting'), '1'
+  bwipe
+
+Execute (neomake#utils#GetSetting for multiple fts (new-style)):
+  new
+  function! GetSetting(key)
+    return neomake#utils#GetSetting(a:key, {}, 'default',
+                                  \ 'jsx.javascript', bufnr('%'))
+  endfunction
+  call neomake#config#set_buffer(bufnr('%'), ['ft', 'jsx.javascript', 'setting'], 1)
+  AssertEqual GetSetting('setting'), 1
+  call neomake#config#set(['b:ft', 'jsx.javascript', 'setting'], 2)
+  AssertEqual GetSetting('setting'), 2
+  let b:neomake = {'ft': {'jsx.javascript': {'setting': 3}}}
+  AssertEqual GetSetting('setting'), 3
+  let b:neomake = {'ft': {'jsx': {'setting': 4}}}
+  AssertEqual GetSetting('setting'), 4
+  let b:neomake = {'ft': {'javascript': {'setting': 5}}}
+  AssertEqual GetSetting('setting'), 5
+  let b:neomake = {'ft': {'javascript.jsx': {'setting': 6}}}
+  AssertEqual GetSetting('setting'), 'default'
   bwipe
 
 Execute (neomake#utils#GetSetting accepts lists):
@@ -188,10 +229,16 @@ Execute (neomake#utils#GetSetting with new-style config):
   AssertEqual neomake#utils#GetSetting(
   \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), 'bar'
 
-  " New-style global setting overrides old-style buffer setting?!
+  " New-style global setting overrides old-style buffer setting!
   call neomake#config#set('ft.neomake_tests.foo', 'new_bar')
   AssertEqual neomake#utils#GetSetting(
   \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), 'new_bar'
+  AssertNeomakeMessage "Using setting foo='new_bar' from 'global'."
+
+  call neomake#config#set('ft.neomake_tests.foo', function('tr'))
+  AssertEqual neomake#utils#GetSetting(
+  \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), function('tr')
+  AssertNeomakeMessage "Using setting foo=function('tr') from 'global'."
 
   bwipe
 
