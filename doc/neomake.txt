@@ -309,6 +309,11 @@ but disable it for some maker only: >
         let g:neomake_tempfile_enabled = 1
         let g:neomake_<ft>_<name>_tempfile_enabled = 0
 <
+                                                *neomake-makers-output_stream*
+Default: "both" ("stdout", "stderr", "both")
+The `output_stream` setting specifies what stream gets used for output from
+the maker.
+Any output on a stream not configured here gets reported as unexpected output.
 
 Global Options                                               *neomake-options*
 
