@@ -135,9 +135,9 @@ Execute (cwd gets expanded correctly: relative and in another buffer):
     bwipe
   endif
 
-Execute (cwd per maker):
-  let maker1 = {'exe': 'pwd', 'cwd': tempname()}
-  let maker2 = {'exe': 'pwd', 'cwd': tempname()}
+Execute (cwd per maker and serialize via dict):
+  let maker1 = {'name': 'maker1', 'exe': 'pwd', 'cwd': tempname()}
+  let maker2 = {'name': 'maker2', 'exe': 'pwd', 'cwd': tempname()}
   call mkdir(maker1.cwd)
   call mkdir(maker2.cwd)
 
@@ -146,6 +146,8 @@ Execute (cwd per maker):
   \ 'enabled_makers': [maker1, maker2],
   \ 'serialize': 1})
   NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage '\m^stdout: maker1'
+  AssertNeomakeMessage '\m^stdout: maker2'
 
   AssertEqual map(copy(getqflist()), 'v:val.text'), [maker1.cwd, maker2.cwd]
 

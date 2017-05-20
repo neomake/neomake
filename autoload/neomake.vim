@@ -919,7 +919,7 @@ function! s:Make(options) abort
         if job_id >= 0
             call add(job_ids, job_id)
         endif
-        if get(jobinfo, 'serialize', 0)
+        if jobinfo.serialize
             break
         endif
     endwhile
@@ -1801,19 +1801,20 @@ function! s:handle_next_maker(prev_jobinfo) abort
         endif
 
         " Serialization of jobs, always for non-async Vim.
-        if !s:async
-                    \ || neomake#utils#GetSetting('serialize', maker, 0, options.ft, options.bufnr)
-            let options.serialize = 1
+        if !has_key(options, 'serialize')
+            if !s:async || neomake#utils#GetSetting('serialize', maker, 0, options.ft, options.bufnr)
+                let options.serialize = 1
+            else
+                let options.serialize = 0
+            endif
         endif
-
         try
             let jobinfo = s:MakeJob(make_id, options)
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '')
             call neomake#utils#ErrorMessage(error, {'make_id': make_id})
 
-            if get(options, 'serialize', 0)
-                        \ && neomake#utils#GetSetting('serialize_abort_on_error', maker, 0, options.ft, options.bufnr)
+            if options.serialize && neomake#utils#GetSetting('serialize_abort_on_error', maker, 0, options.ft, options.bufnr)
                 call s:abort_next_makers(make_id)
                 break
             endif
