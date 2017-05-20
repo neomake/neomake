@@ -130,7 +130,7 @@ endfunction
 function! neomake#config#set_buffer(bufnr, name, value) abort
     let bufnr = +a:bufnr
     let bneomake = getbufvar(bufnr, 'neomake')
-    if bneomake ==# ''
+    if bneomake is# ''
         unlet bneomake  " for Vim without patch-7.4.1546
         let bneomake = {}
         call setbufvar(bufnr, 'neomake', bneomake)
