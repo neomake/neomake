@@ -35,6 +35,33 @@ Execute (Vint: generic postprocessing for highlights):
   endif
   bwipe!
 
+Execute (vimlint: errorformat):
+  Save &efm
+  let &efm = neomake#makers#ft#vim#vimlint().errorformat
+
+  new
+  file testfile.vim
+  lgetexpr 'testfile.vim:33:12:Error: EVP_0: unexpected EOL'
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 33, 'bufnr': bufnr('%'), 'col': 12, 'valid': 1, 'vcol': 0,
+  \ 'nr': 0, 'type': 'E', 'pattern': '', 'text': 'unexpected EOL'}]
+
+  lgetexpr 'testfile.vim:2:0:Error: EVP_E171: Missing :endif:    TOPLEVEL'
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 2, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0,
+  \ 'nr': 171, 'type': 'E', 'pattern': '', 'text': 'Missing :endif:    TOPLEVEL'}]
+
+  lgetexpr 'testfile.vim:1:1:Error: EVL204: constant in conditional context'
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 1, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
+  \ 'nr': 204, 'type': 'E', 'pattern': '', 'text': 'constant in conditional context'}]
+
+  lgetexpr 'testfile.vim:2:1:Warning: EVL204: constant in conditional context'
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 2, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
+  \ 'nr': 204, 'type': 'W', 'pattern': '', 'text': 'constant in conditional context'}]
+  bwipe
+
 Execute (vimlint: length postprocessing):
   NeomakeTestsMonkeypatchHighlights
 
