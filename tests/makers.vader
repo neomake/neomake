@@ -275,8 +275,8 @@ Execute (Makers: get_list_entries):
   endfunction
 
   let maker = neomake#GetMaker(maker)
-  call neomake#Make(1, [maker])
-  NeomakeTestsWaitForFinishedJobs
+  let jobinfos = neomake#Make(1, [maker])
+  Assert len(jobinfos), 1
 
   " valid=1 gets added
   let expected = map(copy(g:neomake_test_entries), "extend(v:val, {'valid': 1})")
