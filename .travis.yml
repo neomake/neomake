@@ -48,4 +48,5 @@ script:
     fi
     umask 022
     echo "===== running: make $ENV $MAKE_ARGS ====="
+    set -x
     make $ENV $MAKE_ARGS
