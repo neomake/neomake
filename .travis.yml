@@ -19,8 +19,8 @@ jobs:
     - env: ENV=vint
       language: python
 
-    - stage: test
-      env: ENV=vimlint
+    # - stage: test
+    - env: ENV=vimlint
     - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.2.0
       services:
         - docker
