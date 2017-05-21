@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # This script adds color highlighting to the output from Neomake's Vader tests
 # (when called with "vader"), or to the file that gets written into according
@@ -12,21 +12,101 @@
 # Use 256-color mode for dark grey.
 debug_color='[38;5;8m'
 
+compact=0
+quiet=0
+
+while [ $# -ne 0 ]; do
+    case $1 in
+    --compact) compact=1; shift ;;
+    --quiet) quiet=1; shift ;;
+    --)  shift; break ;;
+    -?*) echo "Unknown option: $1" 1>&2; exit 64 ;;
+    *) break ;;
+    esac
+done
+
 if [ "$1" = vader ]; then
   if [ -n "$CI" ]; then
     # Travis does not seem to understand 256 color mode; use bright black.
     debug_color='[30;1m'
   fi
 
-  # Add coloring to Vader's output:
+  if ((quiet)); then
+    spinner_chars='/-\|'
+    spinner_current=0
+  fi
+
+  quiet_started=$((!quiet))
+  if ((compact || quiet)); then
+    # Do not display output for successful tests (i.e. the log statements).
+    last_start_match=
+    re_log_line='^      > [^[]'
+    filtering=0
+    while read -r; do
+      if [[ "$REPLY" == 'Vader error:'* ]]; then
+        echo "$REPLY"
+        continue
+      fi
+      # quiet: suppress output until "Starting Vader:".
+      if ! ((quiet_started)); then
+        if [[ "$REPLY" == 'Starting Vader:'* ]]; then
+          printf "\r" >&2
+          echo "$REPLY"
+          quiet_started=1
+        else
+          printf "\r%s" ${spinner_chars:spinner_current++:1} >&2
+          ((spinner_current==${#spinner_chars})) && spinner_current=0
+        fi
+        continue
+      fi
+      if [[ "$REPLY" == *'Starting Vader:'* ]]; then
+        echo "$REPLY"
+      elif [[ "$REPLY" == '      Duration: '* ]]; then
+        echo "$REPLY"
+      elif [[ "$REPLY" == *'(X)'* || "$REPLY" =~ $re_log_line ]]; then
+        if [[ -n "$filtered" ]]; then
+          echo "$filtered"
+        fi
+        echo "$REPLY"
+        filtered=
+        filtering=0
+      elif [[ "$REPLY" =~ ^\ +(\(\ *[0-9]+/[0-9]+\)) ]]; then
+        filtering=1
+        if [[ ${BASH_REMATCH[1]} == "$last_start_match" ]]; then
+          filtered="$filtered"$'\n'"$REPLY"
+        else
+          if ! ((quiet)); then
+            echo "$REPLY"
+            filtered=
+          else
+            filtered="$REPLY"
+          fi
+        fi
+        last_start_match="${BASH_REMATCH[1]}"
+      elif ! ((filtering)); then
+        echo "$REPLY"
+      elif [[ "$REPLY" == *'Success/Total: '* || "$REPLY" == '  Slowests tests:' ]]; then
+        echo "$REPLY"
+        filtering=0
+      elif [[ -n "$filtered" ]]; then
+        filtered="$filtered"$'\n'"$REPLY"
+      else
+        filtered="$REPLY"
+      fi
+    done
+  else
+    cat -
+  fi \
+  | sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/' \
+      -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+)/[1m\0[0m/' \
+      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0[0m/' \
+      -e '/\[\(verbose\|warning\|error  \|\(\(V\|W\|\E\) +[.[:digit:]]\+\)\)\]/! s/^ \+> .*/[33;1m\0[0m/'
+  # sed: add coloring to Vader's output:
   # 1. failures (includes pending) in red "(X)"
   # 2. test case header in bold "(2/2)"
   # 3. Neomake's debug log messages in less intense grey
   # 4. non-Neomake log lines (e.g. from :Log) in bold/bright yellow.
-  sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/' \
-      -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+)/[1m\0[0m/' \
-      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0[0m/' \
-      -e '/\[\(verbose\|warning\|error  \|\(\(V\|W\|\E\) +[.[:digit:]]\+\)\)\]/! s/^ \+> .*/[33;1m\0[0m/'
+
 else
   # Output from neomake_logfile.
   error='^[:[:digit:]]\+ \[E .*'
