@@ -191,7 +191,7 @@ GET_DOCKER_VIMS=$(shell docker run --rm $(DOCKER_IMAGE) ls /vim-build/bin | grep
 docker_list_vims:
 	@echo $(GET_DOCKER_VIMS)
 
-test_travis:
+travis_test:
 	@ret=0; \
 	  echo '== Running "make docker_test DOCKER_VIM=neovim-v0.2.0" =='; \
 	  make docker_test DOCKER_VIM=neovim-v0.2.0 || (( ret+=1  )); \
@@ -205,6 +205,14 @@ test_travis:
 	  make docker_test DOCKER_VIM=vim73         || (( ret+=16 )); \
 	  echo '== Running "make check" =='; \
 	  make check                                || (( ret+=32 )); \
+	exit $$ret
+
+travis_lint:
+	@ret=0; \
+	  echo '== Running "make vimlint" =='; \
+	  make vimlint                              || (( ret+=1 )); \
+	  echo '== Running "make vint" =='; \
+	  make vint                                 || (( ret+=2 )); \
 	exit $$ret
 
 check:

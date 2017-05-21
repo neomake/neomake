@@ -13,16 +13,13 @@ env:
 jobs:
   fast_finish: true
   include:
-    - stage: Basic tests
+    - stage: test
       env: ENV=testnvim
     - env: ENV=testvim
-
-    - stage: test
-      env: ENV=test_travis
+    - env: ENV=travis_test
       services:
         - docker
-    - env: ENV=vimlint
-    - env: ENV=vint
+    - env: ENV=travis_lint
       language: python
 
 install:
