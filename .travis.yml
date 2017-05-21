@@ -1,6 +1,7 @@
+dist: trusty
 sudo: false
 
-language: generic
+language: none
 branches:
   only:
     - master
@@ -13,9 +14,8 @@ jobs:
   fast_finish: true
   include:
     - stage: Basic tests
-      # Vim 7.3.429 (with sudo: false)
-      env: ENV=testvim
-    - env: ENV=testnvim
+      env: ENV=testnvim
+    - env: ENV=testvim
     - env: ENV=vint
       language: python
 
@@ -33,8 +33,8 @@ jobs:
     - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
       services:
         - docker
-    # Vim v7.4.052.
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim74-trusty
+    # Vim 7.3.429 (Ubuntu Precise)
+    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
       services:
         - docker
     - env: ENV=check
@@ -63,8 +63,8 @@ script:
   - |
     if [[ "$ENV" = "testvim" ]]; then
       vim --version
-      if ! vim --version 2>&1 | grep -F 'VIM - Vi IMproved 7.3' -A1 | grep -q '^Included patches: 1-429'; then
-        echo 'Unexpected Vim version (expected 7.3.429)' >&2
+      if ! vim --version 2>&1 | grep -F 'VIM - Vi IMproved 7.4' -A1 | grep -q '^Included patches: 1-52'; then
+        echo 'Unexpected Vim version (expected 7.4.52)' >&2
         exit 1
       fi
     fi
