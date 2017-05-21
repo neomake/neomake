@@ -208,11 +208,16 @@ function! s:AssertNeomakeMessage(msg, ...)
     Assert 1
     return 1
   endfor
-  if found_but_other_level != -1
-    throw "Message '".a:msg."' found, but for level ".found_but_other_level
-  endif
-  if found_but_before
-    throw "Message '".a:msg."' was found _before_ last asserted one."
+  if found_but_before || found_but_other_level != -1
+    let msg = []
+    if found_but_other_level != -1
+      let msg += ['for level '.found_but_other_level]
+    endif
+    if found_but_before
+      let msg += ['_before_ last asserted one']
+    endif
+    let msg = "Message '".a:msg."' was found, but ".join(msg, ' and ')
+    throw msg
   endif
   if !empty(found_but_context_diff)
     throw join(found_but_context_diff, "\n")
