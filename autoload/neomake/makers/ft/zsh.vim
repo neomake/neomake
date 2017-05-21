@@ -1,5 +1,9 @@
 " vim: ts=4 sw=4 et
 
+function! neomake#makers#ft#zsh#SupersetOf() abort
+    return 'sh'
+endfunction
+
 function! neomake#makers#ft#zsh#EnabledMakers() abort
     return ['zsh']
 endfunction
