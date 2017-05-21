@@ -72,9 +72,16 @@ function! neomake#GetMakeOptions(...) abort
 endfunction
 
 function! neomake#ListJobs() abort
-    call neomake#utils#DebugMessage('call neomake#ListJobs()')
-    for jobinfo in values(s:jobs)
-        echom jobinfo.id.' '.jobinfo.name.' '.jobinfo.maker.name
+    let jobs = neomake#GetJobs()
+    if empty(jobs)
+        return
+    endif
+    echom 'make_id | job_id | name/maker'
+    for jobinfo in jobs
+        let desc = has_key(jobinfo, 'name')
+                    \ ? jobinfo.name. ' ('.jobinfo.maker.name.')'
+                    \ : jobinfo.maker.name
+        echom printf('%7d | %6d | %s', jobinfo.make_id, jobinfo.id, desc)
     endfor
 endfunction
 
