@@ -69,7 +69,7 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
 
     " Use Vader's log for messages during tests.
     " @vimlint(EVL104, 1, l:timediff)
-    if is_testing && get(g:, 'neomake_test_log_all_messages', (verbosity >= a:level))
+    if is_testing && (verbosity >= a:level || get(g:, 'neomake_test_log_all_messages', 0))
         let timediff = s:reltime_lastmsg()
         if timediff !=# '     '
             let test_msg = '['.s:short_level_to_name[a:level].' '.timediff.']: '.msg
