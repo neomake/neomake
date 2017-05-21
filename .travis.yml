@@ -16,14 +16,14 @@ jobs:
     - stage: Basic tests
       env: ENV=testnvim
     - env: ENV=testvim
-    - env: ENV=vint
-      language: python
 
     - stage: test
-    - env: ENV=vimlint
-    - env: ENV=test_travis
+      env: ENV=test_travis
       services:
         - docker
+    - env: ENV=vimlint
+    - env: ENV=vint
+      language: python
 
 install:
   - |
