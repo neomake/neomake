@@ -21,23 +21,7 @@ jobs:
 
     - stage: test
     - env: ENV=vimlint
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.2.0
-      services:
-        - docker
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.1.7
-      services:
-        - docker
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
-      services:
-        - docker
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
-      services:
-        - docker
-    # Vim 7.3.429 (Ubuntu Precise)
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
-      services:
-        - docker
-    - env: ENV=check
+    - env: ENV=test_travis
       services:
         - docker
 
