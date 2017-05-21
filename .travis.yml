@@ -2,7 +2,7 @@ sudo: true
 services:
   - docker
 
-language: none
+language: generic
 branches:
   only:
     - master
@@ -27,6 +27,7 @@ jobs:
     - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
     - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
     - env: ENV=vint
+      language: python
 
 install:
   - |
