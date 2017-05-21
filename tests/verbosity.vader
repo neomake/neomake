@@ -67,15 +67,15 @@ Execute (neomake#Make uses &verbose):
   AssertNeomakeMessage 'Running makers: unnamed_maker.', 3, log_context
 
   NeomakeTestsResetMessages
-  1verb call neomake#Make(1, [maker])
-  let make_id = neomake#GetStatus().last_make_id
+  1verb let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
+  let make_id = jobinfo.make_id
   NeomakeTestsWaitForFinishedJobs
   if neomake#has_async_support()
     AssertEqual g:neomake_test_messages,
-    \ [[2, "Starting async job: ['echo', '1'].", {'make_id': make_id, 'bufnr': bufnr}]]
+    \ [[2, "Starting async job: ['echo', '1'].", {'id': jobinfo.id, 'make_id': make_id, 'bufnr': bufnr}]]
   else
     AssertEqual g:neomake_test_messages,
-    \ [[2, "Starting: echo 1.", {'make_id': make_id, 'bufnr': bufnr}]]
+    \ [[2, "Starting: echo 1.", {'id': jobinfo.id, 'make_id': make_id, 'bufnr': bufnr}]]
   endif
   AssertEqual len(g:neomake_test_messages), 1
 

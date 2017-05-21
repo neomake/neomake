@@ -105,7 +105,11 @@ Execute (neomake#CancelJob! with invalid job):
     AssertNeomakeMessageAbsent 'exit: job not found: '.job_id.'.'
     NeomakeTestsWaitForNextMessage
 
-    AssertNeomakeMessage 'exit: job not found: '.job_id.'.', 1
+    if has('nvim')
+      AssertNeomakeMessage 'exit: job not found: '.job_id.'.', 1
+    else
+      AssertNeomakeMessage '\vexit: job not found: \d+ \(\{''status'': ''dead''.*\.', 1
+    endif
     AssertEqual neomake#CancelJob(job_id, 1), 0
     AssertNeomakeMessage 'CancelJob: job not found: '.job_id.'.', 0
   endif
