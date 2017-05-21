@@ -1,8 +1,7 @@
-sudo: true
-services:
-  - docker
+dist: trusty
+sudo: false
 
-language: generic
+language: none
 branches:
   only:
     - master
@@ -14,19 +13,13 @@ env:
 jobs:
   fast_finish: true
   include:
-    - stage: Basic tests
-      env: ENV=testvim
-    - env: ENV=check
-    - env: ENV=testnvim
-
     - stage: test
-      env: ENV=vimlint
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.2.0
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=neovim-v0.1.7
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim-master
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim8069
-    - env: ENV=docker_test MAKE_ARGS=DOCKER_VIM=vim73
-    - env: ENV=vint
+      env: ENV=testnvim
+    - env: ENV=testvim
+    - env: ENV=travis_test
+      services:
+        - docker
+    - env: ENV=travis_lint
       language: python
 
 install:
@@ -43,9 +36,6 @@ install:
       # Install vim-vimhelplint for one build.
       make build/vimhelplint
     fi
-
-    python3 -V
-    python2 -V
 
 script:
   - |

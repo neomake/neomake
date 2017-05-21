@@ -191,6 +191,30 @@ GET_DOCKER_VIMS=$(shell docker run --rm $(DOCKER_IMAGE) ls /vim-build/bin | grep
 docker_list_vims:
 	@echo $(GET_DOCKER_VIMS)
 
+travis_test:
+	@ret=0; \
+	  echo '== Running "make docker_test DOCKER_VIM=neovim-v0.2.0" =='; \
+	  make docker_test DOCKER_VIM=neovim-v0.2.0 || (( ret+=1  )); \
+	  echo '== Running "make docker_test DOCKER_VIM=neovim-v0.1.7" =='; \
+	  make docker_test DOCKER_VIM=neovim-v0.1.7 || (( ret+=2  )); \
+	  echo '== Running "make docker_test DOCKER_VIM=vim-master" =='; \
+	  make docker_test DOCKER_VIM=vim-master    || (( ret+=4  )); \
+	  echo '== Running "make docker_test DOCKER_VIM=vim8069" =='; \
+	  make docker_test DOCKER_VIM=vim8069       || (( ret+=8  )); \
+	  echo '== Running "make docker_test DOCKER_VIM=vim73" =='; \
+	  make docker_test DOCKER_VIM=vim73         || (( ret+=16 )); \
+	  echo '== Running "make check" =='; \
+	  make check                                || (( ret+=32 )); \
+	exit $$ret
+
+travis_lint:
+	@ret=0; \
+	  echo '== Running "make vimlint" =='; \
+	  make vimlint                              || (( ret+=1 )); \
+	  echo '== Running "make vint" =='; \
+	  make vint                                 || (( ret+=2 )); \
+	exit $$ret
+
 check:
 	@:; ret=0; \
 	echo '== Checking that all tests are included'; \
