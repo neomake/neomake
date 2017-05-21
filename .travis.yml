@@ -1,5 +1,6 @@
 dist: trusty
 sudo: false
+group: edge
 
 language: none
 branches:
