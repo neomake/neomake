@@ -78,9 +78,8 @@ function! neomake#ListJobs() abort
 endfunction
 
 function! neomake#CancelJob(job_id, ...) abort
+    let job_id = type(a:job_id) == type({}) ? a:job_id.id : +a:job_id
     let remove_always = a:0 ? a:1 : 0
-    " Handle '1: foo' format from neomake#CompleteJobs.
-    let job_id = a:job_id + 0
     if !has_key(s:jobs, job_id)
         call neomake#utils#ErrorMessage('CancelJob: job not found: '.job_id.'.')
         return 0
@@ -919,17 +918,13 @@ function! s:Make(options) abort
 
     let w:neomake_make_ids = add(get(w:, 'neomake_make_ids', []), make_id)
 
-    " TODO: return jobinfos?!
-    let job_ids = []
+    let jobinfos = []
     while 1
         let jobinfo = s:handle_next_maker({})
         if empty(jobinfo)
             break
         endif
-        let job_id = jobinfo.id
-        if job_id >= 0
-            call add(job_ids, job_id)
-        endif
+        call add(jobinfos, jobinfo)
         if jobinfo.serialize
             break
         endif
@@ -939,7 +934,7 @@ function! s:Make(options) abort
         " Might have been removed through s:CleanJobinfo already.
         call s:clean_make_info(make_id)
     endif
-    return job_ids
+    return jobinfos
 endfunction
 
 function! s:AddExprCallback(jobinfo, prev_index) abort
@@ -2007,7 +2002,7 @@ function! neomake#Make(file_mode_or_options, ...) abort
             let options.exit_callback = a:2
         endif
     endif
-    return s:Make(options)
+    return map(copy(s:Make(options)), 'v:val.id')
 endfunction
 
 function! neomake#ShCommand(bang, sh_command, ...) abort
@@ -2023,7 +2018,8 @@ function! neomake#ShCommand(bang, sh_command, ...) abort
     if a:0
         call extend(options, a:1)
     endif
-    return get(s:Make(options), 0, -1)
+    let jobinfos = s:Make(options)
+    return empty(jobinfos) ? -1 : jobinfos[0].id
 endfunction
 
 function! neomake#Sh(sh_command, ...) abort

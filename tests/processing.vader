@@ -109,8 +109,7 @@ Execute (Unbuffered output handled correctly (loclist)):
       \ 'for i in $(seq 1 5); do echo 2_$i; sleep 0.01; done'), {
       \ 'buffer_output': 0, 'errorformat': '%m', 'append_file': 0})
 
-    let job_ids = neomake#Make(1, [maker_1, maker_2])
-    let [jobinfo1, jobinfo2] = neomake#GetJobs(job_ids)
+    let [jobinfo1, jobinfo2] = neomake#Make({'enabled_makers': [maker_1, maker_2]})
     Assert jobinfo1.id < jobinfo2.id, "jobinfo1 before jobinfo2"
     new
     NeomakeTestsWaitForFinishedJobs
@@ -172,8 +171,7 @@ Execute (Sleep in postprocess gets handled correctly):
       \ 'append_file': 0,
       \ 'postprocess': function('s:postprocess')})
 
-    let job_ids = neomake#Make(1, [maker])
-    let jobinfo = neomake#GetJob(job_ids[0])
+    let jobinfo = neomake#Make(1, [maker])[0]
     " norm! V
     NeomakeTestsWaitForFinishedJobs
     " exe "norm! <Esc>"
@@ -211,8 +209,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
 
     new
     file b1
-    let first_jobs = neomake#Make(1, [g:neomake_test_inc_maker])
-    let jobinfo1 = neomake#GetJob(first_jobs[0])
+    let jobinfo1 = neomake#Make({'enabled_makers': [g:neomake_test_inc_maker]})[0]
     let make_id = neomake#GetStatus().last_make_id
     norm! V
     NeomakeTestsWaitForFinishedJobs
@@ -222,7 +219,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
 
     " Maker is different because of args.
     AssertNeomakeMessageAbsent 'Restarting already running job ('
-      \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
+      \ .make_id.'.'.jobinfo1.id.') for the same maker.', 2, {'make_id': make_id+1}
     AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
     NeomakeTestsWaitForFinishedJobs
     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
@@ -247,8 +244,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
 
     new
     file b1
-    let first_jobs = neomake#Make(0, [g:neomake_test_inc_maker])
-    let jobinfo1 = neomake#GetJob(first_jobs[0])
+    let jobinfo1 = neomake#Make({'file_mode': 0, 'enabled_makers': [g:neomake_test_inc_maker]})[0]
     let make_id = neomake#GetStatus().last_make_id
     norm! V
     NeomakeTestsWaitForFinishedJobs
@@ -258,7 +254,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
 
     " Maker is different because of args.
     AssertNeomakeMessageAbsent 'Restarting already running job ('
-      \ .make_id.'.'.first_jobs[0].') for the same maker.', 2, {'make_id': make_id+1}
+      \ .make_id.'.'.jobinfo1.id.') for the same maker.', 2, {'make_id': make_id+1}
     AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_jobfinished), 2
@@ -310,8 +306,7 @@ Execute (Second make finishes before first (loclist)):
 Execute (Handle finished job that got canceled (#1158)):
   call g:NeomakeSetupAutocmdWrappers()
   norm! V
-  let jobs = neomake#Make(0, [g:success_maker])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 0, [g:success_maker]
   let jobs = neomake#Make(0, [g:success_maker])
   if neomake#has_async_support()
     AssertNeomakeMessage '\mRestarting already running job (\d\+.\d\+) for the same maker.'
@@ -326,12 +321,11 @@ Execute (Handle finished job that got canceled (#1158)):
 Execute (Job does not get restarted when canceled):
   if NeomakeAsyncTestsSetup()
     let maker = NeomakeTestsCommandMaker('mymaker', 'echo output; sleep .1; echo output2')
-    let jobs = neomake#Make(1, [maker])
-    let jobinfo = neomake#GetJob(jobs[0])
+    let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
     NeomakeTestsWaitForMessage "stdout: mymaker: ['output', ''].", 3, jobinfo
     call neomake#CancelJob(jobinfo.id)
 
-    let jobinfo2 = neomake#GetJob(neomake#Make(1, [maker])[0])
+    let jobinfo2 = neomake#Make(1, [maker])[0]
     NeomakeTestsWaitForFinishedJobs
 
     AssertNeomakeMessage "stdout: mymaker: ['output', ''].", 3, jobinfo2
@@ -376,8 +370,7 @@ Execute (Exception in process_output gets logged as error):
     \ 'append_file': 0,
     \ 'process_output': function('Neomake_test_maker_process_output')}
 
-    let jobinfo = neomake#GetJob(neomake#Make(1, [maker])[0])
-    let make_id = neomake#GetStatus().last_make_id
+    let jobinfo = neomake#Make(1, [maker])[0]
 
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.'
@@ -402,7 +395,7 @@ Execute (Already running job gets restarted in case of exception):
     \ 'append_file': 0,
     \ 'process_output': function('Neomake_test_maker_process_output')}
 
-    let jobinfo = neomake#GetJob(neomake#Make(1, [maker])[0])
+    let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
     let make_id = neomake#GetStatus().last_make_id
 
     AssertThrows NeomakeTestsWaitForFinishedJobs

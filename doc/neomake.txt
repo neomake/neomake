@@ -514,16 +514,15 @@ functions useful.
 *neomake#Make* (options)
 This is the main entrypoint to Neomake, used by the |:Neomake| (and
 |:Neomake!|) command.
-It will run all the given makers, in order.
 
 `options` is a dictionary, and might include:
 - `file_mode`: 1 if the makers should get run against a single file (typically
   used for linting). Default: 1.
 - `enabled_makers`: the makers to use (list). Default: uses configuration.
 
-Returns: a list of job ids.
+Returns: a list of jobinfo objects (|neomake-object-jobinfo|).
 
-Deprecated~
+Deprecated interface (with different return value)~
 The old and deprecated API will accept the following arguments instead of the
 `options` dict: filemode, enabled_makers[, exit_callback].
 The `exit_callback` (which should get replaced by using the
@@ -532,6 +531,7 @@ as its sole argument: >
     { 'status': <exit status of maker>,
     \ 'name': <maker name>,
     \ 'has_next': <1 if another maker follows, 0 otherwise> }
+Returns: a list of job ids.
 
 *neomake#Sh* (command[, callback])
 This function is called by the |:NeomakeSh| command. It runs the specified

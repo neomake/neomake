@@ -142,7 +142,8 @@ Execute (NeomakeSh: serialized after doesnotexist with abort: continue):
 
 Execute (Neomake#Make cancels previous jobs):
   if NeomakeAsyncTestsSetup()
-    let first_jobs = neomake#GetJobs(neomake#Make(0, [g:sleep_maker, g:error_maker]))
+    let first_jobs = neomake#Make({'file_mode': 0, 'enabled_makers': [g:sleep_maker, g:error_maker]})
+    AssertEqual len(first_jobs), 2
     let make_id = neomake#GetStatus().last_make_id
     let bufnr = bufnr('%')
     call neomake#Make(0, [g:sleep_maker, g:error_maker])
@@ -172,8 +173,7 @@ Execute (Neomake#Make starts new jobs before waiting for the old to finish):
     call neomake#Make(0, [maker])
     call neomake#Make(0, [maker])
     let start = reltime()
-    let last = neomake#Make(0, [maker])
-    let last_jobinfo = neomake#GetJob(last[0])
+    let last_jobinfo = neomake#Make(0, [maker])[0]
     NeomakeTestsWaitForFinishedJobs
     let end = reltime()
     let duration = reltimefloat(end) - reltimefloat(start)
@@ -247,9 +247,9 @@ Execute (Neomake#Make handles cwd properly):
       \ 'args': ['maker_3 %s'],
       \ 'append_file': 1}
 
-      let jobs = neomake#Make(1, [maker1, maker2, maker3])
+      let jobs = neomake#Make({'enabled_makers': [maker1, maker2, maker3]})
       AssertEqual len(jobs), 1, "Only one job has been started initially"
-      let jobinfo1 = neomake#GetJob(jobs[0])
+      let jobinfo1 = jobs[0]
       NeomakeTestsWaitForFinishedJobs
       " Trigger processing.
       wincmd p
