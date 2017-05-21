@@ -149,11 +149,28 @@ Execute (neomake#Make in project mode with no filetype and no makers):
     AssertEqual jobs, [job_by_id]
     AssertEqual jobs, jobs_by_ids
     AssertEqual job_by_id.maker.name, 'makeprg'
+    NeomakeTestsWaitForFinishedJobs
   else
     AssertEqual len(job_ids), 0
   endif
 
-  NeomakeTestsWaitForFinishedJobs
+  " New interface to neomake#Make (dict).
+  let jobinfos = neomake#Make({'file_mode': 0})
+  if neomake#has_async_support()
+    AssertEqual len(jobinfos), 1
+    let job_ids = map(copy(jobinfos), 'v:val.id')
+    let jobs = neomake#GetJobs()
+    let jobs_by_ids = neomake#GetJobs(job_ids)
+    let job_by_id = neomake#GetJob(job_ids[0])
+    AssertEqual len(jobs), 1
+    AssertEqual jobs, [job_by_id]
+    AssertEqual jobs, jobs_by_ids
+    AssertEqual job_by_id.maker.name, 'makeprg'
+    AssertEqual job_by_id, jobinfos[0]
+    NeomakeTestsWaitForFinishedJobs
+  else
+    AssertEqual len(jobinfos), 0
+  endif
 
 Execute (neomake#GetMaker from g:neomake_foo_maker):
   let g:neomake_custom_maker = {
