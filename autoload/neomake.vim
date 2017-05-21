@@ -166,6 +166,7 @@ function! s:MakeJob(make_id, options) abort
         \ 'bufnr': a:options.bufnr,
         \ 'file_mode': a:options.file_mode,
         \ 'ft': a:options.ft,
+        \ 'output_stream': get(a:options, 'output_stream', get(a:options.maker, 'output_stream', 'both')),
         \ }, a:options)
 
     let maker = jobinfo.maker
@@ -1542,6 +1543,17 @@ function! s:need_to_postpone_loclist(jobinfo) abort
 endfunction
 
 function! s:RegisterJobOutput(jobinfo, lines, source) abort
+    if a:jobinfo.output_stream !=# 'both' && a:jobinfo.output_stream !=# a:source
+        if !has_key(a:jobinfo, 'unexpected_output')
+            let a:jobinfo.unexpected_output = {}
+        endif
+        if !has_key(a:jobinfo.unexpected_output, a:source)
+            let a:jobinfo.unexpected_output[a:source] = []
+        endif
+        let a:jobinfo.unexpected_output[a:source] += a:lines
+        return
+    endif
+
     if s:CanProcessJobOutput() && !s:need_to_postpone_loclist(a:jobinfo)
         if !empty(s:pending_outputs)
             call s:ProcessPendingOutputs()
@@ -1731,6 +1743,17 @@ function! s:exit_handler(job_id, data, event_type) abort
             let jobinfo.pending_output = 1
         endif
         let jobinfo.finished = 1
+    endif
+
+    if has_key(jobinfo, 'unexpected_output')
+        redraw
+        for [source, output] in items(jobinfo.unexpected_output)
+            let msg = printf('%s: unexpected output on %s: %s', maker.name, source, join(output, "\n"))
+            call neomake#utils#DebugMessage(msg.'.', jobinfo)
+            echom 'Neomake: '.msg
+        endfor
+        call neomake#utils#ErrorMessage(printf(
+                    \ '%s: unexpected output. See :messages for more information.', maker.name), jobinfo)
     endif
     call s:handle_next_maker(jobinfo)
 endfunction
@@ -1993,7 +2016,10 @@ function! neomake#ShCommand(bang, sh_command, ...) abort
     let maker.buffer_output = !a:bang
     let maker.errorformat = '%m'
     let maker.default_entry_type = ''
-    let options = {'enabled_makers': [maker], 'file_mode': 0}
+    let options = {
+                \ 'enabled_makers': [maker],
+                \ 'file_mode': 0,
+                \ 'output_stream': 'both'}
     if a:0
         call extend(options, a:1)
     endif
