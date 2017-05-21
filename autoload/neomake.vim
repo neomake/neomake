@@ -981,7 +981,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
                 endfor
             endif
         endif
-        if has_key(entry, 'bufnr') && entry.bufnr != a:jobinfo.bufnr
+        if entry.bufnr && entry.bufnr != a:jobinfo.bufnr
             call neomake#utils#DebugMessage(printf('WARN: entry.bufnr (%d) is different from jobinfo.bufnr (%d) (current buffer %d): %s.', entry.bufnr, a:jobinfo.bufnr, bufnr('%'), string(entry)))
         endif
         if !empty(s:postprocessors)
