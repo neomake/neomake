@@ -308,13 +308,22 @@ function! s:MakeJob(make_id, options) abort
                 return s:handle_next_maker(jobinfo)
             endif
         else
+            " vim-sync.
             let jobinfo.id = job_id
             let s:jobs[job_id] = jobinfo
             let s:make_info[a:make_id].active_jobs += [jobinfo]
 
+            " Use a temporary file to capture stderr.
             let stderr_file = tempname()
             let argv .= ' 2>'.stderr_file
-            call s:output_handler(job_id, split(system(argv), '\r\?\n', 1), 'stdout')
+
+            if get(jobinfo, 'uses_stdin', 0)
+                let output = system(argv, join(s:make_info[a:make_id].buffer_lines, "\n"))
+            else
+                let output = system(argv)
+            endif
+
+            call s:output_handler(job_id, split(output, '\r\?\n', 1), 'stdout')
             let stderr_output = readfile(stderr_file)
             if !empty(stderr_output)
                 call map(stderr_output, "substitute(v:val, '\\r$', '', '')")
@@ -428,27 +437,18 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
     if !empty(temp_file)
         let bufname = temp_file
         let uses_stdin = get(a:jobinfo, 'uses_stdin', 0)
-        if uses_stdin && s:async
+        if uses_stdin
             if !has_key(make_info, 'buffer_lines')
                 let make_info.buffer_lines = getbufline(bufnr, 1, '$')
             endif
-        else
-            if uses_stdin
-                " Use a real temporary file to pass into system().
-                let temp_file = tempname()
-                call neomake#utils#DebugMessage(printf(
-                            \ 'Creating tempfile for non-async stdin: "%s".', temp_file),
-                            \ a:jobinfo)
-            endif
-            if !has_key(make_info, 'tempfiles')
-                let make_info.tempfiles = [temp_file]
-                let make_info.created_dirs = s:create_dirs_for_file(temp_file)
-                call neomake#utils#write_tempfile(bufnr, temp_file)
-            elseif temp_file !=# make_info.tempfiles[0]
-                call extend(make_info.created_dirs, s:create_dirs_for_file(temp_file))
-                call writefile(readfile(make_info.tempfiles[0], 'b'), temp_file, 'b')
-                call add(make_info.tempfiles, temp_file)
-            endif
+        elseif !has_key(make_info, 'tempfiles')
+            let make_info.tempfiles = [temp_file]
+            let make_info.created_dirs = s:create_dirs_for_file(temp_file)
+            call neomake#utils#write_tempfile(bufnr, temp_file)
+        elseif temp_file !=# make_info.tempfiles[0]
+            call extend(make_info.created_dirs, s:create_dirs_for_file(temp_file))
+            call writefile(readfile(make_info.tempfiles[0], 'b'), temp_file, 'b')
+            call add(make_info.tempfiles, temp_file)
         endif
         let a:jobinfo.tempfile = temp_file
     endif
@@ -546,12 +546,6 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
             let argv = join(map(copy([exe] + args), 'neomake#utils#shellescape(v:val)'))
         else
             let argv = exe.' '.args
-        endif
-        if get(a:jobinfo, 'uses_stdin', 0)
-            let tempfile = get(a:jobinfo, 'tempfile')
-            if !empty(tempfile)
-                let argv .= ' < '.tempfile
-            endif
         endif
     endif
     return argv
