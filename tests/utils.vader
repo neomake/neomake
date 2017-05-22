@@ -475,6 +475,10 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   AssertEqual bound_maker.exe, &shell
   AssertEqual bound_maker.remove_invalid_entries, 0
   AssertNotEqual temp_file, fnameescape(temp_file)
+
+  doautocmd VimLeave
+  Assert empty(glob(temp_file)), 'Temporary file was removed.'
+  AssertNeomakeMessage printf('Removing temporary file: "%s".', temp_file)
   bwipe!
 
 Execute (neomake#utils#get_config_fts):

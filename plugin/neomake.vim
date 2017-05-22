@@ -34,6 +34,7 @@ augroup neomake
   else
     au CursorMoved * call neomake#CursorMoved()
   endif
+  au VimLeave * call neomake#VimLeave()
 augroup END
 
 if has('signs')
