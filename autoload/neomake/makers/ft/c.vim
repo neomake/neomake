@@ -3,6 +3,7 @@
 function! neomake#makers#ft#c#EnabledMakers() abort
     let makers = executable('clang') ? ['clang', 'clangtidy', 'clangcheck'] : ['gcc']
     call add(makers, 'checkpatch')
+    call add(makers, 'cppcheck')
     return makers
 endfunction
 
@@ -81,5 +82,14 @@ function! neomake#makers#ft#c#checkpatch() abort
         \ 'errorformat':
             \ '%f:%l: %tARNING: %m,' .
             \ '%f:%l: %tRROR: %m',
+        \ }
+endfunction
+
+function! neomake#makers#ft#c#cppcheck() abort
+    return {
+        \ 'args': '--quiet --language=c --enable=warning',
+        \ 'errorformat':
+            \ '[%f:%l]: (%trror) %m,' .
+            \ '[%f:%l]: (%tarning) %m',
         \ }
 endfunction
