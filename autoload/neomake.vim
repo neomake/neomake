@@ -1151,6 +1151,15 @@ function! s:clean_make_info(make_id) abort
     unlet s:make_info[a:make_id]
 endfunction
 
+function! neomake#VimLeave() abort
+    for jobinfo in values(s:jobs)
+        call s:CleanJobinfo(jobinfo)
+    endfor
+    for make_id in keys(s:make_info)
+        call s:clean_make_info(make_id)
+    endfor
+endfunction
+
 function! s:CanProcessJobOutput() abort
     " We can only process output (change the location/quickfix list) in
     " certain modes, otherwise e.g. the visual selection gets lost.
