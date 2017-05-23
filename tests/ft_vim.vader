@@ -35,6 +35,33 @@ Execute (Vint: generic postprocessing for highlights):
   endif
   bwipe!
 
+Execute (vint: highlights syntax error for command):
+  NeomakeTestsMonkeypatchHighlights
+
+  new
+  file file1.vim
+  norm! iwhile 1
+  norm! oendfor
+  let vint_maker = neomake#makers#ft#vim#vint()
+  let vint_maker.exe = 'printf'
+  let vint_maker.args = ["file1.vim:2:1:error:E588: :endfor without :for (SyntaxError)"]
+  let vint_maker.append_file = 0
+
+  CallNeomake 1, [vint_maker]
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 2,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 1,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': 588,
+  \ 'type': 'e',
+  \ 'pattern': '',
+  \ 'text': ':endfor without :for (SyntaxError)'}]
+
+  bwipe!
+  AssertEqual [[2, 6]], g:neomake_tests_highlight_lengths
+
 Execute (vimlint: errorformat):
   Save &efm
   let &efm = neomake#makers#ft#vim#vimlint().errorformat
