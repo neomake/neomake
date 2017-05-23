@@ -25,3 +25,12 @@ function! neomake#makers#ft#typescript#tslint() abort
         \ 'errorformat': '%E%f[%l\, %c]: %m'
         \ }
 endfunction
+
+function! neomake#makers#ft#typescript#tsuquyomi() abort
+    let maker = {
+        \ }
+    function! maker.get_list_entries(jobinfo) abort
+        return tsuquyomi#createFixlist()
+    endfunction
+    return maker
+endfunction
