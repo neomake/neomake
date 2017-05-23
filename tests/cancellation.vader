@@ -137,3 +137,21 @@ Execute (neomake#CancelJob with trapped TERM):
     AssertEqual neomake#CancelJob(job_id), 0
     AssertNeomakeMessage 'CancelJob: job not found: '.job_id.'.', 0
   endif
+
+Execute (neomake#CancelMake stops all jobs):
+  if NeomakeAsyncTestsSetup()
+    call neomake#Make(0, [g:sleep_maker, g:sleep_maker])
+    let make_id = neomake#GetStatus().last_make_id
+    call neomake#CancelMake(make_id)
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Stopping job.'
+    AssertNeomakeMessage 'Stopping job.'
+    AssertNeomakeMessage "stdout: sleep-maker: ['slept', '']."
+    AssertNeomakeMessage 'Ignoring output (job was canceled).'
+    AssertNeomakeMessage 'exit: job was canceled.'
+    AssertNeomakeMessage 'Cleaning jobinfo.'
+    AssertNeomakeMessage "stdout: sleep-maker: ['slept', '']."
+    AssertNeomakeMessage 'Ignoring output (job was canceled).'
+    AssertNeomakeMessage 'exit: job was canceled.'
+    AssertNeomakeMessage 'Cleaning jobinfo.'
+  endif

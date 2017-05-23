@@ -85,6 +85,13 @@ function! neomake#ListJobs() abort
     endfor
 endfunction
 
+function! neomake#CancelMake(make_id, ...) abort
+    let jobs = filter(copy(values(s:jobs)), 'v:val.make_id == a:make_id')
+    for job in jobs
+        call neomake#CancelJob(job.id, a:0 ? a:1 : 0)
+    endfor
+endfunction
+
 function! neomake#CancelJob(job_id, ...) abort
     let job_id = type(a:job_id) == type({}) ? a:job_id.id : +a:job_id
     let remove_always = a:0 ? a:1 : 0
@@ -1146,11 +1153,9 @@ function! s:clean_make_info(make_id) abort
 endfunction
 
 function! neomake#VimLeave() abort
-    for jobinfo in values(s:jobs)
-        call s:CleanJobinfo(jobinfo)
-    endfor
+    call neomake#utils#DebugMessage('VimLeave')
     for make_id in keys(s:make_info)
-        call s:clean_make_info(make_id)
+        call neomake#CancelMake(make_id)
     endfor
 endfunction
 
