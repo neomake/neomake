@@ -256,24 +256,58 @@ Execute (Neomake: handle wiped buffer):
   " Check that there is no error, e.g. for highlights.
   if NeomakeAsyncTestsSetup()
     new
+    laddexpr 'init_loclist'
+    new
     edit tests/fixtures/errors.sh
     let bufnr = bufnr('%')
     Neomake sh
     bwipe
     let jobinfo = neomake#GetJobs()[0]
+    let make_info = values(neomake#GetStatus().make_info)[0]
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0,
       \ "counts changed (".len(g:neomake_test_countschanged).")"
     AssertEqual len(g:neomake_test_jobfinished), 0
     AssertEqual len(g:neomake_test_finished), 0
+    AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.'
 
     " Trigger processing of pending output.
     new
     AssertEqual len(g:neomake_test_jobfinished), 1
     AssertEqual len(g:neomake_test_finished), 1
     AssertNeomakeMessage 'No buffer found for output!', 2, jobinfo
-    AssertNeomakeMessage 'File-level errors cleaned in buffer '.bufnr.'.'
+    AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfo
+    AssertNeomakeMessage 'File-level errors cleaned.', 3, make_info.options
+    AssertNeomakeMessage 'No buffer found for location list!', 2, {'make_id': jobinfo.make_id, 'bufnr': jobinfo.bufnr}
+    AssertNeomakeMessage 'Cleaning make info.', 3
     AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
+
+    AssertEqual getloclist(0)[0].text, 'init_loclist'
+
+    bwipe
+    bwipe
+  endif
+
+Execute (Neomake: handle wiped buffer without output):
+  " Check that there is no error, e.g. for highlights.
+  if NeomakeAsyncTestsSetup()
+    new
+    laddexpr 'init_loclist'
+    new
+    let bufnr = bufnr('%')
+    let jobinfo = neomake#Make({'enabled_makers': [g:true_maker]})[0]
+    bwipe
+    let make_info = values(neomake#GetStatus().make_info)[0]
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual len(g:neomake_test_countschanged), 0, 'counts changed ('.len(g:neomake_test_countschanged).')'
+    AssertEqual len(g:neomake_test_jobfinished), 1
+    AssertEqual len(g:neomake_test_finished), 1
+    AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfo
+    AssertNeomakeMessage 'File-level errors cleaned.', 3, make_info.options
+    AssertNeomakeMessage 'No buffer found for location list!', 2, {'make_id': jobinfo.make_id, 'bufnr': jobinfo.bufnr}
+    AssertNeomakeMessage 'Cleaning make info.', 3
+    AssertEqual getloclist(0)[0].text, 'init_loclist'
+
     bwipe
   endif
 
@@ -420,7 +454,7 @@ Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_countschanged), 1
 
-Execute (NeomakeListJobs):
+Execute (NeomakeListJobs with job cancellation):
   let maker1 = NeomakeTestsCommandMaker('cmd maker 1', 'sleep .1')
   let maker2 = NeomakeTestsCommandMaker('cmd maker 2', 'sleep .1; echo job2')
   let maker3 = {'exe': 'sleep', 'args': '.1', 'append_file': 0, 'name': ''}
@@ -451,7 +485,15 @@ Execute (NeomakeListJobs):
     AssertEqual map(copy(neomake#GetJobs()), 'v:val.as_string()'), [
     \ 'Job '.job2.id.': My custom name [finished]']
     exe "normal! \<Esc>"
+    AssertNeomakeMessage 'Cleaning jobinfo.', 3, job3
+    AssertNeomakeMessage 'Postponing final location list handling for mode "V".', 3, {'make_id': job3.make_id, 'bufnr': bufnr('%')}
+
     doautocmd CursorHold
+    AssertNeomakeMessage 'cmd maker 2: processing 1 lines of output.', 3
+
+    doautocmd WinEnter
+    AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 1).'
+    NeomakeTestsWaitForFinishedJobs
   else
     AssertEqual info, ['This Vim version has no support for jobs.']
   endif
