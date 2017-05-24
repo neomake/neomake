@@ -72,6 +72,10 @@ function! neomake#GetMakeOptions(...) abort
 endfunction
 
 function! neomake#ListJobs() abort
+    if !s:async
+        echom 'This Vim version has no support for jobs.'
+        return
+    endif
     let jobs = neomake#GetJobs()
     if empty(jobs)
         return
