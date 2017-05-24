@@ -208,11 +208,23 @@ travis_test:
 	exit $$ret
 
 travis_lint:
-	@ret=0; \
+	@echo "Looking for changed files in TRAVIS_COMMIT_RANGE=$$TRAVIS_COMMIT_RANGE."; \
+	  if [ -z "$$TRAVIS_COMMIT_RANGE" ]; then \
+	    MAKE_ARGS= ; \
+	  else \
+	    CHANGED_VIM_FILES=($$(git diff --name-only --diff-filter=AM "$$TRAVIS_COMMIT_RANGE" \
+	    | grep '\.vim$$' | grep -v '^tests/fixtures')); \
+	    if [ -z "$$CHANGED_VIM_FILES" ]; then \
+	      echo 'No .vim files changed.'; \
+	      exit; \
+	    fi; \
+	    MAKE_ARGS="LINT_ARGS='$$CHANGED_VIM_FILES'"; \
+	  fi; \
+	  ret=0; \
 	  echo '== Running "make vimlint" =='; \
-	  make vimlint                              || (( ret+=1 )); \
+	  make vimlint $$MAKE_ARGS || (( ret+=1 )); \
 	  echo '== Running "make vint" =='; \
-	  make vint                                 || (( ret+=2 )); \
+	  make vint $$MAKE_ARGS    || (( ret+=2 )); \
 	exit $$ret
 
 check:
