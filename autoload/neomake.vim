@@ -1153,7 +1153,7 @@ function! s:clean_make_info(make_id) abort
 endfunction
 
 function! neomake#VimLeave() abort
-    call neomake#utils#DebugMessage('VimLeave')
+    call neomake#utils#DebugMessage('Calling VimLeave.')
     for make_id in keys(s:make_info)
         call neomake#CancelMake(make_id)
     endfor
