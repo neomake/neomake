@@ -20,7 +20,10 @@ let s:maker_defaults = {
 let s:pending_outputs = {}
 " Keep track of for what maker.exe an error was thrown.
 let s:exe_error_thrown = {}
-let s:kill_vim_timers = {}
+
+if !has('nvim')
+    let s:kill_vim_timers = {}
+endif
 
 " Sentinels.
 let s:unset_list = []
@@ -1084,6 +1087,16 @@ function! s:CleanJobinfo(jobinfo) abort
         if has_key(s:pending_outputs, a:jobinfo.id)
             unlet s:pending_outputs[a:jobinfo.id]
         endif
+    endif
+
+    if exists('s:kill_vim_timers')
+        for [timer, job] in items(s:kill_vim_timers)
+            if job == a:jobinfo
+                call timer_stop(+timer)
+                unlet s:kill_vim_timers[timer]
+                break
+            endif
+        endfor
     endif
 
     if !get(a:jobinfo, 'canceled', 0)
