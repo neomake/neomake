@@ -24,7 +24,7 @@ jobs:
 
 install:
   - |
-    if [ "$ENV" = "check" ]; then
+    if [ "$ENV" = "travis_test" ]; then
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       if ! git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
         MAKE_ARGS="$MAKE_ARGS docker_vimhelplint"
