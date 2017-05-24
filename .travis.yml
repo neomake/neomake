@@ -10,17 +10,16 @@ env:
   global:
     - NEOMAKE_DOCKER_IMAGE: neomake/vims-for-tests:5@sha256:58d233a76e29436f10a5b0f9642ceb7f6a361f65f49dfedf0a821ef182568e8b
 
-jobs:
+matrix:
   fast_finish: true
   include:
-    - stage: test
-      env: ENV=testnvim
-    - env: ENV=testvim
     - env: ENV=travis_test
       services:
         - docker
     - env: ENV=travis_lint
       language: python
+    - env: ENV=testnvim
+    - env: ENV=testvim
 
 install:
   - |
