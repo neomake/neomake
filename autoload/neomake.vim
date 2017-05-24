@@ -944,6 +944,10 @@ function! s:Make(options) abort
     while 1
         let jobinfo = s:handle_next_maker({})
         if empty(jobinfo)
+            if has_key(s:make_info, make_id)
+                " Might have been removed through s:CleanJobinfo already.
+                call s:clean_make_info(make_id)
+            endif
             break
         endif
         call add(jobinfos, jobinfo)
@@ -951,11 +955,6 @@ function! s:Make(options) abort
             break
         endif
     endwhile
-
-    if has_key(s:make_info, make_id)
-        " Might have been removed through s:CleanJobinfo already.
-        call s:clean_make_info(make_id)
-    endif
     return jobinfos
 endfunction
 
