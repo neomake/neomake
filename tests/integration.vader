@@ -391,12 +391,16 @@ Execute (NeomakeListJobs):
   let jobs1 = neomake#Make({'enabled_makers': [maker1]})
   let jobs2 = neomake#Make({'enabled_makers': [maker2], 'name': 'My custom name'})
   let info = split(neomake#utils#redir('NeomakeListJobs'), '\n')
-  AssertEqual info, [
-  \        'make_id | job_id | name/maker',
-  \ printf('     %d |     %d | neomake_%d (cmd maker 1)', jobs1[0].make_id, jobs1[0].id, jobs1[0].id),
-  \ printf('     %d |     %d | My custom name (cmd maker 2)', jobs2[0].make_id, jobs2[0].id),
-  \ ]
-  NeomakeTestsWaitForFinishedJobs
+  if neomake#has_async_support()
+    AssertEqual info, [
+    \        'make_id | job_id | name/maker',
+    \ printf('     %d |     %d | neomake_%d (cmd maker 1)', jobs1[0].make_id, jobs1[0].id, jobs1[0].id),
+    \ printf('     %d |     %d | My custom name (cmd maker 2)', jobs2[0].make_id, jobs2[0].id),
+    \ ]
+    NeomakeTestsWaitForFinishedJobs
+  else
+    AssertEqual info, ['This Vim version has no support for jobs.']
+  endif
 
 Execute (Having an invalid &errorformat is OK):
   Save &errorformat

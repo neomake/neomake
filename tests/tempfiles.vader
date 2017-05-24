@@ -508,7 +508,7 @@ Execute (stdin maker (disabled tempfiles)):
     AssertNeomakeMessage "Starting async job: ['cat', '-'].", 2
     NeomakeTestsWaitForFinishedJobs
   else
-    AssertNeomakeMessage 'Starting: cat -'.tempfile_for_stdin.'.', 2
+    AssertNeomakeMessage 'Starting: cat -.', 2
   endif
   AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
   AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['line1', 'line2']
@@ -527,9 +527,7 @@ Execute (stdin maker (project mode: append_file)):
     AssertNeomakeMessage "Starting async job: ['cat', '-'].", 2
     NeomakeTestsWaitForFinishedJobs
   else
-    AssertNeomakeMessage '\v^Creating tempfile for non-async stdin: "(.*)".$', 3
-    let tempfile_for_stdin = g:neomake_test_matchlist[1]
-    AssertNeomakeMessage 'Starting: cat - < '.tempfile_for_stdin.'.', 2
+    AssertNeomakeMessage 'Starting: cat -.', 2
   endif
   AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['line1', 'line2']
@@ -553,9 +551,7 @@ Execute (stdin maker (project mode: uses_filename)):
     endif
     NeomakeTestsWaitForFinishedJobs
   else
-    AssertNeomakeMessage '\v^Creating tempfile for non-async stdin: "(.*)".$', 3
-    let tempfile_for_stdin = g:neomake_test_matchlist[1]
-    AssertNeomakeMessage 'Starting: cat $NEOMAKE_FILE < '.tempfile_for_stdin.'.', 2
+    AssertNeomakeMessage 'Starting: cat $NEOMAKE_FILE.', 2
   endif
   AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['line1', 'line2']

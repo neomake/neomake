@@ -20,7 +20,10 @@ let s:maker_defaults = {
 let s:pending_outputs = {}
 " Keep track of for what maker.exe an error was thrown.
 let s:exe_error_thrown = {}
-let s:kill_vim_timers = {}
+
+if !has('nvim')
+    let s:kill_vim_timers = {}
+endif
 
 " Sentinels.
 let s:unset_list = []
@@ -72,6 +75,10 @@ function! neomake#GetMakeOptions(...) abort
 endfunction
 
 function! neomake#ListJobs() abort
+    if !s:async
+        echom 'This Vim version has no support for jobs.'
+        return
+    endif
     let jobs = neomake#GetJobs()
     if empty(jobs)
         return
@@ -90,6 +97,7 @@ function! neomake#CancelMake(make_id, ...) abort
     for job in jobs
         call neomake#CancelJob(job.id, a:0 ? a:1 : 0)
     endfor
+    call s:clean_make_info(a:make_id)
 endfunction
 
 function! neomake#CancelJob(job_id, ...) abort
@@ -1081,6 +1089,16 @@ function! s:CleanJobinfo(jobinfo) abort
         endif
     endif
 
+    if exists('s:kill_vim_timers')
+        for [timer, job] in items(s:kill_vim_timers)
+            if job == a:jobinfo
+                call timer_stop(+timer)
+                unlet s:kill_vim_timers[timer]
+                break
+            endif
+        endfor
+    endif
+
     if !get(a:jobinfo, 'canceled', 0)
                 \ && !get(a:jobinfo, 'failed_to_start', 0)
         call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
@@ -1153,7 +1171,7 @@ function! s:clean_make_info(make_id) abort
 endfunction
 
 function! neomake#VimLeave() abort
-    call neomake#utils#DebugMessage('VimLeave')
+    call neomake#utils#DebugMessage('Calling VimLeave.')
     for make_id in keys(s:make_info)
         call neomake#CancelMake(make_id)
     endfor
