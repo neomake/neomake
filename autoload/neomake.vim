@@ -90,6 +90,7 @@ function! neomake#CancelMake(make_id, ...) abort
     for job in jobs
         call neomake#CancelJob(job.id, a:0 ? a:1 : 0)
     endfor
+    call s:clean_make_info(a:make_id)
 endfunction
 
 function! neomake#CancelJob(job_id, ...) abort
