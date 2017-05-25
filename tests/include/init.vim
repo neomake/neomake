@@ -67,6 +67,7 @@ endfunction
 command! -nargs=+ NeomakeTestsWaitForMessage call s:wait_for_message(<args>)
 
 function! s:wait_for_finished_job()
+  Assert neomake#has_async_support(), 'NeomakeTestsWaitForNextFinishedJob should only be used for async mode'
   if !exists('#neomake_tests')
     call g:NeomakeSetupAutocmdWrappers()
   endif
@@ -320,6 +321,7 @@ let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05; echo sle
 let g:error_maker = NeomakeTestsCommandMaker('error-maker', 'echo error; false')
 let g:error_maker.errorformat = '%E%m'
 let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
+let g:true_maker = NeomakeTestsCommandMaker('true-maker', 'true')
 let g:doesnotexist_maker = {'exe': 'doesnotexist'}
 
 " A maker that generates incrementing errors.
