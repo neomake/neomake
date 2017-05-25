@@ -193,18 +193,18 @@ docker_list_vims:
 
 travis_test:
 	@ret=0; \
-	  echo '== Running "make docker_test DOCKER_VIM=neovim-v0.2.0" =='; \
-	  make docker_test DOCKER_VIM=neovim-v0.2.0 || (( ret+=1  )); \
-	  echo '== Running "make docker_test DOCKER_VIM=neovim-v0.1.7" =='; \
-	  make docker_test DOCKER_VIM=neovim-v0.1.7 || (( ret+=2  )); \
-	  echo '== Running "make docker_test DOCKER_VIM=vim-master" =='; \
-	  make docker_test DOCKER_VIM=vim-master    || (( ret+=4  )); \
-	  echo '== Running "make docker_test DOCKER_VIM=vim8069" =='; \
-	  make docker_test DOCKER_VIM=vim8069       || (( ret+=8  )); \
-	  echo '== Running "make docker_test DOCKER_VIM=vim73" =='; \
-	  make docker_test DOCKER_VIM=vim73         || (( ret+=16 )); \
-	  echo '== Running "make check" =='; \
-	  make check                                || (( ret+=32 )); \
+	  travis_run_make() { \
+	    echo "travis_fold:start:script.$$1"; \
+	    echo "== Running \"make $$2\" =="; \
+	    make $$2 || return; \
+	    echo "travis_fold:end:script.$$1"; \
+	  }; \
+	  travis_run_make neovim-v0.2.0 "docker_test DOCKER_VIM=neovim-v0.2.0" || (( ret+=1  )); \
+	  travis_run_make neovim-v0.1.7 "docker_test DOCKER_VIM=neovim-v0.1.7" || (( ret+=2  )); \
+	  travis_run_make vim-master    "docker_test DOCKER_VIM=vim-master"    || (( ret+=4  )); \
+	  travis_run_make vim8069       "docker_test DOCKER_VIM=vim8069"       || (( ret+=8  )); \
+	  travis_run_make vim73         "docker_test DOCKER_VIM=vim73"         || (( ret+=16 )); \
+	  travis_run_make check         "check"                                || (( ret+=32 )); \
 	exit $$ret
 
 travis_lint:
@@ -221,10 +221,14 @@ travis_lint:
 	    MAKE_ARGS="LINT_ARGS='$$CHANGED_VIM_FILES'"; \
 	  fi; \
 	  ret=0; \
-	  echo '== Running "make vimlint" =='; \
+	  echo 'travis_fold:start:script.vimlint'; \
+	  echo "== Running \"make vimlint $$MAKE_ARGS\" =="; \
 	  make vimlint $$MAKE_ARGS || (( ret+=1 )); \
-	  echo '== Running "make vint" =='; \
+	  echo 'travis_fold:end:script.vimlint'; \
+	  echo 'travis_fold:start:script.vint'; \
+	  echo "== Running \"make vint $$MAKE_ARGS\" =="; \
 	  make vint $$MAKE_ARGS    || (( ret+=2 )); \
+	  echo 'travis_fold:end:script.vint'; \
 	exit $$ret
 
 check:
