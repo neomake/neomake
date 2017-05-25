@@ -783,10 +783,10 @@ function! s:HandleLoclistQflistDisplay(jobinfo) abort
         return
     endif
     if a:jobinfo.file_mode
-        call neomake#utils#DebugMessage('Opening location list.')
+        call neomake#utils#DebugMessage('Handling location list: executing lwindow.')
         let cmd = 'lwindow'
     else
-        call neomake#utils#DebugMessage('Opening quickfix list.')
+        call neomake#utils#DebugMessage('Handling quickfix list: executing cwindow.')
         let cmd = 'cwindow'
     endif
     if open_val == 2
@@ -1126,6 +1126,8 @@ function! s:CleanJobinfo(jobinfo) abort
             endif
         endif
 
+        call s:HandleLoclistQflistDisplay(a:jobinfo)
+
         call neomake#utils#hook('NeomakeFinished', {'jobinfo': a:jobinfo})
     endif
 
@@ -1260,6 +1262,15 @@ function! s:cd_to_jobs_cwd(jobinfo) abort
     return ['', cwd, '']
 endfunction
 
+" Do we need to replace (instead of append) the location/quickfix list, for
+" :lwindow to not open it with only invalid entries?!
+" Without patch-7.4.379 this does not work though, and a new list needs to
+" be created (which is not done).
+" @vimlint(EVL108, 1)
+let s:needs_to_replace_qf_for_lwindow = has('patch-7.4.379')
+            \ && (!has('patch-7.4.1647') || (has('nvim') && !has('nvim-0.2.0')))
+" @vimlint(EVL108, 0)
+
 function! s:ProcessEntries(jobinfo, entries, ...) abort
     if s:need_to_postpone_loclist(a:jobinfo)
         return s:queue_action('WinEnter', ['s:ProcessEntries',
@@ -1297,9 +1308,17 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         endif
         try
             if file_mode
-                call setloclist(0, a:entries, 'a')
+                if s:needs_to_replace_qf_for_lwindow
+                    call setloclist(0, getloclist(0) + a:entries, 'r')
+                else
+                    call setloclist(0, a:entries, 'a')
+                endif
             else
-                call setqflist(a:entries, 'a')
+                if s:needs_to_replace_qf_for_lwindow
+                    call setqflist(getqflist() + a:entries, 'r')
+                else
+                    call setqflist(a:entries, 'a')
+                endif
             endif
         finally
             if empty(cd_error)
