@@ -61,7 +61,8 @@ Execute (Neomake with non-existing maker (configured)):
   let log_context = {'make_id': make_id, 'bufnr': bufnr('%')}
   AssertNeomakeMessage 'Maker not found (for filetype myft): nonexisting_custom.', 0, log_context
   AssertNeomakeMessage 'Nothing to make: no enabled file mode makers (filetype=myft).', 3, log_context
-  AssertEqual len(g:neomake_test_messages), 2
+  AssertNeomakeMessage 'Cleaning make info.', 3, {'make_id': make_id}
+  AssertEqual len(g:neomake_test_messages), 3
   AssertEqual make_id_before + 1, neomake#GetStatus().last_make_id
 
 Execute (Neomake with non-existing default makers):

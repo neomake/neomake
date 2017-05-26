@@ -1139,6 +1139,7 @@ function! s:clean_make_info(make_id) abort
     if !empty(make_info.active_jobs) || !empty(make_info.queued_jobs)
         return
     endif
+    call neomake#utils#DebugMessage('Cleaning make info.', {'make_id': a:make_id})
     " Remove make_id from its window.
     let [t, w] = s:GetTabWinForMakeId(a:make_id)
     let make_ids = s:gettabwinvar(t, w, 'neomake_make_ids', [])
