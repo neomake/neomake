@@ -103,12 +103,12 @@ endfunction
 function! neomake#CancelJob(job_id, ...) abort
     let job_id = type(a:job_id) == type({}) ? a:job_id.id : +a:job_id
     let remove_always = a:0 ? a:1 : 0
-    if !has_key(s:jobs, job_id)
+    let jobinfo = get(s:jobs, a:job_id, {})
+    if empty(jobinfo)
         call neomake#utils#ErrorMessage('CancelJob: job not found: '.job_id.'.')
         return 0
     endif
     let ret = 0
-    let jobinfo = s:jobs[job_id]
     " Mark it as canceled for the exit handler.
     let jobinfo.canceled = 1
     if get(jobinfo, 'finished')
@@ -127,7 +127,7 @@ function! neomake#CancelJob(job_id, ...) abort
             let vim_job = jobinfo.vim_job
             " Use ch_status here, since job_status might be 'dead' already,
             " without the exit handler being called yet.
-            if ch_status(vim_job) !=# 'open'
+            if job_status(vim_job) !=# 'run'
                 call neomake#utils#LoudMessage(
                             \ 'job_stop: job was not running anymore.', jobinfo)
             else
@@ -338,15 +338,15 @@ function! s:MakeJob(make_id, options) abort
                 let output = system(argv)
             endif
 
-            call s:output_handler(job_id, split(output, '\r\?\n', 1), 'stdout')
+            call s:output_handler(jobinfo, split(output, '\r\?\n', 1), 'stdout')
             let stderr_output = readfile(stderr_file)
             if !empty(stderr_output)
                 call map(stderr_output, "substitute(v:val, '\\r$', '', '')")
-                call s:output_handler(job_id, stderr_output, 'stderr')
+                call s:output_handler(jobinfo, stderr_output, 'stderr')
             endif
             call delete(stderr_file)
 
-            call s:exit_handler(job_id, v:shell_error, 'exit')
+            call s:exit_handler(jobinfo, v:shell_error)
             return jobinfo
         endif
     finally
@@ -1620,21 +1620,24 @@ endfunction
 
 function! s:vim_output_handler(channel, output, event_type) abort
     let channel_id = ch_info(a:channel)['id']
-    let job_id = s:map_job_ids[channel_id]
-    let jobinfo = s:jobs[job_id]
+    let jobinfo = get(s:jobs, get(s:map_job_ids, channel_id, -1), {})
+    if empty(jobinfo)
+        call neomake#utils#DebugMessage(printf("output [%s]: job '%s' not found.", a:event_type, a:channel))
+        return
+    endif
 
     let data = split(a:output, '\v\r?\n', 1)
 
     if exists('jobinfo._vim_in_handler')
         call neomake#utils#DebugMessage(printf('Queueing: %s: %s: %s.',
                     \ a:event_type, jobinfo.maker.name, string(data)), jobinfo)
-        let jobinfo._vim_in_handler += [[job_id, data, a:event_type]]
+        let jobinfo._vim_in_handler += [[jobinfo, data, a:event_type]]
         return
     else
         let jobinfo._vim_in_handler = []
     endif
 
-    call s:output_handler(job_id, data, a:event_type)
+    call s:output_handler(jobinfo, data, a:event_type)
 
     " Process queued events that might have arrived by now.
     " The attribute might be unset here, since output_handler might have
@@ -1649,7 +1652,7 @@ function! s:vim_output_handler(channel, output, event_type) abort
         " Trigger previously delayed exit handler.
         if exists('jobinfo._exited_while_in_handler')
             call neomake#utils#DebugMessage('Trigger delayed exit.', jobinfo)
-            call s:exit_handler(jobinfo.id, jobinfo._exited_while_in_handler, 'exit')
+            call s:exit_handler(jobinfo, jobinfo._exited_while_in_handler)
         endif
     endif
 endfunction
@@ -1665,16 +1668,15 @@ endfunction
 function! s:vim_exit_handler(channel) abort
     let channel_id = ch_info(a:channel)['id']
     let job_info = job_info(ch_getjob(a:channel))
-    if !has_key(s:map_job_ids, channel_id)
-        call neomake#utils#QuietMessage(printf('exit: job not found: %s (%s).', channel_id, job_info))
+    let jobinfo = get(s:jobs, get(s:map_job_ids, channel_id, -1), {})
+    if empty(jobinfo)
+        call neomake#utils#DebugMessage(printf('exit: job not found: %s (%s).', a:channel, job_info))
         return
     endif
-    let job_id = s:map_job_ids[channel_id]
 
     " Handle failing starts from Vim here.
     let status = job_info['exitval']
     if status == 122  " Vim uses EXEC_FAILED, but only on Unix?!
-        let jobinfo = s:jobs[job_id]
         let jobinfo.failed_to_start = 1
         " The error is on stderr.
         let error = 'Vim job failed to run: '.substitute(join(jobinfo.stderr), '\v\s+$', '', '').'.'
@@ -1682,7 +1684,7 @@ function! s:vim_exit_handler(channel) abort
         call neomake#utils#ErrorMessage(error)
         call s:CleanJobinfo(jobinfo)
     else
-        call s:exit_handler(job_id, status, 'exit')
+        call s:exit_handler(jobinfo, status)
     endif
 endfunction
 
@@ -1690,9 +1692,13 @@ endfunction
 if has('nvim-0.2.0')
 " @vimlint(EVL108, 0)
     function! s:nvim_output_handler(job_id, data, event_type) abort
-        let job_id = s:map_job_ids[a:job_id]
+        let jobinfo = get(s:jobs, get(s:map_job_ids, a:job_id, -1), {})
+        if empty(jobinfo)
+            call neomake#utils#DebugMessage(printf('output [%s]: job %d not found.', a:event_type, a:job_id))
+            return
+        endif
         let data = map(copy(a:data), "substitute(v:val, '\\r$', '', '')")
-        call s:output_handler(job_id, data, a:event_type)
+        call s:output_handler(jobinfo, data, a:event_type)
     endfunction
 else
     " Neovim: register output from jobs as quick as possible, and trigger
@@ -1700,10 +1706,13 @@ else
     " This works around https://github.com/neovim/neovim/issues/5889).
     let s:nvim_output_handler_queue = []
     function! s:nvim_output_handler(job_id, data, event_type) abort
-        let job_id = s:map_job_ids[a:job_id]
+        let jobinfo = get(s:jobs, get(s:map_job_ids, a:job_id, -1), {})
+        if empty(jobinfo)
+            call neomake#utils#DebugMessage(printf('output [%s]: job %d not found.', a:event_type, a:job_id))
+            return
+        endif
         let data = map(copy(a:data), "substitute(v:val, '\\r$', '', '')")
-        let jobinfo = s:jobs[job_id]
-        let args = [job_id, data, a:event_type]
+        let args = [jobinfo, data, a:event_type]
         call add(s:nvim_output_handler_queue, args)
         if !exists('jobinfo._nvim_in_handler')
             let jobinfo._nvim_in_handler = 1
@@ -1719,8 +1728,7 @@ else
     function! s:nvim_output_handler_cb(timer) abort
         while !empty(s:nvim_output_handler_queue)
             let args = remove(s:nvim_output_handler_queue, 0)
-            let job_id = args[0]
-            let jobinfo = s:jobs[job_id]
+            let jobinfo = args[0]
             call call('s:output_handler', args)
             let jobinfo._nvim_in_handler -= 1
 
@@ -1729,7 +1737,7 @@ else
                 unlet jobinfo._nvim_in_handler
                 if exists('jobinfo._exited_while_in_handler')
                     call neomake#utils#DebugMessage('Trigger delayed exit.', jobinfo)
-                    call s:exit_handler(jobinfo.id, jobinfo._exited_while_in_handler, 'exit')
+                    call s:exit_handler(jobinfo, jobinfo._exited_while_in_handler)
                 endif
             endif
         endwhile
@@ -1739,15 +1747,16 @@ else
 endif
 
 function! s:nvim_exit_handler(job_id, data, event_type) abort
-    if !has_key(s:map_job_ids, a:job_id)
-        call neomake#utils#QuietMessage(printf('exit: job not found: %s.', a:job_id))
+    let jobinfo = get(s:jobs, get(s:map_job_ids, a:job_id, -1), {})
+    if empty(jobinfo)
+        call neomake#utils#DebugMessage(printf('exit: job not found: %d.', a:job_id))
         return
     endif
-    return s:exit_handler(s:map_job_ids[a:job_id], a:data, a:event_type)
+    call s:exit_handler(jobinfo, a:data)
 endfunction
 
-function! s:exit_handler(job_id, data, event_type) abort
-    let jobinfo = s:jobs[a:job_id]
+function! s:exit_handler(jobinfo, data) abort
+    let jobinfo = a:jobinfo
     if get(jobinfo, 'canceled')
         call neomake#utils#DebugMessage('exit: job was canceled.', jobinfo)
         call s:CleanJobinfo(jobinfo)
@@ -1761,8 +1770,8 @@ function! s:exit_handler(job_id, data, event_type) abort
                     \ maker.name, string(a:data)), jobinfo)
         return
     endif
-    call neomake#utils#DebugMessage(printf('%s: %s: %s.',
-                \ a:event_type, maker.name, string(a:data)), jobinfo)
+    call neomake#utils#DebugMessage(printf('exit: %s: %s.',
+                \ maker.name, string(a:data)), jobinfo)
 
     " Handle any unfinished lines from stdout/stderr callbacks.
     for event_type in ['stdout', 'stderr']
@@ -1824,9 +1833,8 @@ function! s:exit_handler(job_id, data, event_type) abort
     call s:handle_next_maker(jobinfo)
 endfunction
 
-function! s:output_handler(job_id, data, event_type) abort
-    let jobinfo = s:jobs[a:job_id]
-
+function! s:output_handler(jobinfo, data, event_type) abort
+    let jobinfo = a:jobinfo
     call neomake#utils#DebugMessage(printf('%s: %s: %s.',
                 \ a:event_type, jobinfo.maker.name, string(a:data)), jobinfo)
     if get(jobinfo, 'canceled')
