@@ -1746,6 +1746,7 @@ else
     " @vimlint(EVL103, 0, a:timer)
 endif
 
+" @vimlint(EVL103, 1, a:event_type)
 function! s:nvim_exit_handler(job_id, data, event_type) abort
     let jobinfo = get(s:jobs, get(s:map_job_ids, a:job_id, -1), {})
     if empty(jobinfo)
@@ -1754,6 +1755,7 @@ function! s:nvim_exit_handler(job_id, data, event_type) abort
     endif
     call s:exit_handler(jobinfo, a:data)
 endfunction
+" @vimlint(EVL103, 0, a:event_type)
 
 function! s:exit_handler(jobinfo, data) abort
     let jobinfo = a:jobinfo
