@@ -1,6 +1,6 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#mlint#mlint() abort 
+function! neomake#makers#ft#mlint#mlint() abort
     return {
         \ 'exe': 'mlint',
         \ 'args': ['-id'],
