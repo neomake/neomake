@@ -82,7 +82,8 @@ Execute (Neomake with unknown maker):
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages, [
   \ [0, 'Maker not found (for empty filetype): doesnotexist.', {'make_id': make_id}],
-  \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr('%')}]]
+  \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr('%')}],
+  \ [3, 'Cleaning make info.', {'make_id': make_id}]]
 
 Execute (Neomake with unknown maker for multiple fts):
   new
@@ -91,7 +92,8 @@ Execute (Neomake with unknown maker for multiple fts):
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages, [
   \ [0, 'Maker not found (for filetype ft1.ft2): doesnotexist.', {'make_id': make_id}],
-  \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr('%')}]]
+  \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr('%')}],
+  \ [3, 'Cleaning make info.', {'make_id': make_id}]]
   bwipe
 
 Execute (neomake#GetMaker uses defined errorformat with makeprg):
