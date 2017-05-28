@@ -41,6 +41,7 @@ endfunction
 function! neomake#makers#ft#go#govet() abort
     return {
         \ 'exe': 'go',
+        \ 'cwd': '%:p:h',
         \ 'args': ['vet'],
         \ 'append_file': 0,
         \ 'cwd': '%:h',
