@@ -244,6 +244,7 @@ Execute (NeomakeSh: non-existing command):
   AssertNotEqual match(qflist_text, 'command not found'), -1, "error in qflist: ".qflist_text
 
 Execute (NeomakeSh!: handle unfinished output on exit):
+  " XXX: flaky on vim-master on Travis.
   call g:NeomakeSetupAutocmdWrappers()
   NeomakeSh! sh -c 'echo 1; printf 2; sleep 0.01; echo -n 3'
   if neomake#has_async_support()
