@@ -13,10 +13,16 @@ function! neomake#makers#ft#ruby#rubocop() abort
 endfunction
 
 function! neomake#makers#ft#ruby#RubocopEntryProcess(entry) abort
-    if a:entry.type ==# 'F'
+    if a:entry.type ==# 'F'  " Fatal error which prevented further processing
         let a:entry.type = 'E'
-    elseif a:entry.type !=# 'W' && a:entry.type !=# 'E'
+    elseif a:entry.type ==# 'E'  " Error for important programming issues
+        let a:entry.type = 'E'
+    elseif a:entry.type ==# 'W'  " Warning for stylistic or minor programming issues
         let a:entry.type = 'W'
+    elseif a:entry.type ==# 'R'  " Refactor suggestion
+        let a:entry.type = 'W'
+    elseif a:entry.type ==# 'C'  " Convention violation
+        let a:entry.type = 'I'
     endif
 endfunction
 
