@@ -7,23 +7,14 @@ Execute (neomake#CancelJob):
     AssertEqual neomake#CancelJob(job_id), 1
     AssertNeomakeMessage 'Stopping job.', 3, jobinfo
 
-    call neomake#CancelJob(job_id)
+    AssertEqual neomake#CancelJob(job_id), 0
+    AssertNeomakeMessage 'Job was canceled already.', 2, jobinfo
 
-    if has('nvim')
-      " The job is still in the table, therefore 'E900: Invalid job id'.
-      AssertNeomakeMessage 'jobstop failed: Vim(call):E900: Invalid job id.', 2, jobinfo
-    endif
     NeomakeTestsWaitForFinishedJobs
 
+    AssertNeomakeMessage 'exit: job was canceled.', 3, jobinfo
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfo
     AssertNeomakeMessage 'Cleaning make info.'
-
-    if has('nvim')
-      NeomakeTestsWaitForMessage 'exit: job not found: '.jobinfo.id.'.'
-    else
-      NeomakeTestsWaitForNextMessage
-      AssertNeomakeMessage '\vexit: job not found: channel \d+ closed \(\{''status'': ''dead''.*\.', 3
-    endif
 
     AssertEqual neomake#CancelJob(job_id), 0
     AssertNeomakeMessage 'CancelJob: job not found: '.job_id.'.', 0

@@ -100,6 +100,7 @@ function! neomake#CancelMake(make_id, ...) abort
     call s:clean_make_info(a:make_id)
 endfunction
 
+" Returns 1 if a job was canceled, 0 otherwise.
 function! neomake#CancelJob(job_id, ...) abort
     let job_id = type(a:job_id) == type({}) ? a:job_id.id : +a:job_id
     let remove_always = a:0 ? a:1 : 0
@@ -110,6 +111,10 @@ function! neomake#CancelJob(job_id, ...) abort
     endif
     let ret = 0
     " Mark it as canceled for the exit handler.
+    if get(jobinfo, 'canceled', 0)
+        call neomake#utils#LoudMessage('Job was canceled already.', jobinfo)
+        return 0
+    endif
     let jobinfo.canceled = 1
     if get(jobinfo, 'finished')
         call neomake#utils#DebugMessage('Removing already finished job.', jobinfo)
