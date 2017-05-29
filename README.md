@@ -25,10 +25,10 @@ If your `makeprg` should run on the file in the current buffer (like most
 linters, e.g. you would normally type `eslint myfile.js`), then you can use
 `:Neomake`.
 
-Here's an example of how to run Neomake on the current file on every write:
+Here's an example of how to run Neomake on the current file on beginning and every write:
 
 ```viml
-autocmd! BufWritePost * Neomake
+autocmd! BufEnter,BufWritePost * Neomake
 ```
 
 The make command will be run in an asynchronous job. The results will be
