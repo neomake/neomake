@@ -266,7 +266,7 @@ function! neomake#signs#DefineHighlights() abort
     let bg = 'ctermbg='.ctermbg.' guibg='.guibg
 
     for [group, fg_from] in items({
-                \ 'NeomakeErrorSign': ['Error', 'bg'],
+                \ 'NeomakeErrorSign': ['Error', 'fg'],
                 \ 'NeomakeWarningSign': ['Todo', 'fg'],
                 \ 'NeomakeInfoSign': ['Question', 'fg'],
                 \ 'NeomakeMessageSign': ['ModeMsg', 'fg']

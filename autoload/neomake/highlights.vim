@@ -113,7 +113,7 @@ endif
 
 function! neomake#highlights#DefineHighlights() abort
     for [group, fg_from] in items({
-                \ 'NeomakeError': ['Error', 'bg'],
+                \ 'NeomakeError': ['Error', 'fg'],
                 \ 'NeomakeWarning': ['Todo', 'fg'],
                 \ 'NeomakeInfo': ['Question', 'fg'],
                 \ 'NeomakeMessage': ['ModeMsg', 'fg']
