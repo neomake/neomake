@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#tex#EnabledMakers() abort
-    return ['chktex', 'lacheck', 'rubberinfo', 'proselint']
+    return ['chktex', 'lacheck', 'rubberinfo', 'proselint', 'pdflatex']
 endfunction
 
 function! neomake#makers#ft#tex#chktex() abort
