@@ -41,7 +41,7 @@ function! neomake#makers#ft#cpp#cpplint() abort
         \ 'args': ['--verbose=3'],
         \ 'errorformat':
         \     '%A%f:%l:  %m [%t],' .
-        \     ',%-G%.%#',
+        \     '%-G%.%#',
         \ 'postprocess': function('neomake#makers#ft#cpp#CpplintEntryProcess')
         \ }
 endfunction
