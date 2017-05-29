@@ -12,20 +12,20 @@ function! neomake#makers#ft#ruby#rubocop() abort
         \ }
 endfunction
 
-function! neomake#makers#ft#ruby#rubylint() abort
-    return {
-        \ 'exe': 'ruby-lint',
-        \ 'args': ['--presenter', 'syntastic'],
-        \ 'errorformat': '%f:%t:%l:%c: %m',
-        \ }
-endfunction
-
 function! neomake#makers#ft#ruby#RubocopEntryProcess(entry) abort
     if a:entry.type ==# 'F'
         let a:entry.type = 'E'
     elseif a:entry.type !=# 'W' && a:entry.type !=# 'E'
         let a:entry.type = 'W'
     endif
+endfunction
+
+function! neomake#makers#ft#ruby#rubylint() abort
+    return {
+        \ 'exe': 'ruby-lint',
+        \ 'args': ['--presenter', 'syntastic'],
+        \ 'errorformat': '%f:%t:%l:%c: %m',
+        \ }
 endfunction
 
 function! neomake#makers#ft#ruby#mri() abort
