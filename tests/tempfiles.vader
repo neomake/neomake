@@ -64,8 +64,10 @@ Execute (Uses temporary file for unreadable buffer):
   RunNeomake
 
   let bufnr = bufnr('%')
-  AssertNeomakeMessage '\m^Using tempfile for unreadable buffer:', 3
-
+  AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
+  let tempfile_name = g:neomake_test_matchlist[1]
+  let cwd = getcwd()
+  AssertEqual tempfile_name[0:len(cwd)-1], cwd
   bwipe
 
 Execute (2nd maker uses temporary file):
@@ -555,4 +557,14 @@ Execute (stdin maker (project mode: uses_filename)):
   endif
   AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
   AssertEqual map(copy(getqflist()), 'v:val.text'), ['line1', 'line2']
+  bwipe!
+
+Execute (Uses temporary dir for non-writable directory):
+  new
+  file /non-writable-dir/file
+  let b:neomake_tempfile_enabled = 1
+  norm! iline1
+  CallNeomake 1, [extend(copy(g:true_maker), {'uses_filename': 1})]
+  AssertNeomakeMessage 'Running makers: true-maker.', 3
+  AssertNeomakeMessage 'Using temporary directory for non-writable parent directory.', 3
   bwipe!
