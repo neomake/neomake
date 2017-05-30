@@ -400,15 +400,21 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
         else
             let orig_file = neomake#utils#fnamemodify(a:jobinfo.bufnr, ':p')
             if empty(orig_file)
-                let bufname = fnamemodify(bufname, ':t')
-                let s:make_info[make_id].tempfile_dir = tempname()
-                let temp_file = s:make_info[make_id].tempfile_dir . slash . bufname
+                let dir = tempname()
+                let filename = fnamemodify(bufname, ':t')
+                let s:make_info[make_id].tempfile_dir = dir
             else
-                let temp_file = fnamemodify(orig_file, ':h')
-                            \ .slash.'.'.fnamemodify(orig_file, ':t')
+                let dir = fnamemodify(orig_file, ':h')
+                if filewritable(dir) != 2
+                    let dir = tempname()
+                    let s:make_info[make_id].tempfile_dir = dir
+                    call neomake#utils#DebugMessage('Using temporary directory for non-writable parent directory.')
+                endif
+                let filename = fnamemodify(orig_file, ':t')
                             \ .'@neomake_'.s:pid.'_'.make_id
                             \ .'.'.fnamemodify(orig_file, ':e')
             endif
+            let temp_file = dir.slash.filename
         endif
         let s:make_info[make_id].tempfile_name = temp_file
     endif
