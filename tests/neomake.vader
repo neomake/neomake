@@ -67,13 +67,6 @@ Execute (neomake#GetMakers):
   let g:neomake_sh_enabled_makers = ['sh']
   AssertEqual sort(neomake#GetMakers('sh')), sh_makers
 
-Execute (neomake#GetMaker with non-existent maker throws errors):
-  AssertEqual neomake#GetMaker('non-existent'), {}
-  AssertNeomakeMessage 'Invalid maker name: "non-existent".', 0, {}
-  AssertThrows call neomake#GetMaker('nonexistent')
-  AssertEqual g:vader_exception, 'Neomake: project maker not found: nonexistent'
-  Assert len(g:neomake_test_messages), 1
-
 Execute (Neomake with unknown maker):
   " Prevent 'Skipping User autocmd NeomakeCountsChanged: no hooks.' message.
   runtime autoload/neomake/statusline.vim
