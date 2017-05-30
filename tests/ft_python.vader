@@ -29,7 +29,7 @@ Execute (python: pylama: errorformat):
     \  'nr': -1, 'type': 'C', 'pattern': '',
     \  'text': 'C901 ''load_library'' is too complex (13) [mccabe]'}]
 
-  let e = copy(getloclist(0))[0]
+  let e = getloclist(0)[0]
   call neomake#makers#ft#python#PylamaEntryProcess(e)
   AssertEqual e, {
   \ 'lnum': 16,
@@ -59,7 +59,7 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \  'nr': 811, 'type': 'F', 'pattern': '',
   \  'text': "redefinition of unused 'os' from line 1"}], getloclist(0)
 
-  let e = copy(getloclist(0))[0]
+  let e = getloclist(0)[0]
   call neomake#makers#ft#python#Flake8EntryProcess(e)
   AssertEqual {
   \ 'lnum': 2,
@@ -80,7 +80,7 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \  'nr': 811, 'type': 'F', 'pattern': '',
   \  'text': "redefinition of unused 'os' from line 2"}], getloclist(0)
 
-  let e = copy(getloclist(0))[0]
+  let e = getloclist(0)[0]
   call neomake#makers#ft#python#Flake8EntryProcess(e)
   AssertEqual {
   \ 'lnum': 3,

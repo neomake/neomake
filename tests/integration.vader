@@ -100,11 +100,11 @@ Execute (Neomake: handle result for current window):
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 0, "output pending"
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), []
+    AssertEqual map(getloclist(0), 'v:val.text'), []
     let bufnr = bufnr('%')
     quit
     AssertEqual winnr(), orig_winnr
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
   endif
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_countschanged), 1
@@ -249,7 +249,7 @@ Execute (NeomakeSh!: handle unfinished output on exit):
   if neomake#has_async_support()
     for i in range(0, 10)
       if len(g:neomake_test_countschanged) == 1
-        AssertEqual map(copy(getqflist()), 'v:val.text'), ['1'],
+        AssertEqual map(getqflist(), 'v:val.text'), ['1'],
         \ "only the first line should be there (buffer_output=0)"
         break
       endif
@@ -259,7 +259,7 @@ Execute (NeomakeSh!: handle unfinished output on exit):
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual len(g:neomake_test_finished), 1
-  AssertEqual map(copy(getqflist()), 'v:val.text'), ['1', '23']
+  AssertEqual map(getqflist(), 'v:val.text'), ['1', '23']
   AssertEqual len(g:neomake_test_countschanged), 2
 
 Execute (NeomakeSh: buffers output):
@@ -276,7 +276,7 @@ Execute (NeomakeSh: buffers output):
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual len(g:neomake_test_finished), 1
-  AssertEqual map(copy(getqflist()), 'v:val.text'), ['1', '23']
+  AssertEqual map(getqflist(), 'v:val.text'), ['1', '23']
   AssertEqual len(g:neomake_test_countschanged), 1
 
 Execute (NeomakeSh: project: handle removed window on exit (quit)):
@@ -290,7 +290,7 @@ Execute (NeomakeSh: project: handle removed window on exit (quit)):
     AssertEqual len(g:neomake_test_finished), 0
     NeomakeTestsWaitForFinishedJobs
   endif
-  AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
+  AssertEqual map(getqflist(), 'v:val.text'), ['finished']
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_countschanged), 1
   exe 'bwipe' bufnr
@@ -307,7 +307,7 @@ Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
     AssertEqual len(g:neomake_test_finished), 0
     NeomakeTestsWaitForFinishedJobs
   endif
-  AssertEqual map(copy(getqflist()), 'v:val.text'), ['finished']
+  AssertEqual map(getqflist(), 'v:val.text'), ['finished']
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_countschanged), 1
 
@@ -475,7 +475,7 @@ Execute (Neomake!: two jobs after each other):
     let b:neomake_enabled_makers = ['maker1', 'maker2']
     Neomake! maker1 maker2
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual sort(map(copy(getqflist()), 'v:val.text')), ['1', '2']
+    AssertEqual sort(map(getqflist(), 'v:val.text')), ['1', '2']
     AssertEqual len(g:neomake_test_countschanged), 2, 'counts have changed: '.len(g:neomake_test_countschanged)
     AssertEqual len(g:neomake_test_finished), 1
     bwipe
@@ -507,7 +507,7 @@ Execute (Neomake!: non-existing and proper job):
     Neomake! maker1 maker2
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage "Exe (doesnotexist) of maker 1 is not executable.", 0
-    AssertEqual map(copy(getqflist()), 'v:val.text'), ['1']
+    AssertEqual map(getqflist(), 'v:val.text'), ['1']
     " AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_countschanged), 1,
       \ 'counts have changed'
@@ -599,7 +599,7 @@ Execute (Neomake! for project maker via g:neomake_enabled_makers):
   \ }
   Neomake!
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual map(copy(getqflist()), 'v:val.text'), ['mycargo']
+  AssertEqual map(getqflist(), 'v:val.text'), ['mycargo']
 
 Execute (Neomake: remove_invalid_entries and default entry type):
   let maker = neomake#utils#MakerFromCommand('echo invalid; echo "E: valid"')

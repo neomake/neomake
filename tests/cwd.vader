@@ -80,7 +80,7 @@ Execute (tempfile with pwd):
   AssertNeomakeMessage '\v^Removing temporary file: "(.*)".$'
   let tempfile_name = g:neomake_test_matchlist[1]
 
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), [getcwd(), tempfile_name]
+  AssertEqual map(getloclist(0), 'v:val.text'), [getcwd(), tempfile_name]
   bwipe
 
 Execute (cwd handles fugitive buffer):
@@ -102,7 +102,7 @@ Execute (cwd handles fugitive buffer):
   AssertNeomakeMessage '\v^Removing temporary file: "(.*)".'
   let tempfile_name = g:neomake_test_matchlist[1]
 
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
+  AssertEqual map(getloclist(0), 'v:val.text'), [
   \ expected_cwd, tempfile_name]
   bwipe
   bwipe autoload/neomake/debug.vim
@@ -127,7 +127,7 @@ Execute (cwd gets expanded correctly: relative and in another buffer):
       NeomakeTestsWaitForFinishedJobs
       bwipe
 
-      AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
+      AssertEqual map(getloclist(0), 'v:val.text'), [
       \ 'slept', expected_cwd, bufname]
     finally
       exe 'cd' old_cwd
@@ -149,7 +149,7 @@ Execute (cwd per maker and serialize via dict):
   AssertNeomakeMessage '\m^stdout: maker1'
   AssertNeomakeMessage '\m^stdout: maker2'
 
-  AssertEqual map(copy(getqflist()), 'v:val.text'), [maker1.cwd, maker2.cwd]
+  AssertEqual map(getqflist(), 'v:val.text'), [maker1.cwd, maker2.cwd]
 
 Execute (get_list_entries: filename with cwd (non-existing file)):
   let tempdir = tempname()
@@ -392,7 +392,7 @@ Execute (legacy errorformat maker: filename with cwd (error: removed)):
   endif
 
   " Filtering out 'shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory'
-  AssertEqual filter(copy(getloclist(0)), "v:val.text !~# '^shell-init'"), [{
+  AssertEqual filter(getloclist(0), "v:val.text !~# '^shell-init'"), [{
   \ 'lnum': 23,
   \ 'bufnr': expected_bufnr,
   \ 'col': 42,
@@ -433,7 +433,7 @@ Execute (legacy errorformat maker: filename with cwd (error: maker rmdir)):
   AssertNotEqual bufnr('%'), unlisted_bufnr
 
   " Filtering out 'shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory'
-  AssertEqual filter(copy(getloclist(0)), "v:val.text !~# '^shell-init'"), [{
+  AssertEqual filter(getloclist(0), "v:val.text !~# '^shell-init'"), [{
   \ 'lnum': 23,
   \ 'bufnr': unlisted_bufnr,
   \ 'col': 42,

@@ -22,7 +22,7 @@ Execute (Output is only processed in normal/insert mode (loclist)):
     AssertEqual len(g:neomake_test_countschanged), 1
     AssertEqual len(g:neomake_test_finished), 1, "b"
     AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
     bwipe
   endif
 
@@ -42,7 +42,7 @@ Execute (Output is only processed in normal/insert mode (qflist)):
     doautocmd CursorHold
     AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
     AssertNeomakeMessage 'Processed pending output.', 3, jobinfo
-    AssertEqual map(copy(getqflist()), 'v:val.text'), ['error message', 'warning', 'error2']
+    AssertEqual map(getqflist(), 'v:val.text'), ['error message', 'warning', 'error2']
     NeomakeTestsWaitForRemovedJobs
     call neomake#signs#ResetProject()
     call neomake#signs#CleanAllOldSigns('project')
@@ -68,11 +68,11 @@ Execute (Output is only processed in normal/insert mode (from loclist)):
     AssertEqual getloclist(0), []
     wincmd p
     AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
 
     " NOTE: needs cache busting above ("bust_cache").
     let ll_bufnr = bufnr('file_sleep_efm')
-    AssertEqual map(copy(getloclist(0)), 'v:val.bufnr'), [ll_bufnr, ll_bufnr, ll_bufnr]
+    AssertEqual map(getloclist(0), 'v:val.bufnr'), [ll_bufnr, ll_bufnr, ll_bufnr]
     lclose
     bwipe
     bwipe file_sleep_efm
@@ -96,7 +96,7 @@ Execute (Output gets not processed while in loclist):
     lclose
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_countschanged), 1
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
     bwipe
   endif
 
@@ -119,7 +119,7 @@ Execute (Unbuffered output handled correctly (loclist)):
     AssertNeomakeMessage 'Processed pending output.', 3, jobinfo1
     AssertNeomakeMessage 'Processed pending output.', 3, jobinfo2
     AssertEqual len(g:neomake_test_countschanged), 2
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    AssertEqual map(getloclist(0), 'v:val.text'),
       \ ['1', '2', '3', '4', '5', '2_1', '2_2', '2_3', '2_4', '2_5']
     wincmd p
     bwipe
@@ -143,7 +143,7 @@ Execute (Unbuffered output handled correctly (qflist)):
     let make_id = neomake#GetStatus().last_make_id
     AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'jobinfo': '…'}.", 2
     AssertEqual len(g:neomake_test_countschanged), 1
-    AssertEqual map(copy(getqflist()), 'v:val.text'), map(range(1, 5), 'v:val . ""')
+    AssertEqual map(getqflist(), 'v:val.text'), map(range(1, 5), 'v:val . ""')
   endif
 
 Execute (Sleep in postprocess gets handled correctly):
@@ -197,7 +197,7 @@ Execute (Sleep in postprocess gets handled correctly):
     let make_id = neomake#GetStatus().last_make_id
     AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'jobinfo': '…'}.", 2
 
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['out-1', 'out-22', 'out-333']
+    AssertEqual map(getloclist(0), 'v:val.text'), ['out-1', 'out-22', 'out-333']
     AssertEqual g:neomake_test_postprocess_count, 3, 'postprocess count should be 3, but is '.g:neomake_test_postprocess_count
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_countschanged), 3
@@ -222,15 +222,15 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
       \ .make_id.'.'.jobinfo1.id.') for the same maker.', 2, {'make_id': make_id+1}
     AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    AssertEqual map(getloclist(0), 'v:val.text'),
     \ ['2:0: buf: b1', '2:1: buf: b1']
     doautocmd CursorHold
 
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    AssertEqual map(getloclist(0), 'v:val.text'),
     \ ['2:0: buf: b1', '2:1: buf: b1']
 
     lolder
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+    AssertEqual map(getloclist(0), 'v:val.text'),
     \ ['1:0: buf: b1']
     AssertEqual len(g:neomake_test_finished), 2
     AssertEqual len(g:neomake_test_jobfinished), 2
@@ -260,15 +260,15 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
     AssertEqual len(g:neomake_test_jobfinished), 2
     AssertEqual len(g:neomake_test_finished), 2
 
-    AssertEqual map(copy(getqflist()), 'v:val.text'),
+    AssertEqual map(getqflist(), 'v:val.text'),
     \ ['2:0: buf: b1', '2:1: buf: b1']
     doautocmd CursorHold
 
-    AssertEqual map(copy(getqflist()), 'v:val.text'),
+    AssertEqual map(getqflist(), 'v:val.text'),
     \ ['2:0: buf: b1', '2:1: buf: b1']
 
     colder
-    AssertEqual map(copy(getqflist()), 'v:val.text'),
+    AssertEqual map(getqflist(), 'v:val.text'),
     \ ['1:0: buf: b1']
 
     AssertEqual len(g:neomake_test_finished), 2
@@ -285,10 +285,10 @@ Execute (Second make finishes before first (qflist)):
   NeomakeTestsWaitForFinishedJobs
 
   if neomake#has_async_support()
-    AssertEqual map(copy(getqflist()), 'v:val.text'), ['1']
+    AssertEqual map(getqflist(), 'v:val.text'), ['1']
     colder
   endif
-  AssertEqual map(copy(getqflist()), 'v:val.text'), ['2']
+  AssertEqual map(getqflist(), 'v:val.text'), ['2']
 
 Execute (Second make finishes before first (loclist)):
   let maker1 = NeomakeTestsCommandMaker('maker1', 'sleep .1; echo 1')
@@ -298,10 +298,10 @@ Execute (Second make finishes before first (loclist)):
   NeomakeTestsWaitForFinishedJobs
 
   if neomake#has_async_support()
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['1']
+    AssertEqual map(getloclist(0), 'v:val.text'), ['1']
     lolder
   endif
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['2']
+  AssertEqual map(getloclist(0), 'v:val.text'), ['2']
 
 Execute (Handle finished job that got canceled (#1158)):
   call g:NeomakeSetupAutocmdWrappers()
@@ -355,7 +355,7 @@ Execute (Mixed newlines get handled correctly):
   \ }
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual map(copy(getqflist()), 'v:val.text'),
+  AssertEqual map(getqflist(), 'v:val.text'),
   \ ['line1', 'line2', 'line3']
 
 Execute (Exception in process_output gets logged as error):
@@ -510,8 +510,8 @@ Execute (Pending output gets processed in order of jobs (project first)):
   AssertNeomakeMessage 'Creating quickfix list.'
   AssertNeomakeMessage 'Creating location list.'
 
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['file_maker']
-  AssertEqual map(copy(getqflist()), 'v:val.text'), ['project_maker']
+  AssertEqual map(getloclist(0), 'v:val.text'), ['file_maker']
+  AssertEqual map(getqflist(), 'v:val.text'), ['project_maker']
   endif
 
 Execute (Pending output gets processed in order of jobs (file mode first)):
@@ -531,6 +531,6 @@ Execute (Pending output gets processed in order of jobs (file mode first)):
   AssertNeomakeMessage 'Creating location list.'
   AssertNeomakeMessage 'Creating quickfix list.'
 
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['file_maker']
-  AssertEqual map(copy(getqflist()), 'v:val.text'), ['project_maker']
+  AssertEqual map(getloclist(0), 'v:val.text'), ['file_maker']
+  AssertEqual map(getqflist(), 'v:val.text'), ['project_maker']
   endif

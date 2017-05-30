@@ -192,7 +192,7 @@ Execute (Postprocess: can be disabled with empty string):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['success']
+  AssertEqual map(getloclist(0), 'v:val.text'), ['success']
 
 Execute (Postprocess: can be disabled with empty list):
   let maker = {
@@ -206,7 +206,7 @@ Execute (Postprocess: can be disabled with empty list):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['success']
+  AssertEqual map(getloclist(0), 'v:val.text'), ['success']
 
 Execute (maker.postprocess interface for obj):
   let postprocessobj = {'property': 1}
