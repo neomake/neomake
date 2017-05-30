@@ -210,7 +210,11 @@ function! s:MakeJob(make_id, options) abort
                     \ '%s: getting entries via get_list_entries.',
                     \ maker.name), jobinfo)
         let entries = maker.get_list_entries(jobinfo)
-        call s:ProcessEntries(jobinfo, entries)
+        if type(entries) != type([])
+            call neomake#utils#ErrorMessage(printf('The get_list_entries method for maker %s did not return a list, but: %s.', jobinfo.maker.name, string(entries)[:100]), jobinfo)
+        else
+            call s:ProcessEntries(jobinfo, entries)
+        endif
         call s:CleanJobinfo(jobinfo)
         return jobinfo
     endif

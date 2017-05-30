@@ -289,7 +289,24 @@ Execute (Makers: get_list_entries):
   AssertEqual len(g:neomake_test_jobfinished), 1
   AssertEqual len(g:neomake_test_finished), 1
 
+Execute (Makers: get_list_entries with non-list return value):
+  call neomake#statusline#ResetCounts()
+  call g:NeomakeSetupAutocmdWrappers()
+
+  let maker = {}
+  function! maker.get_list_entries(...) abort dict
+  endfunction
+
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'unnamed_maker: getting entries via get_list_entries.'
+  AssertNeomakeMessage 'The get_list_entries method for maker unnamed_maker did not return a list, but: 0.', 0
+
+  AssertEqual len(g:neomake_test_countschanged), 0
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_finished), 1
+
 Execute (Makers: get_list_entries via config):
+  call g:NeomakeSetupAutocmdWrappers()
   let maker = {'name': 'mymaker', 'exe': 'doesnotexist'}
 
   Save g:neomake_test_entries
