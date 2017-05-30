@@ -66,7 +66,9 @@ endfunction
 command! -nargs=+ NeomakeTestsWaitForMessage call s:wait_for_message(<args>)
 
 function! s:wait_for_finished_job()
-  Assert neomake#has_async_support(), 'NeomakeTestsWaitForNextFinishedJob should only be used for async mode'
+  if !neomake#has_async_support()
+    return
+  endif
   if !exists('#neomake_tests')
     call g:NeomakeSetupAutocmdWrappers()
   endif
