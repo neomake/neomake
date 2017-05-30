@@ -138,7 +138,7 @@ Execute (neomake#CancelMake stops all jobs):
   if NeomakeAsyncTestsSetup()
     let jobinfos = neomake#Make({'file_mode': 0, 'enabled_makers': [g:sleep_maker, g:sleep_maker]})
     let make_id = neomake#GetStatus().last_make_id
-    call neomake#CancelMake(make_id)
+    AssertEqual neomake#CancelMake(make_id), 1
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'Stopping job.'
     AssertNeomakeMessage 'Stopping job.'
