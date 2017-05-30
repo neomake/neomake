@@ -71,7 +71,7 @@ Include: include/setup.vader
 "     endwhile
 "     Assert maxwait > 0, 'postprocessing was not triggered'
 "     AssertEqual g:neomake_tests_postprocess_count, 2, 'postprocess count is != 2: '.g:neomake_tests_postprocess_count
-"     let loclist_texts = map(copy(getloclist(0)), 'v:val.text')
+"     let loclist_texts = map(getloclist(0), 'v:val.text')
 "     AssertEqual sort(copy(loclist_texts)), ['1a SUFFIX:0', '2 SUFFIX:0']
 "
 "     " Start maker in new window (same winnr!)
@@ -81,10 +81,10 @@ Include: include/setup.vader
 "     wincmd j
 "     NeomakeTestsWaitForFinishedJobs
 "     AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.'
-"     AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+"     AssertEqual map(getloclist(0), 'v:val.text'),
 "       \ loclist_texts + ['1b SUFFIX:1']
 "     wincmd k
-"     AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['2 SUFFIX:1']
+"     AssertEqual map(getloclist(0), 'v:val.text'), ['2 SUFFIX:1']
 "     bwipe
 "     AssertNeomakeMessage "Modified list entry (postprocess): text: '2' => '2 SUFFIX:1'."
 "
@@ -102,7 +102,7 @@ Include: include/setup.vader
 "
 "   AssertEqual winnr, winnr()
 "   AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
-"   AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+"   AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
 "
 "   CallNeomake 1, [g:true_maker]
 "   AssertEqual getloclist(0), []
@@ -183,7 +183,7 @@ Execute (open_list=2 handling with get_list_entries maker and valid entries):
     return [{'type': 'E', 'lnum': 1, 'text': 'error', 'bufnr': bufnr('%')}]
   endfunction
   CallNeomake 1, [maker]
-  AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type, v:val.valid]'), [['error', 'E', 1]]
+  AssertEqual map(getloclist(0), '[v:val.text, v:val.type, v:val.valid]'), [['error', 'E', 1]]
 
   AssertEqual winnr, winnr()
   AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
@@ -212,7 +212,7 @@ Execute (Stays in location window with :lwindow in QuickFixCmdPost (like vim-qf)
 
     call neomake#Make(1, [g:error_maker])
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+    AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
 
     AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
     " Not what you expect when being unaware of the autocmd, but it is like that.
@@ -245,7 +245,7 @@ Execute (Goes back to original window with vim-qf):
     " Location list.
     call neomake#Make(1, [g:error_maker])
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+    AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
 
     AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
     AssertEqual winnr, winnr()
@@ -257,7 +257,7 @@ Execute (Goes back to original window with vim-qf):
     " Quickfix list.
     call neomake#Make(0, [g:error_maker])
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+    AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
     Assert !exists('g:qf_auto_open_quickfix')
 
     AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
@@ -292,7 +292,7 @@ Execute (Goes back to original window with vim-qf (0-setting)):
     " Location list.
     call neomake#Make(1, [g:error_maker])
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+    AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
 
     AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
     AssertEqual winnr, winnr()
@@ -303,7 +303,7 @@ Execute (Goes back to original window with vim-qf (0-setting)):
     " Quickfix list.
     call neomake#Make(0, [g:error_maker])
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+    AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
 
     AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
     AssertEqual winnr, winnr()
@@ -394,7 +394,7 @@ Execute (open_list=0: does not open location window):
 
   call neomake#Make(1, [g:error_maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+  AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
   AssertEqual wincount, winnr('$'), 'Location list has not appeared'
 
   Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was not setup'
@@ -410,7 +410,7 @@ Execute (open_list=1 with height=0: does not open location window):
 
   call neomake#Make(1, [g:error_maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual map(copy(getloclist(0)), '[v:val.text, v:val.type]'), [['error', 'E']]
+  AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
   AssertEqual wincount, winnr('$'), 'Location list has not appeared'
 
   Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was not setup'

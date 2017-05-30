@@ -184,7 +184,7 @@ Execute (maker.fn can set env var):
   call neomake#Make(1, [maker])
   AssertEqual maker, prev_maker
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['MYENV:custom']
+  AssertEqual map(getloclist(0), 'v:val.text'), ['MYENV:custom']
 
 Execute (Set env from maker config):
   Save g:neomake_rust_cargo_maker

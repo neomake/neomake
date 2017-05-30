@@ -7,7 +7,7 @@ Execute (mapexpr: output source in mapexpr):
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
+  AssertEqual sort(map(getqflist(), 'v:val.text')), sort(
     \ ['[stderr] on_stderr', '[stdout] on_stdout'])
   NeomakeTestsWaitForFinishedJobs
 
@@ -19,7 +19,7 @@ Execute (mapexpr: file mode vars):
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual map(copy(getqflist()), 'v:val.text'), [
+  AssertEqual map(getqflist(), 'v:val.text'), [
     \ 'tests/fixtures/errors.sh (tests/fixtures): on_stdout']
   bwipe
 

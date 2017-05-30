@@ -15,7 +15,7 @@ Execute (maker.args as list gets escaped):
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+  AssertEqual map(getloclist(0), 'v:val.text'),
     \ ['1', '2', '3a 3b', fname_abs]
   bwipe
 
@@ -34,6 +34,6 @@ Execute (maker.args as string gets not escaped):
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual map(copy(getloclist(0)), 'v:val.text'),
+  AssertEqual map(getloclist(0), 'v:val.text'),
     \ ['1', '2', '3a 3b', '4', fname_abs]
   bwipe
