@@ -329,7 +329,7 @@ Execute (Goes back to original window after opening list (wincmd in autocmd)):
 
     call neomake#Make(1, [g:error_maker])
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(copy(getloclist(winnr)), '[v:val.text, v:val.type]'), [['error', 'E']]
+    AssertEqual map(getloclist(winnr), '[v:val.text, v:val.type]'), [['error', 'E']]
     AssertEqual 2, winnr()
 
     AssertNotEqual wincount + 1, winnr('$'), 'Location list has not appeared yet'
@@ -366,7 +366,7 @@ Execute (open_list=1 with job: just opens location window):
 
   call neomake#Make(1, [g:error_maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual map(copy(getloclist(winnr)), '[v:val.text, v:val.type]'), [['error', 'E']]
+  AssertEqual map(getloclist(winnr), '[v:val.text, v:val.type]'), [['error', 'E']]
   AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
 
   Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was not setup'
