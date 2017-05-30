@@ -88,3 +88,25 @@ Execute (maker.exe gets checked (auto-enabled)):
   AssertNeomakeMessage 'Nothing to make: no valid makers.', 3, log_context
   Assert len(g:neomake_test_messages), 3
   bwipe
+
+Execute (neomake#GetMaker with non-existent maker throws errors):
+  AssertThrows call neomake#GetMaker('non-existent')
+  AssertEqual g:vader_exception, 'Neomake: Invalid maker name: "non-existent"'
+  AssertThrows call neomake#GetMaker('nonexistent')
+  AssertEqual g:vader_exception, 'Neomake: Project maker not found: nonexistent'
+  AssertEqual len(g:neomake_test_messages), 0
+
+Execute (Errors from neomake#GetMaker get handled by neomake#Make):
+  CallNeomake 1, ['g:invalid-name']
+  AssertNeomakeMessage 'Invalid maker name: "g:invalid-name".', 0
+  CallNeomake 0, ['nonexistent']
+  AssertNeomakeMessage 'Project maker not found: nonexistent.', 0
+
+Execute (Empty maker gets handled in s:Make):
+  CallNeomake {'enabled_makers': []}
+  " TODO: level: more visible in this case?!
+  AssertNeomakeMessage 'Nothing to make: no valid makers.', 3
+
+  CallNeomake {'enabled_makers': [{}]}
+  AssertNeomakeMessage 'Exe (unnamed_maker) of maker unnamed_maker is not executable.', 0
+  AssertNeomakeMessage 'Nothing to make: no valid makers.', 3

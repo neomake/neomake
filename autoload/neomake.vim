@@ -598,8 +598,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     elseif a:name_or_maker ==# 'makeprg'
         let maker = neomake#utils#MakerFromCommand(&makeprg)
     elseif a:name_or_maker !~# '\v^\w+$'
-        call neomake#utils#ErrorMessage('Invalid maker name: "'.a:name_or_maker.'".')
-        return {}
+        throw printf('Neomake: Invalid maker name: "%s"', a:name_or_maker)
     else
         let maker = neomake#utils#GetSetting('maker', {'name': a:name_or_maker}, s:unset_dict, ft, bufnr('%'))
         if maker is# s:unset_dict
@@ -625,7 +624,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                             \ !empty(ft) ? 'filetype '.ft : 'empty filetype',
                             \ a:name_or_maker)
             else
-                throw 'Neomake: project maker not found: '.a:name_or_maker
+                throw 'Neomake: Project maker not found: '.a:name_or_maker
             endif
         endif
     endif
