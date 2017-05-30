@@ -414,7 +414,7 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
                             \ .'@neomake_'.s:pid.'_'.make_id
                             \ .'.'.fnamemodify(orig_file, ':e')
             endif
-            let temp_file = dir.slash.filename
+            let temp_file = dir . slash . filename
         endif
         let s:make_info[make_id].tempfile_name = temp_file
     endif
