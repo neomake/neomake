@@ -93,11 +93,15 @@ function! neomake#ListJobs() abort
 endfunction
 
 function! neomake#CancelMake(make_id, ...) abort
+    if !has_key(s:make_info, a:make_id)
+        return 0
+    endif
     let jobs = filter(copy(values(s:jobs)), 'v:val.make_id == a:make_id')
     for job in jobs
         call neomake#CancelJob(job.id, a:0 ? a:1 : 0)
     endfor
     call s:clean_make_info(a:make_id)
+    return 1
 endfunction
 
 " Returns 1 if a job was canceled, 0 otherwise.

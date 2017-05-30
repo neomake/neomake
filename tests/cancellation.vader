@@ -147,3 +147,6 @@ Execute (neomake#CancelMake stops all jobs):
     AssertNeomakeMessage 'exit: job was canceled.'
     AssertNeomakeMessage 'Cleaning jobinfo.'
   endif
+
+Execute (neomake#CancelMake handles invalid make id):
+  AssertEqual neomake#CancelMake(-1), 0
