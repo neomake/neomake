@@ -434,13 +434,19 @@ Execute (location list gets created with entries from first job, closed only aft
   AssertEqual map(getloclist(0), '[v:val.text, v:val.type, v:val.valid]'), [['error', 'E', 1]]
   AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
 
-  let maker1 = NeomakeTestsCommandMaker('maker1', 'sleep .1')
-  let maker2 = NeomakeTestsCommandMaker('maker2', 'true')
+  let flagfile = tempname()
+  let maker1 = NeomakeTestsCommandMaker('maker1', 'true')
+  if neomake#has_async_support()
+    let maker2 = NeomakeTestsCommandMaker('maker2', 'while ! [ -e '.fnameescape(flagfile).' ]; do sleep 0.01; done')
+  else
+    let maker2 = NeomakeTestsCommandMaker('maker2', 'true')
+  endif
   let b:neomake_serialize = 1
   call neomake#Make(1, [maker1, maker2])
   if neomake#has_async_support()
     NeomakeTestsWaitForNextFinishedJob
     AssertEqual map(getloclist(0), '[v:val.text, v:val.type, v:val.valid]'), [['error', 'E', 1]]
+    call writefile([], flagfile)
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual getloclist(0), []
