@@ -4,7 +4,7 @@ endfunction
 
 function! neomake#makers#ft#chef#EnabledMakers() abort
     let ruby_makers = neomake#makers#ft#ruby#EnabledMakers()
-    return ruby_makers + ['foodcritic'] + ['cookstyle']
+    return ruby_makers + ['foodcritic', 'cookstyle']
 endfunction
 
 function! neomake#makers#ft#chef#foodcritic() abort
@@ -15,7 +15,8 @@ endfunction
 
 function! neomake#makers#ft#chef#cookstyle() abort
     return {
-      \ 'args': [ '-f', 'emacs', '--except', 'Style'],
-      \ 'errorformat': '%f:%l:%c: %t: %m,%E%f:%l: %m',
+      \ 'args': [ '-f', 'emacs'],
+      \ 'errorformat': '%f:%l:%c: %t: %m',
+      \ 'postprocess': function('neomake#makers#ft#ruby#RubocopEntryProcess')
       \ }
 endfunction

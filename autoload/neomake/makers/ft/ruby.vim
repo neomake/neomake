@@ -21,11 +21,20 @@ function! neomake#makers#ft#ruby#rubylint() abort
 endfunction
 
 function! neomake#makers#ft#ruby#RubocopEntryProcess(entry) abort
-    if a:entry.type ==# 'F'
-        let a:entry.type = 'E'
-    elseif a:entry.type !=# 'W' && a:entry.type !=# 'E'
-        let a:entry.type = 'W'
+    if a:entry.type ==# 'F'  " Fatal error which prevented further processing
+        let type = 'E'
+    elseif a:entry.type ==# 'E'  " Error for important programming issues
+        let type = 'E'
+    elseif a:entry.type ==# 'W'  " Warning for stylistic or minor programming issues
+        let type = 'W'
+    elseif a:entry.type ==# 'R'  " Refactor suggestion
+        let type = 'W'
+    elseif a:entry.type ==# 'C'  " Convention violation
+        let type = 'I'
+    else
+        let type = ''
     endif
+    let a:entry.type = type
 endfunction
 
 function! neomake#makers#ft#ruby#mri() abort
