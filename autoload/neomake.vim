@@ -962,10 +962,7 @@ function! s:Make(options) abort
     while 1
         let jobinfo = s:handle_next_maker({})
         if empty(jobinfo)
-            if has_key(s:make_info, make_id)
-                " Might have been removed through s:CleanJobinfo already.
-                call s:clean_make_info(make_id)
-            endif
+            call s:clean_make_info(make_id)
             break
         endif
         call add(jobinfos, jobinfo)
@@ -1153,7 +1150,11 @@ function! s:CleanJobinfo(jobinfo) abort
 endfunction
 
 function! s:clean_make_info(make_id) abort
-    let make_info = s:make_info[a:make_id]
+    let make_info = get(s:make_info, a:make_id, {})
+    if empty(make_info)
+        call neomake#utils#DebugMessage('Make info was cleaned already.', {'make_id': a:make_id})
+        return
+    endif
     if !empty(make_info.active_jobs) || !empty(make_info.queued_jobs)
         return
     endif
