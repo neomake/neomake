@@ -221,10 +221,8 @@ function! s:MakeJob(make_id, options) abort
 
     let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
     if !empty(cd_error)
-        call neomake#utils#ErrorMessage(printf(
-                    \ "%s: could not change to maker's cwd (%s): %s.",
-                    \ maker.name, cwd, cd_error), jobinfo)
-        return {}
+        throw printf("Neomake: %s: could not change to maker's cwd (%s): %s.",
+                    \ maker.name, cwd, cd_error)
     endif
 
     try
@@ -310,6 +308,8 @@ function! s:MakeJob(make_id, options) abort
                     " Get this as early as possible!
                     let channel_id = ch_info(job)['id']
                 catch
+                    " NOTE: not covered in tests. Vim seems to always return
+                    " a job. Might be able to trigger this using custom opts?!
                     let error = printf('Failed to start Vim job: %s: %s',
                                 \ argv, v:exception)
                 endtry
@@ -331,9 +331,7 @@ function! s:MakeJob(make_id, options) abort
 
             " Bail out on errors.
             if !empty(error)
-                let jobinfo.failed_to_start = 1
-                call neomake#utils#ErrorMessage(error, jobinfo)
-                return s:handle_next_maker(jobinfo)
+                throw 'Neomake: '.error
             endif
         else
             " vim-sync.
