@@ -69,7 +69,7 @@ while true; do
   if [ -n "$output" ]; then
     # There was a previous run
     echo "================================================================="
-    echo "$output"
+    echo "changed file: $output"
 
     read -r alltests_succeeded < "$status_file" || alltests_succeeded=0
 
@@ -104,6 +104,6 @@ while true; do
   sleep 1
   # shellcheck disable=SC2086
   output="$(inotifywait -r -e close_write \
-    --exclude '/(__pycache__/|\.)|.*\.neomaketmp_.*' \
+    --exclude '/(__pycache__/|\.)|.*\@neomake_.*' \
     --format '%w%f' $watch)"
 done
