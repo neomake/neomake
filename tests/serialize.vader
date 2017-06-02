@@ -70,6 +70,9 @@ Execute (NeomakeSh: serialized with global abort):
   call neomake#Make(1, [g:error_maker, g:success_maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(getloclist(0), 'v:val.text'), ['error']
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertNeomakeMessage 'Aborting next makers: success-maker.', 2
 
 Execute (NeomakeSh: serialized with buffer overriding global abort):
   call g:NeomakeSetupAutocmdWrappers()
