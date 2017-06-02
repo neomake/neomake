@@ -956,15 +956,20 @@ function! s:Make(options) abort
 
     let w:neomake_make_ids = add(get(w:, 'neomake_make_ids', []), make_id)
 
+    " Start all jobs in the queue (until serialized).
     let jobinfos = []
     while 1
-        let jobinfo = s:handle_next_maker({})
+        if empty(make_info.jobs_queue)
+            break
+        endif
+        let jobinfo = s:handle_next_job({})
         if empty(jobinfo)
             call s:clean_make_info(make_id)
             break
         endif
         call add(jobinfos, jobinfo)
         if jobinfo.serialize
+            " Break and continue through exit handler.
             break
         endif
     endwhile
@@ -1849,7 +1854,7 @@ function! s:exit_handler(jobinfo, data) abort
         call neomake#utils#ErrorMessage(printf(
                     \ '%s: unexpected output. See :messages for more information.', maker.name), jobinfo)
     endif
-    call s:handle_next_maker(jobinfo)
+    call s:handle_next_job(jobinfo)
 endfunction
 
 function! s:output_handler(jobinfo, data, event_type) abort
@@ -1893,7 +1898,7 @@ function! s:abort_next_makers(make_id) abort
     endif
 endfunction
 
-function! s:handle_next_maker(prev_jobinfo) abort
+function! s:handle_next_job(prev_jobinfo) abort
     let make_id = get(a:prev_jobinfo, 'make_id', s:make_id)
     if !has_key(s:make_info, make_id)
         return {}
@@ -1916,6 +1921,7 @@ function! s:handle_next_maker(prev_jobinfo) abort
         endif
     endif
 
+    " Create job from the start of the queue, returning it.
     while !empty(make_info.jobs_queue)
         let options = remove(make_info.jobs_queue, 0)
         let maker = options.maker
