@@ -1142,6 +1142,7 @@ function! s:CleanJobinfo(jobinfo) abort
         endif
 
         call s:HandleLoclistQflistDisplay(a:jobinfo)
+        call neomake#EchoCurrentError(1)
 
         call neomake#utils#hook('NeomakeFinished', {'jobinfo': a:jobinfo})
     endif
@@ -1432,7 +1433,6 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
 
     call s:HandleLoclistQflistDisplay(a:jobinfo)
     call neomake#highlights#ShowHighlights()
-    call neomake#EchoCurrentError()
     return 1
 endfunction
 
