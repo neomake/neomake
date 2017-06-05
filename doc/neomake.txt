@@ -623,12 +623,11 @@ get triggered, e.g. |WinEnter| for the qf window that gets opened/created): >
 <
                                                               *NeomakeJobInit*
 The NeomakeJobInit autocommand gets triggered before a job gets started.
-You can used this to change the command (`argv`).
+You can use this to change the command (`jobinfo.argv`).
 Context:
  - `g:neomake_hook_context.jobinfo`: see |neomake-object-jobinfo|.
- - `g:neomake_hook_context.argv`: the command to run (executable and
-   arguments). This can be a list or a string, depending on the maker and
-   the job backend.
+   The `argv` entry contains the command to run (executable and arguments).
+   This can be a list or a string, depending on the maker and the job backend.
 
                                                            *NeomakeJobStarted*
 The NeomakeJobStarted autocommand gets triggered after a job started.

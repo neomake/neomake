@@ -244,6 +244,8 @@ function! s:MakeJob(make_id, options) abort
     try
         let error = ''
         let argv = maker._get_argv(jobinfo)
+        let jobinfo.argv = argv
+        call neomake#utils#hook('NeomakeJobInit', {'jobinfo': jobinfo})
 
         if s:async
             call neomake#utils#LoudMessage(printf('Starting async job: %s.', string(argv)), jobinfo)
@@ -254,12 +256,6 @@ function! s:MakeJob(make_id, options) abort
             call neomake#utils#DebugMessage('cwd: '.cwd.'.', jobinfo)
         else
             call neomake#utils#DebugMessage('cwd: '.cwd.' (changed).', jobinfo)
-        endif
-
-        if exists('#User#NeomakeJobInit')
-            let context = {'argv': argv, 'jobinfo': jobinfo}
-            call neomake#utils#hook('NeomakeJobInit', context)
-            let argv = context.argv
         endif
 
         if has_key(jobinfo, 'filename')
