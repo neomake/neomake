@@ -95,3 +95,13 @@ function! neomake#makers#ft#javascript#xo() abort
         \ '%W%f: line %l\, col %c\, Warning - %m',
         \ }
 endfunction
+
+function! neomake#makers#ft#javascript#stylelint() abort
+    return {
+          \ 'errorformat':
+          \   '%+P%f,'.
+          \   '%*\s%l:%c  %t  %m,'.
+          \   '%-Q'
+          \ }
+endfunction
+
