@@ -97,11 +97,6 @@ function! neomake#makers#ft#javascript#xo() abort
 endfunction
 
 function! neomake#makers#ft#javascript#stylelint() abort
-    return {
-          \ 'errorformat':
-          \   '%+P%f,'.
-          \   '%*\s%l:%c  %t  %m,'.
-          \   '%-Q'
-          \ }
+    return neomake#makers#ft#css#stylelint()
 endfunction
 
