@@ -6,7 +6,7 @@ function! neomake#makers#gradle#gradle() abort
     return {
         \ 'exe': g:gradleBin,
         \ 'append_file': 0,
-        \ 'args': ['compileDebugSources', '--daemon'],
+        \ 'args': ['assemble', '--daemon'],
         \ 'errorformat': '\%+ATask\ %.%#\ not\ found\ %.%#.,'.
         \'%EExecution\ failed\ for\ task\ %m,'.
         \'findbugs:\ %tarning\ %f:%l:%c\ %m,'.
