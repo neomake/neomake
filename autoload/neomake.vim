@@ -199,6 +199,24 @@ function! s:jobinfo_base.get_pid() abort
     endtry
 endfunction
 
+function! s:jobinfo_base.await_async_entries(job) abort
+    if !has_key(a:job, 'cancel')
+        throw 'jobinfo.await_async_entries requires a cancel function.'
+    endif
+    call extend(self, a:job)
+    return self
+endfunction
+
+function! s:jobinfo_base.add_entries(entries, ...) abort
+    let partial = a:0 ? a:1 : 0
+    if !empty(a:entries)
+        call s:ProcessEntries(self, a:entries)
+    endif
+    if !partial
+        call s:CleanJobinfo(self)
+    endif
+endfunction
+
 function! s:MakeJob(make_id, options) abort
     let job_id = s:job_id
     let s:job_id += 1
@@ -226,12 +244,18 @@ function! s:MakeJob(make_id, options) abort
                     \ '%s: getting entries via get_list_entries.',
                     \ maker.name), jobinfo)
         let entries = maker.get_list_entries(jobinfo)
-        if type(entries) != type([])
-            call neomake#utils#ErrorMessage(printf('The get_list_entries method for maker %s did not return a list, but: %s.', jobinfo.maker.name, string(entries)[:100]), jobinfo)
+        if type(entries) == type({})
+            " TODO: extra check
+            call neomake#utils#DebugMessage('Awaiting entries asynchronously.')
+            let s:jobs[jobinfo.id] = jobinfo
         else
-            call s:ProcessEntries(jobinfo, entries)
+            if type(entries) != type([])
+                call neomake#utils#ErrorMessage(printf('The get_list_entries method for maker %s did not return a list, but: %s.', jobinfo.maker.name, string(entries)[:100]), jobinfo)
+            else
+                call s:ProcessEntries(jobinfo, entries)
+            endif
+            call s:CleanJobinfo(jobinfo)
         endif
-        call s:CleanJobinfo(jobinfo)
         return jobinfo
     endif
 

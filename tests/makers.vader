@@ -416,6 +416,44 @@ Execute (get_list_entries: based on example from doc):
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
 
+Execute (get_list_entries: async):
+  if !has('timers')
+    NeomakeTestsSkip 'Only with timers.'
+  else
+    new
+    call g:NeomakeSetupAutocmdWrappers()
+
+    let maker = {}
+    function! maker.get_list_entries(jobinfo) abort
+      let self.timer = timer_start(100, self.entries_callback)
+
+      let job = {}
+      function! job.cancel(bang) abort
+        call timer_stop(self.timer)
+      endfunction
+
+      let self._job = a:jobinfo.await_async_entries(job)
+      return self._job
+    endfunction
+    function! maker.entries_callback(...) abort
+      call self._job.add_entries([
+      \ {'lnum': 1, 'bufnr': bufnr('%'), 'col': 0, 'nr': 42, 'type': 'E',
+      \  'text': 'Some error'}])
+    endfunction
+    let jobinfo = neomake#Make({'enabled_makers': [maker]})
+    AssertNeomakeMessage 'Awaiting entries asynchronously.', 3, jobinfo
+    NeomakeTestsWaitForFinishedJobs
+
+    AssertEqual len(g:neomake_test_countschanged), 1
+    AssertEqual len(g:neomake_test_finished), 1
+    AssertEqual len(g:neomake_test_jobfinished), 1
+    AssertEqual getloclist(0), [{
+    \ 'lnum': 1, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0,
+    \ 'nr': 42, 'type': 'E', 'pattern': '', 'text': 'Some error'}]
+
+    bwipe
+  endif
+
 Execute (neomake#Make can be called with dict):
   call neomake#Make({})
   AssertNeomakeMessage 'Nothing to make: no enabled file mode makers (filetype=).', 3
