@@ -609,7 +609,8 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                         break
                     endif
                 endfor
-            else
+            endif
+            if !exists('maker')
                 try
                     let maker = eval('neomake#makers#'.a:name_or_maker.'#'.a:name_or_maker.'()')
                 catch /^Vim\%((\a\+)\)\=:E117/
