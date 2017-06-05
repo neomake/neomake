@@ -655,6 +655,8 @@ The `jobinfo` dictionary contains information about a job.
    this job.  See |neomake-object-maker|.
  - `file_mode`: 1 for file mode, 0 for project/directory mode.
  - `make_id`: the ID of the make run
+ - `get_pid()`: get the process ID (PID) of the job (-1 if not running
+                anymore).
 
  - Relevant for file mode:
    - `bufnr`: the number of the buffer.

@@ -183,6 +183,22 @@ function! s:gettabwinvar(t, w, v, d) abort
     return r
 endfunction
 
+let s:jobinfo_base = {}
+function! s:jobinfo_base.get_pid() abort
+    if has_key(self, 'vim_job')
+        let info = job_info(self.vim_job)
+        if info.status ==# 'run'
+            return info.process
+        endif
+        return -1
+    endif
+    try
+        return jobpid(self.nvim_job)
+    catch /^Vim(return):E900:/
+        return -1
+    endtry
+endfunction
+
 function! s:MakeJob(make_id, options) abort
     let job_id = s:job_id
     let s:job_id += 1
@@ -192,7 +208,7 @@ function! s:MakeJob(make_id, options) abort
     "                        1 for non-async)
     "  - serialize_abort_on_error (default: 0)
     "  - exit_callback (string/function, default: 0)
-    let jobinfo = extend({
+    let jobinfo = extend(copy(s:jobinfo_base), extend({
         \ 'id': job_id,
         \ 'name': 'neomake_'.job_id,
         \ 'maker': a:options.maker,
@@ -200,7 +216,7 @@ function! s:MakeJob(make_id, options) abort
         \ 'file_mode': a:options.file_mode,
         \ 'ft': a:options.ft,
         \ 'output_stream': get(a:options, 'output_stream', get(a:options.maker, 'output_stream', 'both')),
-        \ }, a:options)
+        \ }, a:options))
 
     let maker = jobinfo.maker
 
@@ -1145,6 +1161,7 @@ function! s:CleanJobinfo(jobinfo) abort
         endif
 
         call s:HandleLoclistQflistDisplay(a:jobinfo)
+        call neomake#EchoCurrentError(1)
 
         call neomake#utils#hook('NeomakeFinished', {'jobinfo': a:jobinfo})
     endif
@@ -1435,7 +1452,6 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
 
     call s:HandleLoclistQflistDisplay(a:jobinfo)
     call neomake#highlights#ShowHighlights()
-    call neomake#EchoCurrentError()
     return 1
 endfunction
 
