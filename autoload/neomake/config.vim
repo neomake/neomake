@@ -25,10 +25,10 @@ function! s:get(dict, parts, prefixes) abort
     for prefix in a:prefixes
         let [c, k] = s:resolve_name(a:dict, prefix + a:parts[0:-1], 0)
         if has_key(c, k)
-            return c[k]
+            return [prefix, c[k]]
         endif
     endfor
-    return g:neomake#config#undefined
+    return [[], g:neomake#config#undefined]
 endfunction
 
 " Get a:name (string (split on dots), or list of keys) from config.
@@ -101,14 +101,16 @@ function! neomake#config#get_with_source(name, ...) abort
             if source ==# 'maker'
                 let maker_prefixes = map(copy(prefixes), '!empty(v:val) && v:val[-1] ==# maker_name ? v:val[:-2] : v:val')
                 let maker_setting_parts = parts[0] == maker_name ? parts[1:] : parts
-                let R = s:get(lookup, maker_setting_parts, maker_prefixes)
+                let [prefix, R] = s:get(lookup, maker_setting_parts, maker_prefixes)
             else
-                let R = s:get(lookup, parts, prefixes)
+                let [prefix, R] = s:get(lookup, parts, prefixes)
             endif
             if R isnot# g:neomake#config#undefined
                 let log_name = join(map(copy(parts), "substitute(v:val, '\\.', '|', '')"), '.')
                 call neomake#utils#DebugMessage(printf(
-                            \ "Using setting %s=%s from '%s'.", log_name, string(R), source),
+                            \ "Using setting %s=%s from '%s'%s.",
+                            \ log_name, string(R), source,
+                            \   empty(prefix) ? '' : ' (prefix: '.string(prefix).')'),
                             \ context)
                 return [R, source]
             endif

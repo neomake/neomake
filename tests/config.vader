@@ -39,10 +39,10 @@ Execute (neomake#config#get/set support list for name):
   set filetype=javascript.jsx
   AssertEqual neomake#config#get('eslint.exe', 'default'), 'my_eslint'
   AssertEqual neomake#config#get('eslint.exe', 'default', {}), 'default'
-  AssertNeomakeMessage "Using setting eslint.exe='my_eslint' from 'buffer'."
+  AssertNeomakeMessage "Using setting eslint.exe='my_eslint' from 'buffer' (prefix: ['ft', 'javascript.jsx'])."
 
   AssertEqual neomake#config#get(['eslint', 'exe'], 'default'), 'my_eslint'
-  AssertNeomakeMessage "Using setting eslint.exe='my_eslint' from 'buffer'."
+  AssertNeomakeMessage "Using setting eslint.exe='my_eslint' from 'buffer' (prefix: ['ft', 'javascript.jsx'])."
   AssertEqual neomake#config#get(['ft', 'javascript.jsx', 'eslint', 'exe'], 'default', {'bufnr': bufnr('%')}), 'my_eslint'
   AssertNeomakeMessage "Using setting ft.javascript|jsx.eslint.exe='my_eslint' from 'buffer'."
 
