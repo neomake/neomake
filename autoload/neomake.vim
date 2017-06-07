@@ -243,14 +243,13 @@ function! s:MakeJob(make_id, options) abort
 
     try
         let error = ''
-        let argv = maker._get_argv(jobinfo)
-        let jobinfo.argv = argv
+        let jobinfo.argv = maker._get_argv(jobinfo)
         call neomake#utils#hook('NeomakeJobInit', {'jobinfo': jobinfo})
 
         if s:async
-            call neomake#utils#LoudMessage(printf('Starting async job: %s.', string(argv)), jobinfo)
+            call neomake#utils#LoudMessage(printf('Starting async job: %s.', string(jobinfo.argv)), jobinfo)
         else
-            call neomake#utils#LoudMessage(printf('Starting: %s.', argv), jobinfo)
+            call neomake#utils#LoudMessage(printf('Starting: %s.', jobinfo.argv), jobinfo)
         endif
         if empty(cd_back_cmd)
             call neomake#utils#DebugMessage('cwd: '.cwd.'.', jobinfo)
@@ -290,18 +289,18 @@ function! s:MakeJob(make_id, options) abort
                     \ 'on_exit': function('s:nvim_exit_handler')
                     \ }
                 try
-                    let job = jobstart(argv, opts)
+                    let job = jobstart(jobinfo.argv, opts)
                 catch
                     let error = printf('Failed to start Neovim job: %s: %s.',
-                                \ string(argv), v:exception)
+                                \ string(jobinfo.argv), v:exception)
                 endtry
                 if empty(error)
                     if job == 0
                         let error = printf('Failed to start Neovim job: %s: %s.',
-                                    \ 'Job table is full or invalid arguments given', string(argv))
+                                    \ 'Job table is full or invalid arguments given', string(jobinfo.argv))
                     elseif job == -1
                         let error = printf('Failed to start Neovim job: %s: %s.',
-                                    \ 'Executable not found', string(argv))
+                                    \ 'Executable not found', string(jobinfo.argv))
                     else
                         let s:map_job_ids[job] = jobinfo.id
                         let jobinfo.nvim_job = job
@@ -322,14 +321,14 @@ function! s:MakeJob(make_id, options) abort
                             \ 'mode': 'raw',
                             \ }
                 try
-                    let job = job_start(argv, opts)
+                    let job = job_start(jobinfo.argv, opts)
                     " Get this as early as possible!
                     let channel_id = ch_info(job)['id']
                 catch
                     " NOTE: not covered in tests. Vim seems to always return
                     " a job. Might be able to trigger this using custom opts?!
                     let error = printf('Failed to start Vim job: %s: %s',
-                                \ argv, v:exception)
+                                \ jobinfo.argv, v:exception)
                 endtry
                 if empty(error)
                     let jobinfo.vim_job = job
@@ -361,7 +360,7 @@ function! s:MakeJob(make_id, options) abort
 
             " Use a temporary file to capture stderr.
             let stderr_file = tempname()
-            let argv .= ' 2>'.stderr_file
+            let argv = jobinfo.argv . ' 2>'.stderr_file
 
             if get(jobinfo, 'uses_stdin', 0)
                 let output = system(argv, join(s:make_info[a:make_id].buffer_lines, "\n"))
