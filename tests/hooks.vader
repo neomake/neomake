@@ -77,13 +77,14 @@ Execute (NeomakeJobInit can make processes nicer):
 
   " Hook into NeomakeJobInit.
   function! NeomakeTestJobInit(context) abort
-    AssertEqual sort(keys(a:context)), ['argv', 'jobinfo']
+    AssertEqual keys(a:context), ['jobinfo']
 
+    let jobinfo = a:context.jobinfo
     " argv can be a list or string.
-    if type(a:context.argv) == type([])
-      let a:context.argv = ['nice', '-n18'] + a:context.argv
+    if type(jobinfo.argv) == type([])
+      call extend(jobinfo.argv, ['nice', '-n18'], 0)
     else
-      let a:context.argv = 'nice -n 18 '.a:context.argv
+      let jobinfo.argv = 'nice -n 18 '.jobinfo.argv
     endif
   endfunction
   augroup neomake_tests
@@ -92,6 +93,11 @@ Execute (NeomakeJobInit can make processes nicer):
 
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: ['nice', '-n18', '/bin/bash', '-c', 'cat /proc/$$/stat | cut -f19 -d\\ '].", 2
+  else
+    AssertNeomakeMessage "Starting: nice -n 18 /bin/bash -c 'cat /proc/$$/stat | cut -f19 -d\\ '.", 2
+  endif
 
   let niceness = getqflist()[0].text
   AssertEqual niceness, '18'
