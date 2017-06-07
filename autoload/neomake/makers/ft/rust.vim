@@ -4,6 +4,7 @@ endfunction
 
 function! neomake#makers#ft#rust#rustc() abort
     return {
+        \ 'args': ['-Z', 'parse-only'],
         \ 'errorformat':
             \ '%-Gerror: aborting due to previous error,'.
             \ '%-Gerror: aborting due to %\\d%\\+ previous errors,'.
