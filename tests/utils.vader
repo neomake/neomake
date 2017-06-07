@@ -233,12 +233,12 @@ Execute (neomake#utils#GetSetting with new-style config):
   call neomake#config#set('ft.neomake_tests.foo', 'new_bar')
   AssertEqual neomake#utils#GetSetting(
   \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), 'new_bar'
-  AssertNeomakeMessage "Using setting foo='new_bar' from 'global'."
+  AssertNeomakeMessage "Using setting foo='new_bar' from 'global' (prefix: ['ft', 'neomake_tests'])."
 
   call neomake#config#set('ft.neomake_tests.foo', function('tr'))
   AssertEqual neomake#utils#GetSetting(
   \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), function('tr')
-  AssertNeomakeMessage "Using setting foo=function('tr') from 'global'."
+  AssertNeomakeMessage "Using setting foo=function('tr') from 'global' (prefix: ['ft', 'neomake_tests'])."
 
   bwipe
 
