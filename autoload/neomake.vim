@@ -113,13 +113,16 @@ function! neomake#CancelJob(job_id, ...) abort
         call neomake#utils#ErrorMessage('CancelJob: job not found: '.job_id.'.')
         return 0
     endif
-    let ret = 0
-    " Mark it as canceled for the exit handler.
+
     if get(jobinfo, 'canceled', 0)
         call neomake#utils#LoudMessage('Job was canceled already.', jobinfo)
+        if remove_always
+            call s:CleanJobinfo(jobinfo)
+        endif
         return 0
     endif
-    let jobinfo.canceled = 1
+
+    let ret = 0
     if get(jobinfo, 'finished')
         call neomake#utils#DebugMessage('Removing already finished job.', jobinfo)
     else
@@ -151,6 +154,8 @@ function! neomake#CancelJob(job_id, ...) abort
             endif
         endif
     endif
+    let jobinfo.canceled = 1
+
     if ret == 0 || remove_always
         call s:CleanJobinfo(jobinfo)
     endif
@@ -168,6 +173,7 @@ function! s:kill_vimjob_cb(timer) abort
 endfunction
 
 function! neomake#CancelJobs(bang) abort
+    call neomake#utils#DebugMessage(printf('Cancelling %d jobs.', len(s:jobs)))
     for job_id in keys(s:jobs)
         call neomake#CancelJob(job_id, a:bang)
     endfor
@@ -1708,12 +1714,18 @@ endfunction
 
 function! s:vim_exit_handler(channel) abort
     let channel_id = ch_info(a:channel)['id']
-    let job_info = job_info(ch_getjob(a:channel))
     let jobinfo = get(s:jobs, get(s:map_job_ids, channel_id, -1), {})
     if empty(jobinfo)
+        try
+            let job_info = job_info(ch_getjob(a:channel))
+        catch /^Vim(let):E916:/
+            call neomake#utils#DebugMessage(printf('exit: job not found: %s.', a:channel))
+            return
+        endtry
         call neomake#utils#DebugMessage(printf('exit: job not found: %s (%s).', a:channel, job_info))
         return
     endif
+    let job_info = job_info(ch_getjob(a:channel))
 
     " Handle failing starts from Vim here.
     let status = job_info['exitval']
