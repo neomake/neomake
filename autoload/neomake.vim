@@ -1714,12 +1714,18 @@ endfunction
 
 function! s:vim_exit_handler(channel) abort
     let channel_id = ch_info(a:channel)['id']
-    let job_info = job_info(ch_getjob(a:channel))
     let jobinfo = get(s:jobs, get(s:map_job_ids, channel_id, -1), {})
     if empty(jobinfo)
+        try
+            let job_info = job_info(ch_getjob(a:channel))
+        catch /^Vim(let):E916:/
+            call neomake#utils#DebugMessage(printf('exit: job not found: %s.', a:channel))
+            return
+        endtry
         call neomake#utils#DebugMessage(printf('exit: job not found: %s (%s).', a:channel, job_info))
         return
     endif
+    let job_info = job_info(ch_getjob(a:channel))
 
     " Handle failing starts from Vim here.
     let status = job_info['exitval']

@@ -74,7 +74,7 @@ Execute (neomake#CancelJobs! removes canceled jobs):
     AssertNeomakeMessage 'Stopping job.', 3, jobinfos[1]
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfos[1]
 
-    call neomake#CancelMake(jobinfos[0].make_id, 1)
+    NeomakeTestsWaitForMessage '\m^exit: job not found'
   endif
 
 Execute (neomake#CancelJob! with invalid job):
