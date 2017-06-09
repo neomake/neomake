@@ -1,18 +1,25 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
-let s:make_id = 0
-let s:job_id = 1
-let s:jobs = {}
-let s:map_job_ids = {}
+if !exists('s:make_id')
+    let s:make_id = 0
+endif
 " A map of make_id to options, e.g. cwd when jobs where started.
-let s:make_info = {}
-let s:jobs_by_maker = {}
+if !exists('s:make_info')
+    let s:make_info = {}
+endif
+if !exists('s:job_id')
+    let s:job_id = 1
+endif
+if !exists('s:jobs')
+    let s:jobs = {}
+endif
+if !exists('s:map_job_ids')
+    let s:map_job_ids = {}
+endif
+
 " Errors by [maker_type][bufnr][lnum]
-let s:current_errors = {
-    \ 'project': {},
-    \ 'file': {}
-    \ }
+let s:current_errors = {'project': {}, 'file': {}}
 let s:maker_defaults = {
             \ 'buffer_output': 1,
             \ 'remove_invalid_entries': 0}
