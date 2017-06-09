@@ -85,9 +85,9 @@ function! neomake#ListJobs() abort
     endif
     echom 'make_id | job_id | name/maker'
     for jobinfo in jobs
-        let desc = has_key(jobinfo, 'name')
+        let desc = !empty(jobinfo.maker.name) && jobinfo.name != jobinfo.maker.name
                     \ ? jobinfo.name. ' ('.jobinfo.maker.name.')'
-                    \ : jobinfo.maker.name
+                    \ : jobinfo.name
         echom printf('%7d | %6d | %s', jobinfo.make_id, jobinfo.id, desc)
     endfor
 endfunction
@@ -216,7 +216,7 @@ function! s:MakeJob(make_id, options) abort
     "  - exit_callback (string/function, default: 0)
     let jobinfo = extend(copy(s:jobinfo_base), extend({
         \ 'id': job_id,
-        \ 'name': 'neomake_'.job_id,
+        \ 'name': empty(get(a:options.maker, 'name', '')) ? 'neomake_'.job_id : a:options.maker.name,
         \ 'maker': a:options.maker,
         \ 'bufnr': a:options.bufnr,
         \ 'file_mode': a:options.file_mode,
