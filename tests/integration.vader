@@ -313,7 +313,7 @@ Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
 
 Execute (NeomakeListJobs):
   let maker1 = NeomakeTestsCommandMaker('cmd maker 1', 'sleep .1')
-  let maker2 = NeomakeTestsCommandMaker('cmd maker 2', 'sleep .1')
+  let maker2 = NeomakeTestsCommandMaker('cmd maker 2', 'sleep .1; echo job2')
   let maker3 = {'exe': 'sleep', 'args': '.1', 'append_file': 0, 'name': ''}
   let job1 = neomake#Make({'enabled_makers': [maker1]})[0]
   let job2 = neomake#Make({'enabled_makers': [maker2], 'name': 'My custom name'})[0]
@@ -327,7 +327,22 @@ Execute (NeomakeListJobs):
     \ printf('     %d |     %d | My custom name (cmd maker 2)', job2.make_id, job2.id),
     \ printf('     %d |     %d | neomake_%d', job3.make_id, job3.id, job3.id),
     \ ]
+    AssertEqual map(copy(neomake#GetJobs()), 'v:val.as_string()'), [
+    \ 'Job '.job1.id.': cmd maker 1',
+    \ 'Job '.job2.id.': My custom name',
+    \ 'Job '.job3.id.': neomake_'.job3.id]
+    call neomake#CancelJob(job1.id)
+    AssertEqual map(copy(neomake#GetJobs()), 'v:val.as_string()'), [
+    \ 'Job '.job1.id.': cmd maker 1 [canceled]',
+    \ 'Job '.job2.id.': My custom name',
+    \ 'Job '.job3.id.': neomake_'.job3.id]
+    normal! V
     NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Not processing output for mode "V".'
+    AssertEqual map(copy(neomake#GetJobs()), 'v:val.as_string()'), [
+    \ 'Job '.job2.id.': My custom name [finished]']
+    exe "normal! \<Esc>"
+    doautocmd CursorHold
   else
     AssertEqual info, ['This Vim version has no support for jobs.']
   endif

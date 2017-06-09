@@ -223,6 +223,17 @@ function! s:jobinfo_base.get_pid() abort
     endtry
 endfunction
 
+function! s:jobinfo_base.as_string() abort
+    let extra = []
+    for k in ['canceled', 'finished']
+        if get(self, k, 0)
+            let extra += [k]
+        endif
+    endfor
+    return printf('Job %d: %s%s', self.id, self.name,
+                \ empty(extra) ? '' : ' ['.join(extra, ', ').']')
+endfunction
+
 function! s:MakeJob(make_id, options) abort
     let job_id = s:job_id
     let s:job_id += 1
