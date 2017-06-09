@@ -388,14 +388,18 @@ Execute (NeomakeInfo: displays issues):
 Execute (NeomakeListJobs):
   let maker1 = NeomakeTestsCommandMaker('cmd maker 1', 'sleep .1')
   let maker2 = NeomakeTestsCommandMaker('cmd maker 2', 'sleep .1')
-  let jobs1 = neomake#Make({'enabled_makers': [maker1]})
-  let jobs2 = neomake#Make({'enabled_makers': [maker2], 'name': 'My custom name'})
+  let maker3 = {'exe': 'sleep', 'args': '.1', 'append_file': 0, 'name': ''}
+  let job1 = neomake#Make({'enabled_makers': [maker1]})[0]
+  let job2 = neomake#Make({'enabled_makers': [maker2], 'name': 'My custom name'})[0]
+  let job3 = neomake#Make({'enabled_makers': [maker3]})[0]
+
   let info = split(neomake#utils#redir('NeomakeListJobs'), '\n')
   if neomake#has_async_support()
     AssertEqual info, [
     \        'make_id | job_id | name/maker',
-    \ printf('     %d |     %d | neomake_%d (cmd maker 1)', jobs1[0].make_id, jobs1[0].id, jobs1[0].id),
-    \ printf('     %d |     %d | My custom name (cmd maker 2)', jobs2[0].make_id, jobs2[0].id),
+    \ printf('     %d |     %d | cmd maker 1', job1.make_id, job1.id),
+    \ printf('     %d |     %d | My custom name (cmd maker 2)', job2.make_id, job2.id),
+    \ printf('     %d |     %d | neomake_%d', job3.make_id, job3.id, job3.id),
     \ ]
     NeomakeTestsWaitForFinishedJobs
   else
