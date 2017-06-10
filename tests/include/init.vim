@@ -427,14 +427,13 @@ function! s:After()
   endfor
 
   " Check that no new global functions are defined.
-  " Use script-local functions or :delfunction to clean them.
   redir => output_func
     silent function /\C^[A-Z]
   redir END
   let funcs = split(output_func, "\n")
   let new_funcs = filter(copy(funcs), 'index(g:neomake_test_funcs_before, v:val) == -1')
   if !empty(new_funcs)
-    call add(errors, 'New functions: '.string(new_funcs))
+    call add(errors, 'New global functions (use script-local ones, or :delfunction to clean them): '.string(new_funcs))
     call extend(g:neomake_test_funcs_before, new_funcs)
   endif
 
