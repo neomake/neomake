@@ -434,9 +434,6 @@ function! s:After()
   let funcs = split(output_func, "\n")
   let new_funcs = filter(copy(funcs), 'index(g:neomake_test_funcs_before, v:val) == -1')
   if !empty(new_funcs)
-    for f in new_funcs
-      let func_name = substitute(f, '\vfunction (.*)\(.*$', '\1', '')
-    endfor
     call add(errors, 'New functions: '.string(new_funcs))
     call extend(g:neomake_test_funcs_before, new_funcs)
   endif
