@@ -769,7 +769,7 @@ Execute (neomake#Make: exit_callback with wrong script function):
   \ })
   NeomakeTestsWaitForFinishedJobs
 
-  if has('patch-7.3.1058')
+  if v:version > 703 || (v:version == 703 && has('patch1058'))
     AssertNeomakeMessage '\mError during exit_callback: Vim(call):E118: Too many arguments for function: .*NeomakeScriptFunction.', 0
   else
     AssertNeomakeMessage '\mError during exit_callback: Vim(call):E117: Unknown function: s:NeomakeScriptFunction.', 0
