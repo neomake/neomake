@@ -430,7 +430,8 @@ function! s:After()
   redir => output_func
     silent function /\C^[A-Z]
   redir END
-  let funcs = split(output_func, "\n")
+  let funcs = map(split(output_func, '\n'),
+        \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
   let new_funcs = filter(copy(funcs), 'index(g:neomake_test_funcs_before, v:val) == -1')
   if !empty(new_funcs)
     call add(errors, 'New global functions (use script-local ones, or :delfunction to clean them): '.string(new_funcs))
