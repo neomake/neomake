@@ -14,7 +14,7 @@ function! s:wait_for_jobs(filter)
     let max -= 1
     if max == 0
       for j in jobs
-        call vader#log('Remaining job: '.string(j))
+        call vader#log('Remaining job: '.string(neomake#utils#fix_self_ref(j)))
       endfor
       call neomake#CancelJobs(1)
       throw len(jobs).' jobs did not finish after 3s.'

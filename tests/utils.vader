@@ -565,3 +565,51 @@ Execute (neomake#utils#shellescape):
   AssertEqual neomake#utils#shellescape('"foo"'), '"""foo"""'
   AssertEqual neomake#utils#shellescape('"foo bar"'), '"""foo bar"""'
   AssertEqual neomake#utils#shellescape('-c "foo bar"'), '"-c ""foo bar"""'
+
+Execute (neomake#utils#fix_self_ref):
+  AssertEqual neomake#utils#fix_self_ref(''), ''
+
+  let obj = {'foo': 1, 'bar': {}}
+  AssertEqual neomake#utils#fix_self_ref(obj), {
+  \ 'foo': 1,
+  \ 'bar': {}}
+  let fixed = neomake#utils#fix_self_ref(obj)
+  Assert fixed isnot obj, 'copies the obj'
+  AssertEqual fixed, obj
+
+  let obj.bar.self_ref = obj
+  let exception = ''
+  try
+    let str_obj = string(obj)
+  catch /^Vim(let):E724:/
+    let exception = v:exception
+  endtry
+  if has('patch-7.4.1644')
+    AssertEqual str_obj, "{'foo': 1, 'bar': {'self_ref': {...}}}"
+  elseif has('nvim')
+    AssertEqual exception, 'Vim(let):E724: unable to correctly dump variable with self-referencing container'
+  else
+    AssertEqual exception, 'Vim(let):E724: variable nested too deep for displaying'
+  endif
+  let fixed = neomake#utils#fix_self_ref(obj)
+  call string(fixed)
+  AssertEqual fixed, {
+  \ 'foo': 1,
+  \ 'bar': {'self_ref': '<self-ref-1: bar>'}}
+
+  Assert obj.bar.self_ref is obj, 'self_ref is obj'
+
+  let obj.baz = {}
+  let obj.baz.self_ref_obj = obj
+  let obj.baz.self_ref_baz = obj.baz
+  let fixed = neomake#utils#fix_self_ref(obj)
+  AssertEqual fixed, {
+  \ 'foo': 1,
+  \ 'bar': {'self_ref': '<self-ref-1: bar>'},
+  \ 'baz': {
+  \   'self_ref_obj': '<self-ref-1: baz>',
+  \   'self_ref_baz': {
+  \     'self_ref_obj': '<self-ref-1: baz>',
+  \     'self_ref_baz': '<self-ref-2: self_ref_baz>'
+  \   }
+  \ }}
