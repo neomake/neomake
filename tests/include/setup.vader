@@ -8,7 +8,8 @@ Before:
     exe 'source' fnamemodify(g:vader_file, ':p:h').'/include/init.vim'
 
     " Work around https://github.com/vim/vim/issues/1676.
-    if has('patch-7.4.2017')
+    if has('patch-7.4.2017') && !has('patch-8.0.0607')
+      Log 'NOTE: using cache busting to work around Vim issue 1676.'
       let g:neomake_test_cache_bust = [0, 0]
     endif
 
@@ -40,7 +41,7 @@ After:
   NeomakeTestsGlobalAfter
 
   " Work around https://github.com/vim/vim/issues/1676.
-  if has('patch-7.4.2017')
+  if exists('g:neomake_test_cache_bust')
     let bust_name = 'bust_cache_'.g:neomake_test_cache_bust[1]
     lgetexpr bust_name.':1676:workaround_vim_issue'
     exe 'bwipe' bust_name
