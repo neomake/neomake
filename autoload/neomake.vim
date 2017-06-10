@@ -1870,12 +1870,15 @@ function! s:exit_handler(jobinfo, data) abort
             let callback_dict = { 'status': status,
                                 \ 'name': maker.name,
                                 \ 'has_next': !empty(s:make_info[jobinfo.make_id].jobs_queue) }
-            if type(l:ExitCallback) == type('')
-                let l:ExitCallback = function(l:ExitCallback)
-            endif
             try
+                if type(l:ExitCallback) == type('')
+                    let l:ExitCallback = function(l:ExitCallback)
+                endif
                 call call(l:ExitCallback, [callback_dict], jobinfo)
-            catch /^Vim\%((\a\+)\)\=:E117/
+            catch
+                call neomake#utils#ErrorMessage(printf(
+                            \ 'Error during exit_callback: %s.', v:exception),
+                            \ jobinfo)
             endtry
         endif
     endif
