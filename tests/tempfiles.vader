@@ -103,13 +103,12 @@ Execute (Maker can specify temporary file to use via fn):
   Save g:neomake_test_tempfile
   let g:neomake_test_tempfile = tempname() . '/injected/with/subdir'
 
-  function! NeomakeTestsF(jobinfo) abort dict
-    let self.tempfile_name = g:neomake_test_tempfile
-  endfunction
   let maker = {
   \ 'exe': 'true',
-  \ 'fn': function('NeomakeTestsF'),
   \ }
+  function! maker.fn(jobinfo) abort dict
+    let self.tempfile_name = g:neomake_test_tempfile
+  endfunction
 
   new
   file unreadable_and_modified

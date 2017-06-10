@@ -219,18 +219,16 @@ Execute (neomake#signs#PlaceSigns with E and I):
   bwipe
 
 Execute (Signs get handled across multiple get_list_entries jobs):
-  function! NeomakeTestsEntries(jobinfo) abort dict
+  let maker1 = {'_idx': 'maker1'}
+  function! maker1.get_list_entries(jobinfo) abort dict
     return map(copy(g:neomake_test_entries[self._idx]),
     \ "extend(v:val, {'bufnr': bufnr('%')}, 'keep')")
   endfunction
 
-  let maker1 = {'get_list_entries': function('NeomakeTestsEntries'),
-  \             '_idx': 'maker1'}
   let maker2 = copy(maker1)
   let maker2._idx = 'maker2'
 
   new
-
   let bufnr = bufnr('%')
 
   let g:neomake_test_entries = {

@@ -42,7 +42,7 @@ Execute (neomake#config#get/set support list for name):
   call neomake#config#set_buffer(bufnr('%'), ['ft', 'javascript.jsx', 'eslint', 'exe'], 'my_eslint')
   AssertEqual b:neomake, {'ft': {'javascript.jsx': {'eslint': {'exe': 'my_eslint'}}}}
 
-  set filetype=javascript.jsx
+  noautocmd set filetype=javascript.jsx
   AssertEqual neomake#config#get('eslint.exe', 'default'), 'my_eslint'
   AssertEqual neomake#config#get('eslint.exe', 'default', {}), 'default'
   AssertNeomakeMessage "Using setting eslint.exe='my_eslint' from 'buffer' (prefix: ['ft', 'javascript.jsx'])."
@@ -51,7 +51,6 @@ Execute (neomake#config#get/set support list for name):
   AssertNeomakeMessage "Using setting eslint.exe='my_eslint' from 'buffer' (prefix: ['ft', 'javascript.jsx'])."
   AssertEqual neomake#config#get(['ft', 'javascript.jsx', 'eslint', 'exe'], 'default', {'bufnr': bufnr('%')}), 'my_eslint'
   AssertNeomakeMessage "Using setting ft.javascript|jsx.eslint.exe='my_eslint' from 'buffer'."
-
   bwipe
 
 Execute (neomake#config#get with filetypes):
@@ -158,13 +157,11 @@ Execute (neomake#config#set with b: prefix):
 
 Execute (neomake#config#get handles Funcref variables):
   new
-  function! NeomakeTestsF()
-  endfunction
-  let Funcref = function('NeomakeTestsF')
+  let s:funcref = function('tr')
 
-  call neomake#config#set('b:function', Funcref)
-  AssertEqual neomake#config#get('b:function'), Funcref
-  AssertEqual neomake#config#get_with_source('b:function'), [Funcref, 'buffer']
+  call neomake#config#set('b:function', s:funcref)
+  AssertEqual neomake#config#get('b:function'), s:funcref
+  AssertEqual neomake#config#get_with_source('b:function'), [s:funcref, 'buffer']
   bwipe
 
 Execute (neomake#config#{un,}set_dict):

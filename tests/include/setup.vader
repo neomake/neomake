@@ -1,13 +1,6 @@
 " Setup and helpers for all tests.
 
 Before:
-  let g:neomake_test_messages = []
-  let g:neomake_test_log_all_messages = 1
-  let g:neomake_test_messages_last_idx = -1
-
-  call setloclist(0, [])
-  call setqflist([])
-
   " One-time setup.
   if exists(':NeomakeTestsWaitForFinishedJobs') != 2
     let g:neomake_test_buffers_before = filter(range(1, bufnr('$')), 'bufexists(v:val)')
@@ -18,7 +11,29 @@ Before:
     if has('patch-7.4.2017')
       let g:neomake_test_cache_bust = [0, 0]
     endif
+
+    " Save list of already defined (and whitelisted functions).
+    " This gets used to check that no new global functions are left over
+    " on teardown.
+    redir => output_func
+      silent function /\C^[A-Z]
+    redir END
+    let g:neomake_test_funcs_before = split(output_func, "\n")
+
+    call extend(g:neomake_test_funcs_before, [
+    \ 'function GetVimIndent()', 'function GetVimIndentIntern()',
+    \ 'function GetPythonIndent(lnum)',
+    \ 'function GetJavascriptIndent()',
+    \ 'function GetShIndent()',
+    \ ])
   endif
+
+  let g:neomake_test_messages = []
+  let g:neomake_test_log_all_messages = 1
+  let g:neomake_test_messages_last_idx = -1
+
+  call setloclist(0, [])
+  call setqflist([])
 
 After:
   NeomakeTestsGlobalAfter

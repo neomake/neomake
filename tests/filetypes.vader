@@ -52,17 +52,17 @@ Execute (standard maker in javascript.jsx):
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Running makers: standard.'
 
-  function! F() abort
+  function! s:F() abort
     return map(copy(neomake#GetEnabledMakers('jsx.javascript')),
     \ '[v:val.name, v:val.exe]')
   endfunction
-  AssertEqual F(), [['standard', 'true']]
+  AssertEqual s:F(), [['standard', 'true']]
   let b:neomake_jsx_enabled_makers = ['standard']
-  AssertEqual F(), [['standard', 'true']]
+  AssertEqual s:F(), [['standard', 'true']]
   let b:neomake_jsx_standard_exe = 'exe1'
-  AssertEqual F(), [['standard', 'exe1']]
+  AssertEqual s:F(), [['standard', 'exe1']]
   let b:neomake_jsx_javascript_standard_exe = 'exe2'
-  AssertEqual F(), [['standard', 'exe2']]
+  AssertEqual s:F(), [['standard', 'exe2']]
 
   Neomake
   NeomakeTestsWaitForFinishedJobs

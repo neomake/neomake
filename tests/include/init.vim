@@ -426,6 +426,21 @@ function! s:After()
     unlet make_info[k]
   endfor
 
+  " Check that no new global functions are defined.
+  " Use script-local functions or :delfunction to clean them.
+  redir => output_func
+    silent function /\C^[A-Z]
+  redir END
+  let funcs = split(output_func, "\n")
+  let new_funcs = filter(copy(funcs), 'index(g:neomake_test_funcs_before, v:val) == -1')
+  if !empty(new_funcs)
+    for f in new_funcs
+      let func_name = substitute(f, '\vfunction (.*)\(.*$', '\1', '')
+    endfor
+    call add(errors, 'New functions: '.string(new_funcs))
+    call extend(g:neomake_test_funcs_before, new_funcs)
+  endif
+
   if !empty(errors)
     throw len(errors).' error(s) in teardown: '.join(errors, "\n")
   endif
