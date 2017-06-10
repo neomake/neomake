@@ -907,6 +907,16 @@ function! s:process_action_queue(event) abort
 endfunction
 
 function! s:Make(options) abort
+    let is_automake = !empty(expand('<abuf>'))
+    if is_automake
+        let disabled = neomake#config#get_with_source('disabled', 0)
+        if disabled[0]
+            call neomake#utils#DebugMessage(printf(
+                        \ 'Disabled via %s.', disabled[1]))
+            return []
+        endif
+    endif
+
     let s:make_id += 1
     let make_id = s:make_id
     let options = copy(a:options)
