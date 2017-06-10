@@ -3,7 +3,6 @@
 
 function! s:wait_for_jobs(filter)
   let max = 45
-  let filter = a:filter
   while 1
     let jobs = copy(neomake#GetJobs())
     if len(a:filter)
@@ -15,7 +14,7 @@ function! s:wait_for_jobs(filter)
     let max -= 1
     if max == 0
       for j in jobs
-        Log "Remaining job: ".string(j)
+        call vader#log('Remaining job: '.string(j))
       endfor
       call neomake#CancelJobs(1)
       throw len(jobs).' jobs did not finish after 3s.'
@@ -300,7 +299,7 @@ function! s:monkeypatch_highlights() abort
   runtime autoload/neomake/highlights.vim
   Save g:neomake_tests_highlight_lengths
   let g:neomake_tests_highlight_lengths = []
-  function! neomake#highlights#AddHighlight(entry, type) abort
+  function! neomake#highlights#AddHighlight(entry, ...) abort
     call add(g:neomake_tests_highlight_lengths,
     \ [get(a:entry, 'lnum', -1), get(a:entry, 'length', -1)])
   endfunction
