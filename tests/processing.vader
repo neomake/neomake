@@ -360,15 +360,13 @@ Execute (Mixed newlines get handled correctly):
 
 Execute (Exception in process_output gets logged as error):
   if NeomakeAsyncTestsSetup()
-    function! Neomake_test_maker_process_output(context) abort
-      throw "TEST_ERROR"
-    endfunction
-
     let maker = {
     \ 'exe': 'printf',
     \ 'args': ['foo'],
-    \ 'append_file': 0,
-    \ 'process_output': function('Neomake_test_maker_process_output')}
+    \ 'append_file': 0}
+    function! maker.process_output(context) abort
+      throw "TEST_ERROR"
+    endfunction
 
     let jobinfo = neomake#Make(1, [maker])[0]
 
@@ -381,19 +379,18 @@ Execute (Already running job gets restarted in case of exception):
   if NeomakeAsyncTestsSetup()
     Save g:neomake_test_counter
     let g:neomake_test_counter = 0
-    function! Neomake_test_maker_process_output(context) abort
+
+    let maker = {
+    \ 'exe': 'printf',
+    \ 'args': ['foo'],
+    \ 'append_file': 0}
+    function! maker.process_output(context) abort
       let g:neomake_test_counter += 1
       if g:neomake_test_counter == 1
         throw 'NeomakeTestsException'
       endif
       return []
     endfunction
-
-    let maker = {
-    \ 'exe': 'printf',
-    \ 'args': ['foo'],
-    \ 'append_file': 0,
-    \ 'process_output': function('Neomake_test_maker_process_output')}
 
     let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
     let make_id = neomake#GetStatus().last_make_id

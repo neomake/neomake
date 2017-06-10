@@ -10,11 +10,11 @@ Execute (Postprocessing updates list):
   AssertNotEqual list, [], 'loclist is not empty'
 
   let s:sh_maker = neomake#makers#ft#sh#sh()
-  function NeomakeTestPostprocess(entry)
+  function s:sh_maker.postprocess(entry)
     let a:entry.text .= ' SUFFIX'
   endfunction
   function! neomake#makers#ft#sh#sh()
-    return extend(s:sh_maker, {'postprocess': function('NeomakeTestPostprocess')})
+    return s:sh_maker
   endfunction
   let expected_list = map(list, 'extend(v:val, {"text": v:val.text." SUFFIX"})')
   RunNeomake sh
@@ -22,27 +22,25 @@ Execute (Postprocessing updates list):
 
   " Undo monkeypatching.
   runtime autoload/neomake/makers/ft/sh.vim
-  delfunction NeomakeTestPostprocess
   bwipe
 
 Execute (AddExprCallback with changed windows inbetween):
   if NeomakeAsyncTestsSetup()
     Save g:neomake_tests_postprocess_count
     let g:neomake_tests_postprocess_count = 0
-    function! Postprocess(entry)
-      let a:entry.text .= ' SUFFIX:'.(g:neomake_tests_postprocess_count/2)
-      let g:neomake_tests_postprocess_count += 1
-    endfunction
 
     Save g:neomake_verbose
     " For the 'Modified list entry' debug message.
     let g:neomake_verbose = 3
 
     let options = {
-      \ 'postprocess': function('Postprocess'),
       \ 'buffer_output': 0,
       \ 'append_file': 0,
       \ }
+    function options.postprocess(entry)
+      let a:entry.text .= ' SUFFIX:'.(g:neomake_tests_postprocess_count/2)
+      let g:neomake_tests_postprocess_count += 1
+    endfunction
     let maker_1 = neomake#utils#MakerFromCommand('echo 1a; sleep .1; echo 1b')
     call extend(maker_1, extend(copy(options), {'name': 'maker1'}))
     let maker_2 = neomake#utils#MakerFromCommand('echo 2')
@@ -74,8 +72,6 @@ Execute (AddExprCallback with changed windows inbetween):
     AssertEqual map(getloclist(0), 'v:val.text'), ['2 SUFFIX:1']
     bwipe
     AssertNeomakeMessage "Modified list entry (postprocess): text: '2' => '2 SUFFIX:1'."
-
-    delfunction Postprocess
   endif
 
 Execute (Goes back to original window after opening list):

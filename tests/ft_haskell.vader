@@ -1,7 +1,7 @@
 Include: include/setup.vader
 
 Execute (neomake#makers#ft#haskell#HlintEntryProcess):
-  function! F(text)
+  function! s:F(text)
     let entry = {'text': a:text}
     call neomake#makers#ft#haskell#HlintEntryProcess(entry)
     return entry.text
@@ -21,8 +21,8 @@ Execute (neomake#makers#ft#haskell#HlintEntryProcess):
   \    Why not:\n
   \       fmap"
 
-  AssertEqual F(simple), 'Use fmap | Found: liftM | Why not: fmap'
-  AssertEqual F(extra_whitespace), 'Use fmap | Found: liftM | Why not: fmap'
+  AssertEqual s:F(simple), 'Use fmap | Found: liftM | Why not: fmap'
+  AssertEqual s:F(extra_whitespace), 'Use fmap | Found: liftM | Why not: fmap'
 
   let multiline_code =
   \"Use fromMaybe\n
@@ -33,7 +33,7 @@ Execute (neomake#makers#ft#haskell#HlintEntryProcess):
   \ Why not:\n
   \   fromMaybe (-1) (findIndex (not . null) xs)"
 
-  AssertEqual F(multiline_code),
+  AssertEqual s:F(multiline_code),
     \ 'Use fromMaybe | ' .
     \ 'Found: case findIndex (not . null) xs of Just ix -> ix Nothing -> -1 | ' .
     \ 'Why not: fromMaybe (-1) (findIndex (not . null) xs)'

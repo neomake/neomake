@@ -34,13 +34,13 @@ Execute (NeomakeJobStarted can renice process):
   if NeomakeAsyncTestsSetup()
     let maker = NeomakeTestsCommandMaker('nice-sleep', 'sleep .1')
 
-    function! NeomakeTestJobStarted(context) abort
+    function! s:NeomakeTestJobStarted(context) abort
       AssertEqual keys(a:context), ['jobinfo']
       let pid = a:context.jobinfo.get_pid()
       call system(printf('renice 19 %d', pid))
     endfunction
     augroup neomake_tests
-      au User NeomakeJobStarted call NeomakeTestJobStarted(g:neomake_hook_context)
+      au User NeomakeJobStarted call s:NeomakeTestJobStarted(g:neomake_hook_context)
     augroup END
 
     let job = neomake#Make(0, [maker])
@@ -76,7 +76,7 @@ Execute (NeomakeJobInit can make processes nicer):
   let maker = NeomakeTestsCommandMaker('nice-sleep', get_niceness_cmd)
 
   " Hook into NeomakeJobInit.
-  function! NeomakeTestJobInit(context) abort
+  function! s:NeomakeTestJobInit(context) abort
     AssertEqual keys(a:context), ['jobinfo']
 
     let jobinfo = a:context.jobinfo
@@ -88,7 +88,7 @@ Execute (NeomakeJobInit can make processes nicer):
     endif
   endfunction
   augroup neomake_tests
-    au User NeomakeJobInit call NeomakeTestJobInit(g:neomake_hook_context)
+    au User NeomakeJobInit call s:NeomakeTestJobInit(g:neomake_hook_context)
   augroup END
 
   call neomake#Make(0, [maker])

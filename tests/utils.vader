@@ -30,24 +30,24 @@ Execute (NeomakeTestsCreateExe overrides existing exe):
   AssertNotEqual system('which true'), true
 
 Execute (neomake#utils#CompressWhitespace):
-  function! F(text)
+  function! s:F(text)
     let entry = {'text': a:text}
     call neomake#utils#CompressWhitespace(entry)
     return entry.text
   endfunction
-  AssertEqual F('foo'), 'foo'
-  AssertEqual F(' foo'), 'foo'
-  AssertEqual F('foo '), 'foo'
-  AssertEqual F('foo bar '), 'foo bar'
-  AssertEqual F("foo\nbar "), 'foo bar'
-  AssertEqual F("foo\r\nbar "), 'foo bar'
-  AssertEqual F("foo\n bar "), 'foo bar'
-  AssertEqual F("foo\n bar \r\n"), 'foo bar'
+  AssertEqual s:F('foo'), 'foo'
+  AssertEqual s:F(' foo'), 'foo'
+  AssertEqual s:F('foo '), 'foo'
+  AssertEqual s:F('foo bar '), 'foo bar'
+  AssertEqual s:F("foo\nbar "), 'foo bar'
+  AssertEqual s:F("foo\r\nbar "), 'foo bar'
+  AssertEqual s:F("foo\n bar "), 'foo bar'
+  AssertEqual s:F("foo\n bar \r\n"), 'foo bar'
 
 Execute (neomake#utils#GetSetting serialize):
   Save g:maker
   let g:maker = {'name': 'mymaker'}
-  function! GetSetting()
+  function! s:GetSetting()
     return neomake#utils#GetSetting('serialize', g:maker, 'default',
                                   \ 'myft', bufnr('%'))
   endfunction
@@ -57,66 +57,66 @@ Execute (neomake#utils#GetSetting serialize):
   Save g:neomake_mymaker_serialize, b:neomake_mymaker_serialize
   Save g:neomake_myft_mymaker_serialize, b:neomake_myft_mymaker_serialize
 
-  AssertEqual GetSetting(), 'default'
+  AssertEqual s:GetSetting(), 'default'
 
   let g:neomake_serialize = 7
-  AssertEqual GetSetting(), 7
+  AssertEqual s:GetSetting(), 7
   " maker-only should return default.
   AssertEqual neomake#utils#GetSetting('serialize', g:maker, 'default',
                                 \ 'myft', bufnr('%'), 1), 'default'
   let g:neomake_serialize = 0
-  AssertEqual GetSetting(), 0
+  AssertEqual s:GetSetting(), 0
   let g:neomake_serialize = 99
-  AssertEqual GetSetting(), 99
+  AssertEqual s:GetSetting(), 99
 
   let b:neomake_serialize = 6
-  AssertEqual GetSetting(), 6
+  AssertEqual s:GetSetting(), 6
   let b:neomake_serialize = 0
-  AssertEqual GetSetting(), 0
+  AssertEqual s:GetSetting(), 0
   let b:neomake_serialize = 98
-  AssertEqual GetSetting(), 98
+  AssertEqual s:GetSetting(), 98
 
   let g:maker.serialize = 5
-  AssertEqual GetSetting(), 5
+  AssertEqual s:GetSetting(), 5
   let g:maker.serialize = 0
-  AssertEqual GetSetting(), 0
+  AssertEqual s:GetSetting(), 0
   let g:maker.serialize = 97
-  AssertEqual GetSetting(), 97
+  AssertEqual s:GetSetting(), 97
 
   let g:neomake_mymaker_serialize = 4
-  AssertEqual GetSetting(), 4
+  AssertEqual s:GetSetting(), 4
   let g:neomake_mymaker_serialize = 0
-  AssertEqual GetSetting(), 0
+  AssertEqual s:GetSetting(), 0
   let g:neomake_mymaker_serialize = 96
-  AssertEqual GetSetting(), 96
+  AssertEqual s:GetSetting(), 96
 
   let b:neomake_mymaker_serialize = 3
-  AssertEqual GetSetting(), 3
+  AssertEqual s:GetSetting(), 3
   let b:neomake_mymaker_serialize = 0
-  AssertEqual GetSetting(), 0
+  AssertEqual s:GetSetting(), 0
   let b:neomake_mymaker_serialize = 95
-  AssertEqual GetSetting(), 95
+  AssertEqual s:GetSetting(), 95
 
   let g:neomake_myft_mymaker_serialize = 2
-  AssertEqual GetSetting(), 2
+  AssertEqual s:GetSetting(), 2
   let g:neomake_myft_mymaker_serialize = 0
-  AssertEqual GetSetting(), 0
+  AssertEqual s:GetSetting(), 0
   let g:neomake_myft_mymaker_serialize = 94
-  AssertEqual GetSetting(), 94
+  AssertEqual s:GetSetting(), 94
 
   let b:neomake_myft_mymaker_serialize = 1
-  AssertEqual GetSetting(), 1
+  AssertEqual s:GetSetting(), 1
   let b:neomake_myft_mymaker_serialize = 0
-  AssertEqual GetSetting(), 0
+  AssertEqual s:GetSetting(), 0
   unlet b:neomake_myft_mymaker_serialize
   let b:neomake_myft_mymaker_serialize = [1]
-  AssertEqual GetSetting(), [1]
+  AssertEqual s:GetSetting(), [1]
 
   " Uses b:neomake_serialize
   let g:maker = {'name': ''}
-  AssertEqual GetSetting(), 98
+  AssertEqual s:GetSetting(), 98
   let g:maker = {}
-  AssertEqual GetSetting(), 98
+  AssertEqual s:GetSetting(), 98
   bwipe
 
 Execute (neomake#utils#GetSetting handles maker-only settings):
@@ -154,70 +154,70 @@ Execute (neomake#utils#GetSetting handles maker-only settings (dict-config)):
 
 Execute (neomake#utils#GetSetting for multiple fts):
   new
-  function! GetSetting(key)
+  function! s:GetSetting(key)
     return neomake#utils#GetSetting(a:key, {}, 'default',
                                   \ 'jsx.javascript', bufnr('%'))
   endfunction
   let b:neomake_jsx_javascript_setting = '1'
-  AssertEqual GetSetting('setting'), '1'
+  AssertEqual s:GetSetting('setting'), '1'
   bwipe
 
 Execute (neomake#utils#GetSetting for multiple fts (new-style)):
   new
-  function! GetSetting(key)
+  function! s:GetSetting(key)
     return neomake#utils#GetSetting(a:key, {}, 'default',
                                   \ 'jsx.javascript', bufnr('%'))
   endfunction
   call neomake#config#set_buffer(bufnr('%'), ['ft', 'jsx.javascript', 'setting'], 1)
-  AssertEqual GetSetting('setting'), 1
+  AssertEqual s:GetSetting('setting'), 1
   call neomake#config#set(['b:ft', 'jsx.javascript', 'setting'], 2)
-  AssertEqual GetSetting('setting'), 2
+  AssertEqual s:GetSetting('setting'), 2
   let b:neomake = {'ft': {'jsx.javascript': {'setting': 3}}}
-  AssertEqual GetSetting('setting'), 3
+  AssertEqual s:GetSetting('setting'), 3
   let b:neomake = {'ft': {'jsx': {'setting': 4}}}
-  AssertEqual GetSetting('setting'), 4
+  AssertEqual s:GetSetting('setting'), 4
   let b:neomake = {'ft': {'javascript': {'setting': 5}}}
-  AssertEqual GetSetting('setting'), 5
+  AssertEqual s:GetSetting('setting'), 5
   let b:neomake = {'ft': {'javascript.jsx': {'setting': 6}}}
-  AssertEqual GetSetting('setting'), 'default'
+  AssertEqual s:GetSetting('setting'), 'default'
   bwipe
 
 Execute (neomake#utils#GetSetting accepts lists):
   Save g:maker
   let g:maker = {'name': 'mymaker'}
-  function! GetSetting()
+  function! s:GetSetting()
     return neomake#utils#GetSetting('args', g:maker, 'default',
                                   \ 'myft', bufnr('%'))
   endfunction
 
   Save g:neomake_myft_mymaker_args, b:neomake_myft_mymaker_args
   let g:neomake_myft_mymaker_args = [ 'global', 'shallow', 'list' ]
-  AssertEqual GetSetting(), [ 'global', 'shallow', 'list' ]
+  AssertEqual s:GetSetting(), [ 'global', 'shallow', 'list' ]
   let b:neomake_myft_mymaker_args = [ 'buffer', 'shallow', 'list' ]
-  AssertEqual GetSetting(), [ 'buffer', 'shallow', 'list' ]
+  AssertEqual s:GetSetting(), [ 'buffer', 'shallow', 'list' ]
 
   Save g:maker
   Restore
   let g:maker = {'name': 'mymaker'}
   Save b:neomake_myft_mymaker_args
   let b:neomake_myft_mymaker_args = 'string'
-  AssertEqual GetSetting(), 'string'
+  AssertEqual s:GetSetting(), 'string'
 
 Execute (neomake#utils#GetSetting without name):
   Save g:maker
   let g:maker = {}
-  function! GetSetting(key)
+  function! s:GetSetting(key)
     return neomake#utils#GetSetting(a:key, g:maker, [],
                                   \ 'myft', bufnr('%'))
   endfunction
-  AssertEqual GetSetting('args'), []
+  AssertEqual s:GetSetting('args'), []
 
   Save g:neomake_setting, g:neomake_myft_setting
-  AssertEqual GetSetting('setting'), []
+  AssertEqual s:GetSetting('setting'), []
   let g:neomake_setting = 42
-  AssertEqual GetSetting('setting'), 42
+  AssertEqual s:GetSetting('setting'), 42
   let g:neomake_myft_setting = {'custom': 1}
-  AssertEqual GetSetting('setting'), {'custom': 1}
+  AssertEqual s:GetSetting('setting'), {'custom': 1}
 
 Execute (neomake#utils#GetSetting with new-style config):
   Save g:neomake
@@ -338,20 +338,20 @@ Execute (neomake#utils#wstrpart):
   AssertEqual neomake#utils#wstrpart('…after', 1, 10), 'after'
 
 Execute (neomake#utils#sort_by_col):
-  function! S(l)
+  function! s:sort(l)
     call sort(a:l, function('neomake#utils#sort_by_col'))
     return a:l
   endfunction
 
   let a = {'col': 1}
   let b = {'col': 5}
-  AssertEqual S([a, b]), [a, b]
+  AssertEqual s:sort([a, b]), [a, b]
   norm i1234
   AssertEqual getpos('.')[2], 4, 'position is correct'
-  AssertEqual S([a, b]), [a, b]
+  AssertEqual s:sort([a, b]), [a, b]
   norm a5
   AssertEqual getpos('.')[2], 5, 'position is correct'
-  AssertEqual S([a, b]), [b, a]
+  AssertEqual s:sort([a, b]), [b, a]
 
 Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   Save &shell, &shellcmdflag
@@ -482,15 +482,15 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   bwipe!
 
 Execute (neomake#utils#get_config_fts):
-  function! F(ft) abort
+  function! s:F(ft) abort
     return neomake#utils#get_config_fts(a:ft)
   endfunction
-  AssertEqual F('foo'), ['foo']
-  AssertEqual F('foo.bar'), ['foo_bar', 'foo', 'bar']
-  AssertEqual F('bar.foo'), ['bar_foo', 'bar', 'foo']
-  AssertEqual F('jsx.javascript'), ['jsx_javascript', 'jsx', 'javascript']
-  AssertEqual F('javascript.jsx'), ['javascript_jsx', 'javascript', 'jsx']
-  AssertEqual F('jsx'), ['jsx', 'javascript']
+  AssertEqual s:F('foo'), ['foo']
+  AssertEqual s:F('foo.bar'), ['foo_bar', 'foo', 'bar']
+  AssertEqual s:F('bar.foo'), ['bar_foo', 'bar', 'foo']
+  AssertEqual s:F('jsx.javascript'), ['jsx_javascript', 'jsx', 'javascript']
+  AssertEqual s:F('javascript.jsx'), ['javascript_jsx', 'javascript', 'jsx']
+  AssertEqual s:F('jsx'), ['jsx', 'javascript']
 
 Execute (neomake#utils#fnamemodify handles fugitive buffer):
   NeomakeTestsLoadPlugin 'fugitive'

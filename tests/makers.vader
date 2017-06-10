@@ -223,18 +223,16 @@ Execute (Makers: process_output):
     \ 'type': 'E',
     \ }]
 
-  function! Neomake_test_maker_process_output(context) abort
-    AssertEqual ['maker_output'], a:context.output
-    AssertEqual 'stdout', a:context.source
-    return deepcopy(g:neomake_test_entries)
-  endfunction
-
   let maker = {
   \ 'name': 'mymaker',
   \ 'exe': 'printf',
   \ 'args': ['maker_output'],
-  \ 'append_file': 0,
-  \ 'process_output': function('Neomake_test_maker_process_output')}
+  \ 'append_file': 0}
+  function! maker.process_output(context) abort
+    AssertEqual ['maker_output'], a:context.output
+    AssertEqual 'stdout', a:context.source
+    return deepcopy(g:neomake_test_entries)
+  endfunction
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
@@ -350,6 +348,7 @@ Execute (Makers: get_list_entries via config):
   AssertEqual len(g:neomake_test_finished), 1
   bwipe
   bwipe unloaded_filename_without_bufnr
+  delfunction NeomakeTestGetEntries
 
 Execute (get_list_entries: based on example from doc):
   NeomakeTestsMonkeypatchHighlights

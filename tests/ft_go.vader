@@ -2,7 +2,6 @@ Include: include/setup.vader
 
 Execute (go: go):
   new
-  set ft=go
   file build/proxier.go
 
   let maker = neomake#makers#ft#go#go()
