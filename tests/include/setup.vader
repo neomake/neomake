@@ -18,14 +18,15 @@ Before:
     redir => output_func
       silent function /\C^[A-Z]
     redir END
-    let g:neomake_test_funcs_before = split(output_func, "\n")
+    let g:neomake_test_funcs_before = map(split(output_func, '\n'),
+        \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
 
     call extend(g:neomake_test_funcs_before, [
-    \ 'function GetVimIndent()', 'function GetVimIndentIntern()',
-    \ 'function GetPythonIndent(lnum)',
-    \ 'function GetJavascriptIndent()',
-    \ 'function GetShIndent()',
-    \ ])
+        \ 'GetVimIndent', 'GetVimIndentIntern',
+        \ 'GetPythonIndent',
+        \ 'GetJavascriptIndent',
+        \ 'GetShIndent',
+        \ ])
   endif
 
   let g:neomake_test_messages = []
