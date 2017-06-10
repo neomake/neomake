@@ -51,20 +51,7 @@ endfunction
 function! neomake#config#get_with_source(name, ...) abort
     let Default = a:0 ? a:1 : g:neomake#config#undefined
     let context = a:0 > 1 ? a:2 : {'ft': &filetype, 'bufnr': bufnr('%')}
-    if type(a:name) == type([])
-        let parts = a:name
-    else
-        if a:name =~# '^b:'
-            if !has_key(context, 'bufnr')
-                let context.bufnr = bufnr('%')
-            endif
-            let name = a:name[2:-1]
-        else
-            let name = a:name
-        endif
-        let parts = split(name, '\.')
-    endif
-    let bufnr = has_key(context, 'bufnr') ? context.bufnr : bufnr('%')
+    let parts = type(a:name) == type([]) ? a:name : split(a:name, '\.')
 
     let prefixes = [[]]
     if has_key(context, 'ft') && !empty(context.ft)
@@ -72,14 +59,22 @@ function! neomake#config#get_with_source(name, ...) abort
             call insert(prefixes, ['ft', ft], 0)
         endfor
     endif
+
     let maker_name = get(get(context, 'maker', {}), 'name', '')
     let maker_only = get(context, 'maker_only', 0)
-    if empty(maker_name) && maker_only
+    if parts[0][0:1] ==# 'b:'
+        if !has_key(context, 'bufnr')
+            let context.bufnr = bufnr('%')
+        endif
+        let parts[0] = parts[0][2:-1]
+        let lookups = [['buffer', getbufvar(context.bufnr, 'neomake')],
+                    \ ['maker', get(context, 'maker', {})]]
+    elseif empty(maker_name) && maker_only
         let lookups = [['maker', get(context, 'maker', {})]]
     else
         let lookups = (has_key(context, 'bufnr')
-                    \ ? [['buffer', getbufvar(bufnr, 'neomake')]]
-                    \ : []) + [
+                    \  ? [['buffer', getbufvar(context.bufnr, 'neomake')]]
+                    \  : []) + [
                     \ ['tab', get(t:, 'neomake', {})],
                     \ ['global', get(g:, 'neomake', {})],
                     \ ['maker', get(context, 'maker', {})]]

@@ -4,18 +4,24 @@ Execute (neomake#config#get: basic):
   Save g:neomake
   new
 
+  let maker = {'foo': 'maker'}
+  let jobinfo = {'maker': maker, 'bufnr': bufnr('%')}
+
   AssertEqual neomake#config#get('foo', 'default'), 'default'
   let g:neomake = {}
   AssertEqual neomake#config#get('foo', 'default'), 'default'
   let g:neomake = {'foo': 'global'}
   AssertEqual neomake#config#get('foo', 'default'), 'global'
+  AssertEqual neomake#config#get('b:foo', 'default'), 'default'
   let b:neomake = {}
   AssertEqual neomake#config#get('foo', 'default'), 'global'
+  AssertEqual neomake#config#get('b:foo', 'default'), 'default'
+  AssertEqual neomake#config#get('b:foo', 'default', jobinfo), 'maker'
   let b:neomake = {'foo': 'buffer'}
   AssertEqual neomake#config#get('foo', 'default'), 'buffer'
+  AssertEqual neomake#config#get('b:foo', 'default'), 'buffer'
+  AssertEqual neomake#config#get('b:foo', 'default', jobinfo), 'buffer'
 
-  let maker = {'foo': 'maker'}
-  let jobinfo = {'maker': maker, 'bufnr': bufnr('%')}
   AssertEqual neomake#config#get('foo', 'default', jobinfo), 'buffer'
   new
   AssertEqual neomake#config#get('foo', 'default', jobinfo), 'buffer'
