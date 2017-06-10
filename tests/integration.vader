@@ -752,6 +752,29 @@ Execute (neomake#Make: exit_callback with maker names):
   AssertEqual g:neomake_test_cb[0][1], {'status': 0, 'name': 'mymaker', 'has_next': 0}
   delfunction NeomakeTestsAfterExit
 
+Execute (neomake#Make: exit_callback with unknown function (E700)):
+  call neomake#Make({
+  \ 'enabled_makers': [g:true_maker],
+  \ 'exit_callback': 'NeomakeUnknownFunction',
+  \ })
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'Error during exit_callback: Vim(let):E700: Unknown function: NeomakeUnknownFunction.'
+
+Execute (neomake#Make: exit_callback with wrong script function):
+  function! s:NeomakeScriptFunction()
+  endfunction
+  call neomake#Make({
+  \ 'enabled_makers': [g:true_maker],
+  \ 'exit_callback': function('s:NeomakeScriptFunction'),
+  \ })
+  NeomakeTestsWaitForFinishedJobs
+
+  if has('patch-7.3.1058')
+    AssertNeomakeMessage '\mError during exit_callback: Vim(call):E118: Too many arguments for function: .*NeomakeScriptFunction.', 0
+  else
+    AssertNeomakeMessage '\mError during exit_callback: Vim(call):E117: Unknown function: s:NeomakeScriptFunction.', 0
+  endif
+
 Execute (Location list should be cleared only after first output):
   call g:NeomakeSetupAutocmdWrappers()
   lgetexpr 'init'
