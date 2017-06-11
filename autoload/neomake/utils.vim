@@ -577,3 +577,23 @@ function! neomake#utils#fnamemodify(bufnr, modifier) abort
     endif
     return empty(path) ? '' : fnamemodify(path, a:modifier)
 endfunction
+
+function! neomake#utils#fix_self_ref(obj, ...) abort
+    if type(a:obj) != type({})
+        return a:obj
+    endif
+    let obj = copy(a:obj)
+    for k in keys(obj)
+        if a:0
+            let self_ref = filter(copy(a:1), 'v:val[1][0] is obj[k]')
+            if !empty(self_ref)
+                let obj[k] = printf('<self-ref-%d: %s>', self_ref[0][0], self_ref[0][1][1])
+                continue
+            endif
+        endif
+        if type(obj[k]) == type({})
+            let obj[k] = neomake#utils#fix_self_ref(obj[k], a:0 ? a:1 + [[len(a:1)+1, [a:obj, k]]] : [[1, [a:obj, k]]])
+        endif
+    endfor
+    return obj
+endfunction
