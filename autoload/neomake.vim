@@ -1334,7 +1334,7 @@ endfunction
 " be created (which is not done).
 " @vimlint(EVL108, 1)
 let s:needs_to_replace_qf_for_lwindow = has('patch-7.4.379')
-            \ && (!has('patch-7.4.1647') || (has('nvim') && !has('nvim-0.2.0')))
+            \ && (!has('patch-7.4.1752') || (has('nvim') && !has('nvim-0.2.0')))
 " @vimlint(EVL108, 0)
 
 function! s:ProcessEntries(jobinfo, entries, ...) abort
