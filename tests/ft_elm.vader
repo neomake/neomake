@@ -17,6 +17,7 @@ Execute (elmMake parses error message):
     \ 'lnum': 6,
     \ 'col': 1,
     \ 'length': 4,
+    \ 'filename': 'Bingo.elm',
     \ 'text': 'BAD MAIN TYPE : The `main` value has an unsupported type.'}], result
 
 Execute (elmMake parses warning message):
@@ -29,4 +30,5 @@ Execute (elmMake parses warning message):
     \ 'lnum': 3,
     \ 'col': 1,
     \ 'length': 11,
+    \ 'filename': 'Bingo.elm',
     \ 'text': 'unused import : Module `Html` is unused.'}], result
