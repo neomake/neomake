@@ -30,6 +30,7 @@ function! neomake#makers#ft#elm#ElmMakeProcessOutput(context) abort
 
                 let l:compiler_error = item['tag']
                 let l:message = item['overview']
+                let l:filename = item['file']
                 let l:region_start = item['region']['start']
                 let l:region_end = item['region']['end']
                 let l:row = l:region_start['line']
@@ -42,6 +43,7 @@ function! neomake#makers#ft#elm#ElmMakeProcessOutput(context) abort
                             \ 'lnum': l:row,
                             \ 'col': l:col,
                             \ 'length': l:length,
+                            \ 'filename': l:filename,
                             \ }
                 call add(l:errors, l:error)
             endfor
