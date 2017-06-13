@@ -71,13 +71,10 @@ Execute (neomake#Make uses &verbose):
   let make_id = jobinfo.make_id
   NeomakeTestsWaitForFinishedJobs
   if neomake#has_async_support()
-    AssertEqual g:neomake_test_messages,
-    \ [[2, "Starting async job: ['echo', '1'].", {'id': jobinfo.id, 'make_id': make_id, 'bufnr': bufnr}]]
+    AssertNeomakeMessage "Starting async job: ['echo', '1'].", 2, {'id': jobinfo.id, 'make_id': make_id, 'bufnr': bufnr}
   else
-    AssertEqual g:neomake_test_messages,
-    \ [[2, "Starting: echo 1.", {'id': jobinfo.id, 'make_id': make_id, 'bufnr': bufnr}]]
+    AssertNeomakeMessage "Starting: echo 1.", 2, {'id': jobinfo.id, 'make_id': make_id, 'bufnr': bufnr}
   endif
-  AssertEqual len(g:neomake_test_messages), 1
 
   let g:neomake_verbose = 3
   0verb call neomake#Make(1, [maker])
