@@ -43,6 +43,22 @@ Execute (python: pylama: errorformat):
   \ 'text': "C901 'load_library' is too complex (13) [mccabe]"}
   bwipe
 
+Execute (python: pylama: cwd):
+  let tempdir = tempname()
+  call mkdir(tempdir)
+
+  new
+  exe 'lcd '.tempdir
+  let maker = neomake#makers#ft#python#pylama()
+  Assert !has_key(maker, 'cwd'), 'cwd is not set'
+
+  call mkdir('pylama/subdir', 'p')
+  call writefile([], 'pylama/setup.cfg')
+  lcd pylama/subdir
+  let maker = neomake#makers#ft#python#pylama()
+  AssertEqual maker.cwd, tempdir . neomake#utils#Slash() . 'pylama'
+  bwipe
+
 Execute (python: flake8: errorformat/postprocess: F811):
   Save &errorformat
   let &errorformat = neomake#makers#ft#python#flake8().errorformat

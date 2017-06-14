@@ -233,11 +233,20 @@ function! neomake#makers#ft#python#PylamaEntryProcess(entry) abort
 endfunction
 
 function! neomake#makers#ft#python#pylama() abort
-    return {
+    let maker = {
         \ 'args': ['--format', 'parsable'],
         \ 'errorformat': '%f:%l:%c: [%t] %m',
         \ 'postprocess': function('neomake#makers#ft#python#PylamaEntryProcess'),
         \ }
+    " Pylama looks for the config only in the current directory.
+    " Therefore we change to where the config likely is.
+    " --options could be used to pass a config file, but we cannot be sure
+    " which one really gets used.
+    let ini_file = neomake#utils#FindGlobFile('{pylama.ini,setup.cfg,tox.ini,pytest.ini}')
+    if !empty(ini_file)
+        let maker.cwd = fnamemodify(ini_file, ':h')
+    endif
+    return maker
 endfunction
 
 function! neomake#makers#ft#python#python() abort
