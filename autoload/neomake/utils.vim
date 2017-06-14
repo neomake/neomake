@@ -523,7 +523,7 @@ endfunction
 " i.e. the directory of the current buffer's file).)
 function! neomake#utils#FindGlobFile(glob, ...) abort
     let curDir = a:0 ? a:1 : expand('%:p:h')
-    let fileFound = ''
+    let fileFound = []
     while 1
         let fileFound = neomake#compat#globpath_list(curDir, a:glob, 1)
         if !empty(fileFound)
