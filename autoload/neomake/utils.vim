@@ -523,16 +523,19 @@ endfunction
 " i.e. the directory of the current buffer's file).)
 function! neomake#utils#FindGlobFile(glob, ...) abort
     let curDir = a:0 ? a:1 : expand('%:p:h')
-    let fileFound = ''
-    while empty(fileFound)
-        let fileFound = globpath(curDir, a:glob, 1)
+    let fileFound = []
+    while 1
+        let fileFound = neomake#compat#globpath_list(curDir, a:glob, 1)
+        if !empty(fileFound)
+            return fileFound[0]
+        endif
         let lastFolder = curDir
         let curDir = fnamemodify(curDir, ':h')
         if curDir ==# lastFolder
             break
         endif
     endwhile
-    return fileFound
+    return ''
 endfunction
 
 function! neomake#utils#JSONdecode(json) abort
