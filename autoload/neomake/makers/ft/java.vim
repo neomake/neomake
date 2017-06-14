@@ -326,7 +326,7 @@ function! s:GetGradleClasspath() abort
                 if v:shell_error == 0
                     let cp = filter(split(ret, "\n"), "v:val =~# '^CLASSPATH:'")[0][10:]
                     if filereadable(getcwd() . s:psep . 'build.gradle')
-                        let out_putdir = s:GlobPathList(getcwd(), join(
+                        let out_putdir = neomake#compat#globpath_list(getcwd(), join(
                                     \ ['**', 'build', 'intermediates', 'classes', 'debug'],
                                     \ s:psep), 0)
                         for classes in out_putdir
@@ -348,13 +348,5 @@ function! s:GetGradleClasspath() abort
     return ''
 endf
 
-
-function! s:GlobPathList(path, pattern, suf) abort
-    if v:version >= 705 || (v:version == 704 && has('patch279'))
-        return globpath(a:path, a:pattern, a:suf, 1)
-    else
-        return split(globpath(a:path, a:pattern, a:suf), "\n")
-    endif
-endfunction
 let &cpoptions = s:save_cpo
 unlet s:save_cpo

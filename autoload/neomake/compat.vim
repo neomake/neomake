@@ -134,3 +134,10 @@ function! neomake#compat#systemlist(cmd) abort
     endif
     return split(system(cmd), '\n')
 endfunction
+
+function! neomake#compat#globpath_list(path, pattern, suf) abort
+    if v:version >= 705 || (v:version == 704 && has('patch279'))
+        return globpath(a:path, a:pattern, a:suf, 1)
+    endif
+    return split(globpath(a:path, a:pattern, a:suf), '\n')
+endfunction
