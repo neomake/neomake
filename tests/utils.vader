@@ -528,6 +528,8 @@ Execute (neomake#utils#FindGlobFile):
   call writefile([], subfile)
   let file_in_subdir = subdir.slash.'common-file'
   call writefile([], file_in_subdir)
+  let anotherfile_in_subdir = subdir.slash.'common-file-2'
+  call writefile([], anotherfile_in_subdir)
 
   new
   exe 'lcd' subdir
@@ -545,6 +547,10 @@ Execute (neomake#utils#FindGlobFile):
   AssertEqual neomake#utils#FindGlobFile('common-file'), file_in_tempdir
   AssertEqual neomake#utils#FindGlobFile('common-file'), file_in_tempdir
   AssertEqual neomake#utils#FindGlobFile('common-file', subdir), file_in_subdir
+
+  " Only the first found file gets returned.
+  AssertEqual neomake#utils#FindGlobFile('common-file{,-2}', subdir), file_in_subdir
+  AssertEqual neomake#utils#FindGlobFile('common-file{-2,}', subdir), anotherfile_in_subdir
   bwipe
 
 Execute (neomake#utils#shellescape):
