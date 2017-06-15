@@ -40,7 +40,7 @@ if [ "$1" = vader ]; then
   if ((compact || quiet)); then
     # Do not display output for successful tests (i.e. the log statements).
     last_start_match=
-    re_log_line='^      > [^[]'
+    re_non_log_line='^      > \[(debug  |verbose|warning|error  )|((D|V|W|E) +\+[.0-9]+)\]'
     filtering=0
     while read -r; do
       if [[ "$REPLY" == 'Vader error:'* ]]; then
@@ -63,13 +63,6 @@ if [ "$1" = vader ]; then
         echo "$REPLY"
       elif [[ "$REPLY" == '      Duration: '* ]]; then
         echo "$REPLY"
-      elif [[ "$REPLY" == *'(X)'* || "$REPLY" =~ $re_log_line ]]; then
-        if [[ -n "$filtered" ]]; then
-          echo "$filtered"
-        fi
-        echo "$REPLY"
-        filtered=
-        filtering=0
       elif [[ "$REPLY" =~ ^\ +(\(\ *[0-9]+/[0-9]+\)) ]]; then
         filtering=1
         if [[ ${BASH_REMATCH[1]} == "$last_start_match" ]]; then
@@ -83,6 +76,13 @@ if [ "$1" = vader ]; then
           fi
         fi
         last_start_match="${BASH_REMATCH[1]}"
+      elif [[ "$REPLY" == *'(X)'* ]] || ! [[ "$REPLY" =~ $re_non_log_line ]]; then
+        if [[ -n "$filtered" ]]; then
+          echo "$filtered"
+        fi
+        echo "$REPLY"
+        filtered=
+        filtering=0
       elif ! ((filtering)); then
         echo "$REPLY"
       elif [[ "$REPLY" == *'Success/Total: '* || "$REPLY" == '  Slowests tests:' ]]; then
