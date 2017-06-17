@@ -319,6 +319,9 @@ let g:sleep_efm_maker = {
 let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05; echo slept')
 let g:error_maker = NeomakeTestsCommandMaker('error-maker', 'echo error; false')
 let g:error_maker.errorformat = '%E%m'
+function! g:error_maker.postprocess(entry) abort
+  let a:entry.bufnr = bufnr('')
+endfunction
 let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
 let g:true_maker = NeomakeTestsCommandMaker('true-maker', 'true')
 let g:doesnotexist_maker = {'exe': 'doesnotexist'}
