@@ -2,7 +2,7 @@ Include: include/setup.vader
 
 Execute (cargo skip non json line):
   new
-  file src/lib.rs
+  file build/lib.rs
   let cargo = neomake#makers#ft#rust#cargo()
   let cargo.exe = 'printf'
   let cargo.args = ['error: Could not compile `derive_more`.']
@@ -15,10 +15,10 @@ Execute (cargo skip non json line):
 
 Execute (cargo info message):
   new
-  file src/lib.rs
+  file build/lib.rs
   let cargo = neomake#makers#ft#rust#cargo()
   let cargo.exe = 'cat'
-  let cargo.args = 'tests/fixtures/rust/cargo_info.json'
+  let cargo.args = '../tests/fixtures/rust/cargo_info.json'
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
@@ -28,10 +28,10 @@ Execute (cargo info message):
 
 Execute (cargo error without span):
   new
-  file src/lib.rs
+  file build/lib.rs
   let cargo = neomake#makers#ft#rust#cargo()
   let cargo.exe = 'cat'
-  let cargo.args = 'tests/fixtures/rust/cargo_error_without_span.json'
+  let cargo.args = '../tests/fixtures/rust/cargo_error_without_span.json'
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
@@ -43,10 +43,10 @@ Execute (cargo error message):
   NeomakeTestsMonkeypatchHighlights
 
   new
-  file src/lib.rs
+  file build/lib.rs
   let cargo = neomake#makers#ft#rust#cargo()
   let cargo.exe = 'cat'
-  let cargo.args = 'tests/fixtures/rust/cargo_error.json'
+  let cargo.args = '../tests/fixtures/rust/cargo_error.json'
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
@@ -92,10 +92,10 @@ Execute (cargo warning message):
   NeomakeTestsMonkeypatchHighlights
 
   new
-  file src/add_assign_like.rs
+  file build/add_assign_like.rs
   let cargo = neomake#makers#ft#rust#cargo()
   let cargo.exe = 'cat'
-  let cargo.args = 'tests/fixtures/rust/cargo_warning.json'
+  let cargo.args = '../tests/fixtures/rust/cargo_warning.json'
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
@@ -118,17 +118,17 @@ Execute (cargo warning for file that is not open):
   NeomakeTestsMonkeypatchHighlights
 
   new
-  file src/some_other_file.rs
+  file build/some_other_file.rs
 
   let cargo = neomake#makers#ft#rust#cargo()
   let cargo.exe = 'cat'
-  " Uses src/add_assign_like.rs.
-  let cargo.args = 'tests/fixtures/rust/cargo_warning.json'
+  " Uses build/add_assign_like.rs.
+  let cargo.args = '../tests/fixtures/rust/cargo_warning.json'
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
 
-  let unlisted_bufnr = bufnr('^src/add_assign_like.rs$')
+  let unlisted_bufnr = bufnr('^build/add_assign_like.rs$')
   AssertNotEqual -1, unlisted_bufnr
 
   AssertEqual [{
@@ -153,7 +153,7 @@ Execute (cargo error message children):
   file tests/from.rs
   let cargo = neomake#makers#ft#rust#cargo()
   let cargo.exe = 'cat'
-  let cargo.args = 'tests/fixtures/rust/cargo_error_children.json'
+  let cargo.args = 'fixtures/rust/cargo_error_children.json'
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
