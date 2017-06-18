@@ -1,3 +1,5 @@
+" vim: ts=4 sw=4 et
+
 function! neomake#makers#ft#vimwiki#SupersetOf() abort
     return 'text'
 endfunction
@@ -18,4 +20,3 @@ function! neomake#makers#ft#vimwiki#markdownlint() abort
     return neomake#makers#ft#markdown#markdownlint()
 endfunction
 
-" vim: ts=4 sw=4 et
