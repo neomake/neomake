@@ -140,6 +140,12 @@ We are using [Vader](https://github.com/junegunn/vader.vim) for our tests, and
 they get run for every pull request in different environments (via Docker
 also).
 
+### Logging
+
+`let g:neomake_logfile = '/tmp/neomake.log'` enables the debug logfile.
+You can use e.g. `tail -f /tmp/neomake.log` to follow it in a new terminal
+window.
+
 ### Running tests
 
 #### Run all tests against your local Neovim and Vim
