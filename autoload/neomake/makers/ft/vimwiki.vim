@@ -10,7 +10,7 @@ function! neomake#makers#ft#vimwiki#EnabledMakers() abort
         let makers = executable('mdl') ? ['mdl'] : ['markdownlint'] + makers
     endif
     return makers
-  endfunction
+endfunction
 
 function! neomake#makers#ft#vimwiki#mdl() abort
     return neomake#makers#ft#markdown#mdl()
