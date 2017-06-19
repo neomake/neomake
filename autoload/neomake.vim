@@ -1898,9 +1898,15 @@ function! s:exit_handler(jobinfo, data) abort
     if has_key(jobinfo, 'unexpected_output')
         redraw
         for [source, output] in items(jobinfo.unexpected_output)
-            let msg = printf('%s: unexpected output on %s: %s', maker.name, source, join(output, "\n"))
-            call neomake#utils#DebugMessage(msg.'.', jobinfo)
-            echom 'Neomake: '.msg
+            let msg = printf('%s: unexpected output on %s: ', maker.name, source)
+            call neomake#utils#DebugMessage(msg . join(output, '\n') . '.', jobinfo)
+
+            echohl WarningMsg
+            echom printf('Neomake: %s%s', msg, output[0])
+            for line in output[1:-1]
+                echom line
+            endfor
+            echohl None
         endfor
         call neomake#utils#ErrorMessage(printf(
                     \ '%s: unexpected output. See :messages for more information.', maker.name), jobinfo)
