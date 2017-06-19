@@ -13,6 +13,12 @@ env:
 matrix:
   fast_finish: true
   include:
+    - env: ENV=travis_test
+      services:
+        - docker
+    - env: ENV=travis_lint
+      language: python
+    - env: ENV=testnvim
     - env: ENV=testvim
 
 install:
