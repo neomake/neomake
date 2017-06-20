@@ -29,9 +29,7 @@ function! s:toggle(scope) abort
     else
         call neomake#config#unset_dict(a:scope, 'neomake.disabled')
     endif
-    if &verbose
-        call s:display_status()
-    endif
+    call s:display_status()
 endfunction
 function! s:disable(scope, disabled) abort
     call neomake#config#set_dict(a:scope, 'neomake.disabled', a:disabled)
