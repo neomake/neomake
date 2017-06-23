@@ -45,15 +45,15 @@ function! s:display_status() abort
     endif
     echom msg.'.'
 endfunction
-command! NeomakeToggle call s:toggle(g:)
-command! NeomakeToggleBuffer call s:toggle(b:)
-command! NeomakeToggleTab call s:toggle(t:)
-command! NeomakeDisable call s:disable(g:, 1)
-command! NeomakeDisableBuffer call s:disable(b:, 1)
-command! NeomakeDisableTab call s:disable(t:, 1)
-command! NeomakeEnable call s:disable(g:, 0)
-command! NeomakeEnableBuffer call s:disable(b:, 0)
-command! NeomakeEnableTab call s:disable(t:, 0)
+command! -bar NeomakeToggle call s:toggle(g:)
+command! -bar NeomakeToggleBuffer call s:toggle(b:)
+command! -bar NeomakeToggleTab call s:toggle(t:)
+command! -bar NeomakeDisable call s:disable(g:, 1)
+command! -bar NeomakeDisableBuffer call s:disable(b:, 1)
+command! -bar NeomakeDisableTab call s:disable(t:, 1)
+command! -bar NeomakeEnable call s:disable(g:, 0)
+command! -bar NeomakeEnableBuffer call s:disable(b:, 0)
+command! -bar NeomakeEnableTab call s:disable(t:, 0)
 
 command! NeomakeStatus call s:display_status()
 " }}}
