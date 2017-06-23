@@ -76,6 +76,10 @@ if [ "$1" = vader ]; then
           fi
         fi
         last_start_match="${BASH_REMATCH[1]}"
+      elif [[ "$REPLY" == *'Success/Total: '* || "$REPLY" == '  Slowests tests:' ]]; then
+        echo "$REPLY"
+        filtering=0
+        filtered=
       elif [[ "$REPLY" == *'(X)'* ]] || ! [[ "$REPLY" =~ $re_non_log_line ]]; then
         if [[ -n "$filtered" ]]; then
           echo "$filtered"
@@ -85,9 +89,6 @@ if [ "$1" = vader ]; then
         filtering=0
       elif ! ((filtering)); then
         echo "$REPLY"
-      elif [[ "$REPLY" == *'Success/Total: '* || "$REPLY" == '  Slowests tests:' ]]; then
-        echo "$REPLY"
-        filtering=0
       elif [[ -n "$filtered" ]]; then
         filtered="$filtered"$'\n'"$REPLY"
       else
