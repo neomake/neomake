@@ -75,7 +75,6 @@ Execute (2nd maker uses temporary file):
 
   new
   file doesnotexist
-  set ft=python
 
   let maker1 = {
       \ 'exe': 'true',
