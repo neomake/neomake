@@ -364,3 +364,13 @@ Execute (Postprocess: lambda from conf):
     \ 'text': 'something else'}]
     bwipe
   endif
+
+Execute (Hook context gets cleaned on error in postprocess):
+  let maker = copy(g:success_maker)
+  function! maker.postprocess(entry)
+    throw 'error from postprocess'
+  endfunction
+  call neomake#Make({'enabled_makers': [maker]})
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'Error during output processing for success-maker: error from postprocess.', 0
+  Assert !exists('g:neomake_hook_context'), 'Hook context was cleaned.'

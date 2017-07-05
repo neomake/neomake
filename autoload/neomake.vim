@@ -1061,15 +1061,18 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         endif
         if !empty(s:postprocessors)
             let g:neomake_hook_context = {'jobinfo': a:jobinfo}
-            for s:f in s:postprocessors
-                if type(s:f) == type({})
-                    call call(s:f.fn, [entry], s:f)
-                else
-                    call call(s:f, [entry], maker)
-                endif
-                unlet! s:f  " vim73
-            endfor
-            unlet! g:neomake_hook_context  " Might be unset already with sleep in postprocess.
+            try
+                for s:f in s:postprocessors
+                    if type(s:f) == type({})
+                        call call(s:f.fn, [entry], s:f)
+                    else
+                        call call(s:f, [entry], maker)
+                    endif
+                    unlet! s:f  " vim73
+                endfor
+            finally
+                unlet! g:neomake_hook_context  " Might be unset already with sleep in postprocess.
+            endtry
         endif
         if entry != before
             let changed_entries[index] = entry
