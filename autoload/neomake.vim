@@ -1953,7 +1953,7 @@ function! s:abort_next_makers(make_id) abort
     let jobs_queue = s:make_info[a:make_id].jobs_queue
     if !empty(jobs_queue)
         let next_makers = join(map(copy(jobs_queue), 'v:val.maker.name'), ', ')
-        call neomake#utils#LoudMessage('Aborting next makers: '.next_makers.'.')
+        call neomake#utils#LoudMessage('Aborting next makers: '.next_makers.'.', {'make_id': a:make_id})
         let s:make_info[a:make_id].jobs_queue = []
     endif
 endfunction
