@@ -66,6 +66,8 @@ Execute (Uses temporary file for unreadable buffer):
   let bufnr = bufnr('%')
   AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
   let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual fnamemodify(tempfile_name, ':t'), printf(
+  \ '.doesnotexist@neomake_%d_%d', getpid(), neomake#GetStatus().last_make_id)
   let cwd = getcwd()
   AssertEqual tempfile_name[0:len(cwd)-1], cwd
   bwipe
@@ -74,7 +76,7 @@ Execute (2nd maker uses temporary file):
   call g:NeomakeSetupAutocmdWrappers()
 
   new
-  file doesnotexist
+  file doesnotexist.ext.ext2
 
   let maker1 = {
       \ 'exe': 'true',
@@ -92,7 +94,10 @@ Execute (2nd maker uses temporary file):
   let make_id = neomake#GetStatus().last_make_id
 
   let bufnr = bufnr('%')
-  AssertNeomakeMessage '\m^Using tempfile for unreadable buffer:'
+  AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
+  let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual fnamemodify(tempfile_name, ':t'), printf(
+  \ '.doesnotexist.ext.ext2@neomake_%d_%d.ext2', getpid(), neomake#GetStatus().last_make_id)
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_jobfinished), 3
