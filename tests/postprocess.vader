@@ -56,7 +56,7 @@ Execute (Postprocess: called with dict+maker as self for list):
 
   let g:neomake_test_called = []
   function! NeomakeTestPostprocess(entry) abort dict
-    call add(g:neomake_test_called, [self, g:neomake_hook_context])
+    call add(g:neomake_test_called, [self, g:neomake_postprocess_context])
   endfunction
 
   let maker = {
@@ -118,7 +118,7 @@ Execute (Postprocess: called with dict+maker as self for non-list):
   \ '_maker_marker': 1,
   \ }
   function! maker.postprocess(entry) abort dict
-    call add(g:neomake_test_called, [self, g:neomake_hook_context])
+    call add(g:neomake_test_called, [self, g:neomake_postprocess_context])
   endfunction
 
   new
@@ -155,7 +155,7 @@ Execute (Postprocess: removes entries with valid -1):
   \ '_maker_marker': 1,
   \ }
   function! maker.postprocess(entry) abort dict
-    call add(g:neomake_test_called, [self, g:neomake_hook_context])
+    call add(g:neomake_test_called, [self, g:neomake_postprocess_context])
     if a:entry.text ==# 'check: bar!'
       let a:entry.valid = -1
     endif
@@ -218,7 +218,7 @@ Execute (maker.postprocess interface for obj):
     AssertEqual self.property, 1
     AssertEqual sort(keys(self)), ['fn', 'property']
     let self.called = 1
-    AssertEqual ['jobinfo'], keys(g:neomake_hook_context)
+    AssertEqual ['jobinfo'], keys(g:neomake_postprocess_context)
   endfunction
 
   let maker = neomake#makers#ft#neomake_tests#echo_maker()
@@ -240,7 +240,7 @@ Execute (maker.postprocess interface for maker):
     catch
       call add(g:neomake_test_called, v:exception)
     endtry
-    AssertEqual g:neomake_hook_context.jobinfo.maker, self
+    AssertEqual g:neomake_postprocess_context.jobinfo.maker, self
   endfunction
 
   call neomake#Make(0, [maker])
@@ -373,4 +373,4 @@ Execute (Hook context gets cleaned on error in postprocess):
   call neomake#Make({'enabled_makers': [maker]})
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Error during output processing for success-maker: error from postprocess.', 0
-  Assert !exists('g:neomake_hook_context'), 'Hook context was cleaned.'
+  Assert !exists('g:neomake_postprocess_context'), 'Hook context was cleaned.'
