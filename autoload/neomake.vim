@@ -450,7 +450,14 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
                 endif
                 let filename = fnamemodify(orig_file, ':t')
                             \ .'@neomake_'.s:pid.'_'.make_id
-                            \ .'.'.fnamemodify(orig_file, ':e')
+                let ext = fnamemodify(orig_file, ':e')
+                if !empty(ext)
+                    let filename .= '.'.ext
+                endif
+                " Use hidden files to make e.g. pytest not trying to import it.
+                if filename[0] !=# '.'
+                    let filename = '.' . filename
+                endif
             endif
             let temp_file = dir . slash . filename
         endif
