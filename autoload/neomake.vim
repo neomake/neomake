@@ -1067,7 +1067,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
             call neomake#utils#DebugMessage(printf('WARN: entry.bufnr (%d) is different from jobinfo.bufnr (%d) (current buffer %d): %s.', entry.bufnr, a:jobinfo.bufnr, bufnr('%'), string(entry)))
         endif
         if !empty(s:postprocessors)
-            let g:neomake_hook_context = {'jobinfo': a:jobinfo}
+            let g:neomake_postprocess_context = {'jobinfo': a:jobinfo}
             try
                 for s:f in s:postprocessors
                     if type(s:f) == type({})
@@ -1078,7 +1078,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
                     unlet! s:f  " vim73
                 endfor
             finally
-                unlet! g:neomake_hook_context  " Might be unset already with sleep in postprocess.
+                unlet! g:neomake_postprocess_context  " Might be unset already with sleep in postprocess.
             endtry
         endif
         if entry != before
