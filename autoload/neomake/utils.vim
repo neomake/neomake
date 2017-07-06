@@ -444,6 +444,18 @@ function! neomake#utils#redir(cmd) abort
     return neomake_redir
 endfunction
 
+" Wrap neomake#utils#redir, and return a list of the trimmed output.
+" TODO: not used currently, was meant for tests, but produces different
+" results for e.g. ':hi Normal' anyway - so another wrapper is needed, and it
+" should get moved to the tests then for now.
+function! neomake#utils#redir_trim_list(cmd) abort
+    let output = neomake#utils#redir(a:cmd)
+    if output[0] ==# "\n"
+        let output = output[1:-1]
+    endif
+    return split(output, "\n")
+endfunction
+
 function! neomake#utils#ExpandArgs(args) abort
     " Expand % in args like when using :!
     " \% is ignored
