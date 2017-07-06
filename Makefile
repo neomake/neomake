@@ -13,11 +13,12 @@ TEST_VIM:=nvim
 IS_NEOVIM=$(findstring nvim,$(TEST_VIM))$(findstring neovim,$(TEST_VIM))
 # Run testnvim and testvim by default, and only one if TEST_VIM is given.
 test: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim,testvim),testnvim testvim)
+test_interactive: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim_interactive,testvim_interactive),testnvim_interactive testvim_interactive)
 
 VADER:=Vader!
 VADER_OPTIONS:=-q
 VADER_ARGS=tests/neomake.vader
-VIM_ARGS='+$(VADER) $(VADER_ARGS) $(VADER_OPTIONS)'
+VIM_ARGS='+$(VADER) $(VADER_OPTIONS) $(VADER_ARGS)'
 
 DEFAULT_VADER_DIR:=tests/vim/plugins/vader
 export TESTS_VADER_DIR:=$(firstword $(realpath $(wildcard tests/vim/plugins/vader.override)) $(DEFAULT_VADER_DIR))
@@ -79,7 +80,7 @@ _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
 
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) $(TEST_VIM) --version | head -n2))
-	$(TEST_VIM_PREFIX) $(TEST_VIM) $(if $(IS_NEOVIM),--headless,-X) --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
+	$(TEST_VIM_PREFIX) $(TEST_VIM) $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X) --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 endef
 
 # Interactive tests, keep Vader open.
@@ -158,7 +159,10 @@ NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
 DOCKER=docker run $(DOCKER_STREAMS) --rm \
-       -v $(PWD):/testplugin -v $(abspath $(TESTS_VADER_DIR)):/testplugin/tests/vim/plugins/vader $(DOCKER_IMAGE)
+    -v $(PWD):/testplugin \
+    -v $(abspath $(TESTS_VADER_DIR)):/testplugin/tests/vim/plugins/vader \
+    -e NEOMAKE_TEST_NO_COLORSCHEME \
+    $(DOCKER_IMAGE)
 docker_image:
 	docker build -f Dockerfile.tests -t $(DOCKER_REPO):$(DOCKER_TAG) .
 docker_push:
@@ -172,10 +176,18 @@ docker_test_all: $(_DOCKER_VIM_TARGETS)
 $(_DOCKER_VIM_TARGETS):
 	$(MAKE) docker_test DOCKER_VIM=$(patsubst docker_test-%,%,$@)
 
-docker_test: DOCKER_VIM:=vim-master
+_docker_test: DOCKER_VIM:=vim-master
+_docker_test: DOCKER_MAKE_TARGET=$(DOCKER_MAKE_TEST_TARGET) \
+  TEST_VIM='/vim-build/bin/$(DOCKER_VIM)' \
+  VADER_OPTIONS="$(VADER_OPTIONS)" VADER_ARGS="$(VADER_ARGS)"
+_docker_test: docker_make
+docker_test: DOCKER_MAKE_TEST_TARGET:=test
 docker_test: DOCKER_STREAMS:=-t
-docker_test: DOCKER_MAKE_TARGET:=TEST_VIM='/vim-build/bin/$(DOCKER_VIM)' VIM_ARGS="$(VIM_ARGS)"
-docker_test: docker_make
+docker_test: _docker_test
+
+docker_test_interactive: DOCKER_MAKE_TEST_TARGET:=test_interactive
+docker_test_interactive: DOCKER_STREAMS:=-ti
+docker_test_interactive: _docker_test
 
 docker_run: $(DEP_PLUGINS)
 docker_run:
