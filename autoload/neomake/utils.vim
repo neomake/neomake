@@ -4,18 +4,6 @@ scriptencoding utf-8
 let s:level_to_name = {0: 'error  ', 1: 'warning', 2: 'verbose', 3: 'debug  '}
 let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 
-" Use 'append' with writefile, but only if it is available.  Otherwise, just
-" overwrite the file.  'S' is used to disable fsync in Neovim
-" (https://github.com/neovim/neovim/pull/6427).
-let s:can_append_to_logfile = v:version > 704 || (v:version == 704 && has('patch503'))
-if !s:can_append_to_logfile
-    redraw
-    echohl WarningMsg
-    echom 'Neomake: appending to the logfile is not supported in your Vim version.'
-    echohl NONE
-endif
-let s:logfile_writefile_opts = s:can_append_to_logfile ? 'aS' : ''
-
 function! s:reltime_lastmsg() abort
     if exists('s:last_msg_ts')
         let cur = neomake#compat#reltimefloat()
@@ -111,7 +99,21 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
             echohl None
         endif
     endif
-    if type(logfile) ==# type('') && !empty(logfile)
+    if !empty(logfile) && type(logfile) ==# type('')
+        if !exists('s:logfile_writefile_opts')
+            " Use 'append' with writefile, but only if it is available.  Otherwise, just
+            " overwrite the file.  'S' is used to disable fsync in Neovim
+            " (https://github.com/neovim/neovim/pull/6427).
+            let s:can_append_to_logfile = v:version > 704 || (v:version == 704 && has('patch503'))
+            if !s:can_append_to_logfile
+                redraw
+                echohl WarningMsg
+                echom 'Neomake: appending to the logfile is not supported in your Vim version.'
+                echohl NONE
+            endif
+            let s:logfile_writefile_opts = s:can_append_to_logfile ? 'aS' : ''
+        endif
+
         let date = strftime('%H:%M:%S')
         if !exists('timediff')
             let timediff = s:reltime_lastmsg()
