@@ -7,14 +7,14 @@ let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 " Use 'append' with writefile, but only if it is available.  Otherwise, just
 " overwrite the file.  'S' is used to disable fsync in Neovim
 " (https://github.com/neovim/neovim/pull/6427).
-let can_append_to_logfile = v:version > 704 || (v:version == 704 && has('patch503'))
-if !can_append_to_logfile
+let s:can_append_to_logfile = v:version > 704 || (v:version == 704 && has('patch503'))
+if !s:can_append_to_logfile
     redraw
     echohl WarningMsg
     echom 'Neomake: appending to the logfile is not supported in your Vim version.'
     echohl NONE
 endif
-let s:logfile_writefile_opts = can_append_to_logfile ? 'aS' : ''
+let s:logfile_writefile_opts = s:can_append_to_logfile ? 'aS' : ''
 
 function! s:reltime_lastmsg() abort
     if exists('s:last_msg_ts')
