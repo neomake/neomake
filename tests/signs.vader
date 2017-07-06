@@ -327,3 +327,12 @@ Execute (project mode signs get placed when job finishes):
     bwipe
     bwipe
   endif
+
+Execute (Highlights for signs get (re-)defined on ColorScheme event):
+  if !exists('g:colors_name')
+    NeomakeTestsSkip 'No colorscheme.'
+  else
+    let orig = neomake#utils#redir('hi NeomakeErrorSignDefault')
+    exe 'colorscheme' g:colors_name
+    AssertEqual orig, neomake#utils#redir('hi NeomakeErrorSignDefault')
+  endif

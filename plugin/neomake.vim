@@ -58,6 +58,16 @@ command! -bar NeomakeEnableTab call s:disable(t:, 0)
 command! NeomakeStatus call s:display_status()
 " }}}
 
+function! s:on_ColorScheme() abort
+  if g:neomake_place_signs
+    call neomake#signs#DefineHighlights()
+  endif
+  if get(g:, 'neomake_highlight_columns', 1)
+        \ || get(g:, 'neomake_highlight_lines', 0)
+    call neomake#highlights#DefineHighlights()
+  endif
+endfunction
+
 augroup neomake
   au!
   if !exists('*nvim_buf_add_highlight')
@@ -72,6 +82,8 @@ augroup neomake
     au CursorMoved * call neomake#CursorMoved()
   endif
   au VimLeave * call neomake#VimLeave()
+
+  autocmd ColorScheme * call s:on_ColorScheme()
 augroup END
 
 if has('signs')

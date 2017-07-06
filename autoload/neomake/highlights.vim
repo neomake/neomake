@@ -128,7 +128,6 @@ function! neomake#highlights#DefineHighlights() abort
         exe 'hi link '.group.' '.group.'Default'
     endfor
 endfunction
-call neomake#highlights#DefineHighlights()
 
 function! s:wipe_highlights(bufnr) abort
     for type in ['file', 'project']
@@ -138,5 +137,6 @@ function! s:wipe_highlights(bufnr) abort
     endfor
 endfunction
 augroup neomake_highlights
-    autocmd! BufWipeout * call s:wipe_highlights(expand('<abuf>'))
+    au!
+    autocmd BufWipeout * call s:wipe_highlights(expand('<abuf>'))
 augroup END
