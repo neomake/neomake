@@ -21,6 +21,7 @@ Include (Maker args): args.vader
 Include (Makers): makers.vader
 Include (Maker errors): maker_errors.vader
 Include (Mapexpr): mapexpr.vader
+Include (:NeomakeInfo): cmd_neomakeinfo.vader
 Include (Postprocess): postprocess.vader
 Include (Processing): processing.vader
 Include (Serialize): serialize.vader
