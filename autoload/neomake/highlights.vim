@@ -57,6 +57,12 @@ else
 endif
 
 function! neomake#highlights#AddHighlight(entry, type) abort
+    " Some makers use line 0 for file warnings (which cannot be highlighted,
+    " e.g. cpplint with "no copyright" warnings).
+    if a:entry.lnum == 0
+        return
+    endif
+
     if !has_key(s:highlights[a:type], a:entry.bufnr)
         call s:InitBufHighlights(a:type, a:entry.bufnr)
     endif

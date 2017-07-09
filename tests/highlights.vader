@@ -66,8 +66,27 @@ Execute (neomake#highlights#AddHighlight with off-columns):
   if !has('nvim')
     AssertEqual highlights['NeomakeError'], [[1, 1, 4]]
   endif
-
   bwipe!
+
+Execute (neomake#highlights#AddHighlight handles entries with line=0, col=0):
+  Save g:neomake_highlight_lines
+  let entry = {'bufnr': bufnr('%'), 'type': 'E', 'lnum': 0, 'col': 0}
+  lockvar entry
+
+  let g:neomake_highlight_lines = 0
+  call neomake#highlights#AddHighlight(entry, 'file')
+  let g:neomake_highlight_lines = 1
+  call neomake#highlights#AddHighlight(entry, 'file')
+
+Execute (neomake#highlights#AddHighlight handles entries with line=0, col=1):
+  Save g:neomake_highlight_lines
+  let entry = {'bufnr': bufnr('%'), 'type': 'E', 'lnum': 0, 'col': 1}
+  lockvar entry
+
+  let g:neomake_highlight_lines = 0
+  call neomake#highlights#AddHighlight(entry, 'file')
+  let g:neomake_highlight_lines = 1
+  call neomake#highlights#AddHighlight(entry, 'file')
 
 Execute (Highlights get (re-)defined on ColorScheme event):
   if exists('g:colors_name')
