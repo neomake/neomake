@@ -58,7 +58,7 @@ command! -bar NeomakeEnableTab call s:disable(t:, 0)
 command! NeomakeStatus call s:display_status()
 " }}}
 
-function! s:on_ColorScheme() abort
+function! s:define_highlights() abort
   if g:neomake_place_signs
     call neomake#signs#DefineHighlights()
   endif
@@ -82,8 +82,7 @@ augroup neomake
     au CursorMoved * call neomake#CursorMoved()
   endif
   au VimLeave * call neomake#VimLeave()
-
-  autocmd ColorScheme * call s:on_ColorScheme()
+  autocmd ColorScheme,VimEnter * call s:define_highlights()
 augroup END
 
 if has('signs')

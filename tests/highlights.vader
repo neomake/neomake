@@ -70,10 +70,18 @@ Execute (neomake#highlights#AddHighlight with off-columns):
   bwipe!
 
 Execute (Highlights get (re-)defined on ColorScheme event):
-  if !exists('g:colors_name')
-    NeomakeTestsSkip 'No colorscheme.'
+  if exists('g:colors_name')
+    let colorscheme = g:colors_name
+    let had_colorscheme = 1
   else
-    let orig = neomake#utils#redir('hi NeomakeErrorDefault')
-    exe 'colorscheme' g:colors_name
-    AssertEqual orig, neomake#utils#redir('hi NeomakeErrorDefault')
+    let colorscheme = 'default'
+    let had_colorscheme = 0
+  endif
+  let orig = neomake#utils#redir('hi NeomakeErrorDefault')
+  exe 'colorscheme' colorscheme
+  let new = neomake#utils#redir('hi NeomakeErrorDefault')
+  if had_colorscheme
+    AssertEqual orig, new
+  else
+    Assert stridx(new, 'cleared') == -1, 'highlight is not cleared.'
   endif
