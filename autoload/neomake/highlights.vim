@@ -57,18 +57,20 @@ else
 endif
 
 function! neomake#highlights#AddHighlight(entry, type) abort
+    " some makers use line 0 for file warnings
+    " (e.g. cpplint with no copyright warnings)
+    " these cannot be highlighted since the line does not exist
+    if a:entry.lnum == 0
+        return
+    endif
+
     if !has_key(s:highlights[a:type], a:entry.bufnr)
         call s:InitBufHighlights(a:type, a:entry.bufnr)
     endif
     let l:hi = get(s:highlight_types, toupper(a:entry.type), 'NeomakeError')
     if get(g:, 'neomake_highlight_lines', 0)
         if s:nvim_api
-            " some makers use line 0 for file warnings
-            " (e.g. cpplint with no copyright warnings)
-            " these cannot be highlighted since the line does not exist
-            if a:entry.lnum > 0
-                call nvim_buf_add_highlight(a:entry.bufnr, s:highlights[a:type][a:entry.bufnr], l:hi, a:entry.lnum - 1, 0, -1)
-            endif
+            call nvim_buf_add_highlight(a:entry.bufnr, s:highlights[a:type][a:entry.bufnr], l:hi, a:entry.lnum - 1, 0, -1)
         else
             call add(s:highlights[a:type][a:entry.bufnr][l:hi], a:entry.lnum)
         endif
