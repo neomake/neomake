@@ -1,3 +1,5 @@
+Include: include/setup.vader
+
 Execute (No error when matches are cleared manually):
   new
 
@@ -66,3 +68,12 @@ Execute (neomake#highlights#AddHighlight with off-columns):
   endif
 
   bwipe!
+
+Execute (Highlights get (re-)defined on ColorScheme event):
+  if !exists('g:colors_name')
+    NeomakeTestsSkip 'No colorscheme.'
+  else
+    let orig = neomake#utils#redir('hi NeomakeErrorDefault')
+    exe 'colorscheme' g:colors_name
+    AssertEqual orig, neomake#utils#redir('hi NeomakeErrorDefault')
+  endif

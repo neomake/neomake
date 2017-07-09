@@ -296,7 +296,6 @@ function! neomake#signs#DefineSigns() abort
 endfunction
 
 " Init.
-call neomake#signs#DefineHighlights()
 call neomake#signs#DefineSigns()
 
 function! s:wipe_signs(bufnr) abort
@@ -310,5 +309,6 @@ function! s:wipe_signs(bufnr) abort
     endfor
 endfunction
 augroup neomake_signs
-    autocmd! BufWipeout * call s:wipe_signs(expand('<abuf>'))
+    au!
+    autocmd BufWipeout * call s:wipe_signs(expand('<abuf>'))
 augroup END
