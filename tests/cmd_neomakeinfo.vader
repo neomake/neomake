@@ -22,16 +22,15 @@ Execute (:NeomakeInfo with FuncRef):
   \ 'errorformat': 'custom_efm: %m'}
 
   let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
-  let idx = 0
+  let idx = -1
   for line in [
-      \ 'Current filetype: c',
-      \ 'For the current filetype (with :Neomake):',
+      \ 'For the current filetype ("c", used with :Neomake):',
       \ ' - doesnotexist',
       \ '   - args: function(''getcwd'')',
       \ '   - errorformat: ''custom_efm: %m''',
       \ '   - exe: ''doesnotexist''']
     let i = index(info, line)
-    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
     let idx = i
   endfor
   bwipe
@@ -57,9 +56,10 @@ Execute (:NeomakeInfo displays issues):
   \ }
 
   let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
-  let idx = 0
+  let idx = -1
   for line in [
-      \ 'For the project (with :Neomake!):',
+      \ '#### Neomake information (use ":verbose NeomakeInfo" extra output)',
+      \ 'For the project (used with :Neomake!):',
       \ ' - mymaker',
       \ '   - args: function(''getcwd'')',
       \ '   - errorformat: ''custom_efm: %m''',
@@ -71,6 +71,19 @@ Execute (:NeomakeInfo displays issues):
       \ '     - maker has postprocess, but only process_output will be used.',
       \ ]
     let i = index(info, line)
-    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
+    let idx = i
+  endfor
+
+Execute (:verb NeomakeInfo displays extra info):
+  let info = split(neomake#utils#redir('verbose NeomakeInfo'), '\n')
+  let idx = -1
+  for line in [
+      \ '#### Neomake debug information',
+      \ '#### :version',
+      \ '#### :messages',
+      \ ]
+    let i = index(info, line)
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
     let idx = i
   endfor

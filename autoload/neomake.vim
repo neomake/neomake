@@ -2237,12 +2237,18 @@ endfunction
 
 function! neomake#DisplayInfo() abort
     let ft = &filetype
-    echo '#### Neomake debug information'
-    echo 'Async support: '.s:async
-    echo 'Current filetype: '.ft
-    echo "\n"
+    if &verbose
+        echo '#### Neomake debug information'
+        echo 'Async support: '.s:async
+        echo 'Current filetype: '.ft
+        echo 'Windows: '.neomake#utils#IsRunningWindows()
+        echo '[shell, shellcmdflag, shellslash]:' [&shell, &shellcmdflag, &shellslash]
+        echo "\n"
+    else
+        echo '#### Neomake information (use ":verbose NeomakeInfo" extra output)'
+    endif
     echo '##### Enabled makers'
-    echo 'For the current filetype (with :Neomake):'
+    echo 'For the current filetype ("'.ft.'", used with :Neomake):'
     call s:display_maker_info(ft)
     if empty(ft)
         echo 'NOTE: the current buffer does not have a filetype.'
@@ -2252,7 +2258,7 @@ function! neomake#DisplayInfo() abort
                     \ .' to configure it (or b:neomake_'.conf_ft.'_enabled_makers).'
     endif
     echo "\n"
-    echo 'For the project (with :Neomake!):'
+    echo 'For the project (used with :Neomake!):'
     call s:display_maker_info()
     echo 'NOTE: you can define g:neomake_enabled_makers to configure it.'
     echo "\n"
@@ -2268,9 +2274,6 @@ function! neomake#DisplayInfo() abort
         echo 'g:'.k.' = '.string(V)
         unlet! V  " Fix variable type mismatch with Vim 7.3.
     endfor
-    echo "\n"
-    echo 'Windows: '.neomake#utils#IsRunningWindows()
-    echo '[shell, shellcmdflag, shellslash]:' [&shell, &shellcmdflag, &shellslash]
     echo '```'
     if &verbose
         echo "\n"

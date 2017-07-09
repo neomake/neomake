@@ -11,7 +11,8 @@ function! neomake#debug#validate_maker(maker) abort
     endif
 
     if !executable(a:maker.exe)
-        let issues.errors += [printf("maker's exe (%s) is not executable.", a:maker.exe)]
+        let t = a:maker.auto_enabled ? 'warnings' : 'errors'
+        let issues[t] += [printf("maker's exe (%s) is not executable.", a:maker.exe)]
     endif
 
     return issues
