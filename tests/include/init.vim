@@ -446,3 +446,5 @@ function! s:After()
   endif
 endfunction
 command! NeomakeTestsGlobalAfter call s:After()
+
+doautocmd VimEnter
