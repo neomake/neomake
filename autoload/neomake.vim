@@ -2412,6 +2412,7 @@ function! neomake#CursorMovedDelayed() abort
     let s:cursormoved_last_pos = getpos('.')
 endfunction
 
+let s:last_completion = ''
 function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
     if a:ArgLead =~# '[^A-Za-z0-9]'
         return []
@@ -2420,9 +2421,32 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
         " Just 'Neomake!' without following space.
         return [' ']
     endif
+
     let file_mode = a:CmdLine =~# '\v^(Neomake|NeomakeFile)\s'
-    let makers = file_mode ? neomake#GetMakers(&filetype) : neomake#GetProjectMakers()
-    return filter(makers, "v:val =~? '^".a:ArgLead."'")
+
+    if empty(&filetype)
+        let maker_names = []
+    else
+        let makers = map(neomake#GetMakers(&filetype), 'neomake#GetMaker(v:val, &filetype)')
+        " TODO: exclude makers based on some property?!
+        " call filter(makers, "get(v:val, 'uses_filename', 1) == file_mode")
+        let maker_names = map(makers, 'v:val.name')
+
+        " Prefer (only) makers for the current filetype.
+        if file_mode
+            call filter(maker_names, "v:val =~? '^".a:ArgLead."'")
+            if !empty(maker_names)
+                if s:last_completion != a:CmdLine
+                    let s:last_completion = a:CmdLine
+                    return maker_names
+                endif
+            endif
+        endif
+    endif
+
+    call extend(maker_names, neomake#GetProjectMakers())
+    let s:last_completion = a:CmdLine
+    return filter(maker_names, "v:val =~? '^".a:ArgLead."'")
 endfunction
 
 function! neomake#CompleteJobs(...) abort
