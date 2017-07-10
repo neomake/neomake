@@ -295,9 +295,6 @@ function! neomake#signs#DefineSigns() abort
     call neomake#signs#RedefineMessageSign()
 endfunction
 
-" Init.
-call neomake#signs#DefineSigns()
-
 function! s:wipe_signs(bufnr) abort
     for type in ['file', 'project']
         if has_key(s:placed_signs[type], a:bufnr)
@@ -312,3 +309,6 @@ augroup neomake_signs
     au!
     autocmd BufWipeout * call s:wipe_signs(expand('<abuf>'))
 augroup END
+
+call neomake#signs#DefineSigns()
+call neomake#signs#DefineHighlights()
