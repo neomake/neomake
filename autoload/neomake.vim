@@ -664,14 +664,20 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
     return neomake#compat#get_argv(exe, args, args_is_list)
 endfunction
 
+function! s:GetMakerForFiletype(ft, maker_name) abort
+    for config_ft in neomake#utils#get_config_fts(a:ft)
+        call neomake#utils#load_ft_makers(config_ft)
+        let f = 'neomake#makers#ft#'.config_ft.'#'.a:maker_name
+        if exists('*'.f)
+            let maker = call(f, [])
+            return maker
+        endif
+    endfor
+    return s:unset_dict
+endfunction
+
 function! neomake#GetMaker(name_or_maker, ...) abort
-    if a:0
-        let file_mode = 1
-        let ft = a:1
-    else
-        let file_mode = 0
-        let ft = ''
-    endif
+    let ft = a:0 ? a:1 : &filetype
     if type(a:name_or_maker) == type({})
         let maker = a:name_or_maker
     elseif a:name_or_maker ==# 'makeprg'
@@ -681,29 +687,20 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     else
         let maker = neomake#utils#GetSetting('maker', {'name': a:name_or_maker}, s:unset_dict, ft, bufnr('%'))
         if maker is# s:unset_dict
-            if file_mode
-                for config_ft in neomake#utils#get_config_fts(ft)
-                    call neomake#utils#load_ft_makers(config_ft)
-                    let f = 'neomake#makers#ft#'.config_ft.'#'.a:name_or_maker
-                    if exists('*'.f)
-                        let maker = call(f, [])
-                        break
-                    endif
-                endfor
-            else
-                try
-                    let maker = eval('neomake#makers#'.a:name_or_maker.'#'.a:name_or_maker.'()')
-                catch /^Vim\%((\a\+)\)\=:E117/
-                endtry
+            if !empty(ft)
+                let maker = s:GetMakerForFiletype(ft, a:name_or_maker)
             endif
-        endif
-        if maker is# s:unset_dict
-            if file_mode
-                throw printf('Neomake: Maker not found (for %s): %s',
-                            \ !empty(ft) ? 'filetype '.ft : 'empty filetype',
-                            \ a:name_or_maker)
-            else
-                throw 'Neomake: Project maker not found: '.a:name_or_maker
+
+            if maker is# s:unset_dict
+                call neomake#utils#load_global_makers()
+                let f = 'neomake#makers#'.a:name_or_maker.'#'.a:name_or_maker
+                if exists('*'.f)
+                    let maker = call(f, [])
+                else
+                    throw printf('Neomake: Maker not found (for %s): %s',
+                                \ !empty(ft) ? 'filetype '.ft : 'empty filetype',
+                                \ a:name_or_maker)
+                endif
             endif
         endif
         if type(maker) != type({})
@@ -796,7 +793,7 @@ function! neomake#GetMakers(ft) abort
 endfunction
 
 function! neomake#GetProjectMakers() abort
-    runtime! autoload/neomake/makers/*.vim
+    call neomake#utils#load_global_makers()
     return s:get_makers_for_pattern('neomake#makers#\(ft#\)\@!\l')
 endfunction
 

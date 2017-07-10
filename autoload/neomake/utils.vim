@@ -302,7 +302,7 @@ function! neomake#utils#load_ft_makers(ft) abort
 endfunction
 
 let s:loaded_global_maker_runtime = 0
-function! neomake#utils#load_global_makers(ft) abort
+function! neomake#utils#load_global_makers() abort
     " Load global makers, but only once (for performance reasons and to allow
     " for monkeypatching it in tests).
     if !s:loaded_global_maker_runtime
