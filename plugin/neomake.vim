@@ -82,7 +82,7 @@ augroup neomake
     au CursorMoved * call neomake#CursorMoved()
   endif
   au VimLeave * call neomake#VimLeave()
-  autocmd ColorScheme,VimEnter * call s:define_highlights()
+  autocmd ColorScheme * call s:define_highlights()
 augroup END
 
 if has('signs')

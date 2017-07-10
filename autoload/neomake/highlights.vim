@@ -146,3 +146,5 @@ augroup neomake_highlights
     au!
     autocmd BufWipeout * call s:wipe_highlights(expand('<abuf>'))
 augroup END
+
+call neomake#highlights#DefineHighlights()
