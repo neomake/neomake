@@ -280,7 +280,7 @@ endfunction
 let s:super_ft_cache = {}
 function! neomake#utils#GetSupersetOf(ft) abort
     if !has_key(s:super_ft_cache, a:ft)
-        call neomake#utils#load_ft_maker(a:ft)
+        call neomake#utils#load_ft_makers(a:ft)
         let SupersetOf = 'neomake#makers#ft#'.a:ft.'#SupersetOf'
         if exists('*'.SupersetOf)
             let s:super_ft_cache[a:ft] = call(SupersetOf, [])
@@ -292,7 +292,7 @@ function! neomake#utils#GetSupersetOf(ft) abort
 endfunction
 
 let s:loaded_ft_maker_runtime = []
-function! neomake#utils#load_ft_maker(ft) abort
+function! neomake#utils#load_ft_makers(ft) abort
     " Load ft maker, but only once (for performance reasons and to allow for
     " monkeypatching it in tests).
     if index(s:loaded_ft_maker_runtime, a:ft) == -1

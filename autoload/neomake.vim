@@ -683,7 +683,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         if maker is# s:unset_dict
             if file_mode
                 for config_ft in neomake#utils#get_config_fts(ft)
-                    call neomake#utils#load_ft_maker(config_ft)
+                    call neomake#utils#load_ft_makers(config_ft)
                     let f = 'neomake#makers#ft#'.config_ft.'#'.a:name_or_maker
                     if exists('*'.f)
                         let maker = call(f, [])
@@ -777,7 +777,7 @@ function! neomake#GetMakers(ft) abort
 
     let makers = []
     for ft in neomake#utils#get_config_fts(a:ft)
-        call neomake#utils#load_ft_maker(ft)
+        call neomake#utils#load_ft_makers(ft)
 
         let maker_names = s:get_makers_for_pattern('neomake#makers#ft#'.ft.'#\l')
         for maker_name in maker_names
@@ -815,7 +815,7 @@ function! neomake#GetEnabledMakers(...) abort
         if makers is# s:unset_list
             let auto_enabled = 1
             for config_ft in neomake#utils#get_config_fts(a:1)
-                call neomake#utils#load_ft_maker(config_ft)
+                call neomake#utils#load_ft_makers(config_ft)
                 let fnname = 'neomake#makers#ft#'.config_ft.'#EnabledMakers'
                 if exists('*'.fnname)
                     let makers = call(fnname, [])
