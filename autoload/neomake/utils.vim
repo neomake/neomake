@@ -301,6 +301,16 @@ function! neomake#utils#load_ft_makers(ft) abort
     endif
 endfunction
 
+let s:loaded_global_maker_runtime = 0
+function! neomake#utils#load_global_makers(ft) abort
+    " Load global makers, but only once (for performance reasons and to allow
+    " for monkeypatching it in tests).
+    if !s:loaded_global_maker_runtime
+        exe 'runtime! autoload/neomake/makers/*.vim'
+        let s:loaded_global_maker_runtime = 1
+    endif
+endfunction
+
 function! neomake#utils#get_ft_confname(ft, ...) abort
     return substitute(a:ft, '\W', a:0 ? a:1 : '_', 'g')
 endfunction
