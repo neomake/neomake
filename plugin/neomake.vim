@@ -1,22 +1,22 @@
 if exists('g:loaded_neomake') || &compatible
-  finish
+    finish
 endif
 let g:loaded_neomake = 1
 
 command! -nargs=* -bang -bar -complete=customlist,neomake#CompleteMakers
-      \ Neomake call neomake#Make(<bang>1, [<f-args>])
+            \ Neomake call neomake#Make(<bang>1, [<f-args>])
 
 " These commands are available for clarity
 command! -nargs=* -bar -complete=customlist,neomake#CompleteMakers
-      \ NeomakeProject Neomake! <args>
+            \ NeomakeProject Neomake! <args>
 command! -nargs=* -bar -complete=customlist,neomake#CompleteMakers
-      \ NeomakeFile Neomake <args>
+            \ NeomakeFile Neomake <args>
 
 command! -nargs=+ -bang -complete=shellcmd
-      \ NeomakeSh call neomake#ShCommand(<bang>0, <q-args>)
+            \ NeomakeSh call neomake#ShCommand(<bang>0, <q-args>)
 command! NeomakeListJobs call neomake#ListJobs()
 command! -bang -nargs=1 -complete=custom,neomake#CompleteJobs
-      \ NeomakeCancelJob call neomake#CancelJob(<q-args>, <bang>0)
+            \ NeomakeCancelJob call neomake#CancelJob(<q-args>, <bang>0)
 command! -bang NeomakeCancelJobs call neomake#CancelJobs(<bang>0)
 
 command! -bar NeomakeInfo call neomake#DisplayInfo()
@@ -59,37 +59,37 @@ command! NeomakeStatus call s:display_status()
 " }}}
 
 function! s:define_highlights() abort
-  if g:neomake_place_signs
-    call neomake#signs#DefineHighlights()
-  endif
-  if get(g:, 'neomake_highlight_columns', 1)
-        \ || get(g:, 'neomake_highlight_lines', 0)
-    call neomake#highlights#DefineHighlights()
-  endif
+    if g:neomake_place_signs
+        call neomake#signs#DefineHighlights()
+    endif
+    if get(g:, 'neomake_highlight_columns', 1)
+                \ || get(g:, 'neomake_highlight_lines', 0)
+        call neomake#highlights#DefineHighlights()
+    endif
 endfunction
 
 augroup neomake
-  au!
-  if !exists('*nvim_buf_add_highlight')
-    au BufEnter * call neomake#highlights#ShowHighlights()
-  endif
-  if has('timers')
-    au CursorMoved * call neomake#CursorMovedDelayed()
-    " Force-redraw display of current error after resizing Vim, which appears
-    " to clear the previously echoed error.
-    au VimResized * call timer_start(100, function('neomake#EchoCurrentError'))
-  else
-    au CursorMoved * call neomake#CursorMoved()
-  endif
-  au VimLeave * call neomake#VimLeave()
-  autocmd ColorScheme * call s:define_highlights()
+    au!
+    if !exists('*nvim_buf_add_highlight')
+        autocmd BufEnter * call neomake#highlights#ShowHighlights()
+    endif
+    if has('timers')
+        autocmd CursorMoved * call neomake#CursorMovedDelayed()
+        " Force-redraw display of current error after resizing Vim, which appears
+        " to clear the previously echoed error.
+        autocmd VimResized * call timer_start(100, function('neomake#EchoCurrentError'))
+    else
+        autocmd CursorMoved * call neomake#CursorMoved()
+    endif
+    autocmd VimLeave * call neomake#VimLeave()
+    autocmd ColorScheme * call s:define_highlights()
 augroup END
 
 if has('signs')
-  let g:neomake_place_signs = get(g:, 'neomake_place_signs', 1)
+    let g:neomake_place_signs = get(g:, 'neomake_place_signs', 1)
 else
-  let g:neomake_place_signs = 0
-  lockvar g:neomake_place_signs
+    let g:neomake_place_signs = 0
+    lockvar g:neomake_place_signs
 endif
 
 " vim: sw=2 et
