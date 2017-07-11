@@ -79,7 +79,7 @@ check_errors() {
         while IFS= read -r match; do
             RETURN_CODE=1
             echo "$match $message"
-        done < <(grep -n "$regex" "$directory"/**/*.vim \
+        done < <(grep --with-filename -n "$regex" "$directory"/**/*.vim \
             | grep -o '^[^:]\+:[0-9]\+' \
             | sed 's:^\./::')
     done
