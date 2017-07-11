@@ -930,7 +930,7 @@ function! s:Make(options) abort
     call extend(options, {
                 \ 'file_mode': 1,
                 \ 'bufnr': bufnr('%'),
-                \ 'ft': '',
+                \ 'ft': &filetype,
                 \ 'make_id': make_id,
                 \ }, 'keep')
     let bufnr = options.bufnr
