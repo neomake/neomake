@@ -157,6 +157,15 @@ function! neomake#quickfix#FormatQuickfix() abort
         let blank_col = ''
     endif
 
+    " Count number of different buffers and cache their names.
+    let buffers = neomake#compat#uniq(sort(map(copy(qflist), 'v:val.bufnr')))
+    let buffer_names = {}
+    if len(buffers) > 1
+        for b in buffers
+            let buffer_names[b] = fnamemodify(bufname(b), ':t')
+        endfor
+    endif
+
     let i = 1
     for item in qflist
         if item.lnum
@@ -165,8 +174,8 @@ function! neomake#quickfix#FormatQuickfix() abort
         let i += 1
 
         let text = item.text
-        if !loclist && item.bufnr
-            let text = printf('[%s] %s', bufname(item.bufnr), text)
+        if !empty(buffer_names)
+            let text = printf('[%s] %s', buffer_names[item.bufnr], text)
         endif
 
         if !item.lnum
