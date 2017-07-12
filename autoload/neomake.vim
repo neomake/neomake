@@ -2186,6 +2186,15 @@ function! s:handle_next_job(prev_jobinfo) abort
                 call s:abort_next_makers(make_id)
                 break
             endif
+            if options.serialize
+                if neomake#utils#GetSetting('serialize_abort_on_error', maker, 0, options.ft, options.bufnr)
+                    call s:abort_next_makers(make_id)
+                    break
+                endif
+                if empty(make_info.jobs_queue)
+                    call s:clean_make_info(make_id)
+                endif
+            endif
             continue
         endtry
         if !empty(jobinfo)

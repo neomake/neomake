@@ -708,3 +708,15 @@ Execute (get_list_entries job processes entries while in tabline function):
     AssertEqual len(g:neomake_test_finished), 1
     bwipe
   endif
+
+Execute (make info gets cleaned when last job fails to start):
+  call g:NeomakeSetupAutocmdWrappers()
+  new
+  let b:neomake_serialize = 1
+  let b:neomake_tempfile_enabled = 0
+  set ft=neomake_tests
+  RunNeomake echo_maker true
+  bwipe
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertNeomakeMessage 'no file name.', 0
