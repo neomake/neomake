@@ -6,6 +6,7 @@ endfunction
 
 function! neomake#makers#ft#tex#chktex() abort
     return {
+                \ 'args': ['-l', '.chktexrc'],
                 \ 'errorformat':
                 \ '%EError %n in %f line %l: %m,' .
                 \ '%WWarning %n in %f line %l: %m,' .
