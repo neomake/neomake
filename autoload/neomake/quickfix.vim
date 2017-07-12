@@ -162,11 +162,21 @@ function! neomake#quickfix#FormatQuickfix() abort
     let buffer_names = {}
     if len(buffers) > 1
         for b in buffers
-            let buffer_names[b] = fnamemodify(bufname(b), ':t')
+            let bufname = bufname(b)
+            if empty(bufname)
+                let bufname = 'buf:'.b
+            else
+                let bufname = fnamemodify(bufname, ':t')
+                if len(bufname) > 15
+                    let bufname = bufname[0:13].'…'
+                endif
+            endif
+            let buffer_names[b] = bufname
         endfor
     endif
 
     let i = 1
+    let last_bufnr = -1
     for item in qflist
         if item.lnum
             call add(signs, {'lnum': i, 'bufnr': buf, 'type': item.type})
@@ -175,7 +185,10 @@ function! neomake#quickfix#FormatQuickfix() abort
 
         let text = item.text
         if !empty(buffer_names)
-            let text = printf('[%s] %s', buffer_names[item.bufnr], text)
+            if last_bufnr != item.bufnr
+                let text = printf('[%s] %s', buffer_names[item.bufnr], text)
+                let last_bufnr = item.bufnr
+            endif
         endif
 
         if !item.lnum
@@ -220,9 +233,16 @@ function! neomake#quickfix#FormatQuickfix() abort
         autocmd CursorMoved <buffer> call s:cursor_moved()
     augroup END
 
-    if src_buf
-        let w:quickfix_title = printf('Neomake[file]: %s', bufname(src_buf))
+    if loclist
+        let bufname = bufname(src_buf)
+        if empty(bufname)
+            let bufname = 'buf:'.src_buf
+        else
+            let bufname = pathshorten(bufname)
+        endif
+        let w:quickfix_title = printf('Neomake[file]: %s (%s)',
+                    \ bufname, join(makers, ', '))
     else
-        let w:quickfix_title = 'Neomake[project]'
+        let w:quickfix_title = 'Neomake[project]: '.join(makers, ', ')
     endif
 endfunction

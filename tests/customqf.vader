@@ -66,6 +66,99 @@ Execute (Displays custom formatted quickfix buffer):
 
   close
 
+Execute (Sets quickfix title (location list)):
+  new
+  set ft=neomake_tests
+
+  RunNeomake echo_maker true
+
+  " Location list entry contains marker.
+  let valid = has('patch-8.0.0580')
+  AssertEqual getloclist(0), [
+  \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1,
+  \  'type': 'W', 'pattern': '',
+  \  'text': 'neomake_tests_echo_maker nmcfg:{''short'': ''echo'', ''name'': ''echo_maker''}'}]
+
+  lopen
+  AssertEqual w:quickfix_title, 'Neomake[file]: buf:0 (echo_maker)'
+  normal! G0
+  doautocmd CursorMoved
+  AssertEqual expand('<cWORD>'), 'neomake_tests_echo_maker'
+
+  lclose
+  bwipe
+
+Execute (Handles interleaving maker output and buffer names (quickfix)):
+  if !neomake#has_async_support()
+    NeomakeTestsSkip 'no async support.'
+    return
+  endif
+
+  new
+  set ft=neomake_tests
+  let bufnr = bufnr('%')
+
+  let s:flagfile = tempname()
+  let maker1 = NeomakeTestsCommandMaker('maker1', 'echo file1: maker1_1; '
+  \ .'while ! [ -s '.fnameescape(s:flagfile).' ]; do sleep 0.01; done; '
+  \ .'echo file1: maker1_2')
+  function maker1.process_output(...)
+    if filereadable(s:flagfile)
+      return [{'text': 'maker1_2', 'lnum': 2, 'bufnr': bufnr('%')}]
+    endif
+    call writefile([], s:flagfile)
+    return [{'text': 'maker1_1', 'lnum': 1, 'bufnr': bufnr('%')}]
+  endfunction
+
+  if neomake#has_async_support()
+    let maker2 = NeomakeTestsCommandMaker('maker2',
+    \ 'while ! [ -e '.fnameescape(s:flagfile).' ]; do sleep 0.01; done; '
+    \ .'echo file2: maker2_1')
+    function maker2.process_output(...)
+      call writefile([''], s:flagfile)
+      return [
+      \ {'text': 'maker2_1', 'lnum': 1, 'bufnr': bufnr('%')},
+      \ {'text': 'maker2_2', 'lnum': 2, 'filename': 'very_long_name_for_unlisted_buffer_via_filename_entry'}]
+    endfunction
+  else
+    let maker2 = NeomakeTestsCommandMaker('maker2', 'true')
+  endif
+  let maker1.errorformat = '%f: %m'
+  let maker1.buffer_output = 0
+  let maker2.errorformat = '%f: %m'
+  CallNeomake {'enabled_makers': [maker1, maker2], 'file_mode': 0}
+
+  let unlisted_bufnr = bufnr('very_long_name_for_unlisted_buffer_via_filename_entry')
+
+  " Quickfix list entry contains marker.
+  let qflist = getqflist()
+  AssertEqual map(copy(qflist), '[v:val.bufnr, v:val.text]'), [
+  \ [bufnr, 'maker1_1 nmcfg:{''short'': ''make'', ''name'': ''maker1''}'],
+  \ [bufnr, 'maker2_1 nmcfg:{''short'': ''make'', ''name'': ''maker2''}'],
+  \ [unlisted_bufnr, 'maker2_2'],
+  \ [bufnr, 'maker1_2 nmcfg:{''short'': ''make'', ''name'': ''maker1''}']]
+
+  copen
+  AssertEqual w:quickfix_title, 'Neomake[project]: maker1, maker2'
+
+  doautocmd CursorMoved
+  " Empty bufname gets transformed to buf:X.
+  AssertEqual expand('<cWORD>'), '[buf:'.bufnr.']'
+  normal! W
+  AssertEqual expand('<cWORD>'), 'maker1_1'
+  normal! j0
+  doautocmd CursorMoved
+  " Same buffer as previous entry: name omitted.
+  AssertEqual expand('<cWORD>'), 'maker2_1'
+  normal! j
+  AssertEqual expand('<cWORD>'), '[very_long_name…]'
+  normal! j
+  AssertEqual expand('<cWORD>'), '[buf:'.bufnr.']'
+
+  cclose
+  bwipe
+  exe unlisted_bufnr 'bwipe'
+
 Execute (Disable custom formatted quickfix buffer):
   Assert neomake#quickfix#is_enabled()
   call neomake#quickfix#disable()
