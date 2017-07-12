@@ -136,7 +136,7 @@ function! neomake#quickfix#FormatQuickfix() abort
     endfor
 
     if src_buf
-        for ft in split(getbufvar(src_buf, '&filetype', ''), '\.')
+        for ft in split(neomake#compat#getbufvar(src_buf, '&filetype', ''), '\.')
             if !empty(ft) && index(makers, ft) == -1
                 call add(makers, ft)
             endif
