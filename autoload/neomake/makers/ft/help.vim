@@ -1,16 +1,18 @@
 function! neomake#makers#ft#help#EnabledMakers() abort
-  let makers = ['proselint', 'writegood']
-  if executable('vim')
-    call insert(makers, 'vimhelplint')
-  endif
-  return makers
+    let makers = ['proselint', 'writegood']
+    if executable('vim')
+        call insert(makers, 'vimhelplint')
+    endif
+    return makers
 endfunction
 
 let s:slash = neomake#utils#Slash()
-let s:vimhelplint = expand('<sfile>:p:h:h:h:h:h', 1).s:slash.'contrib'.s:slash.'vimhelplint'
+let s:vimhelplint = executable('vimhelplint')
+            \ ? 'vimhelplint'
+            \ : expand('<sfile>:p:h:h:h:h:h', 1).s:slash.'contrib'.s:slash.'vimhelplint'
 
 function! neomake#makers#ft#help#vimhelplint() abort
-  return {
+    return {
         \ 'exe': s:vimhelplint,
         \ 'errorformat': '%f:%l:%c:%trror:%n:%m,%f:%l:%c:%tarning:%n:%m',
         \ 'postprocess': function('neomake#postprocess#GenericLengthPostprocess'),

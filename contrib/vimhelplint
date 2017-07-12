@@ -2,8 +2,8 @@
 # A wrapper around vim-vimhelp (https://github.com/machakann/vim-vimhelplint).
 # It uses vimhelplint from Neomake's build dir.
 
-# Change to parent dir (POSIXly).
-CDPATH='' cd -P -- "$(dirname -- "$0")/.." || exit
+# Change to parent dir (not POSIXly, but resolving symlinks).
+CDPATH='' cd -P -- "$(dirname -- "$(readlink -f -- "$0" 2>/dev/null || echo "$0")")/.." || exit
 vimhelplint=$PWD/build/vimhelplint/ftplugin/help_lint.vim
 cd - >/dev/null || exit
 

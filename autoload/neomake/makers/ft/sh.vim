@@ -12,6 +12,7 @@ function! neomake#makers#ft#sh#shellcheck() abort
             \ '%f:%l:%c: %trror: %m,' .
             \ '%f:%l:%c: %tarning: %m,' .
             \ '%I%f:%l:%c: Note: %m',
+        \ 'output_stream': 'stdout',
         \ }
 
     if match(getline(1), '\v^#!.*<%(sh|dash|bash|ksh)') >= 0
@@ -44,13 +45,14 @@ function! neomake#makers#ft#sh#checkbashisms() abort
             \ '%Ecannot open script %f for reading: %m,' .
             \ '%Wscript %f %m,%C%.# lines,' .
             \ '%Wpossible bashism in %f line %l (%m):,%C%.%#,%Z.%#,' .
-            \ '%-G%.%#'
+            \ '%-G%.%#',
+        \ 'output_stream': 'stderr',
         \ }
 endfunction
 
 function! neomake#makers#ft#sh#sh() abort
     let shebang = matchstr(getline(1), '^#!\s*\zs.*$')
-    if len(shebang)
+    if !empty(shebang)
         let l = split(shebang)
         let exe = l[0]
         let args = l[1:] + ['-n']
@@ -64,7 +66,16 @@ function! neomake#makers#ft#sh#sh() abort
         \ 'exe': exe,
         \ 'args': args,
         \ 'errorformat':
-            \ '%f: line %l: %m,' .
-            \ '%f: %l: %m'
+            \ '%E%f: line %l: %m,' .
+            \ '%E%f: %l: %m',
+        \ 'output_stream': 'stderr',
+        \}
+endfunction
+
+function! neomake#makers#ft#sh#dash() abort
+    return {
+        \ 'args': ['-n'],
+        \ 'errorformat': '%E%f: %l: %m',
+        \ 'output_stream': 'stderr',
         \}
 endfunction

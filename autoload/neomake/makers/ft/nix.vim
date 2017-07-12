@@ -1,10 +1,10 @@
 " vim: ts=4 sw=4 et
 "
-function! neomake#makers#ft#nix#EnabledMakers()
+function! neomake#makers#ft#nix#EnabledMakers() abort
     return ['nix_instantiate']
 endfunction
 
-function! neomake#makers#ft#nix#nix_instantiate()
+function! neomake#makers#ft#nix#nix_instantiate() abort
     return {
         \ 'exe': 'nix-instantiate',
         \ 'args': ['%:p', '--parse-only'],

@@ -1,4 +1,4 @@
-#[![Neomake](https://cloud.githubusercontent.com/assets/111942/22717189/9e3e1760-ed67-11e6-94c5-e8955869d6d0.png)](#neomake)
+# [![Neomake](https://cloud.githubusercontent.com/assets/111942/22717189/9e3e1760-ed67-11e6-94c5-e8955869d6d0.png)](#neomake)
 
 [![Build Status](https://travis-ci.org/neomake/neomake.svg?branch=master)](https://travis-ci.org/neomake/neomake)
 
@@ -139,6 +139,12 @@ You should have a good profile of issue triaging and PRs on this repo already.
 We are using [Vader](https://github.com/junegunn/vader.vim) for our tests, and
 they get run for every pull request in different environments (via Docker
 also).
+
+### Logging
+
+`let g:neomake_logfile = '/tmp/neomake.log'` enables the debug logfile.
+You can use e.g. `tail -f /tmp/neomake.log` to follow it in a new terminal
+window.
 
 ### Running tests
 

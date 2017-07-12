@@ -1,7 +1,8 @@
 Include: include/setup.vader
 
 Execute (python: errorformat):
-  e! tests/fixtures/errors.py
+  new
+  e tests/fixtures/errors.py
   Neomake python
   NeomakeTestsWaitForFinishedJobs
 
@@ -15,10 +16,12 @@ Execute (python: errorformat):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'invalid syntax'}]
+  bwipe
 
 Execute (python: pylama: errorformat):
   Save &errorformat
   let &errorformat = neomake#makers#ft#python#pylama().errorformat
+  new
   file file1.py
   lgetexpr "file1.py:16:1: [C] C901 'load_library' is too complex (13) [mccabe]"
   AssertEqual getloclist(0), [
@@ -26,7 +29,7 @@ Execute (python: pylama: errorformat):
     \  'nr': -1, 'type': 'C', 'pattern': '',
     \  'text': 'C901 ''load_library'' is too complex (13) [mccabe]'}]
 
-  let e = copy(getloclist(0))[0]
+  let e = getloclist(0)[0]
   call neomake#makers#ft#python#PylamaEntryProcess(e)
   AssertEqual e, {
   \ 'lnum': 16,
@@ -38,11 +41,29 @@ Execute (python: pylama: errorformat):
   \ 'type': 'I',
   \ 'pattern': '',
   \ 'text': "C901 'load_library' is too complex (13) [mccabe]"}
+  bwipe
+
+Execute (python: pylama: cwd):
+  let tempdir = tempname()
+  call mkdir(tempdir)
+
+  new
+  exe 'lcd '.tempdir
+  let maker = neomake#makers#ft#python#pylama()
+  Assert !has_key(maker, 'cwd'), 'cwd is not set'
+
+  call mkdir('pylama/subdir', 'p')
+  call writefile([], 'pylama/setup.cfg')
+  lcd pylama/subdir
+  let maker = neomake#makers#ft#python#pylama()
+  AssertEqual maker.cwd, tempdir . neomake#utils#Slash() . 'pylama'
+  bwipe
 
 Execute (python: flake8: errorformat/postprocess: F811):
   Save &errorformat
   let &errorformat = neomake#makers#ft#python#flake8().errorformat
 
+  new
   file file1.py
   norm Iimport os
   norm oimport os . path as os
@@ -54,7 +75,7 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \  'nr': 811, 'type': 'F', 'pattern': '',
   \  'text': "redefinition of unused 'os' from line 1"}], getloclist(0)
 
-  let e = copy(getloclist(0))[0]
+  let e = getloclist(0)[0]
   call neomake#makers#ft#python#Flake8EntryProcess(e)
   AssertEqual {
   \ 'lnum': 2,
@@ -75,7 +96,7 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \  'nr': 811, 'type': 'F', 'pattern': '',
   \  'text': "redefinition of unused 'os' from line 2"}], getloclist(0)
 
-  let e = copy(getloclist(0))[0]
+  let e = getloclist(0)[0]
   call neomake#makers#ft#python#Flake8EntryProcess(e)
   AssertEqual {
   \ 'lnum': 3,
@@ -88,3 +109,4 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'length': 2,
   \ 'type': 'E',
   \ 'text': "F811 redefinition of unused 'os' from line 2"}, e
+  bwipe!

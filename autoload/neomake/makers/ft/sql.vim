@@ -1,8 +1,8 @@
-function! neomake#makers#ft#sql#EnabledMakers()
+function! neomake#makers#ft#sql#EnabledMakers() abort
     return ['sqlint']
 endfunction
 
-function! neomake#makers#ft#sql#sqlint()
+function! neomake#makers#ft#sql#sqlint() abort
     return {
         \ 'errorformat':
             \ '%E%f:%l:%c:ERROR %m,' .

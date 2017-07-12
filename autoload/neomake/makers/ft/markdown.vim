@@ -1,3 +1,6 @@
+function! neomake#makers#ft#markdown#SupersetOf() abort
+    return 'text'
+endfunction
 function! neomake#makers#ft#markdown#EnabledMakers() abort
     let makers = executable('mdl') ? ['mdl'] : ['markdownlint']
     return makers + ['proselint', 'writegood'] + neomake#makers#ft#text#EnabledMakers()
@@ -25,12 +28,4 @@ function! neomake#makers#ft#markdown#alex() abort
                 \ '%*[ ]%l:%c-%*\d:%n%*[ ]%tarning%*[ ]%m,' .
                 \ '%-G%.%#'
                 \ }
-endfunction
-
-function! neomake#makers#ft#markdown#proselint() abort
-    return neomake#makers#ft#text#proselint()
-endfunction
-
-function! neomake#makers#ft#markdown#writegood() abort
-    return neomake#makers#ft#text#writegood()
 endfunction

@@ -12,10 +12,10 @@
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
-if exists('g:neomake_java_javac_maker')
+if exists('g:loaded_neomake_java_javac_maker')
     finish
 endif
-let g:neomake_java_javac_maker = 1
+let g:loaded_neomake_java_javac_maker = 1
 
 let g:neomake_java_javac_maven_pom_tags = ['build', 'properties']
 let g:neomake_java_javac_maven_pom_properties = {}
@@ -86,35 +86,8 @@ let s:has_maven = executable(expand(g:neomake_java_maven_executable, 1))
 let s:has_gradle = executable(expand(g:neomake_java_gradle_executable, 1))
 
 function! s:tmpdir() abort
-    let tempdir = ''
-
-    if (has('unix') || has('mac')) && executable('mktemp') && !has('win32unix')
-        " TODO: option "-t" to mktemp(1) is not portable
-        let tmp = $TMPDIR !=# '' ? $TMPDIR : $TMP !=# '' ? $TMP : '/tmp'
-        let out = split(system('mktemp -q -d ' . tmp . '/neomake-java-' . getpid() . '-XXXXXXXX'), "\n")
-        if v:shell_error == 0 && len(out) == 1
-            let tempdir = out[0]
-        endif
-    endif
-
-    if tempdir ==# ''
-        if has('win32') || has('win64')
-            let tempdir = $TEMP . s:psep . 'neomake-java-' . getpid()
-        elseif has('win32unix')
-            let tempdir = substitute(system('cygpath -m ' . s:shescape('/neomake-java-'  . getpid())), "\n", '', 'g')
-        elseif $TMPDIR !=# ''
-            let tempdir = $TMPDIR . '/neomake-java-' . getpid()
-        else
-            let tempdir = '/tmp/neomake-java-' . getpid()
-        endif
-
-        try
-            call mkdir(tempdir, 'p', 0700)
-        catch /\m^Vim\%((\a\+)\)\=:E739/
-            let tempdir = '.'
-        endtry
-    endif
-
+    let tempdir = tempname()
+    call mkdir(tempdir, 'p', 0700)
     return tempdir
 endfunction
 
@@ -123,7 +96,7 @@ function! s:ClassSep() abort
 endfunction
 
 function! s:shescape(string) abort
-    return a:string =~# '\m^[A-Za-z0-9_/.-]\+$' ? a:string : shellescape(a:string)
+    return neomake#utils#shellescape(a:string)
 endfunction
 
 function! s:AddToClasspath(classpath, path) abort
@@ -353,7 +326,7 @@ function! s:GetGradleClasspath() abort
                 if v:shell_error == 0
                     let cp = filter(split(ret, "\n"), "v:val =~# '^CLASSPATH:'")[0][10:]
                     if filereadable(getcwd() . s:psep . 'build.gradle')
-                        let out_putdir = s:GlobPathList(getcwd(), join(
+                        let out_putdir = neomake#compat#globpath_list(getcwd(), join(
                                     \ ['**', 'build', 'intermediates', 'classes', 'debug'],
                                     \ s:psep), 0)
                         for classes in out_putdir
@@ -375,13 +348,5 @@ function! s:GetGradleClasspath() abort
     return ''
 endf
 
-
-function! s:GlobPathList(path, pattern, suf) abort
-    if v:version >= 705 || (v:version == 704 && has('patch279'))
-        return globpath(a:path, a:pattern, a:suf, 1)
-    else
-        return split(globpath(a:path, a:pattern, a:suf), "\n")
-    endif
-endfunction
 let &cpoptions = s:save_cpo
 unlet s:save_cpo

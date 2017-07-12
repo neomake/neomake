@@ -1,0 +1,89 @@
+" Tests for the NeomakeInfo command.
+Include: include/setup.vader
+
+Execute (:NeomakeInfo):
+  Save g:neomake_c_enabled_makers, g:neomaker_not_a_setting
+  let g:neomake_c_enabled_makers = ['doesnotexist']
+  let g:neomaker_not_a_setting = 1
+
+  let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+  Assert len(filter(copy(info), "v:val =~ '\\v^#+ Settings$'")), 'Settings header exists'
+  Assert index(info, "g:neomake_c_enabled_makers = ['doesnotexist']") != -1,
+  \ 'neomake_c_enabled_makers setting gets reported'
+  AssertEqual filter(copy(info), "v:val =~ 'neomaker'"), []
+
+Execute (:NeomakeInfo with FuncRef):
+  Save g:neomake_c_enabled_makers, g:neomake_c_doesnotexist_maker
+  new
+  set filetype=c
+  let g:neomake_c_enabled_makers = ['doesnotexist']
+  let g:neomake_c_doesnotexist_maker = {
+  \ 'args': function('getcwd'),
+  \ 'errorformat': 'custom_efm: %m'}
+
+  let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+  let idx = -1
+  for line in [
+      \ 'For the current filetype ("c", used with :Neomake):',
+      \ ' - doesnotexist',
+      \ '   - args: function(''getcwd'')',
+      \ '   - errorformat: ''custom_efm: %m''',
+      \ '   - exe: ''doesnotexist''']
+    let i = index(info, line)
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
+    let idx = i
+  endfor
+  bwipe
+
+Execute (:NeomakeInfo with unusual filetype):
+  new
+  set filetype=ft1.gentoo-package-keywords
+  let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+  Assert index(info, 'NOTE: you can define g:neomake_ft1_gentoo_package_keywords_enabled_makers to configure it (or b:neomake_ft1_gentoo_package_keywords_enabled_makers).') != -1, 'Line was found'
+  bwipe
+
+Execute (:NeomakeInfo displays issues):
+  Save g:neomake_enabled_makers, g:neomake_mymaker_maker
+
+  let g:neomake_enabled_makers = ['mymaker']
+  let g:neomake_mymaker_maker = {
+  \ 'exe': 'doesnotexist',
+  \ 'args': function('getcwd'),
+  \ 'errorformat': 'custom_efm: %m',
+  \ 'mapexpr': '',
+  \ 'postprocess': function('tr'),
+  \ 'process_output': function('tr'),
+  \ }
+
+  let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+  let idx = -1
+  for line in [
+      \ '#### Neomake information (use ":verbose NeomakeInfo" extra output)',
+      \ 'For the project (used with :Neomake!):',
+      \ ' - mymaker',
+      \ '   - args: function(''getcwd'')',
+      \ '   - errorformat: ''custom_efm: %m''',
+      \ '   - exe: ''doesnotexist''',
+      \ '   - ERRORS:',
+      \ "     - maker's exe (doesnotexist) is not executable.",
+      \ '   - WARNINGS:',
+      \ '     - maker has mapexpr, but only process_output will be used.',
+      \ '     - maker has postprocess, but only process_output will be used.',
+      \ ]
+    let i = index(info, line)
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
+    let idx = i
+  endfor
+
+Execute (:verb NeomakeInfo displays extra info):
+  let info = split(neomake#utils#redir('verbose NeomakeInfo'), '\n')
+  let idx = -1
+  for line in [
+      \ '#### Neomake debug information',
+      \ '#### :version',
+      \ '#### :messages',
+      \ ]
+    let i = index(info, line)
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
+    let idx = i
+  endfor

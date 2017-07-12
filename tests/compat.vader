@@ -1,0 +1,41 @@
+Include: include/setup.vader
+
+Execute (neomake#compat#uniq):
+  AssertEqual neomake#compat#uniq([]), []
+  AssertEqual neomake#compat#uniq([1, 2]), [1, 2]
+  AssertEqual neomake#compat#uniq([1, 2, 1]), [1, 2, 1]
+  AssertEqual neomake#compat#uniq([1, 1, 2]), [1, 2]
+
+Execute (neomake#compat#reltimefloat):
+  let r = neomake#compat#reltimefloat()
+  AssertEqual type(r), type(0.0)
+  let r2 = neomake#compat#reltimefloat()
+  Assert r2 > r, '2nd result is bigger'
+
+Execute (neomake#compat#systemlist):
+  let r = neomake#compat#systemlist(['echo 1'])
+  if has('nvim')
+    AssertEqual r, ''
+    if has('nvim-0.2.0')
+      AssertEqual v:shell_error, -1
+    else
+      AssertEqual v:shell_error, 0
+    endif
+  else
+    AssertEqual r, ['/bin/bash: echo 1: command not found']
+    AssertEqual v:shell_error, 127
+  endif
+
+  AssertEqual neomake#compat#systemlist(['echo', '1']), ['1']
+  AssertEqual v:shell_error, 0
+  AssertEqual neomake#compat#systemlist(['sh', '-c', 'echo 1; echo  2']), ['1', '2']
+  AssertEqual v:shell_error, 0
+  AssertEqual neomake#compat#systemlist(['echo', '1 2']), ['1 2']
+  AssertEqual v:shell_error, 0
+  AssertEqual neomake#compat#systemlist(['printf', '%s\n', '1', '2']), ['1', '2']
+  AssertEqual v:shell_error, 0
+
+Execute (neomake#compat#systemlist with empty args):
+  AssertEqual neomake#compat#systemlist(''), []
+  AssertEqual neomake#compat#systemlist([]), []
+  AssertEqual neomake#compat#systemlist('0'), ['/bin/bash: 0: command not found']

@@ -1,0 +1,137 @@
+Include: include/setup.vader
+
+Execute (Toggle commands):
+  Save g:neomake, &verbose
+
+  for verbose in [0, 1]
+    tabnew
+    let &verbose = verbose
+
+    NeomakeToggle
+    AssertEqual g:neomake, {'disabled': 1}
+    AssertEqual neomake#config#get_with_source('disabled'), [1, 'global']
+
+    NeomakeToggleTab
+    AssertEqual g:neomake, {'disabled': 1}
+    AssertEqual t:neomake, {'disabled': 1}
+    AssertEqual neomake#config#get_with_source('disabled'), [1, 'tab']
+
+    NeomakeToggleBuffer
+    AssertEqual g:neomake, {'disabled': 1}
+    AssertEqual t:neomake, {'disabled': 1}
+    AssertEqual b:neomake, {'disabled': 1}
+    AssertEqual neomake#config#get_with_source('disabled'), [1, 'buffer']
+
+    NeomakeEnableBuffer
+    AssertEqual g:neomake, {'disabled': 1}
+    AssertEqual t:neomake, {'disabled': 1}
+    AssertEqual b:neomake, {'disabled': 0}
+    AssertEqual neomake#config#get_with_source('disabled'), [0, 'buffer']
+
+    NeomakeToggleBuffer
+    AssertEqual g:neomake, {'disabled': 1}
+    AssertEqual t:neomake, {'disabled': 1}
+    AssertEqual b:neomake, {'disabled': 1}
+    AssertEqual neomake#config#get_with_source('disabled'), [1, 'buffer']
+
+    NeomakeToggleBuffer
+    AssertEqual g:neomake, {'disabled': 1}
+    AssertEqual t:neomake, {'disabled': 1}
+    AssertEqual b:neomake, {}
+    AssertEqual neomake#config#get_with_source('disabled'), [1, 'tab']
+
+    NeomakeEnableTab
+    AssertEqual g:neomake, {'disabled': 1}
+    AssertEqual t:neomake, {'disabled': 0}
+    AssertEqual b:neomake, {}
+    AssertEqual neomake#config#get_with_source('disabled'), [0, 'tab']
+
+    NeomakeToggleTab
+    AssertEqual g:neomake, {'disabled': 1}
+    AssertEqual t:neomake, {'disabled': 1}
+    AssertEqual b:neomake, {}
+    AssertEqual neomake#config#get_with_source('disabled'), [1, 'tab']
+
+    NeomakeToggleTab
+    AssertEqual g:neomake, {'disabled': 1}
+    AssertEqual t:neomake, {}
+    AssertEqual b:neomake, {}
+    AssertEqual neomake#config#get_with_source('disabled'), [1, 'global']
+
+    NeomakeEnable
+    AssertEqual g:neomake, {'disabled': 0}
+    AssertEqual t:neomake, {}
+    AssertEqual b:neomake, {}
+    AssertEqual neomake#config#get_with_source('disabled'), [0, 'global']
+
+    NeomakeToggle
+    AssertEqual g:neomake, {'disabled': 1}
+    AssertEqual t:neomake, {}
+    AssertEqual b:neomake, {}
+    AssertEqual neomake#config#get_with_source('disabled'), [1, 'global']
+
+    NeomakeToggle
+    AssertEqual g:neomake, {}
+    AssertEqual t:neomake, {}
+    AssertEqual b:neomake, {}
+    AssertEqual neomake#config#get_with_source('disabled'),
+    \ [g:neomake#config#undefined, 'default']
+    bwipe
+
+    if verbose
+      redir => messages_output
+        silent messages
+      redir END
+      AssertEqual split(messages_output, "\n")[-12:], [
+        \ 'Neomake is disabled (global).',
+        \ 'Neomake is disabled (tab).',
+        \ 'Neomake is disabled (buffer).',
+        \ 'Neomake is enabled (buffer).',
+        \ 'Neomake is disabled (buffer).',
+        \ 'Neomake is disabled (tab).',
+        \ 'Neomake is enabled (tab).',
+        \ 'Neomake is disabled (tab).',
+        \ 'Neomake is disabled (global).',
+        \ 'Neomake is enabled (global).',
+        \ 'Neomake is disabled (global).',
+        \ 'Neomake is enabled.']
+    endif
+  endfor
+
+Execute (NeomakeStatus with disabling commands):
+  tabnew
+  echom 'init_msg'
+  NeomakeStatus
+
+  NeomakeDisable
+  NeomakeStatus
+
+  NeomakeDisableTab
+  NeomakeStatus
+
+  NeomakeDisableBuffer
+  NeomakeStatus
+
+  redir => messages_output
+    silent messages
+  redir END
+  AssertEqual split(messages_output, "\n")[-5:], [
+  \ 'init_msg',
+  \ 'Neomake is enabled.',
+  \ 'Neomake is disabled (global).',
+  \ 'Neomake is disabled (tab).',
+  \ 'Neomake is disabled (buffer).']
+  bwipe
+
+Execute (Neomake via autocommand uses 'disabled' setting):
+  new
+  NeomakeDisableBuffer
+
+  augroup neomake_test_user_setup
+    au!
+    autocmd BufWritePost * Neomake
+  augroup END
+  doautocmd BufWritePost
+  AssertNeomakeMessage 'Disabled via buffer.', 3
+  bwipe
+  augroup! neomake_test_user_setup

@@ -1,5 +1,8 @@
 Include: include/setup.vader
 
+Execute (idris: makers):
+  AssertEqual neomake#GetMakers('idris'), ['idris']
+
 Execute (idris: errorformat):
   " Test errorformat itself.
   let idris_output =
@@ -21,6 +24,8 @@ Execute (idris: errorformat):
     \Bool (Expected type)"
 
   let entry = getloclist(0)[0]
-  call neomake#makers#ft#idris#postprocess(entry)
+  call call(neomake#makers#ft#idris#idris().postprocess, [entry])
   AssertEqual entry.text, 'Type mismatch between Integer (Type of 5) and Bool (Expected type)'
   AssertEqual entry.length, 3
+
+  bwipe t.idr

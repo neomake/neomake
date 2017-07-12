@@ -1,0 +1,15 @@
+Include: include/setup.vader
+
+Execute (jobinfo.get_pid):
+  if NeomakeAsyncTestsSetup()
+    let maker = NeomakeTestsCommandMaker('echo-pid-and-sleep', 'echo $$; sleep 10')
+    let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
+    NeomakeTestsWaitForMessage '\v^stdout: echo-pid-and-sleep: \[''(\d+)'', ''''\].'
+    let pid = +g:neomake_test_matchlist[1]
+    AssertEqual jobinfo.get_pid(), pid
+
+    call neomake#CancelJob(jobinfo.id)
+    NeomakeTestsWaitForMessage 'exit: job was canceled.'
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual jobinfo.get_pid(), -1
+  endif

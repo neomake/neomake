@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#php#EnabledMakers() abort
-    return ['php', 'phpmd', 'phpcs']
+    return ['php', 'phpmd', 'phpcs', 'phpstan']
 endfunction
 
 function! neomake#makers#ft#php#php() abort
@@ -38,5 +38,12 @@ function! neomake#makers#ft#php#phpmd() abort
     return {
         \ 'args': ['%:p', 'text', 'codesize,design,unusedcode,naming'],
         \ 'errorformat': '%W%f:%l%\s%\s%#%m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#php#phpstan() abort
+    return {
+        \ 'args': ['analyse', '--errorFormat', 'raw'],
+        \ 'errorformat': '%E%f:%l:%m',
         \ }
 endfunction

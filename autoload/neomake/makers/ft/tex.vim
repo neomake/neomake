@@ -4,7 +4,7 @@ function! neomake#makers#ft#tex#EnabledMakers() abort
     return ['chktex', 'lacheck', 'rubberinfo', 'proselint']
 endfunction
 
-function! neomake#makers#ft#tex#chktex()
+function! neomake#makers#ft#tex#chktex() abort
     return {
                 \ 'errorformat':
                 \ '%EError %n in %f line %l: %m,' .
@@ -15,7 +15,7 @@ function! neomake#makers#ft#tex#chktex()
                 \ }
 endfunction
 
-function! neomake#makers#ft#tex#lacheck()
+function! neomake#makers#ft#tex#lacheck() abort
     return {
                 \ 'errorformat':
                 \ '%-G** %f:,' .
@@ -23,7 +23,7 @@ function! neomake#makers#ft#tex#lacheck()
                 \ }
 endfunction
 
-function! neomake#makers#ft#tex#rubber()
+function! neomake#makers#ft#tex#rubber() abort
     return {
                 \ 'args': ['--pdf', '-f', '--warn=all'],
                 \ 'errorformat':
@@ -32,7 +32,7 @@ function! neomake#makers#ft#tex#rubber()
                 \ }
 endfunction
 
-function! neomake#makers#ft#tex#rubberinfo()
+function! neomake#makers#ft#tex#rubberinfo() abort
     return {
                 \ 'exe': 'rubber-info',
                 \ 'errorformat':
@@ -42,11 +42,19 @@ function! neomake#makers#ft#tex#rubberinfo()
                 \ }
 endfunction
 
-function! neomake#makers#ft#tex#latexrun()
+function! neomake#makers#ft#tex#latexrun() abort
     return {
                 \ 'args': ['--color', 'never'],
                 \ 'errorformat':
                 \ '%f:%l: %m'
+                \ }
+endfunction
+
+function! neomake#makers#ft#tex#pdflatex() abort
+    return {
+                \ 'exe': 'pdflatex',
+                \ 'args': ['-file-line-error', '-interaction', 'nonstopmode'],
+                \ 'errorformat': '%E%f:%l: %m'
                 \ }
 endfunction
 

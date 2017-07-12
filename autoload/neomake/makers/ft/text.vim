@@ -5,8 +5,9 @@ endfunction
 
 function! neomake#makers#ft#text#proselint() abort
     return {
-                \ 'errorformat': '%W%f:%l:%c: %m'
-                \ }
+          \ 'errorformat': '%W%f:%l:%c: %m',
+          \ 'postprocess': function('neomake#postprocess#GenericLengthPostprocess'),
+          \ }
 endfunction
 
 function! neomake#makers#ft#text#PostprocessWritegood(entry) abort
@@ -22,7 +23,7 @@ endfunction
 function! neomake#makers#ft#text#writegood() abort
     return {
                 \ 'args': ['--parse'],
-                \ 'errorformat': '%W%f:%l:%c:%m',
+                \ 'errorformat': '%W%f:%l:%c:%m,%C%m,%-G',
                 \ 'postprocess': function('neomake#makers#ft#text#PostprocessWritegood'),
                 \ }
 endfunction

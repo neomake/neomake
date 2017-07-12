@@ -4,8 +4,6 @@
 let s:rustup_has_nightly = -1
 
 function! neomake#makers#clippy#clippy() abort
-    let errorfmt = neomake#makers#ft#rust#rustc()['errorformat']
-
     " When rustup and a nightly toolchain is installed, that is used.
     " Otherwise, the default cargo exectuable is used. If this is not part
     " of a nightly rust, this will fail.
@@ -22,17 +20,22 @@ function! neomake#makers#clippy#clippy() abort
         endif
     endif
 
+    let cargo_maker = neomake#makers#ft#rust#cargo()
+    let json_args = ['--message-format=json', '--quiet']
+
     if s:rustup_has_nightly
         return {
             \ 'exe': 'rustup',
-            \ 'args': ['run', 'nightly', 'cargo', 'clippy'],
-            \ 'errorformat': errorfmt,
+            \ 'args': ['run', 'nightly', 'cargo', 'clippy'] + json_args,
+            \ 'errorformat': cargo_maker.errorformat,
+            \ 'process_output': cargo_maker.process_output,
             \ }
     else
         return {
             \ 'exe': 'cargo',
-            \ 'args': ['clippy'],
-            \ 'errorformat': errorfmt,
+            \ 'args': ['clippy'] + json_args,
+            \ 'errorformat': cargo_maker.errorformat,
+            \ 'process_output': cargo_maker.process_output,
             \ }
     endif
 endfunction

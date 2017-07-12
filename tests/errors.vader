@@ -2,21 +2,25 @@ Include: include/setup.vader
 
 Execute (Error with no filename):
   new
-  set ft=python
+  set ft=neomake_tests
+  let b:neomake_neomake_tests_enabled_makers = ['true']
+  let b:neomake_neomake_tests_true_tempfile_enabled = 0
 
   Neomake
   let make_id = neomake#GetStatus().last_make_id
-  AssertNeomakeMessage 'no file name', 0, {'make_id': make_id}
-  bd!
+  AssertNeomakeMessage 'no file name.', 0, {'make_id': make_id}
+  bwipe
 
 Execute (Error with non-existing filename):
   new
-  set ft=python
   file doesnotexist
+  set ft=neomake_tests
+  let b:neomake_neomake_tests_enabled_makers = ['true']
+  let b:neomake_neomake_tests_true_tempfile_enabled = 0
 
   let fname = fnamemodify(bufname('%'), ':p')
   Neomake
-  bd!
+  bwipe!
   let make_id = neomake#GetStatus().last_make_id
   AssertNeomakeMessage 'file is not readable ('.fname.')', 0, {'make_id': make_id}
 
@@ -24,8 +28,10 @@ Execute (Error with non-existing filename for 2nd maker):
   call g:NeomakeSetupAutocmdWrappers()
 
   new
-  set ft=python
   file doesnotexist
+  set ft=neomake_tests
+  let b:neomake_neomake_tests_enabled_makers = ['true']
+  let b:neomake_neomake_tests_true_tempfile_enabled = 0
 
   let maker1 = {
       \ 'exe': 'true',
@@ -35,13 +41,72 @@ Execute (Error with non-existing filename for 2nd maker):
       \ }
   let maker2 = copy(maker1)
   let maker2.append_file = 1
+  let maker2.tempfile_enabled = 0
   let maker3 = copy(maker1)
 
   let fname = fnamemodify(bufname('%'), ':p')
   call neomake#Make(1, [maker1, maker2, maker3])
   let make_id = neomake#GetStatus().last_make_id
-  AssertNeomakeMessage 'file is not readable ('.fname.')', 0, {'make_id': make_id}
   NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'file is not readable ('.fname.')', 0, {'make_id': make_id}
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_jobfinished), 2
-  bd!
+  bwipe!
+
+Execute (maker.exe gets checked):
+  " Reset s:exe_error_thrown.
+  runtime autoload/neomake.vim
+
+  let maker = {'exe': 'doesnotexist'}
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  let log_context = {'make_id': neomake#GetStatus().last_make_id, 'bufnr': bufnr('%')}
+  AssertNeomakeMessage 'Exe (doesnotexist) of maker unnamed_maker is not executable.', 0, log_context
+  AssertNeomakeMessage 'Nothing to make: no valid makers.', 3, log_context
+
+  call neomake#Make(1, [maker])
+  let make_id = neomake#GetStatus().last_make_id
+  NeomakeTestsWaitForFinishedJobs
+
+  let log_context = {'make_id': neomake#GetStatus().last_make_id, 'bufnr': bufnr('%')}
+  " Should get logged as debug message on the second error.
+  AssertNeomakeMessage 'Exe (doesnotexist) of maker unnamed_maker is not executable.', 3, log_context
+  AssertNeomakeMessage 'Nothing to make: no valid makers.', 3, log_context
+  Assert len(g:neomake_test_messages), 4
+
+Execute (maker.exe gets checked (auto-enabled)):
+  new
+  set ft=neomake_tests
+  call neomake#Make(1)
+  let make_id = neomake#GetStatus().last_make_id
+  NeomakeTestsWaitForFinishedJobs
+
+  let log_context = {'make_id': make_id, 'bufnr': bufnr('%')}
+  AssertNeomakeMessage 'Maker not found (for filetype neomake_tests): nonexisting.', 3, log_context
+  AssertNeomakeMessage 'Exe (maker_without_exe) of auto-configured maker maker_without_exe is not executable, skipping.', 3, log_context
+  AssertNeomakeMessage 'Nothing to make: no valid makers.', 3, log_context
+  Assert len(g:neomake_test_messages), 3
+  bwipe
+
+Execute (neomake#GetMaker with non-existent maker throws errors):
+  AssertThrows call neomake#GetMaker('non-existent')
+  AssertEqual g:vader_exception, 'Neomake: Invalid maker name: "non-existent"'
+  AssertThrows call neomake#GetMaker('nonexistent')
+  AssertEqual g:vader_exception, 'Neomake: Project maker not found: nonexistent'
+  AssertEqual len(g:neomake_test_messages), 0
+
+Execute (Errors from neomake#GetMaker get handled by neomake#Make):
+  CallNeomake 1, ['g:invalid-name']
+  AssertNeomakeMessage 'Invalid maker name: "g:invalid-name".', 0
+  CallNeomake 0, ['nonexistent']
+  AssertNeomakeMessage 'Project maker not found: nonexistent.', 0
+
+Execute (Empty maker gets handled in s:Make):
+  CallNeomake {'enabled_makers': []}
+  " TODO: level: more visible in this case?!
+  AssertNeomakeMessage 'Nothing to make: no valid makers.', 3
+
+  CallNeomake {'enabled_makers': [{}]}
+  AssertNeomakeMessage 'Exe (unnamed_maker) of maker unnamed_maker is not executable.', 0
+  AssertNeomakeMessage 'Nothing to make: no valid makers.', 3

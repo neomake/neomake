@@ -1,10 +1,14 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#rst#EnabledMakers()
+function! neomake#makers#ft#rst#SupersetOf() abort
+    return 'text'
+endfunction
+
+function! neomake#makers#ft#rst#EnabledMakers() abort
     return ['rstlint', 'rstcheck']
 endfunction
 
-function! neomake#makers#ft#rst#rstlint()
+function! neomake#makers#ft#rst#rstlint() abort
     return {
         \ 'exe': 'rst-lint',
         \ 'errorformat':
@@ -14,7 +18,7 @@ function! neomake#makers#ft#rst#rstlint()
         \ }
 endfunction
 
-function! neomake#makers#ft#rst#rstcheck()
+function! neomake#makers#ft#rst#rstcheck() abort
     return {
         \ 'errorformat':
             \ '%I%f:%l: (INFO/1) %m,'.

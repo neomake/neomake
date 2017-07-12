@@ -193,9 +193,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         let &breakindentopt = 'shift:'.(b:neomake_start_col + 1)
     endif
 
-    for item in signs
-        call neomake#signs#PlaceSign(item, 'file')
-    endfor
+    call neomake#signs#PlaceSigns(buf, signs, 'file')
 
     if b:neomake_start_col
         call matchadd('neomakeMakerName',

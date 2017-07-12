@@ -1,12 +1,12 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#gradle#gradle()
+function! neomake#makers#gradle#gradle() abort
     let g:gradleBin = filereadable('./gradlew') ? './gradlew' : 'gradle'
 
     return {
         \ 'exe': g:gradleBin,
         \ 'append_file': 0,
-        \ 'args': ['compileDebugSources', '--daemon'],
+        \ 'args': ['assemble', '--daemon'],
         \ 'errorformat': '\%+ATask\ %.%#\ not\ found\ %.%#.,'.
         \'%EExecution\ failed\ for\ task\ %m,'.
         \'findbugs:\ %tarning\ %f:%l:%c\ %m,'.

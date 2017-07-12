@@ -1,17 +1,32 @@
 " Based on https://github.com/tweekmonster/braceless.vim/blob/master/test/vim/vimrc
 " TODO: provide this by default in the Docker image already?!  e.g. /vimrc?!
 
-if filereadable('/rtp.vim')
-  " Dockerized tests.
-  source /rtp.vim
+set noloadplugins
+
+if exists('$TESTS_VADER_DIR')
+  let vader_dir = expand($TESTS_VADER_DIR)
 else
-  if exists('$TESTS_VADER_DIR')
-    exe 'set runtimepath+='.$TESTS_VADER_DIR
-  else
-    let &runtimepath .= ','.expand('<sfile>:p:h').'/plugins/vader'
-  endif
-  let &runtimepath .= ','.expand('<sfile>:p:h').'/../..'
+  let vader_dir = expand('<sfile>:p:h').'/plugins/vader'
 endif
+let &runtimepath .= ','.vader_dir
+exe 'source' vader_dir.'/plugin/vader.vim'
+
+let s:plugins_dir = expand('<sfile>:p:h').'/plugins/'
+let s:sourced_plugins = []
+function! s:load_plugin_on_demand(name) abort
+  Save &runtimepath
+  let dir = s:plugins_dir.a:name
+  let &runtimepath .= ','.dir
+  if index(s:sourced_plugins, a:name) == -1
+    exe 'source' dir.'/plugin/'.a:name.'.vim'
+    call add(s:sourced_plugins, a:name)
+  endif
+endfunction
+command! -nargs=1 NeomakeTestsLoadPlugin call s:load_plugin_on_demand(<args>)
+
+let plugin_dir = expand('<sfile>:p:h:h:h')
+let &runtimepath .= ','.plugin_dir
+exe 'source' plugin_dir.'/plugin/neomake.vim'
 
 filetype plugin indent on
 
@@ -20,8 +35,6 @@ augroup ssshhhhhh
   autocmd GUIEnter * set visualbell t_vb=
 augroup END
 
-" Required for Vim.
-set nocompatible
 set noswapfile
 syntax on
 set number
@@ -51,3 +64,7 @@ let mapleader=','
 
 " No '-- More --' prompt, which would hang Travis.
 set nomore
+
+if expand('$NEOMAKE_TEST_NO_COLORSCHEME') !=# '1'
+  colorscheme default
+endif

@@ -3,30 +3,33 @@ Include: include/setup.vader
 Execute (mapexpr: output source in mapexpr):
   let maker = neomake#utils#MakerFromCommand('echo on_stdout; echo on_stderr>&2')
   let maker.mapexpr = "printf('[%s] %s', neomake_output_source, v:val)"
+  let maker.output_stream = 'both'
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  let stderr_source = neomake#has_async_support() ? 'stderr' : 'stdout'
-
-  AssertEqual sort(map(copy(getqflist()), 'v:val.text')), sort(
-    \ ['['.stderr_source.'] on_stderr', '[stdout] on_stdout'])
+  AssertEqual sort(map(getqflist(), 'v:val.text')), sort(
+    \ ['[stderr] on_stderr', '[stdout] on_stdout'])
   NeomakeTestsWaitForFinishedJobs
 
 Execute (mapexpr: file mode vars):
   let maker = neomake#utils#MakerFromCommand('echo on_stdout')
-  e! tests/fixtures/errors.sh
+  new
+  edit tests/fixtures/errors.sh
   let maker.mapexpr = "printf('%s (%s): %s', neomake_bufname, neomake_bufdir, v:val)"
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual map(copy(getqflist()), 'v:val.text'), [
+  AssertEqual map(getqflist(), 'v:val.text'), [
     \ 'tests/fixtures/errors.sh (tests/fixtures): on_stdout']
+  bwipe
 
 Execute (mapexpr: file mode vars with cd):
   if NeomakeAsyncTestsSetup()
-    let maker = neomake#utils#MakerFromCommand('sleep 0.1; echo on_stdout')
-    e! tests/fixtures/errors.sh
-    let maker.mapexpr = "printf('%s (%s): %s', neomake_bufname, neomake_bufdir, v:val)"
+    let maker = neomake#utils#MakerFromCommand('sleep 0.01; echo on_stdout')
+    new
+    edit tests/fixtures/errors.sh
+    let maker.mapexpr = "printf('[bufname:%s, bufdir:%s, cwd: %s]: %s', "
+    \ ."neomake_bufname, neomake_bufdir, getcwd(), v:val)"
     let start_cwd = getcwd()
     let maker.append_file = 0
     call neomake#Make(1, [maker])
@@ -34,6 +37,11 @@ Execute (mapexpr: file mode vars with cd):
     NeomakeTestsWaitForFinishedJobs
     cd -
 
-    AssertEqual map(copy(getloclist(0)), 'v:val.text'), [
-      \ start_cwd.'/tests/fixtures/errors.sh ('.start_cwd.'/tests/fixtures): on_stdout']
+    AssertEqual map(getloclist(0), 'v:val.text'), [
+      \ printf('[bufname:%s, bufdir:%s, cwd: %s]: %s',
+          \ start_cwd.'/tests/fixtures/errors.sh',
+          \ start_cwd.'/tests/fixtures',
+          \ getcwd().'/build',
+          \ 'on_stdout')]
+    bwipe
   endif

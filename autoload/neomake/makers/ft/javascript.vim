@@ -19,6 +19,7 @@ function! neomake#makers#ft#javascript#jshint() abort
     return {
         \ 'args': ['--verbose'],
         \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
+        \ 'postprocess': function('neomake#postprocess#GenericLengthPostprocess'),
         \ }
 endfunction
 
@@ -33,7 +34,7 @@ function! neomake#makers#ft#javascript#eslint() abort
     return {
         \ 'args': ['-f', 'compact'],
         \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
-        \ '%W%f: line %l\, col %c\, Warning - %m'
+        \   '%W%f: line %l\, col %c\, Warning - %m,%-G,%-G%*\d problems%#'
         \ }
 endfunction
 
@@ -58,10 +59,10 @@ function! neomake#makers#ft#javascript#semistandard() abort
 endfunction
 
 function! neomake#makers#ft#javascript#rjsx() abort
-  return {
+    return {
         \ 'exe': 'emacs',
         \ 'args': ['%','--quick','--batch','--eval='
-        \ .'(progn(package-initialize)(require ''rjsx-mode)'
+        \ .'(progn(setq package-load-list ''((js2-mode t)(rjsx-mode t)))(package-initialize)(require ''rjsx-mode)'
         \ .'  (setq js2-include-node-externs t js2-include-rhino-externs t js2-include-browser-externs t js2-strict-missing-semi-warning nil)'
         \ .'  (rjsx-mode)(js2-reparse)(js2-display-error-list)'
         \ .'  (princ(replace-regexp-in-string "^" (concat buffer-file-name " ")'
@@ -81,7 +82,7 @@ endfunction
 
 function! neomake#makers#ft#javascript#FlowProcess(entry) abort
     let l:lines = split(a:entry.text, '\n')
-    if len(l:lines)
+    if !empty(l:lines)
         let a:entry.text = join(l:lines[1:])
         let a:entry.length = l:lines[0] - a:entry.col + 1
     endif
@@ -94,3 +95,8 @@ function! neomake#makers#ft#javascript#xo() abort
         \ '%W%f: line %l\, col %c\, Warning - %m',
         \ }
 endfunction
+
+function! neomake#makers#ft#javascript#stylelint() abort
+    return neomake#makers#ft#css#stylelint()
+endfunction
+

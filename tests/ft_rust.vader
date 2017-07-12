@@ -1,0 +1,174 @@
+Include: include/setup.vader
+
+Execute (cargo skip non json line):
+  new
+  file build/lib.rs
+  let cargo = neomake#makers#ft#rust#cargo()
+  let cargo.exe = 'printf'
+  let cargo.args = ['error: Could not compile `derive_more`.']
+
+  call neomake#Make(1, [cargo])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual [], getloclist(0)
+  bwipe
+
+Execute (cargo info message):
+  new
+  file build/lib.rs
+  let cargo = neomake#makers#ft#rust#cargo()
+  let cargo.exe = 'cat'
+  let cargo.args = '../tests/fixtures/rust/cargo_info.json'
+
+  call neomake#Make(1, [cargo])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual [], getloclist(0)
+  bwipe
+
+Execute (cargo error without span):
+  new
+  file build/lib.rs
+  let cargo = neomake#makers#ft#rust#cargo()
+  let cargo.exe = 'cat'
+  let cargo.args = '../tests/fixtures/rust/cargo_error_without_span.json'
+
+  call neomake#Make(1, [cargo])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual [], getloclist(0)
+  bwipe
+
+Execute (cargo error message):
+  NeomakeTestsMonkeypatchHighlights
+
+  new
+  file build/lib.rs
+  let cargo = neomake#makers#ft#rust#cargo()
+  let cargo.exe = 'cat'
+  let cargo.args = '../tests/fixtures/rust/cargo_error.json'
+
+  call neomake#Make(1, [cargo])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual [{
+    \ 'type': 'E',
+    \ 'bufnr': bufnr('%'),
+    \ 'nr': 308,
+    \ 'lnum': 19,
+    \ 'col': 46,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'pattern': '',
+    \ 'text': 'mismatched types: expected str, found struct `proc_macro::TokenStream`'
+    \ }, {
+    \ 'type': 'E',
+    \ 'bufnr': bufnr('%'),
+    \ 'nr': 308,
+    \ 'lnum': 25,
+    \ 'col': 1,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'pattern': '',
+    \ 'text': 'mismatched types: expected str, found struct `proc_macro::TokenStream`'
+    \ }, {
+    \ 'type': 'I',
+    \ 'bufnr':  bufnr('%'),
+    \ 'nr': 308,
+    \ 'lnum': 25,
+    \ 'col': 1,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'pattern': '',
+    \ 'text': 'found type `&proc_macro::TokenStream`'
+    \ }], getloclist(0)
+
+  " TODO: should not call it for the same highlight twice?!
+  AssertEqual [[19, 2], [25, 40], [25, 40]], g:neomake_tests_highlight_lengths
+
+  bwipe
+
+Execute (cargo warning message):
+  NeomakeTestsMonkeypatchHighlights
+
+  new
+  file build/add_assign_like.rs
+  let cargo = neomake#makers#ft#rust#cargo()
+  let cargo.exe = 'cat'
+  let cargo.args = '../tests/fixtures/rust/cargo_warning.json'
+
+  call neomake#Make(1, [cargo])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual [{
+    \ 'type': 'W',
+    \ 'bufnr': bufnr('%'),
+    \ 'nr': -1,
+    \ 'lnum': 2,
+    \ 'col': 24,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'pattern': '',
+    \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}], getloclist(0)
+
+  AssertEqual [[2, 7]], g:neomake_tests_highlight_lengths
+  bwipe
+
+Execute (cargo warning for file that is not open):
+  NeomakeTestsMonkeypatchHighlights
+
+  new
+  file build/some_other_file.rs
+
+  let cargo = neomake#makers#ft#rust#cargo()
+  let cargo.exe = 'cat'
+  " Uses build/add_assign_like.rs.
+  let cargo.args = '../tests/fixtures/rust/cargo_warning.json'
+
+  call neomake#Make(1, [cargo])
+  NeomakeTestsWaitForFinishedJobs
+
+  let unlisted_bufnr = bufnr('^build/add_assign_like.rs$')
+  AssertNotEqual -1, unlisted_bufnr
+
+  AssertEqual [{
+    \ 'type': 'W',
+    \ 'bufnr': unlisted_bufnr,
+    \ 'nr': -1,
+    \ 'lnum': 2,
+    \ 'col': 24,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'pattern': '',
+    \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}], getloclist(0)
+
+  AssertEqual [[2, 7]], g:neomake_tests_highlight_lengths
+  bwipe
+  exe 'bwipe' unlisted_bufnr
+
+Execute (cargo error message children):
+  NeomakeTestsMonkeypatchHighlights
+
+  new
+  file tests/from.rs
+  let cargo = neomake#makers#ft#rust#cargo()
+  let cargo.exe = 'cat'
+  let cargo.args = 'fixtures/rust/cargo_error_children.json'
+
+  call neomake#Make(1, [cargo])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual [{
+    \ 'type': 'E',
+    \ 'bufnr': bufnr('%'),
+    \ 'nr': -1,
+    \ 'lnum': 11,
+    \ 'col': 10,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'pattern': '',
+    \ 'text': 'custom derive attribute panicked. message: Only structs and enums can derive From'}], getloclist(0)
+
+  AssertEqual [[11, 4]], g:neomake_tests_highlight_lengths
+
+  bwipe

@@ -3,6 +3,7 @@ Include: include/setup.vader
 Execute (Vint: generic postprocessing for highlights):
   runtime autoload/neomake/highlights.vim
 
+  new
   file file1.vim
   norm! iecho l:undefined_var
   let vint_maker = neomake#makers#ft#vim#vint()
@@ -32,3 +33,98 @@ Execute (Vint: generic postprocessing for highlights):
   else
     AssertEqual highlights.file[bufnr('%')].NeomakeWarning, [[1, 6, 15]]
   endif
+  bwipe!
+
+Execute (vint: highlights syntax error for command):
+  NeomakeTestsMonkeypatchHighlights
+
+  new
+  file file1.vim
+  norm! iwhile 1
+  norm! oendfor
+  let vint_maker = neomake#makers#ft#vim#vint()
+  let vint_maker.exe = 'printf'
+  let vint_maker.args = ["file1.vim:2:1:error:E588: :endfor without :for (SyntaxError)"]
+  let vint_maker.append_file = 0
+
+  CallNeomake 1, [vint_maker]
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 2,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 1,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': 588,
+  \ 'type': 'e',
+  \ 'pattern': '',
+  \ 'text': ':endfor without :for (SyntaxError)'}]
+
+  bwipe!
+  AssertEqual [[2, 6]], g:neomake_tests_highlight_lengths
+
+Execute (vimlint: errorformat):
+  Save &efm
+  let &efm = neomake#makers#ft#vim#vimlint().errorformat
+
+  new
+  file testfile.vim
+  lgetexpr 'testfile.vim:33:12:Error: EVP_0: unexpected EOL'
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 33, 'bufnr': bufnr('%'), 'col': 12, 'valid': 1, 'vcol': 0,
+  \ 'nr': 0, 'type': 'E', 'pattern': '', 'text': 'unexpected EOL'}]
+
+  lgetexpr 'testfile.vim:2:0:Error: EVP_E171: Missing :endif:    TOPLEVEL'
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 2, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0,
+  \ 'nr': 171, 'type': 'E', 'pattern': '', 'text': 'Missing :endif:    TOPLEVEL'}]
+
+  lgetexpr 'testfile.vim:1:1:Error: EVL204: constant in conditional context'
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 1, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
+  \ 'nr': 204, 'type': 'E', 'pattern': '', 'text': 'constant in conditional context'}]
+
+  lgetexpr 'testfile.vim:2:1:Warning: EVL204: constant in conditional context'
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 2, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
+  \ 'nr': 204, 'type': 'W', 'pattern': '', 'text': 'constant in conditional context'}]
+  bwipe
+
+Execute (vimlint: length postprocessing):
+  NeomakeTestsMonkeypatchHighlights
+
+  new
+  edit tests/fixtures/vim/func-with-errors.vim
+  let maker = neomake#makers#ft#vim#vimlint()
+  let maker.exe = 'cat'
+  let maker.args = 'tests/fixtures/vim/func-with-errors.vim.output'
+  let maker.append_file = 0
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  let bufnr = bufnr('%')
+  AssertEqual [{
+    \ 'lnum': 2,
+    \ 'bufnr': bufnr,
+    \ 'col': 6,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'nr': 101,
+    \ 'type': 'E',
+    \ 'pattern': '',
+    \ 'text': 'undefined variable `l:something`',
+    \ }, {
+    \ 'lnum': 5,
+    \ 'bufnr': bufnr,
+    \ 'col': 9,
+    \ 'valid': 1,
+    \ 'vcol': 0,
+    \ 'nr': 104,
+    \ 'type': 'E',
+    \ 'pattern': '',
+    \ 'text': 'variable may not be initialized on some execution path: `l:foo`',
+    \ }], getloclist(0)
+
+  AssertEqual [[2, 11], [5, 3]], g:neomake_tests_highlight_lengths
+
+  bwipe
