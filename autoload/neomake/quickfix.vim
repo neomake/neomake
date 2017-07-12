@@ -135,16 +135,16 @@ function! neomake#quickfix#FormatQuickfix() abort
         let i += 1
     endfor
 
+    let syntax = makers
     if src_buf
         for ft in split(neomake#compat#getbufvar(src_buf, '&filetype', ''), '\.')
-            if !empty(ft) && index(makers, ft) == -1
-                call add(makers, ft)
+            if !empty(ft) && index(syntax, ft) == -1
+                call add(syntax, ft)
             endif
         endfor
     endif
-
-    if !empty(makers)
-        call neomake#quickfix#set_syntax(makers)
+    if !empty(syntax)
+        call neomake#quickfix#set_syntax(syntax)
     endif
 
     if maker_width + lnum_width + col_width > 0
