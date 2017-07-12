@@ -347,12 +347,16 @@ Execute (Existing bufnr is kept with tempfiles):
   bwipe
 
 Execute (Temporary buffer is not wiped if opened):
+  Save g:neomake_verbose
+  let g:neomake_verbose = 3
+
   let maker = NeomakeTestsCommandMaker('echo-error', 'printf ''%s:1:error\nanother_file:2:another_error''')
   let maker.errorformat = '%f:%l:%m'
   let maker.append_file = 1
 
   new
   let bufnr = bufnr('%')
+  let tempfile_bufnr = bufnr + 1
   let b:neomake_tempfile_enabled = 1
   call neomake#Make(1, [maker])
 
@@ -378,6 +382,10 @@ Execute (Temporary buffer is not wiped if opened):
   bwipe
   exe 'bwipe' tempfile_name
   exe 'bwipe' unlisted_bufnr
+
+  AssertNeomakeMessage '\v^Setting bufnr according to tempfile for entry: .* ''bufnr'': '.tempfile_bufnr
+  AssertNeomakeMessage 'Modified list entry (postprocess): bufnr: '.tempfile_bufnr.' => '.bufnr.'.'
+  AssertNeomakeMessage 'WARN: seen entries with bufnr different from jobinfo.bufnr ('.bufnr.'): {'''.unlisted_bufnr.''': 1}, current bufnr: '.bufnr.'.'
 
 Execute (unlisted buffers created for tempfiles get wiped):
   if NeomakeAsyncTestsSetup()

@@ -1037,7 +1037,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     else
         let s:postprocessors = s:postprocess
     endif
-    let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3
+    let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3 || !empty(get(g:, 'neomake_logfile'))
     let maker_name = get(maker, 'name', 'makeprg')
     let make_info = s:make_info[a:jobinfo.make_id]
     let default_type = 'unset'
@@ -1045,6 +1045,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let entries = []
     let changed_entries = {}
     let removed_entries = []
+    let different_bufnrs = {}
     let llen = len(list)
     while index < llen - 1
         let index += 1
@@ -1064,8 +1065,12 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
                 endfor
             endif
         endif
-        if entry.bufnr && entry.bufnr != a:jobinfo.bufnr
-            call neomake#utils#DebugMessage(printf('WARN: entry.bufnr (%d) is different from jobinfo.bufnr (%d) (current buffer %d): %s.', entry.bufnr, a:jobinfo.bufnr, bufnr('%'), string(entry)))
+        if debug && entry.bufnr && entry.bufnr != a:jobinfo.bufnr
+            if !has_key(different_bufnrs, entry.bufnr)
+                let different_bufnrs[entry.bufnr] = 1
+            else
+                let different_bufnrs[entry.bufnr] += 1
+            endif
         endif
         if !empty(s:postprocessors)
             let g:neomake_postprocess_context = {'jobinfo': a:jobinfo}
@@ -1145,6 +1150,10 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
         else
             call setqflist(list, 'r')
         endif
+    endif
+
+    if !empty(different_bufnrs)
+        call neomake#utils#DebugMessage(printf('WARN: seen entries with bufnr different from jobinfo.bufnr (%d): %s, current bufnr: %d.', a:jobinfo.bufnr, string(different_bufnrs), bufnr('%')))
     endif
 
     return entries
