@@ -15,6 +15,8 @@ Execute (Displays custom formatted quickfix buffer):
       \ }])
 
   lopen
+  AssertEqual b:current_syntax, 'neomake_qf'
+
 
   AssertEqual getline(1, '$'),
     \ ['Alph 1:- Line 1 ', 'Alph 2:5 Line 2']
