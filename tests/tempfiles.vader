@@ -356,6 +356,7 @@ Execute (Temporary buffer is not wiped if opened):
 
   new
   let bufnr = bufnr('%')
+  let tempfile_bufnr = bufnr + 1
   let b:neomake_tempfile_enabled = 1
   call neomake#Make(1, [maker])
 
@@ -365,7 +366,6 @@ Execute (Temporary buffer is not wiped if opened):
   let tempfile_name = g:neomake_test_matchlist[1]
   Assert !bufexists(tempfile_name), 'temporary buffer does not exist yet'
   exe 'e' tempfile_name
-  let tempfile_bufnr = bufnr('%')
 
   NeomakeTestsWaitForFinishedJobs
   wincmd p
