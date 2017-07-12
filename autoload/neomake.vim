@@ -1397,7 +1397,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                     \ . '})')
 
         " Add marker for custom quickfix to the first (new) entry.
-        if neomake#quickfix#is_enabled()
+        if neomake#quickfix#is_enabled() && !empty(a:entries)
             let config = {
                         \ 'name': maker_name,
                         \ 'short': get(a:jobinfo.maker, 'short_name', maker_name[:3]),

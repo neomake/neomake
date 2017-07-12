@@ -161,6 +161,13 @@ Execute (Handles interleaving maker output and buffer names (quickfix)):
   bwipe
   exe unlisted_bufnr 'bwipe'
 
+Execute (Handles empty entries):
+  let maker = {}
+  function maker.get_list_entries(...)
+    return []
+  endfunction
+  CallNeomake {'enabled_makers': [maker]}
+
 Execute (Disable custom formatted quickfix buffer):
   Assert neomake#quickfix#is_enabled()
   call neomake#quickfix#disable()
