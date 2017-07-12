@@ -69,6 +69,8 @@ Execute (Displays custom formatted quickfix buffer):
 Execute (Sets quickfix title (location list)):
   new
   set ft=neomake_tests
+  " Workaround to have make info cleaned (fixed in pcall-wip).
+  let b:neomake_tempfile_enabled = 1
 
   RunNeomake echo_maker true
 
