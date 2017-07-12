@@ -50,8 +50,7 @@ endfunction
 
 
 function! s:reset(buf) abort
-    call neomake#signs#ResetFile(a:buf)
-    execute 'sign unplace * buffer='.a:buf
+    call neomake#signs#Clean(a:buf, 'file')
     silent! call matchdelete(s:maker_match_id)
     silent! call matchdelete(s:gutter_match_id)
     silent! call matchdelete(s:cursor_match_id)
