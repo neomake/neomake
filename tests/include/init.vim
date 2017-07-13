@@ -441,6 +441,12 @@ function! s:After()
     call extend(g:neomake_test_funcs_before, new_funcs)
   endif
 
+  if exists('#neomake_event_queue')
+    call add(errors, '#neomake_event_queue was not empty.')
+    autocmd! neomake_event_queue
+    augroup! neomake_event_queue
+  endif
+
   if !empty(errors)
     throw len(errors).' error(s) in teardown: '.join(errors, "\n")
   endif
