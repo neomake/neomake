@@ -5,8 +5,8 @@ function! neomake#makers#ft#tex#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#tex#chktex() abort
-    return {
-                \ 'args': ['-l', '.chktexrc'],
+    let maker = {
+                \ 'args': [],
                 \ 'errorformat':
                 \ '%EError %n in %f line %l: %m,' .
                 \ '%WWarning %n in %f line %l: %m,' .
@@ -14,6 +14,11 @@ function! neomake#makers#ft#tex#chktex() abort
                 \ '%Z%p^,' .
                 \ '%-G%.%#'
                 \ }
+    let rcfile = neomake#utils#FindGlobFile('.chktexrc')
+    if !empty(rcfile)
+        let maker.args += ['-l', fnamemodify(rcfile, ':h')]
+    endif
+    return maker
 endfunction
 
 function! neomake#makers#ft#tex#lacheck() abort
