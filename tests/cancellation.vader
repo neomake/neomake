@@ -174,7 +174,8 @@ Execute (neomake#CancelJob empties action queue):
     let job_id = jobinfo.id
     if has('patch-7.4.2299')
       NeomakeTestsWaitForFinishedJobs
-      AssertNeomakeMessage 'Queueing action: s:ProcessEntries for WinEnter.'
+      AssertNeomakeMessage 'Queueing action: s:AddExprCallback for WinEnter.'
+      AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:AddExprCallback.'
       AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
     endif
     call neomake#CancelJob(job_id)
