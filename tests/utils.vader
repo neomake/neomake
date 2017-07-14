@@ -590,10 +590,10 @@ Execute (neomake#utils#fix_self_ref):
   catch /^Vim(let):E724:/
     let exception = v:exception
   endtry
-  if has('patch-7.4.1644')
-    AssertEqual str_obj, "{'foo': 1, 'bar': {'self_ref': {...}}}"
-  elseif has('nvim')
+  if has('nvim')
     AssertEqual exception, 'Vim(let):E724: unable to correctly dump variable with self-referencing container'
+  elseif has('patch-7.4.1644')
+    AssertEqual str_obj, "{'foo': 1, 'bar': {'self_ref': {...}}}"
   else
     AssertEqual exception, 'Vim(let):E724: variable nested too deep for displaying'
   endif
