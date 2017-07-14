@@ -121,6 +121,17 @@ function! neomake#CancelJob(job_id, ...) abort
         return 0
     endif
 
+    if remove_always
+        " Remove any queued action.
+        for [k, q] in items(s:action_queue)
+            for v in q
+                if v[1][0] == jobinfo
+                    unlet s:action_queue[k]
+                endif
+            endfor
+        endfor
+    endif
+
     if get(jobinfo, 'canceled', 0)
         call neomake#utils#LoudMessage('Job was canceled already.', jobinfo)
         if remove_always

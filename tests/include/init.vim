@@ -379,7 +379,12 @@ function! s:After()
   if !empty(make_info)
     call add(errors, 'make_info is not empty: '.string(make_info))
   endif
-  NeomakeTestsWaitForRemovedJobs
+  try
+    NeomakeTestsWaitForRemovedJobs
+  catch
+    NeomakeCancelJobs!
+    call add(errors, v:exception)
+  endtry
 
   if exists('#neomake_tests')
     autocmd! neomake_tests
