@@ -321,6 +321,7 @@ let g:error_maker = NeomakeTestsCommandMaker('error-maker', 'echo error; false')
 let g:error_maker.errorformat = '%E%m'
 function! g:error_maker.postprocess(entry) abort
   let a:entry.bufnr = bufnr('')
+  let a:entry.lnum = 1
 endfunction
 let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
 let g:true_maker = NeomakeTestsCommandMaker('true-maker', 'true')
