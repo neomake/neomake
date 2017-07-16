@@ -140,6 +140,8 @@ Execute (Handles interleaving maker output and buffer names (quickfix)):
   \ [unlisted_bufnr, 'maker2_2'],
   \ [bufnr, 'maker1_2 nmcfg:{''short'': ''make'', ''name'': ''maker1''}']]
 
+  AssertEqual neomake#GetCurrentErrorMsg(), 'maker1: maker1_1'
+
   copen
   AssertEqual w:quickfix_title, 'Neomake[project]: maker1, maker2'
 
@@ -167,6 +169,10 @@ Execute (Handles empty entries):
     return []
   endfunction
   CallNeomake {'enabled_makers': [maker]}
+
+Execute (Does not change current error via regular command maker):
+  CallNeomake {'enabled_makers': [g:error_maker]}
+  AssertEqual neomake#GetCurrentErrorMsg(), 'error-maker: error'
 
 Execute (Disable custom formatted quickfix buffer):
   Assert neomake#quickfix#is_enabled()
