@@ -27,12 +27,12 @@ Execute (Test Neomake on errors.sh with one maker):
   endfor
 
   " Basic verification that signs are placed.
-  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_err buffer='.bufnr.'.', 3, {}
-  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_err, lnum=5.', 3, {}
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_file_err buffer='.bufnr.'.', 3, {}
+  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=5.', 3, {}
 
   AssertEqual NeomakeTestsGetSigns(), [
     \ 'Signs for tests/fixtures/errors.sh:',
-    \ 'line=5  id=5000  name=neomake_err']
+    \ 'line=5  id=5000  name=neomake_file_err']
   bwipe
 
 Execute (Test Neomake on errors.sh with two makers):

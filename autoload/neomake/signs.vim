@@ -20,7 +20,7 @@ let s:neomake_sign_id = {
     \ 'file': {}
     \ }
 
-let s:base_sign_id = {'file': 5000, 'project': 7000}
+let s:base_sign_id = 5000
 
 let s:signs_for_entries = {}
 
@@ -65,9 +65,15 @@ function! neomake#signs#Clean(bufnr, type) abort
     endif
 endfunction
 
-let s:sign_order = {'neomake_err': 0, 'neomake_warn': 1,
-                 \  'neomake_info': 2, 'neomake_msg': 3}
+let s:sign_order = {'neomake_file_err': 0, 'neomake_file_warn': 1,
+                 \  'neomake_file_info': 2, 'neomake_file_msg': 3,
+                 \  'neomake_project_err': 4, 'neomake_project_warn': 5,
+                 \  'neomake_project_info': 6, 'neomake_project_msg': 7}
 
+" Get the defined signs for a:bufnr.
+" It returns a dictionary with line numbers as keys.
+" If there are multiple entries for a line only the first (visible) entry is
+" returned.
 function! neomake#signs#by_lnum(bufnr) abort
     if !bufexists(a:bufnr + 0)
         return {}
@@ -86,7 +92,7 @@ function! neomake#signs#by_lnum(bufnr) abort
     let d = {}
     for line in signs_output
         let m = matchlist(line, pattern)
-        if !empty(m)
+        if !empty(m) && !has_key(d, m[1])
             " let l[m[2]] = l[m[1]] + 0
             let d[m[1]] = [m[2] + 0, m[3]]
         endif
@@ -115,14 +121,15 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
                 continue
             endif
             if entry.type ==? 'W'
-                let sign_type = 'neomake_warn'
+                let sign_type = 'warn'
             elseif entry.type ==? 'I'
-                let sign_type = 'neomake_info'
+                let sign_type = 'info'
             elseif entry.type ==? 'M'
-                let sign_type = 'neomake_msg'
+                let sign_type = 'msg'
             else
-                let sign_type = 'neomake_err'
+                let sign_type = 'err'
             endif
+            let sign_type = 'neomake_'.a:type.'_'.sign_type
 
             if ! exists('entries_by_linenr[entry.lnum]')
                         \ || s:sign_order[entries_by_linenr[entry.lnum][1]]
@@ -142,20 +149,20 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
             endif
 
             let existing_sign = get(placed_signs, entry.lnum, [])
-            if !empty(existing_sign)
-                if existing_sign[1] == sign_type
-                    call neomake#utils#DebugMessage(printf(
-                                \ 'Reusing sign: id=%d, type=%s, lnum=%d.',
-                                \ existing_sign[0], existing_sign[1], lnum))
-                else
-                    let cmd = 'sign place '.existing_sign[0].' name='.sign_type.' buffer='.bufnr
-                    call neomake#utils#DebugMessage('Upgrading sign for lnum='.lnum.': '.cmd.'.')
-                    exe cmd
-                endif
-                call add(kept_signs, existing_sign[0])
+            if empty(existing_sign) || existing_sign[1] !~# '^neomake_'.a:type.'_'
+                call add(place_new, [lnum, sign_type])
                 continue
             endif
-            call add(place_new, [lnum, sign_type])
+            if existing_sign[1] == sign_type
+                call neomake#utils#DebugMessage(printf(
+                            \ 'Reusing sign: id=%d, type=%s, lnum=%d.',
+                            \ existing_sign[0], existing_sign[1], lnum))
+            else
+                let cmd = 'sign place '.existing_sign[0].' name='.sign_type.' buffer='.bufnr
+                call neomake#utils#DebugMessage('Upgrading sign for lnum='.lnum.': '.cmd.'.')
+                exe cmd
+            endif
+            call add(kept_signs, existing_sign[0])
         endfor
 
         for [lnum, sign_type] in place_new
@@ -163,7 +170,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
                 if !empty(placed_signs)
                     let next_sign_id = max(map(values(copy(placed_signs)), 'v:val[0]')) + 1
                 else
-                    let next_sign_id = s:base_sign_id[a:type]
+                    let next_sign_id = s:base_sign_id
                 endif
             else
                 let next_sign_id += 1
@@ -230,7 +237,8 @@ function! neomake#signs#RedefineErrorSign(...) abort
         call extend(opts, g:neomake_error_sign)
     endif
     call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_err', opts)
+    call neomake#signs#RedefineSign('neomake_file_err', opts)
+    call neomake#signs#RedefineSign('neomake_project_err', opts)
 endfunction
 
 function! neomake#signs#RedefineWarningSign(...) abort
@@ -242,7 +250,8 @@ function! neomake#signs#RedefineWarningSign(...) abort
         call extend(opts, g:neomake_warning_sign)
     endif
     call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_warn', opts)
+    call neomake#signs#RedefineSign('neomake_file_warn', opts)
+    call neomake#signs#RedefineSign('neomake_project_warn', opts)
 endfunction
 
 function! neomake#signs#RedefineMessageSign(...) abort
@@ -254,7 +263,8 @@ function! neomake#signs#RedefineMessageSign(...) abort
         call extend(opts, g:neomake_message_sign)
     endif
     call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_msg', opts)
+    call neomake#signs#RedefineSign('neomake_file_msg', opts)
+    call neomake#signs#RedefineSign('neomake_project_msg', opts)
 endfunction
 
 function! neomake#signs#RedefineInfoSign(...) abort
@@ -266,7 +276,8 @@ function! neomake#signs#RedefineInfoSign(...) abort
         call extend(opts, g:neomake_info_sign)
     endif
     call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_info', opts)
+    call neomake#signs#RedefineSign('neomake_file_info', opts)
+    call neomake#signs#RedefineSign('neomake_project_info', opts)
 endfunction
 
 function! neomake#signs#HlexistsAndIsNotCleared(group) abort

@@ -407,7 +407,7 @@ Execute (legacy errorformat maker: filename with cwd (error: removed)):
   endif
   bwipe
 
-  AssertNeomakeMessage 'Placing sign: sign place 5000 line=23 name=neomake_err buffer='.expected_bufnr.'.'
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=23 name=neomake_file_err buffer='.expected_bufnr.'.'
 
 Execute (legacy errorformat maker: filename with cwd (error: maker rmdir)):
   let tempdir = tempname()
