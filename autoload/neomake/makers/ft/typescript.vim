@@ -9,19 +9,14 @@ function! neomake#makers#ft#typescript#tsc() abort
     return {
         \ 'args': ['--project', neomake#utils#FindGlobFile('tsconfig.json'), '--noEmit', '--watch', 'false'],
         \ 'append_file': 0,
-        \ 'errorformat':
-            \ '%E%f %#(%l\,%c): error %m,' .
-            \ '%E%f %#(%l\,%c): %m,' .
-            \ '%Eerror %m,' .
-            \ '%C%\s%\+%m'
+        \ 'errorformat': '%f(%l\,%c): %m'
         \ }
+
 endfunction
 
 function! neomake#makers#ft#typescript#tslint() abort
     return {
-        \ 'args': [
-            \ '%:p', '--format verbose'
-        \ ],
-        \ 'errorformat': '%E%f[%l\, %c]: %m'
+        \ 'args': ['%:p'],
+        \ 'errorformat': 'ERROR: %f[%l\, %c]: %m'
         \ }
 endfunction
