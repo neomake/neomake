@@ -402,6 +402,8 @@ function! s:After()
           exe 'bwipe!' b
         endif
       endfor
+      " In case there are two windows with Vader-workbench.
+      only
     catch
       Log "Error while cleaning windows: ".v:exception
     endtry
@@ -454,6 +456,8 @@ function! s:After()
   endif
 
   if !empty(errors)
+    " Reload to reset e.g. s:action_queue.
+    runtime autoload/neomake.vim
     throw len(errors).' error(s) in teardown: '.join(errors, "\n")
   endif
 endfunction
