@@ -383,7 +383,7 @@ function! s:After()
   try
     NeomakeTestsWaitForRemovedJobs
   catch
-    NeomakeCancelJobs!
+    call neomake#CancelJobs(1)
     call add(errors, v:exception)
   endtry
 
