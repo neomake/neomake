@@ -172,8 +172,8 @@ Execute (neomake#CancelJob empties action queue):
     new
     let jobinfos = neomake#Make({'enabled_makers': [g:sleep_maker]})
     let job_id = jobinfos[0].id
-    NeomakeTestsWaitForFinishedJobs
     if has('patch-7.4.2299')
+      NeomakeTestsWaitForFinishedJobs
       AssertNeomakeMessage 'Queueing action: s:ProcessEntries for WinEnter.'
     endif
     call neomake#CancelJob(job_id)
@@ -182,6 +182,8 @@ Execute (neomake#CancelJob empties action queue):
       AssertNeomakeMessage 'CancelJob: job not found: '.job_id.'.', 0
       call neomake#CancelMake(jobinfos[0].make_id, 1)
       wincmd p
+    else
+      NeomakeTestsWaitForFinishedJobs
     endif
     AssertNeomakeMessage 'Cleaning make info.', 3
     bwipe
