@@ -165,8 +165,6 @@ Execute (neomake#CancelMake handles invalid make id):
 
 Execute (neomake#CancelJob empties action queue):
   if NeomakeAsyncTestsSetup()
-
-    let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05; echo slept')
     augroup neomake_tests
       autocmd QuickFixCmdPost laddexpr wincmd p
     augroup END
