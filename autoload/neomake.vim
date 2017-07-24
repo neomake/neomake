@@ -443,7 +443,7 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
         return self.tempfile_name
     endif
 
-    let tempfile_enabled = neomake#utils#GetSetting('tempfile_enabled', self, 0, a:jobinfo.ft, a:jobinfo.bufnr)
+    let tempfile_enabled = neomake#utils#GetSetting('tempfile_enabled', self, 1, a:jobinfo.ft, a:jobinfo.bufnr)
     if !tempfile_enabled
         return ''
     endif
