@@ -162,3 +162,26 @@ Execute (neomake#CancelMake stops all jobs):
 
 Execute (neomake#CancelMake handles invalid make id):
   AssertEqual neomake#CancelMake(-1), 0
+
+Execute (neomake#CancelJob empties action queue):
+  if NeomakeAsyncTestsSetup()
+
+    let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05; echo slept')
+    augroup neomake_tests
+      autocmd QuickFixCmdPost laddexpr wincmd p
+    augroup END
+
+    new
+    let jobinfos = neomake#Make({'enabled_makers': [g:sleep_maker]})
+    let job_id = jobinfos[0].id
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Queueing action: s:ProcessEntries for WinEnter.'
+    call neomake#CancelJob(job_id, 1)
+    AssertNeomakeMessage 'Removed 1 action queue entries.', 3
+    AssertNeomakeMessage 'CancelJob: job not found: '.job_id.'.', 0
+    call neomake#CancelMake(jobinfos[0].make_id, 1)
+    wincmd p
+    bwipe
+    AssertNeomakeMessage 'Cleaning make info.', 3
+    Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
+  endif

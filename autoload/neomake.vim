@@ -103,11 +103,12 @@ function! neomake#CancelMake(make_id, ...) abort
     if !has_key(s:make_info, a:make_id)
         return 0
     endif
+    let bang = a:0 ? a:1 : 0
     let jobs = filter(copy(values(s:jobs)), 'v:val.make_id == a:make_id')
     for job in jobs
-        call neomake#CancelJob(job.id, a:0 ? a:1 : 0)
+        call neomake#CancelJob(job.id, bang)
     endfor
-    call s:clean_make_info(a:make_id)
+    call s:clean_make_info(a:make_id, bang)
     return 1
 endfunction
 
@@ -116,20 +117,27 @@ function! neomake#CancelJob(job_id, ...) abort
     let job_id = type(a:job_id) == type({}) ? a:job_id.id : +a:job_id
     let remove_always = a:0 ? a:1 : 0
     let jobinfo = get(s:jobs, a:job_id, {})
-    if empty(jobinfo)
-        call neomake#utils#ErrorMessage('CancelJob: job not found: '.job_id.'.')
-        return 0
-    endif
 
     if remove_always
         " Remove any queued action.
-        for [k, q] in items(s:action_queue)
-            for v in q
-                if v[1][0] == jobinfo
-                    unlet s:action_queue[k]
+        for [event, q] in items(s:action_queue)
+            let len_before = len(q)
+            call filter(q, "get(v:val[1][0], 'id') != a:job_id")
+            let len_after = len(q)
+            if len_before != len_after
+                call neomake#utils#DebugMessage(printf(
+                            \ 'Removed %d action queue entries.',
+                            \ len_before - len_after))
+                if !len_after
+                    call s:clean_action_queue_augroup(event)
                 endif
-            endfor
+            endif
         endfor
+    endif
+
+    if empty(jobinfo)
+        call neomake#utils#ErrorMessage('CancelJob: job not found: '.job_id.'.')
+        return 0
     endif
 
     if get(jobinfo, 'canceled', 0)
@@ -924,19 +932,22 @@ function! s:process_action_queue(event) abort
             call s:clean_make_info(jobinfo.make_id)
         endif
     endfor
-    " Cleanup augroup.
     if empty(queue)
-        for v in values(s:action_queue)
-            if !empty(v)
-                augroup neomake_event_queue
-                    exe 'au! '.a:event
-                augroup END
-                return
-            endif
-        endfor
-        autocmd! neomake_event_queue
-        augroup! neomake_event_queue
+        call s:clean_action_queue_augroup(a:event)
     endif
+endfunction
+
+function! s:clean_action_queue_augroup(event) abort
+    for v in values(s:action_queue)
+        if !empty(v)
+            augroup neomake_event_queue
+                exe 'au! '.a:event
+            augroup END
+            return
+        endif
+    endfor
+    autocmd! neomake_event_queue
+    augroup! neomake_event_queue
 endfunction
 
 function! s:Make(options) abort
@@ -1240,13 +1251,14 @@ function! s:CleanJobinfo(jobinfo) abort
     call s:clean_make_info(a:jobinfo.make_id)
 endfunction
 
-function! s:clean_make_info(make_id) abort
+function! s:clean_make_info(make_id, ...) abort
     let make_info = get(s:make_info, a:make_id, {})
     if empty(make_info)
         call neomake#utils#DebugMessage('Make info was cleaned already.', {'make_id': a:make_id})
         return
     endif
-    if !empty(make_info.active_jobs) || !empty(make_info.queued_jobs)
+    let bang = a:0 ? a:1 : 0
+    if !bang && (!empty(make_info.active_jobs) || !empty(make_info.queued_jobs))
         return
     endif
     call neomake#utils#DebugMessage('Cleaning make info.', {'make_id': a:make_id})
