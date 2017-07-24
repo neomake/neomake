@@ -10,7 +10,7 @@ function! neomake#makers#ft#typescript#tsc() abort
         \ 'args': ['--project', neomake#utils#FindGlobFile('tsconfig.json'), '--noEmit', '--watch', 'false'],
         \ 'append_file': 0,
         \ 'errorformat':
-            \ '%E%f(%l\,%c): %m' .
+            \ '%E%f(%l\,%c): error %m,' .
             \ '%E%f %#(%l\,%c): error %m,' .
             \ '%E%f %#(%l\,%c): %m,' .
             \ '%Eerror %m,' .
