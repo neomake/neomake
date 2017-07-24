@@ -118,22 +118,20 @@ function! neomake#CancelJob(job_id, ...) abort
     let remove_always = a:0 ? a:1 : 0
     let jobinfo = get(s:jobs, a:job_id, {})
 
-    if remove_always
-        " Remove any queued action.
-        for [event, q] in items(s:action_queue)
-            let len_before = len(q)
-            call filter(q, "get(v:val[1][0], 'id') != a:job_id")
-            let len_after = len(q)
-            if len_before != len_after
-                call neomake#utils#DebugMessage(printf(
-                            \ 'Removed %d action queue entries.',
-                            \ len_before - len_after))
-                if !len_after
-                    call s:clean_action_queue_augroup(event)
-                endif
+    " Remove any queued actions.
+    for [event, q] in items(s:action_queue)
+        let len_before = len(q)
+        call filter(q, "get(v:val[1][0], 'id') != a:job_id")
+        let len_after = len(q)
+        if len_before != len_after
+            call neomake#utils#DebugMessage(printf(
+                        \ 'Removed %d action queue entries.',
+                        \ len_before - len_after))
+            if !len_after
+                call s:clean_action_queue_augroup(event)
             endif
-        endfor
-    endif
+        endif
+    endfor
 
     if empty(jobinfo)
         call neomake#utils#ErrorMessage('CancelJob: job not found: '.job_id.'.')
