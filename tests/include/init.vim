@@ -373,12 +373,18 @@ function! s:After()
     \ .string(map(jobs, "v:val.make_id.'.'.v:val.id")))
   endif
 
-  let make_info = neomake#GetStatus().make_info
+  let status = neomake#GetStatus()
+  let make_info = status.make_info
   if has_key(make_info, -42)
     unlet make_info[-42]
   endif
   if !empty(make_info)
     call add(errors, 'make_info is not empty: '.string(make_info))
+  endif
+  let actions = filter(copy(status.action_queue), '!empty(v:val)')
+  if !empty(actions)
+    call add(errors, printf('action_queue is not empty: %d entries: %s',
+          \ len(actions), string(status.action_queue)))
   endif
   try
     NeomakeTestsWaitForRemovedJobs
