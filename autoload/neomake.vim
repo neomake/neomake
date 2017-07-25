@@ -66,6 +66,7 @@ function! neomake#GetStatus() abort
     return {
                 \ 'last_make_id': s:make_id,
                 \ 'make_info': s:make_info,
+                \ 'action_queue': s:action_queue,
                 \ }
 endfunction
 
