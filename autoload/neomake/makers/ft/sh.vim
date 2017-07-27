@@ -13,6 +13,7 @@ function! neomake#makers#ft#sh#shellcheck() abort
             \ '%f:%l:%c: %tarning: %m,' .
             \ '%I%f:%l:%c: Note: %m',
         \ 'output_stream': 'stdout',
+        \ 'short_name': 'SC',
         \ }
 
     if match(getline(1), '\v^#!.*<%(sh|dash|bash|ksh)') >= 0

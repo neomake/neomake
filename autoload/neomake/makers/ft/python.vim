@@ -257,6 +257,7 @@ function! neomake#makers#ft#python#python() abort
         \ 'serialize': 1,
         \ 'serialize_abort_on_error': 1,
         \ 'output_stream': 'stdout',
+        \ 'short_name': 'py',
         \ }
 endfunction
 
