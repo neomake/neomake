@@ -109,7 +109,10 @@ function! neomake#CancelMake(make_id, ...) abort
     for job in jobs
         call neomake#CancelJob(job.id, bang)
     endfor
-    call s:clean_make_info(a:make_id, bang)
+    if has_key(s:make_info, a:make_id)
+        " Might have been cleaned by now; do not trigger a debug msg for it.
+        call s:clean_make_info(a:make_id, bang)
+    endif
     return 1
 endfunction
 
