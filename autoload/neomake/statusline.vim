@@ -12,13 +12,16 @@ endfunction
 
 function! neomake#statusline#ResetCountsForBuf(...) abort
     let bufnr = a:0 ? +a:1 : bufnr('%')
-    let r = (get(s:loclist_counts, bufnr, {}) != {})
-    let s:loclist_counts[bufnr] = {}
-    if r
-        call neomake#utils#hook('NeomakeCountsChanged', {
-              \ 'reset': 1, 'file_mode': 1, 'bufnr': bufnr})
+    if has_key(s:loclist_counts, bufnr)
+      let r = s:loclist_counts[bufnr] != {}
+      unlet s:loclist_counts[bufnr]
+      if r
+          call neomake#utils#hook('NeomakeCountsChanged', {
+                \ 'reset': 1, 'file_mode': 1, 'bufnr': bufnr})
+      endif
+      return r
     endif
-    return r
+    return 0
 endfunction
 
 function! neomake#statusline#ResetCountsForProject(...) abort
@@ -31,7 +34,6 @@ function! neomake#statusline#ResetCountsForProject(...) abort
     return r
 endfunction
 
-" TODO: deprecate/remove.
 function! neomake#statusline#ResetCounts() abort
     let r = neomake#statusline#ResetCountsForProject()
     for bufnr in keys(s:loclist_counts)
