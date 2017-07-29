@@ -151,14 +151,14 @@ if has('nvim')
                 " but not worth it probably (and more fragile in the end?!).
                 return join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
             endif
-            return a:exe . (!empty(a:args) ? ' ' . a:args : '')
+            return a:exe . (empty(a:args) ? '' : ' '.a:args)
         endfunction
     else
         function! neomake#compat#get_argv(exe, args, args_is_list) abort
             if a:args_is_list
                 return [a:exe] + a:args
             endif
-            return a:exe . (!empty(a:args) ? ' ' . a:args : '')
+            return a:exe . (empty(a:args) ? '' : ' '.a:args)
         endfunction
     endif
 elseif neomake#has_async_support()  " Vim-async.
@@ -168,7 +168,7 @@ elseif neomake#has_async_support()  " Vim-async.
             if a:args_is_list
                 let argv = join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
             else
-                let argv = a:exe.' '.a:args
+                let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
             endif
             return &shell.' '.&shellcmdflag.' '.argv
         endfunction
@@ -178,7 +178,8 @@ elseif neomake#has_async_support()  " Vim-async.
                 return [a:exe] + a:args
             endif
             " Use a shell to handle argv properly (Vim splits at spaces).
-            return [&shell, &shellcmdflag, a:exe.' '.a:args]
+            let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
+            return [&shell, &shellcmdflag, argv]
         endfunction
     endif
 else
@@ -187,6 +188,6 @@ else
         if a:args_is_list
             return join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
         endif
-        return a:exe . (!empty(a:args) ? ' ' . a:args : '')
+        return a:exe . (empty(a:args) ? '' : ' '.a:args)
     endfunction
 endif
