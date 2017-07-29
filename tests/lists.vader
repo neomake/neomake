@@ -428,6 +428,7 @@ Execute (location list gets created with entries from first job, closed only aft
   call neomake#Make(1, [maker1, maker2])
   if neomake#has_async_support()
     NeomakeTestsWaitForNextFinishedJob
+    AssertEqual wincount + 1, winnr('$'), 'Location list was not closed'
     AssertEqual map(getloclist(0), '[v:val.text, v:val.type, v:val.valid]'), [['error', 'E', 1]]
     call writefile([], flagfile)
     NeomakeTestsWaitForFinishedJobs
