@@ -624,39 +624,7 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
             endif
         endif
     endif
-
-    if has('nvim')
-        if args_is_list
-            let argv = [exe] + args
-        else
-            let argv = exe . (!empty(args) ? ' ' . args : '')
-        endif
-    elseif s:async
-        " Vim jobs, need special treatment on Windows..
-        if neomake#utils#IsRunningWindows()
-            " Windows needs a subshell to handle PATH/%PATHEXT% etc.
-            if args_is_list
-                let argv = join(map(copy([exe] + args), 'neomake#utils#shellescape(v:val)'))
-            else
-                let argv = exe.' '.args
-            endif
-            let argv = &shell.' '.&shellcmdflag.' '.argv
-
-        elseif !args_is_list
-            " Use a shell to handle argv properly (Vim splits at spaces).
-            let argv = [&shell, &shellcmdflag, exe.' '.args]
-        else
-            let argv = [exe] + args
-        endif
-    else
-        " Vim (synchronously), via system().
-        if args_is_list
-            let argv = join(map(copy([exe] + args), 'neomake#utils#shellescape(v:val)'))
-        else
-            let argv = exe.' '.args
-        endif
-    endif
-    return argv
+    return neomake#compat#get_argv(exe, args, args_is_list)
 endfunction
 
 function! neomake#GetMaker(name_or_maker, ...) abort
