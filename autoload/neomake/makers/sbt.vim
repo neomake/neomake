@@ -4,6 +4,10 @@ function! neomake#makers#sbt#sbt() abort
     return {
         \ 'exe': 'sbt',
         \ 'args': ['compile'],
-        \ 'errorformat': '[%trror] %f:%l: %m'
+        \ 'errorformat':
+            \ '%E[%trror]\ %f:%l:\ %m,' .
+            \ '%-Z[error]\ %p^,' .
+            \ '%-C%.%#,' .
+            \ '%-G%.%#'
     \ }
 endfunction
