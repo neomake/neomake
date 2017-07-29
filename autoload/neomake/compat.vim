@@ -141,3 +141,52 @@ function! neomake#compat#globpath_list(path, pattern, suf) abort
     endif
     return split(globpath(a:path, a:pattern, a:suf), '\n')
 endfunction
+
+if has('nvim')
+    if neomake#utils#IsRunningWindows()
+        function! neomake#compat#get_argv(exe, args, args_is_list) abort
+            if a:args_is_list
+                " Convert it to a string to handle PATHEXT (e.g. .cmd files).
+                " This might be skipped when `exepath(a:exe)[-4:] == '.exe'`,
+                " but not worth it probably (and more fragile in the end?!).
+                return join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
+            endif
+            return a:exe . (!empty(a:args) ? ' ' . a:args : '')
+        endfunction
+    else
+        function! neomake#compat#get_argv(exe, args, args_is_list) abort
+            if a:args_is_list
+                return [a:exe] + a:args
+            endif
+            return a:exe . (!empty(a:args) ? ' ' . a:args : '')
+        endfunction
+    endif
+elseif neomake#has_async_support()  " Vim-async.
+    if neomake#utils#IsRunningWindows()
+        " Windows needs a shell to handle PATH/%PATHEXT% etc.
+        function! neomake#compat#get_argv(exe, args, args_is_list) abort
+            if a:args_is_list
+                let argv = join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
+            else
+                let argv = a:exe.' '.a:args
+            endif
+            return &shell.' '.&shellcmdflag.' '.argv
+        endfunction
+    else
+        function! neomake#compat#get_argv(exe, args, args_is_list) abort
+            if a:args_is_list
+                return [a:exe] + a:args
+            endif
+            " Use a shell to handle argv properly (Vim splits at spaces).
+            return [&shell, &shellcmdflag, a:exe.' '.a:args]
+        endfunction
+    endif
+else
+    " Vim (synchronously), via system().
+    function! neomake#compat#get_argv(exe, args, args_is_list) abort
+        if a:args_is_list
+            return join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
+        endif
+        return a:exe . (!empty(a:args) ? ' ' . a:args : '')
+    endfunction
+endif
