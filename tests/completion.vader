@@ -28,4 +28,4 @@ Execute (neomake#CompleteMakers: completes space after Neomake!):
 
 Execute (neomake#CompleteMakers: completes project makers):
   AssertEqual sort(neomake#CompleteMakers('', 'Neomake! ')),
-  \ ['cabal', 'clippy', 'gradle', 'mvn']
+  \ ['cabal', 'clippy', 'gradle', 'mvn', 'sbt']
