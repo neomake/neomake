@@ -1,7 +1,7 @@
 dist: trusty
 sudo: false
 
-language: none
+language: generic
 branches:
   only:
     - master
