@@ -51,7 +51,11 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
   if has('nvim')
     AssertEqual out, 'sh -c ''echo 1'''
   else
-    AssertEqual out, '/bin/bash -c ''sh -c ''\''''echo 1''\'''''''
+    if neomake#has_async_support()
+      AssertEqual out, '/bin/bash -c ''sh -c ''\''''echo 1''\'''''''
+    else
+      AssertEqual out, 'sh -c ''echo 1'''
+    endif
 
     " Does not get wrapped in shell twice.
     let &shell = 'sh'
