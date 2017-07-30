@@ -60,5 +60,5 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
   endif
 
   " Undo monkeypatch.
-  runtime autoload/neomake/compat.vim
   runtime autoload/neomake/utils.vim
+  runtime autoload/neomake/compat.vim
