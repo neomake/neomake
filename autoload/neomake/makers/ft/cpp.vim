@@ -9,12 +9,14 @@ endfunction
 function! neomake#makers#ft#cpp#clang() abort
     let maker = neomake#makers#ft#c#clang()
     let maker.exe = 'clang++'
+    let maker.args += ['-std=c++1z']
     return maker
 endfunction
 
 function! neomake#makers#ft#cpp#gcc() abort
     let maker = neomake#makers#ft#c#gcc()
     let maker.exe = 'g++'
+    let maker.args += ['-std=c++1z']
     return maker
 endfunction
 
