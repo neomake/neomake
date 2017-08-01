@@ -30,6 +30,7 @@ function! neomake#makers#ft#cpp#clangtidy() abort
 endfunction
 
 function! neomake#makers#ft#cpp#clangcheck() abort
+    let maker = neomake#makers#ft#c#clangcheck()
     " clang-check invokes clang, and that needs to be configured
     " clang arguments are passed to clang-check after a literal "--"
     let maker.args += ['--']
