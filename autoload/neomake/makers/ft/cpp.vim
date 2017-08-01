@@ -10,6 +10,9 @@ function! neomake#makers#ft#cpp#clang() abort
     let maker = neomake#makers#ft#c#clang()
     let maker.exe = 'clang++'
     let maker.args += ['-std=c++1z']
+    " as a single-file maker, include the current directory in the default
+    " search path
+    let maker.args += ['-I./']
     return maker
 endfunction
 
@@ -17,6 +20,9 @@ function! neomake#makers#ft#cpp#gcc() abort
     let maker = neomake#makers#ft#c#gcc()
     let maker.exe = 'g++'
     let maker.args += ['-std=c++1z']
+    " as a single-file maker, include the current directory in the default
+    " search path
+    let maker.args += ['-I./']
     return maker
 endfunction
 
