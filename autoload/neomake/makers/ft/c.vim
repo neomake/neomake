@@ -66,6 +66,7 @@ endfunction
 function! neomake#makers#ft#c#clangtidy() abort
     return {
         \ 'exe': 'clang-tidy',
+        \ 'args': ['%:p'],
         \ 'errorformat':
             \ '%E%f:%l:%c: fatal error: %m,' .
             \ '%E%f:%l:%c: error: %m,' .
