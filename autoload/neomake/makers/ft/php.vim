@@ -42,8 +42,21 @@ function! neomake#makers#ft#php#phpmd() abort
 endfunction
 
 function! neomake#makers#ft#php#phpstan() abort
-    return {
+    let maker = {
         \ 'args': ['analyse', '--errorFormat', 'raw'],
         \ 'errorformat': '%E%f:%l:%m',
         \ }
+    " Check for the existence of a default phpstan project configuration file.
+    " Technically phpstan does not have a concept of a default filename for a
+    " project configuration file, but phpstan.neon is the filename shown in the
+    " example in the phpstan documentation, so this is the default name expected
+    " by neomake.
+    let defaultPhpStanConfigFilename = 'phpstan.neon'
+    if filereadable(defaultPhpStanConfigFilename)
+        " The --level flag becomes required when specifying a config file.
+        " Phpstan normally considers 0 to be the default level, so that is
+        " used here as the default:
+        call extend(maker.args, ['--level', get(g:, 'neomake_phpstan_level', 0), '-c', defaultPhpStanConfigFilename])
+    endif
+    return maker
 endfunction
