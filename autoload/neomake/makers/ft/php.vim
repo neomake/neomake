@@ -43,7 +43,7 @@ endfunction
 
 function! neomake#makers#ft#php#phpstan() abort
     return {
-        \ 'args': ['analyse', '--errorFormat', 'raw'],
+        \ 'args': ['analyse', '--errorFormat', 'raw', '--no-progress'],
         \ 'errorformat': '%E%f:%l:%m',
         \ }
 endfunction
