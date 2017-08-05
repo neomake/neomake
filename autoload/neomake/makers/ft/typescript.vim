@@ -29,6 +29,7 @@ function! neomake#makers#ft#typescript#tslint() abort
     let config = neomake#utils#FindGlobFile('tsconfig.json')
     if !empty(config)
         let maker.args = ['--project', config]
+        let maker.cwd = fnamemodify(config, ':h')
     endif
     return maker
 endfunction
