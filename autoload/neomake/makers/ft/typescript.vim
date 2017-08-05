@@ -19,6 +19,7 @@ endfunction
 
 function! neomake#makers#ft#typescript#tslint() abort
     return {
-         \ 'errorformat': '%EERROR: %f[%l\, %c]: %m,%E%f[%l\, %c]: %m'
-         \ }
+        \ 'args': ['--project', neomake#utils#FindGlobFile('tsconfig.json')],
+        \ 'errorformat': '%EERROR: %f[%l\, %c]: %m,%E%f[%l\, %c]: %m',
+        \ }
 endfunction
