@@ -158,8 +158,7 @@ Execute (Sleep in postprocess gets handled correctly):
     function! s:postprocess(entry) dict
       let g:neomake_test_postprocess_count += 1
       if g:neomake_test_postprocess_count == 1
-        let sleep = has('nvim') ? 200 : 400
-        exe 'sleep '.sleep.'m'
+        exe 'sleep 200m'
       endif
     endfunction
 
