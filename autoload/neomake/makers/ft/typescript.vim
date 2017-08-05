@@ -6,8 +6,8 @@ endfunction
 
 function! neomake#makers#ft#typescript#tsc() abort
     " tsc should not be passed a single file.
-    return {
-        \ 'args': ['--project', neomake#utils#FindGlobFile('tsconfig.json'), '--noEmit', '--watch', 'false'],
+    let maker = {
+        \ 'args': ['--noEmit', '--watch', 'false'],
         \ 'append_file': 0,
         \ 'errorformat':
             \ '%E%f %#(%l\,%c): error %m,' .
@@ -15,11 +15,20 @@ function! neomake#makers#ft#typescript#tsc() abort
             \ '%Eerror %m,' .
             \ '%C%\s%\+%m'
         \ }
+    let config = neomake#utils#FindGlobFile('tsconfig.json')
+    if !empty(config)
+        let maker.args += ['--project', config]
+    endif
+    return maker
 endfunction
 
 function! neomake#makers#ft#typescript#tslint() abort
-    return {
-        \ 'args': ['--project', neomake#utils#FindGlobFile('tsconfig.json')],
+    let maker = {
         \ 'errorformat': '%EERROR: %f[%l\, %c]: %m,%E%f[%l\, %c]: %m',
         \ }
+    let config = neomake#utils#FindGlobFile('tsconfig.json')
+    if !empty(config)
+        let maker.args = ['--project', config]
+    endif
+    return maker
 endfunction
