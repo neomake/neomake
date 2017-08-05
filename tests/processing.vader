@@ -153,8 +153,6 @@ Execute (Sleep in postprocess gets handled correctly):
   " Reproduces flakiness with https://github.com/neomake/neomake/issues/899.
   call neomake#statusline#ResetCounts()
   if NeomakeAsyncTestsSetup()
-    " Vim needs longer sleep to process the output line by line.
-    let s:sleep = has('nvim') ? '0.01' : '0.1'
     Save g:neomake_test_postprocess_count
     let g:neomake_test_postprocess_count = 0
     function! s:postprocess(entry) dict
@@ -166,7 +164,7 @@ Execute (Sleep in postprocess gets handled correctly):
     endfunction
 
     let maker = extend(neomake#utils#MakerFromCommand(
-      \ 'echo out-1; sleep '.s:sleep.'; echo out-22; sleep '.s:sleep.'; echo out-333'), {
+      \ 'echo out-1; sleep 0.1; echo out-22; sleep 0.1; echo out-333'), {
       \ 'buffer_output': 0, 'errorformat': '%m',
       \ 'append_file': 0,
       \ 'postprocess': function('s:postprocess')})
