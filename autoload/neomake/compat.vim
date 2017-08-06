@@ -174,7 +174,7 @@ elseif neomake#has_async_support()  " Vim-async.
             if argv[0:len(prefix)-1] == prefix
                 return argv
             endif
-            return prefix.neomake#utils#shellescape(argv)
+            return argv
         endfunction
     else
         function! neomake#compat#get_argv(exe, args, args_is_list) abort
