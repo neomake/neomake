@@ -68,3 +68,23 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
     runtime autoload/neomake/utils.vim
     runtime autoload/neomake/compat.vim
   endtry
+
+Execute (NeomakeSh on (emulated) Windows):
+  Save &shell, &shellcmdflag
+  function! neomake#utils#IsRunningWindows()
+    return 1
+  endfunction
+  runtime autoload/neomake/compat.vim
+
+  call g:NeomakeTestsCreateExe('cmd.exe', [])
+  let &shell = 'cmd.exe'
+  let &shellcmdflag = '/c'
+  try
+    call neomake#Sh('dir ..')
+  finally
+    " Undo monkeypatch.
+    runtime autoload/neomake/utils.vim
+    runtime autoload/neomake/compat.vim
+  endtry
+  AssertNeomakeMessage "Starting async job: 'cmd.exe /c \"dir ..\"'.", 2
+  NeomakeTestsWaitForFinishedJobs
