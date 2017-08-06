@@ -404,19 +404,23 @@ function! s:MakeJob(make_id, options) abort
             call neomake#utils#hook('NeomakeJobStarted', {'jobinfo': jobinfo})
         else
             " vim-sync.
-            let jobinfo.id = job_id
-            let s:jobs[job_id] = jobinfo
-            let s:make_info[a:make_id].active_jobs += [jobinfo]
-
             " Use a temporary file to capture stderr.
             let stderr_file = tempname()
             let argv = jobinfo.argv . ' 2>'.stderr_file
 
-            if get(jobinfo, 'uses_stdin', 0)
-                let output = system(argv, join(s:make_info[a:make_id].buffer_lines, "\n"))
-            else
-                let output = system(argv)
-            endif
+            try
+                if get(jobinfo, 'uses_stdin', 0)
+                    let output = system(argv, join(s:make_info[a:make_id].buffer_lines, "\n"))
+                else
+                    let output = system(argv)
+                endif
+            catch /^Vim(let):E484:/
+                throw printf('Neomake: Could not run %s: %s.', argv, v:exception)
+            endtry
+
+            let jobinfo.id = job_id
+            let s:jobs[job_id] = jobinfo
+            let s:make_info[a:make_id].active_jobs += [jobinfo]
 
             call s:output_handler(jobinfo, split(output, '\r\?\n', 1), 'stdout')
             let stderr_output = readfile(stderr_file)
