@@ -1047,7 +1047,7 @@ function! s:AddExprCallback(jobinfo, prev_index) abort
     let list = file_mode ? getloclist(0) : getqflist()
     let index = a:prev_index
     unlet! s:postprocess  " vim73
-    let s:postprocess = get(maker, 'postprocess', function('neomake#utils#CompressWhitespace'))
+    let s:postprocess = neomake#utils#GetSetting('postprocess', maker, function('neomake#utils#CompressWhitespace'), a:jobinfo.ft, a:jobinfo.bufnr)
     if type(s:postprocess) != type([])
         let s:postprocessors = [s:postprocess]
     else
