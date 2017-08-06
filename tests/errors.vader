@@ -110,3 +110,14 @@ Execute (Empty maker gets handled in s:Make):
   CallNeomake {'enabled_makers': [{}]}
   AssertNeomakeMessage 'Exe (unnamed_maker) of maker unnamed_maker is not executable.', 0
   AssertNeomakeMessage 'Nothing to make: no valid makers.', 3
+
+Execute (NeomakeSh handles invalid shell):
+  if neomake#has_async_support()
+    NeomakeTestsSkip 'Only for non-async'
+  else
+    Save &shell
+    call g:NeomakeTestsCreateExe('cmd.exe', [])
+    let &shell = 'cmd.exe'
+    call neomake#Sh('dir ..')
+    AssertNeomakeMessage '\v^Could not run cmd.exe -c "dir .." 2>.*: Vim\(let\):E484: .*\.$', 0
+  endif
