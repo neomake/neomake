@@ -75,7 +75,9 @@ endfunction
 function! neomake#makers#ft#javascript#flow() abort
     return {
         \ 'args': ['--from=vim', '--show-all-errors'],
-        \ 'errorformat': '%EFile "%f"\, line %l\, characters %c-%m,%C%m,%Z%m',
+        \ 'errorformat': '%EFile "%f"\, line %l\, characters %c-%m,'
+        \   .'%trror: File "%f"\, line %l\, characters %c-%m,'
+        \   .'%C%m,%Z%m',
         \ 'postprocess': function('neomake#makers#ft#javascript#FlowProcess')
         \ }
 endfunction
