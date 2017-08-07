@@ -48,7 +48,8 @@ endfunction
 
 function! neomake#makers#ft#javascript#standard() abort
     return {
-        \ 'errorformat': '%W  %f:%l:%c: %m'
+        \ 'args': ['-v'],
+        \ 'errorformat': '%W  %f:%l:%c: %m,%-Gstandard: %.%#'
         \ }
 endfunction
 
