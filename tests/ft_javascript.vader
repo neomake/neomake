@@ -64,11 +64,11 @@ Execute (javascript: standard: errorformat):
   let output = [
   \ 'standard: Use JavaScript Standard Style (https://standardjs.com)',
   \ 'standard: Run `standard --fix` to automatically fix some problems.',
-  \ '  /path/to/file.js:1:1: Expected an assignment or function call and instead saw an expression.',
+  \ '  /path/to/file.js:1:1: Expected an assignment or function call and instead saw an expression. (no-unused-expressions)',
   \ ]
   lgetexpr output
   AssertEqual getloclist(0), [{
   \ 'lnum': 1, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
   \ 'nr': -1, 'type': 'W', 'pattern': '',
-  \ 'text': 'Expected an assignment or function call and instead saw an expression.'}]
+  \ 'text': 'Expected an assignment or function call and instead saw an expression. (no-unused-expressions)'}]
   bwipe
