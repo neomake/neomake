@@ -102,6 +102,19 @@ Execute (Errors from neomake#GetMaker get handled by neomake#Make):
   CallNeomake 0, ['nonexistent']
   AssertNeomakeMessage 'Project maker not found: nonexistent.', 0
 
+Execute (Error from neomake#GetMaker for non-dict maker):
+  new
+  let b:neomake_mymaker_maker = 0
+  AssertThrows call neomake#GetMaker('mymaker')
+  AssertEqual g:vader_exception, 'Neomake: Got non-dict for maker mymaker: 0'
+
+  CallNeomake 0, ['mymaker']
+  let make_id = neomake#GetStatus().last_make_id
+  AssertNeomakeMessage 'Got non-dict for maker mymaker: 0.', 0, {'make_id': make_id}
+  AssertNeomakeMessage 'Nothing to make: no valid makers.', 3
+  AssertNeomakeMessage 'Cleaning make info.', 3
+  bwipe
+
 Execute (Empty maker gets handled in s:Make):
   CallNeomake {'enabled_makers': []}
   " TODO: level: more visible in this case?!
