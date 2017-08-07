@@ -673,6 +673,10 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                 throw 'Neomake: Project maker not found: '.a:name_or_maker
             endif
         endif
+        if type(maker) != type({})
+            throw printf('Neomake: Got non-dict for maker %s: %s',
+                        \ a:name_or_maker, maker)
+        endif
     endif
 
     " Create the maker object.
