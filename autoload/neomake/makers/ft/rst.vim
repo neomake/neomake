@@ -14,7 +14,8 @@ function! neomake#makers#ft#rst#rstlint() abort
         \ 'errorformat':
             \ '%EERROR %f:%l %m,'.
             \ '%WWARNING %f:%l %m,'.
-            \ '%IINFO %f:%l %m',
+            \ '%IINFO %f:%l %m,'.
+            \ '%C%m',
         \ }
 endfunction
 
