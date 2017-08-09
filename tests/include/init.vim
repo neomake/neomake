@@ -108,19 +108,28 @@ function! g:NeomakeTestsCreateExe(name, lines)
   let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
   let exe = tmpbindir.dir_separator.a:name
   if $PATH !~# tmpbindir . path_separator
-    Save $PATH
     if !isdirectory(tmpbindir)
       call mkdir(tmpbindir, 'p', 0770)
     endif
-    let $PATH = tmpbindir . ':' . $PATH
+    call g:NeomakeTestsSetPATH(tmpbindir . ':' . $PATH)
   endif
   call writefile(a:lines, exe)
   if exists('*setfperm')
     call setfperm(exe, 'rwxrwx---')
   else
     " XXX: Windows support
-    call system('chmod 770 '.shellescape(exe))
+    call system('/bin/chmod 770 '.shellescape(exe))
+    Assert !v:shell_error, 'Got shell_error with chmod: '.v:shell_error
   endif
+endfunction
+
+let s:saved_path = 0
+function! g:NeomakeTestsSetPATH(path) abort
+  if !s:saved_path
+    Save $PATH
+    let s:saved_path = 1
+  endif
+  let $PATH = a:path
 endfunction
 
 function! s:AssertNeomakeMessage(msg, ...)
