@@ -17,12 +17,113 @@ Execute (rst: rstlint: errorformat):
   \ }]
 
   " Newline gets trimmed when going through postprocess.
-  let maker = {'exe': 'printf', 'args': ['%s\n'] + output}
-  let maker.append_file = 0
+  let maker = {'exe': 'printf', 'args': ['%s\n'] + output, 'append_file': 0}
   CallNeomake 1, [maker]
   AssertEqual getloclist(0), [
   \ {'lnum': 40, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0,
   \  'nr': -1, 'type': 'E', 'pattern': '',
   \  'text': 'Error in "code-block" directive: unknown option: "linenos".',
   \ }]
+  bwipe
+
+Execute (rst: sphinx: detects conf.py):
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#rst#rstlint().errorformat
+  new
+  noautocmd set filetype=rst
+  CallNeomake 1, ['sphinx']
+  AssertNeomakeMessage 'sphinx: could not find conf.py.', 0
+
+  lcd build
+  call writefile([], 'conf.py')
+  let maker = neomake#GetMaker('sphinx', 'rst')
+  AssertEqual maker.args[-2], getcwd()
+
+  bwipe
+
+Execute (rst: enabled makers based on sphinx conf):
+  call g:NeomakeTestsSetPATH('')
+
+  AssertEqual neomake#makers#ft#rst#EnabledMakers(), ['rstlint', 'rstcheck']
+
+  call g:NeomakeTestsCreateExe('sphinx-build', [])
+  AssertEqual neomake#makers#ft#rst#EnabledMakers(), ['rstlint', 'rstcheck']
+
+  cd build
+  try
+    call writefile([], 'conf.py')
+    AssertEqual neomake#makers#ft#rst#EnabledMakers(), ['sphinx']
+  finally
+    cd -
+  endtry
+
+Execute (rst: sphinx: handles docutils warnings and adds first additional line):
+  new
+  lcd build
+  call writefile(['1'], 'conf.py')
+  file build/some.rst
+
+  let output = [
+  \ 'WARNING: /some/path/inline.rst:8: (ERROR/3) Malformed table.',
+  \ 'No bottom table border found.',
+  \ '',
+  \ '======================= ====================================================================',
+  \ '/some/path/inline.rst:9: WARNING: Block quote ends without a blank line; unexpected unindent.',
+  \ 'WARNING: /some/path/inline.rst:40: (ERROR/3) Error in "code-block" directive:',
+  \ 'unknown option: "linenoss".',
+  \ '',
+  \ '.. code-block:: lua',
+  \ '   :linenoss:',
+  \ '',
+  \ '   -- luacheck: globals g1 g2, ignore foo',
+  \ '   local foo = g1(g2) -- No warnings emitted.',
+  \ '',
+  \ '   -- The following unused function is not reported.',
+  \ '   local function f() -- luacheck: ignore',
+  \ '      -- luacheck: globals g3',
+  \ '      g3() -- No warning.',
+  \ '   end',
+  \ '',
+  \ '   g3() -- Warning is emitted as the inline option defining g3 only affected function f.',
+  \ ' WARNING: /some/path/inline.rst:2: (WARNING/2) Title underline too short.',
+  \ '',
+  \ 'Command line interface',
+  \ '=====================',
+  \ '',
+  \ 'build/some.rst:70: WARNING: numfig is disabled. :numref: is ignored.',
+  \ 'build/some.rst:71: WARNING: numfig is disabled. :numref: is ignored.',
+  \ ]
+
+  let maker = neomake#makers#ft#rst#sphinx()
+  call extend(maker, {
+  \ 'exe': 'printf', 'args': ['%s\n'] + output,
+  \ 'append_file': 0, 'output_stream': 'stdout'})
+  CallNeomake 1, [maker]
+
+  let unlisted_bufnr = bufnr('/some/path/inline.rst')
+  let bufnr = bufnr('%')
+
+  let loclist = getloclist(0)
+  AssertEqual len(loclist), 5, 'loclist should have 5 entries: '.string(loclist)
+  AssertEqual loclist[0],
+  \ {'lnum': 8, 'bufnr': unlisted_bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'E', 'pattern': '',
+  \  'text': 'Malformed table. No bottom table border found.'}
+  AssertEqual loclist[1],
+  \ {'lnum': 9, 'bufnr': unlisted_bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'W', 'pattern': '',
+  \  'text': 'Block quote ends without a blank line; unexpected unindent.'}
+  AssertEqual loclist[2],
+  \ {'lnum': 40, 'bufnr': unlisted_bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'E', 'pattern': '',
+  \  'text': 'Error in "code-block" directive: unknown option: "linenoss".'}
+  AssertEqual loclist[3],
+  \ {'lnum': 70, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'W', 'pattern': '',
+  \  'text': 'numfig is disabled. :numref: is ignored.'}
+  AssertEqual loclist[4],
+  \ {'lnum': 71, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'W', 'pattern': '',
+  \  'text': 'numfig is disabled. :numref: is ignored.'}
+  exe 'bwipe' unlisted_bufnr
   bwipe

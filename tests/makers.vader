@@ -21,7 +21,14 @@ Execute (Instantiate all default makers):
       call add(errors, 'Error when calling '.f.': '.v:exception)
     endtry
 
-    for m in neomake#GetMakers(ft)
+    let makers = neomake#GetMakers(ft)
+    if ft ==# 'rst'
+      " Skip sphinx, would throw an error; it is tested separately.
+      " TODO: align with clippy maker, which only uses neomake#utils#ErrorMessage.
+      "       (https://github.com/neomake/neomake/issues/1453).
+      call filter(makers, "v:val !=# 'sphinx'")
+    endif
+    for m in makers
       try
         let maker = neomake#GetMaker(m, ft)
       catch
