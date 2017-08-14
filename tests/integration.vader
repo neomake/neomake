@@ -807,3 +807,26 @@ Execute (Highlights should be cleared after successful run):
     \                       'NeomakeMessage': [], 'NeomakeWarning': []}},
     \ 'project': {}}
   endif
+
+Execute (neomake#GetCurrentErrorMsg):
+  let maker = {'name': 'my_maker'}
+  function maker.get_list_entries(...)
+    let bufnr = bufnr('%')
+    return [
+    \ {'lnum': 1, 'col': 1, 'text': 'error 1.1', 'bufnr': bufnr},
+    \ {'lnum': 2, 'col': 1, 'text': 'error 2.1', 'bufnr': bufnr, 'nr': 42},
+    \ {'lnum': 3, 'col': 1, 'text': 'error 3.1', 'bufnr': bufnr, 'nr': -1, 'type': ''},
+    \ {'lnum': 3, 'col': 2, 'text': 'error 3.2', 'bufnr': bufnr, 'nr': 0, 'type': ''},
+    \ ]
+  endfunction
+  CallNeomake 1, [maker]
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 1.1 (E)'
+  normal! o
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 2.1 (E42)'
+  normal! o
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.1'
+  normal! A12
+  normal! l
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.2 (0)'
