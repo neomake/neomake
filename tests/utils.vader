@@ -381,12 +381,12 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
   AssertEqual bound_maker._get_argv(jobinfo), expected_argv
 
-Execute (neomake#utils#MakerFromCommand appends args for file_mode):
+Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
   let maker = neomake#utils#MakerFromCommand('echo')
   let jobinfo = {'file_mode': 0, 'bufnr': 0}
 
   AssertEqual maker.fn(jobinfo), {
-  \ 'args': [&shellcmdflag, 'echo'], 'exe': &shell, 'remove_invalid_entries': 0}
+  \ 'args': [&shellcmdflag, 'echo'], 'exe': &shell, 'remove_invalid_entries': 0, '_wrapped_in_shell': 1}
 
   new
   edit tests/fixtures/a\ filename\ with\ spaces
@@ -397,6 +397,25 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode):
   AssertEqual bound_maker.args, [&shellcmdflag, 'echo '.fname]
   AssertEqual bound_maker.append_file, 0
   AssertEqual bound_maker.exe, &shell
+  AssertEqual bound_maker.remove_invalid_entries, 0
+  bwipe
+
+Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
+  let maker = neomake#utils#MakerFromCommand(['echo', '1'])
+  let jobinfo = {'file_mode': 0, 'bufnr': 0}
+
+  AssertEqual maker.fn(jobinfo), {
+  \ 'args': ['1'], 'exe': 'echo', 'remove_invalid_entries': 0, '_wrapped_in_shell': 0}
+
+  new
+  edit tests/fixtures/a\ filename\ with\ spaces
+  let fname = expand('%:p')
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let jobinfo.maker = maker
+  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
+  AssertEqual bound_maker.args, ['1', fname]
+  AssertEqual bound_maker.append_file, 0
+  AssertEqual bound_maker.exe, 'echo'
   AssertEqual bound_maker.remove_invalid_entries, 0
   bwipe
 

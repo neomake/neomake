@@ -240,28 +240,34 @@ let s:command_maker = {
             \ 'remove_invalid_entries': 0,
             \ }
 function! s:command_maker.fn(jobinfo) dict abort
-    let command = self.__command
-    let argv = split(&shell) + split(&shellcmdflag)
-
-    if get(self, 'append_file', a:jobinfo.file_mode)
-        let fname = self._get_fname_for_buffer(a:jobinfo)
-        let command .= ' '.fnamemodify(fname, ':p')
-        let self.append_file = 0
-    endif
-    call extend(self, {
-                \ 'exe': argv[0],
-                \ 'args': argv[1:] + [command],
-                \ })
-
     " Return a cleaned up copy of self.
-    return filter(copy(self), "v:key !~# '^__' && v:key !=# 'fn'")
+    let maker = filter(deepcopy(self), "v:key !~# '^__' && v:key !=# 'fn'")
+    if get(maker, 'append_file', a:jobinfo.file_mode)
+        let fname = fnamemodify(self._get_fname_for_buffer(a:jobinfo), ':p')
+        if self._wrapped_in_shell
+            let maker.args[-1] .= ' '.fname
+        else
+            call add(maker.args, fname)
+        endif
+        let maker.append_file = 0
+    endif
+    return maker
 endfunction
 
 function! neomake#utils#MakerFromCommand(command) abort
-    let command = neomake#utils#ExpandArgs([a:command])[0]
     " Create a maker object, with a "fn" callback.
     let maker = copy(s:command_maker)
-    let maker.__command = command
+    if type(a:command) == type('')
+        let argv = split(&shell) + split(&shellcmdflag)
+        call add(argv, neomake#utils#ExpandArgs([a:command])[0])
+        let maker.exe = argv[0]
+        let maker.args = argv[1:]
+        let maker._wrapped_in_shell = 1
+    else
+        let maker.exe = a:command[0]
+        let maker.args = a:command[1:]
+        let maker._wrapped_in_shell = 0
+    endif
     return maker
 endfunction
 
