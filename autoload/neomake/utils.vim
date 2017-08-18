@@ -242,9 +242,22 @@ let s:command_maker = {
 function! s:command_maker.fn(jobinfo) dict abort
     " Return a cleaned up copy of self.
     let maker = filter(deepcopy(self), "v:key !~# '^__' && v:key !=# 'fn'")
+
+    let command = self.__command
+    if type(command) == type('')
+        let argv = split(&shell) + split(&shellcmdflag)
+        let maker.exe = argv[0]
+        let maker.args = argv[1:] + [command]
+        let maker._exe_wrapped_in_shell = split(command)[0]
+    else
+        let maker.exe = command[0]
+        let maker.args = command[1:]
+        let maker._exe_wrapped_in_shell = ''
+    endif
+
     if get(maker, 'append_file', a:jobinfo.file_mode)
         let fname = fnamemodify(self._get_fname_for_buffer(a:jobinfo), ':p')
-        if self._wrapped_in_shell
+        if type(command) == type('')
             let maker.args[-1] .= ' '.fname
         else
             call add(maker.args, fname)
@@ -254,20 +267,12 @@ function! s:command_maker.fn(jobinfo) dict abort
     return maker
 endfunction
 
+" Create a maker object, with a "fn" callback.
+" Args: command (string or list).  Gets wrapped in a shell in case it is a
+"       string.
 function! neomake#utils#MakerFromCommand(command) abort
-    " Create a maker object, with a "fn" callback.
     let maker = copy(s:command_maker)
-    if type(a:command) == type('')
-        let argv = split(&shell) + split(&shellcmdflag)
-        call add(argv, neomake#utils#ExpandArgs([a:command])[0])
-        let maker.exe = argv[0]
-        let maker.args = argv[1:]
-        let maker._wrapped_in_shell = 1
-    else
-        let maker.exe = a:command[0]
-        let maker.args = a:command[1:]
-        let maker._wrapped_in_shell = 0
-    endif
+    let maker.__command = a:command
     return maker
 endfunction
 
