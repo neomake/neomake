@@ -283,7 +283,7 @@ endfunction
 " --silent-imports: replaced by --ignore-missing-imports --follow-imports=skip
 function! neomake#makers#ft#python#mypy() abort
     return {
-        \ 'args': ['--ignore-missing-imports', '--follow-imports=skip'],
+        \ 'args': ['--check-untyped-defs', '--ignore-missing-imports', '--follow-imports=skip'],
         \ 'errorformat':
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .
