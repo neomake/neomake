@@ -4,13 +4,13 @@ endfunction
 
 " luacheck: postprocess: use pattern (%s) for end column.
 function! neomake#makers#ft#lua#PostprocessLuacheck(entry) abort
-  let end_col = matchstr(a:entry.pattern, '\v\d+')
-  if !empty(end_col)
-    let a:entry.length = end_col - a:entry.col + 1
-  else
-    echom 'luacheck: no end_col: '.string(a:entry)
-  endif
-  let a:entry.pattern = ''
+    let end_col = matchstr(a:entry.pattern, '\v\d+')
+    if !empty(end_col)
+        let a:entry.length = end_col - a:entry.col + 1
+    else
+        echom 'luacheck: no end_col: '.string(a:entry)
+    endif
+    let a:entry.pattern = ''
 endfunction
 
 function! neomake#makers#ft#lua#luacheck() abort

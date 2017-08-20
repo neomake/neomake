@@ -8,9 +8,10 @@ endfunction
 
 function! neomake#makers#ft#markdown#mdl() abort
     return {
-                \ 'errorformat':
-                \ '%f:%l: %m'
-                \ }
+        \ 'errorformat':
+        \   '%W%f:%l: MD%n %m,' .
+        \   '%W%f:%l: %m'
+        \ }
 endfunction
 
 function! neomake#makers#ft#markdown#markdownlint() abort
