@@ -217,7 +217,7 @@ travis_test:
 	  travis_run_make vim-master    "docker_test DOCKER_VIM=vim-master"    || (( ret+=4  )); \
 	  travis_run_make vim8069       "docker_test DOCKER_VIM=vim8069" NEOMAKE_TEST_NO_COLORSCHEME=1 || (( ret+=8  )); \
 	  travis_run_make vim73         "docker_test DOCKER_VIM=vim73"         || (( ret+=16 )); \
-	  travis_run_make vim-xenail    "docker_test DOCKER_VIM=vim74-xenial"  || (( ret+=32 )); \
+	  travis_run_make vim-xenial    "docker_test DOCKER_VIM=vim74-xenial"  || (( ret+=32 )); \
 	  travis_run_make check         "check"                                || (( ret+=64 )); \
 	exit $$ret
 
