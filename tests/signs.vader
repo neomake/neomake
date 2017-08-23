@@ -286,11 +286,14 @@ Execute (next sign_id based on max):
 
 Execute (file mode signs get placed when job finishes):
   if NeomakeAsyncTestsSetup()
+    let options = {
+    \ 'errorformat': '%f:%l:%t:%m',
+    \ 'mapexpr': "bufname('%').':'.v:val"}
     let maker1 = NeomakeTestsCommandMaker('maker1', 'echo 1:I:msg1; echo 3:W:msg2')
-    let maker1.errorformat = '%f:%l:%t:%m'
-    let maker1.mapexpr = "bufname('%').':'.v:val"
+    call extend(maker1, options)
+    let maker2 = NeomakeTestsCommandMaker('maker2', 'sleep .1; echo 1:W:msg3; echo 2:E:msg4')
+    call extend(maker2, options)
 
-    let maker2 = extend(copy(maker1), {'__command': 'sleep .1; echo 1:W:msg3; echo 2:E:msg4'})
     new
     file signs.test
     let bufnr = bufnr('%')
@@ -316,8 +319,9 @@ Execute (project mode signs get placed when job finishes):
     let maker1 = NeomakeTestsCommandMaker('maker1',
     \ 'echo signs1.test:1:I:msg1; echo signs2.test:3:W:msg2')
     let maker1.errorformat = '%f:%l:%t:%m'
-    let maker2 = extend(copy(maker1), {
-    \ '__command': 'sleep .1; echo signs1.test:1:W:msg3; echo signs2.test:2:E:msg4'})
+    let maker2 = NeomakeTestsCommandMaker('maker2',
+    \ 'sleep .1; echo signs1.test:1:W:msg3; echo signs2.test:2:E:msg4')
+    let maker2.errorformat = '%f:%l:%t:%m'
 
     new
     file signs1.test

@@ -381,12 +381,38 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
   AssertEqual bound_maker._get_argv(jobinfo), expected_argv
 
-Execute (neomake#utils#MakerFromCommand appends args for file_mode):
-  let maker = neomake#utils#MakerFromCommand('echo')
+Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
+  let maker = neomake#utils#MakerFromCommand('echo "%" 1')
+
+  new
+  edit tests/fixtures/a\ filename\ with\ spaces
+
+  let jobinfo = {'file_mode': 0, 'bufnr': bufnr('%')}
+  AssertEqual maker.fn(jobinfo), {
+  \ 'args': [&shellcmdflag, 'echo "%" 1'], 'exe': &shell, 'remove_invalid_entries': 0, '_exe_wrapped_in_shell': 'echo'}
+
+  let fname = expand('%:p')
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let jobinfo.maker = maker
+  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
+  AssertEqual bound_maker.args, [&shellcmdflag, 'echo "%" 1 '.fname]
+  AssertEqual bound_maker.append_file, 0
+  AssertEqual bound_maker.exe, &shell
+  AssertEqual bound_maker.remove_invalid_entries, 0
+
+  call bound_maker._bind_args()
+  AssertEqual bound_maker.args, [&shellcmdflag, 'echo "'.bufname('%').'" 1 '.fname]
+
+  CallNeomake 0, [maker]
+  AssertEqual getqflist()[0].text, 'tests/fixtures/a filename with spaces 1'
+  bwipe
+
+Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
+  let maker = neomake#utils#MakerFromCommand(['echo', '%', '1'])
   let jobinfo = {'file_mode': 0, 'bufnr': 0}
 
   AssertEqual maker.fn(jobinfo), {
-  \ 'args': [&shellcmdflag, 'echo'], 'exe': &shell, 'remove_invalid_entries': 0}
+  \ 'args': ['%', '1'], 'exe': 'echo', 'remove_invalid_entries': 0, '_exe_wrapped_in_shell': ''}
 
   new
   edit tests/fixtures/a\ filename\ with\ spaces
@@ -394,10 +420,16 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode):
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.maker = maker
   let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
-  AssertEqual bound_maker.args, [&shellcmdflag, 'echo '.fname]
+  AssertEqual bound_maker.args, ['%', '1', fname]
   AssertEqual bound_maker.append_file, 0
-  AssertEqual bound_maker.exe, &shell
+  AssertEqual bound_maker.exe, 'echo'
   AssertEqual bound_maker.remove_invalid_entries, 0
+
+  call bound_maker._bind_args()
+  AssertEqual bound_maker.args, [bufname('%'), '1', fname]
+
+  CallNeomake 0, [maker]
+  AssertEqual getqflist()[0].text, 'tests/fixtures/a filename with spaces 1'
   bwipe
 
 Execute (neomake#utils#Stringify):
