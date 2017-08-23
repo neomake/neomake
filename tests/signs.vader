@@ -52,7 +52,7 @@ Execute (neomake#signs#RedefineErrorSign):
   call neomake#signs#Reset(bufnr, 'file')
   call neomake#signs#CleanAllOldSigns('file')
   AssertNeomakeMessage 'Removing signs: {file: {'.bufnr.': '
-  \ .'{2: [5000, neomake_file_warn]}}, project: {}}.'
+  \ .'{5000: neomake_file_warn}}, project: {}}.'
   bwipe
 
 Execute (Placing signs in project mode):
@@ -72,7 +72,7 @@ Execute (Placing signs in project mode):
 
   call neomake#signs#Reset(bufnr, 'project')
   call neomake#signs#CleanAllOldSigns('project')
-  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {1: [5000, neomake_project_warn]}.', 3, {}
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {5000: neomake_project_warn}.', 3, {}
   AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer='.bufnr.'.'
   exe 'bwipe' bufnr
 
@@ -88,7 +88,7 @@ Execute (Signs are not re-used / wiped across modes):
   AssertNeomakeMessage 'Placing sign: sign place 5001 line=1 name=neomake_project_warn buffer='.bufnr.'.'
   call neomake#signs#ResetProject()
   call neomake#signs#CleanAllOldSigns('project')
-  AssertNeomakeMessage 'Removing signs: {file: {}, project: {'.bufnr.': {1: [5001, neomake_project_warn]}}}.'
+  AssertNeomakeMessage 'Removing signs: {file: {}, project: {'.bufnr.': {5001: neomake_project_warn}}}.'
 
   AssertEqual neomake#signs#by_lnum(bufnr), {'1': [5000, 'neomake_file_err']}
   call neomake#signs#RedefineSign('neomake_file_warn', {})
@@ -380,3 +380,33 @@ Execute (Highlights for signs get (re-)defined on ColorScheme event):
   else
     Assert stridx(new, 'cleared') == -1, 'highlight is not cleared.'
   endif
+
+Execute (neomake#signs#PlaceSigns keeps sign moved by lnum):
+  new
+  let bufnr = bufnr('%')
+
+  function! s:place_sign(lnum)
+    let bufnr = bufnr('%')
+    call neomake#signs#PlaceSigns(bufnr, [
+    \ {'lnum': a:lnum, 'type': 'E', 'bufnr': bufnr}], 'file')
+  endfunction
+
+  call s:place_sign(1)
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.bufnr.'.'
+  AssertEqual neomake#signs#by_lnum(bufnr), {'1': [5000, 'neomake_file_err']}
+
+  normal! O
+  AssertEqual neomake#signs#by_lnum(bufnr), {'2': [5000, 'neomake_file_err']}
+
+  call neomake#signs#Reset(bufnr, 'file')
+  call s:place_sign(2)
+  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=2.'
+  call neomake#signs#CleanOldSigns(bufnr, 'file')
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {}.'
+
+  call neomake#signs#Reset(bufnr, 'file')
+  AssertEqual neomake#signs#by_lnum(bufnr), {'2': [5000, 'neomake_file_err']}
+  call neomake#signs#CleanOldSigns(bufnr, 'file')
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {5000: neomake_file_err}.'
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer='.bufnr.'.'
+  bwipe!
