@@ -2315,6 +2315,8 @@ function! neomake#DisplayInfo() abort
         echo 'g:'.k.' = '.string(V)
         unlet! V  " Fix variable type mismatch with Vim 7.3.
     endfor
+    echo "\n"
+    verb set makeprg?
     echo '```'
     if &verbose
         echo "\n"
