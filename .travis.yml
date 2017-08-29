@@ -13,7 +13,12 @@ env:
 matrix:
   fast_finish: true
   include:
-    - env: ENV=travis_test
+    - env: ENV=travis_test_1
+      sudo: false
+      services:
+        - docker
+    - env: ENV=travis_test_2
+      sudo: false
       services:
         - docker
     - env: ENV=travis_lint
