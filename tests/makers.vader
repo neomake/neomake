@@ -1,5 +1,63 @@
 Include: include/setup.vader
 
+Execute (neomake#GetMakers):
+  AssertEqual neomake#GetMakers('non-existent'), []
+  AssertEqual neomake#GetMakers('pug'), ['puglint']
+
+  let sh_makers = ['checkbashisms', 'dash', 'sh', 'shellcheck']
+  AssertEqual sort(neomake#GetMakers('sh')), sh_makers
+
+  Save g:neomake_sh_enabled_makers
+  let g:neomake_sh_enabled_makers = ['sh']
+  AssertEqual sort(neomake#GetMakers('sh')), sh_makers
+
+Execute (neomake#GetMaker uses defined errorformat with makeprg):
+  Save &errorformat
+  let &errorformat = '%Gcustom'
+  AssertEqual neomake#GetMaker('makeprg', '').errorformat, '%Gcustom'
+
+Execute (neomake#GetMaker uses defaults from b:/g:):
+  Save g:neomake_test_remove_invalid_entries
+  Save b:neomake_test_remove_invalid_entries
+
+  let maker = {'name': 'test'}
+
+  " Default.
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 0,
+  \ "default is ok"
+
+  let maker.remove_invalid_entries = 1
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
+  let g:neomake_test_remove_invalid_entries = 2
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 2
+  let b:neomake_test_remove_invalid_entries = 3
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 3
+
+Execute (neomake#GetMaker uses defaults from b:/g: based on maker):
+  Save g:neomake_test_remove_invalid_entries
+
+  let maker = {'name': 'test'}
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 0
+  let maker.remove_invalid_entries = 1
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
+  let g:neomake_test_remove_invalid_entries = 2
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 2
+  let b:neomake_test_remove_invalid_entries = 3
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 3
+
+Execute (neomake#GetMaker from g:neomake_foo_maker):
+  let g:neomake_custom_maker = {
+    \ 'exe': 'my-exe'
+    \ }
+  let maker = neomake#GetMaker('custom')
+  AssertEqual maker.exe, 'my-exe'
+  AssertEqual maker.name, 'custom'
+
+Execute (neomake#GetMaker without name):
+  let maker = neomake#GetMaker({})
+  AssertEqual maker.exe, 'unnamed_maker'
+  AssertEqual maker.name, 'unnamed_maker'
+
 Execute (Instantiate all default makers):
   " This is meant to catch issues like https://github.com/neomake/neomake/pull/555.
   let glob_args = [fnamemodify(g:vader_file, ':p:h')
