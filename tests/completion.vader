@@ -31,7 +31,7 @@ Execute (neomake#CompleteMakers: completes project makers):
   \ ['cabal', 'clippy', 'gradle', 'mvn', 'sbt']
 
 Execute (neomake#CompleteJobs):
-  if neomake#has_async_support()
+  if NeomakeAsyncTestsSetup()
     AssertEqual neomake#CompleteJobs(), ''
     let job_ids = [neomake#Sh('sleep 0.1')]
     AssertEqual neomake#CompleteJobs(), job_ids[0].': sh: sleep 0.1'
