@@ -43,7 +43,8 @@ command! NeomakeTestsWaitForNextMessage call s:wait_for_next_message()
 
 function! s:wait_for_message(...)
   let max = 45
-  let n = len(g:neomake_test_messages)
+  " let n = len(g:neomake_test_messages)
+  let n = g:neomake_test_messages_last_idx
   let error = 'No new message appeared after 3s.'
   while 1
     let max -= 1
@@ -299,6 +300,7 @@ function! NeomakeTestsFakeJobinfo() abort
   let make_info[-42] = {
         \ 'verbosity': get(g:, 'neomake_verbose', 1),
         \ 'active_jobs': [],
+        \ 'finished_jobs': [],
         \ 'queued_jobs': []}
   return {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': '', 'make_id': -42}
 endfunction
