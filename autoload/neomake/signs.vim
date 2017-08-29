@@ -267,13 +267,6 @@ function! neomake#signs#RedefineInfoSign(...) abort
     call neomake#signs#RedefineSign('neomake_project_info', opts)
 endfunction
 
-function! neomake#signs#HlexistsAndIsNotCleared(group) abort
-    if !hlexists(a:group)
-        return 0
-    endif
-    return neomake#utils#redir('hi '.a:group) !~# 'cleared'
-endfunction
-
 function! neomake#signs#DefineHighlights() abort
     let ctermbg = neomake#utils#GetHighlight('SignColumn', 'bg')
     let guibg = neomake#utils#GetHighlight('SignColumn', 'bg#')
@@ -296,7 +289,7 @@ function! neomake#signs#DefineHighlights() abort
             let guifg = neomake#utils#GetHighlight(fg_group, fg_attr.'#')
         endif
         exe 'hi '.group.'Default ctermfg='.ctermfg.' guifg='.guifg.' '.bg
-        if !neomake#signs#HlexistsAndIsNotCleared(group)
+        if !neomake#utils#highlight_is_defined(group)
             exe 'hi link '.group.' '.group.'Default'
         endif
     endfor

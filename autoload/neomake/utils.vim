@@ -435,10 +435,11 @@ function! neomake#utils#CompressWhitespace(entry) abort
 endfunction
 
 function! neomake#utils#redir(cmd) abort
-    if exists('*execute') && has('nvim')
+    if exists('*execute') && has('nvim-0.2.0')
         " NOTE: require Neovim, since Vim has at least an issue when using
         "       this in a :command-completion function.
         "       Ref: https://github.com/neomake/neomake/issues/650.
+        "       Neovim 0.1.7 also parses 'highlight' wrongly.
         return execute(a:cmd)
     endif
     if type(a:cmd) == type([])
@@ -620,4 +621,16 @@ function! neomake#utils#fix_self_ref(obj, ...) abort
         endif
     endfor
     return obj
+endfunction
+
+function! neomake#utils#parse_highlight(group) abort
+    let output = neomake#utils#redir('highlight '.a:group)
+    return join(split(output)[2:])
+endfunction
+
+function! neomake#utils#highlight_is_defined(group) abort
+    if !hlexists(a:group)
+        return 0
+    endif
+    return neomake#utils#parse_highlight(a:group) !=# 'cleared'
 endfunction
