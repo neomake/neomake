@@ -204,7 +204,8 @@ GET_DOCKER_VIMS=$(shell docker run --rm $(DOCKER_IMAGE) ls /vim-build/bin | grep
 docker_list_vims:
 	@echo $(GET_DOCKER_VIMS)
 
-travis_test:
+travis_test: travis_test_1 travis_test_2
+travis_test_1:
 	@ret=0; \
 	  travis_run_make() { \
 	    echo "travis_fold:start:script.$$1"; \
@@ -213,12 +214,21 @@ travis_test:
 	    echo "travis_fold:end:script.$$1"; \
 	  }; \
 	  travis_run_make neovim-v0.2.0 "docker_test DOCKER_VIM=neovim-v0.2.0" || (( ret+=1  )); \
-	  travis_run_make neovim-v0.1.7 "docker_test DOCKER_VIM=neovim-v0.1.7" || (( ret+=2  )); \
-	  travis_run_make vim-master    "docker_test DOCKER_VIM=vim-master"    || (( ret+=4  )); \
-	  travis_run_make vim8069       "docker_test DOCKER_VIM=vim8069" NEOMAKE_TEST_NO_COLORSCHEME=1 || (( ret+=8  )); \
-	  travis_run_make vim73         "docker_test DOCKER_VIM=vim73"         || (( ret+=16 )); \
-	  travis_run_make vim-xenial    "docker_test DOCKER_VIM=vim74-xenial"  || (( ret+=32 )); \
-	  travis_run_make check         "check"                                || (( ret+=64 )); \
+	  travis_run_make vim8069       "docker_test DOCKER_VIM=vim8069" NEOMAKE_TEST_NO_COLORSCHEME=1 || (( ret+=2  )); \
+	  travis_run_make check         "check"                                || (( ret+=4 )); \
+	exit $$ret
+travis_test_2:
+	@ret=0; \
+	  travis_run_make() { \
+	    echo "travis_fold:start:script.$$1"; \
+	    echo "== Running \"make $$2\" =="; \
+	    make $$2 || return; \
+	    echo "travis_fold:end:script.$$1"; \
+	  }; \
+	  travis_run_make neovim-v0.1.7 "docker_test DOCKER_VIM=neovim-v0.1.7" || (( ret+=1  )); \
+	  travis_run_make vim-master    "docker_test DOCKER_VIM=vim-master"    || (( ret+=2  )); \
+	  travis_run_make vim73         "docker_test DOCKER_VIM=vim73"         || (( ret+=4 )); \
+	  travis_run_make vim-xenial    "docker_test DOCKER_VIM=vim74-xenial"  || (( ret+=8 )); \
 	exit $$ret
 
 travis_lint:
