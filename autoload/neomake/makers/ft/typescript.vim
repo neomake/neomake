@@ -7,7 +7,7 @@ endfunction
 function! neomake#makers#ft#typescript#tsc() abort
     " tsc should not be passed a single file.
     let maker = {
-        \ 'args': ['--noEmit', '--watch', 'false'],
+        \ 'args': ['--noEmit', '--watch', 'false', '--pretty', 'false'],
         \ 'append_file': 0,
         \ 'errorformat':
             \ '%E%f %#(%l\,%c): error %m,' .
