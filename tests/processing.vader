@@ -279,7 +279,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
     call neomake#Make(1, [g:neomake_test_inc_maker])
 
     " Maker is different because of args.
-    AssertNeomakeMessageAbsent 'Restarting already running job ('
+    AssertNeomakeMessageAbsent 'Cancelling already running job ('
       \ .make_id.'.'.jobinfo1.id.') for the same maker.', 2, {'make_id': make_id+1}
     AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
     NeomakeTestsWaitForFinishedJobs
@@ -314,7 +314,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
     call neomake#Make(0, [g:neomake_test_inc_maker])
 
     " Maker is different because of args.
-    AssertNeomakeMessageAbsent 'Restarting already running job ('
+    AssertNeomakeMessageAbsent 'Cancelling already running job ('
       \ .make_id.'.'.jobinfo1.id.') for the same maker.', 2, {'make_id': make_id+1}
     AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
     NeomakeTestsWaitForFinishedJobs
@@ -370,7 +370,7 @@ Execute (Handle finished job that got canceled (#1158)):
   CallNeomake 0, [g:success_maker]
   let jobs = neomake#Make(0, [g:success_maker])
   if neomake#has_async_support()
-    AssertNeomakeMessage '\mRestarting already running job (\d\+.\d\+) for the same maker.'
+    AssertNeomakeMessage '\mCancelling already running job (\d\+.\d\+) for the same maker.'
     NeomakeTestsWaitForFinishedJobs
     call neomake#CancelJob(jobs[0])
     AssertEqual len(g:neomake_test_jobfinished), 0
@@ -466,7 +466,7 @@ Execute (Already running job gets restarted in case of exception):
     " Restart, which should work directly.
     call neomake#Make(1, [maker])
 
-    AssertNeomakeMessage printf('Restarting already running job (%d.%d) for the same maker.',
+    AssertNeomakeMessage printf('Cancelling already running job (%d.%d) for the same maker.',
     \ make_id, jobinfo.id), 2, {'make_id': make_id+1}
 
     if has('nvim')

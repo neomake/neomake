@@ -1024,9 +1024,8 @@ function! s:Make(options) abort
             if !empty(running_already)
                 let jobinfo = running_already[0]
                 call neomake#utils#LoudMessage(printf(
-                            \ 'Restarting already running job (%d.%d) for the same maker.',
+                            \ 'Cancelling already running job (%d.%d) for the same maker.',
                             \ jobinfo.make_id, jobinfo.id), {'make_id': make_id})
-                Log "CANCEL"
                 call neomake#CancelJob(jobinfo.id)
             endif
         endfor
