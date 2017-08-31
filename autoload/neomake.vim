@@ -311,22 +311,6 @@ function! s:MakeJob(make_id, options) abort
             let save_env_file = $NEOMAKE_FILE
             let $NEOMAKE_FILE = jobinfo.filename
         endif
-        " Check for already running job for the same maker (from other runs).
-        " This used to use this key: maker.name.',ft='.maker.ft.',buf='.maker.bufnr
-        if !empty(s:jobs)
-            let running_already = values(filter(copy(s:jobs),
-                        \ 'v:val.make_id != a:make_id && v:val.maker == maker'
-                        \ .' && v:val.bufnr == jobinfo.bufnr'
-                        \ ." && !get(v:val, 'canceled')"))
-            if !empty(running_already)
-                let jobinfo = running_already[0]
-                call neomake#utils#LoudMessage(printf(
-                            \ 'Restarting already running job (%d.%d) for the same maker.',
-                            \ jobinfo.make_id, jobinfo.id), {'make_id': a:make_id})
-                call neomake#CancelJob(jobinfo.id)
-                return s:MakeJob(a:make_id, a:options)
-            endif
-        endif
 
         " Lock maker to make sure it does not get changed accidentally, but
         " only with depth=1, so that a postprocess object can change itself.
@@ -1029,6 +1013,24 @@ function! s:Make(options) abort
     endif
 
     let w:neomake_make_ids = add(get(w:, 'neomake_make_ids', []), make_id)
+
+    " Cancel any already running jobs for the makers from these jobs.
+    if !empty(s:jobs)
+        " @vimlint(EVL102, 1, l:job)
+        for job in jobs
+            let running_already = values(filter(copy(s:jobs),
+                        \ 'v:val.maker == job.maker'
+                        \ .' && v:val.bufnr == job.bufnr'
+                        \ ." && !get(v:val, 'canceled')"))
+            if !empty(running_already)
+                let jobinfo = running_already[0]
+                call neomake#utils#LoudMessage(printf(
+                            \ 'Cancelling already running job (%d.%d) for the same maker.',
+                            \ jobinfo.make_id, jobinfo.id), {'make_id': make_id})
+                call neomake#CancelJob(jobinfo.id, 1)
+            endif
+        endfor
+    endif
 
     " Start all jobs in the queue (until serialized).
     let jobinfos = []
