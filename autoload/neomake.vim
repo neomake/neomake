@@ -1016,17 +1016,18 @@ function! s:Make(options) abort
 
     " Cancel any already running jobs for the makers from these jobs.
     if !empty(s:jobs)
-        for j in jobs
+        " @vimlint(EVL102, 1, l:job)
+        for job in jobs
             let running_already = values(filter(copy(s:jobs),
-                        \ 'v:val.maker == j.maker'
-                        \ .' && v:val.bufnr == j.bufnr'
+                        \ 'v:val.maker == job.maker'
+                        \ .' && v:val.bufnr == job.bufnr'
                         \ ." && !get(v:val, 'canceled')"))
             if !empty(running_already)
                 let jobinfo = running_already[0]
                 call neomake#utils#LoudMessage(printf(
                             \ 'Cancelling already running job (%d.%d) for the same maker.',
                             \ jobinfo.make_id, jobinfo.id), {'make_id': make_id})
-                call neomake#CancelJob(jobinfo.id)
+                call neomake#CancelJob(jobinfo.id, 1)
             endif
         endfor
     endif
