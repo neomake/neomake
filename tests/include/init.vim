@@ -422,7 +422,7 @@ function! s:After()
       " In case there are two windows with Vader-workbench.
       only
     catch
-      Log "Error while cleaning windows: ".v:exception
+      Log "Error while cleaning windows: ".v:exception.' (in '.v:throwpoint.').'
     endtry
     call add(errors, error)
   elseif bufname(winbufnr(1)) !=# '[Vader-workbench]'
