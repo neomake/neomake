@@ -368,6 +368,124 @@ Execute (Makers: get_list_entries with non-list return value):
   AssertEqual len(g:neomake_test_jobfinished), 1
   AssertEqual len(g:neomake_test_finished), 1
 
+Execute (Makers: get_list_entries with exception):
+  call neomake#statusline#ResetCounts()
+  call g:NeomakeSetupAutocmdWrappers()
+
+  let maker = {}
+  function! maker.get_list_entries(...) abort dict
+    throw "TEST_ERROR"
+    return [1]
+  endfunction
+
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Error during get_list_entries for unnamed_maker: TEST_ERROR.'
+  AssertNeomakeMessage '\m^(in function .*)$', 3
+
+  AssertEqual len(g:neomake_test_countschanged), 0
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_finished), 1
+
+Execute (Makers: get_list_entries with sandbox exception):
+  call neomake#statusline#ResetCounts()
+  call g:NeomakeSetupAutocmdWrappers()
+
+  let maker = {}
+  let maker.should_throw = 1
+  function! maker.get_list_entries(...) abort dict
+    if self.should_throw
+      " causes E48
+      sandbox bprevious
+    endif
+    return [1]
+  endfunction
+
+  let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
+  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:'
+  AssertNeomakeMessage '\m^(in function .*)$', 3
+  AssertEqual len(g:neomake_test_countschanged), 0
+  AssertEqual len(g:neomake_test_jobfinished), 0
+  AssertEqual len(g:neomake_test_finished), 0
+
+  let jobinfo.maker.should_throw = 0
+  if has('timers')
+    AssertNeomakeMessage 'Retrying Timer event in 10ms.', 3
+    sleep 10m
+  else
+    AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
+    doautocmd CursorHold
+  endif
+  AssertNeomakeMessage 'The get_list_entries method for maker unnamed_maker did not return a list of dicts, but: [1].'
+
+  AssertEqual len(g:neomake_test_countschanged), 0
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_finished), 1
+
+Execute (pcall aborts after 3 attempts per job):
+  call g:NeomakeSetupAutocmdWrappers()
+
+  let maker = {}
+  function! maker.get_list_entries(...) abort dict
+    " causes E48
+    sandbox bprevious
+  endfunction
+
+  let maker2 = {'_tries': 0, 'name': 'maker2'}
+  function! maker2.get_list_entries(...) abort dict
+    let self._tries += 1
+    if self._tries <= 3
+      " causes E48
+      sandbox bprevious
+    endif
+    return [{'bufnr': bufnr('%'), 'text': 'error', 'lnum': 1, 'type': 'E'}]
+  endfunction
+
+  let jobs = neomake#Make({'enabled_makers': [maker, maker2]})
+  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[0]
+  AssertNeomakeMessage '\m^(in function .*)$', 3
+
+  if has('timers')
+    AssertNeomakeMessage 'Retrying Timer event in 10ms.', 3
+    sleep 10m
+  else
+    AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
+    doautocmd CursorHold
+  endif
+  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[1]
+  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[0]
+
+  if has('timers')
+    AssertNeomakeMessage 'Retrying Timer event in 20ms.', 3
+    sleep 20m
+  else
+    AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
+    doautocmd CursorHoldI
+  endif
+  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[1]
+  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[0]
+
+  if has('timers')
+    AssertNeomakeMessage 'Retrying Timer event in 30ms.', 3
+    sleep 30m
+  else
+    AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
+    doautocmd CursorHold
+  endif
+  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[1]
+  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[0]
+
+  AssertNeomakeMessage 'Giving up handling Timer callbacks after 3 attempts. Please report this. See :messages for more information.'
+  AssertNeomakeMessage '\m^(in function .*queue_action.*)$', 3
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual map(copy(g:neomake_test_jobfinished), 'v:val.jobinfo.maker.name'), ['maker2']
+  AssertEqual len(g:neomake_test_countschanged), 1
+  AssertEqual map(getloclist(0), 'v:val.text'), ['error']
+  redir => messages_output
+    silent messages
+  redir END
+  let messages = split(messages_output, "\n")
+  Assert messages[-1] =~# '\vNeomake error in: function .*_queue_action, line \d+', 'Message not found. Last msg: '.string(messages[-1])
+
 Execute (Makers: get_list_entries via config):
   call g:NeomakeSetupAutocmdWrappers()
   let maker = {'name': 'mymaker', 'exe': 'doesnotexist'}
