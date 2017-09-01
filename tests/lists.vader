@@ -326,8 +326,9 @@ Execute (Goes back to original window after opening list (wincmd in autocmd)):
     AssertNeomakeMessage 'action queue: calling s:AddExprCallback.'
     AssertNeomakeMessage 'Postponing location list processing.'
     AssertNeomakeMessage 'Queueing action: s:AddExprCallback for WinEnter.'
-    AssertNeomakeMessage 'action queue: requeueing s:AddExprCallback for failed call.'
-    AssertNeomakeMessage 'action queue: requeueing s:CleanJobinfo for already requeued action.'
+    AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.'
+    AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:AddExprCallback.'
+    AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
     AssertNeomakeMessage 'action queue: processed 0 items.'
     exe winnr.'wincmd w'
     AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
@@ -336,6 +337,7 @@ Execute (Goes back to original window after opening list (wincmd in autocmd)):
     AssertNeomakeMessage 'action queue: calling s:AddExprCallback.', 3
     AssertNeomakeMessage 'Processing 1 entries.', 3
     AssertNeomakeMessage 'Handling location list: executing lwindow.'
+    AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.', 3, jobinfo
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
     AssertNeomakeMessage 'action queue: processed 2 items.'
 
