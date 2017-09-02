@@ -485,7 +485,8 @@ Execute (NeomakeListJobs with job cancellation):
     AssertEqual map(copy(neomake#GetJobs()), 'v:val.as_string()'), [
     \ 'Job '.job2.id.': My custom name [finished]']
     exe "normal! \<Esc>"
-    AssertNeomakeMessage 'Cleaning jobinfo.', 3, job3
+    " flaky on vim-master?!
+    AssertNeomakeMessage 'Cleaning jobinfo.', 3, job3, {'ignore_order': 1}
     AssertNeomakeMessage 'Postponing final location list handling for mode "V".', 3, {'make_id': job3.make_id, 'bufnr': bufnr('%')}
 
     doautocmd CursorHold
