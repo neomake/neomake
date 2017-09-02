@@ -219,14 +219,14 @@ function! s:AssertNeomakeMessage(msg, ...)
     return 1
   endfor
   if found_but_before || found_but_other_level != -1
-    let msg = []
+    let msgs = []
     if found_but_other_level != -1
-      let msg += ['for level '.found_but_other_level]
+      let msgs += ['for level '.found_but_other_level]
     endif
     if found_but_before
-      let msg += ['_before_ last asserted one']
+      let msgs += ['_before_ last asserted one']
     endif
-    let msg = "Message '".a:msg."' was found, but ".join(msg, ' and ')
+    let msg = "Message '".a:msg."' was found, but ".join(msgs, ' and ')
     throw msg
   endif
   if !empty(found_but_context_diff)
@@ -467,7 +467,7 @@ function! s:After()
   endif
 
   if exists('#neomake_event_queue')
-    call add(errors, '#neomake_event_queue was not empty.')
+    call add(errors, '#neomake_event_queue is not empty: ' . neomake#utils#redir('au neomake_event_queue'))
     autocmd! neomake_event_queue
     augroup! neomake_event_queue
   endif
