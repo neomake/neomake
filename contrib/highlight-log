@@ -31,12 +31,12 @@ if [ "$1" = vader ]; then
     debug_color='[30;1m'
   fi
 
-  if ((quiet)); then
+  if ((quiet || compact)); then
     spinner_chars='/-\|'
     spinner_current=0
   fi
 
-  quiet_started=$((!quiet))
+  quiet_started=$(( !(quiet || compact) ))
   if ((compact || quiet)); then
     # Do not display output for successful tests (i.e. the log statements).
     last_start_match=
@@ -47,7 +47,7 @@ if [ "$1" = vader ]; then
         echo "$REPLY"
         continue
       fi
-      # quiet: suppress output until "Starting Vader:".
+      # quiet/compact: suppress output until "Starting Vader:".
       if ! ((quiet_started)); then
         if [[ "$REPLY" == 'Starting Vader:'* ]]; then
           printf "\r" >&2

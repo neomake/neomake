@@ -68,3 +68,6 @@ set nomore
 if expand('$NEOMAKE_TEST_NO_COLORSCHEME') !=# '1'
   colorscheme default
 endif
+
+" Shorter timeouts during tests.
+let g:neomake_action_queue_timeouts = {1: 10, 2: 20, 3: 30}
