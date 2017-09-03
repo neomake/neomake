@@ -10,12 +10,26 @@ linters and compilers from within Vim, but can be used to run any program.
 
 ## Requirements
 
-The minimum [Neovim] version supported by Neomake is
-`NVIM 0.0.0-alpha+201503292107` ([commit 960b9108c]). The minimum Vim version
-supported by Neomake is 7.4.503 (although if you don't use `g:neomake_logfile`
-older versions will probably work fine as well).
+### Neovim
+
+The minimal [Neovim] version supported by Neomake is
+`NVIM 0.0.0-alpha+201503292107` ([commit 960b9108c]).
+
+### Vim
+
+The minimal Vim version supported by Neomake is 7.4.503 (although if you don't
+use `g:neomake_logfile` older versions will probably work fine as well).
 
 Vim's async mode is used with Vim 8.0.0027 or later.
+
+## Installation
+
+Use your preferred installation method for Vim plugins.
+
+With [vim-plug](https://github.com/junegunn/vim-plug) that would mean to add
+the following to your vimrc:
+
+    Plug 'neomake/neomake'
 
 ## Usage
 
