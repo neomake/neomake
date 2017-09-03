@@ -31,7 +31,7 @@ if [ "$1" = vader ]; then
     debug_color='[30;1m'
   fi
 
-  if ((quiet)); then
+  if ((quiet || compact)); then
     spinner_chars='/-\|'
     spinner_current=0
   fi
