@@ -200,3 +200,19 @@ else
         return a:exe . (empty(a:args) ? '' : ' '.a:args)
     endfunction
 endif
+
+if v:version >= 704 || (v:version == 703 && has('patch831'))
+    function! neomake#compat#gettabwinvar(t, w, v, d) abort
+        return gettabwinvar(a:t, a:w, a:v, a:d)
+    endfunction
+else
+    " Wrapper around gettabwinvar that has no default (older Vims).
+    function! neomake#compat#gettabwinvar(t, w, v, d) abort
+        let r = gettabwinvar(a:t, a:w, a:v)
+        if r is# ''
+            unlet r
+            let r = a:d
+        endif
+        return r
+    endfunction
+endif

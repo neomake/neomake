@@ -219,16 +219,6 @@ function! neomake#CancelJobs(bang) abort
     endfor
 endfunction
 
-function! s:gettabwinvar(t, w, v, d) abort
-    " Wrapper around gettabwinvar that has no default (Vim in Travis).
-    let r = gettabwinvar(a:t, a:w, a:v)
-    if r is# ''
-        unlet r
-        let r = a:d
-    endif
-    return r
-endfunction
-
 function! s:handle_get_list_entries(jobinfo, ...) abort
     if !a:0
         return s:pcall('s:handle_get_list_entries', [a:jobinfo])
@@ -1398,7 +1388,7 @@ function! s:do_clean_make_info(make_id) abort
     call neomake#utils#DebugMessage('Cleaning make info.', {'make_id': a:make_id})
     " Remove make_id from its window.
     let [t, w] = s:GetTabWinForMakeId(a:make_id)
-    let make_ids = s:gettabwinvar(t, w, 'neomake_make_ids', [])
+    let make_ids = neomake#compat#gettabwinvar(t, w, 'neomake_make_ids', [])
     let idx = index(make_ids, a:make_id)
     if idx != -1
         call remove(make_ids, idx)
@@ -1928,7 +1918,7 @@ endfunction
 function! s:GetTabWinForMakeId(make_id) abort
     for t in [tabpagenr()] + range(1, tabpagenr()-1) + range(tabpagenr()+1, tabpagenr('$'))
         for w in range(1, tabpagewinnr(t, '$'))
-            if index(s:gettabwinvar(t, w, 'neomake_make_ids', []), a:make_id) != -1
+            if index(neomake#compat#gettabwinvar(t, w, 'neomake_make_ids', []), a:make_id) != -1
                 return [t, w]
             endif
         endfor
