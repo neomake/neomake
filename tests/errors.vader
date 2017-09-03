@@ -54,9 +54,6 @@ Execute (Error with non-existing filename for 2nd maker):
   bwipe!
 
 Execute (maker.exe gets checked):
-  " Reset s:exe_error_thrown.
-  runtime autoload/neomake.vim
-
   let maker = {'exe': 'doesnotexist'}
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
