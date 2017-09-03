@@ -370,7 +370,6 @@ function! s:GetAntClasspath() abort
     if s:has_ant && filereadable(ant)
         if !has_key(g:neomake_java_javac_ant_ftime, ant) || g:neomake_java_javac_ant_ftime[ant] != getftime(ant)
             try
-                let f = tempname()
                 let ant_cmd = 'ant classpath -f build.xml -S -q'
                 let cp = system(ant_cmd)
                 if v:shell_error != 0
