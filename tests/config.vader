@@ -106,12 +106,12 @@ Execute (neomake#config#get with b: prefix, no default and bufnr context):
   AssertEqual neomake#config#get('b:foo'), 'bar'
   unlet b:neomake
 
-  let b:neomake = {'autolint': {'ignore_filetypes': ['startify']}}
-  AssertEqual neomake#config#get('b:autolint.ignore_filetypes'), ['startify']
+  let b:neomake = {'automake': {'ignore_filetypes': ['startify']}}
+  AssertEqual neomake#config#get('b:automake.ignore_filetypes'), ['startify']
 
   let bufnr = bufnr('%')
   new
-  AssertEqual neomake#config#get('b:autolint.ignore_filetypes', [],
+  AssertEqual neomake#config#get('b:automake.ignore_filetypes', [],
   \ {'bufnr': bufnr}), ['startify']
 
   bwipe
@@ -124,8 +124,8 @@ Execute (neomake#config#set):
   AssertEqual g:neomake, {'foo': 'bar'}
   unlet g:neomake
 
-  call neomake#config#set('autolint.ignore_filetypes', ['startify'])
-  AssertEqual g:neomake, {'autolint': {'ignore_filetypes': ['startify']}}
+  call neomake#config#set('automake.ignore_filetypes', ['startify'])
+  AssertEqual g:neomake, {'automake': {'ignore_filetypes': ['startify']}}
 
 Execute (neomake#config#set_buffer):
   new
@@ -134,8 +134,8 @@ Execute (neomake#config#set_buffer):
   AssertEqual b:neomake, {'foo': 'bar'}
   unlet b:neomake
 
-  call neomake#config#set_buffer(bufnr, 'autolint.ignore_filetypes', ['startify'])
-  let expected = {'autolint': {'ignore_filetypes': ['startify']}}
+  call neomake#config#set_buffer(bufnr, 'automake.ignore_filetypes', ['startify'])
+  let expected = {'automake': {'ignore_filetypes': ['startify']}}
   AssertEqual b:neomake, expected
   b#
 
@@ -151,8 +151,8 @@ Execute (neomake#config#set with b: prefix):
   AssertEqual b:neomake, {'foo': 'bar', 'foo2': 'baz'}
   unlet b:neomake
 
-  call neomake#config#set('b:autolint.ignore_filetypes', ['startify'])
-  AssertEqual b:neomake, {'autolint': {'ignore_filetypes': ['startify']}}
+  call neomake#config#set('b:automake.ignore_filetypes', ['startify'])
+  AssertEqual b:neomake, {'automake': {'ignore_filetypes': ['startify']}}
   bwipe!
 
 Execute (neomake#config#get handles Funcref variables):
