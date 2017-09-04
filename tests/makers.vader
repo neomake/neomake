@@ -91,7 +91,17 @@ Execute (Instantiate all default makers):
         let maker = neomake#GetMaker(m, ft)
       catch
         call add(errors, 'Could not load maker '.string(m).' for filetype '.ft.': '.v:exception)
+        continue
       endtry
+
+      " Validate maker.
+      let issues = neomake#debug#validate_maker(extend(maker, {'exe': 'true'}))
+      if !empty(issues.errors)
+        call add(errors, 'Maker '.string(m).' for filetype '.ft.' has errors: '.join(issues.errors))
+      endif
+      if !empty(issues.warnings)
+        call add(errors, 'Maker '.string(m).' for filetype '.ft.' has warnings: '.join(issues.warnings))
+      endif
     endfor
   endfor
 
@@ -100,7 +110,17 @@ Execute (Instantiate all default makers):
       let maker = neomake#GetMaker(m)
     catch
       call add(errors, 'Could not load project maker '.string(m).': '.v:exception)
+      continue
     endtry
+
+    " Validate maker.
+    let issues = neomake#debug#validate_maker(extend(maker, {'exe': 'true'}))
+    if !empty(issues.errors)
+      call add(errors, 'Project maker '.string(m).' has errors: '.join(issues.errors))
+    endif
+    if !empty(issues.warnings)
+      call add(errors, 'Project maker '.string(m).' has warnings: '.join(issues.warnings))
+    endif
   endfor
   AssertEqual exists('*neomake#makers#ft#neomake_tests#EnabledMakers'), 1
   Assert empty(errors), "Errors when loading makers:\n - ".join(errors, "\n - ")
