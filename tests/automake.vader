@@ -125,6 +125,8 @@ Execute (Automake supports custom buffer config):
   AssertNeomakeMessage 'automake: registered events: BufWinEnter, CursorHold.'
 
   doautocmd BufWinEnter
+  AssertNeomakeMessage 'automake: automake for event BufWinEnter.'
+  AssertNeomakeMessage 'automake: event is not registered.'
   AssertEqual g:neomake_test_finished, []
   doautocmd CursorHold
   AssertEqual len(g:neomake_test_finished), 1
@@ -132,6 +134,7 @@ Execute (Automake supports custom buffer config):
   " Remove custom buffer config.
   unlet b:neomake.automake_events
   doautocmd BufWinEnter
+  AssertNeomakeMessage 'automake: automake for event BufWinEnter.'
   AssertEqual len(g:neomake_test_finished), 1
   AssertNeomakeMessage 'automake: buffer was not changed.', 3
 
