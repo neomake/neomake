@@ -710,8 +710,12 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         call extend(defaults, {
             \ 'exe': maker.name,
             \ 'args': [],
-            \ 'errorformat': &errorformat,
             \ })
+        if !has_key(maker, 'process_output')
+            call extend(defaults, {
+                \ 'errorformat': &errorformat,
+                \ })
+        endif
         for [key, default] in items(defaults)
             let maker[key] = neomake#utils#GetSetting(key, maker, default, ft, bufnr, 1)
             unlet default  " for Vim without patch-7.4.1546
