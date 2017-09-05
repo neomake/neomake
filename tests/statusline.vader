@@ -44,7 +44,7 @@ Execute (LoclistCounts returns number):
   AssertEqual 1, getbufvar(g:neomake_test_countschanged[0].bufnr, 'test')
   bwipe
 
-Execute (TODO: LoclistCounts for wiped buffer should clean s:loclist_counts):
+Execute (LoclistCounts for wiped buffer should clean s:loclist_counts):
   call g:NeomakeSetupAutocmdWrappers()
   new
   let bufnr = bufnr('%')

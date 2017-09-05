@@ -165,16 +165,21 @@ elseif neomake#has_async_support()  " Vim-async.
     if neomake#utils#IsRunningWindows()
         " Windows needs a shell to handle PATH/%PATHEXT% etc.
         function! neomake#compat#get_argv(exe, args, args_is_list) abort
+            let prefix = &shell.' '.&shellcmdflag.' '
             if a:args_is_list
-                let argv = join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
+                if a:exe ==# &shell && get(a:args, 0) ==# &shellcmdflag
+                    " Remove already existing &shell/&shellcmdflag from e.g. NeomakeSh.
+                    let argv = join(map(copy(a:args[1:]), 'neomake#utils#shellescape(v:val)'))
+                else
+                    let argv = join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
+                endif
             else
                 let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
+                if argv[0:len(prefix)-1] ==# prefix
+                    return argv
+                endif
             endif
-            let prefix = &shell.' '.&shellcmdflag.' '
-            if argv[0:len(prefix)-1] == prefix
-                return argv
-            endif
-            return prefix.neomake#utils#shellescape(argv)
+            return prefix.argv
         endfunction
     else
         function! neomake#compat#get_argv(exe, args, args_is_list) abort
@@ -193,5 +198,21 @@ else
             return join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
         endif
         return a:exe . (empty(a:args) ? '' : ' '.a:args)
+    endfunction
+endif
+
+if v:version >= 704 || (v:version == 703 && has('patch831'))
+    function! neomake#compat#gettabwinvar(t, w, v, d) abort
+        return gettabwinvar(a:t, a:w, a:v, a:d)
+    endfunction
+else
+    " Wrapper around gettabwinvar that has no default (older Vims).
+    function! neomake#compat#gettabwinvar(t, w, v, d) abort
+        let r = gettabwinvar(a:t, a:w, a:v)
+        if r is# ''
+            unlet r
+            let r = a:d
+        endif
+        return r
     endfunction
 endif

@@ -1,21 +1,21 @@
 Include: include/setup.vader
 
 Execute (Hook execution gets logged):
+  call g:NeomakeSetupAutocmdWrappers()
+
+  au! neomake_tests User NeomakeCountsChanged
+
   let maker = extend(neomake#utils#MakerFromCommand('echo done'), {
     \ 'errorformat': '%m'})
-
-  Save g:neomake_tests_au_done
-  augroup neomake_tests
-    au User NeomakeFinished let g:neomake_tests_au_done = 1
-  augroup END
 
   call neomake#Make(0, [maker])
   let make_id = neomake#GetStatus().last_make_id
   NeomakeTestsWaitForFinishedJobs
 
   AssertNeomakeMessage 'Skipping User autocmd NeomakeCountsChanged: no hooks.', 3
-  AssertNeomakeMessage "Calling User autocmd NeomakeFinished with context: {'jobinfo': '…'}.", 2
-  AssertEqual g:neomake_tests_au_done, 1
+  AssertNeomakeMessage '\mCalling User autocmd NeomakeFinished with context: {''options'': ', 2
+  AssertEqual map(copy(g:neomake_test_finished), 'sort(keys(v:val))'), [
+  \ ['finished_jobs', 'jobinfo', 'make_id', 'options']]
 
 Execute (NeomakeJobFinished):
   if NeomakeAsyncTestsSetup()

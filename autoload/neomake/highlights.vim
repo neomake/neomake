@@ -128,7 +128,7 @@ function! neomake#highlights#DefineHighlights() abort
         let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr)
         let guisp = neomake#utils#GetHighlight(fg_group, fg_attr.'#')
         exe 'hi '.group.'Default ctermfg='.ctermfg.' guisp='.guisp.' cterm=underline gui=undercurl'
-        if neomake#signs#HlexistsAndIsNotCleared(group)
+        if neomake#utils#highlight_is_defined(group)
             continue
         endif
         exe 'hi link '.group.' '.group.'Default'

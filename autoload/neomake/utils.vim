@@ -240,28 +240,39 @@ let s:command_maker = {
             \ 'remove_invalid_entries': 0,
             \ }
 function! s:command_maker.fn(jobinfo) dict abort
-    let command = self.__command
-    let argv = split(&shell) + split(&shellcmdflag)
-
-    if get(self, 'append_file', a:jobinfo.file_mode)
-        let fname = self._get_fname_for_buffer(a:jobinfo)
-        let command .= ' '.fnamemodify(fname, ':p')
-        let self.append_file = 0
-    endif
-    call extend(self, {
-                \ 'exe': argv[0],
-                \ 'args': argv[1:] + [command],
-                \ })
-
     " Return a cleaned up copy of self.
-    return filter(copy(self), "v:key !~# '^__' && v:key !=# 'fn'")
+    let maker = filter(deepcopy(self), "v:key !~# '^__' && v:key !=# 'fn'")
+
+    let command = self.__command
+    if type(command) == type('')
+        let argv = split(&shell) + split(&shellcmdflag)
+        let maker.exe = argv[0]
+        let maker.args = argv[1:] + [command]
+        let maker._exe_wrapped_in_shell = split(command)[0]
+    else
+        let maker.exe = command[0]
+        let maker.args = command[1:]
+        let maker._exe_wrapped_in_shell = ''
+    endif
+
+    if get(maker, 'append_file', a:jobinfo.file_mode)
+        let fname = fnamemodify(self._get_fname_for_buffer(a:jobinfo), ':p')
+        if type(command) == type('')
+            let maker.args[-1] .= ' '.fname
+        else
+            call add(maker.args, fname)
+        endif
+        let maker.append_file = 0
+    endif
+    return maker
 endfunction
 
+" Create a maker object, with a "fn" callback.
+" Args: command (string or list).  Gets wrapped in a shell in case it is a
+"       string.
 function! neomake#utils#MakerFromCommand(command) abort
-    let command = neomake#utils#ExpandArgs([a:command])[0]
-    " Create a maker object, with a "fn" callback.
     let maker = copy(s:command_maker)
-    let maker.__command = command
+    let maker.__command = a:command
     return maker
 endfunction
 
@@ -424,10 +435,11 @@ function! neomake#utils#CompressWhitespace(entry) abort
 endfunction
 
 function! neomake#utils#redir(cmd) abort
-    if exists('*execute') && has('nvim')
+    if exists('*execute') && has('nvim-0.2.0')
         " NOTE: require Neovim, since Vim has at least an issue when using
         "       this in a :command-completion function.
         "       Ref: https://github.com/neomake/neomake/issues/650.
+        "       Neovim 0.1.7 also parses 'highlight' wrongly.
         return execute(a:cmd)
     endif
     if type(a:cmd) == type([])
@@ -609,4 +621,16 @@ function! neomake#utils#fix_self_ref(obj, ...) abort
         endif
     endfor
     return obj
+endfunction
+
+function! neomake#utils#parse_highlight(group) abort
+    let output = neomake#utils#redir('highlight '.a:group)
+    return join(split(output)[2:])
+endfunction
+
+function! neomake#utils#highlight_is_defined(group) abort
+    if !hlexists(a:group)
+        return 0
+    endif
+    return neomake#utils#parse_highlight(a:group) !=# 'cleared'
 endfunction

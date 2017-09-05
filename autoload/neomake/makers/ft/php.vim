@@ -44,7 +44,7 @@ endfunction
 function! neomake#makers#ft#php#phpstan() abort
     " PHPStan normally considers 0 to be the default level, so that is used here as the default:
     let maker = {
-        \ 'args': ['analyse', '--errorFormat', 'raw', '--level', get(g:, 'neomake_phpstan_level', 0)],
+        \ 'args': ['analyse', '--errorFormat', 'raw', '--no-progress', '--level', get(g:, 'neomake_phpstan_level', 0)],
         \ 'errorformat': '%E%f:%l:%m',
         \ }
     " Check for the existence of a default PHPStan project configuration file.

@@ -263,7 +263,7 @@ Example: remove some entry for a specific maker (using |expr-lambda|): >
 <
 
 The default is to use `neomake#utils#CompressWhitespace` here, which fixes
-whitespace issues (especially with multiline error messages).
+whitespace issues (important with multiline error messages).
 
 This can also be used to set the `length` property of an entry, which is used
 to highlight entries in the text (|neomake-highlight|).
@@ -672,7 +672,14 @@ The NeomakeFinished user autocommand gets triggered after all jobs of a build
 have finished.
 You can use this to e.g. close an empty location or quickfix window.
 Context:
- - `g:neomake_hook_context.jobinfo`: see |neomake-object-jobinfo|.
+ - `g:neomake_hook_context`: a dictionary with the following keys:
+   - `make_id`: the numeric ID of the make run.
+   - `options`: a dictionary (related to |neomake-object-jobinfo|):
+     - `file_mode`
+     - `bufnr`
+     - `ft`
+   - `finished_jobs`: a list of job infos (|neomake-object-jobinfo|) for the
+     finished jobs.
 
                                                           *NeomakeJobFinished*
 The NeomakeJobFinished autocommand gets triggered after a single job has

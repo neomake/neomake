@@ -8,10 +8,13 @@ function! neomake#debug#validate_maker(maker) abort
         if has_key(a:maker, 'postprocess')
             let issues.warnings += ['maker has postprocess, but only process_output will be used.']
         endif
+        if has_key(a:maker, 'errorformat')
+            let issues.warnings += ['maker has errorformat, but only process_output will be used.']
+        endif
     endif
 
     if !executable(a:maker.exe)
-        let t = a:maker.auto_enabled ? 'warnings' : 'errors'
+        let t = get(a:maker, 'auto_enabled', 0) ? 'warnings' : 'errors'
         let issues[t] += [printf("maker's exe (%s) is not executable.", a:maker.exe)]
     endif
 

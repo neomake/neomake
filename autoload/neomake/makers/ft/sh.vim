@@ -9,9 +9,9 @@ function! neomake#makers#ft#sh#shellcheck() abort
     let maker = {
         \ 'args': ['-fgcc'],
         \ 'errorformat':
-            \ '%f:%l:%c: %trror: %m,' .
-            \ '%f:%l:%c: %tarning: %m,' .
-            \ '%I%f:%l:%c: Note: %m',
+            \ '%f:%l:%c: %trror: %m [SC%n],' .
+            \ '%f:%l:%c: %tarning: %m [SC%n],' .
+            \ '%I%f:%l:%c: Note: %m [SC%n]',
         \ 'output_stream': 'stdout',
         \ }
 
@@ -31,7 +31,6 @@ function! neomake#makers#ft#sh#shellcheck() abort
     else
         let maker.args += ['-s', 'bash']
     endif
-
     return maker
 endfunction
 

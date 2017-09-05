@@ -28,9 +28,6 @@ function! neomake#makers#ft#rust#cargo() abort
         \ 'cwd': '%:p:h',
         \ 'args': maker_command + ['--message-format=json', '--quiet'],
         \ 'append_file': 0,
-        \ 'errorformat':
-            \ '[%t%n] "%f" %l:%v %m,'.
-            \ '[%t] "%f" %l:%v %m',
         \ 'process_output': function('neomake#makers#ft#rust#CargoProcessOutput'),
         \ }
 endfunction

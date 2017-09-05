@@ -29,3 +29,15 @@ Execute (neomake#CompleteMakers: completes space after Neomake!):
 Execute (neomake#CompleteMakers: completes project makers):
   AssertEqual sort(neomake#CompleteMakers('', 'Neomake! ')),
   \ ['cabal', 'clippy', 'gradle', 'mvn', 'sbt']
+
+Execute (neomake#CompleteJobs):
+  if NeomakeAsyncTestsSetup()
+    AssertEqual neomake#CompleteJobs(), ''
+    let job_ids = [neomake#Sh('sleep 0.1')]
+    AssertEqual neomake#CompleteJobs(), job_ids[0].': sh: sleep 0.1'
+    let job_ids += [neomake#Sh('sleep 0.11')]
+    AssertEqual neomake#CompleteJobs(), printf(
+      \ "%d: sh: sleep 0.1\n%d: sh: sleep 0.11", job_ids[0], job_ids[1])
+    NeomakeCancelJobs
+    NeomakeTestsWaitForFinishedJobs
+  endif
