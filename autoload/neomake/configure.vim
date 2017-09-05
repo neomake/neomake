@@ -211,7 +211,7 @@ function! s:parse_events_from_args(config, ...) abort
                 unlet events[event]
             endif
         endfor
-        let a:config.automake_events = events
+        call neomake#config#set_dict(a:config, 'automake.events', events)
         if a:0 > 1
             let a:config.automake_delay = a:2
         endif
@@ -263,7 +263,7 @@ function! s:parse_events_from_args(config, ...) abort
         endif
     endif
 
-    let a:config.automake_events = events
+    call neomake#config#set_dict(a:config, 'automake.events', events)
     if a:0 > 1
         let a:config.automake_delay = delay
     endif
@@ -344,8 +344,6 @@ endfunction
 function! s:disabled_for_ft(bufnr, ...) abort
     let bufnr = +a:bufnr
     let ft = getbufvar(bufnr, '&filetype')
-    " call s:debug_log('Testing ft ('.ft.'): '.string(get(s:get_setting('autolint', {}), 'ignore_filetypes', [])))
-    " if index(get(s:get_setting('autolint', {}), 'ignore_filetypes', []), ft) != -1
     if index(neomake#config#get('automake.ignore_filetypes', []), ft) != -1
         if a:0
             call s:debug_log(printf('%s: skipping setup for filetype=%s', a:1, ft),
@@ -388,7 +386,7 @@ function! s:neomake_automake(event, bufnr) abort
     endif
 
     call s:debug_log(printf('automake for event %s', a:event), {'bufnr': bufnr})
-    let config = s:get_setting('automake_events', {})
+    let config = neomake#config#get('automake.events', {})
     if !has_key(config, a:event)
         call s:debug_log('event is not registered', {'bufnr': bufnr})
         return
@@ -434,19 +432,17 @@ function! neomake#configure#automake(...) abort
     endif
     if a:0
         call call('s:parse_events_from_args', [g:neomake] + a:000)
-    else
-        let g:neomake.automake_events = {}
     endif
 
     " Keep custom configured buffers.
     call filter(s:configured_buffers, 'v:val.custom')
-    let s:registered_events = keys(g:neomake.automake_events)
+    let s:registered_events = keys(get(get(g:neomake, 'automake', {}), 'events', {}))
     for b in keys(s:configured_buffers)
         if empty(s:configured_buffers[b].enabled_makers)
             continue
         endif
-        let b_cfg = s:getbufvar(b, 'neomake', {})
-        for event_config in items(get(b_cfg, 'automake_events', {}))
+        let b_cfg = neomake#config#get('b:automake.events', {})
+        for event_config in items(b_cfg)
             let event = event_config[0]
             if index(s:registered_events, event) == -1
                 call add(s:registered_events, event)

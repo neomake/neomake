@@ -48,9 +48,9 @@ Execute (short setup: 'w'):
   call neomake#configure#automake('w')
   call NeomakeTestsAssertAutomakeAutocommands(['BufWritePost'])
   if has('timers')
-    AssertEqual g:neomake, {'automake_events': {'BufWritePost': {'delay': 0}}}
+    AssertEqual g:neomake, {'automake': {'events': {'BufWritePost': {'delay': 0}}}}
   else
-    AssertEqual g:neomake, {'automake_events': {'BufWritePost': {}}}
+    AssertEqual g:neomake, {'automake': {'events': {'BufWritePost': {}}}}
   endif
 
 Execute (short setup: 'w' with delay):
@@ -58,11 +58,11 @@ Execute (short setup: 'w' with delay):
   call neomake#configure#automake('w', 100)
   call NeomakeTestsAssertAutomakeAutocommands(['BufWritePost'])
   if has('timers')
-    AssertEqual g:neomake, {'automake_events':
-    \ {'BufWritePost': {'delay': 0}}, 'automake_delay': 100}
+    AssertEqual g:neomake, {'automake': {'events':
+    \ {'BufWritePost': {'delay': 0}}}, 'automake_delay': 100}
   else
-    AssertEqual g:neomake, {'automake_events':
-    \ {'BufWritePost': {}}, 'automake_delay': 0}
+    AssertEqual g:neomake, {'automake': {'events':
+    \ {'BufWritePost': {}}}, 'automake_delay': 0}
   endif
 
 Execute (short setup: 'r'):
@@ -121,7 +121,7 @@ Execute (Automake supports custom buffer config):
   call neomake#configure#automake({
   \ 'BufWinEnter': {'delay': 0}})
 
-  AssertEqual b:neomake.automake_events, {'CursorHold': {'delay': 0}}
+  AssertEqual b:neomake.automake.events, {'CursorHold': {'delay': 0}}
   AssertNeomakeMessage 'automake: registered events: BufWinEnter, CursorHold.'
 
   doautocmd BufWinEnter
@@ -132,7 +132,7 @@ Execute (Automake supports custom buffer config):
   AssertEqual len(g:neomake_test_finished), 1
 
   " Remove custom buffer config.
-  unlet b:neomake.automake_events
+  unlet b:neomake.automake.events
   doautocmd BufWinEnter
   AssertNeomakeMessage 'automake: automake for event BufWinEnter.'
   AssertEqual len(g:neomake_test_finished), 1
@@ -160,9 +160,9 @@ Execute (Automake config via dict):
   \ 'BufWinEnter': {'delay': 200},
   \ 'TextChanged': {'delay': 200}})
 
-  let expected = {'automake_events': {}}
+  let expected = {'automake': {'events': {}}}
   if has('timers')
-    let expected.automake_events.BufWinEnter = {'delay': 200}
+    let expected.automake.events.BufWinEnter = {'delay': 200}
   else
     AssertNeomakeMessage 'automake: timer support is required for automaking, removing event BufWinEnter.'
   endif
@@ -170,7 +170,7 @@ Execute (Automake config via dict):
     if !has('timers')
       AssertNeomakeMessage 'automake: timer support is required for automaking, removing event TextChanged.'
     else
-      let expected.automake_events.TextChanged = {'delay': 200}
+      let expected.automake.events.TextChanged = {'delay': 200}
     endif
   else
     AssertNeomakeMessage 'automake: event TextChanged does not exist.', 0
@@ -322,8 +322,11 @@ Execute (neomake#configure#automake_for_buffer sets up autocommands always):
   set buftype=nofile
   call neomake#configure#automake_for_buffer('n', 10)
   AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
-  AssertNeomakeMessage 'automake: registered events: .'
-  call NeomakeTestsAssertAutomakeAutocommands([])
+  if exists('#TextChanged')
+    AssertNeomakeMessage 'automake: registered events: InsertLeave, TextChanged.'
+  else
+    AssertNeomakeMessage 'automake: registered events: CursorHold, InsertLeave.'
+  endif
   bwipe
 
 Execute (neomake#configure#automake_for_buffer sets up autocommands):
@@ -347,9 +350,9 @@ Execute (neomake#configure#automake_for_buffer sets up BufWritePost without dela
   call neomake#configure#automake_for_buffer('w')
   call NeomakeTestsAssertAutomakeAutocommands(['BufWritePost'])
   if has('timers')
-    AssertEqual b:neomake, {'automake_events': {'BufWritePost': {'delay': 0}}}
+    AssertEqual b:neomake, {'automake': {'events': {'BufWritePost': {'delay': 0}}}}
   else
-    AssertEqual b:neomake, {'automake_events': {'BufWritePost': {}}}
+    AssertEqual b:neomake, {'automake': {'events': {'BufWritePost': {}}}}
   endif
   bwipe
 
@@ -360,12 +363,12 @@ Execute (neomake#configure#automake_for_buffer sets up BufWritePost with delay):
   call neomake#configure#automake_for_buffer('w', 5)
   call NeomakeTestsAssertAutomakeAutocommands(['BufWritePost'])
   if has('timers')
-    AssertEqual b:neomake, {'automake_events':
-    \ {'BufWritePost': {'delay': 0}}, 'automake_delay': 5}
+    AssertEqual b:neomake, {'automake': {'events': {
+    \ 'BufWritePost': {'delay': 0}}}, 'automake_delay': 5}
   else
     AssertNeomakeMessage 'automake: timer support is required for delayed events.', 1
-    AssertEqual b:neomake, {'automake_events':
-    \ {'BufWritePost': {}}, 'automake_delay': 0}
+    AssertEqual b:neomake, {'automake': {'events': {
+    \ 'BufWritePost': {}}}, 'automake_delay': 0}
   endif
 
   let tempname = tempname()
@@ -518,13 +521,11 @@ Execute (Automake for normal mode handles ciw):
   call neomake#configure#automake('n', 10)
   new
   if has('timers')
-    AssertEqual g:neomake, {
-    \ 'automake_events': {'InsertLeave': {}, 'TextChanged': {}},
-    \ 'automake_delay': 10}
+    AssertEqual g:neomake, {'automake': {'events': {
+    \ 'InsertLeave': {}, 'TextChanged': {}}}, 'automake_delay': 10}
   else
-    AssertEqual g:neomake, {
-    \ 'automake_events': {'InsertLeave': {}, 'CursorHold': {}},
-    \ 'automake_delay': 0}
+    AssertEqual g:neomake, {'automake': {'events': {
+    \ 'CursorHold': {}, 'InsertLeave': {}}}, 'automake_delay': 0}
   endif
   let g:neomake_test_enabledmakers = [g:sleep_maker]
   set filetype=neomake_tests
