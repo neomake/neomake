@@ -27,11 +27,15 @@ install:
   # Clone Vader and check out the commit we want
   - ps: >-
       if (!(Test-Path -Path C:\vader)){
-        git clone https://github.com/junegunn/vader.vim C:\vader 2> $null
-        cd C:\vader
-        git checkout -qf c6243dd81c98350df4dec608fa972df98fa2a3af 2> $null
+        git clone --depth=1 -b display-source-with-exceptions https://github.com/blueyed/vader.vim C:\vader 2> $null
       }
 
 test_script:
-  - cd C:\projects\ale
-  - 'C:\vim\vim\vim80\vim.exe -u test\vimrc "+Vader! test/test_path_uri.vader"'
+  - cd C:\projects\neomake
+  - |
+    @echo off
+    set VADER_OUTPUT_FILE=%~dp0\vader_output
+    type nul > "%VADER_OUTPUT_FILE%"
+    C:\vim\vim\vim80\vim.exe -u tests/vim/vimrc "+Vader! tests/neomake.vader"
+    type "%VADER_OUTPUT_FILE%"
+    del "%VADER_OUTPUT_FILE%"
