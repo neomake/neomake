@@ -19,6 +19,8 @@ else
         \ s:slash)
 endif
 
+finish
+
 if exists('$TESTS_VADER_DIR')
   let vader_dir = expand($TESTS_VADER_DIR)
 else
