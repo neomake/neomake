@@ -27,7 +27,7 @@ install:
   # Clone Vader and check out the commit we want
   - ps: >-
       if (!(Test-Path -Path C:\vader)){
-        git clone -b display-source-with-exceptions https://github.com/blueyed/vader.vim C:\vader 2> $null
+        git clone -q --depth=1 --branch=display-source-with-exceptions https://github.com/blueyed/vader.vim C:\vader
       }
 
 test_script:
