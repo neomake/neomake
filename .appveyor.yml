@@ -33,9 +33,14 @@ install:
 test_script:
   - cd C:\projects\neomake
   - |
-    @echo off
+    echo 1
     set VADER_OUTPUT_FILE=%~dp0\vader_output
+    echo 2
     type nul > "%VADER_OUTPUT_FILE%"
+    echo 3
     C:\vim\vim\vim80\vim.exe -u tests/vim/vimrc "+Vader! tests/neomake.vader"
+    echo 4
     type "%VADER_OUTPUT_FILE%"
+    echo 5
     del "%VADER_OUTPUT_FILE%"
+    echo 6
