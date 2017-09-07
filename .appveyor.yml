@@ -6,7 +6,7 @@ clone_depth: 10
 # Cache the vim and vader directories between builds.
 cache:
   - C:\vim -> .appveyor.yml
-  - C:\vader -> .appveyor.yml
+  - C:\projects\neomake\tests\vim\plugins\vader -> .appveyor.yml
 
 init:
   # Stop git from changing newlines
@@ -26,8 +26,8 @@ install:
       }
   # Clone Vader and check out the commit we want
   - ps: >-
-      if (!(Test-Path -Path C:\vader)){
-        git clone -q --depth=1 --branch=display-source-with-exceptions https://github.com/blueyed/vader.vim C:\vader
+      if (!(Test-Path -Path C:\projects\neomake\tests\vim\plugins\vader)){
+        git clone -q --depth=1 --branch=display-source-with-exceptions https://github.com/blueyed/vader.vim C:\projects\neomake\tests\vim\plugins\vader
       }
 
 test_script:
