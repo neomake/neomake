@@ -29,9 +29,9 @@ endif
 
 let &runtimepath .= ','.vader_dir
 exe 'source' join([vader_dir, 'plugin', 'vader.vim'], s:slash)
-finish
 
 let s:sourced_plugins = []
+finish
 function! s:load_plugin_on_demand(name) abort
   Save &runtimepath
   let dir = s:dep_plugins_base.'/'.a:name
