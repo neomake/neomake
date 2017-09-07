@@ -1,6 +1,7 @@
 " Based on https://github.com/tweekmonster/braceless.vim/blob/master/test/vim/vimrc
 " TODO: provide this by default in the Docker image already?!  e.g. /vimrc?!
 
+set nocompatible
 set noloadplugins
 
 " Indicator for tests being run.
