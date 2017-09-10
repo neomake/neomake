@@ -4,6 +4,9 @@ Execute (Neomake with unknown maker):
   " Prevent 'Skipping User autocmd NeomakeCountsChanged: no hooks.' message.
   runtime autoload/neomake/statusline.vim
 
+  Save g:neomake_verbose
+  let g:neomake_verbose = 3
+
   Neomake doesnotexist
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages, [
@@ -13,6 +16,9 @@ Execute (Neomake with unknown maker):
   \ [3, 'Cleaning make info.', {'make_id': make_id}]]
 
 Execute (Neomake with unknown maker for multiple fts):
+  Save g:neomake_verbose
+  let g:neomake_verbose = 3
+
   new
   set filetype=ft1.ft2
   Neomake doesnotexist

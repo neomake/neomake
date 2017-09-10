@@ -1020,8 +1020,6 @@ function! s:Make(options) abort
     let s:make_id += 1
     let make_id = s:make_id
     let bufnr = bufnr('%')
-    call neomake#utils#DebugMessage(printf(
-                \ 'Calling Make with options %s.', string(a:options)), {'make_id': make_id, 'bufnr': bufnr})
     let options = copy(a:options)
     call extend(options, {
                 \ 'file_mode': 1,
@@ -1046,7 +1044,11 @@ function! s:Make(options) abort
                     \ 'Adding &verbose (%d) to verbosity level: %d.',
                     \ &verbose, make_info.verbosity), options)
     endif
-
+    if make_info.verbosity >= 3
+        call neomake#utils#DebugMessage(printf(
+                    \ 'Calling Make with options %s.',
+                    \ string(filter(copy(options), "index(['bufnr', 'make_id'], v:key) == -1"))), {'make_id': make_id, 'bufnr': bufnr})
+    endif
     if has_key(options, 'enabled_makers')
         let makers = options.enabled_makers
         unlet options.enabled_makers
