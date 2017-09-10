@@ -24,11 +24,11 @@ DEFAULT_VADER_DIR:=tests/vim/plugins/vader
 export TESTS_VADER_DIR:=$(firstword $(realpath $(wildcard tests/vim/plugins/vader.override)) $(DEFAULT_VADER_DIR))
 $(DEFAULT_VADER_DIR):
 	mkdir -p $(dir $@)
-	git clone --depth=1 -b display-source-with-exceptions https://github.com/blueyed/vader.vim $@
+	git clone -q --depth=1 -b display-source-with-exceptions https://github.com/blueyed/vader.vim $@
 TESTS_FUGITIVE_DIR:=tests/vim/plugins/fugitive
 $(TESTS_FUGITIVE_DIR):
 	mkdir -p $(dir $@)
-	git clone --depth=1 https://github.com/tpope/vim-fugitive $@
+	git clone -q --depth=1 https://github.com/tpope/vim-fugitive $@
 
 DEP_PLUGINS=$(TESTS_VADER_DIR) $(TESTS_FUGITIVE_DIR)
 
@@ -131,9 +131,9 @@ vint-errors: build/vint
 
 # vimlint
 build/vimlint: | build
-	git clone --depth=1 https://github.com/syngan/vim-vimlint $@
+	git clone -q --depth=1 https://github.com/syngan/vim-vimlint $@
 build/vimlparser: | build
-	git clone --depth=1 https://github.com/ynkdir/vim-vimlparser $@
+	git clone -q --depth=1 https://github.com/ynkdir/vim-vimlparser $@
 VIMLINT_OPTIONS=-u -e EVL102.l:_=1
 vimlint: build/vimlint build/vimlparser
 	build/vimlint/bin/vimlint.sh $(VIMLINT_OPTIONS) -l build/vimlint -p build/vimlparser $(LINT_ARGS)
