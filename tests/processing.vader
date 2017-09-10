@@ -257,7 +257,7 @@ Execute (Sleep in postprocess gets handled correctly):
     endif
 
     AssertEqual map(getloclist(0), 'v:val.text'), ['out-1', 'out-22', 'out-333']
-    AssertEqual g:neomake_test_postprocess_count, 3, 'postprocess count should be 3, but is '.g:neomake_test_postprocess_count
+    AssertEqual s:postprocess_count, 3, 'postprocess count should be 3, but is '.s:postprocess_count
     AssertEqual len(g:neomake_test_countschanged), 3
     AssertEqual len(g:neomake_test_jobfinished), 1
     AssertEqual len(g:neomake_test_finished), 1
