@@ -442,7 +442,7 @@ Execute (Makers: get_list_entries with sandbox exception):
 Execute (pcall aborts after 3 attempts per job):
   call g:NeomakeSetupAutocmdWrappers()
 
-  let maker = {}
+  let maker = {'name': 'maker1'}
   function! maker.get_list_entries(...) abort dict
     " causes E48
     sandbox bprevious
@@ -459,18 +459,18 @@ Execute (pcall aborts after 3 attempts per job):
   endfunction
 
   let jobs = neomake#Make({'enabled_makers': [maker, maker2]})
+  AssertNeomakeMessage 'maker1: getting entries via get_list_entries.'
   AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[0]
   AssertNeomakeMessage '\m^(in function .*)$', 3
-
   if has('timers')
-    AssertNeomakeMessage 'Retrying Timer event in 10ms.', 3
+    AssertNeomakeMessage 'Retrying Timer event in 10ms.', 3, jobs[0]
     sleep 10m
   else
-    AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
+    AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).', 3, jobs[0]
     doautocmd CursorHold
   endif
-  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[1]
-  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[0]
+  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[1], {'ignore_order': 1}
+  AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[0], {'ignore_order': 1}
 
   if has('timers')
     AssertNeomakeMessage 'Retrying Timer event in 20ms.', 3
