@@ -102,11 +102,19 @@ Execute (NeomakeInfo! copies to clipboard):
   endtry
 
   echom '====='
+  let restore = 1
   try
     verbose NeomakeInfo!
     let info = split(getreg('+'), '\n')
+    if empty(info)
+      let restore = 0
+      AssertNeomakeMessage "Could not set clipboard: Vim(call):E354: Invalid register name: '+'.", 0
+      return
+    endif
   finally
-    call setreg('+', save_reg)
+    if restore
+      call setreg('+', save_reg, 'l')
+    endif
   endtry
   let idx = -1
   for line in [

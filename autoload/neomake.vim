@@ -2538,7 +2538,13 @@ function! neomake#DisplayInfo(...) abort
         redir => neomake_redir_info
             silent call s:display_neomake_info()
         redir END
-        call setreg('+', neomake_redir_info, 'l')
+        try
+            call setreg('+', neomake_redir_info, 'l')
+        catch
+            call neomake#utils#ErrorMessage(printf(
+                        \ 'Could not set clipboard: %s.', v:exception))
+            return
+        endtry
         echom 'Copied Neomake info to clipboard ("+).'
     else
         call s:display_neomake_info()
