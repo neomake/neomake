@@ -109,8 +109,8 @@ function! neomake#CancelMake(make_id, ...) abort
     for job in jobs
         call neomake#CancelJob(job.id, bang)
     endfor
+    " Ensure that make gets cleaned really, e.g. if there were no jobs yet.
     if has_key(s:make_info, a:make_id)
-        " Might have been cleaned by now; do not trigger a debug msg for it.
         call s:clean_make_info(a:make_id, bang)
     endif
     return 1
@@ -2291,10 +2291,6 @@ function! s:handle_next_job(prev_jobinfo) abort
             echom printf('Neomake error in: %s', v:throwpoint)
             call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), log_context)
 
-            if options.serialize && neomake#utils#GetSetting('serialize_abort_on_error', maker, 0, options.ft, options.bufnr)
-                call s:abort_next_makers(make_id)
-                break
-            endif
             if options.serialize
                 if neomake#utils#GetSetting('serialize_abort_on_error', maker, 0, options.ft, options.bufnr)
                     call s:abort_next_makers(make_id)
