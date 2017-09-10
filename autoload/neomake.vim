@@ -2291,10 +2291,6 @@ function! s:handle_next_job(prev_jobinfo) abort
             echom printf('Neomake error in: %s', v:throwpoint)
             call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), log_context)
 
-            if options.serialize && neomake#utils#GetSetting('serialize_abort_on_error', maker, 0, options.ft, options.bufnr)
-                call s:abort_next_makers(make_id)
-                break
-            endif
             if options.serialize
                 if neomake#utils#GetSetting('serialize_abort_on_error', maker, 0, options.ft, options.bufnr)
                     call s:abort_next_makers(make_id)
