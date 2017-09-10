@@ -1353,27 +1353,28 @@ function! s:clean_make_info(make_id, ...) abort
                     \ len(make_info.active_jobs)), {'make_id': a:make_id})
         return
     endif
-    let queued_jobs = []
-    for q in values(s:action_queue)
-        for v in q
-            if has_key(v[1][0], 'make_id')
-                let jobinfo = v[1][0]
-                if jobinfo.make_id == a:make_id && v[0] !=# 's:CleanJobinfo'
-                    let queued_jobs += [jobinfo.id]
+
+    " Assert: there should be no queued actions for jobs or makes.
+    if exists('g:neomake_test_messages')  " is_testing
+        let queued = []
+        for q in values(s:action_queue)
+            for v in q
+                if has_key(v[1][0], 'make_id')
+                    let jobinfo = v[1][0]
+                    if jobinfo.make_id == a:make_id && v[0] !=# 's:CleanJobinfo'
+                        let queued += ['job '.jobinfo.id]
+                    endif
+                else
+                    let make_id = v[1][0].options.make_id
+                    if make_id == a:make_id
+                        let queued += ['make '.make_id]
+                    endif
                 endif
-            else
-                let make_id = v[1][0].options.make_id
-                if make_id == a:make_id
-                    call add(queued_jobs, s:make_info.queued_jobs)
-                endif
-            endif
+            endfor
         endfor
-    endfor
-    if !empty(queued_jobs)
-        call neomake#utils#DebugMessage(printf(
-                    \ 'Skipping cleaning of make info because of queued jobs: %s.',
-                    \ join(queued_jobs, ', ')), {'make_id': a:make_id})
-        return
+        if !empty(queued)
+            throw 'action queue is not empty: '.string(queued)
+        endif
     endif
 
     if !empty(make_info.finished_jobs)
