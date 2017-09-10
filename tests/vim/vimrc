@@ -3,6 +3,12 @@
 
 set noloadplugins
 
+" Indicator for tests being run.
+let g:neomake_test_messages = []
+
+" Shorter timeouts during tests.
+let g:neomake_action_queue_timeouts = {1: 10, 2: 20, 3: 30}
+
 if exists('$TESTS_VADER_DIR')
   let vader_dir = expand($TESTS_VADER_DIR)
 else
@@ -68,6 +74,3 @@ set nomore
 if expand('$NEOMAKE_TEST_NO_COLORSCHEME') !=# '1'
   colorscheme default
 endif
-
-" Shorter timeouts during tests.
-let g:neomake_action_queue_timeouts = {1: 10, 2: 20, 3: 30}
