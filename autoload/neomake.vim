@@ -2531,7 +2531,19 @@ function! s:display_maker_info(...) abort
     endfor
 endfunction
 
-function! neomake#DisplayInfo() abort
+function! neomake#DisplayInfo(...) abort
+    let bang = a:0 ? a:1 : 0
+    if bang
+        redir @+>
+            silent call s:display_neomake_info()
+        redir END
+        echom 'Copied info to clipboard ("+).'
+    else
+        call s:display_neomake_info()
+    endif
+endfunction
+
+function! s:display_neomake_info()
     let ft = &filetype
     if &verbose
         echo '#### Neomake debug information'
