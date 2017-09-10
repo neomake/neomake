@@ -2539,7 +2539,7 @@ function! neomake#DisplayInfo(...) abort
             silent call s:display_neomake_info()
         redir END
         call setreg('+', neomake_redir_info, 'l')
-        echom 'Copied info to clipboard ("+).'
+        echom 'Copied Neomake info to clipboard ("+).'
     else
         call s:display_neomake_info()
     endif

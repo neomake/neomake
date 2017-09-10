@@ -94,7 +94,12 @@ Execute (:verb NeomakeInfo displays extra info):
   endfor
 
 Execute (NeomakeInfo! copies to clipboard):
-  let save_reg = getreg('+')
+  try
+    let save_reg = getreg('+')
+  catch
+    NeomakeTestsSkip 'Clipboard is not available: '.v:exception
+    return
+  endtry
 
   echom '====='
   try
@@ -120,4 +125,4 @@ Execute (NeomakeInfo! copies to clipboard):
   let messages_lines = split(messages_output, "\n")
   AssertEqual messages_lines[-2:-1], [
   \ '=====',
-  \ 'Copied info to clipboard ("+).']
+  \ 'Copied Neomake info to clipboard ("+).']
