@@ -853,7 +853,7 @@ function! s:restore_prev_windows() abort
     endif
 endfunction
 
-function! s:HandleLoclistQflistDisplay(file_mode) abort
+function! s:HandleLoclistQflistDisplay(jobinfo) abort
     let open_val = get(g:, 'neomake_open_list', 0)
     if !open_val
         return
@@ -862,11 +862,11 @@ function! s:HandleLoclistQflistDisplay(file_mode) abort
     if !height
         return
     endif
-    if a:file_mode
-        call neomake#utils#DebugMessage('Handling location list: executing lwindow.')
+    if a:jobinfo.file_mode
+        call neomake#utils#DebugMessage('Handling location list: executing lwindow.', a:jobinfo)
         let cmd = 'lwindow'
     else
-        call neomake#utils#DebugMessage('Handling quickfix list: executing cwindow.')
+        call neomake#utils#DebugMessage('Handling quickfix list: executing cwindow.', a:jobinfo)
         let cmd = 'cwindow'
     endif
     if open_val == 2
@@ -1751,7 +1751,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         call neomake#utils#hook('NeomakeCountsChanged', {'reset': 0, 'jobinfo': a:jobinfo})
     endif
 
-    call s:HandleLoclistQflistDisplay(a:jobinfo.file_mode)
+    call s:HandleLoclistQflistDisplay(a:jobinfo)
     call neomake#highlights#ShowHighlights()
     return 1
 endfunction
