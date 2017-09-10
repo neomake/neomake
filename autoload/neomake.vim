@@ -2534,7 +2534,7 @@ endfunction
 function! neomake#DisplayInfo(...) abort
     let bang = a:0 ? a:1 : 0
     if bang
-        " NOTE: using 'redir @+>' directly is buggy on Neovim.
+        " NOTE: using 'redir @+>' directly is buggy in Neovim (job issues with xsel).
         redir => neomake_redir_info
             silent call s:display_neomake_info()
         redir END
