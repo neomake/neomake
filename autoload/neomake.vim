@@ -70,17 +70,23 @@ function! neomake#GetStatus() abort
                 \ }
 endfunction
 
-" Not documented, only used internally for now.
-function! neomake#GetMakeOptions(...) abort
-    let make_id = a:0 ? a:1 : s:make_id
-    if !has_key(s:make_info, make_id)
-        if exists('*vader#log')
-            call vader#log('warning: missing make_info key: '.make_id)
+" neomake#GetMakeOptions: not documented, only used internally for now.
+" More lax when not being used in tests to avoid errors, but fail during tests.
+if exists('g:neomake_test_messages')  " is_testing
+    function! neomake#GetMakeOptions(...) abort
+        let make_id = a:0 ? a:1 : s:make_id
+        return s:make_info[make_id]
+    endfunction
+else
+    function! neomake#GetMakeOptions(...) abort
+        let make_id = a:0 ? a:1 : s:make_id
+        if !has_key(s:make_info, make_id)
+            call neomake#utils#QuietMessage('warning: missing make_info key: '.make_id)
+            return {'verbosity': get(g:, 'neomake_verbose', 1)}
         endif
-        return {'verbosity': 3}
-    endif
-    return s:make_info[make_id]
-endfunction
+        return s:make_info[make_id]
+    endfunction
+endif
 
 function! neomake#ListJobs() abort
     if !s:async
