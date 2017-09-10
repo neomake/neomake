@@ -19,7 +19,7 @@ matrix:
     - env: ENV=travis_lint
       language: python
     - env: ENV=testnvim
-    - env: ENV=testvim
+    - env: ENV=testvim-7.4.52
 
 install:
   - |
@@ -38,12 +38,13 @@ install:
 
 script:
   - |
-    if [[ "$ENV" = "testvim" ]]; then
+    if [[ "$ENV" = "testvim-7.4.52" ]]; then
       vim --version
       if ! vim --version 2>&1 | grep -F 'VIM - Vi IMproved 7.4' -A1 | grep -q '^Included patches: 1-52'; then
         echo 'Unexpected Vim version (expected 7.4.52)' >&2
         exit 1
       fi
+      ENV=testvim
     fi
     umask 022
   - make $ENV $MAKE_ARGS
