@@ -853,7 +853,7 @@ function! s:restore_prev_windows() abort
     endif
 endfunction
 
-function! s:HandleLoclistQflistDisplay(file_mode) abort
+function! s:HandleLoclistQflistDisplay(jobinfo) abort
     let open_val = get(g:, 'neomake_open_list', 0)
     if !open_val
         return
@@ -862,11 +862,11 @@ function! s:HandleLoclistQflistDisplay(file_mode) abort
     if !height
         return
     endif
-    if a:file_mode
-        call neomake#utils#DebugMessage('Handling location list: executing lwindow.')
+    if a:jobinfo.file_mode
+        call neomake#utils#DebugMessage('Handling location list: executing lwindow.', a:jobinfo)
         let cmd = 'lwindow'
     else
-        call neomake#utils#DebugMessage('Handling quickfix list: executing cwindow.')
+        call neomake#utils#DebugMessage('Handling quickfix list: executing cwindow.', a:jobinfo)
         let cmd = 'cwindow'
     endif
     if open_val == 2
@@ -1012,17 +1012,20 @@ function! s:Make(options) abort
         let disabled = neomake#config#get_with_source('disabled', 0)
         if disabled[0]
             call neomake#utils#DebugMessage(printf(
-                        \ 'Disabled via %s.', disabled[1]))
+                        \ 'Make through autocommand disabled via %s.', disabled[1]))
             return []
         endif
     endif
 
     let s:make_id += 1
     let make_id = s:make_id
+    let bufnr = bufnr('%')
+    call neomake#utils#DebugMessage(printf(
+                \ 'Calling Make with options %s.', string(a:options)), {'make_id': make_id, 'bufnr': bufnr})
     let options = copy(a:options)
     call extend(options, {
                 \ 'file_mode': 1,
-                \ 'bufnr': bufnr('%'),
+                \ 'bufnr': bufnr,
                 \ 'ft': &filetype,
                 \ 'make_id': make_id,
                 \ }, 'keep')
@@ -1748,7 +1751,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         call neomake#utils#hook('NeomakeCountsChanged', {'reset': 0, 'jobinfo': a:jobinfo})
     endif
 
-    call s:HandleLoclistQflistDisplay(a:jobinfo.file_mode)
+    call s:HandleLoclistQflistDisplay(a:jobinfo)
     call neomake#highlights#ShowHighlights()
     return 1
 endfunction

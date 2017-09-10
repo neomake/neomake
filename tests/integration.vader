@@ -7,6 +7,7 @@ Execute (Neomake with unknown maker):
   Neomake doesnotexist
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages, [
+  \ [3, "Calling Make with options {'ft': '', 'file_mode': 1, 'enabled_makers': ['doesnotexist']}.", {'make_id': make_id, 'bufnr': bufnr('%')}],
   \ [0, 'Maker not found (for empty filetype): doesnotexist.', {'make_id': make_id}],
   \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr('%')}],
   \ [3, 'Cleaning make info.', {'make_id': make_id}]]
@@ -17,6 +18,7 @@ Execute (Neomake with unknown maker for multiple fts):
   Neomake doesnotexist
   let make_id = neomake#GetStatus().last_make_id
   AssertEqual g:neomake_test_messages, [
+  \ [3, "Calling Make with options {'ft': 'ft1.ft2', 'file_mode': 1, 'enabled_makers': ['doesnotexist']}.", {'make_id': make_id, 'bufnr': bufnr('%')}],
   \ [0, 'Maker not found (for filetype ft1.ft2): doesnotexist.', {'make_id': make_id}],
   \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr('%')}],
   \ [3, 'Cleaning make info.', {'make_id': make_id}]]

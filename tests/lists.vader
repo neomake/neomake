@@ -336,7 +336,7 @@ Execute (Goes back to original window after opening list (wincmd in autocmd)):
 
     AssertNeomakeMessage 'action queue: calling s:AddExprCallback.', 3
     AssertNeomakeMessage 'Processing 1 entries.', 3
-    AssertNeomakeMessage 'Handling location list: executing lwindow.'
+    AssertNeomakeMessage 'Handling location list: executing lwindow.', 3, jobinfo
     AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.', 3, jobinfo
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
     AssertNeomakeMessage 'action queue: processed 2 items.'
