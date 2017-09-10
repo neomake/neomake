@@ -92,3 +92,32 @@ Execute (:verb NeomakeInfo displays extra info):
     Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
     let idx = i
   endfor
+
+Execute (NeomakeInfo! copies to clipboard):
+  let save_reg = getreg('+')
+
+  echom '====='
+  try
+    verbose NeomakeInfo!
+    let info = split(getreg('+'), '\n')
+  finally
+    call setreg('+', save_reg)
+  endtry
+  let idx = -1
+  for line in [
+      \ '#### Neomake debug information',
+      \ '#### :version',
+      \ '#### :messages',
+      \ ]
+    let i = index(info, line)
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
+    let idx = i
+  endfor
+
+  redir => messages_output
+    silent messages
+  redir END
+  let messages_lines = split(messages_output, "\n")
+  AssertEqual messages_lines[-2:-1], [
+  \ '=====',
+  \ 'Copied info to clipboard ("+).']

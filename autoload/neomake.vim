@@ -2534,9 +2534,11 @@ endfunction
 function! neomake#DisplayInfo(...) abort
     let bang = a:0 ? a:1 : 0
     if bang
-        redir @+>
+        " NOTE: using 'redir @+>' directly is buggy on Neovim.
+        redir => neomake_redir_info
             silent call s:display_neomake_info()
         redir END
+        call setreg('+', neomake_redir_info, 'l')
         echom 'Copied info to clipboard ("+).'
     else
         call s:display_neomake_info()
@@ -2553,7 +2555,7 @@ function! s:display_neomake_info() abort
         echo '[shell, shellcmdflag, shellslash]:' [&shell, &shellcmdflag, &shellslash]
         echo "\n"
     else
-        echo '#### Neomake information (use ":verbose NeomakeInfo" extra output)'
+        echo '#### Neomake information (use ":verbose NeomakeInfo" for extra output)'
     endif
     echo '##### Enabled makers'
     echo 'For the current filetype ("'.ft.'", used with :Neomake):'
