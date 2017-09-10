@@ -35,9 +35,6 @@ install:
 
       # Install vim-vimhelplint for one build.
       make build/vimhelplint
-    elif [ "$ENV" = "travis_test" ]; then
-      make build/vimlint
-      make build/vint
     fi
     umask 022
 

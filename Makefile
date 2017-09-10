@@ -123,7 +123,7 @@ tags:
 LINT_ARGS:=./plugin ./autoload
 build/vint: | build
 	virtualenv $@
-	$@/bin/pip install vim-vint
+	$@/bin/pip install --quiet vim-vint
 vint: build/vint
 	build/vint/bin/vint $(LINT_ARGS)
 vint-errors: build/vint
