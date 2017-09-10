@@ -222,12 +222,11 @@ Execute (Sleep in postprocess gets handled correctly):
   " Reproduces flakiness with https://github.com/neomake/neomake/issues/899.
   call neomake#statusline#ResetCounts()
   if NeomakeAsyncTestsSetup()
-    Save g:neomake_test_postprocess_count
-    let g:neomake_test_postprocess_count = 0
+    let s:postprocess_count = 0
     function! s:postprocess(entry) dict
-      let g:neomake_test_postprocess_count += 1
-      if g:neomake_test_postprocess_count == 1
-        exe 'sleep 200m'
+      let s:postprocess_count += 1
+      if s:postprocess_count == 1
+        exe 'sleep 300m'
       endif
     endfunction
 
@@ -238,10 +237,7 @@ Execute (Sleep in postprocess gets handled correctly):
       \ 'postprocess': function('s:postprocess')})
 
     let jobinfo = neomake#Make(1, [maker])[0]
-    " norm! V
     NeomakeTestsWaitForFinishedJobs
-    " exe "norm! <Esc>"
-    " doautocmd CursorHold
     AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
     if !has('nvim-0.2.0')
       AssertNeomakeMessage 'exit (delayed): unnamed_maker: 0.', 3, jobinfo
