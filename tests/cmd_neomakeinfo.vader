@@ -63,7 +63,7 @@ Execute (:NeomakeInfo displays issues):
   let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
   let idx = -1
   for line in [
-      \ '#### Neomake information (use ":verbose NeomakeInfo" extra output)',
+      \ '#### Neomake information (use ":verbose NeomakeInfo" for extra output)',
       \ 'For the project (used with :Neomake!):',
       \ ' - mymaker',
       \ '   - args: function(''getcwd'')',
