@@ -2543,7 +2543,7 @@ function! neomake#DisplayInfo(...) abort
     endif
 endfunction
 
-function! s:display_neomake_info()
+function! s:display_neomake_info() abort
     let ft = &filetype
     if &verbose
         echo '#### Neomake debug information'
