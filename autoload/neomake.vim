@@ -1021,7 +1021,7 @@ function! s:Make(options) abort
     let make_id = s:make_id
     let bufnr = bufnr('%')
     call neomake#utils#DebugMessage(printf(
-                \ 'Calling Make with options %s.', a:options), {'make_id': make_id, 'bufnr': bufnr})
+                \ 'Calling Make with options %s.', string(a:options)), {'make_id': make_id, 'bufnr': bufnr})
     let options = copy(a:options)
     call extend(options, {
                 \ 'file_mode': 1,
