@@ -916,9 +916,9 @@ function! s:queue_action(event, data) abort
             endif
             let s:action_queue_timer = timer_start(timeout, function('s:process_action_queue_timer_cb'))
             call neomake#utils#DebugMessage(printf(
-                        \ 'Retrying Timer event in %dms.', timeout))
+                        \ 'Retrying Timer event in %dms.', timeout), job_or_make_info)
         else
-            call neomake#utils#DebugMessage('Retrying Timer event on CursorHold(I).')
+            call neomake#utils#DebugMessage('Retrying Timer event on CursorHold(I).', job_or_make_info)
             if !exists('#neomake_event_queue#CursorHold')
                 augroup neomake_event_queue
                     exe 'autocmd CursorHold,CursorHoldI * call s:process_action_queue('''.a:event.''')'
