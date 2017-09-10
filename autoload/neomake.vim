@@ -1324,17 +1324,11 @@ function! s:CleanJobinfo(jobinfo, ...) abort
         let make_info.finished_jobs += [a:jobinfo]
     endif
 
-    " Trigger autocmd if all jobs for a s:Make instance have finished.
-    if !empty(make_info.active_jobs)
-        return
+    " Trigger cleanup (and autocommands) if all jobs have finished.
+    if empty(make_info.active_jobs) && empty(make_info.jobs_queue)
+        call s:clean_make_info(a:jobinfo.make_id)
+        return 1
     endif
-
-    if !empty(make_info.jobs_queue)
-        return
-    endif
-
-    call s:clean_make_info(a:jobinfo.make_id)
-    return 1
 endfunction
 
 function! s:clean_make_info(make_id, ...) abort
