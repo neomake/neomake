@@ -435,7 +435,9 @@ function! neomake#utils#CompressWhitespace(entry) abort
 endfunction
 
 function! neomake#utils#redir(cmd) abort
+    " @vimlint(EVL108, 1)
     if exists('*execute') && has('nvim-0.2.0')
+    " @vimlint(EVL108, 0)
         " NOTE: require Neovim, since Vim has at least an issue when using
         "       this in a :command-completion function.
         "       Ref: https://github.com/neomake/neomake/issues/650.
