@@ -1387,24 +1387,24 @@ function! s:clean_make_info(make_id, ...) abort
         call s:clean_for_new_make(make_info)
         call s:handle_locqf_list_for_finished_jobs(make_info)
     else
-        call s:do_clean_make_info(a:make_id)
+        call s:do_clean_make_info(make_info)
     endif
 endfunction
 
-function! s:do_clean_make_info(make_id) abort
-    let make_info = get(s:make_info, a:make_id, {})
+function! s:do_clean_make_info(make_info) abort
+    call neomake#utils#DebugMessage('Cleaning make info.', a:make_info.options)
+    let make_id = a:make_info.options.make_id
 
-    call neomake#utils#DebugMessage('Cleaning make info.', {'make_id': a:make_id})
     " Remove make_id from its window.
-    let [t, w] = s:GetTabWinForMakeId(a:make_id)
+    let [t, w] = s:GetTabWinForMakeId(make_id)
     let make_ids = neomake#compat#gettabwinvar(t, w, 'neomake_make_ids', [])
-    let idx = index(make_ids, a:make_id)
+    let idx = index(make_ids, make_id)
     if idx != -1
         call remove(make_ids, idx)
         call settabwinvar(t, w, 'neomake_make_ids', make_ids)
     endif
 
-    let tempfiles = get(make_info, 'tempfiles')
+    let tempfiles = get(a:make_info, 'tempfiles')
     if !empty(tempfiles)
         for tempfile in tempfiles
             call neomake#utils#DebugMessage(printf('Removing temporary file: "%s".',
@@ -1418,13 +1418,13 @@ function! s:do_clean_make_info(make_id) abort
         " Only delete the dir, if Vim supports it.  It will be cleaned up
         " when quitting Vim in any case.
         if v:version >= 705 || (v:version == 704 && has('patch1107'))
-            for dir in reverse(copy(get(make_info, 'created_dirs')))
+            for dir in reverse(copy(get(a:make_info, 'created_dirs')))
                 call delete(dir, 'd')
             endfor
         endif
     endif
 
-    unlet s:make_info[a:make_id]
+    unlet s:make_info[make_id]
 endfunction
 
 function! s:handle_locqf_list_for_finished_jobs(make_info) abort
@@ -1493,7 +1493,7 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
                 \ 'jobinfo': extend(copy(a:make_info.options), {'DEPRECATED': 1}),
                 \ }
     call neomake#utils#hook('NeomakeFinished', hook_context)
-    call s:do_clean_make_info(a:make_info.options.make_id)
+    call s:do_clean_make_info(a:make_info)
     return 1
 endfunction
 

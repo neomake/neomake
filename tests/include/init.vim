@@ -300,7 +300,8 @@ function! NeomakeTestsFakeJobinfo() abort
   let make_info[-42] = {
         \ 'verbosity': get(g:, 'neomake_verbose', 1),
         \ 'active_jobs': [],
-        \ 'finished_jobs': []}
+        \ 'finished_jobs': [],
+        \ 'options': {'make_id': -42}}
   return {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': '', 'make_id': -42}
 endfunction
 
