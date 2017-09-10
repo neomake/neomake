@@ -1012,7 +1012,7 @@ function! s:Make(options) abort
         let disabled = neomake#config#get_with_source('disabled', 0)
         if disabled[0]
             call neomake#utils#DebugMessage(printf(
-                        \ 'Disabled via %s.', disabled[1]))
+                        \ 'Make through autocommand disabled via %s.', disabled[1]))
             return []
         endif
     endif
