@@ -102,13 +102,18 @@ endfunction
 
 function! neomake#CancelMake(make_id, ...) abort
     if !has_key(s:make_info, a:make_id)
+        call neomake#utils#ErrorMessage('CancelMake: make not found: '.a:make_id.'.')
         return 0
     endif
+    let make_info = s:make_info[a:make_id]
+    let make_info.canceled = 1
+    call neomake#utils#DebugMessage('Cancelling make.', make_info)
     let bang = a:0 ? a:1 : 0
     let jobs = filter(copy(values(s:jobs)), 'v:val.make_id == a:make_id')
     for job in jobs
         call neomake#CancelJob(job.id, bang)
     endfor
+    call s:clean_action_queue(get(s:make_info, a:make_id, {'make_id': a:make_id}))
     " Ensure that make gets cleaned really, e.g. if there were no jobs yet.
     if has_key(s:make_info, a:make_id)
         call s:clean_make_info(a:make_id, bang)
@@ -123,17 +128,12 @@ function! neomake#CancelAllMakes(...) abort
     endfor
 endfunction
 
-" Returns 1 if a job was canceled, 0 otherwise.
-function! neomake#CancelJob(job_id, ...) abort
-    let job_id = type(a:job_id) == type({}) ? a:job_id.id : +a:job_id
-    let remove_always = a:0 ? a:1 : 0
-    let jobinfo = get(s:jobs, a:job_id, {})
-
-    " Remove any queued actions.
+" Remove any queued actions for a jobinfo or make_info object.
+function! s:clean_action_queue(job_or_make_info) abort
     let removed = 0
     for [event, q] in items(s:action_queue)
         let len_before = len(q)
-        call filter(q, "get(v:val[1][0], 'id') != a:job_id")
+        call filter(q, 'v:val[1][0] != a:job_or_make_info')
         let len_after = len(q)
         if len_before != len_after
             let removed += (len_before - len_after)
@@ -143,11 +143,20 @@ function! neomake#CancelJob(job_id, ...) abort
         endif
     endfor
     if removed
-        let log_context = empty(jobinfo) ? {'id': a:job_id} : jobinfo
         call neomake#utils#DebugMessage(printf(
                     \ 'Removed %d action queue entries.',
-                    \ removed), log_context)
+                    \ removed), a:job_or_make_info)
     endif
+endfunction
+
+" Returns 1 if a job was canceled, 0 otherwise.
+function! neomake#CancelJob(job_id, ...) abort
+    let job_id = type(a:job_id) == type({}) ? a:job_id.id : +a:job_id
+    let remove_always = a:0 ? a:1 : 0
+    let jobinfo = get(s:jobs, a:job_id, {})
+    call neomake#utils#DebugMessage('Cancelling job.', jobinfo)
+
+    call s:clean_action_queue(jobinfo)
 
     if empty(jobinfo)
         call neomake#utils#ErrorMessage('CancelJob: job not found: '.job_id.'.')
@@ -1379,7 +1388,12 @@ function! s:clean_make_info(make_id, ...) abort
         endif
         call neomake#EchoCurrentError(1)
         call s:clean_for_new_make(make_info)
-        call s:handle_locqf_list_for_finished_jobs(make_info)
+        if get(make_info, 'canceled', 0)
+            call neomake#utils#DebugMessage('Skipping final processing for canceled make.', make_info)
+            call s:do_clean_make_info(make_info)
+        else
+            call s:handle_locqf_list_for_finished_jobs(make_info)
+        endif
     else
         call s:do_clean_make_info(make_info)
     endif
