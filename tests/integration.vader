@@ -501,6 +501,7 @@ Execute (NeomakeListJobs with job cancellation):
     AssertNeomakeMessage 'Postponing final location list handling for mode "V".', 3, log_context
     AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for Timer.', 3, log_context
     AssertNeomakeMessage 'Retrying Timer event in 10ms.'
+    AssertNeomakeMessage 'Skipping cleaning of make info for queued actions.', 3
 
     doautocmd CursorHold
     AssertNeomakeMessage 'cmd maker 2: processing 1 lines of output.', 3
