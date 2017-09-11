@@ -1143,7 +1143,6 @@ function! s:Make(options) abort
         endif
         let jobinfo = s:handle_next_job({})
         if empty(jobinfo)
-            call s:clean_make_info(make_id)
             break
         endif
         call add(jobinfos, jobinfo)
@@ -2311,9 +2310,6 @@ function! s:handle_next_job(prev_jobinfo) abort
                     call s:abort_next_makers(make_id)
                     break
                 endif
-                if empty(make_info.jobs_queue)
-                    call s:clean_make_info(make_id)
-                endif
             endif
             continue
         endtry
@@ -2321,6 +2317,17 @@ function! s:handle_next_job(prev_jobinfo) abort
             return jobinfo
         endif
     endwhile
+
+    " Cleanup make info, but only if there are no queued actions.
+    for q in values(s:action_queue)
+        for v in q
+            if v[1][0] == make_info
+                call neomake#utils#DebugMessage('Skipping cleaning of make info for queued actions.', make_info)
+                return {}
+            endif
+        endfor
+    endfor
+    call s:clean_make_info(make_id)
     return {}
 endfunction
 
