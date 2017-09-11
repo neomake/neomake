@@ -25,3 +25,12 @@ endfunction
 function! neomake#makers#ft#neomake_tests#true() abort
     return {}
 endfunction
+
+function! neomake#makers#ft#neomake_tests#process_output_error() abort
+    let maker = {'exe': 'echo', 'args': 'output', 'append_file': 0}
+
+    function! maker.process_output(...) abort
+        return [{'valid': 1, 'text': 'error', 'lnum': 1, 'bufnr': bufnr('%')}]
+    endfunction
+    return maker
+endfunction
