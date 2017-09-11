@@ -122,7 +122,7 @@ function! neomake#CancelMake(make_id, ...) abort
     call s:clean_action_queue(get(s:make_info, a:make_id, {'make_id': a:make_id}))
     " Ensure that make gets cleaned really, e.g. if there were no jobs yet.
     if has_key(s:make_info, a:make_id)
-        call s:clean_make_info(a:make_id, bang)
+        call s:clean_make_info(make_info, bang)
     endif
     return 1
 endfunction
@@ -1072,7 +1072,7 @@ function! s:Make(options) abort
         if empty(makers)
             if file_mode
                 call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers (filetype='.options.ft.').', options)
-                call s:clean_make_info(make_id)
+                call s:clean_make_info(make_info)
                 return []
             else
                 let makers = ['makeprg']
@@ -1090,7 +1090,7 @@ function! s:Make(options) abort
     let jobs = call('s:map_makers', args)
     if empty(jobs)
         call neomake#utils#DebugMessage('Nothing to make: no valid makers.', options)
-        call s:clean_make_info(make_id)
+        call s:clean_make_info(make_info)
         return []
     endif
 
@@ -1143,7 +1143,6 @@ function! s:Make(options) abort
         endif
         let jobinfo = s:handle_next_job({})
         if empty(jobinfo)
-            call s:clean_make_info(make_id)
             break
         endif
         call add(jobinfos, jobinfo)
@@ -1341,22 +1340,18 @@ function! s:CleanJobinfo(jobinfo, ...) abort
 
     " Trigger cleanup (and autocommands) if all jobs have finished.
     if empty(make_info.active_jobs) && empty(make_info.jobs_queue)
-        call s:clean_make_info(a:jobinfo.make_id)
+        call s:clean_make_info(make_info)
         return 1
     endif
 endfunction
 
-function! s:clean_make_info(make_id, ...) abort
-    let make_info = get(s:make_info, a:make_id, {})
-    if empty(make_info)
-        call neomake#utils#DebugMessage('Make info was cleaned already.', {'make_id': a:make_id})
-        return
-    endif
+function! s:clean_make_info(make_info, ...) abort
+    let make_id = a:make_info.options.make_id
     let bang = a:0 ? a:1 : 0
-    if !bang && !empty(make_info.active_jobs)
+    if !bang && !empty(a:make_info.active_jobs)
         call neomake#utils#DebugMessage(printf(
                     \ 'Skipping cleaning of make info: %d active jobs.',
-                    \ len(make_info.active_jobs)), {'make_id': a:make_id})
+                    \ len(a:make_info.active_jobs)), a:make_info.options)
         return
     endif
 
@@ -1367,12 +1362,11 @@ function! s:clean_make_info(make_id, ...) abort
             for v in q
                 if has_key(v[1][0], 'make_id')
                     let jobinfo = v[1][0]
-                    if jobinfo.make_id == a:make_id && v[0] !=# 's:CleanJobinfo'
+                    if jobinfo.make_id == make_id && v[0] !=# 's:CleanJobinfo'
                         let queued += ['job '.jobinfo.id]
                     endif
                 else
-                    let make_id = v[1][0].options.make_id
-                    if make_id == a:make_id
+                    if v[1][0] == a:make_info
                         let queued += ['make '.make_id]
                     endif
                 endif
@@ -1383,26 +1377,26 @@ function! s:clean_make_info(make_id, ...) abort
         endif
     endif
 
-    if !empty(make_info.finished_jobs)
+    if !empty(a:make_info.finished_jobs)
         " Clean old signs after all jobs have finished, so that they can be
         " reused, avoiding flicker and keeping them for longer in general.
         if g:neomake_place_signs
-            if make_info.options.file_mode
-                call neomake#signs#CleanOldSigns(make_info.options.bufnr, 'file')
+            if a:make_info.options.file_mode
+                call neomake#signs#CleanOldSigns(a:make_info.options.bufnr, 'file')
             else
                 call neomake#signs#CleanAllOldSigns('project')
             endif
         endif
         call neomake#EchoCurrentError(1)
-        call s:clean_for_new_make(make_info)
-        if get(make_info, 'canceled', 0)
-            call neomake#utils#DebugMessage('Skipping final processing for canceled make.', make_info)
-            call s:do_clean_make_info(make_info)
+        call s:clean_for_new_make(a:make_info)
+        if get(a:make_info, 'canceled', 0)
+            call neomake#utils#DebugMessage('Skipping final processing for canceled make.', a:make_info)
+            call s:do_clean_make_info(a:make_info)
         else
-            call s:handle_locqf_list_for_finished_jobs(make_info)
+            call s:handle_locqf_list_for_finished_jobs(a:make_info)
         endif
     else
-        call s:do_clean_make_info(make_info)
+        call s:do_clean_make_info(a:make_info)
     endif
 endfunction
 
@@ -2311,9 +2305,6 @@ function! s:handle_next_job(prev_jobinfo) abort
                     call s:abort_next_makers(make_id)
                     break
                 endif
-                if empty(make_info.jobs_queue)
-                    call s:clean_make_info(make_id)
-                endif
             endif
             continue
         endtry
@@ -2321,6 +2312,17 @@ function! s:handle_next_job(prev_jobinfo) abort
             return jobinfo
         endif
     endwhile
+
+    " Cleanup make info, but only if there are no queued actions.
+    for q in values(s:action_queue)
+        for v in q
+            if v[1][0] == make_info
+                call neomake#utils#DebugMessage('Skipping cleaning of make info for queued actions.', make_info)
+                return {}
+            endif
+        endfor
+    endfor
+    call s:clean_make_info(make_info)
     return {}
 endfunction
 
