@@ -1,4 +1,5 @@
-*Neomake* - asynchronous make for Vim version 7.4+ and Neovim
+*Neomake* - asynchronous make for Vim version 7.4+ and Neovim (preferred)
+*Neomake* - asynchronous make for Vim version 7.4+ and Neovim (preferred)
 
         ███╗   ██╗███████╗ ██████╗ ███╗   ███╗ █████╗ ██╗  ██╗███████╗
         ████╗  ██║██╔════╝██╔═══██╗████╗ ████║██╔══██╗██║ ██╔╝██╔════╝
