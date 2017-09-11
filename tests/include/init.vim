@@ -362,6 +362,24 @@ function! NeomakeTestsGetSigns()
   return signs[1:-1]
 endfunction
 
+let s:vim_msgs_marker = '== neomake_tests_marker =='
+function! NeomakeTestsSetVimMessagesMarker()
+  echom s:vim_msgs_marker
+endfunction
+
+function! NeomakeTestsGetVimMessages()
+  redir => messages_output
+    silent messages
+  redir END
+  call NeomakeTestsSetVimMessagesMarker()
+  let msgs = split(messages_output, "\n")
+  let idx = index(reverse(msgs), s:vim_msgs_marker)
+  if idx <= 0
+    return []
+  endif
+  return reverse(msgs[0 : idx-1])
+endfunction
+
 function! s:After()
   if exists('g:neomake_tests_highlight_lengths')
     " Undo monkeypatch.
