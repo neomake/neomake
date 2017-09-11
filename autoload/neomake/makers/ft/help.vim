@@ -1,5 +1,5 @@
 function! neomake#makers#ft#help#EnabledMakers() abort
-    let makers = ['proselint', 'writegood']
+    let makers = ['writegood']
     if executable('vim')
         call insert(makers, 'vimhelplint')
     endif
