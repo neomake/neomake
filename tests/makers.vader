@@ -430,7 +430,7 @@ Execute (Makers: get_list_entries with sandbox exception):
   let jobinfo.maker.should_throw = 0
   if has('timers')
     AssertNeomakeMessage 'Retrying Timer event in 10ms.', 3
-    sleep 10m
+    sleep 20m
   else
     AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
     doautocmd CursorHold
