@@ -16,10 +16,6 @@ matrix:
     - env: ENV=travis_test
       services:
         - docker
-    - env: ENV=travis_lint
-      language: python
-    - env: ENV=testnvim
-    - env: ENV=testvim-7.4.52
 
 install:
   - |
