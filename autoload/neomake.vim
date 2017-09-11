@@ -868,6 +868,7 @@ function! s:restore_prev_windows() abort
     endif
 endfunction
 
+let s:ignore_automake_events = 0
 function! s:HandleLoclistQflistDisplay(jobinfo) abort
     let open_val = get(g:, 'neomake_open_list', 0)
     if !open_val
@@ -885,9 +886,11 @@ function! s:HandleLoclistQflistDisplay(jobinfo) abort
         let cmd = 'cwindow'
     endif
     if open_val == 2
+        let s:ignore_automake_events += 1
         call s:save_prev_windows()
         exe cmd height
         call s:restore_prev_windows()
+        let s:ignore_automake_events -= 1
     else
         exe cmd height
     endif
@@ -1024,6 +1027,11 @@ endfunction
 function! s:Make(options) abort
     let is_automake = !empty(expand('<abuf>'))
     if is_automake
+        if s:ignore_automake_events
+            call neomake#utils#DebugMessage(printf(
+                        \ 'Ignoring Make through autocommand due to s:ignore_automake_events=%d.', s:ignore_automake_events), {'winnr': winnr()})
+            return []
+        endif
         let disabled = neomake#config#get_with_source('disabled', 0)
         if disabled[0]
             call neomake#utils#DebugMessage(printf(
