@@ -21,11 +21,19 @@ function! neomake#makers#ft#cpp#gcc() abort
 endfunction
 
 function! neomake#makers#ft#cpp#clangtidy() abort
-    return neomake#makers#ft#c#clangtidy()
+    let maker = neomake#makers#ft#c#clangtidy()
+    " clang arguments are passed to clang-tidy after a literal "--"
+    " clang arguments like -fsyntax-only break clang-tidy
+    let maker.args += ['--', '-std=c++1z', '-I./']
+    return maker
 endfunction
 
 function! neomake#makers#ft#cpp#clangcheck() abort
-    return neomake#makers#ft#c#clangcheck()
+    let maker = neomake#makers#ft#c#clangcheck()
+    " clang arguments are passed to clang-check after a literal "--"
+    " clang arguments like -fsyntax-only break clang-check
+    let maker.args += ['--', '-std=c++1z', '-I./']
+    return maker
 endfunction
 
 function! neomake#makers#ft#cpp#cppcheck() abort
