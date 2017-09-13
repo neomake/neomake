@@ -4,6 +4,7 @@
 
 ~ Features
 Include (Cancellation): cancellation.vader
+Include (Automaking): automake.vader
 Include (Completion): completion.vader
 Include (Compat): compat.vader
 Include (Config): config.vader
