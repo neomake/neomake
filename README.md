@@ -41,7 +41,7 @@ linters, e.g. you would normally type `eslint myfile.js`), then you can use
 
 Here's an example of how to run Neomake on the current file on every write:
 
-```viml
+```vim
 autocmd! BufWritePost * Neomake
 ```
 
@@ -59,7 +59,7 @@ Taking a page from the book of [syntastic], you can configure "makers" (called
 "checkers" in [syntastic]) for different filetypes. Here is an example
 configuration that is already included with this plugin:
 
-```viml
+```vim
 let g:neomake_javascript_jshint_maker = {
     \ 'args': ['--verbose'],
     \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
@@ -114,7 +114,7 @@ If you want to run a specific maker in the current working directory you can
 specify the maker's name, e.g. `:Neomake! makeclean`. The maker must be
 defined as a directory maker, e.g., for the `makeclean` example:
 
-```viml
+```vim
 let g:neomake_makeclean_maker = { 'exe': 'make', 'args': ['clean'] }
 ```
 
