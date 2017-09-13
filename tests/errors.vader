@@ -90,14 +90,14 @@ Execute (neomake#GetMaker with non-existent maker throws errors):
   AssertThrows call neomake#GetMaker('non-existent')
   AssertEqual g:vader_exception, 'Neomake: Invalid maker name: "non-existent"'
   AssertThrows call neomake#GetMaker('nonexistent')
-  AssertEqual g:vader_exception, 'Neomake: Project maker not found: nonexistent'
+  AssertEqual g:vader_exception, 'Neomake: Maker not found (for empty filetype): nonexistent'
   AssertEqual len(g:neomake_test_messages), 0
 
 Execute (Errors from neomake#GetMaker get handled by neomake#Make):
   CallNeomake 1, ['g:invalid-name']
   AssertNeomakeMessage 'Invalid maker name: "g:invalid-name".', 0
   CallNeomake 0, ['nonexistent']
-  AssertNeomakeMessage 'Project maker not found: nonexistent.', 0
+  AssertNeomakeMessage 'Maker not found (for empty filetype): nonexistent.', 0
 
 Execute (Error from neomake#GetMaker for non-dict maker):
   new

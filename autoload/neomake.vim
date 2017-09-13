@@ -664,14 +664,21 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
     return neomake#compat#get_argv(exe, args, args_is_list)
 endfunction
 
+function! s:GetMakerForFiletype(ft, maker_name) abort
+    for config_ft in neomake#utils#get_config_fts(a:ft)
+        call neomake#utils#load_ft_makers(config_ft)
+        let f = 'neomake#makers#ft#'.config_ft.'#'.a:maker_name
+        if exists('*'.f)
+            let maker = call(f, [])
+            return maker
+        endif
+    endfor
+    return s:unset_dict
+endfunction
+
 function! neomake#GetMaker(name_or_maker, ...) abort
-    if a:0
-        let file_mode = 1
-        let ft = a:1
-    else
-        let file_mode = 0
-        let ft = ''
-    endif
+    let ft = a:0 ? a:1 : &filetype
+    let bufnr = bufnr('%')
     if type(a:name_or_maker) == type({})
         let maker = a:name_or_maker
     elseif a:name_or_maker ==# 'makeprg'
@@ -679,31 +686,28 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     elseif a:name_or_maker !~# '\v^\w+$'
         throw printf('Neomake: Invalid maker name: "%s"', a:name_or_maker)
     else
-        let maker = neomake#utils#GetSetting('maker', {'name': a:name_or_maker}, s:unset_dict, ft, bufnr('%'))
+        let maker = neomake#utils#GetSetting('maker', {'name': a:name_or_maker}, s:unset_dict, ft, bufnr)
         if maker is# s:unset_dict
-            if file_mode
-                for config_ft in neomake#utils#get_config_fts(ft)
-                    call neomake#utils#load_ft_maker(config_ft)
-                    let f = 'neomake#makers#ft#'.config_ft.'#'.a:name_or_maker
-                    if exists('*'.f)
-                        let maker = call(f, [])
-                        break
+            if !empty(ft)
+                let maker = s:GetMakerForFiletype(ft, a:name_or_maker)
+                if maker isnot# s:unset_dict
+                    " Filetype makers default to 1 for append_file.
+                    if !has_key(maker, 'append_file')
+                        let maker.append_file = 1
                     endif
-                endfor
-            else
-                try
-                    let maker = eval('neomake#makers#'.a:name_or_maker.'#'.a:name_or_maker.'()')
-                catch /^Vim\%((\a\+)\)\=:E117/
-                endtry
+                endif
             endif
-        endif
-        if maker is# s:unset_dict
-            if file_mode
-                throw printf('Neomake: Maker not found (for %s): %s',
-                            \ !empty(ft) ? 'filetype '.ft : 'empty filetype',
-                            \ a:name_or_maker)
-            else
-                throw 'Neomake: Project maker not found: '.a:name_or_maker
+            if maker is# s:unset_dict
+                call neomake#utils#load_global_makers()
+                let f = 'neomake#makers#'.a:name_or_maker.'#'.a:name_or_maker
+                if exists('*'.f)
+                    let maker = call(f, [])
+                endif
+                if maker is# s:unset_dict
+                    throw printf('Neomake: Maker not found (for %s): %s',
+                                \ !empty(ft) ? 'filetype '.ft : 'empty filetype',
+                                \ a:name_or_maker)
+                endif
             endif
         endif
         if type(maker) != type({})
@@ -713,7 +717,6 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     endif
 
     " Create the maker object.
-    let bufnr = bufnr('%')
     let GetEntries = neomake#utils#GetSetting('get_list_entries', maker, -1, ft, bufnr)
     if GetEntries isnot# -1
         let maker = extend(copy(s:maker_base), copy(maker))
@@ -777,7 +780,7 @@ function! neomake#GetMakers(ft) abort
 
     let makers = []
     for ft in neomake#utils#get_config_fts(a:ft)
-        call neomake#utils#load_ft_maker(ft)
+        call neomake#utils#load_ft_makers(ft)
 
         let maker_names = s:get_makers_for_pattern('neomake#makers#ft#'.ft.'#\l')
         for maker_name in maker_names
@@ -796,7 +799,7 @@ function! neomake#GetMakers(ft) abort
 endfunction
 
 function! neomake#GetProjectMakers() abort
-    runtime! autoload/neomake/makers/*.vim
+    call neomake#utils#load_global_makers()
     return s:get_makers_for_pattern('neomake#makers#\(ft#\)\@!\l')
 endfunction
 
@@ -815,7 +818,7 @@ function! neomake#GetEnabledMakers(...) abort
         if makers is# s:unset_list
             let auto_enabled = 1
             for config_ft in neomake#utils#get_config_fts(a:1)
-                call neomake#utils#load_ft_maker(config_ft)
+                call neomake#utils#load_ft_makers(config_ft)
                 let fnname = 'neomake#makers#ft#'.config_ft.'#EnabledMakers'
                 if exists('*'.fnname)
                     let makers = call(fnname, [])
@@ -2416,6 +2419,7 @@ function! neomake#CursorMovedDelayed() abort
     let s:cursormoved_last_pos = getpos('.')
 endfunction
 
+let s:last_completion = ''
 function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
     if a:ArgLead =~# '[^A-Za-z0-9]'
         return []
@@ -2424,9 +2428,34 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
         " Just 'Neomake!' without following space.
         return [' ']
     endif
+
     let file_mode = a:CmdLine =~# '\v^(Neomake|NeomakeFile)\s'
-    let makers = file_mode ? neomake#GetMakers(&filetype) : neomake#GetProjectMakers()
-    return filter(makers, "v:val =~? '^".a:ArgLead."'")
+
+    if empty(&filetype)
+        let maker_names = neomake#GetProjectMakers()
+    else
+        let maker_names = neomake#GetMakers(&filetype)
+        " TODO: exclude makers based on some property?!
+        " call filter(makers, "get(v:val, 'uses_filename', 1) == file_mode")
+
+        " Prefer (only) makers for the current filetype.
+        if file_mode
+            call filter(maker_names, "v:val =~? '^".a:ArgLead."'")
+            if empty(maker_names) || s:last_completion ==# a:CmdLine
+                call extend(maker_names, neomake#GetProjectMakers())
+            endif
+        else
+            call extend(maker_names, neomake#GetProjectMakers())
+        endif
+    endif
+
+    " Only display executable makers.
+    let makers = map(maker_names, 'neomake#GetMaker(v:val)')
+    call filter(makers, "type(get(v:val, 'exe', 0)) != type('') || executable(v:val.exe)")
+    let maker_names = map(makers, 'v:val.name')
+
+    let s:last_completion = a:CmdLine
+    return filter(maker_names, "v:val =~? '^".a:ArgLead."'")
 endfunction
 
 function! neomake#CompleteJobs(...) abort

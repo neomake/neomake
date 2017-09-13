@@ -638,3 +638,24 @@ Execute (neomake#Make uses current filetype by default):
   NeomakeTestsWaitForFinishedJobs
   Assert s:au_called, 'autocommand was called'
   bwipe
+
+Execute (Neomake/Neomake! run ft maker in project mode):
+  call g:NeomakeSetupAutocmdWrappers()
+  new
+  edit tests/fixtures/a\ filename\ with\ spaces
+  set ft=neomake_tests
+
+  Neomake echo_args
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'Running makers: echo_args.'
+  AssertEqual map(getloclist(0), 'v:val.text'), [expand('%:p')]
+
+  Neomake! echo_args
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage 'Running makers: echo_args.'
+  AssertEqual map(getqflist(), 'v:val.text'), [expand('%:p')]
+
+  AssertEqual map(getloclist(0), 'v:val.text'), [expand('%:p')]
+
+  AssertEqual map(copy(g:neomake_test_jobfinished), 'v:val.jobinfo.file_mode'), [1, 0]
+  bwipe

@@ -280,7 +280,7 @@ endfunction
 let s:super_ft_cache = {}
 function! neomake#utils#GetSupersetOf(ft) abort
     if !has_key(s:super_ft_cache, a:ft)
-        call neomake#utils#load_ft_maker(a:ft)
+        call neomake#utils#load_ft_makers(a:ft)
         let SupersetOf = 'neomake#makers#ft#'.a:ft.'#SupersetOf'
         if exists('*'.SupersetOf)
             let s:super_ft_cache[a:ft] = call(SupersetOf, [])
@@ -292,12 +292,22 @@ function! neomake#utils#GetSupersetOf(ft) abort
 endfunction
 
 let s:loaded_ft_maker_runtime = []
-function! neomake#utils#load_ft_maker(ft) abort
+function! neomake#utils#load_ft_makers(ft) abort
     " Load ft maker, but only once (for performance reasons and to allow for
     " monkeypatching it in tests).
     if index(s:loaded_ft_maker_runtime, a:ft) == -1
-        exe 'runtime autoload/neomake/makers/ft/'.a:ft.'.vim'
+        exe 'runtime! autoload/neomake/makers/ft/'.a:ft.'.vim'
         call add(s:loaded_ft_maker_runtime, a:ft)
+    endif
+endfunction
+
+let s:loaded_global_maker_runtime = 0
+function! neomake#utils#load_global_makers() abort
+    " Load global makers, but only once (for performance reasons and to allow
+    " for monkeypatching it in tests).
+    if !s:loaded_global_maker_runtime
+        exe 'runtime! autoload/neomake/makers/*.vim'
+        let s:loaded_global_maker_runtime = 1
     endif
 endfunction
 
