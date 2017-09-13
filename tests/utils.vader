@@ -257,6 +257,26 @@ Execute(neomake#utils#redir):
   AssertEqual neomake#utils#redir(['NeomakeTestCommand', 'echon 3']), "\n1\n23"
   AssertThrows neomake#utils#redir(['NeomakeTestCommand', 'echoerr 3'])
 
+Execute(neomake#utils#redir_trim_list):
+  command! NeomakeTestCommand echo 1 | echo 2
+  command! NeomakeTestErrorCommand echoerr 'error'
+  AssertEqual neomake#utils#redir_trim_list('echon 1'), ['1']
+  AssertEqual neomake#utils#redir_trim_list('echo 1'), ['1']
+  AssertEqual neomake#utils#redir_trim_list('NeomakeTestCommand'), ['1', '2']
+  AssertThrows call neomake#utils#redir_trim_list('NeomakeTestErrorCommand')
+  if exists('g:vader_exception')
+    " https://github.com/junegunn/vader.vim/issues/86
+    AssertEqual g:vader_exception, 'Vim(echoerr):error'
+  endif
+  AssertEqual neomake#utils#redir_trim_list(['NeomakeTestCommand', 'echon 3']), ['1', '23']
+  AssertThrows neomake#utils#redir_trim_list(['NeomakeTestCommand', 'echoerr 3'])
+
+  hi clear Normal
+  let hi_output = neomake#utils#redir_trim_list('hi Normal')
+  Assert len(hi_output) == 1, 'One line from :hi Normal'
+  " Different variants, depending on the Vim version.
+  Assert index(['Normal         xxx cleared', 'Normalxxx cleared'], hi_output) >= 0, 'Expected output.'
+
 Execute (neomake#utils#ExpandArgs):
   Save $HOME
   let $HOME='/home/sweet'
