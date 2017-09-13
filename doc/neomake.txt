@@ -131,10 +131,12 @@ String usage (simple setup):~
 
 Examples: >
 
+  " When writing a buffer.
   call neomake#configure#automake('w')
-  call neomake#configure#automake('nrw', 500)
-
-  call neomake#configure#automake('wr', 250)
+  " When writing a buffer, and on normal mode changes (after 750ms).
+  call neomake#configure#automake('nw', 750)
+  " When reading a buffer (after 1s), and when writing.
+  call neomake#configure#automake('rw', 1000)
 
 Dictionary usage (advanced setup):~
 >
