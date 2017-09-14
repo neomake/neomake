@@ -357,7 +357,9 @@ Execute (neomake#utils#sort_by_col):
 Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   Save &shell, &shellcmdflag
 
-  let jobinfo = {'file_mode': 0, 'bufnr': 0, 'ft': ''}
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let jobinfo.file_mode = 0
+  let jobinfo.bufnr = 0
 
   let &shell = '/bin/bash -o pipefail'
   let &shellcmdflag = '-c'

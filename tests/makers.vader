@@ -281,6 +281,7 @@ Execute (Set env from maker config):
   let g:neomake_rust_cargo_maker = maker
 
   let makers = neomake#GetEnabledMakers('rust')
+  AssertEqual makers[0].name, 'cargo'
   AssertEqual makers[0], extend(maker, {'auto_enabled': 1})
 
 Execute (Correct function binding from base maker):

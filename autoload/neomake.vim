@@ -647,7 +647,7 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
     let args = copy(self.args)
     let args_is_list = type(args) == type([])
 
-    " Append file?  (defaults to 1 in file_mode)
+    " Append file?  (defaults to jobinfo.file_mode, project/global makers should set it to 0)
     let append_file = neomake#utils#GetSetting('append_file', self, a:jobinfo.file_mode, a:jobinfo.ft, a:jobinfo.bufnr)
     " Use/generate a filename?  (defaults to 1 if tempfile_name is set)
     let uses_filename = append_file || neomake#utils#GetSetting('uses_filename', self, has_key(self, 'tempfile_name'), a:jobinfo.ft, a:jobinfo.bufnr)
