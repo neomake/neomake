@@ -1182,7 +1182,8 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
     let maker = a:jobinfo.maker
     let file_mode = a:jobinfo.file_mode
     let list = file_mode ? getloclist(0) : getqflist()
-    let index = len(a:prev_list)-1
+    let prev_index = len(a:prev_list)
+    let index = prev_index-1
     unlet! s:postprocess  " vim73
     let s:postprocess = neomake#utils#GetSetting('postprocess', maker, function('neomake#utils#CompressWhitespace'), a:jobinfo.ft, a:jobinfo.bufnr)
     if type(s:postprocess) != type([])
@@ -1283,7 +1284,7 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
                     \ }
         let marker_entry = copy(entries[0])
         let marker_entry.text .= printf(' nmcfg:%s', string(config))
-        let changed_entries[a:prev_index+1] = marker_entry
+        let changed_entries[prev_index] = marker_entry
     endif
 
     if !empty(changed_entries) || !empty(removed_entries)
