@@ -89,7 +89,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         let qflist = getqflist()
     endif
 
-    if empty(qflist) || qflist[0].text !~# '\<nmcfg:{.*}$'
+    if empty(qflist) || qflist[0].text !~# ' nmcfg:{.\{-}}$'
         set syntax=qf
         return
     endif
@@ -115,13 +115,15 @@ function! neomake#quickfix#FormatQuickfix() abort
     let makers = []
 
     for item in qflist
-        let config = matchstr(item.text, '\<nmcfg:\zs{.*}$')
-        if !empty(config)
+        " Look for marker at end of entry.
+        if item.text[-1:] ==# '}'
+            let idx = strridx(item.text, ' nmcfg:{')
+            let config = item.text[idx+7:]
             let maker = eval(config)
             if index(makers, maker.name) == -1
                 call add(makers, maker.name)
             endif
-            let item.text = matchstr(item.text, '.*\ze\<nmcfg:')
+            let item.text = item.text[:idx]
         endif
 
         let item.maker_name = get(maker, 'short', '????')

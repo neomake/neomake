@@ -211,3 +211,15 @@ Execute (Disable custom formatted quickfix buffer):
   AssertEqual getpos('.')[1:2], [1, 1]
 
   close
+
+Execute (eomake#quickfix#FormatQuickfix handles entries with config in text):
+  call neomake#quickfix#enable()
+  new
+  call setloclist(0, [{
+      \   'text': 'Text with marker nmcfg:{"name": "a", "short": "a"} nmcfg:{"name": "b", "short": "b"}',
+      \}])
+  lopen
+  call neomake#quickfix#FormatQuickfix()
+  AssertEqual getline(1), 'b   Text with marker nmcfg:{"name": "a", "short": "a"} '
+  lclose
+  bwipe
