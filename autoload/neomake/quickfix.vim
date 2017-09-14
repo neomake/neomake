@@ -143,9 +143,7 @@ function! neomake#quickfix#FormatQuickfix() abort
             endif
         endfor
     endif
-    if !empty(syntax)
-        call neomake#quickfix#set_syntax(syntax)
-    endif
+    call neomake#quickfix#set_syntax(syntax)
 
     if maker_width + lnum_width + col_width > 0
         let b:neomake_start_col = maker_width + lnum_width + col_width + 2
