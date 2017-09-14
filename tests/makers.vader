@@ -460,6 +460,7 @@ Execute (pcall aborts after 3 attempts per job):
     return [{'bufnr': bufnr('%'), 'text': 'error', 'lnum': 1, 'type': 'E'}]
   endfunction
 
+  call NeomakeTestsSetVimMessagesMarker()
   let jobs = neomake#Make({'enabled_makers': [maker, maker2]})
   AssertNeomakeMessage 'maker1: getting entries via get_list_entries.'
   AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[0]
@@ -503,11 +504,10 @@ Execute (pcall aborts after 3 attempts per job):
   AssertEqual map(copy(g:neomake_test_jobfinished), 'v:val.jobinfo.maker.name'), ['maker2']
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual map(getloclist(0), 'v:val.text'), ['error']
-  redir => messages_output
-    silent messages
-  redir END
-  let messages = split(messages_output, "\n")
-  Assert messages[-1] =~# '\vNeomake error in: function .*_queue_action, line \d+', 'Message not found. Last msg: '.string(messages[-1])
+
+  let vim_msgs = NeomakeTestsGetVimMessages()
+  Assert vim_msgs[-1] =~# '\vNeomake error in: function .*_queue_action, line \d+'
+  AssertEqual len(vim_msgs), 1
 
 Execute (Makers: get_list_entries via config):
   call g:NeomakeSetupAutocmdWrappers()
