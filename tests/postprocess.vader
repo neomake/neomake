@@ -391,7 +391,7 @@ Execute (Postprocess: lambda from conf):
   endif
 
 Execute (Hook context gets cleaned on error in postprocess):
-  echom '====='
+  call NeomakeTestsSetVimMessagesMarker()
   let maker = copy(g:success_maker)
   function! maker.postprocess(entry)
     throw 'error from postprocess'
@@ -399,10 +399,7 @@ Execute (Hook context gets cleaned on error in postprocess):
   call neomake#Make({'enabled_makers': [maker]})
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Error during output processing for success-maker: error from postprocess.', 0
-  redir => messages_output
-    silent messages
-  redir END
-  let messages = split(messages_output, "\n")
-  Assert messages[-2] ==# '====='
-  Assert messages[-1] =~# 'Neomake error in: function .*', 'message found'
+  let vim_msgs = NeomakeTestsGetVimMessages()
+  Assert vim_msgs[-1] =~# 'Neomake error in: function .*', 'message found'
+  AssertEqual len(vim_msgs), 1
   Assert !exists('g:neomake_postprocess_context'), 'Hook context was cleaned.'

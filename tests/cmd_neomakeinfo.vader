@@ -101,7 +101,7 @@ Execute (NeomakeInfo! copies to clipboard):
     return
   endtry
 
-  echom '====='
+  call NeomakeTestsSetVimMessagesMarker()
   let restore = 1
   try
     verbose NeomakeInfo!
@@ -131,6 +131,5 @@ Execute (NeomakeInfo! copies to clipboard):
     silent messages
   redir END
   let messages_lines = split(messages_output, "\n")
-  AssertEqual messages_lines[-2:-1], [
-  \ '=====',
+  AssertEqual NeomakeTestsGetVimMessages(), [
   \ 'Copied Neomake info to clipboard ("+).']
