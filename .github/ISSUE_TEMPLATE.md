@@ -13,16 +13,24 @@ Provide steps to reproduce the issue, if relevant.
    output/logging in general, or set `g:neomake_logfile` to a file path.
 2. Look at `:messages` (or the logfile) for the generated output, which might
    help revealing the issue already.
+3. Please describe how you run Neomake: manually (how?), or via some custom
+   autocommand(s) (which?).
 -->
 
 ### Output from (verbose) NeomakeInfo
 
 <!--
-Paste the output from `:verbose NeomakeInfo` here.
-You can use the following command to copy it directly to your clipboard:
 
-    :redir @+> | silent verb NeomakeInfo | redir END
+1. Paste the output from `:verbose NeomakeInfo` here.
+   You can use `:verbose NeomakeInfo!` (with a bang at the end) to copy it to
+   your clipboard.
 
-If you have used `g:neomake_logfile`, then please paste the contents of the
-file here, too.
+   If you want to copy it manually to some other register etc you can use
+   something based on the following:
+
+        :redir @+> | silent verb NeomakeInfo | redir END
+
+2. If you have used `g:neomake_logfile`, then please paste the contents of the
+   file here, too.
+
 -->

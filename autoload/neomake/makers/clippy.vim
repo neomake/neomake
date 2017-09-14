@@ -27,14 +27,12 @@ function! neomake#makers#clippy#clippy() abort
         return {
             \ 'exe': 'rustup',
             \ 'args': ['run', 'nightly', 'cargo', 'clippy'] + json_args,
-            \ 'errorformat': cargo_maker.errorformat,
             \ 'process_output': cargo_maker.process_output,
             \ }
     else
         return {
             \ 'exe': 'cargo',
             \ 'args': ['clippy'] + json_args,
-            \ 'errorformat': cargo_maker.errorformat,
             \ 'process_output': cargo_maker.process_output,
             \ }
     endif

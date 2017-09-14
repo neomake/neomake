@@ -5,12 +5,17 @@ Execute (:NeomakeInfo):
   Save g:neomake_c_enabled_makers, g:neomaker_not_a_setting
   let g:neomake_c_enabled_makers = ['doesnotexist']
   let g:neomaker_not_a_setting = 1
+  Save &makeprg
+  let &makeprg = 'mycustom make %'
 
   let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
   Assert len(filter(copy(info), "v:val =~ '\\v^#+ Settings$'")), 'Settings header exists'
   Assert index(info, "g:neomake_c_enabled_makers = ['doesnotexist']") != -1,
   \ 'neomake_c_enabled_makers setting gets reported'
   AssertEqual filter(copy(info), "v:val =~ 'neomaker'"), []
+  let idx = index(info, '  makeprg=mycustom make %')
+  Assert idx != -1, 'Contains &makeprg: '.string(info)
+  Assert info[idx+1] =~# '^\tLast set from', 'Verbose info for &makeprg: '.string(info[idx+1])
 
 Execute (:NeomakeInfo with FuncRef):
   Save g:neomake_c_enabled_makers, g:neomake_c_doesnotexist_maker
@@ -58,7 +63,7 @@ Execute (:NeomakeInfo displays issues):
   let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
   let idx = -1
   for line in [
-      \ '#### Neomake information (use ":verbose NeomakeInfo" extra output)',
+      \ '#### Neomake information (use ":verbose NeomakeInfo" for extra output)',
       \ 'For the project (used with :Neomake!):',
       \ ' - mymaker',
       \ '   - args: function(''getcwd'')',
@@ -87,3 +92,44 @@ Execute (:verb NeomakeInfo displays extra info):
     Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
     let idx = i
   endfor
+
+Execute (NeomakeInfo! copies to clipboard):
+  try
+    let save_reg = getreg('+')
+  catch
+    NeomakeTestsSkip 'Clipboard is not available: '.v:exception
+    return
+  endtry
+
+  call NeomakeTestsSetVimMessagesMarker()
+  let restore = 1
+  try
+    verbose NeomakeInfo!
+    let info = split(getreg('+'), '\n')
+    if empty(info)
+      let restore = 0
+      AssertNeomakeMessage "Could not set clipboard: Vim(call):E354: Invalid register name: '+'.", 0
+      return
+    endif
+  finally
+    if restore
+      call setreg('+', save_reg, 'l')
+    endif
+  endtry
+  let idx = -1
+  for line in [
+      \ '#### Neomake debug information',
+      \ '#### :version',
+      \ '#### :messages',
+      \ ]
+    let i = index(info, line)
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
+    let idx = i
+  endfor
+
+  redir => messages_output
+    silent messages
+  redir END
+  let messages_lines = split(messages_output, "\n")
+  AssertEqual NeomakeTestsGetVimMessages(), [
+  \ 'Copied Neomake info to clipboard ("+).']

@@ -332,7 +332,7 @@ Execute (Postprocess: can be lambda):
     bwipe
   endif
 
-Execute (Postprocess: lambda from conf):
+Execute (Postprocess: lambda from maker):
   if !has('lambda')
     NeomakeTestsSkip 'no lambda feature'
   else
@@ -365,7 +365,33 @@ Execute (Postprocess: lambda from conf):
     bwipe
   endif
 
+Execute (Postprocess: lambda from conf):
+  if !has('lambda')
+    NeomakeTestsSkip 'no lambda feature'
+  else
+    let maker = {
+    \ 'name': 'mymaker',
+    \ 'exe': 'printf',
+    \ 'args': ['%s\n',
+    \   'WARNING: file.adoc: line 162: illegal system attribute name: font-style',
+    \   'WARNING: file.adoc: line 1: something else'],
+    \ 'errorformat': '%tARNING: %f: line %l: %m',
+    \ 'append_file': 0,
+    \ }
+    new
+    file file.adoc
+    set ft=myft
+    let b:neomake_myft_mymaker_postprocess = {
+    \ entry -> entry.text =~# 'illegal system attribute name: font-style'
+    \ ? extend(entry, {'valid': -1}) : entry}
+    call neomake#Make(1, [maker])
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual map(getloclist(0), 'v:val.text'), ['something else']
+    bwipe
+  endif
+
 Execute (Hook context gets cleaned on error in postprocess):
+  call NeomakeTestsSetVimMessagesMarker()
   let maker = copy(g:success_maker)
   function! maker.postprocess(entry)
     throw 'error from postprocess'
@@ -373,4 +399,7 @@ Execute (Hook context gets cleaned on error in postprocess):
   call neomake#Make({'enabled_makers': [maker]})
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Error during output processing for success-maker: error from postprocess.', 0
+  let vim_msgs = NeomakeTestsGetVimMessages()
+  Assert vim_msgs[-1] =~# 'Neomake error in: function .*', 'message found'
+  AssertEqual len(vim_msgs), 1
   Assert !exists('g:neomake_postprocess_context'), 'Hook context was cleaned.'

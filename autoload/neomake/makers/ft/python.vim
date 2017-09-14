@@ -281,10 +281,10 @@ function! neomake#makers#ft#python#vulture() abort
 endfunction
 
 " --fast-parser: adds experimental support for async/await syntax
-" --silent-imports: replaced by --ignore-missing-imports --follow-imports=skip
+" --silent-imports: replaced by --ignore-missing-imports
 function! neomake#makers#ft#python#mypy() abort
     return {
-        \ 'args': ['--ignore-missing-imports', '--follow-imports=skip'],
+        \ 'args': ['--check-untyped-defs', '--ignore-missing-imports'],
         \ 'errorformat':
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .

@@ -10,6 +10,17 @@ Execute (neomake#Make handles invalid cwd):
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath.", 0
 
+Execute (neomake#Make handles invalid cwd (serialized)):
+  let maker = {
+      \ 'name': 'custom_maker',
+      \ 'exe': 'true',
+      \ 'cwd': '/doesnotexist',
+      \ 'serialize': 1,
+      \ }
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath.", 0
+
 Execute (cwd gets compared with trailing slash removed):
   let cwd = getcwd()
   let maker1 = {'name': 'maker1', 'exe': 'true', 'cwd': cwd.'/', 'append_file': 0}
@@ -38,6 +49,7 @@ Execute (tcd is handled properly):
     try
       tabnew
       let tab1 = tabpagenr()
+      let tab1_bufnr = bufnr('%')
       tcd build/path1
       let dir1 = getcwd()
 
@@ -55,6 +67,13 @@ Execute (tcd is handled properly):
       exe 'tabnext' tab2
       AssertEqual dir2, getcwd()
 
+      NeomakeTestsWaitForFinishedJobs
+      AssertNeomakeMessage 'Postponing final location list handling (in another window).'
+      AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for WinEnter.', 3
+
+      exe 'tabnext' tab1
+      AssertNeomakeMessage 'Cleaning make info.', 3
+      AssertNeomakeMessage 'action queue: processed 1 items.', 3, {'bufnr': tab1_bufnr}
       NeomakeTestsWaitForRemovedJobs
     finally
       if exists('tab2')

@@ -55,9 +55,8 @@ Execute (proselint):
 
   let maker = neomake#GetMaker('proselint', 'text')
   let maker.append_file = 0
-  call extend(maker, neomake#utils#MakerFromCommand(
-  \ "echo \"file.txt:1:1: typography.symbols.ellipsis '...' is an approximation, use the ellipsis symbol '…'.\""),
-  \ 'keep')
+  let maker.exe = 'echo'
+  let maker.args = ["file.txt:1:1: typography.symbols.ellipsis '...' is an approximation, use the ellipsis symbol '…'."]
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual g:neomake_test_highlights_called, [[

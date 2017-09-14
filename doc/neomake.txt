@@ -15,6 +15,7 @@ CONTENTS                                                    *neomake-contents*
     1. Introduction ............................... |neomake-introduction|
     2. Commands ....................................... |neomake-commands|
     3. Configuration ............................. |neomake-configuration|
+    3.1. Automake
     4. Functions ..................................... |neomake-functions|
     5. Autocommands/Hooks ............................. |neomake-autocmds|
     6. Frequently Asked Questions (FAQ) .................... |neomake-faq|
@@ -103,6 +104,63 @@ If you just want an easy way to run |:make| asynchronously, you're all set.
 Just set your |'makeprg'| and |'errorformat'| as usual, and run |:Neomake!|.
 If you want more, read on.
 
+3.1 Automaking                                              *neomake-automake*
+
+To configure Neomake to automatically run on certain events you can use
+`neomake#configure#automake()`.
+
+The first argument can either be a dictionary (mapping autocommand event
+names to config dicts for fine grained control), or a string (as a shortcut to
+configure certain modes). The 2nd argument is the default delay to use.
+
+String usage (simple setup):~
+
+  n: normal mode~
+  This uses the |TextChanged| (falling back to |CursorHold|) and |InsertLeave|
+  events.
+
+  i: insert mode~
+  This uses the |TextChangedI| event (falling back to |CursorHoldI|).
+
+  r: "read" mode - when a buffer gets read/open~
+  This will hook into the |BufWinEnter|, |FileType| and |FileChangedShellPost|
+  events.
+
+  w: "write" mode - when a buffer gets written~
+  This uses the |BufWritePost| event, with an explicit timeout of 0.
+
+Examples: >
+
+  " When writing a buffer.
+  call neomake#configure#automake('w')
+  " When writing a buffer, and on normal mode changes (after 750ms).
+  call neomake#configure#automake('nw', 750)
+  " When reading a buffer (after 1s), and when writing.
+  call neomake#configure#automake('rw', 1000)
+
+Dictionary usage (advanced setup):~
+>
+  call neomake#configure#automake({
+  \ 'TextChanged': {},
+  \ 'InsertLeave': {},
+  \ 'BufWritePost': {'delay': 0},
+  \ 'BufWinEnter': {},
+  \ }, 500)
+<
+This will trigger Neomake on |TextChanged|, |InsertLeave|, |BufWritePost| and
+|BufWinEnter|, with a delay of 500ms by default, but 0 for |BufWritePost|.
+
+You could do some advanced setup, based on if your laptop is running on
+battery: >
+  function! MyOnBattery()
+    return readfile('/sys/class/power_supply/AC/online') == ['0']
+  endfunction
+  if MyOnBattery()
+    call neomake#configure#automake('w')
+  else
+    call neomake#configure#automake('nrw', 1000)
+  endif
+<
 Makers                                                        *neomake-makers*
 A maker is an object that tells Neomake how to run a job for you.
 
@@ -263,7 +321,7 @@ Example: remove some entry for a specific maker (using |expr-lambda|): >
 <
 
 The default is to use `neomake#utils#CompressWhitespace` here, which fixes
-whitespace issues (especially with multiline error messages).
+whitespace issues (important with multiline error messages).
 
 This can also be used to set the `length` property of an entry, which is used
 to highlight entries in the text (|neomake-highlight|).
@@ -320,17 +378,16 @@ Example: change to the buffer's directory: >
         \ }
 <
                                              *neomake-makers-tempfile_enabled*
-Default: 0
-In case the buffer is not readable or modified, the maker will get passed a
-temporary file with the buffer's contents.
-The temporary filename is based on |tempname()| by default, and will be set as
-`tempfile_name` in the maker dict.  You can set it dynamically through the
-experimental `maker.fn` callback (which is not documented on purpose yet).
+Default: 1
+This will pass a temporary file with the buffer's contents to the maker, in
+case the buffer is not readable, modified, or has no filename.
+A maker can specify the temporary file's name through the `tempfile_name`
+property, and you can set it through the experimental `maker.fn` callback (for
+advanced usage).
+Otherwise it gets generated based on the original filename/filetype, and
+falls back to using |tempname()|.
 
-This feature is considered to be experimental, and therefore disabled by
-default.  You can set it like other settings, i.e. to enable it globally,
-but disable it for some maker only: >
-        let g:neomake_tempfile_enabled = 1
+You can configure this per buffer or maker as usual, e.g.: >
         let g:neomake_<ft>_<name>_tempfile_enabled = 0
 <
                                                 *neomake-makers-output_stream*
@@ -594,6 +651,33 @@ define |g:neomake_error_sign|. >
     call neomake#signs#RedefineErrorSign()
 <
                                                           *neomake-statusline*
+The main function for statusline integration is `neomake#statusline#get()`,
+which caches the information retrieved from `neomake#statusline#get_status()`.
+
+*neomake#statusline#get()* <bufnr> [options]
+The function requires the buffer number as first argument, and an optional
+dictionary.
+
+The following example can be used in a custom 'statusline' function: >
+    let neomake_status_str = neomake#statusline#get(bufnr, {
+          \ 'format_running': '… ({{running_job_names}})',
+          \ 'format_ok': (a:active ? '%#NeomakeStatusGood#' : '%*').'✓',
+          \ 'format_quickfix_ok': '',
+          \ 'format_quickfix_issues': (a:active ? '%s' : ''),
+          \ 'format_status': '%%(%s'
+          \   .(a:active ? '%%#StatColorHi2#' : '%%*')
+          \   .'%%)',
+          \ })
+<
+You can use the following options:
+  - format_running: used in case there are jobs running.  Use 0 (as a number)
+    to disable this, but fall through to the last known status.
+    Default: `… ({{running_job_names}})`
+
+You can use the following format placeholders:
+  - `{{running_job_names}}}`: comma-separated list of running jobs (typically
+    their maker names)
+
 *neomake#statusline#LoclistStatus*
 *neomake#statusline#QflistStatus*
 These functions return text for your |'statusline'|. They each take an
@@ -673,7 +757,14 @@ The NeomakeFinished user autocommand gets triggered after all jobs of a build
 have finished.
 You can use this to e.g. close an empty location or quickfix window.
 Context:
- - `g:neomake_hook_context.jobinfo`: see |neomake-object-jobinfo|.
+ - `g:neomake_hook_context`: a dictionary with the following keys:
+   - `make_id`: the numeric ID of the make run.
+   - `options`: a dictionary (related to |neomake-object-jobinfo|):
+     - `file_mode`
+     - `bufnr`
+     - `ft`
+   - `finished_jobs`: a list of job infos (|neomake-object-jobinfo|) for the
+     finished jobs.
 
                                                           *NeomakeJobFinished*
 The NeomakeJobFinished autocommand gets triggered after a single job has

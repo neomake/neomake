@@ -16,11 +16,6 @@ Execute (neomake#compat#systemlist):
   let r = neomake#compat#systemlist(['echo 1'])
   if has('nvim')
     AssertEqual r, ''
-    if has('nvim-0.2.0')
-      AssertEqual v:shell_error, -1
-    else
-      AssertEqual v:shell_error, 0
-    endif
   else
     AssertEqual r, ['/bin/bash: echo 1: command not found']
     AssertEqual v:shell_error, 127
@@ -39,3 +34,33 @@ Execute (neomake#compat#systemlist with empty args):
   AssertEqual neomake#compat#systemlist(''), []
   AssertEqual neomake#compat#systemlist([]), []
   AssertEqual neomake#compat#systemlist('0'), ['/bin/bash: 0: command not found']
+
+Execute (neomake#compat#get_argv on (emulated) Windows):
+  Save &shell, &shellcmdflag
+  set shell=cmd.exe
+  set shellcmdflag=/c
+  function! neomake#utils#IsRunningWindows()
+    return 1
+  endfunction
+  runtime autoload/neomake/compat.vim
+
+  try
+    let out = neomake#compat#get_argv('sh', ['-c', 'echo 1'], 1)
+    if has('nvim')
+      AssertEqual out, 'sh -c "echo 1"'
+    else
+      if neomake#has_async_support()
+        AssertEqual out, 'cmd.exe /c sh -c "echo 1"'
+      else
+        AssertEqual out, 'sh -c "echo 1"'
+      endif
+
+      " Does not get wrapped in shell twice.
+      let out = neomake#compat#get_argv('cmd.exe', ['/c', 'echo 1'], 1)
+      AssertEqual out, 'cmd.exe /c "echo 1"'
+    endif
+  finally
+    " Undo monkeypatch.
+    runtime autoload/neomake/utils.vim
+    runtime autoload/neomake/compat.vim
+  endtry

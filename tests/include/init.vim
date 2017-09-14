@@ -16,7 +16,6 @@ function! s:wait_for_jobs(filter)
       for j in jobs
         call vader#log('Remaining job: '.string(neomake#utils#fix_self_ref(j)))
       endfor
-      call neomake#CancelJobs(1)
       throw len(jobs).' jobs did not finish after 3s.'
     endif
     exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
@@ -43,7 +42,8 @@ command! NeomakeTestsWaitForNextMessage call s:wait_for_next_message()
 
 function! s:wait_for_message(...)
   let max = 45
-  let n = len(g:neomake_test_messages)
+  " let n = len(g:neomake_test_messages)
+  let n = g:neomake_test_messages_last_idx
   let error = 'No new message appeared after 3s.'
   while 1
     let max -= 1
@@ -66,7 +66,9 @@ endfunction
 command! -nargs=+ NeomakeTestsWaitForMessage call s:wait_for_message(<args>)
 
 function! s:wait_for_finished_job()
-  Assert neomake#has_async_support(), 'NeomakeTestsWaitForNextFinishedJob should only be used for async mode'
+  if !neomake#has_async_support() && !has('timers')
+    return
+  endif
   if !exists('#neomake_tests')
     call g:NeomakeSetupAutocmdWrappers()
   endif
@@ -102,25 +104,35 @@ endfunction
 
 let s:tempname = tempname()
 
-function! g:NeomakeTestsCreateExe(name, lines)
+function! g:NeomakeTestsCreateExe(name, ...)
+  let lines = a:0 ? a:1 : []
   let path_separator = exists('+shellslash') ? ';' : ':'
   let dir_separator = exists('+shellslash') ? '\' : '/'
   let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
   let exe = tmpbindir.dir_separator.a:name
   if $PATH !~# tmpbindir . path_separator
-    Save $PATH
     if !isdirectory(tmpbindir)
       call mkdir(tmpbindir, 'p', 0770)
     endif
-    let $PATH = tmpbindir . ':' . $PATH
+    call g:NeomakeTestsSetPATH(tmpbindir . ':' . $PATH)
   endif
-  call writefile(a:lines, exe)
+  call writefile(lines, exe)
   if exists('*setfperm')
     call setfperm(exe, 'rwxrwx---')
   else
     " XXX: Windows support
-    call system('chmod 770 '.shellescape(exe))
+    call system('/bin/chmod 770 '.shellescape(exe))
+    Assert !v:shell_error, 'Got shell_error with chmod: '.v:shell_error
   endif
+endfunction
+
+let s:saved_path = 0
+function! g:NeomakeTestsSetPATH(path) abort
+  if !s:saved_path
+    Save $PATH
+    let s:saved_path = 1
+  endif
+  let $PATH = a:path
 endfunction
 
 function! s:AssertNeomakeMessage(msg, ...)
@@ -209,14 +221,14 @@ function! s:AssertNeomakeMessage(msg, ...)
     return 1
   endfor
   if found_but_before || found_but_other_level != -1
-    let msg = []
+    let msgs = []
     if found_but_other_level != -1
-      let msg += ['for level '.found_but_other_level]
+      let msgs += ['for level '.found_but_other_level]
     endif
     if found_but_before
-      let msg += ['_before_ last asserted one']
+      let msgs += ['_before_ last asserted one']
     endif
-    let msg = "Message '".a:msg."' was found, but ".join(msg, ' and ')
+    let msg = "Message '".a:msg."' was found, but ".join(msgs, ' and ')
     throw msg
   endif
   if !empty(found_but_context_diff)
@@ -286,12 +298,15 @@ function! NeomakeTestsCommandMaker(name, cmd)
 endfunction
 
 function! NeomakeTestsFakeJobinfo() abort
+  let make_id = -42
+  let jobinfo = {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': '', 'make_id': make_id}
   let make_info = neomake#GetStatus().make_info
-  let make_info[-42] = {
+  let make_info[make_id] = {
+        \ 'options': jobinfo,
         \ 'verbosity': get(g:, 'neomake_verbose', 1),
         \ 'active_jobs': [],
-        \ 'queued_jobs': []}
-  return {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': '', 'make_id': -42}
+        \ 'finished_jobs': []}
+  return jobinfo
 endfunction
 
 function! s:monkeypatch_highlights() abort
@@ -325,7 +340,18 @@ function! g:error_maker.postprocess(entry) abort
 endfunction
 let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
 let g:true_maker = NeomakeTestsCommandMaker('true-maker', 'true')
+let g:entry_maker = {}
+function! g:entry_maker.get_list_entries(jobinfo) abort
+  return get(g:, 'neomake_test_getlistentries', [
+  \   {'text': 'error', 'lnum': 1, 'type': 'E'}])
+endfunction
 let g:doesnotexist_maker = {'exe': 'doesnotexist'}
+let g:sleep_entry_maker = {}
+function! g:sleep_entry_maker.get_list_entries(jobinfo) abort
+  sleep 10m
+  return get(g:, 'neomake_test_getlistentries', [
+  \   {'text': 'slept', 'lnum': 1}])
+endfunction
 
 " A maker that generates incrementing errors.
 let g:neomake_test_inc_maker_counter = 0
@@ -351,10 +377,33 @@ function! NeomakeTestsGetSigns()
   return signs[1:-1]
 endfunction
 
+let s:vim_msgs_marker = '== neomake_tests_marker =='
+function! NeomakeTestsSetVimMessagesMarker()
+  echom s:vim_msgs_marker
+endfunction
+
+function! NeomakeTestsGetVimMessages()
+  redir => messages_output
+    silent messages
+  redir END
+  call NeomakeTestsSetVimMessagesMarker()
+  let msgs = split(messages_output, "\n")
+  let idx = index(reverse(msgs), s:vim_msgs_marker)
+  if idx <= 0
+    return []
+  endif
+  return reverse(msgs[0 : idx-1])
+endfunction
+
 function! s:After()
   if exists('g:neomake_tests_highlight_lengths')
     " Undo monkeypatch.
     runtime autoload/neomake/highlights.vim
+  endif
+
+  if exists('#neomake_automake')
+    au! neomake_automake
+    au! neomake_automake_update
   endif
 
   Restore
@@ -373,17 +422,23 @@ function! s:After()
     \ .string(map(jobs, "v:val.make_id.'.'.v:val.id")))
   endif
 
-  let make_info = neomake#GetStatus().make_info
+  let status = neomake#GetStatus()
+  let make_info = status.make_info
   if has_key(make_info, -42)
     unlet make_info[-42]
   endif
   if !empty(make_info)
     call add(errors, 'make_info is not empty: '.string(make_info))
   endif
+  let actions = filter(copy(status.action_queue), '!empty(v:val)')
+  if !empty(actions)
+    call add(errors, printf('action_queue is not empty: %d entries: %s',
+          \ len(actions), string(status.action_queue)))
+  endif
   try
     NeomakeTestsWaitForRemovedJobs
   catch
-    NeomakeCancelJobs!
+    call neomake#CancelJobs(1)
     call add(errors, v:exception)
   endtry
 
@@ -402,8 +457,10 @@ function! s:After()
           exe 'bwipe!' b
         endif
       endfor
+      " In case there are two windows with Vader-workbench.
+      only
     catch
-      Log "Error while cleaning windows: ".v:exception
+      Log "Error while cleaning windows: ".v:exception.' (in '.v:throwpoint.').'
     endtry
     call add(errors, error)
   elseif bufname(winbufnr(1)) !=# '[Vader-workbench]'
@@ -448,12 +505,14 @@ function! s:After()
   endif
 
   if exists('#neomake_event_queue')
-    call add(errors, '#neomake_event_queue was not empty.')
+    call add(errors, '#neomake_event_queue is not empty: ' . neomake#utils#redir('au neomake_event_queue'))
     autocmd! neomake_event_queue
     augroup! neomake_event_queue
   endif
 
   if !empty(errors)
+    " Reload to reset e.g. s:action_queue.
+    runtime autoload/neomake.vim
     throw len(errors).' error(s) in teardown: '.join(errors, "\n")
   endif
 endfunction

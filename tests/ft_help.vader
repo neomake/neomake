@@ -21,8 +21,6 @@ Execute (vimhelplint reports errors):
   endif
 
 Execute (neomake#makers#ft#help#EnabledMakers):
-  let expected = ['proselint', 'writegood']
-  if executable('vim')
-    call insert(expected, 'vimhelplint')
-  endif
-  AssertEqual expected, neomake#makers#ft#help#EnabledMakers()
+  call g:NeomakeTestsCreateExe('vimhelplint', [])
+  runtime autoload/neomake/makers/ft/help.vim
+  AssertEqual ['writegood', 'vimhelplint'], neomake#makers#ft#help#EnabledMakers()

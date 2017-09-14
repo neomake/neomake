@@ -141,3 +141,78 @@ function! neomake#compat#globpath_list(path, pattern, suf) abort
     endif
     return split(globpath(a:path, a:pattern, a:suf), '\n')
 endfunction
+
+if has('nvim')
+    if neomake#utils#IsRunningWindows()
+        function! neomake#compat#get_argv(exe, args, args_is_list) abort
+            if a:args_is_list
+                " Convert it to a string to handle PATHEXT (e.g. .cmd files).
+                " This might be skipped when `exepath(a:exe)[-4:] == '.exe'`,
+                " but not worth it probably (and more fragile in the end?!).
+                return join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
+            endif
+            return a:exe . (empty(a:args) ? '' : ' '.a:args)
+        endfunction
+    else
+        function! neomake#compat#get_argv(exe, args, args_is_list) abort
+            if a:args_is_list
+                return [a:exe] + a:args
+            endif
+            return a:exe . (empty(a:args) ? '' : ' '.a:args)
+        endfunction
+    endif
+elseif neomake#has_async_support()  " Vim-async.
+    if neomake#utils#IsRunningWindows()
+        " Windows needs a shell to handle PATH/%PATHEXT% etc.
+        function! neomake#compat#get_argv(exe, args, args_is_list) abort
+            let prefix = &shell.' '.&shellcmdflag.' '
+            if a:args_is_list
+                if a:exe ==# &shell && get(a:args, 0) ==# &shellcmdflag
+                    " Remove already existing &shell/&shellcmdflag from e.g. NeomakeSh.
+                    let argv = join(map(copy(a:args[1:]), 'neomake#utils#shellescape(v:val)'))
+                else
+                    let argv = join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
+                endif
+            else
+                let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
+                if argv[0:len(prefix)-1] ==# prefix
+                    return argv
+                endif
+            endif
+            return prefix.argv
+        endfunction
+    else
+        function! neomake#compat#get_argv(exe, args, args_is_list) abort
+            if a:args_is_list
+                return [a:exe] + a:args
+            endif
+            " Use a shell to handle argv properly (Vim splits at spaces).
+            let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
+            return [&shell, &shellcmdflag, argv]
+        endfunction
+    endif
+else
+    " Vim (synchronously), via system().
+    function! neomake#compat#get_argv(exe, args, args_is_list) abort
+        if a:args_is_list
+            return join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
+        endif
+        return a:exe . (empty(a:args) ? '' : ' '.a:args)
+    endfunction
+endif
+
+if v:version >= 704 || (v:version == 703 && has('patch831'))
+    function! neomake#compat#gettabwinvar(t, w, v, d) abort
+        return gettabwinvar(a:t, a:w, a:v, a:d)
+    endfunction
+else
+    " Wrapper around gettabwinvar that has no default (older Vims).
+    function! neomake#compat#gettabwinvar(t, w, v, d) abort
+        let r = gettabwinvar(a:t, a:w, a:v)
+        if r is# ''
+            unlet r
+            let r = a:d
+        endif
+        return r
+    endfunction
+endif

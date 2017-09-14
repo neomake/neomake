@@ -6,6 +6,7 @@ Execute (Toggle commands):
   for verbose in [0, 1]
     tabnew
     let &verbose = verbose
+    call NeomakeTestsSetVimMessagesMarker()
 
     NeomakeToggle
     AssertEqual g:neomake, {'disabled': 1}
@@ -79,10 +80,7 @@ Execute (Toggle commands):
     bwipe
 
     if verbose
-      redir => messages_output
-        silent messages
-      redir END
-      AssertEqual split(messages_output, "\n")[-12:], [
+      AssertEqual NeomakeTestsGetVimMessages(), [
         \ 'Neomake is disabled (global).',
         \ 'Neomake is disabled (tab).',
         \ 'Neomake is disabled (buffer).',
@@ -100,7 +98,8 @@ Execute (Toggle commands):
 
 Execute (NeomakeStatus with disabling commands):
   tabnew
-  echom 'init_msg'
+  call NeomakeTestsSetVimMessagesMarker()
+
   NeomakeStatus
 
   NeomakeDisable
@@ -112,11 +111,7 @@ Execute (NeomakeStatus with disabling commands):
   NeomakeDisableBuffer
   NeomakeStatus
 
-  redir => messages_output
-    silent messages
-  redir END
-  AssertEqual split(messages_output, "\n")[-5:], [
-  \ 'init_msg',
+  AssertEqual NeomakeTestsGetVimMessages(), [
   \ 'Neomake is enabled.',
   \ 'Neomake is disabled (global).',
   \ 'Neomake is disabled (tab).',
@@ -132,6 +127,6 @@ Execute (Neomake via autocommand uses 'disabled' setting):
     autocmd BufWritePost * Neomake
   augroup END
   doautocmd BufWritePost
-  AssertNeomakeMessage 'Disabled via buffer.', 3
+  AssertNeomakeMessage 'Make through autocommand disabled via buffer.', 3
   bwipe
   augroup! neomake_test_user_setup

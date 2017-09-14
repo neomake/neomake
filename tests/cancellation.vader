@@ -162,3 +162,52 @@ Execute (neomake#CancelMake stops all jobs):
 
 Execute (neomake#CancelMake handles invalid make id):
   AssertEqual neomake#CancelMake(-1), 0
+
+Execute (neomake#CancelMake removes queued actions):
+  if NeomakeAsyncTestsSetup()
+    new
+    let maker = NeomakeTestsCommandMaker('silent-sleep-success', 'sleep .01')
+    let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
+    new
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Cleaning jobinfo.', 3
+    AssertNeomakeMessage 'Postponing final location list handling (in another window).', 3
+    AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for WinEnter.', 3
+
+    call neomake#CancelAllMakes()
+    AssertNeomakeMessage 'Cancelling make.', 3
+    AssertNeomakeMessage 'Removed 1 action queue entries.', 3
+    AssertNeomakeMessage 'Skipping final processing for canceled make.'
+    call neomake#CancelMake(jobinfo.make_id)
+    AssertNeomakeMessage 'CancelMake: make not found: '.jobinfo.make_id.'.', 0
+    bwipe
+    bwipe
+  endif
+
+Execute (neomake#CancelJob empties action queue):
+  if NeomakeAsyncTestsSetup()
+    augroup neomake_tests
+      autocmd QuickFixCmdPost laddexpr wincmd p
+    augroup END
+
+    new
+    let jobinfo = neomake#Make({'enabled_makers': [g:sleep_maker]})[0]
+    let job_id = jobinfo.id
+    if has('patch-7.4.2299')
+      NeomakeTestsWaitForFinishedJobs
+      AssertNeomakeMessage 'Queueing action: s:AddExprCallback for WinEnter.'
+      AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:AddExprCallback.'
+      AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
+    endif
+    call neomake#CancelJob(job_id)
+    if has('patch-7.4.2299')
+      AssertNeomakeMessage 'Removed 2 action queue entries.', 3
+      AssertNeomakeMessage 'Removing already finished job.', 3, jobinfo
+      wincmd p
+    else
+      NeomakeTestsWaitForFinishedJobs
+    endif
+    AssertNeomakeMessage 'Cleaning make info.', 3
+    bwipe
+    Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd does not exist'
+  endif

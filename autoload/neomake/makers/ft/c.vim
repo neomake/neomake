@@ -8,8 +8,10 @@ function! neomake#makers#ft#c#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#c#clang() abort
+    " as a single-file maker, include the current directory in the default
+    " search path
     return {
-        \ 'args': ['-fsyntax-only', '-Wall', '-Wextra'],
+        \ 'args': ['-fsyntax-only', '-Wall', '-Wextra', '-I./'],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
             \ '%f:%l:%c: %trror: %m,' .
@@ -41,8 +43,10 @@ function! neomake#makers#ft#c#clangcheck() abort
 endfunction
 
 function! neomake#makers#ft#c#gcc() abort
+    " as a single-file maker, include the current directory in the default
+    " search path
     return {
-        \ 'args': ['-fsyntax-only', '-Wall', '-Wextra'],
+        \ 'args': ['-fsyntax-only', '-Wall', '-Wextra', '-I./'],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
             \ '%-G%f:%l: %#error: %#(Each undeclared identifier is reported only%.%#,' .
@@ -66,6 +70,7 @@ endfunction
 function! neomake#makers#ft#c#clangtidy() abort
     return {
         \ 'exe': 'clang-tidy',
+        \ 'args': ['%:p'],
         \ 'errorformat':
             \ '%E%f:%l:%c: fatal error: %m,' .
             \ '%E%f:%l:%c: error: %m,' .

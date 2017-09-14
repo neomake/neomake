@@ -310,26 +310,36 @@ Execute (Goes back to original window after opening list (wincmd in autocmd)):
       autocmd QuickFixCmdPost laddexpr 2wincmd w
     augroup END
 
-    call neomake#Make(1, [g:error_maker])
+    let jobinfo = neomake#Make({'enabled_makers': [g:error_maker]})[0]
     NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Postponing location list processing.', 3, jobinfo
     AssertEqual map(getloclist(winnr), '[v:val.text, v:val.type]'), [['error', 'E']]
     AssertEqual 2, winnr()
 
     AssertNotEqual wincount + 1, winnr('$'), 'Location list has not appeared yet'
     Assert exists('#neomake_event_queue#WinEnter'), 'autocmd was setup'
-    AssertNeomakeMessage 'Queueing action: s:ProcessEntries for WinEnter.'
+    AssertNeomakeMessage 'Queueing action: s:AddExprCallback for WinEnter.'
 
     " Go to first window for wincmd-p check.
     1wincmd w
-    AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 1).'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).'
+    AssertNeomakeMessage 'action queue: calling s:AddExprCallback.'
+    AssertNeomakeMessage 'Postponing location list processing.'
+    AssertNeomakeMessage 'Queueing action: s:AddExprCallback for WinEnter.'
+    AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.'
+    AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:AddExprCallback.'
+    AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
     AssertNeomakeMessage 'action queue: processed 0 items.'
     exe winnr.'wincmd w'
-    AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 3).'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
     AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
 
+    AssertNeomakeMessage 'action queue: calling s:AddExprCallback.', 3
+    AssertNeomakeMessage 'Processing 1 entries.', 3
+    AssertNeomakeMessage 'Handling location list: executing lwindow.', 3, jobinfo
+    AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.', 3, jobinfo
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
-    AssertNeomakeMessage 'Handling location list: executing lwindow.'
-    AssertNeomakeMessage 'action queue: processed 1 items.'
+    AssertNeomakeMessage 'action queue: processed 2 items.'
 
     wincmd p
     AssertEqual 1, winnr()
@@ -428,6 +438,7 @@ Execute (location list gets created with entries from first job, closed only aft
   call neomake#Make(1, [maker1, maker2])
   if neomake#has_async_support()
     NeomakeTestsWaitForNextFinishedJob
+    AssertEqual wincount + 1, winnr('$'), 'Location list was not closed'
     AssertEqual map(getloclist(0), '[v:val.text, v:val.type, v:val.valid]'), [['error', 'E', 1]]
     call writefile([], flagfile)
     NeomakeTestsWaitForFinishedJobs

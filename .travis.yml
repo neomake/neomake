@@ -1,7 +1,7 @@
 dist: trusty
 sudo: false
 
-language: none
+language: generic
 branches:
   only:
     - master
@@ -19,10 +19,11 @@ matrix:
     - env: ENV=travis_lint
       language: python
     - env: ENV=testnvim
-    - env: ENV=testvim
+    - env: ENV=testvim-7.4.52
 
 install:
   - |
+    set -e
     if [ "$ENV" = "travis_test" ]; then
       echo "Looking for changed files in $TRAVIS_COMMIT_RANGE."
       if ! git diff --exit-code --quiet "$TRAVIS_COMMIT_RANGE" doc/neomake.txt; then
@@ -35,15 +36,17 @@ install:
       # Install vim-vimhelplint for one build.
       make build/vimhelplint
     fi
+    umask 022
 
 script:
   - |
-    if [[ "$ENV" = "testvim" ]]; then
+    set -e
+    if [[ "$ENV" = "testvim-7.4.52" ]]; then
       vim --version
       if ! vim --version 2>&1 | grep -F 'VIM - Vi IMproved 7.4' -A1 | grep -q '^Included patches: 1-52'; then
         echo 'Unexpected Vim version (expected 7.4.52)' >&2
         exit 1
       fi
+      ENV=testvim
     fi
-    umask 022
-  - make $ENV $MAKE_ARGS
+  - make $ENV $MAKE_ARGS || exit 1

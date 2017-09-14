@@ -8,6 +8,7 @@ Execute (neomake#CompleteMakers: completes makers for b:):
     \ 'errorformat': '%f:%l:%c: %m',
     \ }
   set filetype=c
+  call g:NeomakeTestsCreateExe('lint', [])
   Assert index(neomake#CompleteMakers('', 'Neomake '), 'lint') != -1, 'lint maker gets completed'
   bwipe
 
@@ -20,12 +21,64 @@ Execute (neomake#CompleteMakers: completes makers for g:):
     \ 'errorformat': '%f:%l:%c: %m',
     \ }
   set filetype=c
+  call g:NeomakeTestsCreateExe('lint', [])
   Assert index(neomake#CompleteMakers('', 'Neomake '), 'lint') != -1, 'lint maker gets completed'
   bwipe
 
 Execute (neomake#CompleteMakers: completes space after Neomake!):
   AssertEqual neomake#CompleteMakers('', 'Neomake!'), [' ']
 
-Execute (neomake#CompleteMakers: completes project makers):
-  AssertEqual sort(neomake#CompleteMakers('', 'Neomake! ')),
-  \ ['cabal', 'clippy', 'gradle', 'mvn']
+Execute (neomake#CompleteMakers: completes all (executable) makers, preferring filetype):
+  call g:NeomakeTestsSetPATH('')
+  new
+  noautocmd set ft=rust
+
+  for m in ['cargo', 'rustc', 'cabal', 'clippy', 'gradle']
+    call g:NeomakeTestsCreateExe(m, [])
+  endfor
+
+  " Neomake! completes ft makers (first), and project makers.
+  AssertEqual neomake#CompleteMakers('', 'Neomake! '), [
+  \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle']
+
+  call g:NeomakeTestsCreateExe('mvn', [])
+  AssertEqual neomake#CompleteMakers('', 'Neomake! '), [
+  \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle', 'mvn']
+
+  " Neomake completes ft makers.
+  AssertEqual neomake#CompleteMakers('', 'Neomake '), [
+  \ 'cargo', 'rustc']
+
+  " Neomake completes ft makers with project makers when called again.
+  AssertEqual neomake#CompleteMakers('', 'Neomake '), [
+  \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle', 'mvn']
+
+  " Neomake with ArgLead completes ft makers.
+  AssertEqual neomake#CompleteMakers('c', 'Neomake c'), [
+  \ 'cargo']
+
+  " Neomake with ArgLead completes ft makers with project makers when called again.
+  AssertEqual neomake#CompleteMakers('c', 'Neomake c'), [
+  \ 'cargo', 'cabal', 'clippy']
+
+  " Neomake completes global makers when no filetype makers match.
+  AssertEqual neomake#CompleteMakers('g', 'Neomake g'), [
+  \ 'gradle']
+
+  " Neomake with ArgLead completes ft makers only again afterwards.
+  AssertEqual neomake#CompleteMakers('c', 'Neomake c'), [
+  \ 'cargo']
+
+  bwipe
+
+Execute (neomake#CompleteJobs):
+  if NeomakeAsyncTestsSetup()
+    AssertEqual neomake#CompleteJobs(), ''
+    let job_ids = [neomake#Sh('sleep 0.1')]
+    AssertEqual neomake#CompleteJobs(), job_ids[0].': sh: sleep 0.1'
+    let job_ids += [neomake#Sh('sleep 0.11')]
+    AssertEqual neomake#CompleteJobs(), printf(
+      \ "%d: sh: sleep 0.1\n%d: sh: sleep 0.11", job_ids[0], job_ids[1])
+    NeomakeCancelJobs
+    NeomakeTestsWaitForFinishedJobs
+  endif
