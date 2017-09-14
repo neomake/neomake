@@ -15,6 +15,7 @@ Execute (Displays custom formatted quickfix buffer):
       \ }])
 
   lopen
+  let loclist_bufnr = bufnr('%')
   AssertEqual b:current_syntax, 'neomake_qf'
 
 
@@ -27,6 +28,8 @@ Execute (Displays custom formatted quickfix buffer):
   AssertEqual expand('<cWORD>'), 'Line'
   AssertEqual getpos('.')[1:2], [1, 10]
 
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+  AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
   wincmd p
 
   " Test changing the location list while it's open
@@ -52,6 +55,14 @@ Execute (Displays custom formatted quickfix buffer):
       \   'bufnr': 1,
       \   'text': 'Line 4',
       \ }])
+  " From resetting."
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer='.loclist_bufnr.'.'
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5001 buffer='.loclist_bufnr.'.'
+
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+  AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+  AssertNeomakeMessage 'Placing sign: sign place 5002 line=3 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+  AssertNeomakeMessage 'Placing sign: sign place 5003 line=4 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
 
   wincmd p
 
