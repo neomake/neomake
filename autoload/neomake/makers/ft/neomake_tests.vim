@@ -22,6 +22,13 @@ function! neomake#makers#ft#neomake_tests#echo_maker() abort
         \ }
 endfunction
 
+function! neomake#makers#ft#neomake_tests#echo_args() abort
+    return {
+        \ 'exe': 'echo',
+        \ 'errorformat': '%m',
+        \ }
+endfunction
+
 function! neomake#makers#ft#neomake_tests#true() abort
     return {}
 endfunction
