@@ -124,6 +124,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
 
         let place_new = []
         let kept_signs = []
+        let log_context = {'bufnr': bufnr}
         for [lnum, entry_info] in items(entries_by_linenr)
             let [entry, sign_type] = entry_info
 
@@ -136,7 +137,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
                 let sign_id = existing_sign[0]
                 call neomake#utils#DebugMessage(printf(
                             \ 'Reusing sign: id=%d, type=%s, lnum=%d.',
-                            \ sign_id, existing_sign[1], lnum))
+                            \ sign_id, existing_sign[1], lnum), log_context)
 
                 " Keep this sign from being cleaned.
                 if exists('s:last_placed_signs[a:type][bufnr][sign_id]')
@@ -144,7 +145,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
                 endif
             else
                 let cmd = 'sign place '.existing_sign[0].' name='.sign_type.' buffer='.bufnr
-                call neomake#utils#DebugMessage('Upgrading sign for lnum='.lnum.': '.cmd.'.')
+                call neomake#utils#DebugMessage('Upgrading sign for lnum='.lnum.': '.cmd.'.', log_context)
                 exe cmd
             endif
             call add(kept_signs, existing_sign[0])
@@ -163,7 +164,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
             let cmd = 'sign place '.next_sign_id.' line='.lnum.
                         \ ' name='.sign_type.
                         \ ' buffer='.bufnr
-            call neomake#utils#DebugMessage('Placing sign: '.cmd.'.')
+            call neomake#utils#DebugMessage('Placing sign: '.cmd.'.', log_context)
             let placed_signs[lnum] = [next_sign_id, sign_type]
             exe cmd
         endfor
