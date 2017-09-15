@@ -64,21 +64,23 @@ function! neomake#signs#by_lnum(bufnr) abort
     endif
     let signs_output = split(neomake#utils#redir('sign place buffer='.a:bufnr), '\n')
 
-    " Via ALE.
+    " Originally via ALE.
     " Matches output like :
     " line=4  id=1  name=neomake_err
     " строка=1  id=1000001  имя=neomake_err
     " 行=1  識別子=1000001  名前=neomake_err
     " línea=12 id=1000001 nombre=neomake_err
     " riga=1 id=1000001, nome=neomake_err
-    let pattern = '^.*=\(\d\+\)\s\+.*=\(\d\+\)\,\?\s\+.*=\(neomake_\w\+\)'
-
     let d = {}
-    for line in signs_output
-        let m = matchlist(line, pattern)
-        if !empty(m) && !has_key(d, m[1])
-            " let l[m[2]] = l[m[1]] + 0
-            let d[m[1]] = [m[2] + 0, m[3]]
+    for line in reverse(signs_output[2:])
+        let sign_type = line[strridx(line, '=')+1:]
+        if sign_type[0:7] ==# 'neomake_'
+            let lnum_idx = stridx(line, '=')
+            let lnum = line[lnum_idx+1:] + 0
+            if lnum
+                let sign_id = line[stridx(line, '=', lnum_idx+1)+1:] + 0
+                let d[lnum] = [sign_id, sign_type]
+            endif
         endif
     endfor
     return d
