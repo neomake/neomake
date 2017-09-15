@@ -1,5 +1,5 @@
 " Main entry point to run all Vader tests.
-" You can run the included files by itself (since they also include
+" You can run the included files by themselves (since they also source
 " include/setup.vader).
 
 ~ Features
