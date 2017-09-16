@@ -322,7 +322,6 @@ function! s:configure_buffer(bufnr, ...) abort
     let s:configured_buffers[bufnr] = {'custom': a:0 > 0}
 
     " Set enabled_makers.
-    let options = a:0 > 2 ? a:3 : {}
     if has_key(config, 'enabled_makers')  " TODO: only "makers"?!
         let enabled_makers = config.enabled_makers
         let source = 'options'
