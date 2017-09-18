@@ -2,84 +2,80 @@ Include: include/setup.vader
 
 Execute (Displays custom formatted quickfix buffer):
   call neomake#quickfix#enable()
-  try
-    call setloclist(0, [{
-        \   'lnum': 1,
-        \   'bufnr': 1,
-        \   'text': 'Line 1 nmcfg:{"name": "Alpha", "short": "Alph"}',
-        \ },
-        \ {
-        \   'lnum': 2,
-        \   'col': 5,
-        \   'bufnr': 1,
-        \   'text': 'Line 2',
-        \ }])
+  call setloclist(0, [{
+      \   'lnum': 1,
+      \   'bufnr': 1,
+      \   'text': 'Line 1 nmcfg:{"name": "Alpha", "short": "Alph"}',
+      \ },
+      \ {
+      \   'lnum': 2,
+      \   'col': 5,
+      \   'bufnr': 1,
+      \   'text': 'Line 2',
+      \ }])
 
-    lopen
-    let loclist_bufnr = bufnr('%')
-    AssertEqual b:current_syntax, 'neomake_qf'
+  lopen
+  let loclist_bufnr = bufnr('%')
+  AssertEqual b:current_syntax, 'neomake_qf'
 
 
-    AssertEqual getline(1, '$'),
-      \ ['Alph 1:- Line 1 ', 'Alph 2:5 Line 2']
+  AssertEqual getline(1, '$'),
+    \ ['Alph 1:- Line 1 ', 'Alph 2:5 Line 2']
 
-    normal! 0
-    " :normal! ignores autocmd's here?
-    doautocmd CursorMoved
-    AssertEqual expand('<cWORD>'), 'Line'
-    AssertEqual getpos('.')[1:2], [1, 10]
+  normal! 0
+  " :normal! ignores autocmd's here?
+  doautocmd CursorMoved
+  AssertEqual expand('<cWORD>'), 'Line'
+  AssertEqual getpos('.')[1:2], [1, 10]
 
-    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
-    AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
-    wincmd p
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+  AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+  wincmd p
 
-    " Test changing the location list while it's open
-    call setloclist(0, [{
-        \   'lnum': 1,
-        \   'bufnr': 1,
-        \   'text': 'Line 1 nmcfg:{"name": "Beta", "short": "Beta"}',
-        \ },
-        \ {
-        \   'lnum': 2,
-        \   'col': 5,
-        \   'bufnr': 1,
-        \   'text': 'Line 2',
-        \ },
-        \ {
-        \   'lnum': 3,
-        \   'bufnr': 1,
-        \   'text': 'Line 3 nmcfg:{"name": "Gamma", "short": "Gamm"}',
-        \ },
-        \ {
-        \   'lnum': 4,
-        \   'col': 5,
-        \   'bufnr': 1,
-        \   'text': 'Line 4',
-        \ }])
-    " From resetting."
-    AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer='.loclist_bufnr.'.'
-    AssertNeomakeMessage 'Unplacing sign: sign unplace 5001 buffer='.loclist_bufnr.'.'
+  " Test changing the location list while it's open
+  call setloclist(0, [{
+      \   'lnum': 1,
+      \   'bufnr': 1,
+      \   'text': 'Line 1 nmcfg:{"name": "Beta", "short": "Beta"}',
+      \ },
+      \ {
+      \   'lnum': 2,
+      \   'col': 5,
+      \   'bufnr': 1,
+      \   'text': 'Line 2',
+      \ },
+      \ {
+      \   'lnum': 3,
+      \   'bufnr': 1,
+      \   'text': 'Line 3 nmcfg:{"name": "Gamma", "short": "Gamm"}',
+      \ },
+      \ {
+      \   'lnum': 4,
+      \   'col': 5,
+      \   'bufnr': 1,
+      \   'text': 'Line 4',
+      \ }])
+  " From resetting."
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer='.loclist_bufnr.'.'
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5001 buffer='.loclist_bufnr.'.'
 
-    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
-    AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
-    AssertNeomakeMessage 'Placing sign: sign place 5002 line=3 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
-    AssertNeomakeMessage 'Placing sign: sign place 5003 line=4 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+  AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+  AssertNeomakeMessage 'Placing sign: sign place 5002 line=3 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+  AssertNeomakeMessage 'Placing sign: sign place 5003 line=4 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
 
-    wincmd p
+  wincmd p
 
-    AssertEqual getline(1, '$'),
-      \ ['Beta 1:- Line 1 ', 'Beta 2:5 Line 2',
-      \  'Gamm 3:- Line 3 ', 'Gamm 4:5 Line 4']
+  AssertEqual getline(1, '$'),
+    \ ['Beta 1:- Line 1 ', 'Beta 2:5 Line 2',
+    \  'Gamm 3:- Line 3 ', 'Gamm 4:5 Line 4']
 
-    normal! G0
-    doautocmd CursorMoved
-    AssertEqual expand('<cWORD>'), 'Line'
-    AssertEqual getpos('.')[1:2], [4, 10]
+  normal! G0
+  doautocmd CursorMoved
+  AssertEqual expand('<cWORD>'), 'Line'
+  AssertEqual getpos('.')[1:2], [4, 10]
 
-    close
-  finally
-    call neomake#quickfix#disable()
-  endtry
+  close
 
 Execute (Sets quickfix title (location list)):
   new
@@ -218,16 +214,13 @@ Execute (Disable custom formatted quickfix buffer):
 
 Execute (neomake#quickfix#FormatQuickfix handles entries with config in text):
   call neomake#quickfix#enable()
-  try
-    new
-    call setloclist(0, [{
-        \   'text': 'Text with marker nmcfg:{"name": "a", "short": "a"} nmcfg:{"name": "b", "short": "b"}',
-        \}])
-    lopen
-    call neomake#quickfix#FormatQuickfix()
-    AssertEqual getline(1), 'b   Text with marker nmcfg:{"name": "a", "short": "a"} '
-    lclose
-    bwipe
-  finally
-    call neomake#quickfix#disable()
-  endtry
+  new
+  call setloclist(0, [{
+      \   'text': 'Text with marker nmcfg:{"name": "a", "short": "a"} nmcfg:{"name": "b", "short": "b"}',
+      \}])
+  lopen
+  call neomake#quickfix#FormatQuickfix()
+  AssertEqual getline(1), 'b   Text with marker nmcfg:{"name": "a", "short": "a"} '
+  lclose
+  bwipe
+  call neomake#quickfix#disable()
