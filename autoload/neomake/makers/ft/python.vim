@@ -77,7 +77,8 @@ function! neomake#makers#ft#python#flake8() abort
             \ '%A%f:%l:%c: %t%n %m,' .
             \ '%A%f:%l: %t%n %m,' .
             \ '%-G%.%#',
-        \ 'postprocess': function('neomake#makers#ft#python#Flake8EntryProcess')
+        \ 'postprocess': function('neomake#makers#ft#python#Flake8EntryProcess'),
+        \ 'short_name': 'fl8',
         \ }
 endfunction
 
