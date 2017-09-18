@@ -212,14 +212,18 @@ Execute (Disable custom formatted quickfix buffer):
 
   close
 
-Execute (eomake#quickfix#FormatQuickfix handles entries with config in text):
+Execute (neomake#quickfix#FormatQuickfix handles entries with config in text):
   call neomake#quickfix#enable()
-  new
-  call setloclist(0, [{
-      \   'text': 'Text with marker nmcfg:{"name": "a", "short": "a"} nmcfg:{"name": "b", "short": "b"}',
-      \}])
-  lopen
-  call neomake#quickfix#FormatQuickfix()
-  AssertEqual getline(1), 'b   Text with marker nmcfg:{"name": "a", "short": "a"} '
-  lclose
-  bwipe
+  try
+    new
+    call setloclist(0, [{
+        \   'text': 'Text with marker nmcfg:{"name": "a", "short": "a"} nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    lopen
+    call neomake#quickfix#FormatQuickfix()
+    AssertEqual getline(1), 'b   Text with marker nmcfg:{"name": "a", "short": "a"} '
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
