@@ -56,8 +56,8 @@ function! neomake#makers#ft#sh#sh() abort
         let exe = l[0]
         let args = l[1:] + ['-n']
     else
-        let exe = '/bin/sh'
-        let args = ['-n']
+        let exe = '/usr/bin/env'
+        let args = ['sh', '-n']
     endif
 
     " NOTE: the format without "line" is used by dash.
