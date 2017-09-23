@@ -117,11 +117,18 @@ $(_TESTS_REL_AND_ABS):
 	make $(FILE_TEST_TARGET) VADER_ARGS='$@'
 .PHONY: $(_TESTS_REL_AND_ABS)
 
-testcoverage: VADER_ARGS:=tests/main.vader $(wildcard tests/isolated/*vader)
+testcoverage: VADER_ARGS:=tests/main.vader $(wildcard tests/isolated/*.vader)
 testcoverage:
 	@ret=0; \
 	cov_dir=$(NEOMAKE_TEST_PROFILE_DIR); \
-	if [ -z "$$cov_dir" ]; then cov_dir=$$(mktemp -d); fi; \
+	if [ -z "$$cov_dir" ]; then \
+	  cov_dir=build/coverage; \
+	  if [ -d "$$cov_dir" ]; then \
+	    $(RM) -r $$cov_dir; \
+	  else \
+	    mkdir -p $$cov_dir; \
+	  fi; \
+	fi; \
 	echo "Generating profile output in $$cov_dir"; \
 	for testfile in $(VADER_ARGS); do \
 	  make test VADER_ARGS=$$testfile \
@@ -316,6 +323,13 @@ check:
 	echo '== Running custom checks'; \
 	contrib/vim-checks $(LINT_ARGS) || (( ret+= 16 )); \
 	exit $$ret
+
+build/coverage: $(shell find . -name '*.vim')
+	$(MAKE) testcoverage
+.coverage: build/coverage
+	covimerage write_coverage $?/*.profile
+coverage: .coverage
+	coverage report -m --skip-covered
 
 .PHONY: vint vint-errors vimlint vimlint-errors
 .PHONY: test testnvim testvim testnvim_interactive testvim_interactive
