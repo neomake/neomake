@@ -1,3 +1,5 @@
+" Config API.
+
 let g:neomake#config#undefined = {}
 lockvar! g:neomake#config#undefined
 
