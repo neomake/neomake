@@ -222,21 +222,6 @@ function! neomake#utils#Exists(exe) abort
     return executable(a:exe)
 endfunction
 
-function! neomake#utils#Random() abort
-    call neomake#utils#DebugMessage('Calling neomake#utils#Random')
-    if neomake#utils#IsRunningWindows()
-        let cmd = 'Echo %RANDOM%'
-    else
-        let cmd = 'echo $RANDOM'
-    endif
-    let answer = 0 + system(cmd)
-    if v:shell_error
-        " If complaints come up about this, consider using python
-        throw "Can't generate random number for this platform"
-    endif
-    return answer
-endfunction
-
 let s:command_maker = {
             \ 'remove_invalid_entries': 0,
             \ }
