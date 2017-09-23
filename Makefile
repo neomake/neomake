@@ -17,7 +17,7 @@ test_interactive: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim_interactive,testvi
 
 VADER:=Vader!
 VADER_OPTIONS:=-q
-VADER_ARGS=tests/neomake.vader
+VADER_ARGS=tests/main.vader tests/isolated.vader
 VIM_ARGS='+$(VADER) $(VADER_OPTIONS) $(VADER_ARGS)'
 
 DEFAULT_VADER_DIR:=tests/vim/plugins/vader
@@ -80,7 +80,9 @@ _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
 
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) $(TEST_VIM) --version | head -n2))
-	$(TEST_VIM_PREFIX) $(TEST_VIM) $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X) --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
+	$(TEST_VIM_PREFIX) $(TEST_VIM) \
+	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X) \
+	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 endef
 
 # Interactive tests, keep Vader open.
@@ -248,9 +250,14 @@ travis_lint:
 check:
 	@:; ret=0; \
 	echo '== Checking that all tests are included'; \
-	for f in $(filter-out neomake.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
-	  if ! grep -q "^Include.*: $$f" tests/neomake.vader; then \
-	    echo "Test not included: $$f" >&2; ret=1; \
+	for f in $(filter-out main.vader isolated.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
+	  if ! grep -q "^Include.*: $$f" tests/main.vader; then \
+	    echo "Test not included in main.vader: $$f" >&2; ret=1; \
+	  fi; \
+	done; \
+	for f in $(filter-out main.vader,$(notdir $(shell git ls-files tests/isolated/*.vader))); do \
+	  if ! grep -q "^Include.*: isolated/$$f" tests/isolated.vader; then \
+	    echo "Test not included in isolated.vader: $$f" >&2; ret=1; \
 	  fi; \
 	done; \
 	echo '== Checking for absent Before sections in tests'; \
