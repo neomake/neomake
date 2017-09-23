@@ -309,18 +309,6 @@ function! NeomakeTestsFakeJobinfo() abort
   return jobinfo
 endfunction
 
-function! s:monkeypatch_highlights() abort
-  " Monkeypatch to check setting of length.
-  runtime autoload/neomake/highlights.vim
-  Save g:neomake_tests_highlight_lengths
-  let g:neomake_tests_highlight_lengths = []
-  function! neomake#highlights#AddHighlight(entry, ...) abort
-    call add(g:neomake_tests_highlight_lengths,
-    \ [get(a:entry, 'lnum', -1), get(a:entry, 'length', -1)])
-  endfunction
-endfunction
-command! NeomakeTestsMonkeypatchHighlights call s:monkeypatch_highlights()
-
 " Fixtures
 let g:sleep_efm_maker = {
     \ 'name': 'sleep_efm_maker',
@@ -396,11 +384,6 @@ function! NeomakeTestsGetVimMessages()
 endfunction
 
 function! s:After()
-  if exists('g:neomake_tests_highlight_lengths')
-    " Undo monkeypatch.
-    runtime autoload/neomake/highlights.vim
-  endif
-
   if exists('#neomake_automake')
     au! neomake_automake
     au! neomake_automake_update
