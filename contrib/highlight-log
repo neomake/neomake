@@ -43,8 +43,10 @@ if [ "$1" = vader ]; then
     re_non_log_line='^      > \[(debug  |verbose|warning|error  )|((D|V|W|E) +\+[.0-9]+)\]'
     filtering=0
     while read -r; do
-      if [[ "$REPLY" == 'Vader error:'* ]]; then
-        echo "$REPLY"
+      if [[ "$REPLY" == 'Vader error:'* ]] || [[ "$REPLY" == 'Error'* ]]; then
+        printf "\r" >&2
+        printf "[31m[1m%s[0m\n" "$REPLY"
+        quiet_started=1
         continue
       fi
       # quiet/compact: suppress output until "Starting Vader:".
