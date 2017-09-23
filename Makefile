@@ -193,7 +193,7 @@ $(_DOCKER_VIM_TARGETS):
 _docker_test: DOCKER_VIM:=vim-master
 _docker_test: DOCKER_MAKE_TARGET=$(DOCKER_MAKE_TEST_TARGET) \
   TEST_VIM='/vim-build/bin/$(DOCKER_VIM)' \
-  VADER_OPTIONS="$(VADER_OPTIONS)" VADER_ARGS="$(VADER_ARGS)"
+  VADER_OPTIONS="$(VADER_OPTIONS)"
 _docker_test: docker_make
 docker_test: DOCKER_MAKE_TEST_TARGET:=test
 docker_test: DOCKER_STREAMS:=-t
