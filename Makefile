@@ -117,6 +117,16 @@ $(_TESTS_REL_AND_ABS):
 	make $(FILE_TEST_TARGET) VADER_ARGS='$@'
 .PHONY: $(_TESTS_REL_AND_ABS)
 
+testcoverage:
+	@set -x; ret=0; \
+	cov_dir=$(NEOMAKE_TEST_PROFILE_DIR); \
+	if [ -z "$$cov_dir" ]; then cov_dir=$$(mktemp -d); fi; \
+	for testfile in tests/main.vader $(wildcard tests/isolated/*vader); do \
+	  make test VADER_ARGS=$$testfile \
+	    NEOMAKE_COVERAGE_FILE=$$cov_dir/$$(basename $$testfile).profile || (( ++ret )); \
+	done; \
+	exit $$ret
+
 tags:
 	ctags -R --langmap=vim:+.vader
 .PHONY: tags
@@ -211,7 +221,20 @@ travis_test:
 	  travis_run_make() { \
 	    echo "travis_fold:start:script.$$1"; \
 	    echo "== Running \"make $$2\" =="; \
-	    make $$2 || return; \
+	    set -x; \
+	    if [[ "$$1" != check ]]; then \
+	      prof_name=$$1; \
+	      if [[ "$${prof_name#neovim}" != "$$prof_name" ]]; then \
+	        prof_name="nvim-nvim$${prof_name#neovim-v}"; \
+	        prof_name="$${prof_name//./}"; \
+	      else \
+	        prof_name="vim-$${prof_name//-/_}"; \
+	      fi; \
+	      prof_dir=profile-output.docker-$$prof_name; \
+	      mkdir $$prof_dir; \
+	    fi; \
+	    make $$2 DOCKER_MAKE_TEST_TARGET="testcoverage NEOMAKE_TEST_PROFILE_DIR=$$prof_dir" || return; \
+	    set +x; \
 	    echo "travis_fold:end:script.$$1"; \
 	  }; \
 	  travis_run_make neovim-v0.2.0 "docker_test DOCKER_VIM=neovim-v0.2.0" || (( ret+=1  )); \

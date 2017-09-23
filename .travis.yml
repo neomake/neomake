@@ -18,8 +18,8 @@ matrix:
         - docker
     - env: ENV=travis_lint
       language: python
-    - env: ENV=testnvim
-    - env: ENV=testvim-7.4.52
+    - env: ENV=testcoverage TEST_VIM=nvim NEOMAKE_TEST_PROFILE_DIR=profile-output.nvim-nvimmaster
+    - env: ENV=testvim-7.4.52 NEOMAKE_TEST_PROFILE_DIR=profile-output.vim-vim7452
 
 install:
   - |
@@ -30,23 +30,60 @@ install:
         MAKE_ARGS="$MAKE_ARGS docker_vimhelplint"
         echo 'doc/neomake.txt changed, running docker_vimhelplint'
       fi
-    elif [ "$ENV" = "testnvim" ]; then
+    fi
+    if [ "$TEST_VIM" = "nvim" ]; then
       eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
 
-      # Install vim-vimhelplint for one build.
-      make build/vimhelplint
+      if [ "$ENV" = testcoverage ]; then
+        # Install vim-vimhelplint for one build.
+        make build/vimhelplint
+      fi
     fi
-    umask 022
-
-script:
-  - |
-    set -e
     if [[ "$ENV" = "testvim-7.4.52" ]]; then
       vim --version
       if ! vim --version 2>&1 | grep -F 'VIM - Vi IMproved 7.4' -A1 | grep -q '^Included patches: 1-52'; then
         echo 'Unexpected Vim version (expected 7.4.52)' >&2
         exit 1
       fi
-      ENV=testvim
+      ENV=testcoverage
+      MAKE_ARGS="$MAKE_ARGS TEST_VIM=vim"
+      CODECOV_FLAGS="$CODECOV_FLAGS vim vim7452"
     fi
+    if [[ "$ENV" != travis_lint ]]; then
+      python -m virtualenv venv
+      source venv/bin/activate
+      pip install codecov https://github.com/Vimjas/covimerage/archive/develop.zip
+      CODECOV_FLAGS="$CODECOV_FLAGS $TEST_VIM"
+
+      if [[ -n "$NEOMAKE_TEST_PROFILE_DIR" ]]; then
+        mkdir "$NEOMAKE_TEST_PROFILE_DIR"
+      fi
+    fi
+    umask 022
+
+script:
   - make $ENV $MAKE_ARGS || exit 1
+
+after_success:
+  - |
+    shopt -s nullglob
+    set -x
+    src_dir="$PWD"
+    for d in profile-output.*; do
+      prof_name=${d#profile-output.}
+      prof_flags=${prof_name//-/ }
+      prof_flags=${prof_flags//./}
+
+      (cd "$d"
+        has_profiles="$(find . -maxdepth 1 -name '*.profile' -print -quit)"
+        if [[ -z "$has_profiles" ]]; then
+          echo "warning: no profiles found in $d."
+          exit 0
+        fi
+        sed -i "s:^SCRIPT  /testplugin/:SCRIPT  $src_dir/:" *.profile
+        covimerage write_coverage *.profile
+        coverage xml --rcfile=../.coveragerc
+        codecov -X search gcov pycov -f coverage.xml --required \
+          --name "$prof_name" --flags $CODECOV_FLAGS $prof_flags)
+    done
+    set +x
