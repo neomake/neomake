@@ -1,3 +1,5 @@
+" Debug/feedback helpers.
+
 function! neomake#debug#validate_maker(maker) abort
     let issues = {'errors': [], 'warnings': []}
 
