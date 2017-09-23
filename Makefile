@@ -17,7 +17,7 @@ test_interactive: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim_interactive,testvi
 
 VADER:=Vader!
 VADER_OPTIONS:=-q
-VADER_ARGS=tests/neomake.vader
+VADER_ARGS=tests/main.vader tests/isolated.vader
 VIM_ARGS='+$(VADER) $(VADER_OPTIONS) $(VADER_ARGS)'
 
 DEFAULT_VADER_DIR:=tests/vim/plugins/vader
@@ -80,7 +80,9 @@ _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
 
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) $(TEST_VIM) --version | head -n2))
-	$(TEST_VIM_PREFIX) $(TEST_VIM) $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X) --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
+	$(TEST_VIM_PREFIX) $(TEST_VIM) \
+	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X) \
+	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 endef
 
 # Interactive tests, keep Vader open.
@@ -114,6 +116,18 @@ FILE_TEST_TARGET=test$(DEFAULT_VIM)
 $(_TESTS_REL_AND_ABS):
 	make $(FILE_TEST_TARGET) VADER_ARGS='$@'
 .PHONY: $(_TESTS_REL_AND_ABS)
+
+testcoverage: VADER_ARGS:=tests/main.vader $(wildcard tests/isolated/*vader)
+testcoverage:
+	@ret=0; \
+	cov_dir=$(NEOMAKE_TEST_PROFILE_DIR); \
+	if [ -z "$$cov_dir" ]; then cov_dir=$$(mktemp -d); fi; \
+	echo "Generating profile output in $$cov_dir"; \
+	for testfile in $(VADER_ARGS); do \
+	  make test VADER_ARGS=$$testfile \
+	    NEOMAKE_COVERAGE_FILE=$$cov_dir/$$(basename $$testfile).profile || (( ++ret )); \
+	done; \
+	exit $$ret
 
 tags:
 	ctags -R --langmap=vim:+.vader
@@ -154,7 +168,7 @@ vimhelplint: | build/vimhelplint
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=6
+DOCKER_TAG:=7
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
@@ -179,7 +193,7 @@ $(_DOCKER_VIM_TARGETS):
 _docker_test: DOCKER_VIM:=vim-master
 _docker_test: DOCKER_MAKE_TARGET=$(DOCKER_MAKE_TEST_TARGET) \
   TEST_VIM='/vim-build/bin/$(DOCKER_VIM)' \
-  VADER_OPTIONS="$(VADER_OPTIONS)" VADER_ARGS="$(VADER_ARGS)"
+  VADER_OPTIONS="$(VADER_OPTIONS)"
 _docker_test: docker_make
 docker_test: DOCKER_MAKE_TEST_TARGET:=test
 docker_test: DOCKER_STREAMS:=-t
@@ -209,7 +223,20 @@ travis_test:
 	  travis_run_make() { \
 	    echo "travis_fold:start:script.$$1"; \
 	    echo "== Running \"make $$2\" =="; \
-	    make $$2 || return; \
+	    set -x; \
+	    if [[ "$$1" != check ]]; then \
+	      prof_name=$$1; \
+	      if [[ "$${prof_name#neovim}" != "$$prof_name" ]]; then \
+	        prof_name="nvim-nvim$${prof_name#neovim-v}"; \
+	        prof_name="$${prof_name//./}"; \
+	      else \
+	        prof_name="vim-$${prof_name//-/_}"; \
+	      fi; \
+	      prof_dir=profile-output.docker-$$prof_name; \
+	      mkdir $$prof_dir; \
+	    fi; \
+	    make $$2 DOCKER_MAKE_TEST_TARGET="testcoverage NEOMAKE_TEST_PROFILE_DIR=$$prof_dir" || return; \
+	    set +x; \
 	    echo "travis_fold:end:script.$$1"; \
 	  }; \
 	  travis_run_make neovim-v0.2.0 "docker_test DOCKER_VIM=neovim-v0.2.0" || (( ret+=1  )); \
@@ -248,9 +275,14 @@ travis_lint:
 check:
 	@:; ret=0; \
 	echo '== Checking that all tests are included'; \
-	for f in $(filter-out neomake.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
-	  if ! grep -q "^Include.*: $$f" tests/neomake.vader; then \
-	    echo "Test not included: $$f" >&2; ret=1; \
+	for f in $(filter-out main.vader isolated.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
+	  if ! grep -q "^Include.*: $$f" tests/main.vader; then \
+	    echo "Test not included in main.vader: $$f" >&2; ret=1; \
+	  fi; \
+	done; \
+	for f in $(filter-out main.vader,$(notdir $(shell git ls-files tests/isolated/*.vader))); do \
+	  if ! grep -q "^Include.*: isolated/$$f" tests/isolated.vader; then \
+	    echo "Test not included in isolated.vader: $$f" >&2; ret=1; \
 	  fi; \
 	done; \
 	echo '== Checking for absent Before sections in tests'; \

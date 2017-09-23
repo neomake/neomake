@@ -309,18 +309,6 @@ function! NeomakeTestsFakeJobinfo() abort
   return jobinfo
 endfunction
 
-function! s:monkeypatch_highlights() abort
-  " Monkeypatch to check setting of length.
-  runtime autoload/neomake/highlights.vim
-  Save g:neomake_tests_highlight_lengths
-  let g:neomake_tests_highlight_lengths = []
-  function! neomake#highlights#AddHighlight(entry, ...) abort
-    call add(g:neomake_tests_highlight_lengths,
-    \ [get(a:entry, 'lnum', -1), get(a:entry, 'length', -1)])
-  endfunction
-endfunction
-command! NeomakeTestsMonkeypatchHighlights call s:monkeypatch_highlights()
-
 " Fixtures
 let g:sleep_efm_maker = {
     \ 'name': 'sleep_efm_maker',
@@ -341,13 +329,13 @@ endfunction
 let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
 let g:true_maker = NeomakeTestsCommandMaker('true-maker', 'true')
 let g:entry_maker = {}
-function! g:entry_maker.get_list_entries(jobinfo) abort
+function! g:entry_maker.get_list_entries(...) abort
   return get(g:, 'neomake_test_getlistentries', [
   \   {'text': 'error', 'lnum': 1, 'type': 'E'}])
 endfunction
 let g:doesnotexist_maker = {'exe': 'doesnotexist'}
 let g:sleep_entry_maker = {}
-function! g:sleep_entry_maker.get_list_entries(jobinfo) abort
+function! g:sleep_entry_maker.get_list_entries(...) abort
   sleep 10m
   return get(g:, 'neomake_test_getlistentries', [
   \   {'text': 'slept', 'lnum': 1}])
@@ -396,11 +384,6 @@ function! NeomakeTestsGetVimMessages()
 endfunction
 
 function! s:After()
-  if exists('g:neomake_tests_highlight_lengths')
-    " Undo monkeypatch.
-    runtime autoload/neomake/highlights.vim
-  endif
-
   if exists('#neomake_automake')
     au! neomake_automake
     au! neomake_automake_update
@@ -511,9 +494,7 @@ function! s:After()
   endif
 
   if !empty(errors)
-    " Reload to reset e.g. s:action_queue.
-    runtime autoload/neomake.vim
-    throw len(errors).' error(s) in teardown: '.join(errors, "\n")
+    throw len(errors).' error(s) in teardown (expect anomalies in following tests!): '.join(errors, "\n")
   endif
 endfunction
 command! NeomakeTestsGlobalAfter call s:After()

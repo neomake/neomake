@@ -5,7 +5,7 @@ Before:
   if exists(':NeomakeTestsWaitForFinishedJobs') != 2
     let g:neomake_test_buffers_before = filter(range(1, bufnr('$')), 'bufexists(v:val)')
 
-    exe 'source' fnamemodify(g:vader_file, ':p:h').'/include/init.vim'
+    exe 'source' finddir('include', fnamemodify(g:vader_file, ':p:h').';').'/init.vim'
 
     " Work around https://github.com/vim/vim/issues/1676.
     if has('patch-7.4.2017') && (!has('patch-8.0.0607') && !has('nvim-0.2.1'))
