@@ -6,12 +6,7 @@ if !exists('s:compile_script')
 endif
 
 function! neomake#makers#ft#python#EnabledMakers() abort
-    if exists('s:python_makers')
-        return s:python_makers
-    endif
-
     let makers = ['python', 'frosted']
-
     if executable('pylama')
         call add(makers, 'pylama')
     else
@@ -20,11 +15,8 @@ function! neomake#makers#ft#python#EnabledMakers() abort
         else
             call extend(makers, ['pyflakes', 'pycodestyle', 'pydocstyle'])
         endif
-
         call add(makers, 'pylint')  " Last because it is the slowest
     endif
-
-    let s:python_makers = makers
     return makers
 endfunction
 
