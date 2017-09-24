@@ -118,32 +118,6 @@ function! neomake#statusline#get_counts(bufnr) abort
     return [get(s:loclist_counts, a:bufnr, s:no_loclist_counts), s:qflist_counts]
 endfunction
 
-function! neomake#statusline#get_filtered_counts(bufnr, ...) abort
-    let include = a:0 ? a:1 : []
-    let exclude = a:0 > 1 ? a:2 : []
-    let empty = a:0 > 2 ? a:3 : ''
-
-    let [loclist_counts, qf_errors] = neomake#statusline#get_counts(a:bufnr)
-
-    let errors = []
-    for [type, c] in items(loclist_counts)
-        if len(include) && index(include, type) == -1 | continue | endif
-        if len(exclude) && index(exclude, type) != -1 | continue | endif
-        let errors += [type . ':' .c]
-    endfor
-    if ! empty(qf_errors)
-        for [type, c] in items(qf_errors)
-            if len(include) && index(include, type) == -1 | continue | endif
-            if len(exclude) && index(exclude, type) != -1 | continue | endif
-            let errors += [type . ':' .c]
-        endfor
-    endif
-    if len(errors)
-        return ' '.join(errors)
-    endif
-    return empty
-endfunction
-
 
 let s:formatter = {
             \ 'args': {},
