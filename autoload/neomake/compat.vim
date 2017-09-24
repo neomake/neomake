@@ -13,15 +13,34 @@ endif
 unlockvar neomake#compat#json_true
 unlockvar neomake#compat#json_false
 unlockvar neomake#compat#json_null
+unlockvar neomake#compat#json_none
+
+if exists('v:none')
+    let neomake#compat#json_none = v:none
+else
+    function! s:json_none() abort
+    endfunction
+    let neomake#compat#json_none = [function('s:json_none')]
+endif
 
 if exists('*json_decode')
     let neomake#compat#json_true = v:true
     let neomake#compat#json_false = v:false
     let neomake#compat#json_null = v:null
 
-    function! neomake#compat#json_decode(json) abort
-        return json_decode(a:json)
-    endfunction
+    if has('nvim')
+      function! neomake#compat#json_decode(json) abort
+          if a:json is# ''
+              " Prevent Neovim from throwing E474: Attempt to decode a blank string.
+              return g:neomake#compat#json_none
+          endif
+          return json_decode(a:json)
+      endfunction
+    else
+      function! neomake#compat#json_decode(json) abort
+          return json_decode(a:json)
+      endfunction
+    endif
 else
     let neomake#compat#json_true = 1
     let neomake#compat#json_false = 0
@@ -36,7 +55,7 @@ else
     " @vimlint(EVL102, 1, l:null)
     function! neomake#compat#json_decode(json) abort " {{{2
         if a:json ==# ''
-            return []
+            return g:neomake#compat#json_none
         endif
 
         " The following is inspired by https://github.com/MarcWeber/vim-addon-manager and
