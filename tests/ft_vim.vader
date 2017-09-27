@@ -1,8 +1,6 @@
 Include: include/setup.vader
 
 Execute (Vint: generic postprocessing for highlights):
-  runtime autoload/neomake/highlights.vim
-
   new
   file file1.vim
   norm! iecho l:undefined_var
@@ -11,6 +9,7 @@ Execute (Vint: generic postprocessing for highlights):
   let vint_maker.args = ["file1.vim:1:6:warning:Undefined variable: l:undefined_var (ProhibitUsingUndeclaredVariable)"]
   let vint_maker.append_file = 0
 
+  call neomake#highlights#ResetFile(bufnr('%'))
   AssertEqual neomake#highlights#_get(), {'file': {}, 'project': {}}
 
   call neomake#Make(1, [vint_maker])

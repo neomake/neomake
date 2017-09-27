@@ -601,9 +601,6 @@ Execute (Neomake!: non-existing and proper job):
     "             \ 'in_io': 'file',
     "             \ 'in_name': '/doesnotexist',
     "             \ }
-    " Reset s:exe_error_thrown.
-    runtime autoload/neomake.vim
-
     Save g:neomake_maker1_maker
     let g:neomake_maker1_maker = {
         \ 'name': '1',
@@ -617,7 +614,7 @@ Execute (Neomake!: non-existing and proper job):
     let b:neomake_enabled_makers = ['maker1', 'maker2']
     Neomake! maker1 maker2
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage "Exe (doesnotexist) of maker 1 is not executable.", 0
+    AssertNeomakeMessage "Exe (doesnotexist) of maker 1 is not executable."
     AssertEqual map(getqflist(), 'v:val.text'), ['1']
     " AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_countschanged), 1,
@@ -964,15 +961,7 @@ Execute (Highlights should be cleared after successful run):
   NeomakeTestsWaitForFinishedJobs
 
   let highlights = neomake#highlights#_get()
-  if has('nvim')
-    let highlight = highlights['file'][bufnr('%')]
-    AssertEqual highlight, orig_highlight
-  else
-    AssertEqual highlights, {
-    \ 'file': {bufnr('%'): {'NeomakeError': [], 'NeomakeInfo': [],
-    \                       'NeomakeMessage': [], 'NeomakeWarning': []}},
-    \ 'project': {}}
-  endif
+  Assert !has_key(highlights['file'], bufnr('%')), 'highlight not present'
 
 Execute (neomake#GetCurrentErrorMsg):
   let maker = {'name': 'my_maker'}

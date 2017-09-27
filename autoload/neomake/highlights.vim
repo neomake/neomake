@@ -28,12 +28,11 @@ if s:nvim_api
         endif
     endfunction
 
-    function! neomake#highlights#ResetFile(buf) abort
-        call s:InitBufHighlights('file', a:buf)
-    endfunction
-
-    function! neomake#highlights#ResetProject(buf) abort
-        call s:InitBufHighlights('project', a:buf)
+    function! s:reset(type, buf) abort
+        if has_key(s:highlights[a:type], a:buf)
+            call nvim_buf_clear_highlight(a:buf, s:highlights[a:type][a:buf], 0, -1)
+            unlet s:highlights[a:type][a:buf]
+        endif
     endfunction
 else
     function! s:InitBufHighlights(type, buf) abort
@@ -45,16 +44,19 @@ else
             \ }
     endfunction
 
-    function! neomake#highlights#ResetFile(buf) abort
-        call s:InitBufHighlights('file', a:buf)
-        call neomake#highlights#ShowHighlights()
-    endfunction
-
-    function! neomake#highlights#ResetProject(buf) abort
-        call s:InitBufHighlights('project', a:buf)
-        call neomake#highlights#ShowHighlights()
+    function! s:reset(type, buf) abort
+        if has_key(s:highlights[a:type], a:buf)
+            unlet s:highlights[a:type][a:buf]
+            call neomake#highlights#ShowHighlights()
+        endif
     endfunction
 endif
+function! neomake#highlights#ResetFile(buf) abort
+    call s:reset('file', a:buf)
+endfunction
+function! neomake#highlights#ResetProject(buf) abort
+    call s:reset('project', a:buf)
+endfunction
 
 function! neomake#highlights#AddHighlight(entry, type) abort
     " Some makers use line 0 for file warnings (which cannot be highlighted,
