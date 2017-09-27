@@ -1,9 +1,6 @@
 Include: include/setup.vader
 
 Execute (Neomake with unknown maker):
-  " Prevent 'Skipping User autocmd NeomakeCountsChanged: no hooks.' message.
-  runtime autoload/neomake/statusline.vim
-
   Save g:neomake_verbose
   let g:neomake_verbose = 3
 
@@ -207,8 +204,6 @@ Execute (Test Neomake on errors.sh with shellcheck):
   bwipe
 
 Execute (Neomake: handle result for current window):
-  runtime autoload/neomake/signs.vim
-
   call g:NeomakeSetupAutocmdWrappers()
   new
   file file_sleep_efm
@@ -917,8 +912,6 @@ Execute (Location list should be cleared after jobs finished):
 Execute (Highlights should be cleared after successful run):
   call g:NeomakeSetupAutocmdWrappers()
   lgetexpr 'init'
-
-  runtime autoload/neomake/highlights.vim
 
   let maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
   let maker_error = NeomakeTestsCommandMaker('error-maker', 'echo error')
