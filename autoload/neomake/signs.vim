@@ -1,5 +1,4 @@
 " vim: ts=4 sw=4 et
-
 scriptencoding utf-8
 
 if !has('signs')
@@ -7,22 +6,9 @@ if !has('signs')
     finish
 endif
 
-let s:last_placed_signs = {
-    \ 'project': {},
-    \ 'file': {}
-    \ }
-let s:placed_signs = {
-    \ 'project': {},
-    \ 'file': {}
-    \ }
-let s:neomake_sign_id = {
-    \ 'project': {},
-    \ 'file': {}
-    \ }
-
 let s:base_sign_id = 5000
-
-let s:signs_for_entries = {}
+let s:placed_signs = {'project': {}, 'file': {}}
+let s:last_placed_signs = {'project': {}, 'file': {}}
 
 exe 'sign define neomake_invisible'
 
@@ -33,7 +19,6 @@ function! neomake#signs#ResetProject() abort
         call neomake#signs#CleanOldSigns(buf, 'project')
         call neomake#signs#Reset(buf, 'project')
     endfor
-    let s:neomake_sign_id.project = {}
 endfunction
 
 " Reset signs placed by a :Neomake call in a buffer
