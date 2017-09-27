@@ -117,7 +117,7 @@ $(_TESTS_REL_AND_ABS):
 	make $(FILE_TEST_TARGET) VADER_ARGS='$@'
 .PHONY: $(_TESTS_REL_AND_ABS)
 
-testcoverage: VADER_ARGS:=tests/main.vader $(wildcard tests/isolated/*.vader)
+testcoverage: COVERAGE_VADER_ARGS:=tests/main.vader $(wildcard tests/isolated/*.vader)
 testcoverage:
 	@ret=0; \
 	cov_dir=$(NEOMAKE_TEST_PROFILE_DIR); \
@@ -130,7 +130,7 @@ testcoverage:
 	  fi; \
 	fi; \
 	echo "Generating profile output in $$cov_dir"; \
-	for testfile in $(VADER_ARGS); do \
+	for testfile in $(COVERAGE_VADER_ARGS); do \
 	  make test VADER_ARGS=$$testfile \
 	    NEOMAKE_COVERAGE_FILE=$$cov_dir/$$(basename $$testfile).profile || (( ++ret )); \
 	done; \
@@ -200,7 +200,7 @@ $(_DOCKER_VIM_TARGETS):
 _docker_test: DOCKER_VIM:=vim-master
 _docker_test: DOCKER_MAKE_TARGET=$(DOCKER_MAKE_TEST_TARGET) \
   TEST_VIM='/vim-build/bin/$(DOCKER_VIM)' \
-  VADER_OPTIONS="$(VADER_OPTIONS)"
+  VADER_OPTIONS="$(VADER_OPTIONS)" VADER_ARGS="$(VADER_ARGS)"
 _docker_test: docker_make
 docker_test: DOCKER_MAKE_TEST_TARGET:=test
 docker_test: DOCKER_STREAMS:=-t
