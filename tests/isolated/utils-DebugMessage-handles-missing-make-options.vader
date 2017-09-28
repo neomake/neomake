@@ -35,3 +35,7 @@ Execute (neomake#utils#DebugMessage handles missing make_options):
   call neomake#utils#DebugMessage('msg1', {'make_id': -42})
   AssertEqual s:log_calls, [['warning: missing make_info key: -42']]
   AssertEqual NeomakeTestsGetVimMessages(), []
+
+  let g:neomake_test_messages = []
+  runtime autoload/neomake/utils.vim
+  runtime autoload/neomake.vim

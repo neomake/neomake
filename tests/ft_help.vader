@@ -19,8 +19,3 @@ Execute (vimhelplint reports errors):
     call delete('build/help.txt')
     bwipe
   endif
-
-Execute (neomake#makers#ft#help#EnabledMakers):
-  call g:NeomakeTestsCreateExe('vimhelplint', [])
-  runtime autoload/neomake/makers/ft/help.vim
-  AssertEqual ['writegood', 'vimhelplint'], neomake#makers#ft#help#EnabledMakers()

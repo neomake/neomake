@@ -26,3 +26,7 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
 
 Execute (neomake#utils#DevNull on (emulated) Windows):
   AssertEqual neomake#utils#DevNull(), 'NUL'
+
+Execute (Restore):
+  runtime autoload/neomake/utils.vim
+  runtime autoload/neomake/compat.vim
