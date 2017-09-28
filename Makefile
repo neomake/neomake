@@ -125,9 +125,8 @@ testcoverage:
 	  cov_dir=build/coverage; \
 	  if [ -d "$$cov_dir" ]; then \
 	    $(RM) -r $$cov_dir; \
-	  else \
-	    mkdir -p $$cov_dir; \
 	  fi; \
+	  mkdir -p $$cov_dir; \
 	fi; \
 	echo "Generating profile output in $$cov_dir"; \
 	for testfile in $(COVERAGE_VADER_ARGS); do \
