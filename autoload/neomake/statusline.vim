@@ -256,6 +256,7 @@ function! neomake#statusline#get(bufnr, options) abort
         return s:cache[a:bufnr][cache_key]
     endif
     let bufnr = +a:bufnr
+    call s:setup_statusline_augroup_for_use()
 
     " TODO: needs to go into cache key then!
     if getbufvar(bufnr, '&filetype') ==# 'qf'
@@ -306,13 +307,24 @@ function! neomake#statusline#DefineHighlights() abort
     hi link NeomakeStatColorTypeI NeomakeStatColorTypes
 endfunction
 
+let s:did_setup_statusline_augroup_for_use = 0
+function! s:setup_statusline_augroup_for_use() abort
+    if s:did_setup_statusline_augroup_for_use
+        return
+    endif
+    augroup neomake_statusline
+        " Trigger redraw of all statuslines.
+        " TODO: only do this if some relevant formats are used?!
+        autocmd User NeomakeJobFinished redrawstatus!
+        autocmd ColorScheme * call neomake#statusline#DefineHighlights()
+    augroup END
+    let s:did_setup_statusline_augroup_for_use = 1
+endfunction
+
+" Global augroup, gets configured always currently when autoloaded.
 augroup neomake_statusline
     autocmd!
     autocmd User NeomakeJobStarted,NeomakeJobFinished call s:clear_cache(g:neomake_hook_context.jobinfo.bufnr)
-    " Trigger redraw of all statuslines.
-    " TODO: only do this if some relevant formats are used?!
-    autocmd User NeomakeJobFinished let &stl = &stl
     autocmd BufWipeout * call s:clear_cache(expand('<abuf>'))
-    autocmd ColorScheme * call neomake#statusline#DefineHighlights()
 augroup END
 call neomake#statusline#DefineHighlights()
