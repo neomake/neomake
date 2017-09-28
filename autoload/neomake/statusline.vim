@@ -311,7 +311,7 @@ augroup neomake_statusline
     autocmd User NeomakeJobStarted,NeomakeJobFinished call s:clear_cache(g:neomake_hook_context.jobinfo.bufnr)
     " Trigger redraw of all statuslines.
     " TODO: only do this if some relevant formats are used?!
-    autocmd User NeomakeJobFinished let &stl = &stl
+    autocmd User NeomakeJobFinished redrawstatus!
     autocmd BufWipeout * call s:clear_cache(expand('<abuf>'))
     autocmd ColorScheme * call neomake#statusline#DefineHighlights()
 augroup END
