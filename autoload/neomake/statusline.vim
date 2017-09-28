@@ -307,9 +307,9 @@ function! neomake#statusline#DefineHighlights() abort
     hi link NeomakeStatColorTypeI NeomakeStatColorTypes
 endfunction
 
-let s:did_setup_statusine_augroup_for_use = 0
+let s:did_setup_statusline_augroup_for_use = 0
 function! s:setup_statusline_augroup_for_use() abort
-    if s:did_setup_statusine_augroup_for_use
+    if s:did_setup_statusline_augroup_for_use
         return
     endif
     augroup neomake_statusline
@@ -318,6 +318,7 @@ function! s:setup_statusline_augroup_for_use() abort
         autocmd User NeomakeJobFinished redrawstatus!
         autocmd ColorScheme * call neomake#statusline#DefineHighlights()
     augroup END
+    let s:did_setup_statusline_augroup_for_use = 1
 endfunction
 
 " Global augroup, gets configured always currently when autoloaded.
