@@ -309,15 +309,15 @@ endfunction
 
 let s:did_setup_statusine_augroup_for_use = 0
 function! s:setup_statusline_augroup_for_use() abort
-  if s:did_setup_statusine_augroup_for_use
-    return
-  endif
-  augroup neomake_statusline
-      " Trigger redraw of all statuslines.
-      " TODO: only do this if some relevant formats are used?!
-      autocmd User NeomakeJobFinished redrawstatus!
-      autocmd ColorScheme * call neomake#statusline#DefineHighlights()
-  augroup END
+    if s:did_setup_statusine_augroup_for_use
+        return
+    endif
+    augroup neomake_statusline
+        " Trigger redraw of all statuslines.
+        " TODO: only do this if some relevant formats are used?!
+        autocmd User NeomakeJobFinished redrawstatus!
+        autocmd ColorScheme * call neomake#statusline#DefineHighlights()
+    augroup END
 endfunction
 
 " Global augroup, gets configured always currently when autoloaded.
