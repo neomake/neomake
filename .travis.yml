@@ -52,7 +52,7 @@ install:
     if [[ "$ENV" != travis_lint ]]; then
       python -m virtualenv venv
       source venv/bin/activate
-      pip install codecov https://github.com/Vimjas/covimerage/archive/develop.zip
+      pip install --pre covimerage
       CODECOV_FLAGS="$CODECOV_FLAGS $TEST_VIM"
 
       if [[ -n "$NEOMAKE_TEST_PROFILE_DIR" ]]; then
@@ -65,6 +65,7 @@ script:
   - make $ENV $MAKE_ARGS || exit 1
 
 after_success:
+  - pip install codecov
   - |
     shopt -s nullglob
     set -x

@@ -55,10 +55,7 @@ Execute (neomake#highlights#AddHighlight with off-columns):
   endif
 
   call neomake#highlights#ResetFile(bufnr)
-  let highlights = neomake#highlights#_get()['file'][bufnr]
-  if !has('nvim')
-    AssertEqual highlights['NeomakeError'], []
-  endif
+  AssertEqual has_key(neomake#highlights#_get()['file'], bufnr), 0
 
   let entry = {'bufnr': bufnr, 'type': 'E', 'col': 1, 'lnum': 1, 'length': 4}
   call neomake#highlights#AddHighlight(entry, 'file')

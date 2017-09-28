@@ -36,9 +36,21 @@ let &runtimepath .= ','.plugin_dir
 let coverage_file = $NEOMAKE_COVERAGE_FILE
 if !empty(coverage_file) && has('profile')
   if filereadable(coverage_file)
-    echoerr 'DO_COVERAGE: file exists, not overwriting: '.coverage_file
-    " Use cquit here to cause a non-zero exit code.
-    cquit
+    function! s:print_stderr(output)
+      let lines = split(a:output, '\n')
+      if !empty($VADER_OUTPUT_FILE)
+        call writefile(lines, $VADER_OUTPUT_FILE, 'a')
+      else
+        let tmp = tempname()
+        call writefile(lines, tmp)
+        execute 'silent !cat '.tmp.' 1>&2'
+        call delete(tmp)
+      endif
+    endfunction
+
+    let error = 'Error: NEOMAKE_COVERAGE_FILE: file exists, not overwriting: '.coverage_file
+    call s:print_stderr(error)
+    cquit  " exit non-zero.
   else
     exec 'profile start '.coverage_file
     exe 'profile! file plugin/*.vim'
