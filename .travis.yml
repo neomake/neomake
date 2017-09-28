@@ -16,7 +16,7 @@ matrix:
     - env: ENV=travis_test
       services:
         - docker
-    - env: ENV=travis_lint
+    - env: ENV="travis_lint check"
       language: python
     - env: ENV=testcoverage TEST_VIM=nvim NEOMAKE_TEST_PROFILE_DIR=profile-output.nvim-nvimmaster
     - env: ENV=testvim-7.4.52 NEOMAKE_TEST_PROFILE_DIR=profile-output.vim-vim7452
@@ -49,7 +49,7 @@ install:
       MAKE_ARGS="$MAKE_ARGS TEST_VIM=vim"
       CODECOV_FLAGS="$CODECOV_FLAGS vim vim7452"
     fi
-    if [[ "$ENV" != travis_lint ]]; then
+    if [[ "$ENV" != "travis_lint check" ]]; then
       python -m virtualenv venv
       source venv/bin/activate
       pip install --pre covimerage
@@ -62,7 +62,7 @@ install:
     umask 022
 
 script:
-  - make $ENV $MAKE_ARGS || exit 1
+  - make --keep-going $ENV $MAKE_ARGS || exit 1
 
 after_success:
   - pip install codecov
