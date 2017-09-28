@@ -611,7 +611,7 @@ Execute (Neomake!: non-existing and proper job):
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage "Exe (doesnotexist) of maker 1 is not executable."
     AssertEqual map(getqflist(), 'v:val.text'), ['1']
-    " AssertEqual len(g:neomake_test_finished), 1
+    AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_countschanged), 1,
       \ 'counts have changed'
     bwipe
