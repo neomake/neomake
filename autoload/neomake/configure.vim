@@ -176,14 +176,15 @@ function! s:automake_delayed_cb(timer) abort
     call s:neomake_do_automake(context)
 endfunction
 
-function! s:parse_events_from_args(config, ...) abort
-    if !a:0
-        return
-    endif
-
-    if a:0 > 1
+" Parse/get events dict from args.
+" a:config: config dict to write into.
+" a:string_or_dict_config: a string or dict describing the config.
+" a:1: default delay.
+function! s:parse_events_from_args(config, string_or_dict_config, ...) abort
+    " Get default delay from a:1.
+    if a:0
         if has('timers')
-            let delay = a:2
+            let delay = a:1
         else
             call neomake#utils#QuietMessage('automake: timer support is required for delayed events.')
             let delay = 0
@@ -192,8 +193,8 @@ function! s:parse_events_from_args(config, ...) abort
         let delay = s:default_delay
     endif
 
-    if type(a:1) == type({})
-        let events = copy(a:1)
+    if type(a:string_or_dict_config) == type({})
+        let events = copy(a:string_or_dict_config)
 
         " Validate events.
         for [event, config] in items(events)
@@ -212,12 +213,12 @@ function! s:parse_events_from_args(config, ...) abort
             endif
         endfor
         call neomake#config#set_dict(a:config, 'automake.events', events)
-        if a:0 > 1
-            let a:config.automake_delay = a:2
+        if a:0
+            let a:config.automake_delay = a:1
         endif
     else
         " Map string config to events dict.
-        let modes = a:1
+        let modes = a:string_or_dict_config
         let events = {}
         let default_with_delay = {}
 
@@ -264,36 +265,33 @@ function! s:parse_events_from_args(config, ...) abort
     endif
 
     call neomake#config#set_dict(a:config, 'automake.events', events)
-    if a:0 > 1
+    if a:0
         let a:config.automake_delay = delay
-    endif
-    if a:0 > 2
-        let options = a:3
-        if type(options) == type([])
-            let a:config.enabled_makers = options
-        elseif has_key(options, 'enabled_makers')
-            let a:config.enabled_makers = options.enabled_makers
-        endif
     endif
 endfunction
 
 " Setup automake for buffer (current, or options.bufnr).
-" a:1: string or dict describing the events
-" a:2: delay
-" a:3: options ('bufnr', 'makers') / or list of makers  TODO
-function! neomake#configure#automake_for_buffer(...) abort
-    let options = a:0 > 2 ? a:3 : {}
-    if type(options) == type([])
-        let options = {'enabled_makers': options}
+" a:1: delay
+" a:2: options ('bufnr', 'makers') / or list of makers  TODO
+function! neomake#configure#automake_for_buffer(string_or_dict_config, ...) abort
+    let options = {}
+    if a:0
+        let options.delay = a:1
     endif
-    if has_key(options, 'bufnr')
-        let bufnr = options.bufnr
-        unlet options.bufnr
-    else
-        let bufnr = bufnr('%')
+    let bufnr = bufnr('%')
+    if a:0 > 1
+        if type(a:2) == type([])
+            let options.makers = a:2
+        else
+            call extend(options, a:2)
+            if has_key(options, 'bufnr')
+                let bufnr = options.bufnr
+                unlet options.bufnr
+            endif
+        endif
     endif
     call setbufvar(bufnr, 'neomake_automake_tick', [])
-    return call('s:configure_buffer', [bufnr] + a:000)
+    return call('s:configure_buffer', [bufnr] + [a:string_or_dict_config, options])
 endfunction
 
 " Workaround for getbufvar not having support for defaults.
@@ -307,14 +305,17 @@ function! s:getbufvar(bufnr, name, default) abort
 endfunction
 
 " a:1: string or dict describing the events
-" a:2: delay
-" a:3: options ('enabled_makers')  TODO: test
+" a:2: options ('delay', 'makers')
 function! s:configure_buffer(bufnr, ...) abort
     let bufnr = +a:bufnr
     let ft = getbufvar(bufnr, '&filetype')
     let config = s:getbufvar(bufnr, 'neomake', {})
     if a:0
-        call call('s:parse_events_from_args', [config] + a:000)
+        let args = [config, a:1]
+        if a:0 > 1 && has_key(a:2, 'delay')
+            let args += [a:2.delay]
+        endif
+        call call('s:parse_events_from_args', args)
         call setbufvar(bufnr, 'neomake', config)
     endif
 
@@ -322,9 +323,9 @@ function! s:configure_buffer(bufnr, ...) abort
     let s:configured_buffers[bufnr] = {'custom': a:0 > 0}
 
     " Set enabled_makers.
-    let options = a:0 > 2 ? a:3 : {}
-    if has_key(config, 'enabled_makers')  " TODO: only "makers"?!
-        let enabled_makers = config.enabled_makers
+    let options = a:0 > 1 ? a:2 : {}
+    if has_key(options, 'makers')
+        let enabled_makers = options.makers
         let source = 'options'
     else
         let [enabled_makers, source] = neomake#config#get_with_source('automake.enabled_makers', neomake#GetEnabledMakers(ft))
@@ -333,7 +334,6 @@ function! s:configure_buffer(bufnr, ...) abort
     call s:debug_log(printf('configured buffer for ft=%s (%s)',
                 \ ft, empty(enabled_makers) ? 'no enabled makers' : join(map(copy(enabled_makers), "type(v:val) == type('') ? v:val : v:val.name"), ', ').' ('.source.')'), {'bufnr': bufnr})
 
-    " if a:0 && !empty(enabled_makers)
     if a:0
       " Setup autocommands etc (when called manually)?!
       call neomake#configure#automake()
