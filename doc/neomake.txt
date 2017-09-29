@@ -15,7 +15,7 @@ CONTENTS                                                    *neomake-contents*
     1. Introduction ............................... |neomake-introduction|
     2. Commands ....................................... |neomake-commands|
     3. Configuration ............................. |neomake-configuration|
-    3.1. Automake
+    3.1. Automake ..................................... |neomake-automake|
     4. Functions ..................................... |neomake-functions|
     5. Autocommands/Hooks ............................. |neomake-autocmds|
     6. Frequently Asked Questions (FAQ) .................... |neomake-faq|
