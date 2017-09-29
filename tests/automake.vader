@@ -251,13 +251,19 @@ Execute (Automake):
   new
   exe 'doautocmd' event
   AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
+  AssertNeomakeMessage 'automake: no enabled makers.'
 
   let b:neomake_automake_enabled_makers = ['foo']
   doautocmd FileType
+  AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
   let b:neomake = {'automake': {'enabled_makers': ['configured_maker']}}
   let n = len(g:neomake_test_messages)
   exe 'doautocmd' event
-  AssertEqual n, len(g:neomake_test_messages), 'No new message appeared (new setting not picked up by cache)'
+  let m = len(g:neomake_test_messages)
+  AssertEqual g:neomake_test_messages[n : m], [
+  \ [3, 'automake: handling event '.event.'.', {'bufnr': bufnr('%')}],
+  \ [3, 'automake: no enabled makers.', {'bufnr': bufnr('%')}],
+  \ ]
 
   call neomake#configure#automake('nw')
   normal! ifoo

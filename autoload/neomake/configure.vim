@@ -370,6 +370,7 @@ function! s:neomake_automake(event, bufnr) abort
                     \ {'bufnr': bufnr})
         return
     endif
+    call s:debug_log(printf('handling event %s', a:event), {'bufnr': bufnr})
 
     " NOTE: Do it later for BufWinEnter again, since &ft might not be defined (startify).
     if s:disabled_for_ft(bufnr, a:event)
@@ -382,6 +383,7 @@ function! s:neomake_automake(event, bufnr) abort
     endif
     let enabled_makers = s:configured_buffers[bufnr].enabled_makers
     if empty(enabled_makers)
+        call s:debug_log('no enabled makers', {'bufnr': bufnr})
         return
     endif
 
