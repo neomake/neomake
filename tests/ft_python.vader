@@ -110,3 +110,8 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'type': 'E',
   \ 'text': "F811 redefinition of unused 'os' from line 2"}, e
   bwipe!
+
+Execute (neomake#makers#ft#python#Flake8EntryProcess):
+  let entry = {'type': 'F', 'nr': 841, 'text': "local variable 'foo' is assigned to but never used"}
+  call neomake#makers#ft#python#Flake8EntryProcess(entry)
+  AssertEqual entry.type, 'W'

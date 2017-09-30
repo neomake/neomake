@@ -82,6 +82,8 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
             else
                 let type = 'W'
             endif
+        elseif a:entry.nr == 841
+            let type = 'W'
         else
             let type = 'E'
         endif
