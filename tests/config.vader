@@ -162,6 +162,13 @@ Execute (neomake#config#get handles Funcref variables):
   call neomake#config#set('b:function', s:funcref)
   AssertEqual neomake#config#get('b:function'), s:funcref
   AssertEqual neomake#config#get_with_source('b:function'), [s:funcref, 'buffer']
+
+  " Handles bufnr context.
+  let bufnr = bufnr('%')
+  new
+  AssertEqual neomake#config#get('b:function', 'default', {}), 'default'
+  AssertEqual neomake#config#get('b:function', 'default', {'bufnr': bufnr}), s:funcref
+  bwipe
   bwipe
 
 Execute (neomake#config#{un,}set_dict):
