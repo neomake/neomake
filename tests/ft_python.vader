@@ -119,3 +119,11 @@ Execute (neomake#makers#ft#python#Flake8EntryProcess):
   let entry = {'type': 'F', 'nr': 999, 'text': "something"}
   call neomake#makers#ft#python#Flake8EntryProcess(entry)
   AssertEqual entry.type, 'E'
+
+  let entry = {'type': 'F', 'nr': 404, 'text': "not found"}
+  call neomake#makers#ft#python#Flake8EntryProcess(entry)
+  AssertEqual entry.type, 'W'
+
+  let entry = {'type': 'F', 'nr': 407, 'text': "no future"}
+  call neomake#makers#ft#python#Flake8EntryProcess(entry)
+  AssertEqual entry.type, 'E'
