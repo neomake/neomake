@@ -116,10 +116,8 @@ Execute (Automake supports custom buffer config):
   let g:neomake_test_enabledmakers = [g:entry_maker]
   call g:NeomakeSetupAutocmdWrappers()
 
-  call neomake#configure#automake_for_buffer({
-  \ 'CursorHold': {'delay': 0}})
-  call neomake#configure#automake({
-  \ 'BufWinEnter': {'delay': 0}})
+  call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 0}})
+  call neomake#configure#automake({'BufWinEnter': {'delay': 0}})
 
   AssertEqual b:neomake.automake.events, {'CursorHold': {'delay': 0}}
   AssertNeomakeMessage 'automake: registered events: BufWinEnter, CursorHold.'
@@ -146,8 +144,7 @@ Execute (Automake supports custom buffer config):
   AssertEqual len(g:neomake_test_finished), 1
 
   " Resetting buffer config does reset tick.
-  call neomake#configure#automake_for_buffer({
-  \ 'CursorHold': {'delay': 0}})
+  call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 0}})
   doautocmd CursorHold
   AssertEqual len(g:neomake_test_finished), 2
 
@@ -251,13 +248,19 @@ Execute (Automake):
   new
   exe 'doautocmd' event
   AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
+  AssertNeomakeMessage 'automake: no enabled makers.'
 
   let b:neomake_automake_enabled_makers = ['foo']
   doautocmd FileType
+  AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
   let b:neomake = {'automake': {'enabled_makers': ['configured_maker']}}
   let n = len(g:neomake_test_messages)
   exe 'doautocmd' event
-  AssertEqual n, len(g:neomake_test_messages), 'No new message appeared (new setting not picked up by cache)'
+  let m = len(g:neomake_test_messages)
+  AssertEqual g:neomake_test_messages[n : m], [
+  \ [3, 'automake: handling event '.event.'.', {'bufnr': bufnr('%')}],
+  \ [3, 'automake: no enabled makers.', {'bufnr': bufnr('%')}],
+  \ ]
 
   call neomake#configure#automake('nw')
   normal! ifoo
@@ -386,7 +389,6 @@ Execute (neomake#configure#automake_for_buffer skips non-default buftypes):
   set buftype=nofile
   call neomake#configure#automake('r', 0)
   AssertNeomakeMessage 'automake: registered events: FileChangedShellPost, FileType, BufWinEnter.', 3
-
   bwipe
 
 Execute (Automake handles unchanged buffer):
@@ -606,3 +608,26 @@ Execute (Handles timeout in another buffer):
     AssertEqual len(g:neomake_test_finished), 0
     bwipe!
   endif
+
+Execute (neomake#configure#automake_for_buffer can configure makers):
+  new
+  call neomake#configure#automake_for_buffer('n', 300, ['my_maker'])
+  AssertNeomakeMessage 'automake: configured buffer for ft= (my_maker (options)).', 3
+
+  call neomake#configure#automake_for_buffer('n', 300, {'makers': ['my_other_maker']})
+  AssertNeomakeMessage 'automake: configured buffer for ft= (my_other_maker (options)).', 3
+  bwipe
+
+Execute (neomake#configure#automake_for_buffer can configure other buffers):
+  new
+  let bufnr = bufnr('%')
+  call neomake#configure#automake_for_buffer('n', 300, {'makers': ['my_maker'], 'bufnr': bufnr})
+  AssertNeomakeMessage 'automake: configured buffer for ft= (my_maker (options)).', 3, {'bufnr': bufnr}
+
+  " Configuration for another buffer.
+  new
+  call neomake#configure#automake_for_buffer('n', 300, {'makers': ['my_other_maker'], 'bufnr': bufnr})
+  Assert !exists('b:neomake')
+  bwipe
+  AssertNeomakeMessage 'automake: configured buffer for ft= (my_other_maker (options)).', 3
+  bwipe

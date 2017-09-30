@@ -1620,7 +1620,7 @@ function! s:cd_to_jobs_cwd(jobinfo) abort
     endif
     let cwd = substitute(fnamemodify(cwd, ':p'), '[\/]$', '', '')
     let cur_wd = getcwd()
-    if cwd !=? cur_wd
+    if cwd !=# cur_wd
         let cd = haslocaldir() ? 'lcd' : (exists(':tcd') == 2 && haslocaldir(-1, 0)) ? 'tcd' : 'cd'
         try
             exe cd.' '.fnameescape(cwd)

@@ -251,7 +251,7 @@ travis_test:
 	  travis_run_make vim8069       "docker_test DOCKER_VIM=vim8069" NEOMAKE_TEST_NO_COLORSCHEME=1 || (( ret+=8  )); \
 	  travis_run_make vim73         "docker_test DOCKER_VIM=vim73"         || (( ret+=16 )); \
 	  travis_run_make vim-xenial    "docker_test DOCKER_VIM=vim74-xenial"  || (( ret+=32 )); \
-	  travis_run_make check         "check"                                || (( ret+=64 )); \
+	  travis_run_make check         "check_docker"                         || (( ret+=64 )); \
 	exit $$ret
 
 travis_lint:
@@ -278,6 +278,21 @@ travis_lint:
 	  echo 'travis_fold:end:script.vint'; \
 	exit $$ret
 
+# Checks to be run with Docker.
+# This is kept separate from "check" to not require Docker there.
+check_docker:
+	@:; ret=0; \
+	echo '== Checking for DOCKER_VIMS to be in sync'; \
+	vims="$(GET_DOCKER_VIMS)"; \
+	docker_vims=$$(printf '%s\n' $(DOCKER_VIMS) | sort | paste -s -d\ ); \
+	if ! [ "$$vims" = "$$docker_vims" ]; then \
+	  echo "DOCKER_VIMS is out of sync with Vims in image."; \
+	  echo "DOCKER_VIMS: $$docker_vims"; \
+	  echo "in image:    $$vims"; \
+	  (( ret+=8 )); \
+	fi; \
+	exit $$ret
+
 check:
 	@:; ret=0; \
 	echo '== Checking that all tests are included'; \
@@ -300,15 +315,6 @@ check:
 	if grep --line-number --color '^\s*Log\b' $(shell git ls-files tests/*.vader $(LINT_ARGS)); then \
 	  echo "Found Log commands."; \
 	  (( ret+=4 )); \
-	fi; \
-	echo '== Checking for DOCKER_VIMS to be in sync'; \
-	vims="$(GET_DOCKER_VIMS)"; \
-	docker_vims=$$(printf '%s\n' $(DOCKER_VIMS) | sort | paste -s -d\ ); \
-	if ! [ "$$vims" = "$$docker_vims" ]; then \
-	  echo "DOCKER_VIMS is out of sync with Vims in image."; \
-	  echo "DOCKER_VIMS: $$docker_vims"; \
-	  echo "in image:    $$vims"; \
-	  (( ret+=8 )); \
 	fi; \
 	echo '== Checking tests'; \
 	output="$$(grep --line-number --color AssertThrows -A1 tests/*.vader \
