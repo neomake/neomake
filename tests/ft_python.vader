@@ -115,3 +115,7 @@ Execute (neomake#makers#ft#python#Flake8EntryProcess):
   let entry = {'type': 'F', 'nr': 841, 'text': "local variable 'foo' is assigned to but never used"}
   call neomake#makers#ft#python#Flake8EntryProcess(entry)
   AssertEqual entry.type, 'W'
+
+  let entry = {'type': 'F', 'nr': 999, 'text': "something"}
+  call neomake#makers#ft#python#Flake8EntryProcess(entry)
+  AssertEqual entry.type, 'E'
