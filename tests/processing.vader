@@ -67,7 +67,7 @@ Execute (Output is not processed in operator-pending mode (Vim)):
       let b:cb_called = mode(1)
       call feedkeys("\<Esc>")
     endfunction
-    call timer_start(10, 's:callback_in_operator_pending_mode')
+    call timer_start(100, 's:callback_in_operator_pending_mode')
     call feedkeys('da', 'x!')
 
     NeomakeTestsWaitForFinishedJobs
@@ -137,7 +137,7 @@ Execute (Location list is not cleared in operator-pending mode (Vim)):
       let b:cb_called = mode(1)
       call feedkeys("\<Esc>")
     endfunction
-    call timer_start(10, 's:callback_in_operator_pending_mode')
+    call timer_start(100, 's:callback_in_operator_pending_mode')
     call feedkeys('da', 'x!')
 
     NeomakeTestsWaitForFinishedJobs
