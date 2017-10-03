@@ -21,9 +21,9 @@ Execute (neomake#utils#LogMessage writes to logfile always):
 
 Execute (neomake#utils#LogMessage unsets logfile in case of errors):
   Save g:neomake_logfile
-  let g:neomake_logfile = '/dev/doesnotexist'
+  let g:neomake_logfile = '/does/not/exist'
   call neomake#utils#LogMessage(1, 'msg1.')
-  AssertNeomakeMessage '\vError when trying to write to logfile /dev/doesnotexist: Vim\(call\):E.*.  Unsetting g:neomake_logfile.', 0
+  AssertNeomakeMessage '\vError when trying to write to logfile /does/not/exist: Vim\(call\):E.*.  Unsetting g:neomake_logfile.', 0
   Assert !exists('g:neomake_logfile'), 'g:neomake_logfile has been unset.'
 
 Execute (NeomakeTestsCreateExe creates exe):
