@@ -383,6 +383,27 @@ function! NeomakeTestsGetVimMessages()
   return reverse(msgs[0 : idx-1])
 endfunction
 
+" Helpers for monkeypatching a function temporarily.
+" This avoids having to put them into separate files when using profiling,
+" where :runtime would overwrite the functions.
+let s:monkeypatched = []
+function! s:monkeypatch(fname)
+    let orig_f = neomake#utils#redir('fun neomake#compat#get_mode')
+    let restore_f = map(split(orig_f, '\n'), 'v:val[3:]')
+    call add(s:monkeypatched, restore_f)
+endfunction
+function! s:undo_monkeypatch()
+    let tmpfile = tempname()
+    for f in s:monkeypatched
+        let f[0] = substitute(f[0], '^function ', 'function!', '')
+        call writefile(f, tmpfile)
+        exe 'source '.tmpfile
+    endfor
+    let s:monkeypatched = []
+endfunction
+command! -nargs=1 NeomakeTestsMonkeyPatch call s:monkeypatch(<f-args>)
+command! NeomakeTestsMonkeyPatchUndo call s:undo_monkeypatch(<f-args>)
+
 function! s:After()
   if exists('#neomake_automake')
     au! neomake_automake

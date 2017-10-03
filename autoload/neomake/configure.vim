@@ -87,7 +87,7 @@ function! s:neomake_do_automake(context) abort
         let timer = timer_start(a:context.delay, function('s:automake_delayed_cb'))
         let s:timer_info[timer] = a:context
         if !has_key(a:context, 'pos')
-            let s:timer_info[timer].pos = [getpos('.'), mode(1)]
+            let s:timer_info[timer].pos = [getpos('.'), neomake#compat#get_mode()]
         endif
         let s:timer_by_bufnr[a:context.bufnr] = timer
         call s:debug_log(printf('started timer (%dms): %d', a:context.delay, timer),
@@ -158,7 +158,7 @@ function! s:automake_delayed_cb(timer) abort
     "       BufWritePost/BufWinEnter?!
     " if timer_info.event !=# 'BufWritePost'
     if !empty(timer_info.pos)
-        let mode = mode(1)
+        let mode = neomake#compat#get_mode()
         let current_context = [getpos('.'), mode]
         if current_context != timer_info.pos
             call s:debug_log(printf('context/position changed: %s => %s',

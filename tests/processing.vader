@@ -53,28 +53,22 @@ Execute (Output is only processed in normal/insert mode (qflist)):
   endif
 
 Execute (Output is not processed in operator-pending mode (Vim)):
-  if has('nvim')
-    NeomakeTestsSkip 'only for Vim'
-  elseif NeomakeAsyncTestsSetup()
+  if NeomakeAsyncTestsSetup()
     new
     file file_sleep_efm
+
+    " Simulate operator-pending mode ('no').
+    NeomakeTestsMonkeyPatch 'neomake#compat#get_mode'
+    function! neomake#compat#get_mode()
+      return 'no'
+    endfunction
+
     call neomake#Make(0, [g:sleep_efm_maker])[0]
     let jobinfo = neomake#GetJobs()[-1]
-
-    " Trigger operator-pending mode ('no').
-    let b:cb_called = 0
-    function! s:callback_in_operator_pending_mode(...)
-      let b:cb_called = mode(1)
-      call feedkeys("\<Esc>")
-    endfunction
-    call timer_start(100, 's:callback_in_operator_pending_mode')
-    call feedkeys('da', 'x!')
-
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'Not processing output for mode "no".', 3
     AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
     AssertEqual getqflist(), [], 'Quickfix list has not been updated'
-    AssertEqual b:cb_called, 'no'
     doautocmd CursorHold
     AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
     AssertNeomakeMessage 'Processed pending output.', 3, jobinfo
@@ -83,6 +77,9 @@ Execute (Output is not processed in operator-pending mode (Vim)):
     call neomake#signs#ResetProject()
     call neomake#signs#CleanAllOldSigns('project')
     bwipe
+
+    NeomakeTestsMonkeyPatchUndo
+    AssertEqual neomake#compat#get_mode(), 'n'
   endif
 
 Execute (Location list is only cleared in normal/insert mode on success):
