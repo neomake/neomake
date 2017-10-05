@@ -52,7 +52,7 @@ install:
     if [[ "$ENV" != "travis_lint check" ]]; then
       python -m virtualenv venv
       source venv/bin/activate
-      pip install --pre covimerage
+      pip install https://github.com/Vimjas/covimerage/archive/develop.zip
       CODECOV_FLAGS="$CODECOV_FLAGS $TEST_VIM"
 
       if [[ -n "$NEOMAKE_TEST_PROFILE_DIR" ]]; then
