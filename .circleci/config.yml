@@ -60,6 +60,14 @@ jobs:
           MAKE_ARGS=testcoverage
           NEOMAKE_TEST_PROFILE_DIR=profile-output.nvim-nvimmaster
           TEST_VIM=/vim-build/bin/neovim-master
+  vim73:
+    <<: *common
+    docker:
+      - image: neomake/vims-for-tests:circleci
+        environment:
+          MAKE_ARGS=testcoverage
+          TEST_VIM=/vim-build/bin/vim73
+          NEOMAKE_TEST_PROFILE_DIR=profile-output.vim73
   check:
     <<: *common
     docker:
@@ -72,4 +80,5 @@ workflows:
   test:
     jobs:
       - nvim
+      - vim73
       # - check
