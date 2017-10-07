@@ -33,31 +33,6 @@ command! -nargs=1 NeomakeTestsLoadPlugin call s:load_plugin_on_demand(<args>)
 let plugin_dir = expand('<sfile>:p:h:h:h')
 let &runtimepath .= ','.plugin_dir
 
-let coverage_file = $NEOMAKE_COVERAGE_FILE
-if !empty(coverage_file) && has('profile')
-  if filereadable(coverage_file)
-    function! s:print_stderr(output)
-      let lines = split(a:output, '\n')
-      if !empty($VADER_OUTPUT_FILE)
-        call writefile(lines, $VADER_OUTPUT_FILE, 'a')
-      else
-        let tmp = tempname()
-        call writefile(lines, tmp)
-        execute 'silent !cat '.tmp.' 1>&2'
-        call delete(tmp)
-      endif
-    endfunction
-
-    let error = 'Error: NEOMAKE_COVERAGE_FILE: file exists, not overwriting: '.coverage_file
-    call s:print_stderr(error)
-    cquit  " exit non-zero.
-  else
-    exec 'profile start '.coverage_file
-    exe 'profile! file plugin/*.vim'
-    exe 'profile! file autoload/*.vim'
-  endif
-endif
-
 exe 'source' plugin_dir.'/plugin/neomake.vim'
 
 filetype plugin indent on

@@ -77,9 +77,10 @@ _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log --compact vader
 # Redirect to stderr again for Docker (where only stderr is used from).
 _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
 
+_COVIMERAGE=$(if $(NEOMAKE_PROFILE_FILE),covimerage run --profile-file "$(NEOMAKE_PROFILE_FILE)" --report-file /dev/stderr ,)
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) $(TEST_VIM) --version | head -n2))
-	$(TEST_VIM_PREFIX) $(TEST_VIM) \
+	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)$(TEST_VIM) \
 	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X) \
 	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 endef
@@ -130,7 +131,7 @@ testcoverage:
 	echo "Generating profile output in $$cov_dir"; \
 	for testfile in $(COVERAGE_VADER_ARGS); do \
 	  make test VADER_ARGS=$$testfile \
-	    NEOMAKE_COVERAGE_FILE=$$cov_dir/$$(basename $$testfile).profile || (( ++ret )); \
+	    NEOMAKE_PROFILE_FILE=$$cov_dir/$$(basename $$testfile).profile || (( ++ret )); \
 	done; \
 	exit $$ret
 
