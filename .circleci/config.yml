@@ -45,6 +45,20 @@ jobs:
         environment:
           MAKE_ARGS=testcoverage
           TEST_VIM=/vim-build/bin/neovim-master
+  nvim-017:
+    <<: *common
+    docker:
+      - image: neomake/vims-for-tests:circleci
+        environment:
+          MAKE_ARGS=testcoverage
+          TEST_VIM=/vim-build/bin/neovim-v0.1.7
+  nvim-020:
+    <<: *common
+    docker:
+      - image: neomake/vims-for-tests:circleci
+        environment:
+          MAKE_ARGS=testcoverage
+          TEST_VIM=/vim-build/bin/neovim-v0.2.0
   vim-master:
     <<: *common
     docker:
@@ -52,6 +66,27 @@ jobs:
         environment:
           MAKE_ARGS=testcoverage
           TEST_VIM=/vim-build/bin/vim-master
+  vim-8069:
+    <<: *common
+    docker:
+      - image: neomake/vims-for-tests:circleci
+        environment:
+          MAKE_ARGS=testcoverage
+          TEST_VIM=/vim-build/bin/vim8069
+  vim-74-xenial:
+    <<: *common
+    docker:
+      - image: neomake/vims-for-tests:circleci
+        environment:
+          MAKE_ARGS=testcoverage
+          TEST_VIM=/vim-build/bin/vim74-xenial
+  vim-74-trusty:
+    <<: *common
+    docker:
+      - image: neomake/vims-for-tests:circleci
+        environment:
+          MAKE_ARGS=testcoverage
+          TEST_VIM=/vim-build/bin/vim74-trusty
   vim-73:
     <<: *common
     docker:
@@ -72,6 +107,11 @@ workflows:
   test:
     jobs:
       - nvim-master
-      - vim-73
+      - nvim-017
+      - nvim-020
       - vim-master
+      - vim-8069
+      - vim-74-xenial
+      - vim-74-trusty
+      - vim-73
       # - check
