@@ -95,6 +95,8 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
         let type = 'W'
     elseif a:entry.type ==# 'C' || a:entry.type ==# 'T'  " McCabe complexity & todo notes
         let type = 'I'
+    elseif a:entry.type ==# 'I' " keep at least 'I' from isort (I1), could get style subtype?!
+        let type = a:entry.type
     else
         let type = ''
     endif
