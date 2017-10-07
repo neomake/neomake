@@ -219,9 +219,9 @@ docker_vimhelplint:
 	$(MAKE) docker_make "DOCKER_MAKE_TARGET=vimhelplint \
 	  VIMHELPLINT_VIM=/vim-build/bin/vim-master"
 
-_ECHO_DOCKER_VIMS:=docker run --rm $(DOCKER_IMAGE) ls /vim-build/bin | grep vim | sort
+_ECHO_DOCKER_VIMS:=ls /vim-build/bin | grep vim | sort
 docker_list_vims:
-	@$(_ECHO_DOCKER_VIMS)
+	docker run --rm $(DOCKER_IMAGE) $(_ECHO_DOCKER_VIMS)
 
 travis_test:
 	@ret=0; \
