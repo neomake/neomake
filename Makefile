@@ -228,20 +228,7 @@ travis_test:
 	  travis_run_make() { \
 	    echo "travis_fold:start:script.$$1"; \
 	    echo "== Running \"make $$2\" =="; \
-	    set -x; \
-	    if [[ "$$1" != check ]]; then \
-	      prof_name=$$1; \
-	      if [[ "$${prof_name#neovim}" != "$$prof_name" ]]; then \
-	        prof_name="nvim-nvim$${prof_name#neovim-v}"; \
-	        prof_name="$${prof_name//./}"; \
-	      else \
-	        prof_name="vim-$${prof_name//-/_}"; \
-	      fi; \
-	      prof_dir=profile-output.docker-$$prof_name; \
-	      mkdir $$prof_dir; \
-	    fi; \
-	    make $$2 DOCKER_MAKE_TEST_TARGET="testcoverage NEOMAKE_TEST_PROFILE_DIR=$$prof_dir" || return; \
-	    set +x; \
+	    make $$2 || return; \
 	    echo "travis_fold:end:script.$$1"; \
 	  }; \
 	  travis_run_make neovim-v0.2.0 "docker_test DOCKER_VIM=neovim-v0.2.0" || (( ret+=1  )); \
@@ -250,7 +237,7 @@ travis_test:
 	  travis_run_make vim8069       "docker_test DOCKER_VIM=vim8069" NEOMAKE_TEST_NO_COLORSCHEME=1 || (( ret+=8  )); \
 	  travis_run_make vim73         "docker_test DOCKER_VIM=vim73"         || (( ret+=16 )); \
 	  travis_run_make vim-xenial    "docker_test DOCKER_VIM=vim74-xenial"  || (( ret+=32 )); \
-	  travis_run_make check         "check_docker"                         || (( ret+=64 )); \
+	  travis_run_make check         "check"                                || (( ret+=64 )); \
 	exit $$ret
 
 travis_lint:
