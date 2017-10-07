@@ -14,7 +14,7 @@ common: &common
     - run:
         name: Run make {{ .Environment.MAKE_ARGS }}
         command: |
-          make --keep-going $MAKE_ARGS || exit 1
+          make --keep-going $MAKE_ARGS
     - run:
         name: upload coverage results for non-checkqa builds
         command: |
