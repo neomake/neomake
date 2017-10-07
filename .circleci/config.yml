@@ -15,12 +15,6 @@ common: &common
     # - run:
     #     name: Install Neovim
     #     command: eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
-    - run:
-        name: Install covimerage
-        command: |
-          pip install --user https://github.com/Vimjas/covimerage/archive/develop.zip
-          PATH=$HOME/.local/bin:$PATH
-          covimerage --version
     - run: make --keep-going $MAKE_ARGS || exit 1
     - run:
         name: upload coverage results for non-checkqa builds
@@ -58,7 +52,7 @@ jobs:
   nvim:
     <<: *common
     docker:
-      - image: neomake/vims-for-tests
+      - image: neomake/vims-for-tests:circleci
         environment:
           MAKE_ARGS=testcoverage
           NEOMAKE_TEST_PROFILE_DIR=profile-output.nvim-nvimmaster
