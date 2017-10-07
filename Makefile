@@ -3,7 +3,7 @@ CDPATH:=
 SHELL:=/bin/bash -o pipefail
 
 # Use nvim if it is installed, otherwise vim.
-ifeq ($(shell command -v nvim),)
+ifeq ($(shell command -v nvim 2>/dev/null),)
 	DEFAULT_VIM:=vim
 else
 	DEFAULT_VIM:=nvim
