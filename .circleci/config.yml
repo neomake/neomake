@@ -106,12 +106,12 @@ workflows:
   version: 2
   test:
     jobs:
-      # - nvim-master
-      # - nvim-017
-      # - nvim-020
-      # - vim-master
-      # - vim-8069
-      # - vim-74-xenial
-      # - vim-74-trusty
-      # - vim-73
+      - nvim-master
+      - nvim-017
+      - nvim-020
+      - vim-master
+      - vim-8069
+      - vim-74-xenial
+      - vim-74-trusty
+      - vim-73
       - check
