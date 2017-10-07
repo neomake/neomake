@@ -8,10 +8,6 @@ common: &common
   working_directory: ~/repo
   steps:
     - checkout
-    - restore_cache:
-        keys:
-          - v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "Makefile" }}
-          - v1-deps-
     # - run:
     #     name: Install Neovim
     #     command: eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
@@ -46,11 +42,6 @@ common: &common
             done
             set +x
           fi
-    - save_cache:
-        paths:
-          - tests/vim/plugins/vader
-          - tests/vim/plugins/fugitive
-        key: v1-deps-{{ .Environment.CIRCLE_JOB }}-{{ checksum "Makefile" }}
 jobs:
   nvim:
     <<: *common
