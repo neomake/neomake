@@ -20,12 +20,11 @@ VADER_OPTIONS:=-q
 VADER_ARGS=tests/main.vader tests/isolated.vader
 VIM_ARGS='+$(VADER) $(VADER_OPTIONS) $(VADER_ARGS)'
 
-DEFAULT_VADER_DIR:=tests/vim/plugins/vader
-export TESTS_VADER_DIR:=$(firstword $(realpath $(wildcard tests/vim/plugins/vader.override)) $(DEFAULT_VADER_DIR))
-$(DEFAULT_VADER_DIR):
+TESTS_VADER_DIR:=build/vim/plugins/vader
+$(TESTS_VADER_DIR):
 	mkdir -p $(dir $@)
 	git clone -q --depth=1 -b display-source-with-exceptions https://github.com/blueyed/vader.vim $@
-TESTS_FUGITIVE_DIR:=tests/vim/plugins/fugitive
+TESTS_FUGITIVE_DIR:=build/vim/plugins/fugitive
 $(TESTS_FUGITIVE_DIR):
 	mkdir -p $(dir $@)
 	git clone -q --depth=1 https://github.com/tpope/vim-fugitive $@
@@ -180,7 +179,6 @@ DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO
 DOCKER_STREAMS:=-ti
 DOCKER=docker run $(DOCKER_STREAMS) --rm \
     -v $(PWD):/testplugin \
-    -v $(abspath $(TESTS_VADER_DIR)):/testplugin/tests/vim/plugins/vader \
     -e NEOMAKE_TEST_NO_COLORSCHEME \
     $(DOCKER_IMAGE)
 docker_image:
@@ -335,6 +333,10 @@ build/coverage: $(shell find . -name '*.vim')
 	covimerage write_coverage $?/*.profile
 coverage: .coverage
 	coverage report -m --skip-covered
+
+clean:
+	$(RM) -r build
+.PHONY: clean
 
 .PHONY: vint vint-errors vimlint vimlint-errors
 .PHONY: test testnvim testvim testnvim_interactive testvim_interactive

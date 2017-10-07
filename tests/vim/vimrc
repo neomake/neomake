@@ -9,19 +9,19 @@ let g:neomake_test_messages = []
 " Shorter timeouts during tests.
 let g:neomake_action_queue_timeouts = {1: 10, 2: 20, 3: 30}
 
+let s:dep_plugins_base = expand('<sfile>:p:h').'/../../build/vim/plugins'
 if exists('$TESTS_VADER_DIR')
   let vader_dir = expand($TESTS_VADER_DIR)
 else
-  let vader_dir = expand('<sfile>:p:h').'/plugins/vader'
+  let vader_dir = s:dep_plugins_base . '/vader'
 endif
 let &runtimepath .= ','.vader_dir
 exe 'source' vader_dir.'/plugin/vader.vim'
 
-let s:plugins_dir = expand('<sfile>:p:h').'/plugins/'
 let s:sourced_plugins = []
 function! s:load_plugin_on_demand(name) abort
   Save &runtimepath
-  let dir = s:plugins_dir.a:name
+  let dir = s:dep_plugins_base.'/'.a:name
   let &runtimepath .= ','.dir
   if index(s:sourced_plugins, a:name) == -1
     exe 'source' dir.'/plugin/'.a:name.'.vim'
