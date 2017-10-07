@@ -280,7 +280,7 @@ travis_lint:
 # Checks to be run with Docker.
 # This is kept separate from "check" to not require Docker there.
 check_docker:
-	@:; ret=0; \
+	@:; set -e; ret=0; \
 	echo '== Checking for DOCKER_VIMS to be in sync'; \
 	vims=$$($(_ECHO_DOCKER_VIMS)); \
 	docker_vims="$$(printf '%s\n' $(DOCKER_VIMS) | sort)"; \
@@ -293,7 +293,7 @@ check_docker:
 	exit $$ret
 
 check:
-	@:; ret=0; \
+	@:; set -e; ret=0; \
 	echo '== Checking that all tests are included'; \
 	for f in $(filter-out main.vader isolated.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
 	  if ! grep -q "^Include.*: $$f" tests/main.vader; then \
@@ -318,7 +318,7 @@ check:
 	echo '== Checking tests'; \
 	output="$$(grep --line-number --color AssertThrows -A1 tests/*.vader \
 		| grep -E '^[^[:space:]]+- ' \
-		| grep -v g:vader_exception | sed -e s/-/:/ -e s/-//)"; \
+		| grep -v g:vader_exception | sed -e s/-/:/ -e s/-// || true)"; \
 	if [[ -n "$$output" ]]; then \
 		echo 'AssertThrows used without checking g:vader_exception:' >&2; \
 		echo "$$output" >&2; \
