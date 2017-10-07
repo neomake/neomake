@@ -15,7 +15,10 @@ common: &common
     # - run:
     #     name: Install Neovim
     #     command: eval "$(curl -Ss https://raw.githubusercontent.com/neovim/bot-ci/master/scripts/travis-setup.sh) nightly-x64"
-    - run: make --keep-going $MAKE_ARGS || exit 1
+    - run:
+        name: Run make {{ .Environment.MAKE_ARGS }}
+        command: |
+          make --keep-going $MAKE_ARGS || exit 1
     - run:
         name: upload coverage results for non-checkqa builds
         command: |
