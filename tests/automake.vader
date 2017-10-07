@@ -544,6 +544,23 @@ Execute (Automake for normal mode handles ciw):
   AssertEqual len(g:neomake_test_jobfinished), 1
   bwipe!
 
+Execute (Automake restarts if context changed):
+  if !has('timers')
+    NeomakeTestsSkip 'only with timers feature'
+  else
+    new
+    norm! iword1 word2
+    set filetype=neomake_tests
+    call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 5}})
+    doautocmd CursorHold
+    AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
+    norm! ^
+    sleep 10m
+    AssertNeomakeMessage "automake: context/position changed: [[0, 1, 11, 0], 'n'] => [[0, 1, 1, 0], 'n'].", 3
+    AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
+    bwipe!
+  endif
+
 Execute (Timer callback ignores wiped buffer):
   if !has('timers')
     NeomakeTestsSkip 'only with timers feature'
