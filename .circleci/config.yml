@@ -100,7 +100,7 @@ jobs:
     docker:
       - image: neomake/vims-for-tests:circleci
         environment:
-          MAKE_ARGS=check
+          MAKE_ARGS=check check_docker
 
 workflows:
   version: 2
