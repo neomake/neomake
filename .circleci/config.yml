@@ -56,7 +56,7 @@ jobs:
         environment:
           MAKE_ARGS=testcoverage
           NEOMAKE_TEST_PROFILE_DIR=profile-output.nvim-nvimmaster
-          TEST_VIM=nvim
+          TEST_VIM=/vim-build/bin/neovim-master
   check:
     <<: *common
     docker:
