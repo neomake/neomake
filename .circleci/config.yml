@@ -75,12 +75,20 @@ workflows:
   version: 2
   test:
     jobs:
-      - nvim-master
-      - nvim-017
       - nvim-020
-      - vim-master
+      - nvim-master:
+          requires:
+            - nvim-020
+      - nvim-017:
+          requires:
+            - nvim-020
       - vim-8069
+      - vim-master:
+          requires:
+            - vim-8069
       - vim-74-xenial
       - vim-74-trusty
-      - vim-73
+      - vim-73:
+          requires:
+            - vim-8069
       - checkqa
