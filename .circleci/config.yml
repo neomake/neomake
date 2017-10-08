@@ -2,16 +2,13 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:10@sha256:e5f4dea519cbe21a769072024fd35248712021dec291ca8568fecdc0710e739b
+    - image: neomake/vims-for-tests:10@sha256:641ad965318eca4fd0c9c2ee8f4141103731db9780ccfc9a03c107bebefdcec7
   working_directory: ~/repo
   steps:
     - checkout
+    - run: make --keep-going testcoverage TEST_VIM=$TEST_VIM
     - run:
-        name: Run tests
-        command: |
-          make --keep-going testcoverage TEST_VIM=$TEST_VIM
-    - run:
-        name: upload coverage results for non-checkqa builds
+        name: Upload coverage results
         command: |
           set -x
           src_dir="$PWD"
@@ -28,7 +25,7 @@ common: &common
           covimerage report -m
           covimerage xml --include 'autoload/*' --include 'plugin/*' --include 'tests/*' --omit 'tests/fixtures/vim/*'
           codecov -X search gcov pycov -f coverage.xml --required \
-            --name "$prof_name" --flags ${CIRCLE_JOB%%-*} ${CIRCLE_JOB//-/}
+            --name "$CIRCLE_JOB" --flags ${CIRCLE_JOB%%-*} ${CIRCLE_JOB//-/}
           set +x
 jobs:
   nvim-master:
@@ -65,30 +62,21 @@ jobs:
       TEST_VIM=/vim-build/bin/vim73
 
   checkqa:
-    docker:
-      - image: neomake/vims-for-tests:circleci
+    <<: *common
     steps:
       - checkout
-      - run: make --keep-going check check_docker
+      - run: make --keep-going check check_docker circleci_lint
 
 workflows:
   version: 2
   test:
     jobs:
       - nvim-020
-      - nvim-master:
-          requires:
-            - nvim-020
-      - nvim-017:
-          requires:
-            - nvim-020
+      - nvim-master
+      - nvim-017
       - vim-8069
-      - vim-master:
-          requires:
-            - vim-8069
+      - vim-master
       - vim-74-xenial
       - vim-74-trusty
-      - vim-73:
-          requires:
-            - vim-8069
+      - vim-73
       - checkqa

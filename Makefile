@@ -142,24 +142,30 @@ tags:
 
 # Linters, called from .travis.yml.
 LINT_ARGS:=./plugin ./autoload
+
+# Vint.
+VINT_BIN=$(shell command -v vint 2>/dev/null || echo build/vint/bin/vint)
 build/vint: | build
-	virtualenv $@
-	$@/bin/pip install --quiet vim-vint
-vint: build/vint
-	build/vint/bin/vint $(LINT_ARGS)
-vint-errors: build/vint
-	build/vint/bin/vint --error $(LINT_ARGS)
+	$(shell command -v virtualenv 2>/dev/null || echo python3 -m venv) $@
+build/vint/bin/vint: | build/vint
+	build/vint/bin/pip install --quiet vim-vint
+vint: | $(VINT_BIN)
+	$(VINT_BIN) $(LINT_ARGS)
+vint-errors: | $(VINT_BIN)
+	$(VINT_BIN) --error $(LINT_ARGS)
 
 # vimlint
+VIMLINT_BIN=$(shell command -v vimlint 2>/dev/null || echo build/vimlint/bin/vimlint.sh -l build/vimlint -p build/vimlparser)
+build/vimlint/bin/vimlint.sh: build/vimlint build/vimlparser
 build/vimlint: | build
 	git clone -q --depth=1 https://github.com/syngan/vim-vimlint $@
 build/vimlparser: | build
 	git clone -q --depth=1 https://github.com/ynkdir/vim-vimlparser $@
 VIMLINT_OPTIONS=-u -e EVL102.l:_=1
-vimlint: build/vimlint build/vimlparser
-	build/vimlint/bin/vimlint.sh $(VIMLINT_OPTIONS) -l build/vimlint -p build/vimlparser $(LINT_ARGS)
-vimlint-errors: build/vimlint build/vimlparser
-	build/vimlint/bin/vimlint.sh $(VIMLINT_OPTIONS) -E -l build/vimlint -p build/vimlparser $(LINT_ARGS)
+vimlint: $(firstword $(VIMLINT_BIN))
+	$(VIMLINT_BIN) $(VIMLINT_OPTIONS) $(LINT_ARGS)
+vimlint-errors: $(firstword VIMLINT_BIN)
+	$(VIMLINT_BIN) $(VIMLINT_OPTIONS) -E $(LINT_ARGS)
 
 build build/neovim-test-home:
 	mkdir $@
@@ -175,7 +181,7 @@ vimhelplint: | build/vimhelplint
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=9
+DOCKER_TAG:=10
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
@@ -224,30 +230,14 @@ _ECHO_DOCKER_VIMS:=ls /vim-build/bin | grep vim | sort
 docker_list_vims:
 	docker run --rm $(DOCKER_IMAGE) $(_ECHO_DOCKER_VIMS)
 
-travis_test:
-	@ret=0; \
-	  travis_run_make() { \
-	    echo "travis_fold:start:script.$$1"; \
-	    echo "== Running \"make $$2\" =="; \
-	    make $$2 || return; \
-	    echo "travis_fold:end:script.$$1"; \
-	  }; \
-	  travis_run_make neovim-v0.2.0 "docker_test DOCKER_VIM=neovim-v0.2.0" || (( ret+=1  )); \
-	  travis_run_make neovim-v0.1.7 "docker_test DOCKER_VIM=neovim-v0.1.7" || (( ret+=2  )); \
-	  travis_run_make vim-master    "docker_test DOCKER_VIM=vim-master"    || (( ret+=4  )); \
-	  travis_run_make vim8069       "docker_test DOCKER_VIM=vim8069" NEOMAKE_TEST_NO_COLORSCHEME=1 || (( ret+=8  )); \
-	  travis_run_make vim73         "docker_test DOCKER_VIM=vim73"         || (( ret+=16 )); \
-	  travis_run_make vim-xenial    "docker_test DOCKER_VIM=vim74-xenial"  || (( ret+=32 )); \
-	  travis_run_make check         "check"                                || (( ret+=64 )); \
-	exit $$ret
-
-travis_lint:
-	@echo "Looking for changed files in TRAVIS_COMMIT_RANGE=$$TRAVIS_COMMIT_RANGE."; \
-	  if [ -z "$$TRAVIS_COMMIT_RANGE" ]; then \
+circleci_lint:
+	@set -e; commit_range="$${CIRCLE_COMPARE_URL##*/}"; \
+	echo "Looking for changed files in commit range $$commit_range."; \
+	  if [ -z "$$commit_range" ]; then \
 	    MAKE_ARGS= ; \
 	  else \
-	    CHANGED_VIM_FILES=($$(git diff --name-only --diff-filter=AM "$$TRAVIS_COMMIT_RANGE" \
-	    | grep '\.vim$$' | grep -v '^tests/fixtures')); \
+	    CHANGED_VIM_FILES=($$(git diff --name-only --diff-filter=AM "$$commit_range" \
+	    | grep '\.vim$$' | grep -v '^tests/fixtures')) || true; \
 	    if [ -z "$$CHANGED_VIM_FILES" ]; then \
 	      echo 'No .vim files changed.'; \
 	      exit; \
@@ -255,14 +245,10 @@ travis_lint:
 	    MAKE_ARGS="LINT_ARGS='$$CHANGED_VIM_FILES'"; \
 	  fi; \
 	  ret=0; \
-	  echo 'travis_fold:start:script.vimlint'; \
 	  echo "== Running \"make vimlint $$MAKE_ARGS\" =="; \
 	  make vimlint $$MAKE_ARGS || (( ret+=1 )); \
-	  echo 'travis_fold:end:script.vimlint'; \
-	  echo 'travis_fold:start:script.vint'; \
 	  echo "== Running \"make vint $$MAKE_ARGS\" =="; \
 	  make vint $$MAKE_ARGS    || (( ret+=2 )); \
-	  echo 'travis_fold:end:script.vint'; \
 	exit $$ret
 
 # Checks to be run with Docker.
