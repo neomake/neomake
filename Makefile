@@ -20,11 +20,12 @@ VADER_OPTIONS:=-q
 VADER_ARGS=tests/main.vader tests/isolated.vader
 VIM_ARGS='+$(VADER) $(VADER_OPTIONS) $(VADER_ARGS)'
 
-TESTS_VADER_DIR:=build/vim/plugins/vader
+NEOMAKE_TESTS_DEP_PLUGINS_DIR?=build/vim/plugins
+TESTS_VADER_DIR:=$(NEOMAKE_TESTS_DEP_PLUGINS_DIR)/vader
 $(TESTS_VADER_DIR):
 	mkdir -p $(dir $@)
 	git clone -q --depth=1 -b display-source-with-exceptions https://github.com/blueyed/vader.vim $@
-TESTS_FUGITIVE_DIR:=build/vim/plugins/fugitive
+TESTS_FUGITIVE_DIR:=$(NEOMAKE_TESTS_DEP_PLUGINS_DIR)/vim-fugitive
 $(TESTS_FUGITIVE_DIR):
 	mkdir -p $(dir $@)
 	git clone -q --depth=1 https://github.com/tpope/vim-fugitive $@
@@ -77,9 +78,10 @@ _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log --compact vader
 # Redirect to stderr again for Docker (where only stderr is used from).
 _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
 
+_COVIMERAGE=$(if $(NEOMAKE_PROFILE_FILE),covimerage run --profile-file "$(NEOMAKE_PROFILE_FILE)" --report-file /dev/stderr ,)
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) $(TEST_VIM) --version | head -n2))
-	$(TEST_VIM_PREFIX) $(TEST_VIM) \
+	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)$(TEST_VIM) \
 	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X) \
 	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 endef
@@ -125,12 +127,12 @@ testcoverage:
 	  if [ -d "$$cov_dir" ]; then \
 	    $(RM) -r $$cov_dir; \
 	  fi; \
-	  mkdir -p $$cov_dir; \
 	fi; \
+	mkdir -p $$cov_dir; \
 	echo "Generating profile output in $$cov_dir"; \
 	for testfile in $(COVERAGE_VADER_ARGS); do \
 	  make test VADER_ARGS=$$testfile \
-	    NEOMAKE_COVERAGE_FILE=$$cov_dir/$$(basename $$testfile).profile || (( ++ret )); \
+	    NEOMAKE_PROFILE_FILE=$$cov_dir/$$(basename $$testfile).profile || (( ++ret )); \
 	done; \
 	exit $$ret
 
@@ -173,7 +175,7 @@ vimhelplint: | build/vimhelplint
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=8
+DOCKER_TAG:=9
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
@@ -218,29 +220,16 @@ docker_vimhelplint:
 	$(MAKE) docker_make "DOCKER_MAKE_TARGET=vimhelplint \
 	  VIMHELPLINT_VIM=/vim-build/bin/vim-master"
 
-_ECHO_DOCKER_VIMS:=docker run --rm $(DOCKER_IMAGE) ls /vim-build/bin | grep vim | sort
+_ECHO_DOCKER_VIMS:=ls /vim-build/bin | grep vim | sort
 docker_list_vims:
-	@$(_ECHO_DOCKER_VIMS)
+	docker run --rm $(DOCKER_IMAGE) $(_ECHO_DOCKER_VIMS)
 
 travis_test:
 	@ret=0; \
 	  travis_run_make() { \
 	    echo "travis_fold:start:script.$$1"; \
 	    echo "== Running \"make $$2\" =="; \
-	    set -x; \
-	    if [[ "$$1" != check ]]; then \
-	      prof_name=$$1; \
-	      if [[ "$${prof_name#neovim}" != "$$prof_name" ]]; then \
-	        prof_name="nvim-nvim$${prof_name#neovim-v}"; \
-	        prof_name="$${prof_name//./}"; \
-	      else \
-	        prof_name="vim-$${prof_name//-/_}"; \
-	      fi; \
-	      prof_dir=profile-output.docker-$$prof_name; \
-	      mkdir $$prof_dir; \
-	    fi; \
-	    make $$2 DOCKER_MAKE_TEST_TARGET="testcoverage NEOMAKE_TEST_PROFILE_DIR=$$prof_dir" || return; \
-	    set +x; \
+	    make $$2 || return; \
 	    echo "travis_fold:end:script.$$1"; \
 	  }; \
 	  travis_run_make neovim-v0.2.0 "docker_test DOCKER_VIM=neovim-v0.2.0" || (( ret+=1  )); \
@@ -249,7 +238,7 @@ travis_test:
 	  travis_run_make vim8069       "docker_test DOCKER_VIM=vim8069" NEOMAKE_TEST_NO_COLORSCHEME=1 || (( ret+=8  )); \
 	  travis_run_make vim73         "docker_test DOCKER_VIM=vim73"         || (( ret+=16 )); \
 	  travis_run_make vim-xenial    "docker_test DOCKER_VIM=vim74-xenial"  || (( ret+=32 )); \
-	  travis_run_make check         "check_docker"                         || (( ret+=64 )); \
+	  travis_run_make check         "check"                                || (( ret+=64 )); \
 	exit $$ret
 
 travis_lint:
@@ -279,7 +268,7 @@ travis_lint:
 # Checks to be run with Docker.
 # This is kept separate from "check" to not require Docker there.
 check_docker:
-	@:; ret=0; \
+	@:; set -e; ret=0; \
 	echo '== Checking for DOCKER_VIMS to be in sync'; \
 	vims=$$($(_ECHO_DOCKER_VIMS)); \
 	docker_vims="$$(printf '%s\n' $(DOCKER_VIMS) | sort)"; \
@@ -292,7 +281,7 @@ check_docker:
 	exit $$ret
 
 check:
-	@:; ret=0; \
+	@:; set -e; ret=0; \
 	echo '== Checking that all tests are included'; \
 	for f in $(filter-out main.vader isolated.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
 	  if ! grep -q "^Include.*: $$f" tests/main.vader; then \
@@ -317,7 +306,7 @@ check:
 	echo '== Checking tests'; \
 	output="$$(grep --line-number --color AssertThrows -A1 tests/*.vader \
 		| grep -E '^[^[:space:]]+- ' \
-		| grep -v g:vader_exception | sed -e s/-/:/ -e s/-//)"; \
+		| grep -v g:vader_exception | sed -e s/-/:/ -e s/-// || true)"; \
 	if [[ -n "$$output" ]]; then \
 		echo 'AssertThrows used without checking g:vader_exception:' >&2; \
 		echo "$$output" >&2; \

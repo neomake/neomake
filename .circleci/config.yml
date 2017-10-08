@@ -1,0 +1,86 @@
+version: 2
+
+common: &common
+  docker:
+    - image: neomake/vims-for-tests:9@sha256:c673ab7d2822f01f7c099e9994f420d0489ff7dc06a4da892df9a41cfeacdacb
+  working_directory: ~/repo
+  steps:
+    - checkout
+    - run:
+        name: Run tests
+        command: |
+          make --keep-going testcoverage TEST_VIM=$TEST_VIM
+    - run:
+        name: upload coverage results for non-checkqa builds
+        command: |
+          set -x
+          src_dir="$PWD"
+          shopt -s nullglob
+
+          profiles="$(find build/coverage -name '*.profile')"
+          if [[ -z "$profiles" ]]; then
+            echo "warning: no profiles found in $d."
+            exit 2
+          fi
+          sed -i "s:^SCRIPT  /testplugin/:SCRIPT  $src_dir/:" $profiles
+
+          covimerage write_coverage --source . $profiles
+          covimerage report -m
+          covimerage xml --include 'autoload/*' --include 'plugin/*' --include 'tests/*'
+          codecov -X search gcov pycov -f coverage.xml --required \
+            --name "$prof_name" --flags ${CIRCLE_JOB%%-*} ${CIRCLE_JOB//-/}
+          set +x
+jobs:
+  nvim-master:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/neovim-master
+  nvim-017:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/neovim-v0.1.7
+  nvim-020:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/neovim-v0.2.0
+  vim-master:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/vim-master
+  vim-8069:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/vim8069
+  vim-74-xenial:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/vim74-xenial
+  vim-74-trusty:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/vim74-trusty
+  vim-73:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/vim73
+
+  checkqa:
+    docker:
+      - image: neomake/vims-for-tests:circleci
+    steps:
+      - checkout
+      - run: make --keep-going check check_docker
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - nvim-master
+      - nvim-017
+      - nvim-020
+      - vim-master
+      - vim-8069
+      - vim-74-xenial
+      - vim-74-trusty
+      - vim-73
+      - checkqa

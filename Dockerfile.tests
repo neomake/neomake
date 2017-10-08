@@ -22,3 +22,16 @@ ENV _UPDATE=2017-10-08
 # Git master in a separate layer, since the above is meant to be stable.
 RUN install_vim -tag master -py3 -build \
                 -tag neovim:master -py2 -py3 -build
+
+# Install dep plugins (test runner and those used during tests).
+ENV NEOMAKE_TESTS_DEP_PLUGINS_DIR=/neomake-deps
+RUN mkdir $NEOMAKE_TESTS_DEP_PLUGINS_DIR
+RUN apk --no-cache add git && \
+  git clone -q --depth=1 -b display-source-with-exceptions https://github.com/blueyed/vader.vim $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vader && \
+  git clone -q --depth=1 https://github.com/tpope/vim-fugitive $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vim-fugitive && \
+  apk del git
+
+# Install covimerage and codecov.
+RUN apk --no-cache add python3 && \
+  pip3 install https://github.com/Vimjas/covimerage/archive/develop.zip && \
+  pip3 install codecov
