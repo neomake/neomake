@@ -19,6 +19,13 @@ Execute (neomake#utils#LogMessage writes to logfile always):
   let logfile_msg = readfile(g:neomake_logfile)[-1]
   Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \[W \+0.0\d\] msg4.$', 'Message does not match: '.logfile_msg
 
+Execute (neomake#utils#LogMessage unsets logfile in case of errors):
+  Save g:neomake_logfile
+  let g:neomake_logfile = '/does/not/exist'
+  call neomake#utils#LogMessage(1, 'msg1.')
+  AssertNeomakeMessage '\vError when trying to write to logfile /does/not/exist: Vim\(call\):E.*.  Unsetting g:neomake_logfile.', 0
+  Assert !exists('g:neomake_logfile'), 'g:neomake_logfile has been unset.'
+
 Execute (NeomakeTestsCreateExe creates exe):
   Assert !executable('boobar'), 'boobar is not executable'
   call g:NeomakeTestsCreateExe('boobar', [])
@@ -528,7 +535,7 @@ Execute (neomake#utils#get_config_fts):
   AssertEqual s:F('jsx'), ['jsx', 'javascript']
 
 Execute (neomake#utils#fnamemodify handles fugitive buffer):
-  NeomakeTestsLoadPlugin 'fugitive'
+  NeomakeTestsLoadPlugin 'vim-fugitive'
   new
   edit autoload/neomake/debug.vim
   let bufname = bufname('%')

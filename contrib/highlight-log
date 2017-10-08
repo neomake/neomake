@@ -42,9 +42,13 @@ if [ "$1" = vader ]; then
     last_start_match=
     re_non_log_line='^      > \[(debug  |verbose|warning|error  )|((D|V|W|E) +\+[.0-9]+)\]'
     filtering=0
+    quiet_filtered=
     while read -r; do
-      if [[ "$REPLY" == 'Vader error:'* ]] || [[ "$REPLY" == 'Error'* ]]; then
+      if [[ "$REPLY" == 'Vader error:'* ]] || [[ "$REPLY" == 'Error'* ]] || [[ "$REPLY" == 'Traceback'* ]]; then
         printf "\r" >&2
+        if [[ -n "$quiet_filtered" ]]; then
+          echo "$quiet_filtered"
+        fi
         printf "[31m[1m%s[0m\n" "$REPLY"
         quiet_started=1
         continue
@@ -58,6 +62,11 @@ if [ "$1" = vader ]; then
         else
           printf "\r%s" ${spinner_chars:spinner_current++:1} >&2
           ((spinner_current==${#spinner_chars})) && spinner_current=0
+          if [[ -n "$quiet_filtered" ]]; then
+            quiet_filtered="$quiet_filtered"$'\n'"$REPLY"
+          else
+            quiet_filtered="$REPLY"
+          fi
         fi
         continue
       fi

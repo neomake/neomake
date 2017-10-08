@@ -37,3 +37,31 @@ Execute (neomake#compat#systemlist with empty args):
 
 Execute (neomake#compat#json_decode):
   AssertEqual neomake#compat#json_decode(''), g:neomake#compat#json_none
+
+Execute (neomake#compat#get_mode):
+  AssertEqual neomake#compat#get_mode(), 'n'
+
+  norm! V
+  AssertEqual neomake#compat#get_mode(), 'V'
+  exe "norm! \<Esc>"
+  AssertEqual neomake#compat#get_mode(), 'n'
+
+  if has('nvim')
+    let nvim_exe = '/proc/'.getpid().'/exe'
+    let nvim = jobstart([nvim_exe, '-u', 'tests/vim/vimrc', '--embed'], {'rpc': v:true})
+    call rpcrequest(nvim, 'nvim_call_function', 'feedkeys', ['d', '!'])
+    call rpcrequest(nvim, 'nvim_eval', 'assert_equal(neomake#compat#get_mode(), "no")')
+    let rpc_errors = rpcrequest(nvim, 'nvim_eval', 'v:errors')
+    AssertEqual rpc_errors, []
+    call jobstop(nvim)
+  elseif exists('*timer_start')
+    let b:mode_in_cb = ''
+    function s:CB(...)
+        let b:mode_in_cb = neomake#compat#get_mode()
+        call feedkeys("\<Esc>")
+    endfunction
+    call timer_start(10, 's:CB')
+    call feedkeys('da', 'x!')
+    AssertEqual b:mode_in_cb, 'no'
+    AssertEqual neomake#compat#get_mode(), 'n'
+  endif

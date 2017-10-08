@@ -1488,7 +1488,7 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
                             \ [a:make_info] + a:000])
             endif
 
-            let mode = mode()
+            let mode = neomake#compat#get_mode()
             if index(['n', 'i'], mode) == -1
                 call neomake#utils#DebugMessage(printf(
                             \ 'Postponing final location list handling for mode "%s".', mode),
@@ -1542,8 +1542,9 @@ endfunction
 function! s:CanProcessJobOutput() abort
     " We can only process output (change the location/quickfix list) in
     " certain modes, otherwise e.g. the visual selection gets lost.
-    if index(['n', 'i'], mode()) == -1
-        call neomake#utils#DebugMessage('Not processing output for mode "'.mode().'".')
+    let mode = neomake#compat#get_mode()
+    if index(['n', 'i'], mode) == -1
+        call neomake#utils#DebugMessage('Not processing output for mode "'.mode.'".')
     elseif exists('*getcmdwintype') && getcmdwintype() !=# ''
         call neomake#utils#DebugMessage('Not processing output from command-line window "'.getcmdwintype().'".')
     else

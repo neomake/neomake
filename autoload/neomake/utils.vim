@@ -119,9 +119,14 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
         if !exists('timediff')
             let timediff = s:reltime_lastmsg()
         endif
-        call writefile([printf('%s [%s %s] %s',
-                    \ date, s:short_level_to_name[a:level], timediff, msg)],
-                    \ logfile, s:logfile_writefile_opts)
+        try
+            call writefile([printf('%s [%s %s] %s',
+                        \ date, s:short_level_to_name[a:level], timediff, msg)],
+                        \ logfile, s:logfile_writefile_opts)
+        catch
+            unlet g:neomake_logfile
+            call neomake#utils#ErrorMessage(printf('Error when trying to write to logfile %s: %s.  Unsetting g:neomake_logfile.', logfile, v:exception))
+        endtry
     endif
     " @vimlint(EVL104, 0, l:timediff)
 endfunction
@@ -309,9 +314,6 @@ function! neomake#utils#get_config_fts(ft, ...) abort
         call add(r, ft)
         let super_ft = neomake#utils#GetSupersetOf(ft)
         while !empty(super_ft)
-            if empty(super_ft)
-                break
-            endif
             if index(fts, super_ft) == -1
                 call add(r, super_ft)
             endif

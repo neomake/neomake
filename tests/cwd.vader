@@ -103,7 +103,7 @@ Execute (tempfile with pwd):
   bwipe
 
 Execute (cwd handles fugitive buffer):
-  NeomakeTestsLoadPlugin 'fugitive'
+  NeomakeTestsLoadPlugin 'vim-fugitive'
   let maker = NeomakeTestsCommandMaker('pwd', 'pwd; printf')
   let maker.cwd = '%:p:h'
   let maker.errorformat = '%m'
