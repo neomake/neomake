@@ -2,7 +2,7 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:9@sha256:c673ab7d2822f01f7c099e9994f420d0489ff7dc06a4da892df9a41cfeacdacb
+    - image: neomake/vims-for-tests:10@sha256:b057c39ea9e7be8b9adf0aee899baed132b6c71e5def7edea5cd9fc7263f2344
   working_directory: ~/repo
   steps:
     - checkout
@@ -75,12 +75,20 @@ workflows:
   version: 2
   test:
     jobs:
-      - nvim-master
-      - nvim-017
       - nvim-020
-      - vim-master
+      - nvim-master:
+          requires:
+            - nvim-020
+      - nvim-017:
+          requires:
+            - nvim-020
       - vim-8069
+      - vim-master:
+          requires:
+            - vim-8069
       - vim-74-xenial
       - vim-74-trusty
-      - vim-73
+      - vim-73:
+          requires:
+            - vim-8069
       - checkqa

@@ -535,7 +535,7 @@ Execute (neomake#utils#get_config_fts):
   AssertEqual s:F('jsx'), ['jsx', 'javascript']
 
 Execute (neomake#utils#fnamemodify handles fugitive buffer):
-  NeomakeTestsLoadPlugin 'fugitive'
+  NeomakeTestsLoadPlugin 'vim-fugitive'
   new
   edit autoload/neomake/debug.vim
   let bufname = bufname('%')
