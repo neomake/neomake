@@ -286,7 +286,9 @@ function! neomake#utils#load_ft_makers(ft) abort
     " Load ft maker, but only once (for performance reasons and to allow for
     " monkeypatching it in tests).
     if index(s:loaded_ft_maker_runtime, a:ft) == -1
-        exe 'runtime! autoload/neomake/makers/ft/'.a:ft.'.vim'
+        if !exists('*neomake#makers#ft#'.a:ft.'#EnabledMakers')
+            exe 'runtime! autoload/neomake/makers/ft/'.a:ft.'.vim'
+        endif
         call add(s:loaded_ft_maker_runtime, a:ft)
     endif
 endfunction
