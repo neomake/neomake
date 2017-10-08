@@ -28,7 +28,7 @@ function! s:load_plugin_on_demand(name) abort
   let dir = s:dep_plugins_base.'/'.a:name
   let &runtimepath .= ','.dir
   if index(s:sourced_plugins, a:name) == -1
-    exe 'source' dir.'/plugin/'.a:name.'.vim'
+    exe 'source '.dir.'/plugin/*.vim'
     call add(s:sourced_plugins, a:name)
   endif
 endfunction
