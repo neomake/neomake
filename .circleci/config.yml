@@ -37,46 +37,32 @@ jobs:
       TEST_VIM=/vim-build/bin/neovim-master
   nvim-017:
     <<: *common
-    docker:
-      - image: neomake/vims-for-tests:circleci
-        environment:
-          TEST_VIM=/vim-build/bin/neovim-v0.1.7
+    environment:
+      TEST_VIM=/vim-build/bin/neovim-v0.1.7
   nvim-020:
     <<: *common
-    docker:
-      - image: neomake/vims-for-tests:circleci
-        environment:
-          TEST_VIM=/vim-build/bin/neovim-v0.2.0
+    environment:
+      TEST_VIM=/vim-build/bin/neovim-v0.2.0
   vim-master:
     <<: *common
-    docker:
-      - image: neomake/vims-for-tests:circleci
-        environment:
-          TEST_VIM=/vim-build/bin/vim-master
+    environment:
+      TEST_VIM=/vim-build/bin/vim-master
   vim-8069:
     <<: *common
-    docker:
-      - image: neomake/vims-for-tests:circleci
-        environment:
-          TEST_VIM=/vim-build/bin/vim8069
+    environment:
+      TEST_VIM=/vim-build/bin/vim8069
   vim-74-xenial:
     <<: *common
-    docker:
-      - image: neomake/vims-for-tests:circleci
-        environment:
-          TEST_VIM=/vim-build/bin/vim74-xenial
+    environment:
+      TEST_VIM=/vim-build/bin/vim74-xenial
   vim-74-trusty:
     <<: *common
-    docker:
-      - image: neomake/vims-for-tests:circleci
-        environment:
-          TEST_VIM=/vim-build/bin/vim74-trusty
+    environment:
+      TEST_VIM=/vim-build/bin/vim74-trusty
   vim-73:
     <<: *common
-    docker:
-      - image: neomake/vims-for-tests:circleci
-        environment:
-          TEST_VIM=/vim-build/bin/vim73
+    environment:
+      TEST_VIM=/vim-build/bin/vim73
 
   checkqa:
     docker:
