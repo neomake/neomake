@@ -173,7 +173,7 @@ vimhelplint: | build/vimhelplint
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=7
+DOCKER_TAG:=8
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti

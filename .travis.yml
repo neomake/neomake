@@ -8,7 +8,7 @@ branches:
 
 env:
   global:
-    - NEOMAKE_DOCKER_IMAGE: neomake/vims-for-tests:7@sha256:05619a3d77db8afca1d38a015483ee8f56e432a39935fcf27ea922b9af5bf759
+    - NEOMAKE_DOCKER_IMAGE: neomake/vims-for-tests:8@sha256:09c09ceccc507ce2170287872d582803fefb6cb57b95a6a6bdd81bc6b9afc495
 
 matrix:
   fast_finish: true
