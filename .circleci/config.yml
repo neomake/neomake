@@ -7,7 +7,7 @@ common: &common
     - run:
         name: Run tests
         command: |
-          make --keep-going testcoverage
+          make --keep-going testcoverage TEST_VIM=$TEST_VIM
     - run:
         name: upload coverage results for non-checkqa builds
         command: |
@@ -34,49 +34,49 @@ jobs:
     docker:
       - image: neomake/vims-for-tests:circleci
         environment:
-          TEST_VIM: /vim-build/bin/neovim-master
+          TEST_VIM=/vim-build/bin/neovim-master
   nvim-017:
     <<: *common
     docker:
       - image: neomake/vims-for-tests:circleci
         environment:
-          TEST_VIM: /vim-build/bin/neovim-v0.1.7
+          TEST_VIM=/vim-build/bin/neovim-v0.1.7
   nvim-020:
     <<: *common
     docker:
       - image: neomake/vims-for-tests:circleci
         environment:
-          TEST_VIM: /vim-build/bin/neovim-v0.2.0
+          TEST_VIM=/vim-build/bin/neovim-v0.2.0
   vim-master:
     <<: *common
     docker:
       - image: neomake/vims-for-tests:circleci
         environment:
-          TEST_VIM: /vim-build/bin/vim-master
+          TEST_VIM=/vim-build/bin/vim-master
   vim-8069:
     <<: *common
     docker:
       - image: neomake/vims-for-tests:circleci
         environment:
-          TEST_VIM: /vim-build/bin/vim8069
+          TEST_VIM=/vim-build/bin/vim8069
   vim-74-xenial:
     <<: *common
     docker:
       - image: neomake/vims-for-tests:circleci
         environment:
-          TEST_VIM: /vim-build/bin/vim74-xenial
+          TEST_VIM=/vim-build/bin/vim74-xenial
   vim-74-trusty:
     <<: *common
     docker:
       - image: neomake/vims-for-tests:circleci
         environment:
-          TEST_VIM: /vim-build/bin/vim74-trusty
+          TEST_VIM=/vim-build/bin/vim74-trusty
   vim-73:
     <<: *common
     docker:
       - image: neomake/vims-for-tests:circleci
         environment:
-          TEST_VIM: /vim-build/bin/vim73
+          TEST_VIM=/vim-build/bin/vim73
 
   checkqa:
     docker:
