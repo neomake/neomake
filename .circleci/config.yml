@@ -1,10 +1,6 @@
 version: 2
 
 common: &common
-  filters:
-    branches:
-      only:
-        - circleci
   working_directory: ~/repo
   steps:
     - checkout
