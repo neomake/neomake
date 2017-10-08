@@ -25,7 +25,7 @@ TESTS_VADER_DIR:=$(NEOMAKE_TESTS_DEP_PLUGINS_DIR)/vader
 $(TESTS_VADER_DIR):
 	mkdir -p $(dir $@)
 	git clone -q --depth=1 -b display-source-with-exceptions https://github.com/blueyed/vader.vim $@
-TESTS_FUGITIVE_DIR:=$(NEOMAKE_TESTS_DEP_PLUGINS_DIR)/fugitive
+TESTS_FUGITIVE_DIR:=$(NEOMAKE_TESTS_DEP_PLUGINS_DIR)/vim-fugitive
 $(TESTS_FUGITIVE_DIR):
 	mkdir -p $(dir $@)
 	git clone -q --depth=1 https://github.com/tpope/vim-fugitive $@
