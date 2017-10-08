@@ -26,7 +26,7 @@ common: &common
 
           covimerage write_coverage --source . $profiles
           covimerage report -m
-          covimerage xml --include 'autoload/*' --include 'plugin/*' --include 'tests/*'
+          covimerage xml --include 'autoload/*' --include 'plugin/*' --include 'tests/*' --omit 'tests/fixtures/vim/*'
           codecov -X search gcov pycov -f coverage.xml --required \
             --name "$prof_name" --flags ${CIRCLE_JOB%%-*} ${CIRCLE_JOB//-/}
           set +x
