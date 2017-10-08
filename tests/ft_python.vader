@@ -128,7 +128,6 @@ Execute (neomake#makers#ft#python#Flake8EntryProcess):
   call neomake#makers#ft#python#Flake8EntryProcess(entry)
   AssertEqual entry.type, 'E'
 
-
 Execute (python: flake8):
   Save &errorformat
   let &errorformat = neomake#makers#ft#python#flake8().errorformat
@@ -148,3 +147,34 @@ Execute (python: flake8):
   \ 'vcol': 0, 'nr': '', 'type': 'I', 'pattern': '',
   \ 'text': 'I1 isort found an import in the wrong position'}
   bwipe
+
+Execute (python: pylint):
+  let entry = {'type': 'F', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'E'
+  AssertEqual entry.col, 2
+
+  let entry = {'type': 'E', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'E'
+  AssertEqual entry.col, 2
+
+  let entry = {'type': 'W', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'W'
+  AssertEqual entry.col, 2
+
+  let entry = {'type': 'R', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'W'
+  AssertEqual entry.col, 2
+
+  let entry = {'type': 'C', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'W'
+  AssertEqual entry.col, 2
+
+  let entry = {'type': 'I', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'I'
+  AssertEqual entry.col, 2
