@@ -34,7 +34,7 @@ jobs:
     docker:
       - image: neomake/vims-for-tests:circleci
         environment:
-          - TEST_VIM=/vim-build/bin/neovim-master
+          TEST_VIM=/vim-build/bin/neovim-master
   nvim-017:
     <<: *common
     docker:
