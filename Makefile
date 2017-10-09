@@ -150,9 +150,9 @@ build/vint: | build
 build/vint/bin/vint: | build/vint
 	build/vint/bin/pip install --quiet vim-vint
 vint: | $(VINT_BIN)
-	$(VINT_BIN) $(LINT_ARGS)
+	$(VINT_BIN) --color $(LINT_ARGS)
 vint-errors: | $(VINT_BIN)
-	$(VINT_BIN) --error $(LINT_ARGS)
+	$(VINT_BIN) --color --error $(LINT_ARGS)
 
 # vimlint
 VIMLINT_BIN=$(shell command -v vimlint 2>/dev/null || echo build/vimlint/bin/vimlint.sh -l build/vimlint -p build/vimlparser)
