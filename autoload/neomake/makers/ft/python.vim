@@ -284,7 +284,7 @@ function! neomake#makers#ft#python#mypy() abort
     if !exists('s:python_version')
         let s:python_version = split(split(system('python -V 2>&1'))[1], '\.')
     endif
-    if !v:shell_error && s:python_version[0] ==ä '2'
+    if !v:shell_error && s:python_version[0] == '2'
         call add(l:args, '--py2')
     endif
 
