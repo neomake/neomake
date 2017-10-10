@@ -318,7 +318,7 @@ function! neomake#makers#ft#python#Version() abort
 
     " Use the major number from s:default_version
     " If the shebang does not contain one or is absent
-    execute 'set filetype=python.' . (empty(l:shebang) || l:shebang[1] == '' ?
+    execute 'set filetype=python.' . (empty(l:shebang) || empty(l:shebang[1]) ?
                 \ s:default_version[0] :
                 \l:shebang[1])
     " return 'python.' . (empty(l:shebang) || l:shebang[1] == '' ? s:default_version[0] : l:shebang[1])
