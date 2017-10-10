@@ -278,8 +278,18 @@ endfunction
 " --fast-parser: adds experimental support for async/await syntax
 " --silent-imports: replaced by --ignore-missing-imports
 function! neomake#makers#ft#python#mypy() abort
+    let l:args = ['--check-untyped-defs', '--ignore-missing-imports']
+    try
+        if !exists('s:python_version')
+            let s:python_version = split(split(system('python -V 2>&1'))[1], '\.')
+        endif
+        if s:python_version[0] == '2'
+            call add(l:args, '--py2')
+        endif
+    catch
+    endtry
     return {
-        \ 'args': ['--check-untyped-defs', '--ignore-missing-imports'],
+        \ 'args': l:args,
         \ 'errorformat':
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .
