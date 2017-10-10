@@ -279,8 +279,8 @@ endfunction
 " --silent-imports: replaced by --ignore-missing-imports
 function! neomake#makers#ft#python#mypy() abort
     let l:args = ['--check-untyped-defs', '--ignore-missing-imports']
-    let l:output = system('pyenv version')
-    if !v:shell_error && l:output[0] == '2'
+    let l:output = system('python -V 2>&1')
+    if !v:shell_error && split(split(l:output)[1], '\.')[0] == '2'
       call add(l:args, '--py2')
     endif
 
