@@ -137,16 +137,20 @@ Execute (Automake supports custom buffer config):
   AssertNeomakeMessage 'automake: buffer was not changed.', 3
 
   " Resetting global config does not reset tick?!
-  call neomake#configure#automake({
-  \ 'BufWinEnter': {'delay': 0}})
+  call neomake#configure#automake({'BufWinEnter': {'delay': 0}})
   doautocmd BufWinEnter
   AssertNeomakeMessage 'automake: buffer was not changed.', 3
   AssertEqual len(g:neomake_test_finished), 1
 
-  " Resetting buffer config does reset tick.
-  call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 0}})
+  " Changing buffer config resets tick.
+  call neomake#configure#automake_for_buffer({'BufWinEnter': {'delay': 0}}, 0, ['another_maker'])
+  doautocmd BufWinEnter
+  AssertNeomakeMessage 'Maker not found (for filetype neomake_tests): another_maker.'
+
+  " Changing buffer options resets tick.
+  call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 0}}, 0, ['another_maker'])
   doautocmd CursorHold
-  AssertEqual len(g:neomake_test_finished), 2
+  AssertNeomakeMessage 'Maker not found (for filetype neomake_tests): another_maker.'
 
   bwipe
 
@@ -195,8 +199,18 @@ Execute (Automake):
 
   AssertEqual &buftype, 'nofile'
   new
+  let bufnr = bufnr('%')
   let b:neomake_tempfile_enabled = 1
+  let len_before = len(g:neomake_test_messages)
   setfiletype neomake_tests
+  AssertEqual len_before, len(g:neomake_test_messages), 'Nothing happened on FileType, since buffer is not configured.'
+  if exists('#TextChanged')
+    AssertNeomakeMessage 'automake: registered events: InsertLeave, TextChanged.'
+  else
+    AssertNeomakeMessage 'automake: registered events: CursorHold, InsertLeave.'
+  endif
+  normal! iline1
+
   AssertNeomakeMessage 'Maker not found (for filetype neomake_tests): nonexisting.', 3
   AssertNeomakeMessage 'Exe (maker_without_exe) of auto-configured maker maker_without_exe is not executable, skipping.'
   AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (no enabled makers).', 3
@@ -205,32 +219,50 @@ Execute (Automake):
   call neomake#config#set('ft.neomake_tests.automake.enabled_makers', ['true'])
   doautocmd FileType
   AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (true (global)).'
+  NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 0
+
+  doautocmd InsertLeave
+  AssertNeomakeMessage 'automake: tick changed (new).', 3, {'bufnr': bufnr}
+  if has('timers')
+    NeomakeTestsWaitForNextFinishedJob
+  endif
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual len(g:neomake_test_jobfinished), 1
+
+  " Tick was not reset on FileType-reconfig (no changes).
+  doautocmd FileType
+  AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (true (global)).', 3
+  doautocmd InsertLeave
+  if has('timers')
+    sleep 20m
+  endif
+  AssertEqual len(g:neomake_test_jobfinished), 1
 
   normal! ifoo
   NeomakeTestsWaitForNextFinishedJob
-  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_jobfinished), 2
 
   " Should not run without changes to the buffer.
   exe 'doautocmd' event
   sleep 50m
-  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_jobfinished), 2
 
   " Should run with changes to the buffer.
   norm oline2
   exe 'doautocmd' event
   NeomakeTestsWaitForNextFinishedJob
-  AssertEqual len(g:neomake_test_jobfinished), 2
+  AssertEqual len(g:neomake_test_jobfinished), 3
 
   norm oline4
   if has('timers')
-    AssertEqual len(g:neomake_test_jobfinished), 2
+    AssertEqual len(g:neomake_test_jobfinished), 3
     exe 'doautocmd' event
-    AssertEqual len(g:neomake_test_jobfinished), 2
+    AssertEqual len(g:neomake_test_jobfinished), 3
     NeomakeTestsWaitForNextFinishedJob
   endif
 
-  AssertEqual len(g:neomake_test_jobfinished), 3
+  AssertEqual len(g:neomake_test_jobfinished), 4
 
   new
   exe 'doautocmd' event
@@ -295,11 +327,20 @@ Execute (Automake: skips non-default buftypes):
   AssertEqual len(g:neomake_test_jobfinished), 0
   bwipe!
 
-Execute (neomake#configure#automake_for_buffer sets up autocommands always):
+Execute (neomake#configure#automake_for_buffer does not set up autocommands for no makers):
   new
   set buftype=nofile
   call neomake#configure#automake_for_buffer('n', 10)
   AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
+  AssertNeomakeMessage 'automake: registered events: .', 3
+  bwipe
+
+Execute (neomake#configure#automake_for_buffer sets up autocommands with makers):
+  new
+  setfiletype neomake_tests
+  let g:neomake_test_enabledmakers = ['true']
+  call neomake#configure#automake_for_buffer('n', 10)
+  AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (true (default)).'
   if exists('#TextChanged')
     AssertNeomakeMessage 'automake: registered events: InsertLeave, TextChanged.'
   else
@@ -307,7 +348,7 @@ Execute (neomake#configure#automake_for_buffer sets up autocommands always):
   endif
   bwipe
 
-Execute (neomake#configure#automake_for_buffer sets up autocommands):
+Execute (neomake#configure#automake_for_buffer sets up autocommands with no makers):
   new
   set buftype=nofile
   set filetype=neomake_tests
@@ -318,6 +359,7 @@ Execute (neomake#configure#automake_for_buffer sets up autocommands):
     AssertNeomakeMessage 'automake: using CursorHold instead of TextChanged.', 3
     let event = 'CursorHold'
   endif
+  AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (no enabled makers).', 3
   call NeomakeTestsAssertAutomakeAutocommands(['InsertLeave', event])
   bwipe
 
