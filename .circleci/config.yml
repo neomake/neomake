@@ -11,19 +11,8 @@ common: &common
         name: Upload coverage results
         command: |
           set -x
-          src_dir="$PWD"
-          shopt -s nullglob
-
-          profiles="$(find build/coverage -name '*.profile')"
-          if [[ -z "$profiles" ]]; then
-            echo "warning: no profiles found in $d."
-            exit 2
-          fi
-          sed -i "s:^SCRIPT  /testplugin/:SCRIPT  $src_dir/:" $profiles
-
-          covimerage write_coverage --source . $profiles
-          covimerage report -m
-          covimerage xml --include 'autoload/*' --include 'plugin/*' --include 'tests/*' --omit 'tests/fixtures/vim/*'
+          coverage report -m
+          coverage xml
           codecov -X search gcov pycov -f coverage.xml --required \
             --name "$CIRCLE_JOB" --flags ${CIRCLE_JOB%%-*} ${CIRCLE_JOB//-/}
           set +x
