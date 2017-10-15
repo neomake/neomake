@@ -2,7 +2,7 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:10@sha256:641ad965318eca4fd0c9c2ee8f4141103731db9780ccfc9a03c107bebefdcec7
+    - image: neomake/vims-for-tests:10@sha256:e6e3dbc525f5194538fe51b2ce7c9b1d649b68c119f864d2ea1ec7197ce48dc1
   working_directory: ~/repo
   steps:
     - checkout
@@ -11,19 +11,8 @@ common: &common
         name: Upload coverage results
         command: |
           set -x
-          src_dir="$PWD"
-          shopt -s nullglob
-
-          profiles="$(find build/coverage -name '*.profile')"
-          if [[ -z "$profiles" ]]; then
-            echo "warning: no profiles found in $d."
-            exit 2
-          fi
-          sed -i "s:^SCRIPT  /testplugin/:SCRIPT  $src_dir/:" $profiles
-
-          covimerage write_coverage --source . $profiles
-          covimerage report -m
-          covimerage xml --include 'autoload/*' --include 'plugin/*' --include 'tests/*' --omit 'tests/fixtures/vim/*'
+          coverage report -m
+          coverage xml
           codecov -X search gcov pycov -f coverage.xml --required \
             --name "$CIRCLE_JOB" --flags ${CIRCLE_JOB%%-*} ${CIRCLE_JOB//-/}
           set +x

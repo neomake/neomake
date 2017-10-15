@@ -42,4 +42,4 @@ RUN chmod +x /usr/local/bin/vimlint
 # Install covimerage, codecov and vint.
 RUN apk --no-cache add python3
 RUN pip3 install codecov vim-vint
-RUN pip3 install https://github.com/Vimjas/covimerage/archive/d15c01e.zip
+RUN pip3 install https://github.com/Vimjas/covimerage/archive/8f37e91.zip
