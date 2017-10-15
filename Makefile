@@ -78,7 +78,7 @@ _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log --compact vader
 # Redirect to stderr again for Docker (where only stderr is used from).
 _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
 
-_COVIMERAGE=$(if $(filter-out $(NEOMAKE_DO_COVERAGE),0),covimerage run --append --no-report ,)
+_COVIMERAGE=$(if $(filter-out 0,$(NEOMAKE_DO_COVERAGE)),covimerage run --append --no-report ,)
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) $(TEST_VIM) --version | head -n2))
 	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)$(TEST_VIM) \
