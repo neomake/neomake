@@ -17,6 +17,10 @@ endif
 if !exists('s:map_job_ids')
     let s:map_job_ids = {}
 endif
+if !exists('s:action_queue')
+    let s:action_queue = {'WinEnter': [], 'Timer': []}
+endif
+let s:action_queue_timer_timeouts = get(g:, 'neomake_action_queue_timeouts', {1: 100, 2: 200, 3: 500})
 
 " Errors by [maker_type][bufnr][lnum]
 let s:current_errors = {'project': {}, 'file': {}}
@@ -908,8 +912,6 @@ function! s:HandleLoclistQflistDisplay(jobinfo) abort
     endif
 endfunction
 
-let s:action_queue = {'WinEnter': [], 'Timer': []}
-let s:action_queue_timer_timeouts = get(g:, 'neomake_action_queue_timeouts', {1: 100, 2: 200, 3: 500})
 " Queue an action to be processed later for autocmd a:event or through a timer
 " for a:event=Timer.
 " It will call a:data[0], with a:data[1] as args (where the first should be
