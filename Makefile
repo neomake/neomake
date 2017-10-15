@@ -221,7 +221,7 @@ docker_list_vims:
 	docker run --rm $(DOCKER_IMAGE) $(_ECHO_DOCKER_VIMS)
 
 circleci_lint:
-	@set -e; commit_range="$${CIRCLE_COMPARE_URL##*/}"; \
+	@set -ex; commit_range="$${CIRCLE_COMPARE_URL##*/}"; \
 	echo "Looking for changed files in commit range $$commit_range."; \
 	  if [ -z "$$commit_range" ]; then \
 	    MAKE_ARGS= ; \
