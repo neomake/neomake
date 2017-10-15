@@ -658,7 +658,8 @@ which caches the information retrieved from `neomake#statusline#get_status()`.
 The function requires the buffer number as first argument, and an optional
 dictionary.
 
-The following example can be used in a custom 'statusline' function: >
+The following example can be used in a custom 'statusline' function, where
+`a:active` could reflect if the window is the current one: >
     let neomake_status_str = neomake#statusline#get(bufnr, {
           \ 'format_running': '… ({{running_job_names}})',
           \ 'format_ok': (a:active ? '%#NeomakeStatusGood#' : '%*').'✓',
@@ -669,10 +670,45 @@ The following example can be used in a custom 'statusline' function: >
           \   .'%%)',
           \ })
 <
+A simpler example: >
+    let neomake_status_str = neomake#statusline#get(bufnr, {
+          \ 'format_running': '… ({{running_job_names}})',
+          \ 'format_ok': '✓',
+          \ 'format_quickfix_ok': '',
+          \ 'format_quickfix_issues': '%s',
+          \ })
+<
 You can use the following options:
   - format_running: used in case there are jobs running.  Use 0 (as a number)
     to disable this, but fall through to the last known status.
     Default: `… ({{running_job_names}})`
+
+  - format_loclist_unknown: format for when the status for location list
+    issues is unknown, i.e. Neomake was not run on the current buffer.
+    Default: `'?'`
+  - format_loclist_ok: format for when there are no location list issues.
+    Default: `'%#NeomakeStatusGood#✓'` (a checkmark using the
+    NeomakeStatusGood highlight group).
+  - format_loclist_type_X: format for location list issues of type X
+    (E, W, I, …).
+    Default: `' {{type}}:{{count}} '`
+  - format_loclist_issues: format for wrapping all location list issues.
+    Default: `'%s'` (used with |printf|).
+
+  - format_quickfix_ok: format for no quickfix issues.
+    Default: `''`
+  - format_quickfix_type_X: format for quickfix list issues of type X
+    (E, W, I, …).
+    Default: `' {{type}}:{{count}} '`
+  - format_quickfix_issues: format for wrapping all quickfix list issues.
+    You can use an empty string to skip displaying quickfix issues, which can
+    be useful for non-current windows.
+    Default: `'%s'` (used with |printf|).
+
+  - format_status: used to wrap the whole status (if Neomake is not enabled).
+    This is a |printf| format string, where `%s` gets replaced with the whole
+    status (and any literal/non-printf `%` needs to be escaped as `%%`).
+    Default: not used / `'%s'`
 
 You can use the following format placeholders:
   - `{{running_job_names}}}`: comma-separated list of running jobs (typically
