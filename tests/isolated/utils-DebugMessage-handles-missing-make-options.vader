@@ -18,13 +18,13 @@ Execute (neomake#utils#DebugMessage handles missing make_options):
 
   " Non-existing make_id should not make it verbose.
   call neomake#utils#DebugMessage('msg1', {'make_id': -42})
-  AssertEqual s:log_calls, [['warning: missing make_info key: -42']]
+  AssertEqual s:log_calls, [['warning: missing make_info key: -42.']]
   AssertEqual NeomakeTestsGetVimMessages(), []
 
   let g:neomake_verbose = 3
   let s:log_calls = []
   call neomake#utils#DebugMessage('msg1', {'make_id': -42})
-  AssertEqual s:log_calls, [['warning: missing make_info key: -42']]
+  AssertEqual s:log_calls, [['warning: missing make_info key: -42.']]
   let msgs = NeomakeTestsGetVimMessages()
   AssertEqual len(msgs), 1
   Assert msgs[0] =~# '\VNeomake\.\*: [-42.-:-:1] msg1', 'msg matches ('.msgs[0].')'
@@ -33,7 +33,7 @@ Execute (neomake#utils#DebugMessage handles missing make_options):
   let g:neomake_verbose = 0
   let s:log_calls = []
   call neomake#utils#DebugMessage('msg1', {'make_id': -42})
-  AssertEqual s:log_calls, [['warning: missing make_info key: -42']]
+  AssertEqual s:log_calls, [['warning: missing make_info key: -42.']]
   AssertEqual NeomakeTestsGetVimMessages(), []
 
   let g:neomake_test_messages = []
