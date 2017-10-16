@@ -59,7 +59,7 @@ endfunction
 function! neomake#makers#ft#tex#pdflatex() abort
     return {
                 \ 'exe': 'pdflatex',
-                \ 'args': ['-file-line-error', '-interaction', 'nonstopmode'],
+                \ 'args': ['-shell-escape', '-file-line-error', '-interaction', 'nonstopmode'],
                 \ 'errorformat': '%E%f:%l: %m'
                 \ }
 endfunction
