@@ -4,3 +4,4 @@ Include: isolated/utils-DebugMessage-handles-missing-make-options.vader
 Include: isolated/highlights.vader
 Include: isolated/ft_help.vader
 Include: isolated/tempfiles-cleanup.vader
+Include: isolated/modes.vader
