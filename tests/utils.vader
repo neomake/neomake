@@ -675,6 +675,15 @@ Execute (neomake#utils#fix_self_ref):
   \   }
   \ }}
 
+Execute (neomake#utils#fix_self_ref with obj.func = obj.func):
+  let maker = {}
+  function maker.args()
+  endfunction
+  let maker.args = maker.args
+  let repr = neomake#utils#fix_self_ref(maker)
+  AssertEqual keys(repr), ['args']
+  call string(repr)
+
 Execute (neomake#utils#write_tempfile):
   Save &endofline, &binary
   let vim_temp = tempname()
