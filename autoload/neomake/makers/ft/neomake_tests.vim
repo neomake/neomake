@@ -13,6 +13,10 @@ function! neomake#makers#ft#neomake_tests#maker_without_exe() abort
     return {}
 endfunction
 
+function! neomake#makers#ft#neomake_tests#maker_with_nonstring_exe() abort
+    return {'exe': function('tr')}
+endfunction
+
 function! neomake#makers#ft#neomake_tests#echo_maker() abort
     return {
         \ 'exe': 'printf',
