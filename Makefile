@@ -120,6 +120,7 @@ $(_TESTS_REL_AND_ABS):
 
 testcoverage: COVERAGE_VADER_ARGS:=tests/main.vader $(wildcard tests/isolated/*.vader)
 testcoverage:
+	$(RM) .coverage.covimerage
 	@ret=0; \
 	for testfile in $(COVERAGE_VADER_ARGS); do \
 	  make test VADER_ARGS=$$testfile NEOMAKE_DO_COVERAGE=1 || (( ++ret )); \
