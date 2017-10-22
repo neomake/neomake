@@ -171,6 +171,14 @@ Execute (neomake#config#get handles Funcref variables):
   bwipe
   bwipe
 
+Execute (neomake#config#get does not return a partial for funcs):
+  new
+  let b:neomake = {}
+  function b:neomake.func()
+  endfunction
+  AssertEqual neomake#config#get('b:func'), get(b:neomake, 'func')
+  bwipe
+
 Execute (neomake#config#{un,}set_dict):
   let foo = {}
   call neomake#config#set_dict(foo, 'bar.baz', 42)

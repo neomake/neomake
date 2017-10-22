@@ -348,7 +348,7 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
     let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
     if maker_only && empty(maker_name)
         if has_key(a:maker, a:key)
-            return a:maker[a:key]
+            return get(a:maker, a:key)
         endif
         return a:default
     endif
@@ -378,7 +378,7 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
     endfor
 
     if has_key(a:maker, a:key)
-        return a:maker[a:key]
+        return get(a:maker, a:key)
     endif
 
     let key = maker_only ? maker_name.'_'.a:key : a:key
