@@ -7,7 +7,7 @@ function! neomake#makers#ft#toml#tomlcheck() abort
         \ 'args': ['-f'],
         \ 'errorformat':
         \     '%E%f:%l:%c:,' .
-        \     '%E%m,'
+        \     '%E%m'
         \ }
 endfunction
 
