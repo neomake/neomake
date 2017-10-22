@@ -247,8 +247,21 @@ Execute (neomake#utils#GetSetting with new-style config):
   AssertEqual neomake#utils#GetSetting(
   \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), function('tr')
   AssertNeomakeMessage "Using setting foo=function('tr') from 'global' (prefix: ['ft', 'neomake_tests'])."
-
   bwipe
+
+Execute (neomake#utils#GetSetting does not create a partial for dict funcs):
+  " Ref: https://github.com/neovim/neovim/issues/7432#issuecomment-338513967
+  let maker = {}
+  function maker.func()
+  endfunction
+
+  let Func = neomake#utils#GetSetting('func', maker, '', '', '', 1)
+  AssertEqual type(Func), type(function('tr'))
+  AssertEqual Func, get(maker, 'func')
+
+  let Func = neomake#utils#GetSetting('func', maker, '', '', '', 0)
+  AssertEqual type(Func), type(function('tr'))
+  AssertEqual Func, get(maker, 'func')
 
 Execute(neomake#utils#redir):
   command! NeomakeTestCommand echo 1 | echo 2

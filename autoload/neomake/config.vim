@@ -27,7 +27,7 @@ function! s:get(dict, parts, prefixes) abort
     for prefix in a:prefixes
         let [c, k] = s:resolve_name(a:dict, prefix + a:parts[0:-1], 0)
         if has_key(c, k)
-            return [prefix, c[k]]
+            return [prefix, get(c, k)]
         endif
     endfor
     return [[], g:neomake#config#undefined]
