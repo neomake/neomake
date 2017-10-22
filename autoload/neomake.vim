@@ -2496,6 +2496,16 @@ function! s:map_makers(options, makers, ...) abort
 
             if has_key(maker, '_bind_args')
                 call maker._bind_args()
+                if type(maker.exe) != type('')
+                    let error = printf('Non-string given for executable of maker %s: type %s.',
+                                \ maker.name, type(maker.exe))
+                    if !get(maker, 'auto_enabled', 0)
+                        call neomake#utils#ErrorMessage(error, options)
+                    else
+                        call neomake#utils#DebugMessage(error, options)
+                    endif
+                    continue
+                endif
                 if !executable(maker.exe)
                     if !get(maker, 'auto_enabled', 0)
                         let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)
