@@ -669,10 +669,6 @@ Execute (neomake#utils#fix_self_ref with obj.func = obj.func):
   let maker.args = maker.args
   let repr = neomake#utils#fix_self_ref(maker)
   AssertEqual keys(repr), ['args']
-  if has('nvim')
-    " https://github.com/neovim/neovim/issues/7432
-    AssertEqual repr, {'args': '<unrepresentable object, type=4>'}
-  endif
   call string(repr)
 
 Execute (neomake#utils#write_tempfile):
