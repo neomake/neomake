@@ -4,7 +4,7 @@ endfunction
 
 function! neomake#makers#ft#verilog#iverilog() abort
     return {
-                \ 'args' : ['-t null', '-Wall'],
+                \ 'args' : ['-tnull', '-Wall'],
                 \ 'errorformat' : '%f:%l: %trror: %m,' .
                 \ '%f:%l: %tarning: %m,' .
                 \ '%E%f:%l:      : %m,' .
