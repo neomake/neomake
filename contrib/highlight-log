@@ -48,6 +48,7 @@ if [ "$1" = vader ]; then
         printf "\r" >&2
         if [[ -n "$quiet_filtered" ]]; then
           echo "$quiet_filtered"
+          quiet_filtered=
         fi
         printf "[31m[1m%s[0m\n" "$REPLY"
         quiet_started=1
@@ -59,6 +60,7 @@ if [ "$1" = vader ]; then
           printf "\r" >&2
           echo "$REPLY"
           quiet_started=1
+          quiet_filtered=
         else
           printf "\r%s" ${spinner_chars:spinner_current++:1} >&2
           ((spinner_current==${#spinner_chars})) && spinner_current=0
