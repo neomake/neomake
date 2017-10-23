@@ -221,25 +221,21 @@ _ECHO_DOCKER_VIMS:=ls /vim-build/bin | grep vim | sort
 docker_list_vims:
 	docker run --rm $(DOCKER_IMAGE) $(_ECHO_DOCKER_VIMS)
 
-circleci_lint:
-	@set -ex; commit_range="$${CIRCLE_COMPARE_URL##*/}"; \
-	echo "Looking for changed files in commit range $$commit_range."; \
-	  if [ -z "$$commit_range" ]; then \
-	    MAKE_ARGS= ; \
-	  else \
-	    CHANGED_VIM_FILES=($$(git diff --name-only --diff-filter=AM "$$commit_range" \
-	    | grep '\.vim$$' | grep -v '^tests/fixtures')) || true; \
-	    if [ -z "$$CHANGED_VIM_FILES" ]; then \
-	      echo 'No .vim files changed.'; \
-	      exit; \
-	    fi; \
-	    MAKE_ARGS="LINT_ARGS='$$CHANGED_VIM_FILES'"; \
-	  fi; \
-	  ret=0; \
-	  echo "== Running \"make vimlint $$MAKE_ARGS\" =="; \
-	  make vimlint $$MAKE_ARGS || (( ret+=1 )); \
-	  echo "== Running \"make vint $$MAKE_ARGS\" =="; \
-	  make vint $$MAKE_ARGS    || (( ret+=2 )); \
+check_lint_diff:
+	@set -ex; \
+	echo "Looking for changed files (to origin/master)."; \
+	CHANGED_VIM_FILES=($$(git diff-tree --no-commit-id --name-only --diff-filter=AM -r origin/master.. \
+	  | grep '\.vim$$' | grep -v '^tests/fixtures')) || true; \
+	if [ -z "$$CHANGED_VIM_FILES" ]; then \
+	  echo 'No .vim files changed.'; \
+	  exit; \
+	fi; \
+	MAKE_ARGS="LINT_ARGS='$$CHANGED_VIM_FILES'"; \
+	ret=0; \
+	echo "== Running \"make vimlint $$MAKE_ARGS\" =="; \
+	make vimlint $$MAKE_ARGS || (( ret+=1 )); \
+	echo "== Running \"make vint $$MAKE_ARGS\" =="; \
+	make vint $$MAKE_ARGS    || (( ret+=2 )); \
 	exit $$ret
 
 # Checks to be run with Docker.
