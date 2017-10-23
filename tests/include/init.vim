@@ -334,12 +334,6 @@ function! g:entry_maker.get_list_entries(...) abort
   \   {'text': 'error', 'lnum': 1, 'type': 'E'}])
 endfunction
 let g:doesnotexist_maker = {'exe': 'doesnotexist'}
-let g:sleep_entry_maker = {}
-function! g:sleep_entry_maker.get_list_entries(...) abort
-  sleep 10m
-  return get(g:, 'neomake_test_getlistentries', [
-  \   {'text': 'slept', 'lnum': 1}])
-endfunction
 
 " A maker that generates incrementing errors.
 let g:neomake_test_inc_maker_counter = 0
