@@ -10,10 +10,10 @@ Execute (Postprocessing updates list):
   AssertNotEqual list, [], 'loclist is not empty'
 
   let maker = neomake#makers#ft#sh#sh()
-  function s:sh_maker.postprocess(entry)
+  function maker.postprocess(entry)
     let a:entry.text .= ' SUFFIX'
   endfunction
-  RunNeomake sh
+  CallNeomake 1, [maker]
   let expected_list = map(list, 'extend(v:val, {"text": v:val.text." SUFFIX"})')
   AssertEqual getloclist(0), expected_list
 
