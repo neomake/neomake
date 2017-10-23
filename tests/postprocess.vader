@@ -48,8 +48,6 @@ Execute (neomake#postprocess#GenericLengthPostprocess):
   bwipe!
 
 Execute (Postprocess: called with dict+maker as self for list):
-  runtime autoload/neomake/highlights.vim
-
   new
   file file1.vim
   norm! ifoo = bar - 5
