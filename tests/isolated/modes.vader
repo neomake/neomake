@@ -16,6 +16,10 @@ Execute (Output is not processed in operator-pending mode (Vim)):
     AssertNeomakeMessage 'Not processing output for mode "no".', 3
     AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
     AssertEqual getqflist(), [], 'Quickfix list has not been updated'
+
+    runtime autoload/neomake/compat.vim
+    AssertEqual neomake#compat#get_mode(), 'n'
+
     doautocmd CursorHold
     AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
     AssertNeomakeMessage 'Processed pending output.', 3, jobinfo
@@ -24,7 +28,4 @@ Execute (Output is not processed in operator-pending mode (Vim)):
     call neomake#signs#ResetProject()
     call neomake#signs#CleanAllOldSigns('project')
     bwipe
-
-    runtime autoload/neomake/compat.vim
-    AssertEqual neomake#compat#get_mode(), 'n'
   endif
