@@ -85,7 +85,7 @@ else
     function! neomake#GetMakeOptions(...) abort
         let make_id = a:0 ? a:1 : s:make_id
         if !has_key(s:make_info, make_id)
-            call neomake#utils#QuietMessage('warning: missing make_info key: '.make_id)
+            call neomake#utils#QuietMessage('warning: missing make_info key: '.make_id.'.')
             return {'verbosity': get(g:, 'neomake_verbose', 1)}
         endif
         return s:make_info[make_id]
