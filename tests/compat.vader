@@ -65,3 +65,30 @@ Execute (neomake#compat#get_mode):
     AssertEqual b:mode_in_cb, 'no'
     AssertEqual neomake#compat#get_mode(), 'n'
   endif
+
+Execute (neomake#compat#get_mode with insert mode completion):
+  if has('timers')
+    Save &complete
+    set complete=.
+    new
+    file file_sleep_efm
+    normal! iword1
+    normal! oword2
+
+    function s:close_pum(...)
+      let s:mode = neomake#compat#get_mode()
+      call feedkeys("\<c-e>")
+      call feedkeys("\<esc>")
+    endfunction
+
+    call timer_start(100, 's:close_pum')
+    call feedkeys("oword\<C-p>", 'x!')
+
+    if has('patch-8.0.0283')
+      AssertEqual s:mode, 'ic'
+    else
+      AssertEqual s:mode, 'i'
+    endif
+    AssertEqual getline('.'), 'word'
+    bwipe!
+  endif
