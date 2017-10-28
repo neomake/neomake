@@ -249,23 +249,36 @@ Execute (Unbuffered output handled correctly (loclist)):
   endif
 
 Execute (Unbuffered output handled correctly (qflist)):
-  call neomake#statusline#ResetCounts()
   if NeomakeAsyncTestsSetup()
+    " Produce intersected output: 1_1, 2_1, 1_2, 2_2, …
+    let s:tmpfile1 = tempname()
+    let s:tmpfile2 = tempname()
+    call writefile([], s:tmpfile2)
     let maker_1 = extend(neomake#utils#MakerFromCommand(
-      \ 'for i in $(seq 1 5); do echo $i; sleep 0.01; done'), {
-      \ 'buffer_output': 0, 'errorformat': '%m'})
+      \ 'for i in $(seq 1 3); do while [ -e '.s:tmpfile1.' ]; do sleep 0.001; done; echo 1_$i; touch '.s:tmpfile1.'; done'), {
+      \ 'name': 'maker1', 'buffer_output': 0, 'errorformat': '%m', 'append_file': 0})
+    let maker_2 = extend(neomake#utils#MakerFromCommand(
+      \ 'for i in $(seq 1 3); do while [ -e '.s:tmpfile2.' ]; do sleep 0.001; done; echo 2_$i; touch '.s:tmpfile2.'; done'), {
+      \ 'name': 'maker2', 'buffer_output': 0, 'errorformat': '%m', 'append_file': 0})
 
-    call neomake#Make(0, [maker_1])
-    norm! V
-    NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.', 3
-    exe "norm! <Esc>"
-    doautocmd CursorHold
+    function! s:process_output(context)
+      if a:context.jobinfo.maker.name ==# 'maker1'
+        call delete(s:tmpfile2)
+      else
+        call delete(s:tmpfile1)
+      endif
+      return [{'text': join(a:context.output), 'lnum': 1}]
+    endfunction
+    let maker_1.process_output = function('s:process_output')
+    let maker_2.process_output = function('s:process_output')
+
+
+    let [jobinfo1, jobinfo2] = neomake#Make({'file_mode': 0, 'enabled_makers': [maker_1, maker_2]})
+    Assert jobinfo1.id < jobinfo2.id, "jobinfo1 before jobinfo2"
     NeomakeTestsWaitForRemovedJobs
-    AssertEqual len(g:neomake_test_countschanged), 1
-    AssertEqual len(g:neomake_test_jobfinished), 1
-    AssertEqual len(g:neomake_test_finished), 1
-    AssertEqual map(getqflist(), 'v:val.text'), map(range(1, 5), 'v:val . ""')
+    AssertEqual len(g:neomake_test_countschanged), 6
+    AssertEqual map(getqflist(), 'v:val.text'),
+      \ ['1_1', '2_1', '1_2', '2_2', '1_3', '2_3']
   endif
 
 Execute (Sleep in postprocess gets handled correctly):
