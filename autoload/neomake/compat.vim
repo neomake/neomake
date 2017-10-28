@@ -245,3 +245,16 @@ function! neomake#compat#get_mode() abort
         return mode(1)
     endif
 endfunction
+
+function! neomake#compat#in_completion() abort
+    if pumvisible()
+        return 1
+    endif
+    if has('patch-8.0.0283')
+        let mode = mode(1)
+        if mode[1] ==# 'c' || mode[1] ==# 'x'
+            return 1
+        endif
+    endif
+    return 0
+endfunction

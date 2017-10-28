@@ -75,11 +75,12 @@ Execute (neomake#compat#get_mode with insert mode completion):
 
     function s:close_pum(...)
       let s:mode = neomake#compat#get_mode()
+      let s:in_completion = neomake#compat#in_completion()
       call feedkeys("\<c-e>")
       call feedkeys("\<esc>")
     endfunction
 
-    call timer_start(100, 's:close_pum')
+    call timer_start(10, 's:close_pum')
     call feedkeys("oword\<C-p>", 'x!')
 
     if has('patch-8.0.0283')
@@ -88,5 +89,6 @@ Execute (neomake#compat#get_mode with insert mode completion):
       AssertEqual s:mode, 'i'
     endif
     AssertEqual getline('.'), 'word'
+    AssertEqual s:in_completion, 1
     bwipe!
   endif
