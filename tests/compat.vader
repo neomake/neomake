@@ -68,8 +68,6 @@ Execute (neomake#compat#get_mode):
 
 Execute (neomake#compat#get_mode with insert mode completion):
   if has('timers')
-    Save &complete
-    set complete=.
     new
     file file_sleep_efm
     normal! iword1
