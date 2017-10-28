@@ -18,7 +18,7 @@ RUN install_vim -tag v7.3.429 -name vim73 -py --with-features=huge -build \
                 -tag neovim:v0.2.0 -py2 -build \
   && rm -rf /vim-build/vim/vim/*/share/vim/*/tutor
 
-ENV _UPDATE=2017-10-08
+ENV NEOMAKE_DOCKERFILE_UPDATE=2017-10-28
 
 # Git master in a separate layer, since the above is meant to be stable.
 RUN install_vim -tag master -py2 -build \
