@@ -17,7 +17,7 @@ Execute (neomake#compat#systemlist):
   if has('nvim')
     AssertEqual r, ''
   else
-    AssertEqual r, ['/bin/bash: echo 1: command not found']
+    AssertEqual r, [&shell.': echo 1: command not found']
     AssertEqual v:shell_error, 127
   endif
 
@@ -33,7 +33,7 @@ Execute (neomake#compat#systemlist):
 Execute (neomake#compat#systemlist with empty args):
   AssertEqual neomake#compat#systemlist(''), []
   AssertEqual neomake#compat#systemlist([]), []
-  AssertEqual neomake#compat#systemlist('0'), ['/bin/bash: 0: command not found']
+  AssertEqual neomake#compat#systemlist('0'), [&shell.': 0: command not found']
 
 Execute (neomake#compat#json_decode):
   AssertEqual neomake#compat#json_decode(''), g:neomake#compat#json_none

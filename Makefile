@@ -1,6 +1,10 @@
 # Do not let mess "cd" with user-defined paths.
 CDPATH:=
-SHELL:=/bin/bash -o pipefail
+
+bash:=$(shell command -v bash 2>/dev/null)
+# This is expected in tests.
+TEST_VIM_PREFIX:=SHELL=$(bash)
+SHELL:=$(bash) -o pipefail
 
 # Use nvim if it is installed, otherwise vim.
 ifeq ($(shell command -v nvim 2>/dev/null),)
@@ -33,9 +37,6 @@ $(TESTS_FUGITIVE_DIR):
 DEP_PLUGINS=$(TESTS_VADER_DIR) $(TESTS_FUGITIVE_DIR)
 
 TEST_VIMRC:=tests/vim/vimrc
-
-# This is expected in tests.
-TEST_VIM_PREFIX:=SHELL=/bin/bash
 
 testwatch: override export VADER_OPTIONS+=-q
 testwatch:
