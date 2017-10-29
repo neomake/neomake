@@ -44,7 +44,7 @@ endfunction
 function! neomake#makers#ft#elixir#credo() abort
     return {
       \ 'exe': 'mix',
-      \ 'args': ['credo', 'list', '%:p', '--format=oneline'],
+      \ 'args': ['credo', 'list', '--format=oneline'],
       \ 'postprocess': function('neomake#makers#ft#elixir#PostprocessCredo'),
       \ 'errorformat':
           \'[%t] %. %f:%l:%c %m,' .
@@ -66,7 +66,7 @@ endfunction
 function! neomake#makers#ft#elixir#dogma() abort
     return {
       \ 'exe': 'mix',
-      \ 'args': ['dogma', '%:p', '--format=flycheck'],
+      \ 'args': ['dogma', '--format=flycheck'],
       \ 'errorformat': '%E%f:%l:%c: %.: %m'
       \ }
 endfunction

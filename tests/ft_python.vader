@@ -110,3 +110,71 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'type': 'E',
   \ 'text': "F811 redefinition of unused 'os' from line 2"}, e
   bwipe!
+
+Execute (neomake#makers#ft#python#Flake8EntryProcess):
+  let entry = {'type': 'F', 'nr': 841, 'text': "local variable 'foo' is assigned to but never used"}
+  call neomake#makers#ft#python#Flake8EntryProcess(entry)
+  AssertEqual entry.type, 'W'
+
+  let entry = {'type': 'F', 'nr': 999, 'text': "something"}
+  call neomake#makers#ft#python#Flake8EntryProcess(entry)
+  AssertEqual entry.type, 'E'
+
+  let entry = {'type': 'F', 'nr': 404, 'text': "not found"}
+  call neomake#makers#ft#python#Flake8EntryProcess(entry)
+  AssertEqual entry.type, 'W'
+
+  let entry = {'type': 'F', 'nr': 407, 'text': "no future"}
+  call neomake#makers#ft#python#Flake8EntryProcess(entry)
+  AssertEqual entry.type, 'E'
+
+Execute (python: flake8):
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#python#flake8().errorformat
+
+  new
+  file foo/bar.py
+  lgetexpr 'foo/bar.py:90:1: I001 isort found an import in the wrong position'
+  let llist = getloclist(0)
+  let bufnr = bufnr('%')
+  AssertEqual llist, [
+  \ {'lnum': 90, 'bufnr': bufnr, 'col': 1, 'valid': 1, 'vcol': 0,
+  \  'nr': 1, 'type': 'I', 'pattern': '',
+  \  'text': 'isort found an import in the wrong position'}]
+  let entry = llist[0]
+  call neomake#makers#ft#python#Flake8EntryProcess(entry)
+  AssertEqual entry, {'lnum': 90, 'bufnr': bufnr, 'col': 1, 'valid': 1,
+  \ 'vcol': 0, 'nr': '', 'type': 'I', 'pattern': '',
+  \ 'text': 'I1 isort found an import in the wrong position'}
+  bwipe
+
+Execute (python: pylint):
+  let entry = {'type': 'F', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'E'
+  AssertEqual entry.col, 2
+
+  let entry = {'type': 'E', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'E'
+  AssertEqual entry.col, 2
+
+  let entry = {'type': 'W', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'W'
+  AssertEqual entry.col, 2
+
+  let entry = {'type': 'R', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'W'
+  AssertEqual entry.col, 2
+
+  let entry = {'type': 'C', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'W'
+  AssertEqual entry.col, 2
+
+  let entry = {'type': 'I', 'col': 1}
+  call neomake#makers#ft#python#PylintEntryProcess(entry)
+  AssertEqual entry.type, 'I'
+  AssertEqual entry.col, 2

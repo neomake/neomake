@@ -334,26 +334,21 @@ function! g:entry_maker.get_list_entries(...) abort
   \   {'text': 'error', 'lnum': 1, 'type': 'E'}])
 endfunction
 let g:doesnotexist_maker = {'exe': 'doesnotexist'}
-let g:sleep_entry_maker = {}
-function! g:sleep_entry_maker.get_list_entries(...) abort
-  sleep 10m
-  return get(g:, 'neomake_test_getlistentries', [
-  \   {'text': 'slept', 'lnum': 1}])
-endfunction
 
 " A maker that generates incrementing errors.
 let g:neomake_test_inc_maker_counter = 0
+let s:shell_argv = split(&shell) + split(&shellcmdflag)
 function! s:IncMakerArgs()
   let g:neomake_test_inc_maker_counter += 1
   let cmd = ''
   for i in range(g:neomake_test_inc_maker_counter)
     let cmd .= 'echo b'.g:neomake_test_inc_maker_counter.' '.g:neomake_test_inc_maker_counter.':'.i.': buf: '.shellescape(bufname('%')).'; '
   endfor
-  return ['-c', cmd]
+  return s:shell_argv[1:] + [cmd]
 endfunction
 let g:neomake_test_inc_maker = {
       \ 'name': 'incmaker',
-      \ 'exe': &shell,
+      \ 'exe': s:shell_argv[0],
       \ 'args': function('s:IncMakerArgs'),
       \ 'errorformat': '%E%f %m',
       \ 'append_file': 0,

@@ -83,6 +83,8 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
             else
                 let type = 'W'
             endif
+        elseif a:entry.nr == 841
+            let type = 'W'
         else
             let type = 'E'
         endif
@@ -94,6 +96,8 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
         let type = 'W'
     elseif a:entry.type ==# 'C' || a:entry.type ==# 'T'  " McCabe complexity & todo notes
         let type = 'I'
+    elseif a:entry.type ==# 'I' " keep at least 'I' from isort (I1), could get style subtype?!
+        let type = a:entry.type
     else
         let type = ''
     endif
@@ -276,8 +280,18 @@ endfunction
 " --fast-parser: adds experimental support for async/await syntax
 " --silent-imports: replaced by --ignore-missing-imports
 function! neomake#makers#ft#python#mypy() abort
+    let l:args = ['--check-untyped-defs', '--ignore-missing-imports']
+
+    " Append '--py2' to args with Python 2 for Python 2 mode.
+    if !exists('s:python_version')
+        let s:python_version = split(split(system('python -V 2>&1'))[1], '\.')
+    endif
+    if !v:shell_error && s:python_version[0] ==# '2'
+        call add(l:args, '--py2')
+    endif
+
     return {
-        \ 'args': ['--check-untyped-defs', '--ignore-missing-imports'],
+        \ 'args': l:args,
         \ 'errorformat':
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .

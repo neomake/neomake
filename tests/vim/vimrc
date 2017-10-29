@@ -9,22 +9,26 @@ let g:neomake_test_messages = []
 " Shorter timeouts during tests.
 let g:neomake_action_queue_timeouts = {1: 10, 2: 20, 3: 30}
 
+if exists('$NEOMAKE_TESTS_DEP_PLUGINS_DIR')
+  let s:dep_plugins_base = $NEOMAKE_TESTS_DEP_PLUGINS_DIR
+else
+  let s:dep_plugins_base = expand('<sfile>:p:h').'/../../build/vim/plugins'
+endif
 if exists('$TESTS_VADER_DIR')
   let vader_dir = expand($TESTS_VADER_DIR)
 else
-  let vader_dir = expand('<sfile>:p:h').'/plugins/vader'
+  let vader_dir = s:dep_plugins_base . '/vader'
 endif
 let &runtimepath .= ','.vader_dir
 exe 'source' vader_dir.'/plugin/vader.vim'
 
-let s:plugins_dir = expand('<sfile>:p:h').'/plugins/'
 let s:sourced_plugins = []
 function! s:load_plugin_on_demand(name) abort
   Save &runtimepath
-  let dir = s:plugins_dir.a:name
+  let dir = s:dep_plugins_base.'/'.a:name
   let &runtimepath .= ','.dir
   if index(s:sourced_plugins, a:name) == -1
-    exe 'source' dir.'/plugin/'.a:name.'.vim'
+    exe 'source '.dir.'/plugin/*.vim'
     call add(s:sourced_plugins, a:name)
   endif
 endfunction
@@ -32,31 +36,6 @@ command! -nargs=1 NeomakeTestsLoadPlugin call s:load_plugin_on_demand(<args>)
 
 let plugin_dir = expand('<sfile>:p:h:h:h')
 let &runtimepath .= ','.plugin_dir
-
-let coverage_file = $NEOMAKE_COVERAGE_FILE
-if !empty(coverage_file) && has('profile')
-  if filereadable(coverage_file)
-    function! s:print_stderr(output)
-      let lines = split(a:output, '\n')
-      if !empty($VADER_OUTPUT_FILE)
-        call writefile(lines, $VADER_OUTPUT_FILE, 'a')
-      else
-        let tmp = tempname()
-        call writefile(lines, tmp)
-        execute 'silent !cat '.tmp.' 1>&2'
-        call delete(tmp)
-      endif
-    endfunction
-
-    let error = 'Error: NEOMAKE_COVERAGE_FILE: file exists, not overwriting: '.coverage_file
-    call s:print_stderr(error)
-    cquit  " exit non-zero.
-  else
-    exec 'profile start '.coverage_file
-    exe 'profile! file plugin/*.vim'
-    exe 'profile! file autoload/*.vim'
-  endif
-endif
 
 exe 'source' plugin_dir.'/plugin/neomake.vim'
 

@@ -3,9 +3,9 @@
 function! neomake#makers#sbt#sbt() abort
     return {
         \ 'exe': 'sbt',
-        \ 'args': ['compile'],
+        \ 'args': ['-Dsbt.log.noformat=true', 'compile'],
         \ 'errorformat':
-            \ '%E[%trror]\ %f:%l:\ %m,' .
+            \ '%E[%trror]\ %f:%l:%c:\ %m,' .
             \ '%-Z[error]\ %p^,' .
             \ '%-C%.%#,' .
             \ '%-G%.%#'

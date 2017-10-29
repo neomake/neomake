@@ -9,19 +9,14 @@ Execute (Postprocessing updates list):
   let list = getloclist(0)
   AssertNotEqual list, [], 'loclist is not empty'
 
-  let s:sh_maker = neomake#makers#ft#sh#sh()
-  function s:sh_maker.postprocess(entry)
+  let maker = neomake#makers#ft#sh#sh()
+  function maker.postprocess(entry)
     let a:entry.text .= ' SUFFIX'
   endfunction
-  function! neomake#makers#ft#sh#sh()
-    return s:sh_maker
-  endfunction
+  CallNeomake 1, [maker]
   let expected_list = map(list, 'extend(v:val, {"text": v:val.text." SUFFIX"})')
-  RunNeomake sh
   AssertEqual getloclist(0), expected_list
 
-  " Undo monkeypatching.
-  runtime autoload/neomake/makers/ft/sh.vim
   bwipe
 
 Execute (AddExprCallback with changed windows inbetween):

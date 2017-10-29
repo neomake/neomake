@@ -17,7 +17,7 @@ Execute (neomake#compat#systemlist):
   if has('nvim')
     AssertEqual r, ''
   else
-    AssertEqual r, ['/bin/bash: echo 1: command not found']
+    AssertEqual r, [&shell.': echo 1: command not found']
     AssertEqual v:shell_error, 127
   endif
 
@@ -33,7 +33,62 @@ Execute (neomake#compat#systemlist):
 Execute (neomake#compat#systemlist with empty args):
   AssertEqual neomake#compat#systemlist(''), []
   AssertEqual neomake#compat#systemlist([]), []
-  AssertEqual neomake#compat#systemlist('0'), ['/bin/bash: 0: command not found']
+  AssertEqual neomake#compat#systemlist('0'), [&shell.': 0: command not found']
 
 Execute (neomake#compat#json_decode):
   AssertEqual neomake#compat#json_decode(''), g:neomake#compat#json_none
+
+Execute (neomake#compat#get_mode):
+  AssertEqual neomake#compat#get_mode(), 'n'
+
+  norm! V
+  AssertEqual neomake#compat#get_mode(), 'V'
+  exe "norm! \<Esc>"
+  AssertEqual neomake#compat#get_mode(), 'n'
+
+  if has('nvim')
+    let nvim_exe = '/proc/'.getpid().'/exe'
+    let nvim = jobstart([nvim_exe, '-u', 'tests/vim/vimrc', '--embed'], {'rpc': v:true})
+    call rpcrequest(nvim, 'nvim_call_function', 'feedkeys', ['d', '!'])
+    call rpcrequest(nvim, 'nvim_eval', 'assert_equal(neomake#compat#get_mode(), "no")')
+    let rpc_errors = rpcrequest(nvim, 'nvim_eval', 'v:errors')
+    AssertEqual rpc_errors, []
+    call jobstop(nvim)
+  elseif exists('*timer_start')
+    let b:mode_in_cb = ''
+    function s:CB(...)
+        let b:mode_in_cb = neomake#compat#get_mode()
+        call feedkeys("\<Esc>")
+    endfunction
+    call timer_start(10, 's:CB')
+    call feedkeys('da', 'x!')
+    AssertEqual b:mode_in_cb, 'no'
+    AssertEqual neomake#compat#get_mode(), 'n'
+  endif
+
+Execute (neomake#compat#get_mode with insert mode completion):
+  if has('timers')
+    Save &complete
+    set complete=.
+    new
+    file file_sleep_efm
+    normal! iword1
+    normal! oword2
+
+    function s:close_pum(...)
+      let s:mode = neomake#compat#get_mode()
+      call feedkeys("\<c-e>")
+      call feedkeys("\<esc>")
+    endfunction
+
+    call timer_start(100, 's:close_pum')
+    call feedkeys("oword\<C-p>", 'x!')
+
+    if has('patch-8.0.0283')
+      AssertEqual s:mode, 'ic'
+    else
+      AssertEqual s:mode, 'i'
+    endif
+    AssertEqual getline('.'), 'word'
+    bwipe!
+  endif

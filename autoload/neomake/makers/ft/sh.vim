@@ -7,13 +7,14 @@ endfunction
 function! neomake#makers#ft#sh#shellcheck() abort
     let ext = expand('%:e')
     let maker = {
-        \ 'args': ['-fgcc'],
+        \ 'args': ['-fgcc', '-x'],
         \ 'errorformat':
             \ '%f:%l:%c: %trror: %m [SC%n],' .
             \ '%f:%l:%c: %tarning: %m [SC%n],' .
             \ '%I%f:%l:%c: Note: %m [SC%n]',
         \ 'output_stream': 'stdout',
         \ 'short_name': 'SC',
+        \ 'cwd': '%:h',
         \ }
 
     if match(getline(1), '\v^#!.*<%(sh|dash|bash|ksh)') >= 0

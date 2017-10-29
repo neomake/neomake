@@ -119,9 +119,14 @@ function! neomake#utils#LogMessage(level, msg, ...) abort
         if !exists('timediff')
             let timediff = s:reltime_lastmsg()
         endif
-        call writefile([printf('%s [%s %s] %s',
-                    \ date, s:short_level_to_name[a:level], timediff, msg)],
-                    \ logfile, s:logfile_writefile_opts)
+        try
+            call writefile([printf('%s [%s %s] %s',
+                        \ date, s:short_level_to_name[a:level], timediff, msg)],
+                        \ logfile, s:logfile_writefile_opts)
+        catch
+            unlet g:neomake_logfile
+            call neomake#utils#ErrorMessage(printf('Error when trying to write to logfile %s: %s.  Unsetting g:neomake_logfile.', logfile, v:exception))
+        endtry
     endif
     " @vimlint(EVL104, 0, l:timediff)
 endfunction
@@ -281,7 +286,9 @@ function! neomake#utils#load_ft_makers(ft) abort
     " Load ft maker, but only once (for performance reasons and to allow for
     " monkeypatching it in tests).
     if index(s:loaded_ft_maker_runtime, a:ft) == -1
-        exe 'runtime! autoload/neomake/makers/ft/'.a:ft.'.vim'
+        if !exists('*neomake#makers#ft#'.a:ft.'#EnabledMakers')
+            exe 'runtime! autoload/neomake/makers/ft/'.a:ft.'.vim'
+        endif
         call add(s:loaded_ft_maker_runtime, a:ft)
     endif
 endfunction
@@ -309,9 +316,6 @@ function! neomake#utils#get_config_fts(ft, ...) abort
         call add(r, ft)
         let super_ft = neomake#utils#GetSupersetOf(ft)
         while !empty(super_ft)
-            if empty(super_ft)
-                break
-            endif
             if index(fts, super_ft) == -1
                 call add(r, super_ft)
             endif
@@ -344,7 +348,7 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
     let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
     if maker_only && empty(maker_name)
         if has_key(a:maker, a:key)
-            return a:maker[a:key]
+            return get(a:maker, a:key)
         endif
         return a:default
     endif
@@ -374,7 +378,7 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
     endfor
 
     if has_key(a:maker, a:key)
-        return a:maker[a:key]
+        return get(a:maker, a:key)
     endif
 
     let key = maker_only ? maker_name.'_'.a:key : a:key
@@ -616,6 +620,14 @@ function! neomake#utils#fix_self_ref(obj, ...) abort
         endif
         if type(obj[k]) == type({})
             let obj[k] = neomake#utils#fix_self_ref(obj[k], a:0 ? a:1 + [[len(a:1)+1, [a:obj, k]]] : [[1, [a:obj, k]]])
+        elseif has('nvim')
+            " Ensure that it can be used as a string.
+            " Ref: https://github.com/neovim/neovim/issues/7432
+            try
+                call string(obj[k])
+            catch /^Vim(call):E724:/
+                let obj[k] = '<unrepresentable object, type='.type(obj).'>'
+            endtry
         endif
     endfor
     return obj

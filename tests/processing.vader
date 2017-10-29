@@ -11,6 +11,7 @@ Execute (Output is only processed in normal/insert mode (loclist)):
     AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['init'], 'Location list has not been updated'
     " with Vim
     " AssertNeomakeMessage 'exit (delayed): sleep_efm_maker: 0'
+    AssertNeomakeMessage 'Not processing output for mode "V".'
     AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
     AssertEqual mode(), 'V'
     exe "norm! \<Esc>"
@@ -74,6 +75,51 @@ Execute (Location list is only cleared in normal/insert mode on success):
     AssertEqual mode(), 'V'
     exe "norm! \<Esc>"
     AssertEqual mode(), 'n'
+    AssertEqual len(g:neomake_test_countschanged), 0
+    AssertEqual len(g:neomake_test_finished), 0
+    doautocmd WinEnter
+    AssertEqual len(g:neomake_test_finished), 0
+    AssertNeomakeMessage 'Retrying Timer event in 10ms.'
+    sleep 10m
+    AssertEqual len(g:neomake_test_countschanged), 0
+    AssertEqual len(g:neomake_test_finished), 1
+    AssertNeomakeMessage 'Cleaning location list.', 3
+    AssertEqual map(getloclist(0), 'v:val.text'), []
+    bwipe
+  endif
+
+Execute (Location list is not cleared in operator-pending mode (Vim)):
+  if has('nvim')
+    NeomakeTestsSkip 'only for Vim'
+  elseif NeomakeAsyncTestsSetup()
+    new
+    lgetexpr 'init'
+    file file_sleep_efm
+    let maker = NeomakeTestsCommandMaker('silent-sleep-success', 'sleep .01')
+    call neomake#Make(1, [maker])
+
+    " Trigger operator-pending mode ('no').
+    let b:cb_called = 0
+    function! s:callback_in_operator_pending_mode(...)
+      let b:cb_called = mode(1)
+      call feedkeys("\<Esc>")
+    endfunction
+    call timer_start(100, 's:callback_in_operator_pending_mode')
+    call feedkeys('da', 'x!')
+
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual map(getloclist(0), 'v:val.text'), ['init'], 'Location list has not been updated'
+
+    AssertEqual len(g:neomake_test_countschanged), 0
+    AssertEqual len(g:neomake_test_jobfinished), 1
+    AssertEqual len(g:neomake_test_finished), 0
+
+    AssertNeomakeMessage 'Cleaning jobinfo.', 3
+    AssertNeomakeMessage 'File-level errors cleaned.', 3
+    AssertNeomakeMessage 'Postponing final location list handling for mode "no".'
+    AssertEqual b:cb_called, 'no'
+    AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for Timer.'
+
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 0
     doautocmd WinEnter

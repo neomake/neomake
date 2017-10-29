@@ -17,6 +17,10 @@ endif
 if !exists('s:map_job_ids')
     let s:map_job_ids = {}
 endif
+if !exists('s:action_queue')
+    let s:action_queue = {'WinEnter': [], 'Timer': []}
+endif
+let s:action_queue_timer_timeouts = get(g:, 'neomake_action_queue_timeouts', {1: 100, 2: 200, 3: 500})
 
 " Errors by [maker_type][bufnr][lnum]
 let s:current_errors = {'project': {}, 'file': {}}
@@ -81,7 +85,7 @@ else
     function! neomake#GetMakeOptions(...) abort
         let make_id = a:0 ? a:1 : s:make_id
         if !has_key(s:make_info, make_id)
-            call neomake#utils#QuietMessage('warning: missing make_info key: '.make_id)
+            call neomake#utils#QuietMessage('warning: missing make_info key: '.make_id.'.')
             return {'verbosity': get(g:, 'neomake_verbose', 1)}
         endif
         return s:make_info[make_id]
@@ -635,15 +639,6 @@ function! s:command_maker_base._bind_args() abort dict
 endfunction
 
 function! s:command_maker_base._get_argv(jobinfo) abort dict
-    " Resolve exe, which might be a function or dictionary.
-    if type(self.exe) == type(function('tr'))
-        let exe = call(self.exe, [])
-    elseif type(self.exe) == type({})
-        let exe = call(self.exe.fn, [], self.exe)
-    else
-        let exe = self.exe
-    endif
-
     let args = copy(self.args)
     let args_is_list = type(args) == type([])
 
@@ -661,7 +656,7 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
             endif
         endif
     endif
-    return neomake#compat#get_argv(exe, args, args_is_list)
+    return neomake#compat#get_argv(self.exe, args, args_is_list)
 endfunction
 
 function! s:GetMakerForFiletype(ft, maker_name) abort
@@ -908,8 +903,6 @@ function! s:HandleLoclistQflistDisplay(jobinfo) abort
     endif
 endfunction
 
-let s:action_queue = {'WinEnter': [], 'Timer': []}
-let s:action_queue_timer_timeouts = get(g:, 'neomake_action_queue_timeouts', {1: 100, 2: 200, 3: 500})
 " Queue an action to be processed later for autocmd a:event or through a timer
 " for a:event=Timer.
 " It will call a:data[0], with a:data[1] as args (where the first should be
@@ -1501,7 +1494,7 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
                             \ [a:make_info] + a:000])
             endif
 
-            let mode = mode()
+            let mode = neomake#compat#get_mode()
             if index(['n', 'i'], mode) == -1
                 call neomake#utils#DebugMessage(printf(
                             \ 'Postponing final location list handling for mode "%s".', mode),
@@ -1555,8 +1548,9 @@ endfunction
 function! s:CanProcessJobOutput() abort
     " We can only process output (change the location/quickfix list) in
     " certain modes, otherwise e.g. the visual selection gets lost.
-    if index(['n', 'i'], mode()) == -1
-        call neomake#utils#DebugMessage('Not processing output for mode "'.mode().'".')
+    let mode = neomake#compat#get_mode()
+    if index(['n', 'i'], mode) == -1
+        call neomake#utils#DebugMessage('Not processing output for mode "'.mode.'".')
     elseif exists('*getcmdwintype') && getcmdwintype() !=# ''
         call neomake#utils#DebugMessage('Not processing output from command-line window "'.getcmdwintype().'".')
     else
@@ -2519,6 +2513,16 @@ function! s:map_makers(options, makers, ...) abort
 
             if has_key(maker, '_bind_args')
                 call maker._bind_args()
+                if type(maker.exe) != type('')
+                    let error = printf('Non-string given for executable of maker %s: type %s.',
+                                \ maker.name, type(maker.exe))
+                    if !get(maker, 'auto_enabled', 0)
+                        call neomake#utils#ErrorMessage(error, options)
+                    else
+                        call neomake#utils#DebugMessage(error, options)
+                    endif
+                    continue
+                endif
                 if !executable(maker.exe)
                     if !get(maker, 'auto_enabled', 0)
                         let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)

@@ -1,12 +1,12 @@
 # From https://github.com/tweekmonster/vim-testbed.
-FROM testbed/vim:4@sha256:96f5c69b89ae80abf514328043cb583e4c40cdbffef9e9838779b1fd57ef69a8
+FROM testbed/vim:6@sha256:107a7f57871202d75f6279d64b31a177a1022c5503fbe7f3b7951f88c1d18d3c
 
 # Install make and openssl for docker_vimhelplint.
 # openssl for https support with wget.
 RUN apk --no-cache add bash make openssl python
 
 # Currently tested versions:
-#  - v7.3.429 (Ubuntu Precise, 12.04LTS; same as on Travis currently)
+#  - v7.3.429 (Ubuntu Precise, 12.04LTS)
 #  - v7.4.052 (Ubuntu Trusty, 14.04LTS)
 #  - v7.4.1689 (Ubuntu Xenial, 16.04LTS)
 #  - v8.0.8069 (Updated Vim 8, https://groups.google.com/forum/#!topic/vim_dev/ro_FpeXgc24)
@@ -14,11 +14,38 @@ RUN install_vim -tag v7.3.429 -name vim73 -py --with-features=huge -build \
                 -tag v7.4.052 -name vim74-trusty --with-features=huge -build \
                 -tag v7.4.1689 -name vim74-xenial --with-features=huge -build \
                 -tag v8.0.0069 -name vim8069 -build \
-                -tag neovim:v0.1.7 -py2 -py3 -build \
-                -tag neovim:v0.2.0 -py2 -py3 -build
+                -tag neovim:v0.1.7 -py2 -build \
+                -tag neovim:v0.2.0 -py2 -build \
+  && rm -rf /vim-build/vim/vim/*/share/vim/*/tutor
 
-ENV _UPDATE=2017-09-23
+ENV NEOMAKE_DOCKERFILE_UPDATE=2017-10-28
 
 # Git master in a separate layer, since the above is meant to be stable.
-RUN install_vim -tag master -py3 -build \
-                -tag neovim:master -py2 -py3 -build
+RUN install_vim -tag master -py2 -build \
+                -tag neovim:master -py2 -build \
+  && rm -rf /vim-build/vim/vim/*/share/vim/*/tutor
+
+# Install dep plugins (test runner and those used during tests).
+# Keeps git and installs ssh for CircleCI's checkout (and diffing for changed
+# files).  grep for checks.
+ENV NEOMAKE_TESTS_DEP_PLUGINS_DIR=/neomake-deps
+RUN mkdir $NEOMAKE_TESTS_DEP_PLUGINS_DIR
+RUN apk --no-cache add git grep openssh
+RUN git clone -q --depth=1 -b display-source-with-exceptions https://github.com/blueyed/vader.vim $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vader
+RUN git clone -q --depth=1 https://github.com/tpope/vim-fugitive $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vim-fugitive
+
+# Vimlint with wrapper script.
+RUN git clone -q --depth=1 https://github.com/syngan/vim-vimlint /tools/vim-vimlint
+RUN git clone -q --depth=1 https://github.com/ynkdir/vim-vimlparser /tools/vim-vimlparser
+RUN cd /usr/local/bin && ln -s /vim-build/bin/vim-master vim
+RUN printf '#!/bin/sh -x\n/tools/vim-vimlint/bin/vimlint.sh -l /tools/vim-vimlint -p /tools/vim-vimlparser "$@"\n' > /usr/local/bin/vimlint
+RUN chmod +x /usr/local/bin/vimlint
+
+# Install covimerage, codecov and vint.
+RUN apk --no-cache add py2-pip py-setuptools \
+  && pip install --no-cache-dir codecov covimerage==0.0.1 vim-vint \
+  && rm -rf /usr/include /usr/lib/python2.7/turtle* /usr/lib/python2.7/tkinter \
+  && apk --no-cache del py2-pip
+
+RUN adduser -D -s /bin/bash neomake
+USER neomake

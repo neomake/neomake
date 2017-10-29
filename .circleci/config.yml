@@ -1,0 +1,97 @@
+version: 2
+
+common: &common
+  docker:
+    - image: neomake/vims-for-tests:12@sha256:762a65aa87da5165ebfef3ddbe9fa8f48f0f1561dc0f5970d630d8fcefcedece
+  working_directory: ~/repo
+  steps:
+    - checkout
+    - run:
+        name: checkout merge commit for PRs
+        command: |
+          set -x
+          PR_NUMBER=${CI_PULL_REQUEST//*pull\//}
+          if [ -n "$PR_NUMBER" ]; then
+            if ! git pull --ff-only origin "refs/pull/$PR_NUMBER/merge"; then
+                echo
+                echo -e "\033[0;31mERROR: Failed to merge your branch with the latest master."
+                echo -e "Please manually merge master into your branch, and push the changes to GitHub.\033[0m"
+                exit 1
+            fi
+          fi
+    - run: make --keep-going testcoverage TEST_VIM=$TEST_VIM
+    - run:
+        name: Upload coverage results
+        command: |
+          set -x
+          coverage report -m
+          coverage xml
+          codecov -X search gcov pycov -f coverage.xml --required \
+            --name "$CIRCLE_JOB" --flags ${CIRCLE_JOB%%-*} ${CIRCLE_JOB//-/}
+          set +x
+jobs:
+  nvim-master:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/neovim-master
+  nvim-017:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/neovim-v0.1.7
+  nvim-020:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/neovim-v0.2.0
+  vim-master:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/vim-master
+  vim-8069:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/vim8069
+  vim-74-xenial:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/vim74-xenial
+  vim-74-trusty:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/vim74-trusty
+  vim-73:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/vim73
+
+  checkqa:
+    <<: *common
+    steps:
+      - checkout
+      - run:
+          name: checkout merge commit for PRs
+          command: |
+            set -x
+            PR_NUMBER=${CI_PULL_REQUEST//*pull\//}
+            if [ -n "$PR_NUMBER" ]; then
+              if ! git pull --ff-only origin "refs/pull/$PR_NUMBER/merge"; then
+                  echo
+                  echo -e "\033[0;31mERROR: Failed to merge your branch with the latest master."
+                  echo -e "Please manually merge master into your branch, and push the changes to GitHub.\033[0m"
+                  exit 1
+              fi
+            fi
+      - run: make --keep-going check check_docker check_lint_diff
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - nvim-020
+      - nvim-master
+      - nvim-017
+      - vim-8069
+      - vim-master
+      - vim-74-xenial
+      - vim-74-trusty
+      - vim-73
+      - checkqa
