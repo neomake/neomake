@@ -1,5 +1,5 @@
 # From https://github.com/tweekmonster/vim-testbed.
-FROM testbed/vim:4@sha256:96f5c69b89ae80abf514328043cb583e4c40cdbffef9e9838779b1fd57ef69a8
+FROM testbed/vim:6@sha256:107a7f57871202d75f6279d64b31a177a1022c5503fbe7f3b7951f88c1d18d3c
 
 # Install make and openssl for docker_vimhelplint.
 # openssl for https support with wget.
@@ -46,3 +46,6 @@ RUN apk --no-cache add py2-pip py-setuptools \
   && pip install --no-cache-dir codecov covimerage==0.0.1 vim-vint \
   && rm -rf /usr/include /usr/lib/python2.7/turtle* /usr/lib/python2.7/tkinter \
   && apk --no-cache del py2-pip
+
+RUN adduser -D -s /bin/bash neomake
+USER neomake
