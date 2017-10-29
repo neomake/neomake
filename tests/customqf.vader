@@ -196,8 +196,10 @@ Execute (Handles empty entries):
   CallNeomake {'enabled_makers': [maker]}
 
 Execute (Does not change current error via regular command maker):
+  new
   CallNeomake {'enabled_makers': [g:error_maker]}
   AssertEqual neomake#GetCurrentErrorMsg(), 'error-maker: error (E)'
+  bwipe
 
 Execute (Disable custom formatted quickfix buffer):
   call neomake#quickfix#enable()
@@ -223,7 +225,6 @@ Execute (Disable custom formatted quickfix buffer):
   doautocmd CursorMoved
   AssertEqual expand('<cWORD>'), '|1|'
   AssertEqual getpos('.')[1:2], [1, 1]
-
   close
 
 Execute (neomake#quickfix#FormatQuickfix handles entries with config in text):
