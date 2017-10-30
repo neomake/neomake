@@ -824,19 +824,18 @@ function! neomake#GetEnabledMakers(...) abort
             let auto_enabled = 0
         endif
 
-        for m in makers
-            try
-                let maker = neomake#GetMaker(m, a:1)
-            catch /^Neomake: /
-                let error = substitute(v:exception, '^Neomake: ', '', '').'.'
-                let log_context = get(get(s:make_info, s:make_id, {}), 'options', {})
+        let [makers, errors] = s:map_makers_with_errors(makers, a:1)
+        if !empty(errors)
+            let log_context = get(get(s:make_info, s:make_id, {}), 'options', {})
+            for error in errors
                 if auto_enabled
                     call neomake#utils#DebugMessage(error, log_context)
                 else
                     call neomake#utils#ErrorMessage(error, log_context)
                 endif
-                continue
-            endtry
+            endfor
+        endif
+        for maker in makers
             let maker.auto_enabled = auto_enabled
             let enabled_makers += [maker]
         endfor
@@ -2679,4 +2678,22 @@ function! s:display_neomake_info() abort
         messages
         echo '```'
     endif
+endfunction
+
+
+function! s:map_makers_with_errors(makers, ft) abort
+    let makers = []
+    let errors = []
+    for maker in a:makers
+        try
+            Log [maker, a:ft]
+            let m = neomake#GetMaker(maker, a:ft)
+        catch /^Neomake: /
+            call add(errors, substitute(v:exception, '^Neomake: ', '', '').'.')
+            continue
+        endtry
+        call add(makers, m)
+    endfor
+    Log ['R', makers, errors]
+    return [makers, errors]
 endfunction
