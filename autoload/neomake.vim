@@ -2686,7 +2686,6 @@ function! s:map_makers_with_errors(makers, ft) abort
     let errors = []
     for maker in a:makers
         try
-            Log [maker, a:ft]
             let m = neomake#GetMaker(maker, a:ft)
         catch /^Neomake: /
             call add(errors, substitute(v:exception, '^Neomake: ', '', '').'.')
@@ -2694,6 +2693,5 @@ function! s:map_makers_with_errors(makers, ft) abort
         endtry
         call add(makers, m)
     endfor
-    Log ['R', makers, errors]
     return [makers, errors]
 endfunction
