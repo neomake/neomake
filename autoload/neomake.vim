@@ -875,7 +875,7 @@ function! s:restore_prev_windows() abort
 endfunction
 
 let s:ignore_automake_events = 0
-function! s:HandleLoclistQflistDisplay(jobinfo) abort
+function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist) abort
     let open_val = get(g:, 'neomake_open_list', 0)
     if !open_val
         return
@@ -884,6 +884,7 @@ function! s:HandleLoclistQflistDisplay(jobinfo) abort
     if !height
         return
     endif
+    let height = min([len(a:loc_or_qflist), height])
     if a:jobinfo.file_mode
         call neomake#utils#DebugMessage('Handling location list: executing lwindow.', a:jobinfo)
         let cmd = 'lwindow'
@@ -1656,6 +1657,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     if a:0 > 1
         " Via errorformat processing, where the list has been set already.
         let prev_list = a:1
+        let new_list = file_mode ? getloclist(0) : getqflist()
     else
         " Fix entries with get_list_entries/process_output.
         call map(a:entries, 'extend(v:val, {'
@@ -1679,13 +1681,13 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         try
             if file_mode
                 if s:needs_to_replace_qf_for_lwindow
-                    call setloclist(0, getloclist(0) + a:entries, 'r')
+                    call setloclist(0, prev_list + a:entries, 'r')
                 else
                     call setloclist(0, a:entries, 'a')
                 endif
             else
                 if s:needs_to_replace_qf_for_lwindow
-                    call setqflist(getqflist() + a:entries, 'r')
+                    call setqflist(prev_list + a:entries, 'r')
                 else
                     call setqflist(a:entries, 'a')
                 endif
@@ -1695,11 +1697,8 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                 exe cd_back_cmd
             endif
         endtry
-        if file_mode
-            let parsed_entries = getloclist(0)[len(prev_list):]
-        else
-            let parsed_entries = getqflist()[len(prev_list):]
-        endif
+        let new_list = file_mode ? getloclist(0) : getqflist()
+        let parsed_entries = new_list[len(prev_list):]
         let idx = 0
         for e in parsed_entries
             if a:entries[idx].bufnr != e.bufnr
@@ -1774,14 +1773,13 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     endif
 
     if !counts_changed
-        let counts_changed = (file_mode ? getloclist(0) : getqflist()) != prev_list
-        " Assert !counts_changed, string([file_mode, prev_list, getloclist(0)])
+        let counts_changed = new_list != prev_list
     endif
     if counts_changed
         call neomake#utils#hook('NeomakeCountsChanged', {'reset': 0, 'jobinfo': a:jobinfo})
     endif
 
-    call s:HandleLoclistQflistDisplay(a:jobinfo)
+    call s:HandleLoclistQflistDisplay(a:jobinfo, new_list)
     call neomake#highlights#ShowHighlights()
     return 1
 endfunction
