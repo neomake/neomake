@@ -824,7 +824,7 @@ function! neomake#GetEnabledMakers(...) abort
             let auto_enabled = 0
         endif
 
-        let [makers, errors] = s:map_makers_with_errors(makers, a:1)
+        let [makers, errors] = neomake#map_makers_with_errors(makers, a:1)
         if !empty(errors)
             let log_context = get(get(s:make_info, s:make_id, {}), 'options', {})
             for error in errors
@@ -2681,7 +2681,7 @@ function! s:display_neomake_info() abort
 endfunction
 
 
-function! s:map_makers_with_errors(makers, ft) abort
+function! neomake#map_makers_with_errors(makers, ft) abort
     let makers = []
     let errors = []
     for maker in a:makers
