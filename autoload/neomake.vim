@@ -827,7 +827,7 @@ function! neomake#GetEnabledMakers(...) abort
         let [makers, errors] = neomake#map_makers_with_errors(makers, a:1)
         if !empty(errors)
             let log_context = get(get(s:make_info, s:make_id, {}), 'options', {})
-            for error in errors
+            for [_, error] in errors
                 if auto_enabled
                     call neomake#utils#DebugMessage(error, log_context)
                 else
@@ -2686,7 +2686,7 @@ function! neomake#map_makers_with_errors(makers, ft) abort
         try
             let m = neomake#GetMaker(maker, a:ft)
         catch /^Neomake: /
-            call add(errors, substitute(v:exception, '^Neomake: ', '', '').'.')
+            call add(errors, [maker, substitute(v:exception, '^Neomake: ', '', '').'.'])
             continue
         endtry
         call add(makers, m)
