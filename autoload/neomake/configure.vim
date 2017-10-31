@@ -187,7 +187,9 @@ function! s:parse_events_from_args(config, string_or_dict_config, ...) abort
         if has('timers')
             let delay = a:1
         else
-            call neomake#utils#QuietMessage('automake: timer support is required for delayed events.')
+            if a:1 != 0
+                call neomake#utils#QuietMessage('automake: timer support is required for delayed events.')
+            endif
             let delay = 0
         endif
     else
