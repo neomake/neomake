@@ -677,7 +677,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     if type(a:name_or_maker) == type({})
         let maker = a:name_or_maker
     elseif a:name_or_maker ==# 'makeprg'
-        let maker = neomake#utils#MakerFromCommand(&makeprg)
+        let maker = s:get_makeprg_maker()
     elseif a:name_or_maker !~# '\v^\w+$'
         throw printf('Neomake: Invalid maker name: "%s"', a:name_or_maker)
     else
@@ -1019,6 +1019,15 @@ function! s:clean_action_queue_augroup(event) abort
     augroup! neomake_event_queue
 endfunction
 
+" Get a maker for &makeprg.
+" This could be cached, but needs to take into account / set &errorformat,
+" and other settings that are handled by neomake#GetMaker.
+function! s:get_makeprg_maker() abort
+    let maker = neomake#utils#MakerFromCommand(&makeprg)
+    let maker.name = 'makeprg'
+    return neomake#GetMaker(maker)
+endfunction
+
 function! s:Make(options) abort
     let is_automake = !empty(expand('<abuf>'))
     if is_automake
@@ -1078,7 +1087,7 @@ function! s:Make(options) abort
                 call s:clean_make_info(make_info)
                 return []
             else
-                let makers = ['makeprg']
+                let makers = [s:get_makeprg_maker()]
             endif
         endif
     endif
