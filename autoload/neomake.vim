@@ -1077,7 +1077,7 @@ function! s:Make(options) abort
                     \ string(filter(copy(options), "index(['bufnr', 'make_id'], v:key) == -1"))), {'make_id': make_id, 'bufnr': bufnr})
     endif
     if has_key(options, 'enabled_makers')
-        let makers = options.enabled_makers
+        let makers = neomake#map_makers(options.enabled_makers, options.ft, 0)
         unlet options.enabled_makers
     else
         let makers = call('neomake#GetEnabledMakers', file_mode ? [options.ft] : [])
@@ -1099,7 +1099,7 @@ function! s:Make(options) abort
         let args += [options.ft]
     endif
     lockvar options
-    let jobs = call('s:map_makers', args)
+    let jobs = call('s:bind_makers_for_job', args)
     if empty(jobs)
         call neomake#utils#DebugMessage('Nothing to make: no valid makers.', options)
         call s:clean_make_info(make_info)
@@ -2453,13 +2453,11 @@ function! neomake#CompleteJobs(...) abort
 endfunction
 
 " Map/bind a:makers to a list of job options, using a:options.
-function! s:map_makers(options, makers, ...) abort
+function! s:bind_makers_for_job(options, makers, ...) abort
     let r = []
-    for maker_or_name in a:makers
+    for maker in a:makers
         let options = copy(a:options)
         try
-            let maker = call('neomake#GetMaker', [maker_or_name] + a:000)
-
             " Call .fn function in maker object, if any.
             if has_key(maker, 'fn')
                 " TODO: Allow to throw and/or return 0 to abort/skip?!
