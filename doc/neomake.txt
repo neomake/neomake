@@ -463,7 +463,8 @@ preserve the cursor position when the |location-list| or |quickfix| window is
 opened. Defaults to 0.
 
 *g:neomake_list_height*
-The height of the |location-list| or |quickfix| list opened by Neomake.
+The maximum height of the |location-list| or |quickfix| list opened by Neomake.
+If there are fewer entries than that it will use this for the height.
 Defaults to 10.
 
 *g:neomake_echo_current_error*
