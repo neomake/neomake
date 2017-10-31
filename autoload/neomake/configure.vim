@@ -328,14 +328,21 @@ function! s:configure_buffer(bufnr, ...) abort
     " Set enabled_makers.
     let options = a:0 > 1 ? a:2 : {}
     if has_key(options, 'makers')
-        let enabled_makers = options.makers
+        let makers = neomake#map_makers(options.makers, ft, 0)
         let source = 'options'
     else
-        let [enabled_makers, source] = neomake#config#get_with_source('automake.enabled_makers', neomake#GetEnabledMakers(ft))
+        let [makers, source] = neomake#config#get_with_source('automake.enabled_makers')
+        if makers is g:neomake#config#undefined
+            unlet makers
+            let makers = neomake#GetEnabledMakers(ft)
+            let errors = []  " Errors are handled in GetEnabledMakers already.
+        else
+            let makers = neomake#map_makers(makers, ft, 0)
+        endif
     endif
-    let s:configured_buffers[bufnr].enabled_makers = enabled_makers
+    let s:configured_buffers[bufnr].enabled_makers = makers
     call s:debug_log(printf('configured buffer for ft=%s (%s)',
-                \ ft, empty(enabled_makers) ? 'no enabled makers' : join(map(copy(enabled_makers), "type(v:val) == type('') ? v:val : v:val.name"), ', ').' ('.source.')'), {'bufnr': bufnr})
+                \ ft, empty(makers) ? 'no enabled makers' : join(map(copy(makers), "type(v:val) == type('') ? v:val : v:val.name"), ', ').' ('.source.')'), {'bufnr': bufnr})
 
     if a:0
       " Setup autocommands etc (when called manually)?!

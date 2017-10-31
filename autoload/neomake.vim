@@ -677,7 +677,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     if type(a:name_or_maker) == type({})
         let maker = a:name_or_maker
     elseif a:name_or_maker ==# 'makeprg'
-        let maker = neomake#utils#MakerFromCommand(&makeprg)
+        let maker = s:get_makeprg_maker()
     elseif a:name_or_maker !~# '\v^\w+$'
         throw printf('Neomake: Invalid maker name: "%s"', a:name_or_maker)
     else
@@ -824,17 +824,7 @@ function! neomake#GetEnabledMakers(...) abort
             let auto_enabled = 0
         endif
 
-        let [makers, errors] = neomake#map_makers_with_errors(makers, a:1)
-        if !empty(errors)
-            let log_context = get(get(s:make_info, s:make_id, {}), 'options', {})
-            for error in errors
-                if auto_enabled
-                    call neomake#utils#DebugMessage(error, log_context)
-                else
-                    call neomake#utils#ErrorMessage(error, log_context)
-                endif
-            endfor
-        endif
+        let makers = neomake#map_makers(makers, a:1, auto_enabled)
         for maker in makers
             let maker.auto_enabled = auto_enabled
             let enabled_makers += [maker]
@@ -1029,6 +1019,15 @@ function! s:clean_action_queue_augroup(event) abort
     augroup! neomake_event_queue
 endfunction
 
+" Get a maker for &makeprg.
+" This could be cached, but needs to take into account / set &errorformat,
+" and other settings that are handled by neomake#GetMaker.
+function! s:get_makeprg_maker() abort
+    let maker = neomake#utils#MakerFromCommand(&makeprg)
+    let maker.name = 'makeprg'
+    return neomake#GetMaker(maker)
+endfunction
+
 function! s:Make(options) abort
     let is_automake = !empty(expand('<abuf>'))
     if is_automake
@@ -1078,7 +1077,7 @@ function! s:Make(options) abort
                     \ string(filter(copy(options), "index(['bufnr', 'make_id'], v:key) == -1"))), {'make_id': make_id, 'bufnr': bufnr})
     endif
     if has_key(options, 'enabled_makers')
-        let makers = options.enabled_makers
+        let makers = neomake#map_makers(options.enabled_makers, options.ft, 0)
         unlet options.enabled_makers
     else
         let makers = call('neomake#GetEnabledMakers', file_mode ? [options.ft] : [])
@@ -1088,7 +1087,7 @@ function! s:Make(options) abort
                 call s:clean_make_info(make_info)
                 return []
             else
-                let makers = ['makeprg']
+                let makers = [s:get_makeprg_maker()]
             endif
         endif
     endif
@@ -1100,7 +1099,7 @@ function! s:Make(options) abort
         let args += [options.ft]
     endif
     lockvar options
-    let jobs = call('s:map_makers', args)
+    let jobs = call('s:bind_makers_for_job', args)
     if empty(jobs)
         call neomake#utils#DebugMessage('Nothing to make: no valid makers.', options)
         call s:clean_make_info(make_info)
@@ -2454,13 +2453,11 @@ function! neomake#CompleteJobs(...) abort
 endfunction
 
 " Map/bind a:makers to a list of job options, using a:options.
-function! s:map_makers(options, makers, ...) abort
+function! s:bind_makers_for_job(options, makers, ...) abort
     let r = []
-    for maker_or_name in a:makers
+    for maker in a:makers
         let options = copy(a:options)
         try
-            let maker = call('neomake#GetMaker', [maker_or_name] + a:000)
-
             " Call .fn function in maker object, if any.
             if has_key(maker, 'fn')
                 " TODO: Allow to throw and/or return 0 to abort/skip?!
@@ -2474,7 +2471,7 @@ function! s:map_makers(options, makers, ...) abort
 
             if has_key(maker, 'cwd')
                 let cwd = maker.cwd
-                if cwd =~# '\m^%:'
+                if cwd[0:1] ==# '%:'
                     let cwd = neomake#utils#fnamemodify(options.bufnr, cwd[1:])
                 else
                     let cwd = expand(cwd, 1)
@@ -2679,7 +2676,7 @@ function! s:display_neomake_info() abort
 endfunction
 
 
-function! neomake#map_makers_with_errors(makers, ft) abort
+function! neomake#map_makers(makers, ft, auto_enabled) abort
     let makers = []
     let errors = []
     for maker in a:makers
@@ -2691,5 +2688,15 @@ function! neomake#map_makers_with_errors(makers, ft) abort
         endtry
         call add(makers, m)
     endfor
-    return [makers, errors]
+    if !empty(errors)
+        let log_context = get(get(s:make_info, s:make_id, {}), 'options', {})
+        for error in errors
+            if a:auto_enabled
+                call neomake#utils#DebugMessage(error, log_context)
+            else
+                call neomake#utils#ErrorMessage(error, log_context)
+            endif
+        endfor
+    endif
+    return makers
 endfunction
