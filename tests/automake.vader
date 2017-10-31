@@ -671,6 +671,7 @@ Execute (No warning with delay=0 if there is no timer support):
   if has('timers')
     NeomakeTestsSkip 'only without timers feature'
   else
+    new
     Save g:neomake
     call neomake#configure#automake({'BufWritePost': {'delay': 5}})
     AssertNeomakeMessage 'automake: timer support is required for automaking, removing event BufWritePost.', 0
@@ -684,4 +685,5 @@ Execute (No warning with delay=0 if there is no timer support):
 
     call neomake#configure#automake_for_buffer('w', 0)
     AssertNeomakeMessageAbsent 'automake: timer support is required for delayed events.', 1
+    bwipe
   endif
