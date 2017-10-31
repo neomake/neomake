@@ -2471,7 +2471,7 @@ function! s:bind_makers_for_job(options, makers, ...) abort
 
             if has_key(maker, 'cwd')
                 let cwd = maker.cwd
-                if cwd =~# '\m^%:'
+                if cwd[0:1] ==# '%:'
                     let cwd = neomake#utils#fnamemodify(options.bufnr, cwd[1:])
                 else
                     let cwd = expand(cwd, 1)
