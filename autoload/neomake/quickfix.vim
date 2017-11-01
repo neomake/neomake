@@ -1,11 +1,9 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
-let s:maker_match_id = 997
-let s:gutter_match_id = 998
-let s:cursor_match_id = 999
 let s:is_enabled = 0
 
+let s:match_base_priority = 10
 
 function! neomake#quickfix#enable() abort
     let s:is_enabled = 1
@@ -32,28 +30,21 @@ function! s:cursor_moved() abort
             call cursor(line('.'), b:neomake_start_col + 2)
         endif
 
-        silent! call matchdelete(s:cursor_match_id)
+        if exists('b:_neomake_cursor_match_id')
+            silent! call matchdelete(b:_neomake_cursor_match_id)
+        endif
         if exists('*matchaddpos')
-            call matchaddpos('neomakeCursorListNr',
+            let b:_neomake_cursor_match_id = matchaddpos('neomakeCursorListNr',
                         \ [[line('.'), (b:neomake_start_col - b:neomake_number_len) + 2, b:neomake_number_len]],
-                        \ s:cursor_match_id,
-                        \ s:cursor_match_id)
+                        \ s:match_base_priority+3)
         else
-            call matchadd('neomakeCursorListNr',
+            let b:_neomake_cursor_match_id = matchadd('neomakeCursorListNr',
                         \  '\%' . line('.') . 'c'
                         \. '\%' . ((b:neomake_start_col - b:neomake_number_len) + 2) . 'c'
                         \. '.\{' . b:neomake_number_len . '}',
-                        \ s:cursor_match_id, s:cursor_match_id)
+                        \ s:match_base_priority+3)
         endif
     endif
-endfunction
-
-
-function! s:reset(buf) abort
-    call neomake#signs#Clean(a:buf, 'file')
-    silent! call matchdelete(s:maker_match_id)
-    silent! call matchdelete(s:gutter_match_id)
-    silent! call matchdelete(s:cursor_match_id)
 endfunction
 
 
@@ -69,7 +60,7 @@ endfunction
 function! neomake#quickfix#FormatQuickfix() abort
     if !s:is_enabled || &filetype !=# 'qf'
         if exists('b:neomake_qf')
-            call s:reset(bufnr('%'))
+            call neomake#signs#Clean(buf, 'file')
             unlet! b:neomake_qf
             augroup neomake_qf
                 autocmd! * <buffer>
@@ -79,7 +70,6 @@ function! neomake#quickfix#FormatQuickfix() abort
     endif
 
     let buf = bufnr('%')
-    call s:reset(buf)
 
     let src_buf = 0
     let loclist = 1
@@ -103,7 +93,6 @@ function! neomake#quickfix#FormatQuickfix() abort
 
     let ul = &l:undolevels
     setlocal modifiable nonumber undolevels=-1
-    silent % delete _
 
     let lines = []
     let signs = []
@@ -214,18 +203,24 @@ function! neomake#quickfix#FormatQuickfix() abort
         let &breakindentopt = 'shift:'.(b:neomake_start_col + 1)
     endif
 
+    call neomake#signs#CleanOldSigns(buf, 'file')
+    call neomake#signs#Reset(buf, 'file')
     call neomake#signs#PlaceSigns(buf, signs, 'file')
 
     if b:neomake_start_col
-        call matchadd('neomakeMakerName',
+        if exists('b:_neomake_maker_match_id')
+            silent! call matchdelete(b:_neomake_maker_match_id)
+        endif
+        let b:_neomake_maker_match_id = matchadd('neomakeMakerName',
                     \ '.*\%<'.(maker_width + 1).'c',
-                    \ s:maker_match_id,
-                    \ s:maker_match_id)
-        call matchadd('neomakeListNr',
+                    \ s:match_base_priority+1)
+        if exists('b:_neomake_gutter_match_id')
+            silent! call matchdelete(b:_neomake_gutter_match_id)
+        endif
+        let b:_neomake_gutter_match_id = matchadd('neomakeListNr',
                     \ '\%>'.(maker_width).'c'
                     \ .'.*\%<'.(b:neomake_start_col + 2).'c',
-                    \ s:gutter_match_id,
-                    \ s:gutter_match_id)
+                    \ s:match_base_priority+2)
     endif
 
     augroup neomake_qf

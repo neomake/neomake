@@ -56,12 +56,8 @@ Execute (Displays custom formatted quickfix buffer):
         \   'bufnr': 1,
         \   'text': 'Line 4',
         \ }])
-    " From resetting."
-    AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer='.loclist_bufnr.'.'
-    AssertNeomakeMessage 'Unplacing sign: sign unplace 5001 buffer='.loclist_bufnr.'.'
-
-    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
-    AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+    AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3
+    AssertNeomakeMessage 'Reusing sign: id=5001, type=neomake_file_err, lnum=2.', 3
     AssertNeomakeMessage 'Placing sign: sign place 5002 line=3 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
     AssertNeomakeMessage 'Placing sign: sign place 5003 line=4 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
 
@@ -237,6 +233,32 @@ Execute (neomake#quickfix#FormatQuickfix handles entries with config in text):
     lopen
     call neomake#quickfix#FormatQuickfix()
     AssertEqual getline(1), 'b   Text with marker nmcfg:{"name": "a", "short": "a"} '
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (neomake#quickfix#FormatQuickfix reuses signs):
+  call neomake#quickfix#enable()
+  try
+    new
+    call setloclist(0, [{
+        \ 'lnum': 1,
+        \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    lopen
+    let loclist_bufnr = bufnr('%')
+    AssertEqual getline(1), 'b 1:- Text with marker '
+    let bufnr = bufnr('%')
+    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.bufnr.'.', 3
+
+    call setloclist(0, [{
+        \ 'lnum': 1,
+        \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3, {'bufnr': loclist_bufnr}
+
     lclose
     bwipe
   finally
