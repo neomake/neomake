@@ -381,7 +381,6 @@ endfunction
 function! s:After()
   if exists('#neomake_automake')
     au! neomake_automake
-    au! neomake_automake_update
   endif
 
   Restore
