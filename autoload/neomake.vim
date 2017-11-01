@@ -1172,7 +1172,8 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
     let maker = a:jobinfo.maker
     let file_mode = a:jobinfo.file_mode
     let list = file_mode ? getloclist(0) : getqflist()
-    let index = len(a:prev_list)-1
+    let prev_index = len(a:prev_list)
+    let index = prev_index-1
     unlet! s:postprocess  " vim73
     let s:postprocess = neomake#utils#GetSetting('postprocess', maker, function('neomake#utils#CompressWhitespace'), a:jobinfo.ft, a:jobinfo.bufnr)
     if type(s:postprocess) != type([])
@@ -1181,6 +1182,7 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
         let s:postprocessors = s:postprocess
     endif
     let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3 || !empty(get(g:, 'neomake_logfile'))
+    let maker_name = get(maker, 'name', 'makeprg')
     let make_info = s:make_info[a:jobinfo.make_id]
     let default_type = 'unset'
 
@@ -1192,7 +1194,7 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
     while index < llen - 1
         let index += 1
         let entry = list[index]
-        let entry.maker_name = has_key(maker, 'name') ? maker.name : 'makeprg'
+        let entry.maker_name = maker_name
 
         let before = copy(entry)
         if file_mode && has_key(make_info, 'tempfiles')
@@ -1263,6 +1265,17 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
         endif
         call add(entries, entry)
     endwhile
+
+    " Add marker for custom quickfix to the first (new) entry.
+    if neomake#quickfix#is_enabled() && !empty(entries)
+        let config = {
+                    \ 'name': maker_name,
+                    \ 'short': get(a:jobinfo.maker, 'short_name', maker_name[:3]),
+                    \ }
+        let marker_entry = copy(entries[0])
+        let marker_entry.text .= printf(' nmcfg:%s', string(config))
+        let changed_entries[prev_index] = marker_entry
+    endif
 
     if !empty(changed_entries) || !empty(removed_entries)
         let list = file_mode ? getloclist(0) : getqflist()
@@ -1671,6 +1684,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         let new_list = file_mode ? getloclist(0) : getqflist()
     else
         " Fix entries with get_list_entries/process_output.
+        let maker_name = a:jobinfo.maker.name
         call map(a:entries, 'extend(v:val, {'
                     \ . "'bufnr': str2nr(get(v:val, 'bufnr', 0)),"
                     \ . "'lnum': str2nr(v:val.lnum),"
@@ -1678,7 +1692,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                     \ . "'vcol': str2nr(get(v:val, 'vcol', 0)),"
                     \ . "'type': get(v:val, 'type', 'E'),"
                     \ . "'nr': get(v:val, 'nr', -1),"
-                    \ . "'maker_name': a:jobinfo.maker.name,"
+                    \ . "'maker_name': maker_name,"
                     \ . '})')
 
         let prev_list = file_mode ? getloclist(0) : getqflist()
@@ -1690,17 +1704,29 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                         \ cwd, cd_error), a:jobinfo)
         endif
         try
+            let list_entries = a:entries
+            " Add marker for custom quickfix to the first (new) entry.
+            if neomake#quickfix#is_enabled() && !empty(a:entries)
+                let config = {
+                            \ 'name': maker_name,
+                            \ 'short': get(a:jobinfo.maker, 'short_name', maker_name[:3]),
+                            \ }
+                let marker_entry = copy(a:entries[0])
+                let marker_entry.text .= printf(' nmcfg:%s', string(config))
+                let list_entries = [marker_entry] + a:entries[1:]
+            endif
+
             if file_mode
                 if s:needs_to_replace_qf_for_lwindow
-                    call setloclist(0, prev_list + a:entries, 'r')
+                    call setloclist(0, prev_list + list_entries, 'r')
                 else
-                    call setloclist(0, a:entries, 'a')
+                    call setloclist(0, list_entries, 'a')
                 endif
             else
                 if s:needs_to_replace_qf_for_lwindow
-                    call setqflist(prev_list + a:entries, 'r')
+                    call setqflist(prev_list + list_entries, 'r')
                 else
-                    call setqflist(a:entries, 'a')
+                    call setqflist(list_entries, 'a')
                 endif
             endif
         finally

@@ -1,0 +1,266 @@
+Include: include/setup.vader
+
+Execute (Displays custom formatted quickfix buffer):
+  call neomake#quickfix#enable()
+  try
+    call setloclist(0, [{
+        \   'lnum': 1,
+        \   'bufnr': 1,
+        \   'text': 'Line 1 nmcfg:{"name": "Alpha", "short": "Alph"}',
+        \ },
+        \ {
+        \   'lnum': 2,
+        \   'col': 5,
+        \   'bufnr': 1,
+        \   'text': 'Line 2',
+        \ }])
+
+    lopen
+    let loclist_bufnr = bufnr('%')
+    AssertEqual b:current_syntax, 'neomake_qf'
+
+
+    AssertEqual getline(1, '$'),
+      \ ['Alph 1:- Line 1 ', 'Alph 2:5 Line 2']
+
+    normal! 0
+    " :normal! ignores autocmd's here?
+    doautocmd CursorMoved
+    AssertEqual expand('<cWORD>'), 'Line'
+    AssertEqual getpos('.')[1:2], [1, 10]
+
+    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+    wincmd p
+
+    " Test changing the location list while it's open
+    call setloclist(0, [{
+        \   'lnum': 1,
+        \   'bufnr': 1,
+        \   'text': 'Line 1 nmcfg:{"name": "Beta", "short": "Beta"}',
+        \ },
+        \ {
+        \   'lnum': 2,
+        \   'col': 5,
+        \   'bufnr': 1,
+        \   'text': 'Line 2',
+        \ },
+        \ {
+        \   'lnum': 3,
+        \   'bufnr': 1,
+        \   'text': 'Line 3 nmcfg:{"name": "Gamma", "short": "Gamm"}',
+        \ },
+        \ {
+        \   'lnum': 4,
+        \   'col': 5,
+        \   'bufnr': 1,
+        \   'text': 'Line 4',
+        \ }])
+    AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3
+    AssertNeomakeMessage 'Reusing sign: id=5001, type=neomake_file_err, lnum=2.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5002 line=3 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5003 line=4 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+
+    wincmd p
+
+    AssertEqual getline(1, '$'),
+      \ ['Beta 1:- Line 1 ', 'Beta 2:5 Line 2',
+      \  'Gamm 3:- Line 3 ', 'Gamm 4:5 Line 4']
+
+    normal! G0
+    doautocmd CursorMoved
+    AssertEqual expand('<cWORD>'), 'Line'
+    AssertEqual getpos('.')[1:2], [4, 10]
+
+    close
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (Sets quickfix title (location list)):
+  call neomake#quickfix#enable()
+  try
+    new
+    set ft=neomake_tests
+    " Workaround to have make info cleaned (fixed in pcall-wip).
+    let b:neomake_tempfile_enabled = 1
+
+    RunNeomake echo_maker true
+
+    " Location list entry contains marker.
+    let valid = has('patch-8.0.0580')
+    AssertEqual getloclist(0), [
+    \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1,
+    \  'type': 'W', 'pattern': '',
+    \  'text': 'neomake_tests_echo_maker nmcfg:{''short'': ''echo'', ''name'': ''echo_maker''}'}]
+
+    lopen
+    AssertEqual w:quickfix_title, 'Neomake[file]: buf:0 (echo_maker)'
+    normal! G0
+    doautocmd CursorMoved
+    AssertEqual expand('<cWORD>'), 'neomake_tests_echo_maker'
+
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (Handles interleaving maker output and buffer names (quickfix)):
+  if !neomake#has_async_support()
+    NeomakeTestsSkip 'no async support.'
+    return
+  endif
+
+  call neomake#quickfix#enable()
+  try
+    new
+    set ft=neomake_tests
+    let bufnr = bufnr('%')
+
+    let s:flagfile = tempname()
+    let maker1 = NeomakeTestsCommandMaker('maker1', 'echo file1: maker1_1; '
+    \ .'while ! [ -s '.fnameescape(s:flagfile).' ]; do sleep 0.01; done; '
+    \ .'echo file1: maker1_2')
+    function maker1.process_output(...)
+      if filereadable(s:flagfile)
+        return [{'text': 'maker1_2', 'lnum': 2, 'bufnr': bufnr('%')}]
+      endif
+      call writefile([], s:flagfile)
+      return [{'text': 'maker1_1', 'lnum': 1, 'bufnr': bufnr('%')}]
+    endfunction
+
+    if neomake#has_async_support()
+      let maker2 = NeomakeTestsCommandMaker('maker2',
+      \ 'while ! [ -e '.fnameescape(s:flagfile).' ]; do sleep 0.01; done; '
+      \ .'echo file2: maker2_1')
+      function maker2.process_output(...)
+        call writefile([''], s:flagfile)
+        return [
+        \ {'text': 'maker2_1', 'lnum': 1, 'bufnr': bufnr('%')},
+        \ {'text': 'maker2_2', 'lnum': 2, 'filename': 'very_long_name_for_unlisted_buffer_via_filename_entry'}]
+      endfunction
+    else
+      let maker2 = NeomakeTestsCommandMaker('maker2', 'true')
+    endif
+    let maker1.errorformat = '%f: %m'
+    let maker1.buffer_output = 0
+    let maker2.errorformat = '%f: %m'
+    CallNeomake {'enabled_makers': [maker1, maker2], 'file_mode': 0}
+
+    let unlisted_bufnr = bufnr('very_long_name_for_unlisted_buffer_via_filename_entry')
+
+    " Quickfix list entry contains marker.
+    let qflist = getqflist()
+    AssertEqual map(copy(qflist), '[v:val.bufnr, v:val.text]'), [
+    \ [bufnr, 'maker1_1 nmcfg:{''short'': ''make'', ''name'': ''maker1''}'],
+    \ [bufnr, 'maker2_1 nmcfg:{''short'': ''make'', ''name'': ''maker2''}'],
+    \ [unlisted_bufnr, 'maker2_2'],
+    \ [bufnr, 'maker1_2 nmcfg:{''short'': ''make'', ''name'': ''maker1''}']]
+
+    AssertEqual neomake#GetCurrentErrorMsg(), 'maker1: maker1_1 (E)'
+
+    copen
+    AssertEqual w:quickfix_title, 'Neomake[project]: maker1, maker2'
+
+    doautocmd CursorMoved
+    " Empty bufname gets transformed to buf:X.
+    AssertEqual expand('<cWORD>'), '[buf:'.bufnr.']'
+    normal! W
+    AssertEqual expand('<cWORD>'), 'maker1_1'
+    normal! j0
+    doautocmd CursorMoved
+    " Same buffer as previous entry: name omitted.
+    AssertEqual expand('<cWORD>'), 'maker2_1'
+    normal! j
+    AssertEqual expand('<cWORD>'), '[very_long_name…]'
+    normal! j
+    AssertEqual expand('<cWORD>'), '[buf:'.bufnr.']'
+
+    cclose
+    bwipe
+    exe unlisted_bufnr 'bwipe'
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (Handles empty entries):
+  let maker = {}
+  function maker.get_list_entries(...)
+    return []
+  endfunction
+  CallNeomake {'enabled_makers': [maker]}
+
+Execute (Does not change current error via regular command maker):
+  new
+  CallNeomake {'enabled_makers': [g:error_maker]}
+  AssertEqual neomake#GetCurrentErrorMsg(), 'error-maker: error (E)'
+  bwipe
+
+Execute (Disable custom formatted quickfix buffer):
+  call neomake#quickfix#enable()
+  call neomake#quickfix#disable()
+  call setloclist(0, [{
+      \   'lnum': 1,
+      \   'bufnr': 1,
+      \   'text': 'Line 1',
+      \ },
+      \ {
+      \   'lnum': 2,
+      \   'col': 5,
+      \   'bufnr': 1,
+      \   'text': 'Line 2',
+      \ }])
+
+  lopen
+
+  AssertEqual getline(1, '$'),
+    \ ['|1| Line 1', '|2 col 5| Line 2']
+
+  normal! 0
+  doautocmd CursorMoved
+  AssertEqual expand('<cWORD>'), '|1|'
+  AssertEqual getpos('.')[1:2], [1, 1]
+  close
+
+Execute (neomake#quickfix#FormatQuickfix handles entries with config in text):
+  call neomake#quickfix#enable()
+  try
+    new
+    call setloclist(0, [{
+        \   'text': 'Text with marker nmcfg:{"name": "a", "short": "a"} nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    lopen
+    call neomake#quickfix#FormatQuickfix()
+    AssertEqual getline(1), 'b   Text with marker nmcfg:{"name": "a", "short": "a"} '
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (neomake#quickfix#FormatQuickfix reuses signs):
+  call neomake#quickfix#enable()
+  try
+    new
+    call setloclist(0, [{
+        \ 'lnum': 1,
+        \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    lopen
+    let loclist_bufnr = bufnr('%')
+    AssertEqual getline(1), 'b 1:- Text with marker '
+    let bufnr = bufnr('%')
+    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.bufnr.'.', 3
+
+    call setloclist(0, [{
+        \ 'lnum': 1,
+        \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3, {'bufnr': loclist_bufnr}
+
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
