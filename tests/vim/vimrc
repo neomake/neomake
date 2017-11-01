@@ -67,6 +67,7 @@ set cmdheight=5
 set textwidth=79
 set hidden
 set splitbelow  " Easier for window numbers (incrementing).
+set complete=.  " Just simple completion from the current buffer.
 
 
 set debug=msg,throw
