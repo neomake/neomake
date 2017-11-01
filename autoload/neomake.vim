@@ -29,8 +29,6 @@ let s:maker_defaults = {
             \ 'remove_invalid_entries': 0}
 " List of pending outputs by job ID.
 let s:pending_outputs = {}
-" Keep track of for what maker.exe an error was thrown.
-let s:exe_error_thrown = {}
 
 if !has('nvim')
     let s:kill_vim_timers = {}
@@ -1076,30 +1074,30 @@ function! s:Make(options) abort
                     \ 'Calling Make with options %s.',
                     \ string(filter(copy(options), "index(['bufnr', 'make_id'], v:key) == -1"))), {'make_id': make_id, 'bufnr': bufnr})
     endif
-    if has_key(options, 'enabled_makers')
-        let makers = neomake#map_makers(options.enabled_makers, options.ft, 0)
-        unlet options.enabled_makers
+
+    " Use pre-compiled jobs (used with automake).
+    if has_key(options, 'jobs')
+        let jobs = map(copy(options.jobs), "extend(v:val, {'make_id': make_id})")
+        unlet options.jobs
     else
-        let makers = call('neomake#GetEnabledMakers', file_mode ? [options.ft] : [])
-        if empty(makers)
-            if file_mode
-                call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers (filetype='.options.ft.').', options)
-                call s:clean_make_info(make_info)
-                return []
-            else
-                let makers = [s:get_makeprg_maker()]
+        if has_key(options, 'enabled_makers')
+            let makers = neomake#map_makers(options.enabled_makers, options.ft, 0)
+            unlet options.enabled_makers
+        else
+            let makers = call('neomake#GetEnabledMakers', file_mode ? [options.ft] : [])
+            if empty(makers)
+                if file_mode
+                    call neomake#utils#DebugMessage('Nothing to make: no enabled file mode makers (filetype='.options.ft.').', options)
+                    call s:clean_make_info(make_info)
+                    return []
+                else
+                    let makers = [s:get_makeprg_maker()]
+                endif
             endif
         endif
+        let jobs = neomake#core#create_jobs(options, makers)
     endif
 
-    " Instantiate all makers in the beginning (so expand() gets used in
-    " the current buffer's context).
-    let args = [options, makers]
-    if file_mode
-        let args += [options.ft]
-    endif
-    lockvar options
-    let jobs = call('s:bind_makers_for_job', args)
     if empty(jobs)
         call neomake#utils#DebugMessage('Nothing to make: no valid makers.', options)
         call s:clean_make_info(make_info)
@@ -1594,7 +1592,21 @@ endfunction
 "  - directory changed into (empty if skipped)
 "  - command to change back to the current workding dir (might be empty)
 function! s:cd_to_jobs_cwd(jobinfo) abort
-    let cwd = get(a:jobinfo, 'cwd', s:make_info[a:jobinfo.make_id].cwd)
+    if !has_key(a:jobinfo, 'cwd')
+        let maker = a:jobinfo.maker
+        if has_key(maker, 'cwd')
+            let cwd = maker.cwd
+            if cwd[0:1] ==# '%:'
+                let cwd = neomake#utils#fnamemodify(a:jobinfo.bufnr, cwd[1:])
+            else
+                let cwd = expand(cwd, 1)
+            endif
+            let a:jobinfo.cwd = substitute(fnamemodify(cwd, ':p'), '[\/]$', '', '')
+        else
+            let a:jobinfo.cwd = s:make_info[a:jobinfo.make_id].cwd
+        endif
+    endif
+    let cwd = a:jobinfo.cwd
     if empty(cwd)
         return ['', '', '']
     endif
@@ -2452,73 +2464,6 @@ function! neomake#CompleteJobs(...) abort
     return join(map(neomake#GetJobs(), "v:val.id.': '.v:val.maker.name"), "\n")
 endfunction
 
-" Map/bind a:makers to a list of job options, using a:options.
-function! s:bind_makers_for_job(options, makers, ...) abort
-    let r = []
-    for maker in a:makers
-        let options = copy(a:options)
-        try
-            " Call .fn function in maker object, if any.
-            if has_key(maker, 'fn')
-                " TODO: Allow to throw and/or return 0 to abort/skip?!
-                let returned_maker = call(maker.fn, [options], maker)
-                if returned_maker isnot# 0
-                    " This conditional assignment allows to both return a copy
-                    " (factory), while also can be used as a init method.
-                    let maker = returned_maker
-                endif
-            endif
-
-            if has_key(maker, 'cwd')
-                let cwd = maker.cwd
-                if cwd[0:1] ==# '%:'
-                    let cwd = neomake#utils#fnamemodify(options.bufnr, cwd[1:])
-                else
-                    let cwd = expand(cwd, 1)
-                endif
-                let options.cwd = substitute(fnamemodify(cwd, ':p'), '[\/]$', '', '')
-            endif
-
-            if has_key(maker, '_bind_args')
-                call maker._bind_args()
-                if type(maker.exe) != type('')
-                    let error = printf('Non-string given for executable of maker %s: type %s.',
-                                \ maker.name, type(maker.exe))
-                    if !get(maker, 'auto_enabled', 0)
-                        call neomake#utils#ErrorMessage(error, options)
-                    else
-                        call neomake#utils#DebugMessage(error, options)
-                    endif
-                    continue
-                endif
-                if !executable(maker.exe)
-                    if !get(maker, 'auto_enabled', 0)
-                        let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)
-                        if !has_key(s:exe_error_thrown, maker.exe)
-                            let s:exe_error_thrown[maker.exe] = 1
-                            call neomake#utils#ErrorMessage(error, options)
-                        else
-                            call neomake#utils#DebugMessage(error, options)
-                        endif
-                    else
-                        call neomake#utils#DebugMessage(printf(
-                                    \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name), options)
-                    endif
-                    continue
-                endif
-            endif
-
-        catch /^Neomake: /
-            let error = substitute(v:exception, '^Neomake: ', '', '').'.'
-            call neomake#utils#ErrorMessage(error, {'make_id': options.make_id})
-            continue
-        endtry
-        let options.maker = maker
-        let r += [options]
-    endfor
-    return r
-endfunction
-
 function! neomake#Make(file_mode_or_options, ...) abort
     if type(a:file_mode_or_options) == type({})
         return s:Make(a:file_mode_or_options)
@@ -2674,7 +2619,6 @@ function! s:display_neomake_info() abort
         echo '```'
     endif
 endfunction
-
 
 function! neomake#map_makers(makers, ft, auto_enabled) abort
     let makers = []
