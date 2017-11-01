@@ -223,7 +223,7 @@ docker_list_vims:
 	docker run --rm $(DOCKER_IMAGE) $(_ECHO_DOCKER_VIMS)
 
 check_lint_diff:
-	@set -ex; \
+	@set -e; \
 	echo "Looking for changed files (to origin/master)."; \
 	CHANGED_VIM_FILES=($$(git diff-tree --no-commit-id --name-only --diff-filter=AM -r origin/master.. \
 	  | grep '\.vim$$' | grep -v '^tests/fixtures')) || true; \
