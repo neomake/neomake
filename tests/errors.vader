@@ -112,7 +112,7 @@ Execute (Error from neomake#GetMaker for non-dict maker):
 
   CallNeomake 0, ['mymaker']
   let make_id = neomake#GetStatus().last_make_id
-  AssertNeomakeMessage 'Got non-dict for maker mymaker: 0.', 0, {'make_id': make_id}
+  AssertNeomakeMessage 'Got non-dict for maker mymaker: 0.', 0, {'make_id': make_id, 'bufnr': bufnr('%')}
   AssertNeomakeMessage 'Nothing to make: no valid makers.', 3
   AssertNeomakeMessage 'Cleaning make info.', 3
   bwipe

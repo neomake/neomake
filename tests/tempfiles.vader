@@ -585,3 +585,43 @@ Execute (Uses temporary dir for non-writable directory):
   AssertNeomakeMessage 'Running makers: true-maker.', 3
   AssertNeomakeMessage 'Using temporary directory for non-writable parent directory.', 3
   bwipe!
+
+Execute (Expands % in cwd according to actual file):
+  let tmpdir = tempname()
+  call mkdir(tmpdir, 'p', 0550)
+  new
+  exe 'file '.tmpdir.'/file'
+  let b:neomake_tempfile_enabled = 1
+  norm! iline1
+  let maker = {'exe': 'pwd', 'cwd': '%:h', 'uses_filename': 1, 'append_file': 0}
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Using temporary directory for non-writable parent directory.', 3
+  AssertNeomakeMessage printf('cwd: %s (changed).', tmpdir)
+  AssertEqual map(getloclist(0), 'v:val.text'), [tmpdir]
+  bwipe!
+
+Execute (Expands % in args according to actual file (list)):
+  let tmpdir = tempname()
+  call mkdir(tmpdir, 'p', 0550)
+  new
+  exe 'file '.tmpdir.'/file'
+  let b:neomake_tempfile_enabled = 1
+  norm! iline1
+  let maker = {'exe': 'printf', 'args': ['%s', '%:h'], 'uses_filename': 1, 'append_file': 0}
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Using temporary directory for non-writable parent directory.', 3
+  AssertEqual map(getloclist(0), 'v:val.text'), [tmpdir]
+  bwipe!
+
+Execute (Does not expand % in args as string):
+  let tmpdir = tempname()
+  call mkdir(tmpdir, 'p', 0550)
+  new
+  exe 'file '.tmpdir.'/file'
+  let b:neomake_tempfile_enabled = 1
+  norm! iline1
+  let maker = {'exe': 'printf', 'args': '%s %:h', 'uses_filename': 1, 'append_file': 0}
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Using temporary directory for non-writable parent directory.', 3
+  AssertEqual map(getloclist(0), 'v:val.text'), ['%:h']
+  bwipe!

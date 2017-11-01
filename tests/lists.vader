@@ -359,6 +359,7 @@ Execute (open_list=1 with job: just opens location window):
 
   Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was not setup'
   AssertNeomakeMessage 'Handling location list: executing lwindow.'
+  AssertEqual winheight(winnr()), 1
 
   AssertEqual winnr(), winnr('$'), 'In location window.'
   wincmd p
@@ -400,6 +401,56 @@ Execute (open_list=1 with height=0: does not open location window):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
   AssertEqual wincount, winnr('$'), 'Location list has not appeared'
+
+  Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was not setup'
+  Assert !exists('#neomake_event_queue'), 'augroup does not exist'
+  bwipe
+
+Execute (open_list=2 uses minimum from list_height and entries):
+  Save g:neomake_open_list, g:neomake_list_height
+  let g:neomake_open_list = 1
+  let g:neomake_list_height = 3
+  new
+  let wincount = winnr('$')
+
+  let entry_maker = {}
+  function entry_maker.get_list_entries(...)
+    let buf = bufnr('%')
+    return [
+    \ {'text': '1', 'bufnr': buf, 'lnum': 1},
+    \ {'text': '2', 'bufnr': buf, 'lnum': 1},
+    \ {'text': '3', 'bufnr': buf, 'lnum': 1},
+    \ {'text': '4', 'bufnr': buf, 'lnum': 1},
+    \ ]
+  endfunction
+  call neomake#Make(1, [entry_maker])
+  AssertEqual map(getloclist(0), 'v:val.text'), ['1', '2', '3', '4']
+  AssertEqual winheight(winnr()), 3
+
+  " Does not change already open window.
+  function! entry_maker.get_list_entries(...)
+    let buf = bufnr('%')
+    return [
+    \ {'text': '1', 'bufnr': buf, 'lnum': 1},
+    \ {'text': '2', 'bufnr': buf, 'lnum': 1},
+    \ ]
+  endfunction
+  call neomake#Make(1, [entry_maker])
+  AssertEqual map(getloclist(0), 'v:val.text'), ['1', '2']
+  AssertEqual winheight(winnr()), 3
+
+  lclose
+  function! entry_maker.get_list_entries(...)
+    let buf = bufnr('%')
+    return [
+    \ {'text': '1', 'bufnr': buf, 'lnum': 1},
+    \ {'text': '2', 'bufnr': buf, 'lnum': 1},
+    \ ]
+  endfunction
+  call neomake#Make(1, [entry_maker])
+  AssertEqual map(getloclist(0), 'v:val.text'), ['1', '2']
+  AssertEqual winheight(winnr()), 2
+  lclose
 
   Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was not setup'
   Assert !exists('#neomake_event_queue'), 'augroup does not exist'
