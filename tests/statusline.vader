@@ -63,9 +63,9 @@ Execute (neomake#statusline#get_status):
   let bufnr = bufnr('')
   AssertEqual neomake#statusline#get_status(bufnr, {}), '?'
 
-  AssertEqual neomake#statusline#get_status(bufnr, {'format_unknown': '{{running_job_names}}'}), ''
+  AssertEqual neomake#statusline#get_status(bufnr, {'format_loclist_unknown': '{{running_job_names}}'}), ''
   " {{running_jobs}} is only available with 'format_running' (internally).
-  AssertEqual neomake#statusline#get_status(bufnr, {'format_unknown': '{{running_jobs}}'}), '{{running_jobs}}'
+  AssertEqual neomake#statusline#get_status(bufnr, {'format_loclist_unknown': '{{running_jobs}}'}), '{{running_jobs}}'
   AssertNeomakeMessage 'Unknown statusline format: {{running_jobs}}.', 0
 
   call neomake#Make({'enabled_makers': [g:sleep_maker]})
