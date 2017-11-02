@@ -234,8 +234,15 @@ Execute (Signs get handled across multiple get_list_entries jobs):
   \ '2': [5001, 'neomake_file_warn']}
 
   call neomake#Make(1, [maker1])
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {5001: neomake_file_warn}.'
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5001 buffer='.bufnr.'.'
   AssertEqual neomake#signs#by_lnum(bufnr), {
   \ '1': [5000, 'neomake_file_err']}
+
+  call neomake#Make(1, [maker1, maker2])
+  AssertEqual neomake#signs#by_lnum(bufnr), {
+  \ '1': [5000, 'neomake_file_err'],
+  \ '2': [5001, 'neomake_file_warn']}
   bwipe
 
 Execute (next sign_id based on max):
@@ -367,4 +374,48 @@ Execute (neomake#signs#PlaceSigns keeps sign moved by lnum):
   call neomake#signs#CleanOldSigns(bufnr, 'file')
   AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {5000: neomake_file_err}.'
   AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer='.bufnr.'.'
+  bwipe!
+
+Execute (CleanOldSigns removes unplaced sign from s:placed_signs):
+  new
+  let bufnr = bufnr('%')
+
+  let s:call_count = 0
+  let maker = {}
+  function maker.get_list_entries(...)
+    let s:call_count += 1
+    let bufnr = bufnr('%')
+    let entries = [
+      \ {'lnum': 1, 'text': '1', 'bufnr': bufnr},
+      \ ]
+    if s:call_count != 2
+      let entries += [
+        \ {'lnum': 2, 'text': '2', 'bufnr': bufnr},
+        \ ]
+    endif
+    return entries
+  endfunction
+
+  normal! 3o
+
+  CallNeomake 1, [maker]
+  AssertEqual neomake#signs#by_lnum(bufnr), {
+  \ '1': [5000, 'neomake_file_err'],
+  \ '2': [5001, 'neomake_file_err'],
+  \ }
+
+  CallNeomake 1, [maker]
+  AssertEqual neomake#signs#by_lnum(bufnr), {
+  \ '1': [5000, 'neomake_file_err'],
+  \ }
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {5001: neomake_file_err}.', 3
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5001 buffer='.bufnr.'.', 3
+
+  CallNeomake 1, [maker]
+  AssertEqual neomake#signs#by_lnum(bufnr), {
+  \ '1': [5000, 'neomake_file_err'],
+  \ '2': [5001, 'neomake_file_err'],
+  \ }
+  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3
+  AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.bufnr.'.'
   bwipe!
