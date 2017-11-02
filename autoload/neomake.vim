@@ -591,7 +591,7 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         let uses_stdin = get(a:jobinfo, 'uses_stdin', 0)
         if uses_stdin
             if !has_key(make_info, 'buffer_lines')
-                let make_info.buffer_lines = getbufline(bufnr, 1, '$')
+                let make_info.buffer_lines = neomake#utils#get_buffer_lines(bufnr)
             endif
         elseif !has_key(make_info, 'tempfiles')
             let make_info.tempfiles = [temp_file]

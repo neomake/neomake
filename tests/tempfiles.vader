@@ -630,6 +630,20 @@ Execute (stdin maker: supports_stdin can be a callback returning 0 and change ar
   AssertEqual map(getloclist(0), 'v:val.text'), ['added_arg', tempfile_name]
   bwipe
 
+Execute (stdin maker: uses neomake#utils#get_buffer_lines for buffer_lines):
+  let maker = {'exe': 'cat', 'supports_stdin': 1}
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)".$'
+  let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual map(getloclist(0), 'v:val.text'), []
+
+  normal! o
+  CallNeomake 1, [maker]
+  AssertEqual map(getloclist(0), 'v:val.text'), ['', '']
+  bwipe
+
 Execute (Uses temporary dir for non-writable directory):
   new
   file /non-writable-dir/file
