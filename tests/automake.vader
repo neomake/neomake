@@ -143,14 +143,14 @@ Execute (Automake supports custom buffer config):
   AssertEqual len(g:neomake_test_finished), 1
 
   " Changing buffer config resets tick.
-  call neomake#configure#automake_for_buffer({'BufWinEnter': {'delay': 0}}, 0, ['another_maker'])
+  call neomake#configure#automake_for_buffer({'BufWinEnter': {'delay': 0}}, 0, [g:entry_maker])
   doautocmd BufWinEnter
-  AssertNeomakeMessage 'Maker not found (for filetype neomake_tests): another_maker.'
+  AssertNeomakeMessage 'unnamed_maker: getting entries via get_list_entries.'
 
   " Changing buffer options resets tick.
-  call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 0}}, 0, ['another_maker'])
+  call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 0}}, 0, [g:entry_maker])
   doautocmd CursorHold
-  AssertNeomakeMessage 'Maker not found (for filetype neomake_tests): another_maker.'
+  AssertNeomakeMessage 'unnamed_maker: getting entries via get_list_entries.'
 
   bwipe
 
@@ -333,6 +333,7 @@ Execute (neomake#configure#automake_for_buffer does not set up autocommands for 
   call neomake#configure#automake_for_buffer('n', 10)
   AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
   AssertNeomakeMessage 'automake: registered events: .', 3
+  call NeomakeTestsAssertAutomakeAutocommands([])
   bwipe
 
 Execute (neomake#configure#automake_for_buffer sets up autocommands with makers):
@@ -344,29 +345,23 @@ Execute (neomake#configure#automake_for_buffer sets up autocommands with makers)
   if exists('#TextChanged')
     AssertNeomakeMessage 'automake: registered events: InsertLeave, TextChanged.'
   else
+    AssertNeomakeMessage 'automake: using CursorHold instead of TextChanged.', 3
     AssertNeomakeMessage 'automake: registered events: CursorHold, InsertLeave.'
   endif
   bwipe
 
-Execute (neomake#configure#automake_for_buffer sets up autocommands with no makers):
+Execute (neomake#configure#automake_for_buffer logs error for unknown maker):
   new
-  set buftype=nofile
-  set filetype=neomake_tests
-  call neomake#configure#automake_for_buffer('n', 10)
-  if exists('##TextChanged') && has('timers')
-    let event = 'TextChanged'
-  else
-    AssertNeomakeMessage 'automake: using CursorHold instead of TextChanged.', 3
-    let event = 'CursorHold'
-  endif
-  AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (no enabled makers).', 3
-  call NeomakeTestsAssertAutomakeAutocommands(['InsertLeave', event])
+  " This is fine for now, since it is still considered to be experimental API.
+  call neomake#configure#automake_for_buffer('n', 0, ['another_maker'])
+  AssertNeomakeMessage 'Maker not found (for empty filetype): another_maker.'
   bwipe
 
 Execute (neomake#configure#automake_for_buffer sets up BufWritePost without delay):
   new
   set buftype=nofile
   set filetype=neomake_tests
+  let g:neomake_test_enabledmakers = ['true']
   call neomake#configure#automake_for_buffer('w')
   call NeomakeTestsAssertAutomakeAutocommands(['BufWritePost'])
   if has('timers')
@@ -380,6 +375,7 @@ Execute (neomake#configure#automake_for_buffer sets up BufWritePost with delay):
   new
   set buftype=nofile
   set filetype=neomake_tests
+  let g:neomake_test_enabledmakers = ['true']
   call neomake#configure#automake_for_buffer('w', 5)
   call NeomakeTestsAssertAutomakeAutocommands(['BufWritePost'])
   if has('timers')
@@ -398,6 +394,7 @@ Execute (neomake#configure#automake_for_buffer sets up BufWritePost with delay):
   set buftype=
   set filetype=neomake_tests
   exe 'w!' tempname
+  NeomakeTestsWaitForFinishedJobs
   bwipe
 
 Execute (neomake#configure#automake_for_buffer skips non-default buftypes):
@@ -415,7 +412,7 @@ Execute (neomake#configure#automake_for_buffer can configure makers (dict)):
   call neomake#configure#automake_for_buffer('r', 0, {'makers': ['foo_maker']})
   AssertNeomakeMessage 'Maker not found (for empty filetype): foo_maker.', 0
   AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).', 3
-  AssertNeomakeMessage 'automake: registered events: FileChangedShellPost, FileType, BufWinEnter.', 3
+  AssertNeomakeMessage 'automake: registered events: .', 3
 
   let maker = {'name': 'my-maker'}
   call neomake#configure#automake_for_buffer('r', 0, {'makers': [maker]})

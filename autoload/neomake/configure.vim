@@ -458,6 +458,9 @@ function! s:neomake_automake_clean(bufnr) abort
         unlet s:timer_by_bufnr[a:bufnr]
         call timer_stop(timer)
     endif
+    if has_key(s:configured_buffers, a:bufnr)
+        unlet s:configured_buffers[a:bufnr]
+    endif
 endfunction
 
 function! neomake#configure#automake(...) abort
