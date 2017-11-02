@@ -125,7 +125,6 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
         endfor
 
         let place_new = []
-        let kept_signs = []
         let log_context = {'bufnr': bufnr}
         for [lnum, entry_info] in items(entries_by_linenr)
             let [entry, sign_type] = entry_info
@@ -150,7 +149,6 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
                 call neomake#utils#DebugMessage('Upgrading sign for lnum='.lnum.': '.cmd.'.', log_context)
                 exe cmd
             endif
-            call add(kept_signs, existing_sign[0])
         endfor
 
         for [lnum, sign_type] in place_new
