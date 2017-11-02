@@ -2330,6 +2330,9 @@ function! s:handle_next_job(prev_jobinfo) abort
     if !empty(a:prev_jobinfo)
         let status = get(a:prev_jobinfo, 'exit_code', 0)
         if status != 0 && index([122, 127], status) == -1
+            " TODO: mark maker.exe as non-executable with status 127, and
+            "       maybe re-introduce a wrapper for `executable()` to handle it.
+            "       Ref: https://github.com/neomake/neomake/issues/1699
             if neomake#utils#GetSetting('serialize_abort_on_error', a:prev_jobinfo.maker, 0, a:prev_jobinfo.ft, a:prev_jobinfo.bufnr)
                 call s:abort_next_makers(make_id)
                 call s:CleanJobinfo(a:prev_jobinfo)
