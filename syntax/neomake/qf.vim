@@ -1,0 +1,7 @@
+syntax clear
+
+let b:current_syntax = 'neomake_qf'
+
+highlight default link neomakeListNr LineNr
+highlight default link neomakeCursorListNr CursorLineNr
+highlight default link neomakeMakerName FoldColumn

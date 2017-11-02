@@ -32,6 +32,7 @@ Include (Temporary files): tempfiles.vader
 Include (Toggling): toggle.vader
 Include (Utils): utils.vader
 Include (Verbosity): verbosity.vader
+Include (Custom Quickfix): customqf.vader
 
 ~ Filetype specific
 Include (Haskell): ft_haskell.vader

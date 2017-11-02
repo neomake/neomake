@@ -34,6 +34,22 @@ function! neomake#signs#Reset(bufnr, type) abort
     endif
 endfunction
 
+" Remove and clean all signs in a buffer.
+function! neomake#signs#Clean(bufnr, type) abort
+    if has_key(s:placed_signs[a:type], a:bufnr)
+        let s = s:placed_signs
+        for sign_id in keys(s:placed_signs[a:type][a:bufnr])
+            let cmd = 'sign unplace '.sign_id.' buffer='.a:bufnr
+            call neomake#utils#DebugMessage('Unplacing sign: '.cmd.'.')
+            exe cmd
+        endfor
+        unlet s:placed_signs[a:type][a:bufnr]
+    endif
+    if has_key(s:last_placed_signs[a:type], a:bufnr)
+        unlet s:last_placed_signs[a:type][a:bufnr]
+    endif
+endfunction
+
 let s:sign_order = {'neomake_file_err': 0, 'neomake_file_warn': 1,
                  \  'neomake_file_info': 2, 'neomake_file_msg': 3,
                  \  'neomake_project_err': 4, 'neomake_project_warn': 5,
