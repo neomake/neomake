@@ -345,7 +345,6 @@ Execute (neomake#configure#automake_for_buffer sets up autocommands with makers)
   if exists('#TextChanged')
     AssertNeomakeMessage 'automake: registered events: InsertLeave, TextChanged.'
   else
-    AssertNeomakeMessage 'automake: using CursorHold instead of TextChanged.', 3
     AssertNeomakeMessage 'automake: registered events: CursorHold, InsertLeave.'
   endif
   bwipe
