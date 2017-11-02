@@ -396,6 +396,17 @@ The `output_stream` setting specifies what stream gets used for output from
 the maker.
 Any output on a stream not configured here gets reported as unexpected output.
 
+                                               *neomake-makers-supports_stdin*
+Default: 0
+With `supports_stdin = 1` a maker indicates that it can use stdin instead of a
+temporary file.  By default "-" is then used for the filename.
+
+`supports_stdin` can be a dict function on the maker, which will get the
+current jobinfo as its argument, and should return 1 or 0.
+This function can change `self.args`, which is useful to append options like
+e.g. "['--stdin-display-name', '%:p']".
+You can also change `self.tempfile_name` therein.
+
 Global Options                                               *neomake-options*
 
 *g:neomake_<name>_maker*

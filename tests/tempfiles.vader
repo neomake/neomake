@@ -576,6 +576,60 @@ Execute (stdin maker (project mode: uses_filename)):
   AssertEqual map(getqflist(), 'v:val.text'), ['line1', 'line2']
   bwipe!
 
+Execute (stdin maker: supports_stdin can be a callback adding args):
+  let maker = {'exe': 'printf', 'args': ['%s\n']}
+  function maker.supports_stdin(jobinfo)
+    let self.args += ['added_arg']
+    return 1
+  endfunction
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Using tempfile for unnamed buffer: "-".'
+  AssertEqual map(getloclist(0), 'v:val.text'), ['added_arg', '-']
+  bwipe
+
+Execute (stdin maker: supports_stdin can be a callback adding args, and setting tempfile_name):
+  let maker = {'exe': 'printf', 'args': ['%s\n']}
+  function maker.supports_stdin(jobinfo)
+    let self.args += ['added_arg']
+    let self.tempfile_name = 'custom_tempfile'
+    return 1
+  endfunction
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Using tempfile for unnamed buffer: "custom_tempfile".'
+  AssertEqual map(getloclist(0), 'v:val.text'), ['added_arg', 'custom_tempfile']
+  bwipe
+
+Execute (stdin maker: supports_stdin can be a callback returning 0):
+  let maker = {'exe': 'printf', 'args': ['%s\n']}
+  function maker.supports_stdin(jobinfo)
+    return 0
+  endfunction
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)".$'
+  let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual map(getloclist(0), 'v:val.text'), [tempfile_name]
+  bwipe
+
+Execute (stdin maker: supports_stdin can be a callback returning 0 and change args):
+  let maker = {'exe': 'printf', 'args': ['%s\n']}
+  function maker.supports_stdin(jobinfo)
+    let self.args += ['added_arg']
+    return 0
+  endfunction
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)".$'
+  let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual map(getloclist(0), 'v:val.text'), ['added_arg', tempfile_name]
+  bwipe
+
 Execute (Uses temporary dir for non-writable directory):
   new
   file /non-writable-dir/file
