@@ -62,7 +62,7 @@ function! neomake#makers#ft#python#PylintEntryProcess(entry) abort
 endfunction
 
 function! neomake#makers#ft#python#flake8() abort
-    return {
+    let maker = {
         \ 'args': ['--format=default'],
         \ 'errorformat':
             \ '%E%f:%l: could not compile,%-Z%p^,' .
@@ -72,6 +72,12 @@ function! neomake#makers#ft#python#flake8() abort
         \ 'postprocess': function('neomake#makers#ft#python#Flake8EntryProcess'),
         \ 'short_name': 'fl8',
         \ }
+
+    function! maker.supports_stdin(jobinfo) abort
+        let self.args += ['--stdin-display-name', bufname('%')]
+        return 1
+    endfunction
+    return maker
 endfunction
 
 function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort

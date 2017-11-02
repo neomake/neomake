@@ -580,7 +580,7 @@ function! neomake#utils#shellescape(arg) abort
     return shellescape(a:arg)
 endfunction
 
-function! neomake#utils#write_tempfile(bufnr, temp_file) abort
+function! neomake#utils#get_buffer_lines(bufnr) abort
     let buflines = getbufline(a:bufnr, 1, '$')
     " Special case: empty buffer; do not write an empty line in this case.
     if len(buflines) > 1 || buflines != ['']
@@ -590,7 +590,11 @@ function! neomake#utils#write_tempfile(bufnr, temp_file) abort
             call add(buflines, '')
         endif
     endif
-    call writefile(buflines, a:temp_file, 'b')
+    return buflines
+endfunction
+
+function! neomake#utils#write_tempfile(bufnr, temp_file) abort
+    call writefile(neomake#utils#get_buffer_lines(a:bufnr), a:temp_file, 'b')
 endfunction
 
 " Wrapper around fnamemodify that handles special buffers (e.g. fugitive).

@@ -436,7 +436,14 @@ function! s:MakeJob(make_id, options) abort
 
             try
                 if get(jobinfo, 'uses_stdin', 0)
-                    let output = system(argv, join(s:make_info[a:make_id].buffer_lines, "\n"))
+                    " Pass stdin to system(), but only if non-empty.
+                    " Otherwise it might cause E677 (vim74-trusty at least).
+                    let stdin = join(s:make_info[a:make_id].buffer_lines, "\n")
+                    if !empty(stdin)
+                        let output = system(argv, stdin)
+                    else
+                        let output = system(argv)
+                    endif
                 else
                     let output = system(argv)
                 endif
@@ -479,9 +486,16 @@ let s:maker_base = {}
 let s:command_maker_base = {}
 " Check if a temporary file is used, and set it in s:make_info in case it is.
 function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
-    if get(self, 'supports_stdin', 0)
-        let a:jobinfo.uses_stdin = 1
-        return get(self, 'tempfile_name', '-')
+    if has_key(self, 'supports_stdin')
+        if type(self.supports_stdin) == type(function('tr'))
+            let supports_stdin = self.supports_stdin(a:jobinfo)
+        else
+            let supports_stdin = self.supports_stdin
+        endif
+        if supports_stdin
+            let a:jobinfo.uses_stdin = 1
+            return get(self, 'tempfile_name', '-')
+        endif
     endif
 
     if has_key(self, 'tempfile_name')
@@ -577,7 +591,7 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         let uses_stdin = get(a:jobinfo, 'uses_stdin', 0)
         if uses_stdin
             if !has_key(make_info, 'buffer_lines')
-                let make_info.buffer_lines = getbufline(bufnr, 1, '$')
+                let make_info.buffer_lines = neomake#utils#get_buffer_lines(bufnr)
             endif
         elseif !has_key(make_info, 'tempfiles')
             let make_info.tempfiles = [temp_file]
@@ -637,8 +651,8 @@ function! s:command_maker_base._bind_args() abort dict
 endfunction
 
 function! s:command_maker_base._get_argv(jobinfo) abort dict
-    let args = copy(self.args)
-    let args_is_list = type(args) == type([])
+    let args = self.args
+    let args_is_list = type(self.args) == type([])
 
     " Append file?  (defaults to jobinfo.file_mode, project/global makers should set it to 0)
     let append_file = neomake#utils#GetSetting('append_file', self, a:jobinfo.file_mode, a:jobinfo.ft, a:jobinfo.bufnr)
@@ -647,6 +661,7 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
     if append_file || uses_filename
         let filename = self._get_fname_for_buffer(a:jobinfo)
         if append_file
+            let args = copy(args)
             if args_is_list
                 call add(args, filename)
             else
