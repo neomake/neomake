@@ -1,6 +1,6 @@
 Include: ../include/setup.vader
 
-Execute (Monkeypatch autoload/neomake/highlights.vim):
+Execute (Setup: monkeypatch autoload/neomake/highlights.vim):
   " Monkeypatch to check setting of length.
   runtime autoload/neomake/highlights.vim
   Save g:neomake_tests_highlight_lengths
@@ -267,3 +267,6 @@ Execute (cargo error message children):
 
   AssertEqual [[11, 4]], g:neomake_tests_highlight_lengths
   bwipe
+
+Execute (Teardown: undo monkeypatching):
+  runtime autoload/neomake/highlights.vim
