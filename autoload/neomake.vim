@@ -2466,7 +2466,7 @@ function! neomake#CursorMovedDelayed() abort
     let s:cursormoved_last_pos = getpos('.')
 endfunction
 
-let s:last_completion = ''
+let s:last_completion = []
 function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
     if a:ArgLead =~# '[^A-Za-z0-9]'
         return []
@@ -2478,6 +2478,7 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
 
     let file_mode = a:CmdLine =~# '\v^(Neomake|NeomakeFile)\s'
 
+    let compl_info = [bufnr('%'), &filetype, a:CmdLine]
     if empty(&filetype)
         let maker_names = neomake#GetProjectMakers()
     else
@@ -2488,7 +2489,7 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
         " Prefer (only) makers for the current filetype.
         if file_mode
             call filter(maker_names, "v:val =~? '^".a:ArgLead."'")
-            if empty(maker_names) || s:last_completion ==# a:CmdLine
+            if empty(maker_names) || s:last_completion == compl_info
                 call extend(maker_names, neomake#GetProjectMakers())
             endif
         else
@@ -2501,7 +2502,7 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
     call filter(makers, "type(get(v:val, 'exe', 0)) != type('') || executable(v:val.exe)")
     let maker_names = map(makers, 'v:val.name')
 
-    let s:last_completion = a:CmdLine
+    let s:last_completion = compl_info
     return filter(maker_names, "v:val =~? '^".a:ArgLead."'")
 endfunction
 
