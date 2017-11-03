@@ -1473,9 +1473,10 @@ function! s:do_clean_make_info(make_info) abort
         endif
     endif
 
-    let buf_prev_make = getbufvar(a:make_info.options.bufnr, 'neomake_automake_make_id')
-    if !empty(buf_prev_make) && buf_prev_make == make_id
-        call setbufvar(a:make_info.options.bufnr, 'neomake_automake_make_id', '')
+    let buf_prev_makes = getbufvar(a:make_info.options.bufnr, 'neomake_automake_make_ids')
+    if !empty(buf_prev_makes)
+        call filter(buf_prev_makes, 'v:val != make_id')
+        call setbufvar(a:make_info.options.bufnr, 'neomake_automake_make_ids', buf_prev_makes)
     endif
 
     unlet s:make_info[make_id]
