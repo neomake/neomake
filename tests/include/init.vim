@@ -144,7 +144,8 @@ function! s:AssertNeomakeMessage(msg, ...)
   let ignore_order = get(options, 'ignore_order', 0)
   let found_but_other_level = -1
   let idx = -1
-  for [l, m, info] in g:neomake_test_messages
+  for msg_entry in g:neomake_test_messages
+    let [l, m, info] = msg_entry
     let r = 0
     let idx += 1
     if a:msg[0] ==# '\'
@@ -218,6 +219,7 @@ function! s:AssertNeomakeMessage(msg, ...)
     let g:neomake_test_messages_last_idx = idx
     " Make it count as a successful assertion.
     Assert 1
+    call add(g:_neomake_test_asserted_messages, msg_entry)
     return 1
   endfor
   if found_but_before || found_but_other_level != -1
@@ -397,6 +399,12 @@ function! s:After()
     endfor
     call add(errors, 'There were '.len(jobs).' jobs left: '
     \ .string(map(jobs, "v:val.make_id.'.'.v:val.id")))
+  endif
+
+  let unexpected_errors = filter(copy(g:neomake_test_messages),
+        \ 'v:val[0] == 0 && index(g:_neomake_test_asserted_messages, v:val) == -1')
+  if !empty(unexpected_errors)
+    call add(errors, 'found unexpected error messages: '.string(unexpected_errors))
   endif
 
   let status = neomake#GetStatus()

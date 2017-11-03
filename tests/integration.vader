@@ -12,6 +12,8 @@ Execute (Neomake with unknown maker):
   \ [0, 'Maker not found (for empty filetype): doesnotexist.', {'make_id': make_id, 'bufnr': bufnr}],
   \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr}],
   \ [3, 'Cleaning make info.', {'make_id': make_id, 'bufnr': bufnr}]]
+  " ACK the error.
+  AssertNeomakeMessage 'Maker not found (for empty filetype): doesnotexist.', 0
 
 Execute (Neomake with unknown maker for multiple fts):
   Save g:neomake_verbose
@@ -28,6 +30,8 @@ Execute (Neomake with unknown maker for multiple fts):
   \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr}],
   \ [3, 'Cleaning make info.', {'make_id': make_id, 'bufnr': bufnr}]]
   bwipe
+  " ACK the error.
+  AssertNeomakeMessage 'Maker not found (for filetype ft1.ft2): doesnotexist.', 0
 
 Execute (neomake#Make in file mode with no filetype and no makers):
   AssertEqual &ft, ''
@@ -155,11 +159,14 @@ Execute (Test Neomake on errors.sh with two makers):
   call g:NeomakeSetupAutocmdWrappers()
   new
   edit tests/fixtures/errors.sh
-  call g:NeomakeTestsCreateExe('shellcheck', [])
+  call g:NeomakeTestsCreateExe('shellcheck', ['#!/bin/sh', 'echo shellcheck $@'])
   RunNeomake sh shellcheck
-  AssertEqual len(g:neomake_test_countschanged), 1
+  " NeomakeCountsChanged gets also triggered with location list changes where
+  " entries are skipped.
+  AssertEqual len(g:neomake_test_countschanged), 2
   AssertEqual len(g:neomake_test_finished), 1
   AssertNeomakeMessage 'Running makers: sh, shellcheck.'
+  AssertNeomakeMessage 'Skipped 1 entries without bufnr.', 3
   bwipe
 
 Execute (Neomake: handle result for current window):
@@ -244,7 +251,9 @@ Execute (Neomake: handle wiped buffer):
     AssertNeomakeMessage 'File-level errors cleaned.', 3, make_info.options
     AssertNeomakeMessage 'No buffer found for location list!', 2, {'make_id': jobinfo.make_id, 'bufnr': jobinfo.bufnr}
     AssertNeomakeMessage 'Cleaning make info.', 3
+
     AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
+    AssertNeomakeMessage 'CancelJob: job not found: ' . jobinfo.id . '.', 0
 
     AssertEqual getloclist(0)[0].text, 'init_loclist'
 
@@ -303,6 +312,8 @@ Execute (Neomake: handle pending output across windows/buffers):
     AssertEqual len(g:neomake_test_finished), 1
 
     AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
+    AssertNeomakeMessage 'CancelJob: job not found: ' . jobinfo.id . '.', 0
+
     exe 'bwipe' bufnr
     exe 'bwipe' new_bufnr
   endif
