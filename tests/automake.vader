@@ -744,7 +744,7 @@ Execute (No warning with delay=0 if there is no timer support):
     bwipe
   endif
 
-Execute (Automake pre-created maker_job instances):
+Execute (Automake pre-creates maker_job instances):
   Save g:neomake
 
   new
@@ -758,12 +758,12 @@ Execute (Automake pre-created maker_job instances):
 
   doautocmd InsertLeave
   AssertNeomakeMessage 'cwd: '.getcwd().'.'
-  AssertNeomakeMessage '\vautomake: started jobs: \[\d+\].'
+  AssertNeomakeMessage '\v^automake: started jobs:'
   NeomakeTestsWaitForFinishedJobs
   AssertEqual s:call_count, 1
 
   normal! ifoo
-  AssertNeomakeMessage '\vautomake: started jobs: \[\d+\].'
+  AssertNeomakeMessage '\v^automake: started jobs:'
   " .fn gets called only once.
   AssertEqual s:call_count, 1
 

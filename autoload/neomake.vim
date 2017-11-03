@@ -1347,6 +1347,7 @@ function! s:CleanJobinfo(jobinfo, ...) abort
     endif
 
     call neomake#utils#DebugMessage('Cleaning jobinfo.', a:jobinfo)
+    let a:jobinfo.finished = 1
 
     let make_info = s:make_info[a:jobinfo.make_id]
     call filter(make_info.active_jobs, 'v:val != a:jobinfo')
