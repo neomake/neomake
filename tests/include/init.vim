@@ -496,7 +496,7 @@ function! s:After()
   endif
 
   if !empty(errors)
-    throw len(errors).' error(s) in teardown (expect anomalies in following tests!): '.join(errors, "\n")
+    throw len(errors).' error(s) in teardown: '.join(errors, "\n")
   endif
 endfunction
 command! NeomakeTestsGlobalAfter call s:After()
