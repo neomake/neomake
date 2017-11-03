@@ -1831,7 +1831,9 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         call neomake#utils#hook('NeomakeCountsChanged', {'reset': 0, 'jobinfo': a:jobinfo})
     endif
 
-    call s:HandleLoclistQflistDisplay(a:jobinfo, new_list)
+    if !empty(new_list)
+        call s:HandleLoclistQflistDisplay(a:jobinfo, new_list)
+    endif
     call neomake#highlights#ShowHighlights()
     return 1
 endfunction
