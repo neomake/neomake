@@ -1347,6 +1347,7 @@ function! s:CleanJobinfo(jobinfo, ...) abort
     endif
 
     call neomake#utils#DebugMessage('Cleaning jobinfo.', a:jobinfo)
+    let a:jobinfo.finished = 1
 
     let make_info = s:make_info[a:jobinfo.make_id]
     call filter(make_info.active_jobs, 'v:val != a:jobinfo')
@@ -1472,9 +1473,10 @@ function! s:do_clean_make_info(make_info) abort
         endif
     endif
 
-    let buf_prev_make = getbufvar(a:make_info.options.bufnr, 'neomake_automake_make_id')
-    if !empty(buf_prev_make) && buf_prev_make == make_id
-        call setbufvar(a:make_info.options.bufnr, 'neomake_automake_make_id', '')
+    let buf_prev_makes = getbufvar(a:make_info.options.bufnr, 'neomake_automake_make_ids')
+    if !empty(buf_prev_makes)
+        call filter(buf_prev_makes, 'v:val != make_id')
+        call setbufvar(a:make_info.options.bufnr, 'neomake_automake_make_ids', buf_prev_makes)
     endif
 
     unlet s:make_info[make_id]
@@ -2467,7 +2469,7 @@ function! neomake#CursorMovedDelayed() abort
     let s:cursormoved_last_pos = getpos('.')
 endfunction
 
-let s:last_completion = ''
+let s:last_completion = []
 function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
     if a:ArgLead =~# '[^A-Za-z0-9]'
         return []
@@ -2479,6 +2481,7 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
 
     let file_mode = a:CmdLine =~# '\v^(Neomake|NeomakeFile)\s'
 
+    let compl_info = [bufnr('%'), &filetype, a:CmdLine]
     if empty(&filetype)
         let maker_names = neomake#GetProjectMakers()
     else
@@ -2489,7 +2492,7 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
         " Prefer (only) makers for the current filetype.
         if file_mode
             call filter(maker_names, "v:val =~? '^".a:ArgLead."'")
-            if empty(maker_names) || s:last_completion ==# a:CmdLine
+            if empty(maker_names) || s:last_completion == compl_info
                 call extend(maker_names, neomake#GetProjectMakers())
             endif
         else
@@ -2502,7 +2505,7 @@ function! neomake#CompleteMakers(ArgLead, CmdLine, ...) abort
     call filter(makers, "type(get(v:val, 'exe', 0)) != type('') || executable(v:val.exe)")
     let maker_names = map(makers, 'v:val.name')
 
-    let s:last_completion = a:CmdLine
+    let s:last_completion = compl_info
     return filter(maker_names, "v:val =~? '^".a:ArgLead."'")
 endfunction
 

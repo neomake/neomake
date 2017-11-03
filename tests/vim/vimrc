@@ -70,7 +70,7 @@ set splitbelow  " Easier for window numbers (incrementing).
 set complete=.  " Just simple completion from the current buffer.
 
 
-set debug=msg,throw
+set debug=msg
 
 let mapleader=','
 

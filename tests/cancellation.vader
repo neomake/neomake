@@ -162,6 +162,7 @@ Execute (neomake#CancelMake stops all jobs):
 
 Execute (neomake#CancelMake handles invalid make id):
   AssertEqual neomake#CancelMake(-1), 0
+  AssertNeomakeMessage 'CancelMake: make not found: -1.', 0
 
 Execute (neomake#CancelMake removes queued actions):
   if NeomakeAsyncTestsSetup()

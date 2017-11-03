@@ -107,10 +107,12 @@ function! s:neomake_do_automake(context) abort
         call s:debug_log('buffer was not changed', {'bufnr': bufnr})
         return
     endif
-    let prev_make_id = getbufvar(bufnr, 'neomake_automake_make_id')
-    if !empty(prev_make_id)
-        call s:debug_log(printf('stopping previous make run: %s', prev_make_id))
-        call neomake#CancelMake(prev_make_id)
+    let prev_make_ids = getbufvar(bufnr, 'neomake_automake_make_ids')
+    if !empty(prev_make_ids)
+        call s:debug_log(printf('stopping previous make runs: %s', join(prev_make_ids, ', ')))
+        for prev_make_id in prev_make_ids
+          call neomake#CancelMake(prev_make_id)
+        endfor
     endif
 
     call s:debug_log(printf('enabled makers: %s', join(map(copy(a:context.maker_jobs), 'v:val.maker.name'), ', ')))
@@ -122,7 +124,9 @@ function! s:neomake_do_automake(context) abort
     let started_jobs = filter(copy(jobinfos), "!get(v:val, 'finished', 0)")
     call s:debug_log(printf('started jobs: %s', string(map(copy(started_jobs), 'v:val.id'))))
     if !empty(started_jobs)
-        call setbufvar(bufnr, 'neomake_automake_make_id', jobinfos[0].make_id)
+        let make_ids = map(copy(jobinfos), 'v:val.make_id')
+        call setbufvar(bufnr, 'neomake_automake_make_ids',
+              \ neomake#compat#getbufvar(bufnr, 'neomake_automake_make_ids', []) + make_ids)
     endif
 endfunction
 
