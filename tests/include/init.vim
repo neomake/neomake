@@ -42,8 +42,7 @@ command! NeomakeTestsWaitForNextMessage call s:wait_for_next_message()
 
 function! s:wait_for_message(...)
   let max = 45
-  " let n = len(g:neomake_test_messages)
-  let n = g:neomake_test_messages_last_idx
+  let n = g:neomake_test_messages_last_idx + 1
   let error = 'No new message appeared after 3s.'
   while 1
     let max -= 1
@@ -51,7 +50,7 @@ function! s:wait_for_message(...)
       throw error
     endif
     exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
-    if len(g:neomake_test_messages) != n
+    if len(g:neomake_test_messages) > n
       try
         call call('s:AssertNeomakeMessage', a:000)
       catch
