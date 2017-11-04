@@ -43,13 +43,24 @@ command! NeomakeTestsWaitForNextMessage call s:wait_for_next_message()
 function! s:wait_for_message(...)
   let max = 45
   let n = g:neomake_test_messages_last_idx + 1
-  let error = 'No new message appeared after 3s.'
+  let timeout = get(a:0 > 3 ? a:4 : {}, 'timeout', 3000)
+  if timeout < 300
+    throw 'NeomakeTestsWaitForMessage: timeout should be at least 300 (ms), got: '.string(timeout)
+  endif
+  let error = ''
+  let total_slept = 0
   while 1
     let max -= 1
     if max == 0
+      if empty(error)
+        let error = printf('No new message appeared after %dms.', timeout)
+      endif
+      let error .= ' (total wait time: '.total_slept.'m)'
       throw error
     endif
-    exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
+    let ms = (max < 25 ? (timeout/30)+1 : max < 35 ? (timeout/60)+1 : (timeout/300)+1)
+    let total_slept += ms
+    exe 'sleep' ms.'m'
     if len(g:neomake_test_messages) > n
       try
         call call('s:AssertNeomakeMessage', a:000)
