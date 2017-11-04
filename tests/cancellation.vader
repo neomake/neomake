@@ -137,7 +137,7 @@ Execute (neomake#CancelJob with trapped TERM):
 
     NeomakeTestsWaitForMessage '\Mstdout: \.\*''not stopping on SIGTERM''', 3, jobinfo
     AssertNeomakeMessage 'Ignoring output (job was canceled).', 3, jobinfo
-    NeomakeTestsWaitForMessage 'exit: job was canceled.', 3, jobinfo
+    NeomakeTestsWaitForMessage 'exit: job was canceled.', 3, jobinfo, {'timeout': 5000}
     if !has('nvim')
       AssertNeomakeMessage 'Forcefully killing still running Vim job.', 3, jobinfo, {'ignore_order': 1}
     endif
