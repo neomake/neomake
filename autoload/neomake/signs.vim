@@ -212,17 +212,8 @@ function! neomake#signs#RedefineSign(name, opts) abort
     for attr in keys(a:opts)
         let sign_define .= ' '.attr.'='.a:opts[attr]
     endfor
+    call neomake#utils#DebugMessage(printf('Defining sign: %s.', sign_define))
     exe sign_define
-
-    for type in keys(s:placed_signs)
-        for buf in keys(s:placed_signs[type])
-            for [sign_id, sign_type] in items(s:placed_signs[type][buf])
-                if sign_type == a:name
-                    exe 'sign place '.sign_id.' name='.a:name.' buffer='.buf
-                endif
-            endfor
-        endfor
-    endfor
 endfunction
 
 function! neomake#signs#RedefineErrorSign(...) abort
