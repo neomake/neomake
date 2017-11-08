@@ -22,6 +22,9 @@ RUN install_vim -tag master -build \
                 -tag neovim:master -build \
   && rm -rf /vim-build/vim/vim/*/share/vim/*/tutor
 
+# Install bash and make for running tests.
+RUN apk --no-cache add bash make
+
 # Install dep plugins (test runner and those used during tests).
 # Keeps git and installs ssh for CircleCI's checkout (and diffing for changed
 # files).  grep for checks.
@@ -30,6 +33,8 @@ RUN mkdir $NEOMAKE_TESTS_DEP_PLUGINS_DIR
 RUN apk --no-cache add git grep openssh
 RUN git clone -q --depth=1 -b display-source-with-exceptions https://github.com/blueyed/vader.vim $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vader
 RUN git clone -q --depth=1 https://github.com/tpope/vim-fugitive $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vim-fugitive
+RUN git clone -q --depth=1 https://github.com/machakann/vim-vimhelplint $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vim-vimhelplint
+ENV VIMHELPLINT_DIR=$NEOMAKE_TESTS_DEP_PLUGINS_DIR/vim-vimhelplint
 
 # Vimlint with wrapper script.
 RUN git clone -q --depth=1 https://github.com/syngan/vim-vimlint /tools/vim-vimlint
@@ -37,9 +42,6 @@ RUN git clone -q --depth=1 https://github.com/ynkdir/vim-vimlparser /tools/vim-v
 RUN cd /usr/local/bin && ln -s /vim-build/bin/vim-master vim
 RUN printf '#!/bin/sh -x\n/tools/vim-vimlint/bin/vimlint.sh -l /tools/vim-vimlint -p /tools/vim-vimlparser "$@"\n' > /usr/local/bin/vimlint
 RUN chmod +x /usr/local/bin/vimlint
-
-# Install bash and make for running tests.
-RUN apk --no-cache add bash make
 
 # Install covimerage, codecov and vint.
 RUN apk --no-cache add python3 \

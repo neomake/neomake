@@ -171,12 +171,12 @@ build/vimhelplint: | build
 	  | tar xz \
 	&& mv vim-vimhelplint-master vimhelplint
 vimhelplint: export VIMHELPLINT_VIM:=vim
-vimhelplint: | build/vimhelplint
+vimhelplint: | $(if $(VIMHELPLINT_DIR),,build/vimhelplint)
 	contrib/vimhelplint doc/neomake.txt
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=13
+DOCKER_TAG:=14
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
