@@ -2,15 +2,18 @@
 CDPATH:=
 
 bash:=$(shell command -v bash 2>/dev/null)
+ifeq ($(bash),)
+  $(error Could not find bash)
+endif
 # This is expected in tests.
 TEST_VIM_PREFIX:=SHELL=$(bash)
 SHELL:=$(bash) -o pipefail
 
 # Use nvim if it is installed, otherwise vim.
 ifeq ($(shell command -v nvim 2>/dev/null),)
-	DEFAULT_VIM:=vim
+  DEFAULT_VIM:=vim
 else
-	DEFAULT_VIM:=nvim
+  DEFAULT_VIM:=nvim
 endif
 
 TEST_VIM:=nvim
@@ -173,7 +176,7 @@ vimhelplint: | build/vimhelplint
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=12
+DOCKER_TAG:=13
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
