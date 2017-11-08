@@ -145,9 +145,9 @@ build/vint: | build
 build/vint/bin/vint: | build/vint
 	build/vint/bin/pip install --quiet vim-vint
 vint: | $(VINT_BIN)
-	$(VINT_BIN) --color $(LINT_ARGS)
+	$| --color $(LINT_ARGS)
 vint-errors: | $(VINT_BIN)
-	$(VINT_BIN) --color --error $(LINT_ARGS)
+	$| --color --error $(LINT_ARGS)
 
 # vimlint
 VIMLINT_BIN=$(shell command -v vimlint 2>/dev/null || echo build/vimlint/bin/vimlint.sh -l build/vimlint -p build/vimlparser)
@@ -157,9 +157,9 @@ build/vimlint: | build
 build/vimlparser: | build
 	git clone -q --depth=1 https://github.com/ynkdir/vim-vimlparser $@
 VIMLINT_OPTIONS=-u -e EVL102.l:_=1
-vimlint: $(firstword $(VIMLINT_BIN))
+vimlint: | $(firstword $(VIMLINT_BIN))
 	$(VIMLINT_BIN) $(VIMLINT_OPTIONS) $(LINT_ARGS)
-vimlint-errors: $(firstword VIMLINT_BIN)
+vimlint-errors: | $(firstword VIMLINT_BIN)
 	$(VIMLINT_BIN) $(VIMLINT_OPTIONS) -E $(LINT_ARGS)
 
 build build/neovim-test-home:
@@ -171,12 +171,12 @@ build/vimhelplint: | build
 	  | tar xz \
 	&& mv vim-vimhelplint-master vimhelplint
 vimhelplint: export VIMHELPLINT_VIM:=vim
-vimhelplint: | build/vimhelplint
+vimhelplint: | $(if $(VIMHELPLINT_DIR),,build/vimhelplint)
 	contrib/vimhelplint doc/neomake.txt
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=13
+DOCKER_TAG:=14
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
@@ -230,16 +230,20 @@ check_lint_diff:
 	echo "Looking for changed files (to origin/master)."; \
 	CHANGED_VIM_FILES=($$(git diff-tree --no-commit-id --name-only --diff-filter=AM -r origin/master.. \
 	  | grep '\.vim$$' | grep -v '^tests/fixtures')) || true; \
+	ret=0; \
 	if [ -z "$$CHANGED_VIM_FILES" ]; then \
 	  echo 'No .vim files changed.'; \
-	  exit; \
+	else \
+	  MAKE_ARGS="LINT_ARGS='$$CHANGED_VIM_FILES'"; \
+	  echo "== Running \"make vimlint $$MAKE_ARGS\" =="; \
+	  make vimlint $$MAKE_ARGS || (( ret+=1 )); \
+	  echo "== Running \"make vint $$MAKE_ARGS\" =="; \
+	  make vint $$MAKE_ARGS    || (( ret+=2 )); \
 	fi; \
-	MAKE_ARGS="LINT_ARGS='$$CHANGED_VIM_FILES'"; \
-	ret=0; \
-	echo "== Running \"make vimlint $$MAKE_ARGS\" =="; \
-	make vimlint $$MAKE_ARGS || (( ret+=1 )); \
-	echo "== Running \"make vint $$MAKE_ARGS\" =="; \
-	make vint $$MAKE_ARGS    || (( ret+=2 )); \
+	if ! git diff-tree --quiet --exit-code --diff-filter=AM -r origin/master.. -- doc/neomake.txt; then \
+	  echo "== Running \"make vimhelplint\" for changed doc/neomake.txt =="; \
+	  make vimhelplint       || (( ret+=4 )); \
+	fi; \
 	exit $$ret
 
 # Checks to be run with Docker.
