@@ -212,3 +212,20 @@ Execute (neomake#CancelJob empties action queue):
     bwipe
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd does not exist'
   endif
+
+Execute (neomake#CancelJob handles dict):
+  if NeomakeAsyncTestsSetup()
+    let jobinfo = neomake#Make({'enabled_makers': [g:sleep_maker]})[0]
+    Assert type(jobinfo), type({})
+    AssertEqual neomake#CancelJob(jobinfo), 1
+    AssertNeomakeMessage 'Stopping job.', 3, jobinfo
+    NeomakeTestsWaitForFinishedJobs
+  endif
+
+Execute (neomake#CancelJob handles string with job_id at the beginning):
+  if NeomakeAsyncTestsSetup()
+    let jobinfo = neomake#Make({'enabled_makers': [g:sleep_maker]})[0]
+    AssertEqual neomake#CancelJob(jobinfo.id . ':'), 1
+    AssertNeomakeMessage 'Stopping job.', 3, jobinfo
+    NeomakeTestsWaitForFinishedJobs
+  endif
