@@ -230,16 +230,20 @@ check_lint_diff:
 	echo "Looking for changed files (to origin/master)."; \
 	CHANGED_VIM_FILES=($$(git diff-tree --no-commit-id --name-only --diff-filter=AM -r origin/master.. \
 	  | grep '\.vim$$' | grep -v '^tests/fixtures')) || true; \
+	ret=0; \
 	if [ -z "$$CHANGED_VIM_FILES" ]; then \
 	  echo 'No .vim files changed.'; \
-	  exit; \
+	else \
+	  MAKE_ARGS="LINT_ARGS='$$CHANGED_VIM_FILES'"; \
+	  echo "== Running \"make vimlint $$MAKE_ARGS\" =="; \
+	  make vimlint $$MAKE_ARGS || (( ret+=1 )); \
+	  echo "== Running \"make vint $$MAKE_ARGS\" =="; \
+	  make vint $$MAKE_ARGS    || (( ret+=2 )); \
 	fi; \
-	MAKE_ARGS="LINT_ARGS='$$CHANGED_VIM_FILES'"; \
-	ret=0; \
-	echo "== Running \"make vimlint $$MAKE_ARGS\" =="; \
-	make vimlint $$MAKE_ARGS || (( ret+=1 )); \
-	echo "== Running \"make vint $$MAKE_ARGS\" =="; \
-	make vint $$MAKE_ARGS    || (( ret+=2 )); \
+	if ! git diff-tree --quiet --exit-code --diff-filter=AM -r origin/master.. -- doc/neomake.txt; then \
+	  echo "== Running \"make vimhelplint\" for changed doc/neomake.txt =="; \
+	  make vimhelplint       || (( ret+=4 )); \
+	fi; \
 	exit $$ret
 
 # Checks to be run with Docker.
