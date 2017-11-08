@@ -441,9 +441,9 @@ Execute (NeomakeListJobs with job cancellation):
   if neomake#has_async_support()
     AssertEqual info, [
     \        'make_id | job_id | name/maker',
-    \ printf('     %d |     %d | cmd maker 1', job1.make_id, job1.id),
-    \ printf('     %d |     %d | My custom name (cmd maker 2)', job2.make_id, job2.id),
-    \ printf('     %d |     %d | neomake_%d', job3.make_id, job3.id, job3.id),
+    \ printf('%7d | %6d | cmd maker 1', job1.make_id, job1.id),
+    \ printf('%7d | %6d | My custom name (cmd maker 2)', job2.make_id, job2.id),
+    \ printf('%7d | %6d | neomake_%d', job3.make_id, job3.id, job3.id),
     \ ]
     AssertEqual map(copy(neomake#GetJobs()), 'v:val.as_string()'), [
     \ 'Job '.job1.id.': cmd maker 1',
