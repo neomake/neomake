@@ -474,8 +474,8 @@ preserve the cursor position when the |location-list| or |quickfix| window is
 opened. Defaults to 0.
 
 *g:neomake_list_height*
-The maximum height of the |location-list| or |quickfix| list opened by Neomake.
-If there are fewer entries than that it will use this for the height.
+The maximum height of the |location-list| or |quickfix| list window opened by
+Neomake.  If there are fewer entries it will use that instead.
 Defaults to 10.
 
 *g:neomake_echo_current_error*
@@ -705,7 +705,7 @@ You can use the following options:
     (E, W, I, …).
     Default: `' {{type}}:{{count}} '`
   - format_loclist_issues: format for wrapping all location list issues.
-    Default: `'%s'` (used with |printf|).
+    Default: `'%s'` (used with |printf()|).
 
   - format_quickfix_ok: format for no quickfix issues.
     Default: `''`
@@ -715,11 +715,11 @@ You can use the following options:
   - format_quickfix_issues: format for wrapping all quickfix list issues.
     You can use an empty string to skip displaying quickfix issues, which can
     be useful for non-current windows.
-    Default: `'%s'` (used with |printf|).
+    Default: `'%s'` (used with |printf()|).
 
   - format_status: used to wrap the whole status (if Neomake is not enabled).
-    This is a |printf| format string, where `%s` gets replaced with the whole
-    status (and any literal/non-printf `%` needs to be escaped as `%%`).
+    This is a |printf()| format string, where `%s` gets replaced with the
+    whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
     Default: not used / `'%s'`
 
 You can use the following format placeholders:
