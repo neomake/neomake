@@ -145,9 +145,9 @@ build/vint: | build
 build/vint/bin/vint: | build/vint
 	build/vint/bin/pip install --quiet vim-vint
 vint: | $(VINT_BIN)
-	$(VINT_BIN) --color $(LINT_ARGS)
+	$| --color $(LINT_ARGS)
 vint-errors: | $(VINT_BIN)
-	$(VINT_BIN) --color --error $(LINT_ARGS)
+	$| --color --error $(LINT_ARGS)
 
 # vimlint
 VIMLINT_BIN=$(shell command -v vimlint 2>/dev/null || echo build/vimlint/bin/vimlint.sh -l build/vimlint -p build/vimlparser)
@@ -157,9 +157,9 @@ build/vimlint: | build
 build/vimlparser: | build
 	git clone -q --depth=1 https://github.com/ynkdir/vim-vimlparser $@
 VIMLINT_OPTIONS=-u -e EVL102.l:_=1
-vimlint: $(firstword $(VIMLINT_BIN))
+vimlint: | $(firstword $(VIMLINT_BIN))
 	$(VIMLINT_BIN) $(VIMLINT_OPTIONS) $(LINT_ARGS)
-vimlint-errors: $(firstword VIMLINT_BIN)
+vimlint-errors: | $(firstword VIMLINT_BIN)
 	$(VIMLINT_BIN) $(VIMLINT_OPTIONS) -E $(LINT_ARGS)
 
 build build/neovim-test-home:
