@@ -27,5 +27,8 @@ endfunction
 function! neomake#makers#ft#perl#PerlEntryProcess(entry) abort
     let extramsg = substitute(a:entry.pattern, '\^\\V', '', '')
     let extramsg = substitute(extramsg, '\\\$', '', '')
-    let a:entry.text = a:entry.text . ' ' . extramsg
+
+    if !empty(extramsg)
+        let a:entry.text = a:entry.text . ' ' . extramsg
+    endif
 endfunction
