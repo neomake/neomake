@@ -13,6 +13,7 @@ Include (Environment variables): env.vader
 Include (Error handling): errors.vader
 Include (Filetype handling): filetypes.vader
 Include (Hooks): hooks.vader
+Include (Hooks get queued): hooks-queue.vader
 Include (Highlights): highlights.vader
 Include (Integration tests): integration.vader
 Include (Jobinfo): jobinfo.vader
