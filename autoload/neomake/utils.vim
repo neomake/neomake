@@ -485,11 +485,12 @@ function! neomake#utils#ExpandArgs(args) abort
     return ret
 endfunction
 
-function! neomake#utils#log_exception(error, log_context) abort
+function! neomake#utils#log_exception(error, ...) abort
+    let log_context = a:0 ? a:1 : {'bufnr': bufnr('%')}
     redraw
     echom printf('Neomake error in: %s', v:throwpoint)
-    call neomake#utils#ErrorMessage(a:error, a:log_context)
-    call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), a:log_context)
+    call neomake#utils#ErrorMessage(a:error, log_context)
+    call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), log_context)
 endfunction
 
 let s:hook_context_stack = []
