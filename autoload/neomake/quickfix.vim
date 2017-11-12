@@ -58,6 +58,7 @@ endfunction
 
 
 function! neomake#quickfix#FormatQuickfix() abort
+    let buf = bufnr('%')
     if !s:is_enabled || &filetype !=# 'qf'
         if exists('b:neomake_qf')
             call neomake#signs#Clean(buf, 'file')
@@ -68,8 +69,6 @@ function! neomake#quickfix#FormatQuickfix() abort
         endif
         return
     endif
-
-    let buf = bufnr('%')
 
     let src_buf = 0
     let loclist = 1
