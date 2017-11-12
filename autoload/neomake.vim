@@ -249,12 +249,9 @@ function! s:handle_get_list_entries(jobinfo, ...) abort
         if v:exception ==# 'NeomakeTestsException'
             throw v:exception
         endif
-        redraw
-        echom printf('Neomake error in: %s', v:throwpoint)
-        call neomake#utils#ErrorMessage(printf(
+        call neomake#utils#log_exception(printf(
                     \ 'Error during get_list_entries for %s: %s.',
                     \ jobinfo.maker.name, v:exception), jobinfo)
-        call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), jobinfo)
         call s:CleanJobinfo(jobinfo)
         return 1
     endtry
@@ -994,10 +991,7 @@ function! s:process_action_queue(event) abort
             endif
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '')
-            call neomake#utils#ErrorMessage(error, log_context)
-            redraw
-            echom printf('Neomake error in: %s', v:throwpoint)
-            call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), log_context)
+            call neomake#utils#log_exception(error, log_context)
             continue
         endtry
     endfor
@@ -1925,12 +1919,9 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
         if v:exception ==# 'NeomakeTestsException'
             throw v:exception
         endif
-        redraw
-        echom printf('Neomake error in: %s', v:throwpoint)
-        call neomake#utils#ErrorMessage(printf(
+        call neomake#utils#log_exception(printf(
                     \ 'Error during output processing for %s: %s.',
                     \ a:jobinfo.maker.name, v:exception), a:jobinfo)
-        call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), a:jobinfo)
         return
     endtry
     return 1
@@ -2371,10 +2362,7 @@ function! s:handle_next_job(prev_jobinfo) abort
         catch /^Neomake: /
             let log_context = {'make_id': make_id}
             let error = substitute(v:exception, '^Neomake: ', '', '')
-            call neomake#utils#ErrorMessage(error, log_context)
-            redraw
-            echom printf('Neomake error in: %s', v:throwpoint)
-            call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), log_context)
+            call neomake#utils#log_exception(error, log_context)
 
             if options.serialize
                 if neomake#utils#GetSetting('serialize_abort_on_error', maker, 0, options.ft, options.bufnr)

@@ -485,6 +485,13 @@ function! neomake#utils#ExpandArgs(args) abort
     return ret
 endfunction
 
+function! neomake#utils#log_exception(error, log_context) abort
+    redraw
+    echom printf('Neomake error in: %s', v:throwpoint)
+    call neomake#utils#ErrorMessage(a:error, a:log_context)
+    call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), a:log_context)
+endfunction
+
 let s:hook_context_stack = []
 function! neomake#utils#hook(event, context, ...) abort
     if exists('#User#'.a:event)
@@ -511,9 +518,9 @@ function! neomake#utils#hook(event, context, ...) abort
                 exec 'doautocmd User ' . a:event
             endif
         catch
-            call neomake#utils#ErrorMessage(printf(
-                        \ 'Error during User autocmd for %s: %s.', a:event, v:exception),
-                        \ jobinfo)
+            call neomake#utils#log_exception(printf(
+                        \ 'Error during User autocmd for %s: %s.',
+                        \ a:event, v:exception), jobinfo)
         finally
             if !empty(s:hook_context_stack)
                 unlockvar g:neomake_hook_context
