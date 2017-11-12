@@ -107,12 +107,20 @@ function! neomake#quickfix#FormatQuickfix() abort
         " Look for marker at end of entry.
         if item.text[-1:] ==# '}'
             let idx = strridx(item.text, ' nmcfg:{')
-            let config = item.text[idx+7:]
-            let maker = eval(config)
-            if index(makers, maker.name) == -1
-                call add(makers, maker.name)
+            if idx != -1
+                let config = item.text[idx+7:]
+                try
+                    let maker = eval(config)
+                    if index(makers, maker.name) == -1
+                        call add(makers, maker.name)
+                    endif
+                    let item.text = item.text[:(idx-1)]
+                catch
+                    call neomake#utils#log_exception(printf(
+                                \ 'Error when evaluating nmcfg (%s): %s.',
+                                \ config, v:exception))
+                endtry
             endif
-            let item.text = item.text[:idx]
         endif
 
         let item.maker_name = get(maker, 'short', '????')
