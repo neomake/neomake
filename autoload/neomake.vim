@@ -359,7 +359,8 @@ function! s:MakeJob(make_id, options) abort
                 let opts = {
                     \ 'on_stdout': function('s:nvim_output_handler'),
                     \ 'on_stderr': function('s:nvim_output_handler'),
-                    \ 'on_exit': function('s:nvim_exit_handler')
+                    \ 'on_exit': function('s:nvim_exit_handler'),
+                    \ 'detach': 1,
                     \ }
                 try
                     let job = jobstart(jobinfo.argv, opts)
