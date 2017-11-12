@@ -11,7 +11,7 @@ common: &common
         name: Upload coverage results
         command: |
           set -x
-          coverage report -m
+          coverage report -m --skip-covered
           coverage xml
           codecov -X search gcov pycov -f coverage.xml --required \
             --name "$CIRCLE_JOB" --flags ${CIRCLE_JOB%%-*} ${CIRCLE_JOB//-/}
