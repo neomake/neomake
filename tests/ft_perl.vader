@@ -18,5 +18,10 @@ Execute (perl: errorformat):
 
 Execute (perl: postprocess):
   let entry = {'text': 'text', 'pattern': ''}
+
   call neomake#makers#ft#perl#PerlEntryProcess(entry)
   AssertEqual entry.text, 'text'
+
+  let entry.pattern = 'pattern'
+  call neomake#makers#ft#perl#PerlEntryProcess(entry)
+  AssertEqual entry.text, 'text pattern'
