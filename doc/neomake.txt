@@ -310,7 +310,7 @@ Example: make all entries a warning where `nr` is in the range of 100-199: >
         \ 'exe': 'lint',
         \ 'args': ['--option', 'x'],
         \ 'errorformat': '%f:%l:%c:%n: %m',
-        \ 'postprocess': function('PostprocessLintMaker)
+        \ 'postprocess': function('PostprocessLintMaker')
         \ }
 <
 Example: remove some entry for a specific maker (using |expr-lambda|): >
