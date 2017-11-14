@@ -462,6 +462,7 @@ Please refer to |autocmd-patterns| for help on defining the pattern
 (`custom.py`) in this case.
 
 *g:neomake_enabled_makers*
+*b:neomake_enabled_makers*
 This setting will tell Neomake which makers to use by default when not
 operating on a single file, or when no makers are defined for the filetype of
 the current buffer. This effectively defaults to: >
