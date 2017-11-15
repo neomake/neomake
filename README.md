@@ -77,7 +77,7 @@ location list with any issues that get reported by the maker(s).
 You can then navigate them using the built-in methods like `:lwindow` /
 `:lopen` (to view the list) and `:lprev` / `:lnext` to go back and forth.
 
-You can configure Neomake to open the list automaticallys:
+You can configure Neomake to open the list automatically:
 
 ```vim
 let g:neomake_open_list = 2
