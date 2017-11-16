@@ -1567,8 +1567,8 @@ function! s:CanProcessJobOutput() abort
     return 0
 endfunction
 
-function! s:create_locqf_list(make_id, ...) abort
-    let make_info = s:make_info[a:make_id]
+function! s:create_locqf_list(jobinfo, ...) abort
+    let make_info = s:make_info[a:jobinfo.make_id]
     if get(make_info, 'created_locqf_list', 0)
         return
     endif
@@ -1576,10 +1576,10 @@ function! s:create_locqf_list(make_id, ...) abort
 
     let file_mode = make_info.options.file_mode
     if file_mode
-        call neomake#utils#DebugMessage('Creating location list.', {'make_id': a:make_id})
+        call neomake#utils#DebugMessage('Creating location list.', a:jobinfo)
         call setloclist(0, [])
     else
-        call neomake#utils#DebugMessage('Creating quickfix list.', {'make_id': a:make_id})
+        call neomake#utils#DebugMessage('Creating quickfix list.', a:jobinfo)
         call setqflist([])
     endif
 endfunction
@@ -1686,7 +1686,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     call neomake#utils#DebugMessage(printf(
                 \ 'Processing %d entries.', len(a:entries)), a:jobinfo)
 
-    call s:create_locqf_list(a:jobinfo.make_id)
+    call s:create_locqf_list(a:jobinfo)
     call s:clean_for_new_make(s:make_info[a:jobinfo.make_id])
 
     if a:0 > 1
@@ -1881,7 +1881,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
                         \ cwd, cd_error), a:jobinfo)
         endif
 
-        call s:create_locqf_list(a:jobinfo.make_id)
+        call s:create_locqf_list(a:jobinfo)
         let prev_list = file_mode ? getloclist(0) : getqflist()
 
         if exists('g:loaded_qf')
