@@ -174,7 +174,7 @@ function! neomake#statusline#get_status(bufnr, options) abort
             let format_unknown = get(a:options, 'format_loclist_unknown', '?')
             let r .= s:formatter.format(format_unknown, {'bufnr': a:bufnr})
         else
-            let format_ok = get(a:options, 'format_ok', '%#NeomakeStatusGood#✓')
+            let format_ok = get(a:options, 'format_loclist_ok', '%#NeomakeStatusGood#✓')
             let r .= s:formatter.format(format_ok, {'bufnr': a:bufnr})
         endif
     else

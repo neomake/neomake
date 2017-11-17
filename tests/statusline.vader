@@ -84,11 +84,11 @@ Execute (neomake#statusline#get_status):
     NeomakeTestsWaitForFinishedJobs
   else
     AssertEqual neomake#statusline#get_status(bufnr, {'format_running': '...'}), '%#NeomakeStatusGood#✓'
-    AssertEqual neomake#statusline#get_status(bufnr, {'format_ok': 'dandy!'}), 'dandy!'
-    AssertEqual neomake#statusline#get_status(bufnr, {'format_ok': '{{running_job_names}}'}), ''
+    AssertEqual neomake#statusline#get_status(bufnr, {'format_loclist_ok': 'dandy!'}), 'dandy!'
+    AssertEqual neomake#statusline#get_status(bufnr, {'format_loclist_ok': '{{running_job_names}}'}), ''
   endif
 
-  call neomake#statusline#get_status(bufnr(''), {'format_ok': 'Neomake: {{does_not_exist}}'})
+  call neomake#statusline#get_status(bufnr(''), {'format_loclist_ok': 'Neomake: {{does_not_exist}}'})
   AssertNeomakeMessage 'Unknown statusline format: {{does_not_exist}}.', 0
 
   AssertEqual neomake#statusline#get_status(bufnr, {}), '%#NeomakeStatusGood#✓'

@@ -671,11 +671,12 @@ which caches the information retrieved from `neomake#statusline#get_status()`.
 The function requires the buffer number as first argument, and an optional
 dictionary.
 
-The following example can be used in a custom 'statusline' function, where
-`a:active` could reflect if the window is the current one: >
+The following example creates a custom 'statusline' function, where `a:active`
+may reflect if the window is the current one (implementation not provided): >
     let neomake_status_str = neomake#statusline#get(bufnr, {
           \ 'format_running': '… ({{running_job_names}})',
-          \ 'format_ok': (a:active ? '%#NeomakeStatusGood#' : '%*').'✓',
+          \ 'format_loclist_ok':
+          \   (a:active ? '%#NeomakeStatusGood#' : '%*').'✓',
           \ 'format_quickfix_ok': '',
           \ 'format_quickfix_issues': (a:active ? '%s' : ''),
           \ 'format_status': '%%(%s'
@@ -686,7 +687,7 @@ The following example can be used in a custom 'statusline' function, where
 A simpler example: >
     let neomake_status_str = neomake#statusline#get(bufnr, {
           \ 'format_running': '… ({{running_job_names}})',
-          \ 'format_ok': '✓',
+          \ 'format_loclist_ok': '✓',
           \ 'format_quickfix_ok': '',
           \ 'format_quickfix_issues': '%s',
           \ })
