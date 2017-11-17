@@ -47,7 +47,7 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
 
         let error = {'maker_name': 'cargo'}
         let code_dict = get(data, 'code', -1)
-        if code_dict is g:neomake#compat#json_null || code_dict['code'][0] != 'E' || code_dict['code'][0] != 'W'
+        if code_dict is g:neomake#compat#json_null || code_dict['code'][0] !=# 'E' || code_dict['code'][0] !=# 'W'
             if get(data, 'level', '') ==# 'warning'
                 let error.type = 'W'
             else
