@@ -699,7 +699,7 @@ You can use the following options:
   - format_loclist_unknown: format for when the status for location list
     issues is unknown, i.e. Neomake was not run on the current buffer.
     Default: `'?'`
-  - format_loclist_ok: format for when there are no location list issues.
+  - format_ok: format for when there are no location list issues.
     Default: `'%#NeomakeStatusGood#✓'` (a checkmark using the
     NeomakeStatusGood highlight group).
   - format_loclist_type_X: format for location list issues of type X
