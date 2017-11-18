@@ -1,12 +1,21 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#ruby#EnabledMakers() abort
-    return ['mri', 'rubocop', 'reek', 'rubylint']
+    return ['mri', 'rubocop', 'rubocop_rails', 'reek', 'rubylint']
 endfunction
 
 function! neomake#makers#ft#ruby#rubocop() abort
     return {
-        \ 'args': ['--format', 'emacs', '--force-exclusion', '--rails', '--display-cop-names'],
+        \ 'args': ['--format', 'emacs', '--force-exclusion', '--display-cop-names'],
+        \ 'errorformat': '%f:%l:%c: %t: %m,%E%f:%l: %m',
+        \ 'postprocess': function('neomake#makers#ft#ruby#RubocopEntryProcess')
+        \ }
+endfunction
+
+function! neomake#makers#ft#ruby#rubocop_rails() abort
+    return {
+        \ 'args': ['--format', 'emacs', '--force-exclusion', '--display-cop-names', '--rails'],
+        \ 'exe': 'rubocop',
         \ 'errorformat': '%f:%l:%c: %t: %m,%E%f:%l: %m',
         \ 'postprocess': function('neomake#makers#ft#ruby#RubocopEntryProcess')
         \ }
