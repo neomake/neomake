@@ -595,3 +595,56 @@ Execute (Neomake/Neomake! run ft maker in project mode):
 
   AssertEqual map(copy(g:neomake_test_jobfinished), 'v:val.jobinfo.file_mode'), [1, 0]
   bwipe
+
+Execute (Maker can pass opts for jobstart/job_start):
+  if NeomakeAsyncTestsSetup()
+    if !has('nvim') && !has('patch-8.0.0902')
+      NeomakeTestsSkip 'Requires patch 8.0.0902 for Vim.'
+    else
+      let maker = {'exe': 'sh', 'args': ['-c', 'echo $TERM']}
+      if has('nvim')
+        let maker.nvim_job_opts = {
+        \ 'pty': 1,
+        \ 'TERM': 'custom-term',
+        \ }
+      else
+        let maker.vim_job_opts = {
+        \ 'pty': 1,
+        \ 'env': {'TERM': 'custom-term'},
+        \ }
+      endif
+
+      CallNeomake 0, [maker]
+      AssertEqual getqflist(), [
+      \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1,
+      \  'type': 'W', 'pattern': '', 'text': 'custom-term'}]
+    endif
+  endif
+
+Execute (Maker can override output handler via opts for jobstart/job_start):
+  if NeomakeAsyncTestsSetup()
+    let s:output = []
+    function s:on_stdout(job_or_channel, output, ...)
+      let s:output += [a:output]
+    endfunction
+
+    let maker = {'exe': 'printf', 'args': ['%s\n', 'line1', 'line2']}
+
+    if has('nvim')
+      let maker.nvim_job_opts = {
+      \ 'on_stdout': function('s:on_stdout'),
+      \ }
+    else
+      let maker.vim_job_opts = {
+      \ 'out_cb': function('s:on_stdout'),
+      \ }
+    endif
+
+    CallNeomake 0, [maker]
+    AssertEqual getqflist(), []
+    if has('nvim')
+      AssertEqual s:output, [['line1', 'line2', '']]
+    else
+      AssertEqual s:output, ["line1\nline2\n"]
+    endif
+  endif
