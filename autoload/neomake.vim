@@ -361,6 +361,9 @@ function! s:MakeJob(make_id, options) abort
                     \ 'on_stderr': function('s:nvim_output_handler'),
                     \ 'on_exit': function('s:nvim_exit_handler')
                     \ }
+                if has_key(maker, 'nvim_job_opts')
+                    call extend(opts, maker.nvim_job_opts)
+                endif
                 try
                     let job = jobstart(jobinfo.argv, opts)
                 catch
@@ -393,6 +396,9 @@ function! s:MakeJob(make_id, options) abort
                             \ 'close_cb': function('s:vim_exit_handler'),
                             \ 'mode': 'raw',
                             \ }
+                if has_key(maker, 'vim_job_opts')
+                    call extend(opts, maker.vim_job_opts)
+                endif
                 try
                     let job = job_start(jobinfo.argv, opts)
                     " Get this as early as possible!
@@ -400,7 +406,7 @@ function! s:MakeJob(make_id, options) abort
                 catch
                     " NOTE: not covered in tests. Vim seems to always return
                     " a job. Might be able to trigger this using custom opts?!
-                    let error = printf('Failed to start Vim job: %s: %s',
+                    let error = printf('Failed to start Vim job: %s: %s.',
                                 \ jobinfo.argv, v:exception)
                 endtry
                 if empty(error)
