@@ -406,7 +406,7 @@ function! s:MakeJob(make_id, options) abort
                 catch
                     " NOTE: not covered in tests. Vim seems to always return
                     " a job. Might be able to trigger this using custom opts?!
-                    let error = printf('Failed to start Vim job: %s: %s',
+                    let error = printf('Failed to start Vim job: %s: %s.',
                                 \ jobinfo.argv, v:exception)
                 endtry
                 if empty(error)
