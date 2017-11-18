@@ -2027,6 +2027,20 @@ function! s:need_to_postpone_loclist(jobinfo) abort
 endfunction
 
 function! s:RegisterJobOutput(jobinfo, lines, source) abort
+    " Allow to filter output (storing the setting on the jobinfo lazily).
+    if !has_key(a:jobinfo, 'filter_output')
+        let a:jobinfo.filter_output = neomake#utils#GetSetting('filter_output', a:jobinfo.maker, '', a:jobinfo.ft, a:jobinfo.bufnr)
+    endif
+    if !empty(a:jobinfo.filter_output)
+        call call(a:jobinfo.filter_output, [
+                    \ a:lines, {'source': a:source, 'jobinfo': a:jobinfo}],
+                    \ a:jobinfo.maker)
+    endif
+
+    if empty(a:lines)
+        return
+    endif
+
     if a:jobinfo.output_stream !=# 'both' && a:jobinfo.output_stream !=# a:source
         if !has_key(a:jobinfo, 'unexpected_output')
             let a:jobinfo.unexpected_output = {}
