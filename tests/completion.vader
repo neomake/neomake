@@ -1,6 +1,6 @@
 Include: include/setup.vader
 
-Execute (neomake#CompleteMakers: completes makers for b:):
+Execute (neomake#cmd#complete_makers: completes makers for b:):
   new
   let b:neomake_c_lint_maker = {
     \ 'exe': 'lint',
@@ -9,13 +9,13 @@ Execute (neomake#CompleteMakers: completes makers for b:):
     \ }
   set filetype=c
   call g:NeomakeTestsCreateExe('lint', [])
-  Assert index(neomake#CompleteMakers('', 'Neomake '), 'lint') != -1, 'lint maker gets completed'
+  Assert index(neomake#cmd#complete_makers('', 'Neomake '), 'lint') != -1, 'lint maker gets completed'
   bwipe
 
-Execute (neomake#CompleteMakers: handles invalid ArgLead):
-  AssertEqual neomake#CompleteMakers('~', 'Neomake '), []
+Execute (neomake#cmd#complete_makers: handles invalid ArgLead):
+  AssertEqual neomake#cmd#complete_makers('~', 'Neomake '), []
 
-Execute (neomake#CompleteMakers: completes makers for g:):
+Execute (neomake#cmd#complete_makers: completes makers for g:):
   Save g:neomake_c_lint_maker
   new
   let g:neomake_c_lint_maker = {
@@ -25,13 +25,13 @@ Execute (neomake#CompleteMakers: completes makers for g:):
     \ }
   set filetype=c
   call g:NeomakeTestsCreateExe('lint', [])
-  Assert index(neomake#CompleteMakers('', 'Neomake '), 'lint') != -1, 'lint maker gets completed'
+  Assert index(neomake#cmd#complete_makers('', 'Neomake '), 'lint') != -1, 'lint maker gets completed'
   bwipe
 
-Execute (neomake#CompleteMakers: completes space after Neomake!):
-  AssertEqual neomake#CompleteMakers('', 'Neomake!'), [' ']
+Execute (neomake#cmd#complete_makers: completes space after Neomake!):
+  AssertEqual neomake#cmd#complete_makers('', 'Neomake!'), [' ']
 
-Execute (neomake#CompleteMakers: completes all (executable) makers, preferring filetype):
+Execute (neomake#cmd#complete_makers: completes all (executable) makers, preferring filetype):
   call g:NeomakeTestsSetPATH('')
   new
   noautocmd set ft=rust
@@ -41,46 +41,46 @@ Execute (neomake#CompleteMakers: completes all (executable) makers, preferring f
   endfor
 
   " Neomake! completes ft makers (first), and project makers.
-  AssertEqual neomake#CompleteMakers('', 'Neomake! '), [
+  AssertEqual neomake#cmd#complete_makers('', 'Neomake! '), [
   \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle']
 
   call g:NeomakeTestsCreateExe('mvn', [])
-  AssertEqual neomake#CompleteMakers('', 'Neomake! '), [
+  AssertEqual neomake#cmd#complete_makers('', 'Neomake! '), [
   \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle', 'mvn']
 
   " Neomake completes ft makers.
-  AssertEqual neomake#CompleteMakers('', 'Neomake '), [
+  AssertEqual neomake#cmd#complete_makers('', 'Neomake '), [
   \ 'cargo', 'rustc']
 
   " Neomake completes ft makers with project makers when called again.
-  AssertEqual neomake#CompleteMakers('', 'Neomake '), [
+  AssertEqual neomake#cmd#complete_makers('', 'Neomake '), [
   \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle', 'mvn']
 
   " Neomake with ArgLead completes ft makers.
-  AssertEqual neomake#CompleteMakers('c', 'Neomake c'), [
+  AssertEqual neomake#cmd#complete_makers('c', 'Neomake c'), [
   \ 'cargo']
 
   " Neomake with ArgLead completes ft makers with project makers when called again.
-  AssertEqual neomake#CompleteMakers('c', 'Neomake c'), [
+  AssertEqual neomake#cmd#complete_makers('c', 'Neomake c'), [
   \ 'cargo', 'cabal', 'clippy']
 
   " Neomake completes global makers when no filetype makers match.
-  AssertEqual neomake#CompleteMakers('g', 'Neomake g'), [
+  AssertEqual neomake#cmd#complete_makers('g', 'Neomake g'), [
   \ 'gradle']
 
   " Neomake with ArgLead completes ft makers only again afterwards.
-  AssertEqual neomake#CompleteMakers('c', 'Neomake c'), [
+  AssertEqual neomake#cmd#complete_makers('c', 'Neomake c'), [
   \ 'cargo']
 
   bwipe
 
-Execute (neomake#CompleteJobs):
+Execute (neomake#cmd#complete_jobs):
   if NeomakeAsyncTestsSetup()
-    AssertEqual neomake#CompleteJobs(), ''
+    AssertEqual neomake#cmd#complete_jobs(), ''
     let job_ids = [neomake#Sh('sleep 0.1')]
-    AssertEqual neomake#CompleteJobs(), job_ids[0].': sh: sleep 0.1'
+    AssertEqual neomake#cmd#complete_jobs(), job_ids[0].': sh: sleep 0.1'
     let job_ids += [neomake#Sh('sleep 0.11')]
-    AssertEqual neomake#CompleteJobs(), printf(
+    AssertEqual neomake#cmd#complete_jobs(), printf(
       \ "%d: sh: sleep 0.1\n%d: sh: sleep 0.11", job_ids[0], job_ids[1])
     NeomakeCancelJobs
     NeomakeTestsWaitForFinishedJobs
