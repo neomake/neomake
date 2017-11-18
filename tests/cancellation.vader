@@ -137,7 +137,7 @@ Execute (neomake#CancelJob with trapped TERM):
 
     NeomakeTestsWaitForMessage '\Mstdout: \.\*''not stopping on SIGTERM''', 3, jobinfo
     AssertNeomakeMessage 'Ignoring output (job was canceled).', 3, jobinfo
-    NeomakeTestsWaitForMessage 'exit: job was canceled.', 3, jobinfo
+    NeomakeTestsWaitForMessage 'exit: job was canceled.', 3, jobinfo, {'timeout': 5000}
     if !has('nvim')
       AssertNeomakeMessage 'Forcefully killing still running Vim job.', 3, jobinfo, {'ignore_order': 1}
     endif
@@ -162,6 +162,7 @@ Execute (neomake#CancelMake stops all jobs):
 
 Execute (neomake#CancelMake handles invalid make id):
   AssertEqual neomake#CancelMake(-1), 0
+  AssertNeomakeMessage 'CancelMake: make not found: -1.', 0
 
 Execute (neomake#CancelMake removes queued actions):
   if NeomakeAsyncTestsSetup()
@@ -210,4 +211,21 @@ Execute (neomake#CancelJob empties action queue):
     AssertNeomakeMessage 'Cleaning make info.', 3
     bwipe
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd does not exist'
+  endif
+
+Execute (neomake#CancelJob handles dict):
+  if NeomakeAsyncTestsSetup()
+    let jobinfo = neomake#Make({'enabled_makers': [g:sleep_maker]})[0]
+    Assert type(jobinfo), type({})
+    AssertEqual neomake#CancelJob(jobinfo), 1
+    AssertNeomakeMessage 'Stopping job.', 3, jobinfo
+    NeomakeTestsWaitForFinishedJobs
+  endif
+
+Execute (neomake#CancelJob handles string with job_id at the beginning):
+  if NeomakeAsyncTestsSetup()
+    let jobinfo = neomake#Make({'enabled_makers': [g:sleep_maker]})[0]
+    AssertEqual neomake#CancelJob(jobinfo.id . ':'), 1
+    AssertNeomakeMessage 'Stopping job.', 3, jobinfo
+    NeomakeTestsWaitForFinishedJobs
   endif

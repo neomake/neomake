@@ -42,16 +42,26 @@ command! NeomakeTestsWaitForNextMessage call s:wait_for_next_message()
 
 function! s:wait_for_message(...)
   let max = 45
-  " let n = len(g:neomake_test_messages)
-  let n = g:neomake_test_messages_last_idx
-  let error = 'No new message appeared after 3s.'
+  let n = g:neomake_test_messages_last_idx + 1
+  let timeout = get(a:0 > 3 ? a:4 : {}, 'timeout', 3000)
+  if timeout < 300
+    throw 'NeomakeTestsWaitForMessage: timeout should be at least 300 (ms), got: '.string(timeout)
+  endif
+  let error = ''
+  let total_slept = 0
   while 1
     let max -= 1
     if max == 0
+      if empty(error)
+        let error = printf('No new message appeared after %dms.', timeout)
+      endif
+      let error .= ' (total wait time: '.total_slept.'m)'
       throw error
     endif
-    exe 'sleep' (max < 25 ? 100 : max < 35 ? 50 : 10).'m'
-    if len(g:neomake_test_messages) != n
+    let ms = (max < 25 ? (timeout/30)+1 : max < 35 ? (timeout/60)+1 : (timeout/300)+1)
+    let total_slept += ms
+    exe 'sleep' ms.'m'
+    if len(g:neomake_test_messages) > n
       try
         call call('s:AssertNeomakeMessage', a:000)
       catch
@@ -144,7 +154,8 @@ function! s:AssertNeomakeMessage(msg, ...)
   let ignore_order = get(options, 'ignore_order', 0)
   let found_but_other_level = -1
   let idx = -1
-  for [l, m, info] in g:neomake_test_messages
+  for msg_entry in g:neomake_test_messages
+    let [l, m, info] = msg_entry
     let r = 0
     let idx += 1
     if a:msg[0] ==# '\'
@@ -218,6 +229,7 @@ function! s:AssertNeomakeMessage(msg, ...)
     let g:neomake_test_messages_last_idx = idx
     " Make it count as a successful assertion.
     Assert 1
+    call add(g:_neomake_test_asserted_messages, msg_entry)
     return 1
   endfor
   if found_but_before || found_but_other_level != -1
@@ -399,6 +411,12 @@ function! s:After()
     \ .string(map(jobs, "v:val.make_id.'.'.v:val.id")))
   endif
 
+  let unexpected_errors = filter(copy(g:neomake_test_messages),
+        \ 'v:val[0] == 0 && index(g:_neomake_test_asserted_messages, v:val) == -1')
+  if !empty(unexpected_errors)
+    call add(errors, 'found unexpected error messages: '.string(unexpected_errors))
+  endif
+
   let status = neomake#GetStatus()
   let make_info = status.make_info
   if has_key(make_info, -42)
@@ -488,7 +506,7 @@ function! s:After()
   endif
 
   if !empty(errors)
-    throw len(errors).' error(s) in teardown (expect anomalies in following tests!): '.join(errors, "\n")
+    throw len(errors).' error(s) in teardown: '.join(errors, "\n")
   endif
 endfunction
 command! NeomakeTestsGlobalAfter call s:After()

@@ -2,7 +2,7 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:12@sha256:762a65aa87da5165ebfef3ddbe9fa8f48f0f1561dc0f5970d630d8fcefcedece
+    - image: neomake/vims-for-tests:16@sha256:19b0f3f5f9859903e80b5314f57bbfc2d74dbd8300f3b6ed535a627ae80f14cb
   working_directory: ~/repo
   steps:
     - checkout
@@ -11,7 +11,7 @@ common: &common
         name: Upload coverage results
         command: |
           set -x
-          coverage report -m
+          coverage report -m --skip-covered
           coverage xml
           codecov -X search gcov pycov -f coverage.xml --required \
             --name "$CIRCLE_JOB" --flags ${CIRCLE_JOB%%-*} ${CIRCLE_JOB//-/}
@@ -29,6 +29,10 @@ jobs:
     <<: *common
     environment:
       TEST_VIM=/vim-build/bin/neovim-v0.2.0
+  nvim-021:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/neovim-v0.2.1
   vim-master:
     <<: *common
     environment:
@@ -54,25 +58,13 @@ jobs:
     <<: *common
     steps:
       - checkout
-      - run:
-          name: checkout merge commit for PRs
-          command: |
-            set -x
-            PR_NUMBER=${CI_PULL_REQUEST//*pull\//}
-            if [ -n "$PR_NUMBER" ]; then
-              if ! git pull --ff-only origin "refs/pull/$PR_NUMBER/merge"; then
-                  echo
-                  echo -e "\033[0;31mERROR: Failed to merge your branch with the latest master."
-                  echo -e "Please manually merge master into your branch, and push the changes to GitHub.\033[0m"
-                  exit 1
-              fi
-            fi
       - run: make --keep-going check check_docker check_lint_diff
 
 workflows:
   version: 2
   test:
     jobs:
+      - nvim-021
       - nvim-020
       - nvim-master
       - nvim-017

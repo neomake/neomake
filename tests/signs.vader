@@ -92,8 +92,6 @@ Execute (Signs are not wiped when buffer gets wiped with removed augroup):
   \ [{'type': 'E', 'bufnr': buf, 'lnum': 1}], 'file')
   AssertEqual neomake#signs#by_lnum(bufnr('%')), {'1': [5000, 'neomake_file_err']}
   bwipe
-  AssertThrows call neomake#signs#RedefineSign('neomake_file_err', {})
-  AssertEqual g:vader_exception, 'Vim(sign):E158: Invalid buffer name: '
 
   AssertEqual neomake#signs#by_lnum(buf), {}
   call neomake#signs#ResetFile(buf)

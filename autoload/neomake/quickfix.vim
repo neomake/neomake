@@ -58,6 +58,7 @@ endfunction
 
 
 function! neomake#quickfix#FormatQuickfix() abort
+    let buf = bufnr('%')
     if !s:is_enabled || &filetype !=# 'qf'
         if exists('b:neomake_qf')
             call neomake#signs#Clean(buf, 'file')
@@ -68,8 +69,6 @@ function! neomake#quickfix#FormatQuickfix() abort
         endif
         return
     endif
-
-    let buf = bufnr('%')
 
     let src_buf = 0
     let loclist = 1
@@ -107,12 +106,20 @@ function! neomake#quickfix#FormatQuickfix() abort
         " Look for marker at end of entry.
         if item.text[-1:] ==# '}'
             let idx = strridx(item.text, ' nmcfg:{')
-            let config = item.text[idx+7:]
-            let maker = eval(config)
-            if index(makers, maker.name) == -1
-                call add(makers, maker.name)
+            if idx != -1
+                let config = item.text[idx+7:]
+                try
+                    let maker = eval(config)
+                    if index(makers, maker.name) == -1
+                        call add(makers, maker.name)
+                    endif
+                    let item.text = item.text[:(idx-1)]
+                catch
+                    call neomake#utils#log_exception(printf(
+                                \ 'Error when evaluating nmcfg (%s): %s.',
+                                \ config, v:exception))
+                endtry
             endif
-            let item.text = item.text[:idx]
         endif
 
         let item.maker_name = get(maker, 'short', '????')

@@ -310,7 +310,7 @@ Example: make all entries a warning where `nr` is in the range of 100-199: >
         \ 'exe': 'lint',
         \ 'args': ['--option', 'x'],
         \ 'errorformat': '%f:%l:%c:%n: %m',
-        \ 'postprocess': function('PostprocessLintMaker)
+        \ 'postprocess': function('PostprocessLintMaker')
         \ }
 <
 Example: remove some entry for a specific maker (using |expr-lambda|): >
@@ -462,6 +462,7 @@ Please refer to |autocmd-patterns| for help on defining the pattern
 (`custom.py`) in this case.
 
 *g:neomake_enabled_makers*
+*b:neomake_enabled_makers*
 This setting will tell Neomake which makers to use by default when not
 operating on a single file, or when no makers are defined for the filetype of
 the current buffer. This effectively defaults to: >
@@ -474,8 +475,8 @@ preserve the cursor position when the |location-list| or |quickfix| window is
 opened. Defaults to 0.
 
 *g:neomake_list_height*
-The maximum height of the |location-list| or |quickfix| list opened by Neomake.
-If there are fewer entries than that it will use this for the height.
+The maximum height of the |location-list| or |quickfix| list window opened by
+Neomake.  If there are fewer entries it will use that instead.
 Defaults to 10.
 
 *g:neomake_echo_current_error*
@@ -670,11 +671,12 @@ which caches the information retrieved from `neomake#statusline#get_status()`.
 The function requires the buffer number as first argument, and an optional
 dictionary.
 
-The following example can be used in a custom 'statusline' function, where
-`a:active` could reflect if the window is the current one: >
+The following example creates a custom 'statusline' function, where `a:active`
+may reflect if the window is the current one (implementation not provided): >
     let neomake_status_str = neomake#statusline#get(bufnr, {
           \ 'format_running': '… ({{running_job_names}})',
-          \ 'format_ok': (a:active ? '%#NeomakeStatusGood#' : '%*').'✓',
+          \ 'format_loclist_ok':
+          \   (a:active ? '%#NeomakeStatusGood#' : '%*').'✓',
           \ 'format_quickfix_ok': '',
           \ 'format_quickfix_issues': (a:active ? '%s' : ''),
           \ 'format_status': '%%(%s'
@@ -685,7 +687,7 @@ The following example can be used in a custom 'statusline' function, where
 A simpler example: >
     let neomake_status_str = neomake#statusline#get(bufnr, {
           \ 'format_running': '… ({{running_job_names}})',
-          \ 'format_ok': '✓',
+          \ 'format_loclist_ok': '✓',
           \ 'format_quickfix_ok': '',
           \ 'format_quickfix_issues': '%s',
           \ })
@@ -705,7 +707,7 @@ You can use the following options:
     (E, W, I, …).
     Default: `' {{type}}:{{count}} '`
   - format_loclist_issues: format for wrapping all location list issues.
-    Default: `'%s'` (used with |printf|).
+    Default: `'%s'` (used with |printf()|).
 
   - format_quickfix_ok: format for no quickfix issues.
     Default: `''`
@@ -715,11 +717,11 @@ You can use the following options:
   - format_quickfix_issues: format for wrapping all quickfix list issues.
     You can use an empty string to skip displaying quickfix issues, which can
     be useful for non-current windows.
-    Default: `'%s'` (used with |printf|).
+    Default: `'%s'` (used with |printf()|).
 
   - format_status: used to wrap the whole status (if Neomake is not enabled).
-    This is a |printf| format string, where `%s` gets replaced with the whole
-    status (and any literal/non-printf `%` needs to be escaped as `%%`).
+    This is a |printf()| format string, where `%s` gets replaced with the
+    whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
     Default: not used / `'%s'`
 
 You can use the following format placeholders:

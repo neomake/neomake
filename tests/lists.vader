@@ -492,3 +492,21 @@ Execute (location list gets created with entries from first job, closed only aft
   AssertEqual getloclist(0), []
   AssertEqual wincount, winnr('$'), 'Location list was closed'
   bwipe
+
+Execute (empty location list is handled with :lopen):
+  Save g:neomake_open_list
+  let g:neomake_open_list = 2
+  new
+  let wincount = winnr('$')
+
+  let b:neomake_serialize = 1
+  let maker = {'exe': 'printf', 'args': ['%s\n', 'filtered_line'], 'errorformat': '%-G%.%#'}
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'unnamed_maker: processing 2 lines of output.', 3
+  AssertNeomakeMessage 'Processing 0 entries.', 3
+
+  AssertEqual map(getloclist(0), 'v:val.text'), []
+
+  CallNeomake 1, [ g:true_maker]
+  AssertEqual map(getloclist(0), 'v:val.text'), []
+  bwipe

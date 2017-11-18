@@ -485,11 +485,19 @@ function! neomake#utils#ExpandArgs(args) abort
     return ret
 endfunction
 
+function! neomake#utils#log_exception(error, ...) abort
+    let log_context = a:0 ? a:1 : {'bufnr': bufnr('%')}
+    redraw
+    echom printf('Neomake error in: %s', v:throwpoint)
+    call neomake#utils#ErrorMessage(a:error, log_context)
+    call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), log_context)
+endfunction
+
+let s:hook_context_stack = []
 function! neomake#utils#hook(event, context, ...) abort
     if exists('#User#'.a:event)
         let jobinfo = a:0 ? a:1 : (
                     \ has_key(a:context, 'jobinfo') ? a:context.jobinfo : {})
-        let g:neomake_hook_context = a:context
 
         let args = [printf('Calling User autocmd %s with context: %s.',
                     \ a:event, string(map(copy(a:context), "v:key ==# 'jobinfo' ? '…' : v:val")))]
@@ -497,12 +505,32 @@ function! neomake#utils#hook(event, context, ...) abort
             let args += [jobinfo]
         endif
         call call('neomake#utils#LoudMessage', args)
-        if v:version >= 704 || (v:version == 703 && has('patch442'))
-            exec 'doautocmd <nomodeline> User ' . a:event
-        else
-            exec 'doautocmd User ' . a:event
+
+        if exists('g:neomake_hook_context')
+            call add(s:hook_context_stack, g:neomake_hook_context)
         endif
-        unlet g:neomake_hook_context
+        unlockvar g:neomake_hook_context
+        let g:neomake_hook_context = a:context
+        lockvar 1 g:neomake_hook_context
+        try
+            if v:version >= 704 || (v:version == 703 && has('patch442'))
+                exec 'doautocmd <nomodeline> User ' . a:event
+            else
+                exec 'doautocmd User ' . a:event
+            endif
+        catch
+            call neomake#utils#log_exception(printf(
+                        \ 'Error during User autocmd for %s: %s.',
+                        \ a:event, v:exception), jobinfo)
+        finally
+            if !empty(s:hook_context_stack)
+                unlockvar g:neomake_hook_context
+                let g:neomake_hook_context = remove(s:hook_context_stack, -1)
+                lockvar 1 g:neomake_hook_context
+            else
+                unlet g:neomake_hook_context
+            endif
+        endtry
     else
         call neomake#utils#DebugMessage(printf(
                     \ 'Skipping User autocmd %s: no hooks.', a:event))

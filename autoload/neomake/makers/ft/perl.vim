@@ -14,7 +14,12 @@ endfunction
 function! neomake#makers#ft#perl#perl() abort
     return {
          \ 'args' : ['-c', '-X', '-Mwarnings'],
-         \ 'errorformat': '%E%m at %f line %l%s,%-G%f syntax OK,%-G%f had compilation errors.',
+         \ 'errorformat': '%-G%.%#had too many errors.,'
+         \  . '%-G%.%#had compilation errors.,'
+         \  . '%-G%.%#syntax OK,'
+         \  . '%m at %f line %l.,'
+         \  . '%+E%.%# at %f line %l\,%.%#,'
+         \  . '%+C%.%#',
          \ 'postprocess': function('neomake#makers#ft#perl#PerlEntryProcess'),
      \}
 endfunction
@@ -22,5 +27,8 @@ endfunction
 function! neomake#makers#ft#perl#PerlEntryProcess(entry) abort
     let extramsg = substitute(a:entry.pattern, '\^\\V', '', '')
     let extramsg = substitute(extramsg, '\\\$', '', '')
-    let a:entry.text = a:entry.text . ' ' . extramsg
+
+    if !empty(extramsg)
+        let a:entry.text .= ' ' . extramsg
+    endif
 endfunction

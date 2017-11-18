@@ -1,5 +1,5 @@
 function! neomake#makers#ft#solidity#EnabledMakers() abort
-    return ['solium']
+    return ['solium', 'solhint']
 endfunction
 
 function! neomake#makers#ft#solidity#solium() abort
@@ -8,4 +8,8 @@ function! neomake#makers#ft#solidity#solium() abort
         \ 'errorformat':
             \ '%f:%l:%c: %t%s: %m',
         \ }
+endfunction
+
+function! neomake#makers#ft#solidity#solhint() abort
+    return neomake#makers#ft#javascript#eslint()
 endfunction
