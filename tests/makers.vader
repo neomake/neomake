@@ -625,7 +625,8 @@ Execute (Maker can override output handler via opts for jobstart/job_start):
   if NeomakeAsyncTestsSetup()
     let s:output = []
     function s:on_stdout(job_or_channel, output, ...)
-      let s:output += [a:output]
+      let lines = has('nvim') ? a:output : split(a:output, '\n')
+      let s:output += lines
     endfunction
 
     let maker = {'exe': 'printf', 'args': ['%s\n', 'line1', 'line2']}
@@ -643,8 +644,8 @@ Execute (Maker can override output handler via opts for jobstart/job_start):
     CallNeomake 0, [maker]
     AssertEqual getqflist(), []
     if has('nvim')
-      AssertEqual s:output, [['line1', 'line2', '']]
+      AssertEqual s:output, ['line1', 'line2', '']
     else
-      AssertEqual s:output, ["line1\nline2\n"]
+      AssertEqual s:output, ['line1', 'line2']
     endif
   endif
