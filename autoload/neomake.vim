@@ -1179,8 +1179,6 @@ function! s:Make(options) abort
     return jobinfos
 endfunction
 
-let s:postprocessor_refs = []
-
 function! s:AddExprCallback(jobinfo, prev_list) abort
     if s:need_to_postpone_loclist(a:jobinfo)
         return s:queue_action('WinEnter', ['s:AddExprCallback',
@@ -1243,11 +1241,6 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
                     endif
                     unlet! F  " vim73
                 endfor
-                " HACK: keep refs for dict functions to show up in profiles
-                " for coverage reporting.
-                if v:profiling
-                    let s:postprocessor_refs += [postprocessors]
-                endif
             finally
                 unlet! g:neomake_postprocess_context  " Might be unset already with sleep in postprocess.
             endtry
