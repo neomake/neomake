@@ -1189,12 +1189,11 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
     let list = file_mode ? getloclist(0) : getqflist()
     let prev_index = len(a:prev_list)
     let index = prev_index-1
-    unlet! s:postprocess  " vim73
-    let s:postprocess = neomake#utils#GetSetting('postprocess', maker, function('neomake#utils#CompressWhitespace'), a:jobinfo.ft, a:jobinfo.bufnr)
-    if type(s:postprocess) != type([])
-        let s:postprocessors = [s:postprocess]
+    let Postprocess = neomake#utils#GetSetting('postprocess', maker, function('neomake#utils#CompressWhitespace'), a:jobinfo.ft, a:jobinfo.bufnr)
+    if type(Postprocess) != type([])
+        let postprocessors = [Postprocess]
     else
-        let s:postprocessors = s:postprocess
+        let postprocessors = Postprocess
     endif
     let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3 || !empty(get(g:, 'neomake_logfile'))
     let maker_name = get(maker, 'name', 'makeprg')
@@ -1231,16 +1230,16 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
                 let different_bufnrs[entry.bufnr] += 1
             endif
         endif
-        if !empty(s:postprocessors)
+        if !empty(postprocessors)
             let g:neomake_postprocess_context = {'jobinfo': a:jobinfo}
             try
-                for s:f in s:postprocessors
-                    if type(s:f) == type({})
-                        call call(s:f.fn, [entry], s:f)
+                for F in postprocessors
+                    if type(F) == type({})
+                        call call(F.fn, [entry], F)
                     else
-                        call call(s:f, [entry], maker)
+                        call call(F, [entry], maker)
                     endif
-                    unlet! s:f  " vim73
+                    unlet! F  " vim73
                 endfor
             finally
                 unlet! g:neomake_postprocess_context  " Might be unset already with sleep in postprocess.
