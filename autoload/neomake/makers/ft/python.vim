@@ -21,7 +21,7 @@ function! neomake#makers#ft#python#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#python#pylint() abort
-    return {
+    let maker = {
         \ 'args': [
             \ '--output-format=text',
             \ '--msg-template="{path}:{line}:{column}:{C}: [{symbol}] {msg} [{msg_id}]"',
@@ -38,6 +38,12 @@ function! neomake#makers#ft#python#pylint() abort
         \   function('neomake#postprocess#GenericLengthPostprocess'),
         \   function('neomake#makers#ft#python#PylintEntryProcess'),
         \ ]}
+    function! maker.filter_output(lines, context) abort
+        if a:context.source ==# 'stderr'
+            call filter(a:lines, "v:val !=# 'No config file found, using default configuration'")
+        endif
+    endfunction
+    return maker
 endfunction
 
 function! neomake#makers#ft#python#PylintEntryProcess(entry) abort
@@ -73,10 +79,12 @@ function! neomake#makers#ft#python#flake8() abort
         \ 'short_name': 'fl8',
         \ }
 
+    " @vimlint(EVL103, 1, a:jobinfo)
     function! maker.supports_stdin(jobinfo) abort
         let self.args += ['--stdin-display-name', bufname('%')]
         return 1
     endfunction
+    " @vimlint(EVL103, 0, a:jobinfo)
     return maker
 endfunction
 
