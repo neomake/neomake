@@ -347,11 +347,11 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
         endif
     endif
 
-    let Ret = s:get_oldstyle_setting(a:key, a:maker, a:default, a:ft, a:bufnr, maker_only)
-    if v:profiling && type(Ret) == type(function('tr'))
-        let s:refs_for_profiling += [Ret]
+    let Ret2 = s:get_oldstyle_setting(a:key, a:maker, a:default, a:ft, a:bufnr, maker_only)
+    if v:profiling && type(Ret2) == type(function('tr'))
+        let s:refs_for_profiling += [Ret2]
     endif
-    return Ret
+    return Ret2
 endfunction
 
 function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abort
