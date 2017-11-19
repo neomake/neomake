@@ -79,10 +79,12 @@ function! neomake#makers#ft#python#flake8() abort
         \ 'short_name': 'fl8',
         \ }
 
+    " @vimlint(EVL103, 1, a:jobinfo)
     function! maker.supports_stdin(jobinfo) abort
         let self.args += ['--stdin-display-name', bufname('%')]
         return 1
     endfunction
+    " @vimlint(EVL103, 0, a:jobinfo)
     return maker
 endfunction
 
