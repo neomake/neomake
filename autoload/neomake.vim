@@ -1245,7 +1245,7 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
                 endfor
                 " HACK: keep refs for dict functions to show up in profiles
                 " for coverage reporting.
-                if exists('g:neomake_test_messages')
+                if $NEOMAKE_DO_COVERAGE
                     let s:postprocessor_refs += [postprocessors]
                 endif
             finally
