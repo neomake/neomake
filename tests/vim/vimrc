@@ -69,9 +69,6 @@ set hidden
 set splitbelow  " Easier for window numbers (incrementing).
 set complete=.  " Just simple completion from the current buffer.
 
-
-set debug=msg
-
 let mapleader=','
 
 " No '-- More --' prompt, which would hang Travis.
