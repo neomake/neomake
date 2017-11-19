@@ -505,7 +505,8 @@ Execute (stdin maker (args as string)):
     if has('nvim')
       AssertNeomakeMessage "Starting async job: 'cat \\-'.", 2
     else
-      AssertNeomakeMessage "Starting async job: ['/bin/bash', '-c', 'cat \\-'].", 2
+      let shell_argv = "'".join(split(&shell) + split(&shellcmdflag), "', '")."'"
+      AssertNeomakeMessage "Starting async job: [".shell_argv.", 'cat \\-'].", 2
     endif
     NeomakeTestsWaitForFinishedJobs
   endif
@@ -566,7 +567,8 @@ Execute (stdin maker (project mode: uses_filename)):
     if has('nvim')
       AssertNeomakeMessage "Starting async job: 'cat $NEOMAKE_FILE'.", 2
     else
-      AssertNeomakeMessage "Starting async job: ['/bin/bash', '-c', 'cat $NEOMAKE_FILE'].", 2
+      let shell_argv = "'".join(split(&shell) + split(&shellcmdflag), "', '")."'"
+      AssertNeomakeMessage "Starting async job: [".shell_argv.", 'cat $NEOMAKE_FILE'].", 2
     endif
     NeomakeTestsWaitForFinishedJobs
   else
