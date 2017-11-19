@@ -6,6 +6,8 @@ let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 
 let s:is_testing = exists('g:neomake_test_messages')
 
+let s:refs_for_profiling = []
+
 function! s:reltime_lastmsg() abort
     if exists('s:last_msg_ts')
         let cur = neomake#compat#reltimefloat()
@@ -345,8 +347,16 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
         endif
     endif
 
+    let Ret = s:get_oldstyle_setting(a:key, a:maker, a:default, a:ft, a:bufnr, maker_only)
+    if v:profiling && type(Ret) == type(function('tr'))
+        let s:refs_for_profiling += [Ret]
+    endif
+    return Ret
+endfunction
+
+function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abort
     let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
-    if maker_only && empty(maker_name)
+    if a:maker_only && empty(maker_name)
         if has_key(a:maker, a:key)
             return get(a:maker, a:key)
         endif
@@ -381,7 +391,7 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
         return get(a:maker, a:key)
     endif
 
-    let key = maker_only ? maker_name.'_'.a:key : a:key
+    let key = a:maker_only ? maker_name.'_'.a:key : a:key
     " Look for 'neomake_'.key in the buffer and global namespace.
     let bufvar = neomake#compat#getbufvar(a:bufnr, 'neomake_'.key, s:unset)
     if bufvar isnot s:unset
