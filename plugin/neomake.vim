@@ -78,7 +78,7 @@ function! s:define_highlights() abort
     endif
 endfunction
 
-function! s:setup_autocmds()
+function! s:setup_autocmds() abort
     augroup neomake
         au!
         if !exists('*nvim_buf_add_highlight')
