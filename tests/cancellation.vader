@@ -196,7 +196,7 @@ Execute (neomake#CancelJob empties action queue):
     let job_id = jobinfo.id
     if has('patch-7.4.2299')
       NeomakeTestsWaitForFinishedJobs
-      AssertNeomakeMessage 'Queueing action: s:AddExprCallback for WinEnter.'
+      AssertNeomakeMessage 'Queueing action: s:AddExprCallback for BufEnter, WinEnter.'
       AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:AddExprCallback.'
       AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
     endif
@@ -239,7 +239,7 @@ Execute (neomake#CancelJob clears action queue for get_list_entries maker):
     endfunction
 
     let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
-    AssertNeomakeMessage 'Queueing action: s:handle_get_list_entries for Timer.'
+    AssertNeomakeMessage 'Queueing action: s:handle_get_list_entries for Timer, WinEnter.'
 
     " CancelJob returns 0, since it is processed directly.
     AssertEqual neomake#CancelJob(jobinfo), 0

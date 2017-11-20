@@ -107,7 +107,7 @@ Execute (get_list_entries: based on example from doc):
       \ ]
   endfunction
   call neomake#Make(1, [maker])
-  AssertNeomakeMessage 'Queueing action: s:ProcessEntries for WinEnter.'
+  AssertNeomakeMessage 'Queueing action: s:ProcessEntries for BufEnter, WinEnter.'
   AssertEqual {}, g:neomake_tests_highlight_lengths, 'No highlights have been added yet'
   AssertEqual [], getloclist(0)
 

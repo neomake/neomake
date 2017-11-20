@@ -667,6 +667,39 @@ Execute (Automake restarts if context changed):
     bwipe!
   endif
 
+Execute (Automake restarts if popup menu is visible):
+  if !has('timers')
+    NeomakeTestsSkip 'only with timers feature'
+  else
+    new
+    file file_sleep_efm
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    normal! iword1
+    normal! oword2
+
+    function s:close_pum(...)
+"       let s:mode = neomake#compat#get_mode()
+      call feedkeys("\<esc>")
+    endfunction
+
+    call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 5}})
+    doautocmd CursorHold
+    AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
+
+    " Trigger popup menu.
+    call timer_start(100, 's:close_pum')
+    call feedkeys("oword\<C-p>", 'x!')
+
+    AssertNeomakeMessage "automake: context/position changed: [[0, 2, 5, 0], 'n'] => [[0, 3, 6, 0], 'i'].", 3
+    AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
+    AssertNeomakeMessage 'automake: postponing automake during completion.', 3
+    " XXX: via CompleteDone.
+    AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
+
+    bwipe!
+  endif
+
 Execute (Timer callback ignores wiped buffer):
   if !has('timers')
     NeomakeTestsSkip 'only with timers feature'

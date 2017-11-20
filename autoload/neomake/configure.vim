@@ -179,9 +179,37 @@ function! s:automake_delayed_cb(timer) abort
         endif
     endif
     " endif
+
+    if neomake#compat#in_completion()
+        call s:debug_log('postponing automake during completion')
+        if !empty(timer_info.pos)
+            let timer_info.pos = [getpos('.'), mode]
+        endif
+        let b:_neomake_postponed_automake_context = timer_info
+
+        augroup neomake_automake_retry
+          au! * <buffer>
+          autocmd CompleteDone <buffer> call s:do_postponed_automake()
+          autocmd CompleteDone <buffer> echom 'CD'
+        augroup END
+        return
+    endif
+
     let context = copy(timer_info)
     let context.delay = 0
     call s:neomake_do_automake(context)
+endfunction
+
+function! s:do_postponed_automake() abort
+    if exists('b:_neomake_postponed_automake_context')
+        call s:debug_log('re-starting postponed automake')
+        let context = b:_neomake_postponed_automake_context
+        unlet b:_neomake_postponed_automake_context
+        call s:neomake_do_automake(context)
+        augroup neomake_automake_retry
+          autocmd! CompleteDone <buffer>
+        augroup END
+    endif
 endfunction
 
 " Parse/get events dict from args.
