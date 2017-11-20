@@ -56,7 +56,6 @@ Execute (Location list is only cleared in normal/insert mode on success):
   if NeomakeAsyncTestsSetup()
     new
     lgetexpr 'init'
-    file file_sleep_efm
     let maker = NeomakeTestsCommandMaker('silent-sleep-success', 'sleep .01')
     call neomake#Make(1, [maker])
     norm! V
@@ -323,7 +322,8 @@ Execute (Sleep in postprocess gets handled correctly):
     endif
 
     AssertEqual map(getloclist(0), 'v:val.text'), ['out-1', 'out-22', 'out-333']
-    AssertEqual s:postprocess_count, 3, 'postprocess count should be 3, but is '.s:postprocess_count
+    let c = s:postprocess_count
+    AssertEqual c, 3, 'postprocess count should be 3, but is '.c
     AssertEqual len(g:neomake_test_countschanged), 3
     AssertEqual len(g:neomake_test_jobfinished), 1
     AssertEqual len(g:neomake_test_finished), 1

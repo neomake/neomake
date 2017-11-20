@@ -73,7 +73,7 @@ Execute (neomake#compat#get_mode with insert mode completion (feedkeys)):
     normal! iword1
     normal! oword2
 
-    function s:close_pum(...)
+    function! s:close_pum(...)
       let s:mode = neomake#compat#get_mode()
       let s:in_completion = neomake#compat#in_completion()
       call feedkeys("\<c-e>\<esc>")
