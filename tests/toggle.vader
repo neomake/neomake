@@ -101,8 +101,10 @@ Execute (NeomakeStatus with disabling commands):
   call NeomakeTestsSetVimMessagesMarker()
 
   NeomakeStatus
+  Assert exists('#neomake'), 'neomake augroup exists'
 
   NeomakeDisable
+  Assert !exists('#neomake'), 'neomake augroup has been removed'
   NeomakeStatus
 
   NeomakeDisableTab
@@ -111,11 +113,17 @@ Execute (NeomakeStatus with disabling commands):
   NeomakeDisableBuffer
   NeomakeStatus
 
+  NeomakeEnable
+  Assert exists('#neomake'), 'neomake augroup exists'
+  NeomakeStatus
+
   AssertEqual NeomakeTestsGetVimMessages(), [
   \ 'Neomake is enabled.',
   \ 'Neomake is disabled (global).',
   \ 'Neomake is disabled (tab).',
-  \ 'Neomake is disabled (buffer).']
+  \ 'Neomake is disabled (buffer).',
+  \ 'Neomake is disabled (buffer).',
+  \ ]
   bwipe
 
 Execute (Neomake via autocommand uses 'disabled' setting):
