@@ -20,7 +20,7 @@ else
   let vader_dir = s:dep_plugins_base . '/vader'
 endif
 let &runtimepath .= ','.vader_dir
-exe 'source' vader_dir.'/plugin/vader.vim'
+exe 'source '.vader_dir.'/plugin/vader.vim'
 
 let s:sourced_plugins = []
 function! s:load_plugin_on_demand(name) abort
