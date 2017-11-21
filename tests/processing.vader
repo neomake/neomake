@@ -533,20 +533,7 @@ Execute (Already running job gets restarted in case of exception):
 
     AssertNeomakeMessage printf('Cancelling already running job (%d.%d) for the same maker.',
     \ make_id, jobinfo.id), 2, {'make_id': make_id+1}
-
-    if has('nvim')
-      AssertNeomakeMessage 'jobstop failed: Vim(call):E900: Invalid job id.', 2, jobinfo
-    else
-      try
-        AssertNeomakeMessage 'job_stop: job was not running anymore.', 2, jobinfo
-      catch
-        " Happens at least on Vim 8.0.69.
-        if !has('patch-8.0.70')
-          throw v:exception.' (might be a flaky test)'
-        endif
-      endtry
-    endif
-
+    AssertNeomakeMessage 'Job exited already.', 3, jobinfo
     AssertNeomakeMessage "Starting async job: ['printf', 'foo']."
 
     " Needs careful cleanup after exception.
