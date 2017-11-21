@@ -160,6 +160,20 @@ function! s:automake_delayed_cb(timer) abort
         return
     endif
 
+    if neomake#compat#in_completion()
+        call s:debug_log('postponing automake during completion')
+        if has_key(timer_info, 'pos')
+            unlet timer_info.pos
+        endif
+        let b:_neomake_postponed_automake_context = timer_info
+
+        augroup neomake_automake_retry
+          au! * <buffer>
+          autocmd CompleteDone <buffer> call s:do_postponed_automake()
+        augroup END
+        return
+    endif
+
     " Verify context/position is the same.
     " TODO: only makes sense for some events, e.g. not for
     "       BufWritePost/BufWinEnter?!
@@ -179,21 +193,6 @@ function! s:automake_delayed_cb(timer) abort
         endif
     endif
     " endif
-
-    if neomake#compat#in_completion()
-        call s:debug_log('postponing automake during completion')
-        if !empty(timer_info.pos)
-            let timer_info.pos = [getpos('.'), mode]
-        endif
-        let b:_neomake_postponed_automake_context = timer_info
-
-        augroup neomake_automake_retry
-          au! * <buffer>
-          autocmd CompleteDone <buffer> call s:do_postponed_automake()
-          autocmd CompleteDone <buffer> echom 'CD'
-        augroup END
-        return
-    endif
 
     let context = copy(timer_info)
     let context.delay = 0
