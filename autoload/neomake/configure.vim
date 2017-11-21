@@ -87,7 +87,6 @@ function! s:neomake_do_automake(context) abort
             return
         endif
 
-        " call s:start_timer(a:delay, a:context)
         let timer = timer_start(a:context.delay, function('s:automake_delayed_cb'))
         let s:timer_info[timer] = a:context
         if !has_key(a:context, 'pos')
