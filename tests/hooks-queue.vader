@@ -83,7 +83,6 @@ Execute (Nested neomake#utils#hook):
   AssertNeomakeMessage "Calling User autocmd Event1 with context: {'context': 1}.", 2
   AssertNeomakeMessage "Calling User autocmd Event2 with context: {'context': 2}.", 2
   AssertNeomakeMessage "Calling User autocmd Event3 with context: {'context': 3}.", 2
-  AssertNeomakeMessage 'Skipping User autocmd Event4: no hooks.'
 
 Execute (Nested neomake#utils#hook with exception):
   function! s:nested_hook_cb(c)

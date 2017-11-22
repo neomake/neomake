@@ -412,7 +412,7 @@ Execute (Temporary buffer is not wiped if opened):
   let bufnr = bufnr('%')
   let tempfile_bufnr = bufnr + 1
   let b:neomake_tempfile_enabled = 1
-  call neomake#Make(1, [maker])
+  let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
 
   " Open the tempfile in a new buffer.
   new
