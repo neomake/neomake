@@ -541,9 +541,6 @@ function! neomake#utils#hook(event, context, ...) abort
                 unlet g:neomake_hook_context
             endif
         endtry
-    else
-        call neomake#utils#DebugMessage(printf(
-                    \ 'Skipping User autocmd %s: no hooks.', a:event))
     endif
 endfunction
 

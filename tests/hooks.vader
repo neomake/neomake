@@ -12,7 +12,6 @@ Execute (Hook execution gets logged):
   let make_id = neomake#GetStatus().last_make_id
   NeomakeTestsWaitForFinishedJobs
 
-  AssertNeomakeMessage 'Skipping User autocmd NeomakeCountsChanged: no hooks.', 3
   AssertNeomakeMessage '\mCalling User autocmd NeomakeFinished with context: {''options'': ', 2
   AssertEqual map(copy(g:neomake_test_finished), 'sort(keys(v:val))'), [
   \ ['finished_jobs', 'jobinfo', 'make_id', 'options']]
