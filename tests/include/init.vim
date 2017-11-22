@@ -390,6 +390,16 @@ function! NeomakeTestsGetVimMessages()
   return reverse(msgs[0 : idx-1])
 endfunction
 
+function! NeomakeTestsGetMakerWithOutput(func, lines) abort
+  let output_file = tempname()
+  call writefile(a:lines, output_file)
+
+  let maker = call(a:func, [])
+  let maker.exe = 'cat'
+  let maker.args = [output_file]
+  return maker
+endfunction
+
 function! s:After()
   if exists('#neomake_automake')
     au! neomake_automake
