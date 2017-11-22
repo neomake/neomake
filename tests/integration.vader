@@ -242,30 +242,26 @@ Execute (Neomake: handle wiped buffer):
     new
     edit tests/fixtures/errors.sh
     let bufnr = bufnr('%')
-    Neomake sh
+
+    call neomake#Make(1, [g:sleep_maker])
     bwipe
     let jobinfo = neomake#GetJobs()[0]
     let make_info = values(neomake#GetStatus().make_info)[0]
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0,
       \ "counts changed (".len(g:neomake_test_countschanged).")"
-    AssertEqual len(g:neomake_test_jobfinished), 0
-    AssertEqual len(g:neomake_test_finished), 0
+    AssertEqual len(g:neomake_test_jobfinished), 1
+    AssertEqual len(g:neomake_test_finished), 1
     AssertNeomakeMessage 'No buffer found for output!', 2
-    AssertNeomakeMessage 'Cancelling job.', 3
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfo
+    AssertNeomakeMessage 'No buffer found for location list!', 2
     AssertNeomakeMessage 'Cleaning make info.', 3
 
-    " Trigger processing of pending output.
-    new
-    AssertEqual len(g:neomake_test_jobfinished), 0
-    AssertEqual len(g:neomake_test_finished), 0
     AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
     AssertNeomakeMessage 'CancelJob: job not found: ' . jobinfo.id . '.', 0
 
     AssertEqual getloclist(0)[0].text, 'init_loclist'
 
-    bwipe
     bwipe
   endif
 

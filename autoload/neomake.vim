@@ -1997,7 +1997,6 @@ function! s:ProcessPendingOutput(jobinfo, lines, source) abort
         if index(window_make_ids, a:jobinfo.make_id) == -1
             if !bufexists(a:jobinfo.bufnr)
                 call neomake#utils#LoudMessage('No buffer found for output!', a:jobinfo)
-                call neomake#CancelJob(a:jobinfo.id)
                 return 1
             endif
 
