@@ -19,13 +19,15 @@ function! s:incCount(counts, item, buf) abort
     return 0
 endfunction
 
-function! neomake#statusline#buffer_finished(bufnr) abort
-    if !has_key(s:loclist_counts, a:bufnr)
-        let s:loclist_counts[a:bufnr] = {}
-        if has_key(s:cache, a:bufnr)
-            unlet s:cache[a:bufnr]
+function! neomake#statusline#make_finished(make_info) abort
+    let bufnr = a:make_info.options.bufnr
+    if !has_key(s:loclist_counts, bufnr)
+        let s:loclist_counts[bufnr] = {}
+        if has_key(s:cache, bufnr)
+            unlet s:cache[bufnr]
         endif
     endif
+    call s:clear_cache(bufnr)
 endfunction
 
 function! neomake#statusline#ResetCountsForBuf(...) abort
@@ -324,7 +326,6 @@ endfunction
 " Global augroup, gets configured always currently when autoloaded.
 augroup neomake_statusline
     autocmd!
-    autocmd User NeomakeJobStarted,NeomakeJobFinished call s:clear_cache(g:neomake_hook_context.jobinfo.bufnr)
     autocmd BufWipeout * call s:clear_cache(expand('<abuf>'))
 augroup END
 call neomake#statusline#DefineHighlights()
