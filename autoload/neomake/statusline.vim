@@ -3,14 +3,26 @@ scriptencoding utf-8
 let s:qflist_counts = {}
 let s:loclist_counts = {}
 
+" Key: bufnr, Value: dict with cache keys.
+let s:cache = {}
+
+" For debugging.
+function! neomake#statusline#get_s() abort
+    return s:
+endfunction
+
+function! s:clear_cache(bufnr) abort
+    if has_key(s:cache, a:bufnr)
+        unlet s:cache[a:bufnr]
+    endif
+endfunction
+
 function! s:incCount(counts, item, buf) abort
     let type = toupper(a:item.type)
     if !empty(type) && (!a:buf || a:item.bufnr ==# a:buf)
         let a:counts[type] = get(a:counts, type, 0) + 1
         if a:buf
-            if has_key(s:cache, a:buf)
-                unlet s:cache[a:buf]
-            endif
+            call s:clear_cache(a:buf)
         else
             let s:cache = {}
         endif
@@ -23,9 +35,6 @@ function! neomake#statusline#make_finished(make_info) abort
     let bufnr = a:make_info.options.bufnr
     if !has_key(s:loclist_counts, bufnr)
         let s:loclist_counts[bufnr] = {}
-        if has_key(s:cache, bufnr)
-            unlet s:cache[bufnr]
-        endif
     endif
     call s:clear_cache(bufnr)
 endfunction
@@ -39,9 +48,7 @@ function! neomake#statusline#ResetCountsForBuf(...) abort
           call neomake#utils#hook('NeomakeCountsChanged', {
                 \ 'reset': 1, 'file_mode': 1, 'bufnr': bufnr})
       endif
-      if has_key(s:cache, bufnr)
-          unlet s:cache[bufnr]
-      endif
+      call s:clear_cache(bufnr)
       return r
     endif
     return 0
@@ -230,23 +237,6 @@ function! neomake#statusline#get_status(bufnr, options) abort
         endif
     endif
     return r
-endfunction
-
-function! neomake#statusline#clear_cache(bufnr) abort
-    call s:clear_cache(a:bufnr)
-endfunction
-
-" Key: bufnr, Value: dict with cache keys.
-let s:cache = {}
-" For debugging.
-function! neomake#statusline#get_s() abort
-    return s:
-endfunction
-
-function! s:clear_cache(bufnr) abort
-    if has_key(s:cache, a:bufnr)
-        unlet s:cache[a:bufnr]
-    endif
 endfunction
 
 function! neomake#statusline#get(bufnr, options) abort
