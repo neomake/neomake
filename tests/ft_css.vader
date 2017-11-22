@@ -26,8 +26,7 @@ Execute (stylelint):
   call writefile([], bufname1)
   call writefile([], bufname2)
 
-  let output_file = tempname()
-  call writefile([
+  let maker = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#css#stylelint', [
     \ bufname1,
     \ '  6:5   ✖  Expected indentation of 1 tab     indentation           ',
     \ '  7:9   ✖  Expected indentation of 2 tabs    indentation           ',
@@ -37,11 +36,7 @@ Execute (stylelint):
     \ '',
     \ '/doesnotexist',
     \ ' 26:36  ✖  Unexpected unit "px"              unit-whitelist        ',
-    \ ], output_file)
-
-  let maker = neomake#makers#ft#css#stylelint()
-  let maker.exe = 'cat'
-  let maker.args = [output_file]
+    \])
 
   new
   CallNeomake 1, [maker]
