@@ -1,3 +1,7 @@
+function! s:getVar(varname, default)
+    return get(b:, a:varname, get(g:, a:varname, a:default))
+endfunction
+
 function! neomake#makers#ft#text#EnabledMakers() abort
     " No makers enabled by default, since text is used as fallback often.
     return []
@@ -29,12 +33,20 @@ function! neomake#makers#ft#text#writegood() abort
 endfunction
 
 function! s:fn_languagetool_curl(jobinfo) abort dict
+    let defaultFallbackLanguage = 'en'  " Without variants there is no spell checking
     " XXX: update method to get filename!
-    let self.args = ['-s',
+    let l:args = ['-s',
                 \ '--data-urlencode', printf('text@%s', fnameescape(fnamemodify(bufname(a:jobinfo.bufnr), ':p'))),
-                \ '--data-urlencode', printf('language=%s', get(split(&spelllang, ','), 0, 'en')),
-		\ '--data-urlencode', printf('motherTongue=%s', 'pt-PT'),
-                \ 'http://localhost:8081/v2/check']
+                \ '--data-urlencode', printf('language=%s', get(split(&spelllang, ','), 0, defaultFallbackLanguage))
+                \ ]
+    let motherTongue = s:getVar('neomake_text_languagetool_curl_motherTongue', v:null)
+    if motherTongue != v:null
+        let args += ['--data-urlencode', printf('motherTongue=%s', motherTongue)]
+    endif
+    " Public API: https://languagetool.org/api
+    let server = s:getVar('neomake_text_languagetool_curl_server', 'http://localhost:8081')
+    let args += [printf('%s/v2/check', server)]
+    let self.args = args
 endfunction
 
 function! neomake#makers#ft#text#GetEntriesForOutput_LanguagetoolCurl(context) abort
