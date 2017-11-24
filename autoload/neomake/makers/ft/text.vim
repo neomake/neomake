@@ -9,18 +9,18 @@ endfunction
 
 function! neomake#makers#ft#text#proselint() abort
     return {
-          \ 'errorformat': '%W%f:%l:%c: %m',
-          \ 'postprocess': function('neomake#postprocess#GenericLengthPostprocess'),
-          \ }
+                \ 'errorformat': '%W%f:%l:%c: %m',
+                \ 'postprocess': function('neomake#postprocess#GenericLengthPostprocess'),
+                \ }
 endfunction
 
 function! neomake#makers#ft#text#PostprocessWritegood(entry) abort
     let a:entry.col += 1
     if a:entry.text[0] ==# '"'
-      let matchend = match(a:entry.text, '\v^[^"]+\zs"', 1)
-      if matchend != -1
-        let a:entry.length = matchend - 1
-      endif
+        let matchend = match(a:entry.text, '\v^[^"]+\zs"', 1)
+        if matchend != -1
+            let a:entry.length = matchend - 1
+        endif
     endif
 endfunction
 
@@ -110,9 +110,9 @@ endfunction
 
 function! neomake#makers#ft#text#languagetool_curl() abort
     return {
-          \ 'exe': 'curl',
-          \ 'fn': function('s:fn_languagetool_curl'),
-          \ 'process_output': function('neomake#makers#ft#text#GetEntriesForOutput_LanguagetoolCurl'),
-	  \ 'output_stream': 'stdout',
-          \ }
+                \ 'exe': 'curl',
+                \ 'fn': function('s:fn_languagetool_curl'),
+                \ 'process_output': function('neomake#makers#ft#text#GetEntriesForOutput_LanguagetoolCurl'),
+                \ 'output_stream': 'stdout',
+                \ }
 endfunction
