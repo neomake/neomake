@@ -45,6 +45,10 @@ function! s:fn_languagetool_curl(jobinfo) abort dict
     if motherTongue != v:null
         let args += ['--data-urlencode', printf('motherTongue=%s', motherTongue)]
     endif
+    let preferredVariants = s:getVar('neomake_text_languagetool_curl_preferredVariants', v:null)
+    if l:preferredVariants != v:null && l:language == 'auto'
+        let args += ['--data-urlencode', printf('preferredVariants', join(preferredVariants, ','))]
+    endif
     " Public API: https://languagetool.org/api
     let server = s:getVar('neomake_text_languagetool_curl_server', 'http://localhost:8081')
     let args += [printf('%s/v2/check', server)]
