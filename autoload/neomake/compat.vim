@@ -265,7 +265,7 @@ if exists('*win_getid')
         call add(s:prev_windows, [win_getid(winnr('#')), win_getid(winnr())])
     endfunction
 
-    function! neomake#compat#restore_prev_windowsows() abort
+    function! neomake#compat#restore_prev_windows() abort
         " Go back, maintaining the '#' window (CTRL-W_p).
         let [aw_id, pw_id] = remove(s:prev_windows, 0)
         let pw = win_id2win(pw_id)
@@ -282,7 +282,7 @@ else
         call add(s:prev_windows, [winnr('#'), winnr()])
     endfunction
 
-    function! neomake#compat#restore_prev_windowsows() abort
+    function! neomake#compat#restore_prev_windows() abort
         " Go back, maintaining the '#' window (CTRL-W_p).
         let [aw, pw] = remove(s:prev_windows, 0)
         if winnr() != pw
