@@ -852,35 +852,39 @@ function! neomake#GetEnabledMakers(...) abort
 endfunction
 
 let s:prev_windows = []
-function! s:save_prev_windows() abort
-    let aw = winnr('#')
-    let pw = winnr()
-    if exists('*win_getid')
-        let aw_id = win_getid(aw)
-        let pw_id = win_getid(pw)
-    else
-        let aw_id = 0
-        let pw_id = 0
-    endif
-    call add(s:prev_windows, [aw, pw, aw_id, pw_id])
-endfunction
+if exists('*win_getid')
+    function! s:save_prev_windows() abort
+        call add(s:prev_windows, [win_getid(winnr('#')), win_getid(winnr())])
+    endfunction
 
-function! s:restore_prev_windows() abort
-    let [aw, pw, aw_id, pw_id] = remove(s:prev_windows, 0)
-    if winnr() != pw
+    function! s:restore_prev_windows() abort
         " Go back, maintaining the '#' window (CTRL-W_p).
-        if pw_id
+        let [aw_id, pw_id] = remove(s:prev_windows, 0)
+        let pw = win_id2win(pw_id)
+        if pw && winnr() != pw
             let aw = win_id2win(aw_id)
-            let pw = win_id2win(pw_id)
-        endif
-        if pw
             if aw
                 exec aw . 'wincmd w'
             endif
             exec pw . 'wincmd w'
         endif
-    endif
-endfunction
+    endfunction
+else
+    function! s:save_prev_windows() abort
+        call add(s:prev_windows, [winnr('#'), winnr()])
+    endfunction
+
+    function! s:restore_prev_windows() abort
+        " Go back, maintaining the '#' window (CTRL-W_p).
+        let [aw, pw] = remove(s:prev_windows, 0)
+        if winnr() != pw
+            if aw
+                exec aw . 'wincmd w'
+            endif
+            exec pw . 'wincmd w'
+        endif
+    endfunction
+endif
 
 let s:ignore_automake_events = 0
 function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist) abort
