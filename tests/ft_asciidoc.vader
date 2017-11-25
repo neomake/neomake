@@ -35,4 +35,4 @@ Execute (asciidoc):
 Execute (asciidoc: enabled makers):
   AssertEqual map(copy(neomake#GetEnabledMakers('asciidoc')), 'v:val.name'), ['asciidoc']
   AssertEqual neomake#GetMakers('asciidoc'),
-  \ ['asciidoc', 'asciidoctor', 'proselint', 'writegood']
+  \ ['asciidoc', 'asciidoctor', 'languagetool_curl', 'proselint', 'writegood']
