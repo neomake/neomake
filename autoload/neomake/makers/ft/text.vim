@@ -1,4 +1,4 @@
-function! s:getVar(varname, default)
+function! s:getVar(varname, default) abort
     return get(b:, a:varname, get(g:, a:varname, a:default))
 endfunction
 
