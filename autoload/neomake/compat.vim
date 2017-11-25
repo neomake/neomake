@@ -258,3 +258,38 @@ function! neomake#compat#in_completion() abort
     endif
     return 0
 endfunction
+
+let s:prev_windows = []
+if exists('*win_getid')
+    function! neomake#compat#save_prev_windows() abort
+        call add(s:prev_windows, [win_getid(winnr('#')), win_getid(winnr())])
+    endfunction
+
+    function! neomake#compat#restore_prev_windowsows() abort
+        " Go back, maintaining the '#' window (CTRL-W_p).
+        let [aw_id, pw_id] = remove(s:prev_windows, 0)
+        let pw = win_id2win(pw_id)
+        if pw && winnr() != pw
+            let aw = win_id2win(aw_id)
+            if aw
+                exec aw . 'wincmd w'
+            endif
+            exec pw . 'wincmd w'
+        endif
+    endfunction
+else
+    function! neomake#compat#save_prev_windows() abort
+        call add(s:prev_windows, [winnr('#'), winnr()])
+    endfunction
+
+    function! neomake#compat#restore_prev_windowsows() abort
+        " Go back, maintaining the '#' window (CTRL-W_p).
+        let [aw, pw] = remove(s:prev_windows, 0)
+        if winnr() != pw
+            if aw
+                exec aw . 'wincmd w'
+            endif
+            exec pw . 'wincmd w'
+        endif
+    endfunction
+endif

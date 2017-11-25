@@ -851,41 +851,6 @@ function! neomake#GetEnabledMakers(...) abort
     return enabled_makers
 endfunction
 
-let s:prev_windows = []
-if exists('*win_getid')
-    function! s:save_prev_windows() abort
-        call add(s:prev_windows, [win_getid(winnr('#')), win_getid(winnr())])
-    endfunction
-
-    function! s:restore_prev_windows() abort
-        " Go back, maintaining the '#' window (CTRL-W_p).
-        let [aw_id, pw_id] = remove(s:prev_windows, 0)
-        let pw = win_id2win(pw_id)
-        if pw && winnr() != pw
-            let aw = win_id2win(aw_id)
-            if aw
-                exec aw . 'wincmd w'
-            endif
-            exec pw . 'wincmd w'
-        endif
-    endfunction
-else
-    function! s:save_prev_windows() abort
-        call add(s:prev_windows, [winnr('#'), winnr()])
-    endfunction
-
-    function! s:restore_prev_windows() abort
-        " Go back, maintaining the '#' window (CTRL-W_p).
-        let [aw, pw] = remove(s:prev_windows, 0)
-        if winnr() != pw
-            if aw
-                exec aw . 'wincmd w'
-            endif
-            exec pw . 'wincmd w'
-        endif
-    endfunction
-endif
-
 let s:ignore_automake_events = 0
 function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist) abort
     let open_val = get(g:, 'neomake_open_list', 0)
@@ -906,9 +871,9 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist) abort
     endif
     if open_val == 2
         let s:ignore_automake_events += 1
-        call s:save_prev_windows()
+        call neomake#compat#save_prev_windows()
         exe cmd height
-        call s:restore_prev_windows()
+        call neomake#compat#restore_prev_windows()
         let s:ignore_automake_events -= 1
     else
         exe cmd height
