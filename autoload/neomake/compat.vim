@@ -237,14 +237,16 @@ else
 endif
 
 " Not really necessary for now, but allows to overwriting and extending.
-function! neomake#compat#get_mode() abort
-    if exists('*nvim_get_mode')
+if exists('*nvim_get_mode')
+    function! neomake#compat#get_mode() abort
         let mode = nvim_get_mode()
         return mode.mode
-    else
+    endfunction
+else
+    function! neomake#compat#get_mode() abort
         return mode(1)
-    endif
-endfunction
+    endfunction
+endif
 
 function! neomake#compat#in_completion() abort
     if pumvisible()
