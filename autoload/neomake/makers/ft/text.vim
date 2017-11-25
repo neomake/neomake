@@ -34,10 +34,12 @@ endfunction
 
 function! s:fn_languagetool_curl(jobinfo) abort dict
     let defaultFallbackLanguage = 'en'  " Without variants there is no spell checking
+    let language = s:getVar('neomake_text_languagetool_curl_language',
+                \ get(split(&spelllang, ','), 0, defaultFallbackLanguage) )
     " XXX: update method to get filename!
     let l:args = ['-s',
                 \ '--data-urlencode', printf('text@%s', fnameescape(fnamemodify(bufname(a:jobinfo.bufnr), ':p'))),
-                \ '--data-urlencode', printf('language=%s', get(split(&spelllang, ','), 0, defaultFallbackLanguage))
+                \ '--data-urlencode', printf('language=%s', language),
                 \ ]
     let motherTongue = s:getVar('neomake_text_languagetool_curl_motherTongue', v:null)
     if motherTongue != v:null
