@@ -764,8 +764,8 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     return maker
 endfunction
 
-function! s:get_makers_for_pattern(pattern) abort
-    if exists('*getcompletion')
+if exists('*getcompletion')
+    function! s:get_makers_for_pattern(pattern) abort
         " Get function prefix based on pattern, until the first backslash.
         let prefix = substitute(a:pattern, '\v\\.*', '', '')
 
@@ -778,12 +778,14 @@ function! s:get_makers_for_pattern(pattern) abort
         call filter(funcs, "v:val =~# '\\m^[a-z].*('")
         " Remove parenthesis and #.* (for project makers).
         return sort(map(funcs, "substitute(v:val, '\\v[(#].*', '', '')"))
-    endif
-
-    let funcs_output = neomake#utils#redir('fun /'.a:pattern)
-    return sort(map(split(funcs_output, '\n'),
-                \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')"))
-endfunction
+    endfunction
+else
+    function! s:get_makers_for_pattern(pattern) abort
+        let funcs_output = neomake#utils#redir('fun /'.a:pattern)
+        return sort(map(split(funcs_output, '\n'),
+                    \ "substitute(v:val, '\\v^.*#(.*)\\(.*$', '\\1', '')"))
+    endfunction
+endif
 
 function! neomake#GetMakers(ft) abort
     " Get all makers for a given filetype.  This is used from completion.
@@ -851,37 +853,6 @@ function! neomake#GetEnabledMakers(...) abort
     return enabled_makers
 endfunction
 
-let s:prev_windows = []
-function! s:save_prev_windows() abort
-    let aw = winnr('#')
-    let pw = winnr()
-    if exists('*win_getid')
-        let aw_id = win_getid(aw)
-        let pw_id = win_getid(pw)
-    else
-        let aw_id = 0
-        let pw_id = 0
-    endif
-    call add(s:prev_windows, [aw, pw, aw_id, pw_id])
-endfunction
-
-function! s:restore_prev_windows() abort
-    let [aw, pw, aw_id, pw_id] = remove(s:prev_windows, 0)
-    if winnr() != pw
-        " Go back, maintaining the '#' window (CTRL-W_p).
-        if pw_id
-            let aw = win_id2win(aw_id)
-            let pw = win_id2win(pw_id)
-        endif
-        if pw
-            if aw
-                exec aw . 'wincmd w'
-            endif
-            exec pw . 'wincmd w'
-        endif
-    endif
-endfunction
-
 let s:ignore_automake_events = 0
 function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist) abort
     let open_val = get(g:, 'neomake_open_list', 0)
@@ -902,9 +873,9 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist) abort
     endif
     if open_val == 2
         let s:ignore_automake_events += 1
-        call s:save_prev_windows()
+        call neomake#compat#save_prev_windows()
         exe cmd height
-        call s:restore_prev_windows()
+        call neomake#compat#restore_prev_windows()
         let s:ignore_automake_events -= 1
     else
         exe cmd height
@@ -1563,13 +1534,14 @@ function! neomake#VimLeave() abort
     endfor
 endfunction
 
+let s:has_getcmdwintype = exists('*getcmdwintype')
 function! s:CanProcessJobOutput() abort
     " We can only process output (change the location/quickfix list) in
     " certain modes, otherwise e.g. the visual selection gets lost.
     let mode = neomake#compat#get_mode()
     if index(['n', 'i'], mode) == -1
         call neomake#utils#DebugMessage('Not processing output for mode "'.mode.'".')
-    elseif exists('*getcmdwintype') && getcmdwintype() !=# ''
+    elseif s:has_getcmdwintype && !empty(getcmdwintype())
         call neomake#utils#DebugMessage('Not processing output from command-line window "'.getcmdwintype().'".')
     else
         return 1
