@@ -770,7 +770,7 @@ Execute (action queue handles E48 in process_output):
   AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfo
 
 Execute (job finishes while in tabline function):
-  if neomake#has_async_support()  " use manual setup without autocmds to work around bug in vim8069
+  if NeomakeAsyncTestsSetup()
     Save &tabline, g:neomake_test_flagfile
 
     let g:neomake_test_flagfile = tempname()
@@ -808,8 +808,6 @@ Execute (job finishes while in tabline function):
     bwipe
     Assert exists('#neomake_statusline'), 'statusline augroup was created'
     Assert !exists('#neomake_statusline#ColorScheme'), 'ColorScheme was not hooked into'
-  else
-    NeomakeTestsSkip 'no async support.'
   endif
 
 Execute (get_list_entries job processes entries while in tabline function):
