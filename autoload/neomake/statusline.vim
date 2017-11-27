@@ -37,6 +37,10 @@ function! neomake#statusline#make_finished(make_info) abort
         let s:loclist_counts[bufnr] = {}
     endif
     call s:clear_cache(bufnr)
+
+    " Trigger redraw of all statuslines.
+    " TODO: only do this if some relevant formats are used?!
+    redrawstatus!
 endfunction
 
 function! neomake#statusline#ResetCountsForBuf(...) abort
@@ -305,9 +309,6 @@ function! s:setup_statusline_augroup_for_use() abort
         return
     endif
     augroup neomake_statusline
-        " Trigger redraw of all statuslines.
-        " TODO: only do this if some relevant formats are used?!
-        autocmd User NeomakeJobFinished redrawstatus!
         autocmd ColorScheme * call neomake#statusline#DefineHighlights()
     augroup END
     let s:did_setup_statusline_augroup_for_use = 1
