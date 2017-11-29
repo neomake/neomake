@@ -282,14 +282,21 @@ endfunction
 
 " XXX: TODO: cleanup/doc?!
 function! neomake#statusline#DefineHighlights() abort
-    if exists('g:neomake_statusline_bg')
-        let stlbg = g:neomake_statusline_bg
-    else
-        let stlbg = neomake#utils#GetHighlight('StatusLine', 'bg')
-    endif
-
-    " Highlights.
-    exe 'hi default NeomakeStatusGood ctermfg=green ctermbg=' . stlbg
+    for suffix in ['', 'NC']
+      let hl = 'StatusLine'.suffix
+      " Uses "green" for NeomakeStatusGood, but the default with
+      " NeomakeStatusGoodNC (since it might be underlined there, and should
+      " not stand out in general there).
+      exe 'hi default NeomakeStatusGood'.suffix
+            \ . ' ctermfg=' . (suffix ? neomake#utils#GetHighlight(hl, 'fg') : 'green')
+            \ . ' guifg=' . (suffix ? neomake#utils#GetHighlight(hl, 'fg#') : 'green')
+            \ . ' ctermbg='.neomake#utils#GetHighlight(hl, 'bg')
+            \ . ' guifg='.neomake#utils#GetHighlight(hl, 'bg#')
+            \ . (neomake#utils#GetHighlight(hl, 'underline') ? ' cterm=underline' : '')
+            \ . (neomake#utils#GetHighlight(hl, 'underline#') ? ' gui=underline' : '')
+            \ . (neomake#utils#GetHighlight(hl, 'reverse') ? ' cterm=reverse' : '')
+            \ . (neomake#utils#GetHighlight(hl, 'reverse#') ? ' gui=reverse' : '')
+    endfor
 
     " Base highlight for type counts.
     exe 'hi NeomakeStatColorTypes cterm=NONE ctermfg=white ctermbg=blue'
