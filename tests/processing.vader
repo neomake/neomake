@@ -751,6 +751,7 @@ Execute (action queue handles E48 in process_output):
   bwipe
   AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 1).'
   if async
+    AssertNeomakeMessage 'action queue: processing Timer queue first.', 3
     AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 1).'
     AssertNeomakeMessage 'action queue: calling s:ProcessJobOutput.'
     AssertNeomakeMessage 'Postponing location list processing.'
@@ -777,33 +778,36 @@ Execute (job finishes while in tabline function):
 
     function! s:NeomakeTestTabline()
       call writefile(['1'], g:neomake_test_flagfile)
-      while 1
-        if !filereadable(g:neomake_test_flagfile)
-          break
-        endif
-        sleep 1m
-      endwhile
-      NeomakeTestsWaitForMessage 'Error during pcall: Vim(laddexpr):E523: Not allowed here:                 laddexpr a:lines.', 3
-      AssertNeomakeMessage '\v\(in function .*\.\.\<SNR\>\d+_NeomakeTestTabline\[\d+\]\.\..*\)', 3
+      NeomakeTestsWaitForFinishedJobs
       call neomake#utils#DebugMessage('tabline_end.')
     endfunction
 
     new
-    set tabline=%!s:NeomakeTestTabline()
     let maker1 = NeomakeTestsCommandMaker('sleep', printf(
     \ 'while ! [ -e %s ]; do sleep 0.01; done; echo finished_in_tabline; rm %s',
     \ fnameescape(g:neomake_test_flagfile), fnameescape(g:neomake_test_flagfile)))
     let jobinfo = neomake#GetJob(neomake#Make(1, [maker1])[0])
-    redraw
-    NeomakeTestsWaitForFinishedJobs
+    set tabline=%!s:NeomakeTestTabline()
+    redrawstatus
+
+    NeomakeTestsWaitForMessage 'Error during pcall: Vim(laddexpr):E523: Not allowed here:                 laddexpr a:lines.', 3
+    AssertNeomakeMessage '\v\(in function .*\.\.\<SNR\>\d+_NeomakeTestTabline\[\d+\]\.\..*\)', 3
+    AssertNeomakeMessage 'Queueing action: s:ProcessJobOutput for Timer.', 3
 
     AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:ProcessJobOutput.'
     AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
     AssertNeomakeMessage 'tabline_end.', 3
+    sleep 20m
+    AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 2).', 3
+    AssertNeomakeMessage 'action queue: calling s:ProcessJobOutput.', 3
 
     " Restore here already for vim8090 (E117: Unknown function: s:NeomakeTestTabline)
     Restore &tabline
     doautocmd WinEnter
+    AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 2).', 3
+    AssertNeomakeMessageAbsent 'action queue: processing for Timer (0 items, winnr: 2).', 3
+    AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.', 3
+
     AssertEqual map(getloclist(0), 'v:val.text'), ['finished_in_tabline']
     bwipe
     Assert exists('#neomake_statusline'), 'statusline augroup was created'
