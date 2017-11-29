@@ -751,6 +751,7 @@ Execute (action queue handles E48 in process_output):
   bwipe
   AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 1).'
   if async
+    AssertNeomakeMessage 'action queue: processing Timer queue first.', 3
     AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 1).'
     AssertNeomakeMessage 'action queue: calling s:ProcessJobOutput.'
     AssertNeomakeMessage 'Postponing location list processing.'

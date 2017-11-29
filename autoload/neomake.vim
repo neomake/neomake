@@ -938,7 +938,9 @@ function! s:queue_action(event, data) abort
 endfunction
 
 function! s:process_action_queue_timer_cb(...) abort
-    call neomake#utils#DebugMessage('action queue: callback for Timer queue.')
+    call neomake#utils#DebugMessage(printf(
+                \ 'action queue: callback for Timer queue (%d).', s:action_queue_timer))
+    unlet s:action_queue_timer
     call s:process_action_queue('Timer')
 endfunction
 
@@ -948,10 +950,11 @@ function! s:process_action_queue(event) abort
     call neomake#utils#DebugMessage(printf('action queue: processing for %s (%d items, winnr: %d).',
                 \ a:event, queue_len, winnr()), {'bufnr': bufnr('%')})
 
-    if a:event !=# 'Timer' && exists('s:action_queue_timer')
+    if exists('s:action_queue_timer')
         " Process timer events first.
         call timer_stop(s:action_queue_timer)
         unlet s:action_queue_timer
+        call neomake#utils#DebugMessage('action queue: processing Timer queue first.')
         call s:process_action_queue('Timer')
     endif
     let processed = 0
