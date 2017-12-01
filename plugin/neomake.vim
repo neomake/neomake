@@ -9,7 +9,7 @@ command! -nargs=* -bang -bar -complete=customlist,neomake#cmd#complete_makers
 " These commands are available for clarity
 command! -nargs=* -bar -complete=customlist,neomake#cmd#complete_makers
             \ NeomakeProject Neomake! <args>
-command! -nargs=* -bar -complete=customlist,neomake#cm#complete_makers
+command! -nargs=* -bar -complete=customlist,neomake#cmd#complete_makers
             \ NeomakeFile Neomake <args>
 
 command! -nargs=+ -bang -complete=shellcmd
