@@ -66,6 +66,10 @@ function! neomake#makers#ft#text#GetEntriesForOutput_LanguagetoolCurl(context) a
     endif
 
     let entries = []
+
+    let current_file = join(getline('^', '$'), "\r")
+    let line_delta = {}
+
     for _m in get(output, 'matches', [])
         let offset = get(_m, 'offset') + 0
         let length = get(_m, 'length') + 0
@@ -89,17 +93,23 @@ function! neomake#makers#ft#text#GetEntriesForOutput_LanguagetoolCurl(context) a
             let message = message_long
         endif
 
-        let offset = offset
-        let line_maybe = byte2line(offset)
-        if line2byte(line_maybe + 1) == offset + 1
-            " Next line starts in the next byte
-            " This means the error is in the first character of the next line
-            let line_num = line_maybe + 1
-            let col_num = 1
-        else
-            let line_num = line_maybe
-            let col_num = offset - line2byte(line_num) + 2
+        let previous_chars = split(current_file[:offset], '\zs')
+        let line_num = count(previous_chars, "\r") + 1 " Count the number of newlines before this index
+        let line_offset = len(previous_chars) - index(reverse(copy(previous_chars)), "\r") - 1
+        let col_num = offset - line_offset + get(line_delta, line_num, 0) " Count from the last newline to the offset
+
+        " When the segment has non-ASCII characters, add a delta
+        let segment = split(current_file, '\zs')[offset:offset + length - 1]
+        call neomake#utils#DebugMessage('O['.offset.']: '.string(segment))
+        let len_list = len(segment)
+        let len_str = len(join(segment, ''))
+        if len_list != len_str
+            let current_delta = len_str - len_list
+            let length = length + current_delta
+            let line_delta[line_num] = get(line_delta, line_num, 0) + current_delta
+            call neomake#utils#DebugMessage('  Delta: '.current_delta)
         endif
+
         let entry = {
                     \ 'text': message,
                     \ 'lnum': line_num,
