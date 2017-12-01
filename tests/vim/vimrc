@@ -77,3 +77,6 @@ set nomore
 if expand('$NEOMAKE_TEST_NO_COLORSCHEME') !=# '1'
   colorscheme default
 endif
+
+" Set Neovim logfile destination to prevent `.nvimlog` being created.
+let $NVIM_LOG_FILE='/dev/stderr'
