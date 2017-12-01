@@ -130,5 +130,6 @@ function! neomake#makers#ft#text#languagetool_curl() abort
                 \ 'fn': function('s:fn_languagetool_curl'),
                 \ 'process_output': function('neomake#makers#ft#text#GetEntriesForOutput_LanguagetoolCurl'),
                 \ 'output_stream': 'stdout',
+                \ 'append_file': 0,
                 \ }
 endfunction
