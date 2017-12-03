@@ -2444,9 +2444,16 @@ function! neomake#EchoCurrentError(...) abort
     call neomake#utils#WideMessage(message)
 endfunction
 
-function! neomake#CursorMoved() abort
-    call neomake#EchoCurrentError()
-endfunction
+if !empty(get(g:, 'neomake_cursormoved_func', ''))
+    " this func will be called with one argv ( the current error message)
+    function! neomake#CursorMoved() abort
+        call call(g:neomake_cursormoved_func, [neomake#GetCurrentErrorMsg()])
+    endfunction
+else
+    function! neomake#CursorMoved() abort
+        call neomake#EchoCurrentError()
+    endfunction
+endif
 
 function! s:cursormoved_delayed_cb(...) abort
     if getpos('.') == s:cursormoved_last_pos

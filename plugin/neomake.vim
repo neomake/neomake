@@ -84,13 +84,15 @@ function! s:setup_autocmds() abort
         if !exists('*nvim_buf_add_highlight')
             autocmd BufEnter * call neomake#highlights#ShowHighlights()
         endif
-        if has('timers')
-            autocmd CursorMoved * call neomake#CursorMovedDelayed()
-            " Force-redraw display of current error after resizing Vim, which appears
-            " to clear the previously echoed error.
-            autocmd VimResized * call timer_start(100, function('neomake#EchoCurrentError'))
-        else
-            autocmd CursorMoved * call neomake#CursorMoved()
+        if get(g:, 'neomake_handle_cursormoved', 1)
+            if has('timers')
+                autocmd CursorMoved * call neomake#CursorMovedDelayed()
+                " Force-redraw display of current error after resizing Vim, which appears
+                " to clear the previously echoed error.
+                autocmd VimResized * call timer_start(100, function('neomake#EchoCurrentError'))
+            else
+                autocmd CursorMoved * call neomake#CursorMoved()
+            endif
         endif
         autocmd VimLeave * call neomake#VimLeave()
         autocmd ColorScheme * call s:define_highlights()
