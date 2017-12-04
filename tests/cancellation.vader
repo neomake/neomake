@@ -22,12 +22,12 @@ Execute (neomake#CancelJob):
 
 Execute (neomake#CancelJob with invalid job):
   if NeomakeAsyncTestsSetup()
-    let job_id = neomake#Sh("sh -c 'sleep .01'")
+    let job_id = neomake#Sh("sh -c 'sleep 1'")
     let jobinfo = neomake#GetJob(job_id)
 
     " Stop the job manually.
     if has('nvim')
-      call jobstop(job_id)
+      call jobstop(jobinfo.nvim_job)
     else
       call ch_close(jobinfo.vim_job)
       while job_status(jobinfo.vim_job) !=# 'dead'
@@ -42,7 +42,7 @@ Execute (neomake#CancelJob with invalid job):
     AssertNeomakeMessageAbsent 'exit: job not found: '.job_id.'.'
     AssertNeomakeMessage 'Stopping job.', 3, jobinfo
     if has('nvim')
-      AssertNeomakeMessage 'jobstop failed: Vim(call):E900: Invalid job id.', 2, jobinfo
+      AssertNeomakeMessage '\vjobstop failed: Vim\(call\):E900: Invalid (job|channel) id.', 2, jobinfo
     else
       AssertNeomakeMessage 'job_stop: job was not running anymore.', 2, jobinfo
     endif
@@ -56,7 +56,7 @@ Execute (neomake#CancelJob with invalid job):
     if has('nvim')
       " With Vim the exit callback is not invoked (since ch_close was used).
       NeomakeTestsWaitForNextMessage
-      AssertNeomakeMessage 'exit: job not found: '.job_id.'.', 3, {}
+      AssertNeomakeMessage 'exit: job not found: '.jobinfo.nvim_job.'.', 3, {}
     else
       NeomakeCancelJobs!
     endif
@@ -84,7 +84,7 @@ Execute (neomake#CancelJob! with invalid job):
 
     " Stop the job manually.
     if has('nvim')
-      call jobstop(job_id)
+      call jobstop(jobinfo.nvim_job)
     else
       let vim_job = jobinfo.vim_job
       call job_stop(vim_job)
@@ -103,7 +103,7 @@ Execute (neomake#CancelJob! with invalid job):
     AssertNeomakeMessageAbsent 'exit: job not found: '.job_id.'.'
     AssertNeomakeMessage 'Stopping job.', 3, jobinfo
     if has('nvim')
-      AssertNeomakeMessage 'jobstop failed: Vim(call):E900: Invalid job id.', 2, jobinfo
+      AssertNeomakeMessage '\vjobstop failed: Vim\(call\):E900: Invalid (job|channel) id.', 2, jobinfo
     endif
     AssertEqual neomake#GetJobs(), []
 

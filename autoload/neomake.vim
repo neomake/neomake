@@ -2124,7 +2124,7 @@ function! s:vim_exit_handler(channel) abort
 endfunction
 
 " @vimlint(EVL108, 1)
-if has('nvim-0.2.0')
+if has('nvim-0.2.0') && !has('nvim-0.2.3')  " temp(?) fix for Neovim master (hopefully fixed with refactored action queue).
 " @vimlint(EVL108, 0)
     function! s:nvim_output_handler(job_id, data, event_type) abort
         let jobinfo = get(s:jobs, get(s:map_job_ids, a:job_id, -1), {})
