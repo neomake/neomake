@@ -176,7 +176,7 @@ vimhelplint: | $(if $(VIMHELPLINT_DIR),,build/vimhelplint)
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=17
+DOCKER_TAG:=18
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
@@ -189,7 +189,7 @@ docker_image:
 docker_push:
 	docker push $(DOCKER_REPO):$(DOCKER_TAG)
 
-DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8069 vim-master neovim-v0.1.7 neovim-v0.2.0 neovim-v0.2.1 neovim-master
+DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8069 vim-master neovim-v0.1.7 neovim-v0.2.0 neovim-v0.2.1 neovim-v0.2.2 neovim-master
 _DOCKER_VIM_TARGETS:=$(addprefix docker_test-,$(DOCKER_VIMS))
 
 docker_test_all: $(_DOCKER_VIM_TARGETS)
