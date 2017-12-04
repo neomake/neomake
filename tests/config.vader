@@ -202,3 +202,23 @@ Execute (neomake#config#get handles non-dicts on the way):
   AssertEqual neomake#config#get('foo.bar', 'default'), 'baz'
   AssertEqual neomake#config#get('foo.bar.baz', 'default'), 'default'
   bwipe
+
+Execute (old-style config is used for maker defaults):
+  let maker = {'name': 'mymaker', 'args': ['default']}
+
+  new
+  let b:neomake = {'some': 'config'}
+  AssertEqual neomake#GetMaker(maker).args, ['default']
+  let b:neomake_mymaker_args = ['args1']
+  AssertEqual neomake#GetMaker(maker).args, ['args1']
+
+  noautocmd set filetype=myft
+  AssertEqual neomake#GetMaker(maker).args, ['args1']
+  let b:neomake_myft_mymaker_args = ['args2']
+  AssertEqual neomake#GetMaker(maker).args, ['args2']
+
+  " New-style config overrides it.
+  call neomake#config#set('b:mymaker.args', ['new-style'])
+  AssertEqual neomake#GetMaker(maker).args, ['new-style']
+
+  bwipe
