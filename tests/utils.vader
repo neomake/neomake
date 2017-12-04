@@ -795,3 +795,38 @@ Execute (NeomakeTestsGetVimMessages):
   echom 2
   echom 3
   AssertEqual NeomakeTestsGetVimMessages(), ['2', '3']
+
+Execute (neomake#utils#get_buf_line_count):
+  new
+  let bufnr = bufnr('%')
+  AssertEqual neomake#utils#get_buf_line_count(bufnr), 1
+
+  norm! 7o
+  AssertEqual line('$'), 8
+  AssertEqual neomake#utils#get_buf_line_count(bufnr), 8
+
+  new
+  AssertEqual neomake#utils#get_buf_line_count(bufnr), 8
+
+  let non_existing_buffer = bufnr+100
+  Assert !bufexists(non_existing_buffer)
+  AssertEqual neomake#utils#get_buf_line_count(non_existing_buffer), 0
+
+  bwipe
+  bwipe!
+
+Execute (neomake#utils#get_buf_line_count: unloaded buffer):
+  new
+
+  " Create an unlisted buffer.
+  call setloclist(0, [{'filename': 'unlisted_buffer'}])
+  let unlisted_bufnr = bufnr('^unlisted_buffer')
+  Assert !buflisted(unlisted_bufnr)
+
+  AssertEqual neomake#utils#get_buf_line_count(unlisted_bufnr), 0
+  exe 'b '.unlisted_bufnr
+  AssertEqual neomake#utils#get_buf_line_count(unlisted_bufnr), 1
+
+  bp
+  bwipe
+  exe unlisted_bufnr.'bwipe'
