@@ -757,7 +757,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
                 \ })
         endif
         for [key, default] in items(defaults)
-            let maker[key] = neomake#utils#GetSetting(key, maker, default, ft, bufnr, 1)
+            let maker[key] = neomake#utils#GetSetting(key, {'name': maker.name}, get(maker, key, default), ft, bufnr, 1)
             unlet default  " for Vim without patch-7.4.1546
         endfor
     endif
