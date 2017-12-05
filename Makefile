@@ -283,7 +283,8 @@ check:
 	  (( ret+=2 )); \
 	fi; \
 	echo '== Checking for absent :Log calls'; \
-	if grep --line-number --color '^\s*Log\b' $(shell git ls-files tests/*.vader $(LINT_ARGS)); then \
+	if git --no-pager grep --line-number --color '^(\s*au.*\b)?\s*Log\b' \
+	    -- :^tests/include/init.vim :^tests/include/setup.vader; then \
 	  echo "Found Log commands."; \
 	  (( ret+=4 )); \
 	fi; \
