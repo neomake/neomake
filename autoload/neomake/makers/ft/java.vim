@@ -204,7 +204,11 @@ function! neomake#makers#ft#java#checkstyle() abort
                 \ 'args': ['-c', g:neomake_java_checkstyle_xml],
                 \ 'exe': g:neomake_java_checkstyle_executable,
                 \ 'errorformat':
-                \ '[%t%*[^]]] %f:%l:%c: %m [%s]'
+                \ '%-GStarting audit...,'.
+                \ '%-GAudit done.,'.
+                \ '%-GPicked up _JAVA_OPTIONS:%.%#,'.
+                \ '[%t%*[^]]] %f:%l:%c: %m [%s],'.
+                \ '[%t%*[^]]] %f:%l: %m [%s]'
                 \ }
 endfunction
 
