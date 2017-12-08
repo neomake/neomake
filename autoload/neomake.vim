@@ -1024,16 +1024,39 @@ function! s:process_action_queue(event) abort
 endfunction
 
 
+if has('timers')
+    function! s:get_left_events() abort
+        let r = {}
+        for [events, _] in s:action_queue
+            for event in events
+                let r[event] = 1
+            endfor
+        endfor
+        return keys(r)
+    endfunction
+else
+    function! s:get_left_events() abort
+        let r = {}
+        for [events, _] in s:action_queue
+            for event in events
+                if event ==# 'Timer'
+                    let r['CursorHold'] = 1
+                    let r['CursorHoldI'] = 1
+                else
+                    let r[event] = 1
+                endif
+            endfor
+        endfor
+        return keys(r)
+    endfunction
+endif
+
+
 function! s:clean_action_queue_augroup() abort
     if empty(s:action_queue_registered_events)
         return
     endif
-    let left_events = []
-    for [events, _] in s:action_queue
-        for event in events
-            let left_events += [event]
-        endfor
-    endfor
+    let left_events = s:get_left_events()
 
     if empty(left_events)
         autocmd! neomake_event_queue
