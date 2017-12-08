@@ -408,7 +408,7 @@ function! s:After()
   Restore
   unlet! g:expected  " for old Vim with Vader, that does not wrap tests in a function.
 
-  let errors = []
+  let errors = g:neomake_test_errors
 
   " Stop any (non-canceled) jobs.  Canceled jobs might take a while to call the
   " exit handler, but that is OK.

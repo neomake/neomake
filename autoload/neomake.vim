@@ -77,7 +77,13 @@ endfunction
 if exists('g:neomake_test_messages')  " is_testing
     function! neomake#GetMakeOptions(...) abort
         let make_id = a:0 ? a:1 : s:make_id
-        return s:make_info[make_id]
+        try
+            let r = s:make_info[make_id]
+        catch
+            let g:neomake_test_errors += [printf('GetMakeOptions failed: %s (in %s)', v:exception, v:throwpoint)]
+            return {'verbosity': 3}
+        endtry
+        return r
     endfunction
 else
     function! neomake#GetMakeOptions(...) abort
