@@ -759,5 +759,8 @@ Execute (neomake#utils#DebugMessage throws with missing make_options in tests):
   AssertEqual g:vader_exception, 'Log msg does not end with punctuation: "msg1".'
 
   " Non-existing make_id should not make it verbose.
-  AssertThrows call neomake#utils#DebugMessage('msg1', {'make_id': -42})
-  AssertEqual g:vader_exception, 'Vim(return):E716: Key not present in Dictionary: -42'
+  AssertEqual g:neomake_test_errors, []
+  call neomake#utils#DebugMessage('msg1.', {'make_id': -42})
+  AssertEqual len(g:neomake_test_errors), 1
+  Assert g:neomake_test_errors[0] =~# '\v^GetMakeOptions failed: Vim\(let\):E716: Key not present in Dictionary: -42 \(in function .*\)$'
+  let g:neomake_test_errors = []

@@ -31,6 +31,7 @@ Before:
   endif
 
   let g:neomake_test_messages = []
+  let g:neomake_test_errors = []
   let g:_neomake_test_asserted_messages = []
   let g:neomake_test_log_all_messages = 1
   let g:neomake_test_messages_last_idx = -1
