@@ -145,8 +145,7 @@ Execute (Neomake with non-existing maker (configured)):
   AssertNeomakeMessage "Calling Make with options {'ft': 'myft', 'file_mode': 1}.", 3, log_context
   AssertNeomakeMessage 'Maker not found (for filetype myft): nonexisting_custom.', 0, log_context
   AssertNeomakeMessage 'Nothing to make: no enabled file mode makers (filetype=myft).', 3, log_context
-  AssertNeomakeMessage 'Cleaning make info.', 3, log_context
-  AssertEqual len(g:neomake_test_messages), 4
+  AssertEqual len(g:neomake_test_messages), 3
   AssertEqual make_id_before + 1, neomake#GetStatus().last_make_id
   bwipe
 
