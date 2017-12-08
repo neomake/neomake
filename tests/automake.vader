@@ -214,6 +214,7 @@ Execute (Automake):
   AssertNeomakeMessage 'Maker not found (for filetype neomake_tests): nonexisting.', 3
   AssertNeomakeMessage 'Exe (maker_without_exe) of auto-configured maker maker_without_exe is not executable, skipping.'
   AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (no enabled makers).', 3
+  AssertNeomakeMessage 'automake: setting tick for new buffer.', 3
 
   " TODO: better to have automake.ft.neomake_tests.enabled_makers ?!
   call neomake#config#set('ft.neomake_tests.automake.enabled_makers', ['true'])
