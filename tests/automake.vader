@@ -443,6 +443,34 @@ Execute (neomake#configure#automake_for_buffer can configure makers (list)):
   AssertNeomakeMessage 'automake: registered events: FileChangedShellPost, FileType, BufWinEnter.', 3
   bwipe
 
+Execute (neomake#configure#automake_for_buffer can configure makers (buffer var)):
+  new
+  set filetype=myft
+  let b:neomake_myft_my_maker_maker = {'name': 'my_maker', 'exe': 'true'}
+  call neomake#configure#automake_for_buffer('n', 300, ['my_maker'])
+  AssertNeomakeMessage 'automake: configured buffer for ft=myft (my_maker (options)).', 3
+
+  let b:neomake_myft_my_other_maker_maker = {'name': 'my_other_maker', 'exe': 'true'}
+  call neomake#configure#automake_for_buffer('n', 300, {'makers': ['my_other_maker']})
+  AssertNeomakeMessage 'automake: configured buffer for ft=myft (my_other_maker (options)).', 3
+  bwipe
+
+Execute (neomake#configure#automake_for_buffer can configure other buffers):
+  let maker = {'name': 'my_maker', 'exe': 'true'}
+  new
+  let bufnr = bufnr('%')
+  call neomake#configure#automake_for_buffer('n', 300, {'makers': [maker], 'bufnr': bufnr})
+  AssertNeomakeMessage 'automake: configured buffer for ft= (my_maker (options)).', 3, {'bufnr': bufnr}
+
+  " Configuration for another buffer.
+  let my_other_maker = {'name': 'my_other_maker', 'exe': 'true'}
+  new
+  call neomake#configure#automake_for_buffer('n', 300, {'makers': [my_other_maker], 'bufnr': bufnr})
+  Assert !exists('b:neomake')
+  bwipe
+  AssertNeomakeMessage 'automake: configured buffer for ft= (my_other_maker (options)).', 3, {'bufnr': bufnr}
+  bwipe
+
 Execute (neomake#configure#automake_for_buffer re-uses configured makers):
   Save g:neomake
   new
@@ -707,34 +735,6 @@ Execute (Handles timeout in another buffer):
     AssertEqual len(g:neomake_test_finished), 0
     bwipe!
   endif
-
-Execute (neomake#configure#automake_for_buffer can configure makers (buffer var)):
-  new
-  set filetype=myft
-  let b:neomake_myft_my_maker_maker = {'name': 'my_maker', 'exe': 'true'}
-  call neomake#configure#automake_for_buffer('n', 300, ['my_maker'])
-  AssertNeomakeMessage 'automake: configured buffer for ft=myft (my_maker (options)).', 3
-
-  let b:neomake_myft_my_other_maker_maker = {'name': 'my_other_maker', 'exe': 'true'}
-  call neomake#configure#automake_for_buffer('n', 300, {'makers': ['my_other_maker']})
-  AssertNeomakeMessage 'automake: configured buffer for ft=myft (my_other_maker (options)).', 3
-  bwipe
-
-Execute (neomake#configure#automake_for_buffer can configure other buffers):
-  let maker = {'name': 'my_maker', 'exe': 'true'}
-  new
-  let bufnr = bufnr('%')
-  call neomake#configure#automake_for_buffer('n', 300, {'makers': [maker], 'bufnr': bufnr})
-  AssertNeomakeMessage 'automake: configured buffer for ft= (my_maker (options)).', 3, {'bufnr': bufnr}
-
-  " Configuration for another buffer.
-  let my_other_maker = {'name': 'my_other_maker', 'exe': 'true'}
-  new
-  call neomake#configure#automake_for_buffer('n', 300, {'makers': [my_other_maker], 'bufnr': bufnr})
-  Assert !exists('b:neomake')
-  bwipe
-  AssertNeomakeMessage 'automake: configured buffer for ft= (my_other_maker (options)).', 3, {'bufnr': bufnr}
-  bwipe
 
 Execute (Error with non-existing configured maker):
   new
