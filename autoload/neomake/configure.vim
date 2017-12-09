@@ -117,7 +117,7 @@ function! s:neomake_do_automake(context) abort
     call s:debug_log(printf('enabled makers: %s', join(map(copy(a:context.maker_jobs), 'v:val.maker.name'), ', ')))
     let jobinfos = neomake#Make({
                 \ 'file_mode': 1,
-                \ 'jobs': a:context.maker_jobs,
+                \ 'jobs': deepcopy(a:context.maker_jobs),
                 \ 'ft': ft,
                 \ 'automake': 1})
     let started_jobs = filter(copy(jobinfos), "!get(v:val, 'finished', 0)")
@@ -331,13 +331,13 @@ function! s:configure_buffer(bufnr, ...) abort
 
     " Register the buffer, and remember if it is custom.
     if has_key(s:configured_buffers, bufnr)
-        let old_registration = get(s:configured_buffers, bufnr, {})
+        let old_registration = copy(get(s:configured_buffers, bufnr, {}))
         call extend(s:configured_buffers[bufnr], {'custom': a:0 > 0}, 'force')
     else
         let s:configured_buffers[bufnr] = {'custom': a:0 > 0}
     endif
 
-    " Set enabled_makers.
+    " Create jobs.
     let options = a:0 > 1 ? a:2 : {}
     if has_key(options, 'makers')
         let makers = neomake#map_makers(options.makers, ft, 0)
@@ -377,7 +377,7 @@ function! s:configure_buffer(bufnr, ...) abort
 endfunction
 
 function! s:maybe_reconfigure_buffer(bufnr) abort
-    if has_key(s:configured_buffers, a:bufnr)
+    if has_key(s:configured_buffers, a:bufnr) && !s:configured_buffers[a:bufnr].custom
         call s:configure_buffer(a:bufnr)
     endif
 endfunction
