@@ -476,22 +476,16 @@ function! neomake#utils#ExpandArgs(args) abort
     " \\% is expanded to \\file.ext
     " %% becomes %
     " % must be followed with an expansion keyword
-    let isk = &iskeyword
-    set iskeyword=p,h,t,r,e,%,:
-    try
-        let ret = map(a:args,
-                    \ 'substitute(v:val, '
-                    \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre]\+\)*\)\ze\)\w\@!'', '
-                    \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
-                    \ . '''g'')')
-        let ret = map(ret,
-                    \ 'substitute(v:val, '
-                    \ . '''\(\%(\\\@<!\\\)\@<!\~\)'', '
-                    \ . 'expand(''~''), '
-                    \ . '''g'')')
-    finally
-        let &iskeyword = isk
-    endtry
+    let ret = map(a:args,
+                \ 'substitute(v:val, '
+                \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre]\+\)*\)\ze\)\w\@!'', '
+                \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
+                \ . '''g'')')
+    let ret = map(ret,
+                \ 'substitute(v:val, '
+                \ . '''\(\%(\\\@<!\\\)\@<!\~\)'', '
+                \ . 'expand(''~''), '
+                \ . '''g'')')
     return ret
 endfunction
 
