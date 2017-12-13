@@ -1522,12 +1522,10 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
         endif
     endif
 
-    " TODO: remove/deprecate jobinfo.
     let hook_context = {
                 \ 'make_id': a:make_info.options.make_id,
                 \ 'options': a:make_info.options,
                 \ 'finished_jobs': a:make_info.finished_jobs,
-                \ 'jobinfo': extend(copy(a:make_info.options), {'DEPRECATED': 1}),
                 \ }
     call neomake#utils#hook('NeomakeFinished', hook_context)
     call s:do_clean_make_info(a:make_info)
