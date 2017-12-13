@@ -14,7 +14,7 @@ let s:timer_by_bufnr = {}
 
 let s:default_delay = has('timers') ? 500 : 0
 
-" A mapping of configured buffers with cached settings (enabled_makers).
+" A mapping of configured buffers with cached settings (maker_jobs).
 let s:configured_buffers = {}
 " A list of configured/used autocommands.
 let s:registered_events = []
@@ -117,7 +117,7 @@ function! s:neomake_do_automake(context) abort
     call s:debug_log(printf('enabled makers: %s', join(map(copy(a:context.maker_jobs), 'v:val.maker.name'), ', ')))
     let jobinfos = neomake#Make({
                 \ 'file_mode': 1,
-                \ 'jobs': a:context.maker_jobs,
+                \ 'jobs': deepcopy(a:context.maker_jobs),
                 \ 'ft': ft,
                 \ 'automake': 1})
     let started_jobs = filter(copy(jobinfos), "!get(v:val, 'finished', 0)")
@@ -330,14 +330,14 @@ function! s:configure_buffer(bufnr, ...) abort
     endif
 
     " Register the buffer, and remember if it is custom.
-    let old_registration = get(s:configured_buffers, bufnr, {})
     if has_key(s:configured_buffers, bufnr)
+        let old_registration = copy(get(s:configured_buffers, bufnr, {}))
         call extend(s:configured_buffers[bufnr], {'custom': a:0 > 0}, 'force')
     else
         let s:configured_buffers[bufnr] = {'custom': a:0 > 0}
     endif
 
-    " Set enabled_makers.
+    " Create jobs.
     let options = a:0 > 1 ? a:2 : {}
     if has_key(options, 'makers')
         let makers = neomake#map_makers(options.makers, ft, 0)
@@ -359,8 +359,13 @@ function! s:configure_buffer(bufnr, ...) abort
     if old_config != config
         call s:debug_log('resetting tick because of config changes')
         call setbufvar(bufnr, 'neomake_automake_tick', [])
-    elseif old_registration != s:configured_buffers[bufnr]
-        call s:debug_log('resetting tick because of registration changes')
+    elseif exists('old_registration')
+        if old_registration != s:configured_buffers[bufnr]
+            call s:debug_log('resetting tick because of registration changes')
+            call setbufvar(bufnr, 'neomake_automake_tick', [])
+        endif
+    else
+        call s:debug_log('setting tick for new buffer')
         call setbufvar(bufnr, 'neomake_automake_tick', [])
     endif
 
@@ -372,7 +377,7 @@ function! s:configure_buffer(bufnr, ...) abort
 endfunction
 
 function! s:maybe_reconfigure_buffer(bufnr) abort
-    if has_key(s:configured_buffers, a:bufnr)
+    if has_key(s:configured_buffers, a:bufnr) && !s:configured_buffers[a:bufnr].custom
         call s:configure_buffer(a:bufnr)
     endif
 endfunction
