@@ -737,3 +737,55 @@ Execute (Maps/sets bufnr via filename from temporary file):
 
   AssertNeomakeMessage 'Mapped 1 bufnrs from temporary files.', 3
   bwipe
+
+Execute (tempfile_dir can be configured: unnamed buffer):
+  let slash = neomake#utils#Slash()
+  let maker = neomake#GetMaker({'tempfile_enabled': 1})
+  let temp_base = fnamemodify(tempname(), ':h')
+
+  new
+  " Unnamed buffer gets tempfile based on tempname().
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fnamemodify(fname, ':t'), 'neomaketmp.'
+  AssertEqual fname[:len(temp_base)-1], temp_base
+
+  " Dir can be configured globally.
+  let b:neomake_tempfile_dir = '/custom/global/dir'
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fname, '/custom/global/dir/neomaketmp.'
+
+  " Dir can be configured per buffer.
+  let b:neomake_tempfile_dir = '/custom/buffer/dir'
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fname, '/custom/buffer/dir/neomaketmp.'
+  bwipe
+
+Execute (tempfile_dir can be configured: named buffer):
+  let slash = neomake#utils#Slash()
+  let maker = neomake#GetMaker({'tempfile_enabled': 1})
+
+  new
+  file buffer_name.foo.ext
+
+  " Dir can be configured globally.
+  let b:neomake_tempfile_dir = '/custom/global/dir'
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fname, '/custom/global/dir/buffer_name.foo.ext'
+
+  " Dir can be configured per buffer.
+  let b:neomake_tempfile_dir = '/custom/buffer/dir'
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fname, '/custom/buffer/dir/buffer_name.foo.ext'
+  bwipe
+
+Execute (tempfile_dir gets expanded):
+  let slash = neomake#utils#Slash()
+  let maker = neomake#GetMaker({'tempfile_enabled': 1})
+
+  new
+  file buffer_name.foo.ext
+
+  let b:neomake_tempfile_dir = '/custom%:p:h'
+  let fname = maker._get_tempfilename(NeomakeTestsFakeJobinfo())
+  AssertEqual fname, '/custom'.getcwd().slash.'buffer_name.foo.ext'
+  bwipe
