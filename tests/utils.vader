@@ -412,7 +412,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
   let jobinfo = {'file_mode': 0, 'bufnr': bufnr('%')}
   let shell_argv = split(&shell) + split(&shellcmdflag)
   AssertEqual maker.fn(jobinfo), {
-  \ 'args': shell_argv[1:] + ['echo "%" 1'], 'exe': shell_argv[0], 'remove_invalid_entries': 0, '_exe_wrapped_in_shell': 'echo'}
+  \ 'args': shell_argv[1:] + ['echo "%" 1'], 'exe': shell_argv[0], 'remove_invalid_entries': 0}
 
   let fname = expand('%:p')
   let jobinfo = NeomakeTestsFakeJobinfo()
@@ -435,7 +435,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
   let jobinfo = {'file_mode': 0, 'bufnr': 0}
 
   AssertEqual maker.fn(jobinfo), {
-  \ 'args': ['%', '1'], 'exe': 'echo', 'remove_invalid_entries': 0, '_exe_wrapped_in_shell': ''}
+  \ 'args': ['%', '1'], 'exe': 'echo', 'remove_invalid_entries': 0}
 
   new
   edit tests/fixtures/a\ filename\ with\ spaces
