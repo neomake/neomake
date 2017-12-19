@@ -66,3 +66,19 @@ function! s:bind_makers_for_job(options, makers, ...) abort
     endfor
     return r
 endfunction
+
+" Base class for command makers.
+let g:neomake#core#command_maker_base = {}
+function! g:neomake#core#command_maker_base._get_fname_for_args(jobinfo) abort dict
+    " Append file?  (defaults to jobinfo.file_mode, project/global makers should set it to 0)
+    let append_file = neomake#utils#GetSetting('append_file', self, a:jobinfo.file_mode, a:jobinfo.ft, a:jobinfo.bufnr)
+    " Use/generate a filename?  (defaults to 1 if tempfile_name is set)
+    let uses_filename = append_file || neomake#utils#GetSetting('uses_filename', self, has_key(self, 'tempfile_name'), a:jobinfo.ft, a:jobinfo.bufnr)
+    if append_file || uses_filename
+        let filename = self._get_fname_for_buffer(a:jobinfo)
+        if append_file
+            return filename
+        endif
+    endif
+    return ''
+endfunction

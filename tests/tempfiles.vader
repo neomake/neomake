@@ -652,8 +652,8 @@ Execute (Uses temporary dir for non-writable directory):
   let b:neomake_tempfile_enabled = 1
   norm! iline1
   CallNeomake 1, [extend(copy(g:true_maker), {'uses_filename': 1})]
-  AssertNeomakeMessage 'Running makers: true-maker.', 3
   AssertNeomakeMessage 'Using temporary directory for non-writable parent directory.', 3
+  AssertNeomakeMessage 'Running makers: true-maker.', 3
   bwipe!
 
 Execute (Expands % in cwd according to actual file):
