@@ -7,6 +7,8 @@ function! neomake#makers#ft#c#EnabledMakers() abort
     return makers
 endfunction
 
+let g:neomake#makers#ft#c#project_root_files = ['configure', 'CMakeLists.txt']
+
 function! neomake#makers#ft#c#clang() abort
     " as a single-file maker, include the current directory in the default
     " search path

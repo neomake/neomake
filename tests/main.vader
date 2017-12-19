@@ -33,6 +33,7 @@ Include (Statusline): statusline.vader
 Include (Temporary files): tempfiles.vader
 Include (Toggling): toggle.vader
 Include (Utils): utils.vader
+Include (Utils: project root): utils_projectroot.vader
 Include (Verbosity): verbosity.vader
 Include (Custom Quickfix): customqf.vader
 

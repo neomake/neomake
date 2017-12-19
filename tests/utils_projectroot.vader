@@ -1,0 +1,34 @@
+Execute (neomake#utils#get_project_root):
+  new
+  let bufnr = bufnr('%')
+  AssertEqual neomake#utils#get_project_root(bufnr), fnamemodify(g:vader_file, ':h:h')
+
+  let slash = neomake#utils#Slash()
+  let tmpdir = tempname() . slash . 'python-project'
+  call mkdir(tmpdir, 'p')
+
+  setfiletype python
+  exe 'lcd '.tmpdir
+
+  AssertEqual neomake#utils#get_project_root(bufnr), ''
+
+  call writefile([], tmpdir . slash . 'setup.cfg')
+  AssertEqual neomake#utils#get_project_root(bufnr), tmpdir
+
+  let tmpdir_sub = tmpdir . slash . 'sub'
+  call mkdir(tmpdir_sub)
+  call writefile([], tmpdir_sub . slash . 'setup.cfg')
+  exe 'lcd '.tmpdir_sub
+  AssertEqual neomake#utils#get_project_root(bufnr), tmpdir_sub
+
+  setfiletype c
+  AssertEqual neomake#utils#get_project_root(bufnr), ''
+  call writefile([], tmpdir. slash . 'CMakeLists.txt')
+  AssertEqual neomake#utils#get_project_root(bufnr), tmpdir
+
+  setfiletype unknown
+  AssertEqual neomake#utils#get_project_root(bufnr), ''
+  call writefile([], tmpdir. slash . 'Makefile')
+  AssertEqual neomake#utils#get_project_root(bufnr), tmpdir
+
+  bwipe
