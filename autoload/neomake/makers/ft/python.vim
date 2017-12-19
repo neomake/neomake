@@ -20,6 +20,8 @@ function! neomake#makers#ft#python#EnabledMakers() abort
     return makers
 endfunction
 
+let neomake#makers#ft#python#project_root_files = ['setup.cfg', 'tox.ini']
+
 function! neomake#makers#ft#python#pylint() abort
     let maker = {
         \ 'args': [
