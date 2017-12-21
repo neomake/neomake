@@ -82,23 +82,22 @@ Execute (Sets quickfix title (location list)):
   try
     new
     set ft=neomake_tests
-    " Workaround to have make info cleaned (fixed in pcall-wip).
-    let b:neomake_tempfile_enabled = 1
+    let bufnr = bufnr('%')
 
-    RunNeomake echo_maker true
+    file custom_file
+    RunNeomake error_maker true
 
     " Location list entry contains marker.
-    let valid = has('patch-8.0.0580')
     AssertEqual getloclist(0), [
-    \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1,
-    \  'type': 'W', 'pattern': '',
-    \  'text': 'neomake_tests_echo_maker nmcfg:{''short'': ''echo'', ''name'': ''echo_maker''}'}]
+    \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
+    \  'type': 'E', 'pattern': '',
+    \  'text': 'error_msg_1 nmcfg:{''short'': ''errmkr'', ''name'': ''error_maker''}'}]
 
     lopen
-    AssertEqual w:quickfix_title, 'Neomake[file]: buf:0 (echo_maker)'
+    AssertEqual w:quickfix_title, 'Neomake[file]: custom_file (error_maker)'
     normal! G0
     doautocmd CursorMoved
-    AssertEqual expand('<cWORD>'), 'neomake_tests_echo_maker'
+    AssertEqual expand('<cWORD>'), 'error_msg_1'
 
     lclose
     bwipe

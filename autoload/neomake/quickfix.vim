@@ -133,7 +133,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         let i += 1
     endfor
 
-    let syntax = makers
+    let syntax = copy(makers)
     if src_buf
         for ft in split(neomake#compat#getbufvar(src_buf, '&filetype', ''), '\.')
             if !empty(ft) && index(syntax, ft) == -1
