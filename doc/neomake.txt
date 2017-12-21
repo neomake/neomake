@@ -759,7 +759,7 @@ With all these events a dictionary `g:neomake_hook_context` is available,
 with key/value pairs depending on the autocommand/hook.
 
 Example: display a message for every maker that exits non-zero: >
-    function! OnNeomakeJobFinished() abort
+    function! MyOnNeomakeJobFinished() abort
       let context = g:neomake_hook_context
       if context.jobinfo.exit_code != 0
         echom printf('The job for maker %s exited non-zero: %s',
