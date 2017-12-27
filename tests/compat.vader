@@ -37,6 +37,12 @@ Execute (neomake#compat#systemlist with empty args):
 
 Execute (neomake#compat#json_decode):
   AssertEqual neomake#compat#json_decode(''), g:neomake#compat#json_none
+  Assert neomake#compat#json_decode('') is g:neomake#compat#json_none
+
+Execute (neomake#compat#json_none):
+  AssertThrows call items(g:neomake#compat#json_none)
+  AssertEqual g:vader_exception, 'Vim(call):E715: Dictionary required'
+  Assert empty(g:neomake#compat#json_none), 'json_none is empty'
 
 Execute (neomake#compat#get_mode):
   AssertEqual neomake#compat#get_mode(), 'n'

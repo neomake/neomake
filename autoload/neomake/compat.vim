@@ -18,9 +18,7 @@ unlockvar neomake#compat#json_none
 if exists('v:none')
     let neomake#compat#json_none = v:none
 else
-    function! s:json_none() abort
-    endfunction
-    let neomake#compat#json_none = [function('s:json_none')]
+    let neomake#compat#json_none = []
 endif
 
 if exists('*json_decode')
