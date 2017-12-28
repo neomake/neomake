@@ -22,7 +22,8 @@ function! neomake#makers#ft#css#stylelint() abort
           \ 'errorformat':
           \   '%-P%f,'.
           \   '%W%*\s%l:%c%*\s✖  %m,'.
-          \   '%-Q'
+          \   '%-Q,'.
+          \   '%+EError: No configuration provided for %f,%-C    %.%#'
           \ }
 
     function! maker.postprocess(entry) abort

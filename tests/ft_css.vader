@@ -59,3 +59,23 @@ Execute (stylelint):
   bwipe
   exe buf1 'bwipe'
   exe buf2 'bwipe'
+
+Execute (stylelint: error with no config):
+  let maker = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#css#stylelint', [
+    \ 'Error: No configuration provided for /path/to/foo.css',
+    \ '    at module.exports (/usr/lib/node_modules/stylelint/lib/utils/configurationError.js:8:28)',
+    \ '    at stylelint._fullExplorer.load.then.then.config (/usr/lib/node_modules/stylelint/lib/getConfigForFile.js:46:15)',
+    \ '    at <anonymous>',
+    \])
+
+  new
+  CallNeomake 1, [maker]
+
+  let bufnr = bufnr('/path/to/foo.css')
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 0, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
+  \ 'nr': -1, 'type': 'E', 'pattern': '',
+  \ 'text': 'Error: No configuration provided for /path/to/foo.css'}]
+
+  bwipe
+  exe bufnr.'bwipe'
