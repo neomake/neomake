@@ -269,6 +269,24 @@ Execute (neomake#quickfix#FormatQuickfix handles entries without text):
     call neomake#quickfix#disable()
   endtry
 
+Execute (neomake#quickfix#FormatQuickfix handles entries without bufnr)):
+  call neomake#quickfix#enable()
+  try
+    new
+    file test_bufname
+    call setloclist(0, [
+    \ {'text': 'msg1 nmcfg:{"name": "maker", "short": "makr"}', 'bufnr': 0},
+    \ {'text': 'msg2', 'bufnr': bufnr('%')}
+    \ ])
+    lopen
+    AssertEqual getline(1), "makr   [buf:0] msg1"
+    AssertEqual getline(2), "makr   [test_bufname] msg2"
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
 Execute (neomake#quickfix#FormatQuickfix logs exception from nmcfg)):
   call neomake#quickfix#enable()
   try
