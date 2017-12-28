@@ -113,7 +113,7 @@ function! neomake#quickfix#FormatQuickfix() abort
                     if index(makers, maker.name) == -1
                         call add(makers, maker.name)
                     endif
-                    let item.text = item.text[:(idx-1)]
+                    let item.text = idx == 0 ? '' : item.text[:(idx-1)]
                 catch
                     call neomake#utils#log_exception(printf(
                                 \ 'Error when evaluating nmcfg (%s): %s.',

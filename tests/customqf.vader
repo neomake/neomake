@@ -254,6 +254,21 @@ Execute (neomake#quickfix#FormatQuickfix handles entries without cfg (ending wit
     call neomake#quickfix#disable()
   endtry
 
+Execute (neomake#quickfix#FormatQuickfix handles entries without text):
+  call neomake#quickfix#enable()
+  try
+    new
+    call setloclist(0, [{
+        \   'text': ' nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    lopen
+    AssertEqual getline(1), 'b   '
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
 Execute (neomake#quickfix#FormatQuickfix logs exception from nmcfg)):
   call neomake#quickfix#enable()
   try
