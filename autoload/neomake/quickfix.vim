@@ -158,7 +158,7 @@ function! neomake#quickfix#FormatQuickfix() abort
     let buffer_names = {}
     if len(buffers) > 1
         for b in buffers
-            let bufname = bufname(b)
+            let bufname = b ? bufname(b) : ''
             if empty(bufname)
                 let bufname = 'buf:'.b
             else
