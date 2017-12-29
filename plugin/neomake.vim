@@ -19,7 +19,7 @@ command! -bang -nargs=1 -complete=custom,neomake#cmd#complete_jobs
             \ NeomakeCancelJob call neomake#CancelJob(<q-args>, <bang>0)
 command! -bang NeomakeCancelJobs call neomake#CancelJobs(<bang>0)
 
-command! -bang -bar NeomakeInfo call neomake#DisplayInfo(<bang>0)
+command! -bang -bar NeomakeInfo call neomake#debug#display_info(<bang>0)
 
 " Enable/disable/toggle commands.  {{{
 function! s:toggle(scope) abort
