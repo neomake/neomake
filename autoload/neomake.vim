@@ -494,7 +494,7 @@ function! s:MakeJob(make_id, options) abort
 endfunction
 
 let s:maker_base = {}
-let s:command_maker_base = {}
+let s:command_maker_base = copy(g:neomake#core#command_maker_base)
 " Check if a temporary file is used, and set it in s:make_info in case it is.
 function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
     if has_key(self, 'supports_stdin')
@@ -664,20 +664,13 @@ endfunction
 function! s:command_maker_base._get_argv(jobinfo) abort dict
     let args = self.args
     let args_is_list = type(self.args) == type([])
-
-    " Append file?  (defaults to jobinfo.file_mode, project/global makers should set it to 0)
-    let append_file = neomake#utils#GetSetting('append_file', self, a:jobinfo.file_mode, a:jobinfo.ft, a:jobinfo.bufnr)
-    " Use/generate a filename?  (defaults to 1 if tempfile_name is set)
-    let uses_filename = append_file || neomake#utils#GetSetting('uses_filename', self, has_key(self, 'tempfile_name'), a:jobinfo.ft, a:jobinfo.bufnr)
-    if append_file || uses_filename
-        let filename = self._get_fname_for_buffer(a:jobinfo)
-        if append_file
-            let args = copy(args)
-            if args_is_list
-                call add(args, filename)
-            else
-                let args .= (empty(args) ? '' : ' ').fnameescape(filename)
-            endif
+    let filename = self._get_fname_for_args(a:jobinfo)
+    if !empty(filename)
+        let args = copy(args)
+        if args_is_list
+            call add(args, filename)
+        else
+            let args .= (empty(args) ? '' : ' ').fnameescape(filename)
         endif
     endif
     return neomake#compat#get_argv(self.exe, args, args_is_list)
