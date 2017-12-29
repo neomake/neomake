@@ -9,12 +9,14 @@
 <!--
 Provide steps to reproduce the issue, if relevant.
 
-1. Please execute `:let g:neomake_verbose = 3` first, to enable verbose
-   output/logging in general, or set `g:neomake_logfile` to a file path.
-2. Look at `:messages` (or the logfile) for the generated output, which might
+1. Please set `g:neomake_logfile`, e.g. using
+   `:let g:neomake_logfile = '/tmp/neomake.log'` first.
+   You can also set `:let g:neomake_verbose = 3` to display debug messages
+   directly, but that can be distracting (i.e. forcing hit-ENTER prompts).
+2. Look at the logfile (or `:messages`) for the generated output, which might
    help revealing the issue already.
-3. Please describe how you run Neomake: manually (how?), or via some custom
-   autocommand(s) (which?).
+3. Please describe how you run Neomake: manually (how?), via automake config,
+   or via some custom autocommand(s) (which? - not recommended anymore).
 -->
 
 ### Output from (verbose) NeomakeInfo
@@ -25,12 +27,6 @@ Provide steps to reproduce the issue, if relevant.
    You can use `:verbose NeomakeInfo!` (with a bang at the end) to copy it to
    your clipboard.
 
-   If you want to copy it manually to some other register etc you can use
-   something based on the following:
-
-        :redir @+> | silent verb NeomakeInfo | redir END
-
-2. If you have used `g:neomake_logfile`, then please paste the contents of the
-   file here, too.
+2. If relevant paste the contents of the logfile (via `g:neomake_logfile`).
 
 -->
