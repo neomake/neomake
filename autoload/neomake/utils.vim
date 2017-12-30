@@ -462,9 +462,12 @@ function! neomake#utils#redir(cmd) abort
         endfor
         return r
     endif
-    redir => neomake_redir
     try
+        redir => neomake_redir
         silent exe a:cmd
+    catch /^Vim(redir):E121:/
+        throw printf('Neomake: neomake#utils#redir: called with outer :redir (error: %s).',
+                    \ v:exception)
     finally
         redir END
     endtry

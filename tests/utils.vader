@@ -277,6 +277,22 @@ Execute(neomake#utils#redir):
   AssertEqual neomake#utils#redir(['NeomakeTestCommand', 'echon 3']), "\n1\n23"
   AssertThrows neomake#utils#redir(['NeomakeTestCommand', 'echoerr 3'])
 
+Execute(neomake#utils#redir: recursive use without execute()):
+  if exists('*execute') && has('nvim-0.2.0')
+    AssertEqual neomake#utils#redir('echon neomake#utils#redir("echon 1")'), '1'
+  else
+    AssertThrows call neomake#utils#redir('echon neomake#utils#redir("echon 1")')
+    AssertEqual g:vader_exception, 'Neomake: neomake#utils#redir: called with outer :redir (error: Vim(redir):E121: Undefined variable: neomake_redir).'
+
+    try
+      redir => outer_output
+      AssertThrows call neomake#utils#redir('echon neomake#utils#redir("echon 1")')
+      AssertEqual g:vader_exception, 'Neomake: neomake#utils#redir: called with outer :redir (error: Vim(redir):E121: Undefined variable: outer_output).'
+    finally
+      redir END
+    endtry
+  endif
+
 Execute (neomake#utils#ExpandArgs):
   Save $HOME
   let $HOME='/home/sweet'
