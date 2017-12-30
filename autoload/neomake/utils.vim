@@ -257,9 +257,11 @@ function! s:command_maker.fn(jobinfo) dict abort
     return maker
 endfunction
 
+" @vimlint(EVL103, 1, a:jobinfo)
 function! s:command_maker._get_argv(jobinfo) abort dict
     return neomake#compat#get_argv(self.exe, self.args, 1)
 endfunction
+" @vimlint(EVL103, 0, a:jobinfo)
 
 " Create a maker object, with a "fn" callback.
 " Args: command (string or list).  Gets wrapped in a shell in case it is a
