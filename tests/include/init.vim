@@ -498,10 +498,10 @@ function! s:After()
   endfor
 
   " Check that no new global functions are defined.
-  redir => output_func
+  redir => neomake_output_func_after
     silent function /\C^[A-Z]
   redir END
-  let funcs = map(split(output_func, '\n'),
+  let funcs = map(split(neomake_output_func_after, '\n'),
         \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
   let new_funcs = filter(copy(funcs), 'index(g:neomake_test_funcs_before, v:val) == -1')
   if !empty(new_funcs)
