@@ -246,6 +246,8 @@ check_lint_diff:
 	fi; \
 	exit $$ret
 
+check_lint: vimlint vint vimhelplint
+
 # Checks to be run with Docker.
 # This is kept separate from "check" to not require Docker there.
 check_docker:
