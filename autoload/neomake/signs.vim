@@ -86,93 +86,78 @@ function! neomake#signs#by_lnum(bufnr) abort
     return d
 endfunction
 
+let s:entry_to_sign_type = {'W': 'warn', 'I': 'info', 'M': 'msg'}
+
+" Place signs for list a:entries in a:bufnr for a:type ('file' or 'project').
 function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
-    let entries_by_bufnr = {}
-    let bufnr = a:bufnr
+    " Query the list of currently placed signs.
+    " This allows to cope with movements, e.g. when lines were added.
+    let placed_signs = neomake#signs#by_lnum(a:bufnr)
 
-    let entries_by_bufnr[bufnr] = a:entries
-    " let entries_by_bufnr = {}
-    " for entry in a:entries
-    "     let entries_by_bufnr[entry.bufnr] = entry
-    " endfor
+    let entries_by_linenr = {}
+    for entry in a:entries
+        if entry.lnum == 0
+            continue
+        endif
+        let sign_type = printf('neomake_%s_%s',
+                    \ a:type,
+                    \ get(s:entry_to_sign_type, toupper(entry.type), 'err'))
 
-    for [bufnr, entries] in items(entries_by_bufnr)
-        " Query the list of currently placed signs.
-        " This allows to cope with movements, e.g. when lines where added.
-        let placed_signs = neomake#signs#by_lnum(bufnr)
+        if ! exists('entries_by_linenr[entry.lnum]')
+                    \ || s:sign_order[entries_by_linenr[entry.lnum][1]]
+                    \    > s:sign_order[sign_type]
+            let entries_by_linenr[entry.lnum] = [entry, sign_type]
+        endif
+    endfor
 
-        let entries_by_linenr = {}
-        for entry in entries
-            if entry.lnum == 0
-                continue
+    let place_new = []
+    let log_context = {'bufnr': a:bufnr}
+    for [lnum, entry_info] in items(entries_by_linenr)
+        let [entry, sign_type] = entry_info
+
+        let existing_sign = get(placed_signs, entry.lnum, [])
+        if empty(existing_sign) || existing_sign[1] !~# '^neomake_'.a:type.'_'
+            call add(place_new, [lnum, sign_type])
+            continue
+        endif
+        if existing_sign[1] == sign_type
+            let sign_id = existing_sign[0]
+            call neomake#utils#DebugMessage(printf(
+                        \ 'Reusing sign: id=%d, type=%s, lnum=%d.',
+                        \ sign_id, existing_sign[1], lnum), log_context)
+
+            " Keep this sign from being cleaned.
+            if exists('s:last_placed_signs[a:type][a:bufnr][sign_id]')
+                unlet s:last_placed_signs[a:type][a:bufnr][sign_id]
             endif
-            if entry.type ==? 'W'
-                let sign_type = 'warn'
-            elseif entry.type ==? 'I'
-                let sign_type = 'info'
-            elseif entry.type ==? 'M'
-                let sign_type = 'msg'
-            else
-                let sign_type = 'err'
-            endif
-            let sign_type = 'neomake_'.a:type.'_'.sign_type
-
-            if ! exists('entries_by_linenr[entry.lnum]')
-                        \ || s:sign_order[entries_by_linenr[entry.lnum][1]]
-                        \    > s:sign_order[sign_type]
-                let entries_by_linenr[entry.lnum] = [entry, sign_type]
-            endif
-        endfor
-
-        let place_new = []
-        let log_context = {'bufnr': bufnr}
-        for [lnum, entry_info] in items(entries_by_linenr)
-            let [entry, sign_type] = entry_info
-
-            let existing_sign = get(placed_signs, entry.lnum, [])
-            if empty(existing_sign) || existing_sign[1] !~# '^neomake_'.a:type.'_'
-                call add(place_new, [lnum, sign_type])
-                continue
-            endif
-            if existing_sign[1] == sign_type
-                let sign_id = existing_sign[0]
-                call neomake#utils#DebugMessage(printf(
-                            \ 'Reusing sign: id=%d, type=%s, lnum=%d.',
-                            \ sign_id, existing_sign[1], lnum), log_context)
-
-                " Keep this sign from being cleaned.
-                if exists('s:last_placed_signs[a:type][bufnr][sign_id]')
-                    unlet s:last_placed_signs[a:type][bufnr][sign_id]
-                endif
-            else
-                let cmd = 'sign place '.existing_sign[0].' name='.sign_type.' buffer='.bufnr
-                call neomake#utils#DebugMessage('Upgrading sign for lnum='.lnum.': '.cmd.'.', log_context)
-                exe cmd
-            endif
-        endfor
-
-        for [lnum, sign_type] in place_new
-            if !exists('next_sign_id')
-                if !empty(placed_signs)
-                    let next_sign_id = max(map(values(copy(placed_signs)), 'v:val[0]')) + 1
-                else
-                    let next_sign_id = s:base_sign_id
-                endif
-            else
-                let next_sign_id += 1
-            endif
-            let cmd = 'sign place '.next_sign_id.' line='.lnum.
-                        \ ' name='.sign_type.
-                        \ ' buffer='.bufnr
-            call neomake#utils#DebugMessage('Placing sign: '.cmd.'.', log_context)
-            let placed_signs[lnum] = [next_sign_id, sign_type]
+        else
+            let cmd = 'sign place '.existing_sign[0].' name='.sign_type.' buffer='.a:bufnr
+            call neomake#utils#DebugMessage('Upgrading sign for lnum='.lnum.': '.cmd.'.', log_context)
             exe cmd
-        endfor
+        endif
+    endfor
 
-        let s:placed_signs[a:type][bufnr] = {}
-        for [lnum, sign_info] in items(placed_signs)
-            let s:placed_signs[a:type][bufnr][sign_info[0]] = sign_info[1]
-        endfor
+    for [lnum, sign_type] in place_new
+        if !exists('next_sign_id')
+            if !empty(placed_signs)
+                let next_sign_id = max(map(values(copy(placed_signs)), 'v:val[0]')) + 1
+            else
+                let next_sign_id = s:base_sign_id
+            endif
+        else
+            let next_sign_id += 1
+        endif
+        let cmd = 'sign place '.next_sign_id.' line='.lnum.
+                    \ ' name='.sign_type.
+                    \ ' buffer='.a:bufnr
+        call neomake#utils#DebugMessage('Placing sign: '.cmd.'.', log_context)
+        let placed_signs[lnum] = [next_sign_id, sign_type]
+        exe cmd
+    endfor
+
+    let s:placed_signs[a:type][a:bufnr] = {}
+    for [lnum, sign_info] in items(placed_signs)
+        let s:placed_signs[a:type][a:bufnr][sign_info[0]] = sign_info[1]
     endfor
 endfunction
 
