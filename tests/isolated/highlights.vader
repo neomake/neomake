@@ -50,7 +50,7 @@ Execute (vimlint: length postprocessing):
     \ 'text': 'variable may not be initialized on some execution path: `l:foo`',
     \ }], getloclist(0)
 
-  AssertEqual {bufnr: [[2, 11], [5, 3]]}, g:neomake_tests_highlight_lengths
+  AssertEqual {string(bufnr): [[2, 11], [5, 3]]}, g:neomake_tests_highlight_lengths
 
   bwipe
 
@@ -79,7 +79,7 @@ Execute (vint: highlights syntax error for command):
   \ 'text': ':endfor without :for (SyntaxError)'}]
 
   bwipe!
-  AssertEqual {bufnr: [[2, 6]]}, g:neomake_tests_highlight_lengths
+  AssertEqual {string(bufnr): [[2, 6]]}, g:neomake_tests_highlight_lengths
 
 Execute (get_list_entries: based on example from doc):
   let g:neomake_tests_highlight_lengths = {}
@@ -122,8 +122,8 @@ Execute (get_list_entries: based on example from doc):
   Assert !buflisted(unlisted_bufnr), 'Unlisted buffer was created (2)'
 
   AssertEqual {
-  \ buf1: [[1, -1], [2, 2], [4, 23]],
-  \ unlisted_bufnr: [[3, -1]]}, g:neomake_tests_highlight_lengths
+  \ string(buf1): [[1, -1], [2, 2], [4, 23]],
+  \ string(unlisted_bufnr): [[3, -1]]}, g:neomake_tests_highlight_lengths
 
   " Check that existing buffer was used for filename.
   AssertEqual llist[4].bufnr, buf1, 'get_list_entries_buf1 was picked up'
@@ -193,7 +193,7 @@ Execute (cargo error message):
     \ }], getloclist(0)
 
   " TODO: should not call it for the same highlight twice?!
-  AssertEqual {bufnr: [[19, 2], [25, 40], [25, 40]]}, g:neomake_tests_highlight_lengths
+  AssertEqual {string(bufnr): [[19, 2], [25, 40], [25, 40]]}, g:neomake_tests_highlight_lengths
 
   bwipe
 
@@ -220,7 +220,7 @@ Execute (cargo warning message):
     \ 'pattern': '',
     \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}], getloclist(0)
 
-  AssertEqual {bufnr: [[2, 7]]}, g:neomake_tests_highlight_lengths
+  AssertEqual {string(bufnr): [[2, 7]]}, g:neomake_tests_highlight_lengths
   bwipe
 
 Execute (cargo warning for file that is not open):
@@ -250,7 +250,7 @@ Execute (cargo warning for file that is not open):
     \ 'pattern': '',
     \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}], getloclist(0)
 
-  AssertEqual {unlisted_bufnr: [[2, 7]]}, g:neomake_tests_highlight_lengths
+  AssertEqual {string(unlisted_bufnr): [[2, 7]]}, g:neomake_tests_highlight_lengths
   bwipe
   exe 'bwipe' unlisted_bufnr
 
@@ -277,7 +277,7 @@ Execute (cargo error message children):
     \ 'pattern': '',
     \ 'text': 'custom derive attribute panicked. message: Only structs and enums can derive From'}], getloclist(0)
 
-  AssertEqual {bufnr: [[11, 4]]}, g:neomake_tests_highlight_lengths
+  AssertEqual {string(bufnr): [[11, 4]]}, g:neomake_tests_highlight_lengths
   bwipe
 
 Execute (Teardown: undo monkeypatching):
