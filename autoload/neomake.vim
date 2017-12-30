@@ -1741,13 +1741,18 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     call s:clean_for_new_make(s:make_info[a:jobinfo.make_id])
 
     let counts_changed = 0
-    let ignored_signs = []
     let maker_type = file_mode ? 'file' : 'project'
     let do_highlight = get(g:, 'neomake_highlight_columns', 1)
                 \ || get(g:, 'neomake_highlight_lines', 0)
     let signs_by_bufnr = {}
-    let skipped_without_bufnr = 0
+    let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3 || !empty(get(g:, 'neomake_logfile'))
+    let entries_with_lnum_by_bufnr = {}
+    let skipped_without_bufnr = []
+    let skipped_without_lnum = []
+
+    let idx = -1
     for entry in a:entries
+        let idx += 1
         if !file_mode
             if neomake#statusline#AddQflistCount(entry)
                 let counts_changed = 1
@@ -1755,7 +1760,9 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         endif
 
         if !entry.bufnr
-            let skipped_without_bufnr += 1
+            if debug
+                let skipped_without_bufnr += [idx]
+            endif
             continue
         endif
 
@@ -1765,40 +1772,57 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
             endif
         endif
 
-        " Track all errors by buffer and line
-        let s:current_errors[maker_type][entry.bufnr] = get(s:current_errors[maker_type], entry.bufnr, {})
-        let s:current_errors[maker_type][entry.bufnr][entry.lnum] = get(
-            \ s:current_errors[maker_type][entry.bufnr], entry.lnum, [])
-        call add(s:current_errors[maker_type][entry.bufnr][entry.lnum], entry)
+        if !entry.lnum
+            if debug
+                let skipped_without_lnum += [idx]
+            endif
+            continue
+        endif
 
-        if g:neomake_place_signs
-            if entry.lnum is 0
-                let ignored_signs += [entry]
-            else
-                if !has_key(signs_by_bufnr, entry.bufnr)
-                    let signs_by_bufnr[entry.bufnr] = []
-                endif
-                call add(signs_by_bufnr[entry.bufnr], entry)
+        if !has_key(entries_with_lnum_by_bufnr, entry.bufnr)
+            let entries_with_lnum_by_bufnr[entry.bufnr] = []
+            let signs_by_bufnr[entry.bufnr] = []
+            if !exists('s:current_errors[maker_type][entry.bufnr]')
+                let s:current_errors[maker_type][entry.bufnr] = {}
             endif
         endif
-        if do_highlight
-            call neomake#highlights#AddHighlight(entry, maker_type)
+
+        if do_highlight || g:neomake_place_signs
+            " NOTE: only lnum/type required for signs.  Similar for do_highlight?!
+            call add(entries_with_lnum_by_bufnr[entry.bufnr], entry)
+        endif
+
+        " Track all errors by buffer and line
+        if !has_key(s:current_errors[maker_type][entry.bufnr], entry.lnum)
+            let s:current_errors[maker_type][entry.bufnr][entry.lnum] = [entry]
+        else
+            call add(s:current_errors[maker_type][entry.bufnr][entry.lnum], entry)
         endif
     endfor
 
-    for [bufnr, entries] in items(signs_by_bufnr)
-        call neomake#signs#PlaceSigns(bufnr, entries, maker_type)
+    " Handle placing signs and highlights.
+    for [b, entries] in items(entries_with_lnum_by_bufnr)
+        if g:neomake_place_signs
+            call neomake#signs#PlaceSigns(b, entries, maker_type)
+        endif
+        if do_highlight
+            for entry in entries
+                call neomake#highlights#AddHighlight(entry, maker_type)
+            endfor
+        endif
     endfor
 
-    if !empty(ignored_signs)
-        call neomake#utils#DebugMessage(printf(
-                    \ 'Could not place signs for %d entries without line number: %s.',
-                    \ len(ignored_signs), string(ignored_signs)))
+    if !empty(skipped_without_bufnr)
+        call neomake#utils#DebugMessage(printf('Skipped %d entries without bufnr: %s.',
+                    \ len(skipped_without_bufnr),
+                    \ string(map(skipped_without_bufnr, 'a:entries[v:val]'))), a:jobinfo)
     endif
 
-    if !empty(skipped_without_bufnr)
-        call neomake#utils#DebugMessage(printf('Skipped %d entries without bufnr.',
-                    \ skipped_without_bufnr), a:jobinfo)
+    if !empty(skipped_without_lnum)
+        call neomake#utils#DebugMessage(printf(
+                    \ 'Could not place signs for %d entries without line number: %s.',
+                    \ len(skipped_without_lnum),
+                    \ string(map(skipped_without_lnum, 'a:entries[v:val]'))), a:jobinfo)
     endif
 
     if !counts_changed

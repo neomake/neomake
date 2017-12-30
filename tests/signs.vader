@@ -1,6 +1,9 @@
 Include: include/setup.vader
 
 Execute (neomake#signs#RedefineErrorSign):
+  Save g:neomake_verbose
+  let g:neomake_verbose = 3
+
   new
   file file1
   let bufnr = bufnr('%')

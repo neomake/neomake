@@ -1,6 +1,9 @@
 Include: include/setup.vader
 
 Execute (Neomake uses temporary file for unsaved buffer):
+  Save g:neomake_verbose
+  let g:neomake_verbose = 3
+
   new
   norm iline1
   norm oline2
@@ -21,7 +24,7 @@ Execute (Neomake uses temporary file for unsaved buffer):
     NeomakeTestsWaitForFinishedJobs
   endif
 
-  AssertNeomakeMessage 'Skipped 2 entries without bufnr.'
+  AssertNeomakeMessage '\vSkipped 2 entries without bufnr: .*\.', 3
 
   AssertEqual getloclist(0), [{
   \ 'lnum': 0,

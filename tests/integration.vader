@@ -156,6 +156,9 @@ Execute (Test Neomake on errors.sh with one maker):
   bwipe
 
 Execute (Test Neomake on errors.sh with two makers):
+  Save g:neomake_verbose
+  let g:neomake_verbose = 3
+
   call g:NeomakeSetupAutocmdWrappers()
   new
   edit tests/fixtures/errors.sh
@@ -166,7 +169,9 @@ Execute (Test Neomake on errors.sh with two makers):
   AssertEqual len(g:neomake_test_countschanged), 2
   AssertEqual len(g:neomake_test_finished), 1
   AssertNeomakeMessage 'Running makers: sh, shellcheck.'
-  AssertNeomakeMessage 'Skipped 1 entries without bufnr.', 3
+  AssertNeomakeMessage printf(
+  \ "Skipped 1 entries without bufnr: [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': 'W', 'maker_name': 'shellcheck', 'pattern': '', 'text': 'shellcheck -fgcc -x %s'}].",
+  \ expand('%:p')), 3
   bwipe
 
 Execute (Neomake: handle result for current window):

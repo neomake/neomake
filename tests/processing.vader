@@ -464,6 +464,9 @@ Execute (Job does not get restarted when canceled):
   endif
 
 Execute (100 lines of output should not get processed one by one):
+  Save g:neomake_verbose
+  let g:neomake_verbose = 3
+
   " This would be the case when using Vim's 'nl' mode.
   call g:NeomakeSetupAutocmdWrappers()
   let maker = NeomakeTestsCommandMaker('echo_100', 'i=100; while ((i--)); do echo $i; done')
@@ -472,7 +475,7 @@ Execute (100 lines of output should not get processed one by one):
   NeomakeTestsWaitForFinishedJobs
   let c = g:neomake_test_countschanged
   Assert len(c) < 50, 'There were 50+ count changes: '.len(c)
-  AssertNeomakeMessage '\v^Skipped \d+ entries without bufnr\.'
+  AssertNeomakeMessage '\v^Skipped \d+ entries without bufnr: .*\.'
 
 Execute (Mixed newlines get handled correctly):
   let maker = {

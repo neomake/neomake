@@ -18,8 +18,8 @@ function! s:clear_cache(bufnr) abort
 endfunction
 
 function! s:incCount(counts, item, buf) abort
-    let type = toupper(a:item.type)
-    if !empty(type) && (!a:buf || a:item.bufnr ==# a:buf)
+    if !empty(a:item.type) && (!a:buf || a:item.bufnr ==# a:buf)
+        let type = toupper(a:item.type)
         let a:counts[type] = get(a:counts, type, 0) + 1
         if a:buf
             call s:clear_cache(a:buf)
