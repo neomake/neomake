@@ -86,6 +86,9 @@ function! neomake#signs#by_lnum(bufnr) abort
     return d
 endfunction
 
+let s:entry_to_sign_type = {'W': 'warn', 'I': 'info', 'M': 'msg'}
+
+" Place signs for list a:entries in a:bufnr for a:type ('file' or 'project').
 function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
     let entries_by_bufnr = {}
     let bufnr = a:bufnr
@@ -106,16 +109,9 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
             if entry.lnum == 0
                 continue
             endif
-            if entry.type ==? 'W'
-                let sign_type = 'warn'
-            elseif entry.type ==? 'I'
-                let sign_type = 'info'
-            elseif entry.type ==? 'M'
-                let sign_type = 'msg'
-            else
-                let sign_type = 'err'
-            endif
-            let sign_type = 'neomake_'.a:type.'_'.sign_type
+            let sign_type = printf('neomake_%s_%s',
+                        \ a:type,
+                        \ get(s:entry_to_sign_type, toupper(entry.type), 'err'))
 
             if ! exists('entries_by_linenr[entry.lnum]')
                         \ || s:sign_order[entries_by_linenr[entry.lnum][1]]
