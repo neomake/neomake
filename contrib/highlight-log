@@ -44,7 +44,7 @@ if [ "$1" = vader ]; then
     filtering=0
     quiet_filtered=
     while read -r; do
-      if [[ "$REPLY" == 'Vader error:'* ]] || [[ "$REPLY" == 'Error'* ]] || [[ "$REPLY" == 'Traceback'* ]]; then
+      if [[ "$REPLY" == *'Vader error:'* ]] || [[ "$REPLY" == 'Error'* ]] || [[ "$REPLY" == 'Traceback'* ]]; then
         printf "\r" >&2
         if [[ -n "$quiet_filtered" ]]; then
           echo "$quiet_filtered"
