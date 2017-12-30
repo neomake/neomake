@@ -215,6 +215,8 @@ Execute (Output gets not processed while in loclist):
   endif
 
 Execute (Unbuffered output handled correctly (loclist)):
+  " XXX: flaky?! (maker2 not exited in https://circleci.com/gh/neomake/neomake/4960).
+  " Also for qflist one below (https://circleci.com/gh/neomake/neomake/4971).
   if NeomakeAsyncTestsSetup()
     " Produce intersected output: 1_1, 2_1, 1_2, 2_2, …
     let s:tmpfile1 = tempname()
