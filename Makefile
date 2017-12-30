@@ -226,19 +226,20 @@ docker_list_vims:
 	docker run --rm $(DOCKER_IMAGE) $(_ECHO_DOCKER_VIMS)
 
 check_lint_diff:
+	@# NOTE: does not see changed files for builds on master.
 	@set -e; \
 	echo "Looking for changed files (to origin/master)."; \
 	CHANGED_VIM_FILES=($$(git diff-tree --no-commit-id --name-only --diff-filter=AM -r origin/master.. \
 	  | grep '\.vim$$' | grep -v '^tests/fixtures')) || true; \
 	ret=0; \
-	if [ -z "$$CHANGED_VIM_FILES" ]; then \
+	if [ "$${#CHANGED_VIM_FILES[@]}" -eq 0 ]; then \
 	  echo 'No .vim files changed.'; \
 	else \
-	  MAKE_ARGS="LINT_ARGS='$$CHANGED_VIM_FILES'"; \
+	  MAKE_ARGS="LINT_ARGS=$${CHANGED_VIM_FILES[*]}"; \
 	  echo "== Running \"make vimlint $$MAKE_ARGS\" =="; \
-	  make vimlint $$MAKE_ARGS || (( ret+=1 )); \
+	  make vimlint "$$MAKE_ARGS" || (( ret+=1 )); \
 	  echo "== Running \"make vint $$MAKE_ARGS\" =="; \
-	  make vint $$MAKE_ARGS    || (( ret+=2 )); \
+	  make vint "$$MAKE_ARGS"    || (( ret+=2 )); \
 	fi; \
 	if ! git diff-tree --quiet --exit-code --diff-filter=AM -r origin/master.. -- doc/neomake.txt; then \
 	  echo "== Running \"make vimhelplint\" for changed doc/neomake.txt =="; \
