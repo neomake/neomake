@@ -5,13 +5,18 @@ Execute (Setup: monkeypatch autoload/neomake/highlights.vim):
   runtime autoload/neomake/highlights.vim
   Save g:neomake_tests_highlight_lengths
   let g:neomake_tests_highlight_lengths = []
+
   function! neomake#highlights#AddHighlight(entry, ...) abort
-    call add(g:neomake_tests_highlight_lengths,
+    let bufnr = get(a:entry, 'bufnr', -1)
+    if !has_key(g:neomake_tests_highlight_lengths, bufnr)
+      let g:neomake_tests_highlight_lengths[bufnr] = []
+    endif
+    call add(g:neomake_tests_highlight_lengths[bufnr],
     \ [get(a:entry, 'lnum', -1), get(a:entry, 'length', -1)])
   endfunction
 
 Execute (vimlint: length postprocessing):
-  let g:neomake_tests_highlight_lengths = []
+  let g:neomake_tests_highlight_lengths = {}
   new
   edit tests/fixtures/vim/func-with-errors.vim
   let maker = neomake#makers#ft#vim#vimlint()
@@ -45,12 +50,12 @@ Execute (vimlint: length postprocessing):
     \ 'text': 'variable may not be initialized on some execution path: `l:foo`',
     \ }], getloclist(0)
 
-  AssertEqual [[2, 11], [5, 3]], g:neomake_tests_highlight_lengths
+  AssertEqual {string(bufnr): [[2, 11], [5, 3]]}, g:neomake_tests_highlight_lengths
 
   bwipe
 
 Execute (vint: highlights syntax error for command):
-  let g:neomake_tests_highlight_lengths = []
+  let g:neomake_tests_highlight_lengths = {}
   new
   file file1.vim
   norm! iwhile 1
@@ -61,9 +66,10 @@ Execute (vint: highlights syntax error for command):
   let vint_maker.append_file = 0
 
   CallNeomake 1, [vint_maker]
+  let bufnr = bufnr('%')
   AssertEqual getloclist(0), [{
   \ 'lnum': 2,
-  \ 'bufnr': bufnr('%'),
+  \ 'bufnr': bufnr,
   \ 'col': 1,
   \ 'valid': 1,
   \ 'vcol': 0,
@@ -73,10 +79,10 @@ Execute (vint: highlights syntax error for command):
   \ 'text': ':endfor without :for (SyntaxError)'}]
 
   bwipe!
-  AssertEqual [[2, 6]], g:neomake_tests_highlight_lengths
+  AssertEqual {string(bufnr): [[2, 6]]}, g:neomake_tests_highlight_lengths
 
 Execute (get_list_entries: based on example from doc):
-  let g:neomake_tests_highlight_lengths = []
+  let g:neomake_tests_highlight_lengths = {}
   new
   call g:NeomakeSetupAutocmdWrappers()
   let buf1 = bufnr('%')
@@ -102,12 +108,11 @@ Execute (get_list_entries: based on example from doc):
   endfunction
   call neomake#Make(1, [maker])
   AssertNeomakeMessage 'Queueing action: s:ProcessEntries for WinEnter.'
-  AssertEqual [], g:neomake_tests_highlight_lengths, 'No highlights have been added yet'
+  AssertEqual {}, g:neomake_tests_highlight_lengths, 'No highlights have been added yet'
   AssertEqual [], getloclist(0)
 
   wincmd p
   AssertEqual winnr, winnr()
-  AssertEqual [[1, -1], [2, 2], [3, -1], [4, 23]], g:neomake_tests_highlight_lengths
 
   let llist = getloclist(0)
 
@@ -115,6 +120,10 @@ Execute (get_list_entries: based on example from doc):
   let unlisted_bufnr = bufnr('/path/to/file')
   Assert !empty(unlisted_bufnr), 'Unlisted buffer was created (1)'
   Assert !buflisted(unlisted_bufnr), 'Unlisted buffer was created (2)'
+
+  AssertEqual {
+  \ string(buf1): [[1, -1], [2, 2], [4, 23]],
+  \ string(unlisted_bufnr): [[3, -1]]}, g:neomake_tests_highlight_lengths
 
   " Check that existing buffer was used for filename.
   AssertEqual llist[4].bufnr, buf1, 'get_list_entries_buf1 was picked up'
@@ -140,7 +149,7 @@ Execute (get_list_entries: based on example from doc):
   AssertEqual len(g:neomake_test_jobfinished), 1
 
 Execute (cargo error message):
-  let g:neomake_tests_highlight_lengths = []
+  let g:neomake_tests_highlight_lengths = {}
   new
   file build/lib.rs
   let cargo = neomake#makers#ft#rust#cargo()
@@ -150,9 +159,10 @@ Execute (cargo error message):
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
 
+  let bufnr = bufnr('%')
   AssertEqual [{
     \ 'type': 'E',
-    \ 'bufnr': bufnr('%'),
+    \ 'bufnr': bufnr,
     \ 'nr': 308,
     \ 'lnum': 19,
     \ 'col': 46,
@@ -162,7 +172,7 @@ Execute (cargo error message):
     \ 'text': 'mismatched types: expected str, found struct `proc_macro::TokenStream`'
     \ }, {
     \ 'type': 'E',
-    \ 'bufnr': bufnr('%'),
+    \ 'bufnr': bufnr,
     \ 'nr': 308,
     \ 'lnum': 25,
     \ 'col': 1,
@@ -172,7 +182,7 @@ Execute (cargo error message):
     \ 'text': 'mismatched types: expected str, found struct `proc_macro::TokenStream`'
     \ }, {
     \ 'type': 'I',
-    \ 'bufnr':  bufnr('%'),
+    \ 'bufnr':  bufnr,
     \ 'nr': 308,
     \ 'lnum': 25,
     \ 'col': 1,
@@ -183,12 +193,12 @@ Execute (cargo error message):
     \ }], getloclist(0)
 
   " TODO: should not call it for the same highlight twice?!
-  AssertEqual [[19, 2], [25, 40], [25, 40]], g:neomake_tests_highlight_lengths
+  AssertEqual {string(bufnr): [[19, 2], [25, 40], [25, 40]]}, g:neomake_tests_highlight_lengths
 
   bwipe
 
 Execute (cargo warning message):
-  let g:neomake_tests_highlight_lengths = []
+  let g:neomake_tests_highlight_lengths = {}
   new
   file build/add_assign_like.rs
   let cargo = neomake#makers#ft#rust#cargo()
@@ -198,9 +208,10 @@ Execute (cargo warning message):
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
 
+  let bufnr = bufnr('%')
   AssertEqual [{
     \ 'type': 'W',
-    \ 'bufnr': bufnr('%'),
+    \ 'bufnr': bufnr,
     \ 'nr': -1,
     \ 'lnum': 2,
     \ 'col': 24,
@@ -209,11 +220,11 @@ Execute (cargo warning message):
     \ 'pattern': '',
     \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}], getloclist(0)
 
-  AssertEqual [[2, 7]], g:neomake_tests_highlight_lengths
+  AssertEqual {string(bufnr): [[2, 7]]}, g:neomake_tests_highlight_lengths
   bwipe
 
 Execute (cargo warning for file that is not open):
-  let g:neomake_tests_highlight_lengths = []
+  let g:neomake_tests_highlight_lengths = {}
   new
   file build/some_other_file.rs
 
@@ -239,12 +250,12 @@ Execute (cargo warning for file that is not open):
     \ 'pattern': '',
     \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}], getloclist(0)
 
-  AssertEqual [[2, 7]], g:neomake_tests_highlight_lengths
+  AssertEqual {string(unlisted_bufnr): [[2, 7]]}, g:neomake_tests_highlight_lengths
   bwipe
   exe 'bwipe' unlisted_bufnr
 
 Execute (cargo error message children):
-  let g:neomake_tests_highlight_lengths = []
+  let g:neomake_tests_highlight_lengths = {}
   new
   file tests/from.rs
   let cargo = neomake#makers#ft#rust#cargo()
@@ -254,9 +265,10 @@ Execute (cargo error message children):
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
 
+  let bufnr = bufnr('%')
   AssertEqual [{
     \ 'type': 'E',
-    \ 'bufnr': bufnr('%'),
+    \ 'bufnr': bufnr,
     \ 'nr': -1,
     \ 'lnum': 11,
     \ 'col': 10,
@@ -265,7 +277,7 @@ Execute (cargo error message children):
     \ 'pattern': '',
     \ 'text': 'custom derive attribute panicked. message: Only structs and enums can derive From'}], getloclist(0)
 
-  AssertEqual [[11, 4]], g:neomake_tests_highlight_lengths
+  AssertEqual {string(bufnr): [[11, 4]]}, g:neomake_tests_highlight_lengths
   bwipe
 
 Execute (Teardown: undo monkeypatching):

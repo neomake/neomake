@@ -89,6 +89,7 @@ endfunction
 let s:entry_to_sign_type = {'W': 'warn', 'I': 'info', 'M': 'msg'}
 
 " Place signs for list a:entries in a:bufnr for a:type ('file' or 'project').
+" List items in a:entries need to have a "type" and "lnum" (non-zero) property.
 function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
     " Query the list of currently placed signs.
     " This allows to cope with movements, e.g. when lines were added.
@@ -96,26 +97,21 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
 
     let entries_by_linenr = {}
     for entry in a:entries
-        if entry.lnum == 0
-            continue
-        endif
+        let lnum = entry.lnum
         let sign_type = printf('neomake_%s_%s',
                     \ a:type,
                     \ get(s:entry_to_sign_type, toupper(entry.type), 'err'))
-
-        if ! exists('entries_by_linenr[entry.lnum]')
-                    \ || s:sign_order[entries_by_linenr[entry.lnum][1]]
+        if !exists('entries_by_linenr[lnum]')
+                    \ || s:sign_order[entries_by_linenr[lnum]]
                     \    > s:sign_order[sign_type]
-            let entries_by_linenr[entry.lnum] = [entry, sign_type]
+            let entries_by_linenr[lnum] = sign_type
         endif
     endfor
 
     let place_new = []
     let log_context = {'bufnr': a:bufnr}
-    for [lnum, entry_info] in items(entries_by_linenr)
-        let [entry, sign_type] = entry_info
-
-        let existing_sign = get(placed_signs, entry.lnum, [])
+    for [lnum, sign_type] in items(entries_by_linenr)
+        let existing_sign = get(placed_signs, lnum, [])
         if empty(existing_sign) || existing_sign[1] !~# '^neomake_'.a:type.'_'
             call add(place_new, [lnum, sign_type])
             continue
