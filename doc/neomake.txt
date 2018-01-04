@@ -439,6 +439,40 @@ The internal defaults are: >
         \ 'remove_invalid_entries': 0
         \ }
 <
+It is possible to exploit the handling of buffers with multiple filetypes
+separated by a dot within neomake to configure alternative values for the
+b:neomake_<ft>_<name>_<property> settings applied to different flavors of a
+language. 
+
+Note: this is expected to fail on buffers that would have multiple
+filetypes set anyways, e.g.: jsx.javascript.
+
+If filetype is set to <ft>.<flavor>, settings of the form: >
+    g:neomake_<ft>_<flavor>_<name>_<property>
+    b:neomake_<ft>_<flavor>_<name>_<property>
+<
+will override the corresponding property of the default maker called <name>.
+Buffer overrides take precedence.
+The filetype can be set conditionally using a function defined by the user.
+
+E.g.: to configure different executables depending on the version of the
+python interpreter the script called in the shebang at the time of saving,
+add to your vimrc: >
+    augroup neomake_customize_makers
+        au!
+        au BufWrite *.py  call neomake#makers#ft#python#Version()
+    augroup END
+    let g:neomake_python_3_pylint_exe = "pylint3"
+    let g:neomake_python_3_python_exe = "python3"
+    let g:neomake_python_2_flake8_exe = "python -m flake8"
+<
+Here "neomake#makers#ft#python#Version()" is a function that guesses the
+intended version of python: the return value is either the explicit version
+number contained in the shebang of the current buffer or the major version
+number of the default python interpreter in the system.
+"neomake#makers#ft#pytho#Version()" is provided as a pre-baked solution for
+the case of python files: users are encouraged to implement their own selection
+logic.
 
 *g:neomake_<ft>_enabled_makers*
 *b:neomake_<ft>_enabled_makers*

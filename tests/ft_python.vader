@@ -179,3 +179,53 @@ Execute (python: pylint):
   call neomake#makers#ft#python#PylintEntryProcess(entry)
   AssertEqual entry.type, 'I'
   AssertEqual entry.col, 2
+
+Execute(We can guess the version of python):
+  new
+  e fixtures/errors.py
+  set filetype=python
+  call neomake#makers#ft#python#Version()
+  AssertEqual split(matchstr(system('python --version'), '[0-9\.]\+'), '\.')[0], split(&filetype, '\.')[1]
+  call append(0, '#!/usr/bin/env python')
+  call neomake#makers#ft#python#Version()
+  AssertEqual split(matchstr(system('python --version'), '[0-9\.]\+'), '\.')[0], split(&filetype, '\.')[1]
+  call setline(1, '#!/usr/bin/env python2')
+  call neomake#makers#ft#python#Version()
+  AssertEqual '2', split(&filetype, '\.')[1]
+  call setline(1, '#!/usr/bin/env python3')
+  let result = neomake#makers#ft#python#Version()
+  AssertEqual '3', split(&filetype, '\.')[1]
+  bwipe!
+
+Execute(Setting ft_flavor we can apply conditional overrides):
+  new
+  set filetype=python
+  " Using python and pylint as an example:
+  AssertEqual neomake#GetMaker('pylint').exe, 'pylint'
+  let g:neomake_python_2_pylint_exe='pylint2'
+  let b:neomake_python_2_pylint_exe='pylint2_buffer'
+  " No alternative activated yet
+  AssertEqual &filetype, 'python'
+  AssertEqual neomake#GetMaker('pylint').exe, 'pylint'
+  " buffer override
+  call append(0, '#!/usr/bin/env python2')
+  call neomake#makers#ft#python#Version()
+  AssertEqual &filetype, 'python.2'
+  AssertEqual neomake#GetMaker('pylint').exe, 'pylint2_buffer'
+  " global override
+  unlet b:neomake_python_2_pylint_exe
+  AssertEqual neomake#GetMaker('pylint').exe, 'pylint2'
+  let g:neomake_python_3_pylint_exe='pylint3'
+  " Still on version 2
+  AssertEqual neomake#GetMaker('pylint').exe, 'pylint2'
+  " Switch to 3
+  call setline(1, '#!/usr/bin/env python3')
+  call neomake#makers#ft#python#Version()
+  AssertEqual &filetype, 'python.3'
+  AssertEqual neomake#GetMaker('pylint').exe, 'pylint3'
+  " Disable alternatives again
+  set filetype=python
+  AssertEqual neomake#GetMaker('pylint').exe, 'pylint'
+  unlet g:neomake_python_2_pylint_exe
+  unlet g:neomake_python_3_pylint_exe
+  bwipe!

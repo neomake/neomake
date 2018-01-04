@@ -320,3 +320,24 @@ function! neomake#makers#ft#python#py3kwarn() abort
         \ 'errorformat': '%W%f:%l:%c: %m',
         \ }
 endfunction
+
+" Find out the python version to be used in the current buffer (script)
+" by checking the shebang. If no shebang is found or it does not contain
+" an explicit version number, use the default interpreter.
+function! neomake#makers#ft#python#Version() abort
+
+    if !exists('s:default_version')
+        " Get default python executable version as [major, minor, revision]
+        let s:default_version = split(matchstr(system('python --version'), '[0-9\.]\+'), '\.')
+    endif
+
+    " Scan the shebang
+    let l:shebang = matchlist(getline(1), '^#!.*python\([0-9.]*\)')
+
+    " Use the major number from s:default_version
+    " If the shebang does not contain one or is absent
+    execute 'set filetype=python.' . (empty(l:shebang) || empty(l:shebang[1]) ?
+                \ s:default_version[0] :
+                \l:shebang[1])
+    " return 'python.' . (empty(l:shebang) || l:shebang[1] == '' ? s:default_version[0] : l:shebang[1])
+endfunction
