@@ -3,8 +3,6 @@
 let g:neomake#config#undefined = {}
 lockvar! g:neomake#config#undefined
 
-let s:refs_for_profiling = []
-
 " Resolve a:name (split on dots) and (optionally) init a:dict accordingly.
 function! s:resolve_name(dict, name, init) abort
     let parts = type(a:name) == type([]) ? a:name : split(a:name, '\.')
@@ -111,9 +109,6 @@ function! neomake#config#get_with_source(name, ...) abort
                             \ log_name, string(R), source,
                             \   empty(prefix) ? '' : ' (prefix: '.string(prefix).')'),
                             \ context)
-                if v:profiling && type(R) == type(function('tr'))
-                    let s:refs_for_profiling += [R]
-                endif
                 return [R, source]
             endif
             unlet R  " for Vim without patch-7.4.1546

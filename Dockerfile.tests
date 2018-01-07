@@ -17,7 +17,7 @@ RUN install_vim -tag v7.3.429 -name vim73 --with-features=huge -build \
                 -tag neovim:v0.2.2 -py3 -build \
   && rm -rf /vim-build/vim/vim/*/share/vim/*/tutor
 
-ENV NEOMAKE_DOCKERFILE_UPDATE=2017-11-12
+ENV NEOMAKE_DOCKERFILE_UPDATE=2018-01-07
 
 # Git master in a separate layer, since the above is meant to be stable.
 RUN install_vim -tag master -build \
@@ -47,7 +47,7 @@ RUN chmod +x /usr/local/bin/vimlint
 
 # Install covimerage, codecov and vint.
 RUN apk --no-cache add python3 \
-  && pip3 install --no-cache-dir codecov covimerage==0.0.2 vim-vint \
+  && pip3 install --no-cache-dir codecov covimerage==0.0.4 vim-vint \
   && rm -rf /usr/include /usr/lib/python*/turtle* /usr/lib/python*/tkinter \
   && pip3 uninstall --yes pip \
   && cd /usr/bin && ln -s python3 python
