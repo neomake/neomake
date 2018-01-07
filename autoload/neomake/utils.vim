@@ -6,8 +6,6 @@ let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 
 let s:is_testing = exists('g:neomake_test_messages')
 
-let s:refs_for_profiling = []
-
 function! s:reltime_lastmsg() abort
     if exists('s:last_msg_ts')
         let cur = neomake#compat#reltimefloat()
@@ -350,11 +348,7 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
         endif
     endif
 
-    let Ret2 = s:get_oldstyle_setting(a:key, a:maker, a:default, a:ft, a:bufnr, maker_only)
-    if v:profiling && type(Ret2) == type(function('tr'))
-        let s:refs_for_profiling += [Ret2]
-    endif
-    return Ret2
+    return s:get_oldstyle_setting(a:key, a:maker, a:default, a:ft, a:bufnr, maker_only)
 endfunction
 
 function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abort
