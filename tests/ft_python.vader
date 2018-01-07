@@ -179,3 +179,23 @@ Execute (python: pylint):
   call neomake#makers#ft#python#PylintEntryProcess(entry)
   AssertEqual entry.type, 'I'
   AssertEqual entry.col, 2
+
+Execute (python: pylint: filters expected msgs on stderr):
+  let stderr = [
+  \ 'No config file found, using default configuration',
+  \ 'Using config file /Users/liyong/.pylintrc',
+  \ 'Some unexpected error',
+  \ ]
+  let maker = neomake#GetMaker('pylint', 'python')
+  let output = copy(stderr)
+  call maker.filter_output(output, {'source': 'stderr'})
+  AssertEqual output, [
+  \ 'Some unexpected error',
+  \ ]
+  let output = copy(stderr)
+  call maker.filter_output(output, {'source': 'stdout'})
+  AssertEqual output, [
+  \ 'No config file found, using default configuration',
+  \ 'Using config file /Users/liyong/.pylintrc',
+  \ 'Some unexpected error',
+  \ ]

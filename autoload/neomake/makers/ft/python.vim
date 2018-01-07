@@ -42,7 +42,7 @@ function! neomake#makers#ft#python#pylint() abort
         \ ]}
     function! maker.filter_output(lines, context) abort
         if a:context.source ==# 'stderr'
-            call filter(a:lines, "v:val !=# 'No config file found, using default configuration'")
+            call filter(a:lines, "v:val !=# 'No config file found, using default configuration' && v:val !~# '^Using config file '")
         endif
     endfunction
     return maker
