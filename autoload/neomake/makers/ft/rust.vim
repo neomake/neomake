@@ -24,12 +24,17 @@ endfunction
 function! neomake#makers#ft#rust#cargo() abort
     let maker_command = get(b:, 'neomake_rust_cargo_command',
                 \ get(g:, 'neomake_rust_cargo_command', ['check']))
-    return {
+    let maker = {
         \ 'cwd': '%:p:h',
         \ 'args': maker_command + ['--message-format=json', '--quiet'],
         \ 'append_file': 0,
         \ 'process_output': function('neomake#makers#ft#rust#CargoProcessOutput'),
         \ }
+    let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
+    if !empty(cargo_toml)
+        let maker.cwd = fnamemodify(cargo_toml, ':h')
+    endif
+    return maker
 endfunction
 
 function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
