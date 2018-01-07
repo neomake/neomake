@@ -449,11 +449,11 @@ Execute (Handle finished job that got canceled (#1158)):
 Execute (Job does not get restarted when canceled):
   if NeomakeAsyncTestsSetup()
     let maker = NeomakeTestsCommandMaker('mymaker', 'echo output; sleep .1; echo output2')
-    let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
+    let jobinfo = neomake#Make({'enabled_makers': [maker], 'buffer_output': 0})[0]
     NeomakeTestsWaitForMessage "stdout: mymaker: ['output', ''].", 3, jobinfo
     call neomake#CancelJob(jobinfo.id)
 
-    let jobinfo2 = neomake#Make(1, [maker])[0]
+    let jobinfo2 = neomake#Make({'enabled_makers': [maker], 'buffer_output': 0})[0]
     NeomakeTestsWaitForFinishedJobs
 
     AssertNeomakeMessage "stdout: mymaker: ['output', ''].", 3, jobinfo2
@@ -461,8 +461,7 @@ Execute (Job does not get restarted when canceled):
 
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_jobfinished), 1
-"     AssertEqual len(g:neomake_test_countschanged), 0
-    AssertEqual len(g:neomake_test_countschanged), 1
+    AssertEqual len(g:neomake_test_countschanged), 3
   endif
 
 Execute (100 lines of output should not get processed one by one):

@@ -125,7 +125,7 @@ Execute (neomake#CancelJob! with invalid job):
 Execute (neomake#CancelJob with trapped TERM):
   if NeomakeAsyncTestsSetup()
     let trap_sh = fnamemodify(g:vader_file, ':p:h').'/helpers/trap.sh'
-    let job_id = neomake#Sh(trap_sh)
+    let job_id = neomake#ShCommand(1, trap_sh)
     let jobinfo = neomake#GetJob(job_id)
 
     " Ensure the script is running.

@@ -3,6 +3,7 @@ Include: include/setup.vader
 Execute (jobinfo.get_pid):
   if NeomakeAsyncTestsSetup()
     let maker = NeomakeTestsCommandMaker('echo-pid-and-sleep', 'echo $$; sleep 10')
+    let maker.buffer_output = 0
     let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
     NeomakeTestsWaitForMessage '\v^stdout: echo-pid-and-sleep: \[''(\d+)'', ''''\].'
     let pid = +g:neomake_test_matchlist[1]

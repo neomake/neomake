@@ -334,6 +334,7 @@ function! s:MakeJob(make_id, options) abort
 
     call extend(jobinfo, {
         \ 'output_stream': a:options.maker.output_stream,
+        \ 'buffer_output': a:options.maker.buffer_output,
         \ }, 'keep')
 
     let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
@@ -368,11 +369,20 @@ function! s:MakeJob(make_id, options) abort
         lockvar 1 maker
         if s:async
             if has('nvim')
-                let opts = {
-                    \ 'on_stdout': function('s:nvim_output_handler'),
-                    \ 'on_stderr': function('s:nvim_output_handler'),
-                    \ 'on_exit': function('s:nvim_exit_handler')
-                    \ }
+                if has('nvim-0.2.3') && jobinfo.buffer_output
+                    let opts = {
+                                \ 'stdout_buffered': 1,
+                                \ 'stderr_buffered': 1,
+                                \ 'on_exit': function('s:nvim_exit_handler_buffered'),
+                                \ }
+                    let jobinfo.jobstart_opts = opts
+                else
+                    let opts = {
+                                \ 'on_stdout': function('s:nvim_output_handler'),
+                                \ 'on_stderr': function('s:nvim_output_handler'),
+                                \ 'on_exit': function('s:nvim_exit_handler'),
+                                \ }
+                endif
                 if has_key(maker, 'nvim_job_opts')
                     call extend(opts, maker.nvim_job_opts)
                 endif
@@ -2198,6 +2208,28 @@ else
     " @vimlint(EVL103, 0, a:timer)
 endif
 
+" Exit handler for buffered output with Neovim.
+" In this case the output gets stored on the jobstart-options dict.
+" @vimlint(EVL103, 1, a:event_type)
+function! s:nvim_exit_handler_buffered(job_id, data, event_type) abort
+    let jobinfo = get(s:jobs, get(s:map_job_ids, a:job_id, -1), {})
+    if empty(jobinfo)
+        call neomake#utils#DebugMessage(printf('exit: job not found: %d.', a:job_id))
+        return
+    endif
+
+    for stream in ['stdout', 'stderr']
+        if has_key(jobinfo.jobstart_opts, stream)
+            let output = copy(jobinfo.jobstart_opts[stream])
+            call map(output, "substitute(v:val, '\\r$', '', '')")
+            call s:output_handler(jobinfo, output, stream)
+        endif
+    endfor
+
+    call s:exit_handler(jobinfo, a:data)
+endfunction
+" @vimlint(EVL103, 0, a:event_type)
+
 " @vimlint(EVL103, 1, a:event_type)
 function! s:nvim_exit_handler(job_id, data, event_type) abort
     let jobinfo = get(s:jobs, get(s:map_job_ids, a:job_id, -1), {})
@@ -2317,7 +2349,7 @@ function! s:output_handler(jobinfo, data, event_type) abort
         let jobinfo[a:event_type] = a:data
     endif
 
-    if !jobinfo.maker.buffer_output || last_event_type !=# a:event_type
+    if !jobinfo.buffer_output || last_event_type !=# a:event_type
         let lines = jobinfo[a:event_type][:-2]
         let jobinfo[a:event_type] = jobinfo[a:event_type][-1:]
 
@@ -2502,13 +2534,14 @@ endfunction
 function! neomake#ShCommand(bang, sh_command, ...) abort
     let maker = neomake#utils#MakerFromCommand(a:sh_command)
     let maker.name = 'sh: '.a:sh_command
-    let maker.buffer_output = !a:bang
     let maker.errorformat = '%m'
     let maker.default_entry_type = ''
     let options = {
                 \ 'enabled_makers': [maker],
                 \ 'file_mode': 0,
-                \ 'output_stream': 'both'}
+                \ 'output_stream': 'both',
+                \ 'buffer_output': !a:bang,
+                \ }
     if a:0
         call extend(options, a:1)
     endif
