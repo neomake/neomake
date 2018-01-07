@@ -26,6 +26,7 @@ let s:action_queue_timer_timeouts = get(g:, 'neomake_action_queue_timeouts', {1:
 let s:current_errors = {'project': {}, 'file': {}}
 let s:maker_defaults = {
             \ 'buffer_output': 1,
+            \ 'output_stream': 'both',
             \ 'remove_invalid_entries': 0}
 " List of pending outputs by job ID.
 let s:pending_outputs = {}
@@ -318,7 +319,6 @@ function! s:MakeJob(make_id, options) abort
         \ 'bufnr': a:options.bufnr,
         \ 'file_mode': a:options.file_mode,
         \ 'ft': a:options.ft,
-        \ 'output_stream': get(a:options, 'output_stream', get(a:options.maker, 'output_stream', 'both')),
         \ }, a:options))
 
     let maker = jobinfo.maker
@@ -331,6 +331,10 @@ function! s:MakeJob(make_id, options) abort
         call s:handle_get_list_entries(jobinfo)
         return jobinfo
     endif
+
+    call extend(jobinfo, {
+        \ 'output_stream': a:options.maker.output_stream,
+        \ }, 'keep')
 
     let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
     if !empty(cd_error)
