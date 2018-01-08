@@ -6,8 +6,9 @@ Execute (typescript: tslint):
   new
   file t.ts
 
+  " tslint adds newlines before/after.
   lgetexpr
-  \ "ERROR: t.ts[7, 15]: Missing semicolon"
+  \ "\nERROR: t.ts[7, 15]: Missing semicolon\n"
 
   AssertEqual getloclist(0), [{
   \ 'lnum': 7,
