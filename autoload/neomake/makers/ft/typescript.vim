@@ -24,7 +24,7 @@ endfunction
 
 function! neomake#makers#ft#typescript#tslint() abort
     let maker = {
-        \ 'errorformat': '%EERROR: %f[%l\, %c]: %m,%E%f[%l\, %c]: %m',
+        \ 'errorformat': '%-G,%EERROR: %f[%l\, %c]: %m,%E%f[%l\, %c]: %m',
         \ }
     let config = neomake#utils#FindGlobFile('tsconfig.json')
     if !empty(config)
