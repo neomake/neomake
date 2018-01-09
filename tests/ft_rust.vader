@@ -38,3 +38,20 @@ Execute (cargo error without span):
 
   AssertEqual [], getloclist(0)
   bwipe
+
+Execute (rust: cargo: uses directory with Cargo.toml as cwd):
+  let maker = neomake#makers#ft#rust#cargo()
+  AssertEqual maker.cwd, '%:p:h'
+
+  let tempdir = tempname()
+  let slash = neomake#utils#Slash()
+  let subdir = tempdir . slash . 'subdir'
+  call mkdir(subdir, 'p')
+  let cargo_toml = tempdir . slash . 'Cargo.toml'
+  call writefile([], cargo_toml)
+
+  new
+  exe 'lcd' subdir
+  let maker = neomake#makers#ft#rust#cargo()
+  AssertEqual maker.cwd, tempdir
+  bwipe
