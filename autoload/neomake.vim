@@ -31,6 +31,16 @@ if !has('nvim')
     let s:kill_vim_timers = {}
 endif
 
+" Can Neovim buffer output?
+" This uses detection since the appimage for 0.2.2 reports as being 0.2.3.
+let s:nvim_can_buffer_output = (has('nvim-0.2.4') ? 1 :
+            \ (has('nvim-0.2.3') ? -1 : 0))
+
+" Private function to access script-local variables during tests.
+function! neomake#_get_s() abort
+    return s:
+endfunction
+
 " Sentinels.
 let s:unset_list = []
 let s:unset_dict = {}
@@ -365,12 +375,24 @@ function! s:MakeJob(make_id, options) abort
         lockvar 1 maker
         if s:async
             if has('nvim')
-                if has('nvim-0.2.3') && jobinfo.buffer_output
+                if jobinfo.buffer_output
                     let opts = {
                                 \ 'stdout_buffered': 1,
                                 \ 'stderr_buffered': 1,
-                                \ 'on_exit': function('s:nvim_exit_handler_buffered'),
                                 \ }
+                    if s:nvim_can_buffer_output == 1
+                        let opts.on_exit = function('s:nvim_exit_handler_buffered')
+                    else
+                        call extend(opts, {
+                                \ 'on_stdout': function('s:nvim_output_handler'),
+                                \ 'on_stderr': function('s:nvim_output_handler'),
+                                \ })
+                        if s:nvim_can_buffer_output == -1
+                            let opts.on_exit = function('s:nvim_exit_handler_detect_buffered')
+                        else
+                            let opts.on_exit = function('s:nvim_exit_handler')
+                        endif
+                    endif
                     let jobinfo.jobstart_opts = opts
                 else
                     let opts = {
@@ -2222,6 +2244,26 @@ function! s:nvim_exit_handler_buffered(job_id, data, event_type) abort
         endif
     endfor
 
+    call s:exit_handler(jobinfo, a:data)
+endfunction
+" @vimlint(EVL103, 0, a:event_type)
+
+" Exit handler to detect if Neovim can handle buffered output.
+" This is necessary with Neovim 0.2.3 (which might not have the feature yet,
+" or when 0.2.2 reports to be 0.2.3 even).
+" @vimlint(EVL103, 1, a:event_type)
+function! s:nvim_exit_handler_detect_buffered(job_id, data, event_type) abort
+    let jobinfo = get(s:jobs, get(s:map_job_ids, a:job_id, -1), {})
+    if empty(jobinfo)
+        call neomake#utils#DebugMessage(printf('exit: job not found: %d.', a:job_id))
+        return
+    endif
+    " Detect if Neovim can buffer output.
+    if s:nvim_can_buffer_output == -1 &&
+                \ has_key(jobinfo, 'jobstart_opts') &&
+                \ (has_key(jobinfo.jobstart_opts, 'stdout') || has_key(jobinfo.jobstart_opts, 'stderr'))
+        let s:nvim_can_buffer_output = 1
+    endif
     call s:exit_handler(jobinfo, a:data)
 endfunction
 " @vimlint(EVL103, 0, a:event_type)
