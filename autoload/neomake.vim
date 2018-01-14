@@ -24,10 +24,6 @@ let s:action_queue_timer_timeouts = get(g:, 'neomake_action_queue_timeouts', {1:
 
 " Errors by [maker_type][bufnr][lnum]
 let s:current_errors = {'project': {}, 'file': {}}
-let s:maker_defaults = {
-            \ 'buffer_output': 1,
-            \ 'output_stream': 'both',
-            \ 'remove_invalid_entries': 0}
 " List of pending outputs by job ID.
 let s:pending_outputs = {}
 
@@ -759,7 +755,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     endif
     if !has_key(maker, 'get_list_entries')
         " Set defaults for command/job based makers.
-        let defaults = copy(s:maker_defaults)
+        let defaults = neomake#config#get('maker_defaults')
         call extend(defaults, {
             \ 'exe': maker.name,
             \ 'args': [],
@@ -2555,116 +2551,9 @@ function! neomake#Sh(sh_command, ...) abort
     return neomake#ShCommand(0, a:sh_command, options)
 endfunction
 
-" Optional arg: ft
-function! s:display_maker_info(...) abort
-    let maker_names = call('neomake#GetEnabledMakers', a:000)
-    if empty(maker_names)
-        echon ' None.'
-        return
-    endif
-    for maker_name in maker_names
-        let maker = call('neomake#GetMaker', [maker_name] + a:000)
-        echo ' - '.maker.name
-        for [k, V] in sort(copy(items(maker)))
-            if k !=# 'name' && k !=# 'ft' && k !~# '^_'
-                if !has_key(s:maker_defaults, k)
-                            \ || type(V) != type(s:maker_defaults[k])
-                            \ || V !=# s:maker_defaults[k]
-                    echo '   - '.k.': '.string(V)
-                endif
-            endif
-            unlet V  " vim73
-        endfor
-
-        let issues = neomake#debug#validate_maker(maker)
-        if !empty(issues)
-            for type in sort(copy(keys(issues)))
-                let items = issues[type]
-                if !empty(items)
-                    echo '   - '.toupper(type) . ':'
-                    for issue in items
-                        echo '     - ' . issue
-                    endfor
-                endif
-            endfor
-        endif
-    endfor
-endfunction
-
+" Deprecated (2017-10-11).
 function! neomake#DisplayInfo(...) abort
-    let bang = a:0 ? a:1 : 0
-    if bang
-        " NOTE: using 'redir @+>' directly is buggy in Neovim (job issues with xsel).
-        redir => neomake_redir_info
-            silent call s:display_neomake_info()
-        redir END
-        try
-            call setreg('+', neomake_redir_info, 'l')
-        catch
-            call neomake#utils#ErrorMessage(printf(
-                        \ 'Could not set clipboard: %s.', v:exception))
-            return
-        endtry
-        echom 'Copied Neomake info to clipboard ("+).'
-    else
-        call s:display_neomake_info()
-    endif
-endfunction
-
-function! s:display_neomake_info() abort
-    let ft = &filetype
-    if &verbose
-        echo '#### Neomake debug information'
-        echo 'Async support: '.s:async
-        echo 'Current filetype: '.ft
-        echo 'Windows: '.neomake#utils#IsRunningWindows()
-        echo '[shell, shellcmdflag, shellslash]:' [&shell, &shellcmdflag, &shellslash]
-        echo "\n"
-    else
-        echo '#### Neomake information (use ":verbose NeomakeInfo" for extra output)'
-    endif
-    echo '##### Enabled makers'
-    echo 'For the current filetype ("'.ft.'", used with :Neomake):'
-    call s:display_maker_info(ft)
-    if empty(ft)
-        echo 'NOTE: the current buffer does not have a filetype.'
-    else
-        let conf_ft = neomake#utils#get_ft_confname(ft)
-        echo 'NOTE: you can define g:neomake_'.conf_ft.'_enabled_makers'
-                    \ .' to configure it (or b:neomake_'.conf_ft.'_enabled_makers).'
-    endif
-    echo "\n"
-    echo 'For the project (used with :Neomake!):'
-    call s:display_maker_info()
-    echo 'NOTE: you can define g:neomake_enabled_makers to configure it.'
-    echo "\n"
-    echo 'Default maker settings:'
-    for [k, v] in items(s:maker_defaults)
-        echo ' - '.k.': '.string(v)
-        unlet! v  " Fix variable type mismatch with Vim 7.3.
-    endfor
-    echo "\n"
-    echo '##### Settings'
-    echo '```'
-    for [k, V] in sort(items(filter(copy(g:), "v:key =~# '^neomake_'")))
-        echo 'g:'.k.' = '.string(V)
-        unlet! V  " Fix variable type mismatch with Vim 7.3.
-    endfor
-    echo "\n"
-    verb set makeprg?
-    echo '```'
-    if &verbose
-        echo "\n"
-        echo '#### :version'
-        echo '```'
-        version
-        echo '```'
-        echo "\n"
-        echo '#### :messages'
-        echo '```'
-        messages
-        echo '```'
-    endif
+    call call('neomake#debug#display_info', a:000)
 endfunction
 
 function! neomake#map_makers(makers, ft, auto_enabled) abort

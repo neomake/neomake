@@ -1,5 +1,13 @@
 " Config API.
 
+let s:defaults = {
+      \ 'maker_defaults': {
+      \   'buffer_output': 1,
+      \   'output_stream': 'both',
+      \   'remove_invalid_entries': 0,
+      \ }}
+lockvar s:defaults
+
 let g:neomake#config#undefined = {}
 lockvar! g:neomake#config#undefined
 
@@ -51,7 +59,6 @@ endfunction
 "    - maker_only: should settings get looked up only in the maker context?
 "                  (i.e. with maker.name prefix in general and in context.maker)
 function! neomake#config#get_with_source(name, ...) abort
-    let Default = a:0 ? a:1 : g:neomake#config#undefined
     let context = a:0 > 1 ? a:2 : {'ft': &filetype, 'bufnr': bufnr('%')}
     let parts = type(a:name) == type([]) ? a:name : split(a:name, '\.')
 
@@ -115,7 +122,14 @@ function! neomake#config#get_with_source(name, ...) abort
         endif
         unlet lookup  " for Vim without patch-7.4.1546
     endfor
-    return [Default, 'default']
+
+    " Return default.
+    if a:0
+      return [a:1, 'default']
+    elseif has_key(s:defaults, a:name)
+      return [copy(s:defaults[a:name]), 'default']
+    endif
+    return [g:neomake#config#undefined, 'default']
 endfunction
 
 

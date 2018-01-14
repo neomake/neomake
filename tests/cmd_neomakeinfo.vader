@@ -1,6 +1,14 @@
 " Tests for the NeomakeInfo command.
 Include: include/setup.vader
 
+Execute (:NeomakeInfo output end to end test):
+  if !(exists('*execute') && has('nvim-0.2.0'))
+    NeomakeTestsSkip 'Only with execute() support'
+  else
+    let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+    Assert len(filter(copy(info), "v:val =~ '\\v^#+ Settings$'")), 'Settings header exists'
+  endif
+
 Execute (:NeomakeInfo):
   Save g:neomake_c_enabled_makers, g:neomaker_not_a_setting
   let g:neomake_c_enabled_makers = ['doesnotexist']
@@ -8,7 +16,7 @@ Execute (:NeomakeInfo):
   Save &makeprg
   let &makeprg = 'mycustom make %'
 
-  let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+  let info = neomake#debug#_get_info_lines()
   Assert len(filter(copy(info), "v:val =~ '\\v^#+ Settings$'")), 'Settings header exists'
   Assert index(info, "g:neomake_c_enabled_makers = ['doesnotexist']") != -1,
   \ 'neomake_c_enabled_makers setting gets reported'
@@ -26,7 +34,7 @@ Execute (:NeomakeInfo with FuncRef):
   \ 'args': function('getcwd'),
   \ 'errorformat': 'custom_efm: %m'}
 
-  let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+  let info = neomake#debug#_get_info_lines()
   let idx = -1
   for line in [
       \ 'For the current filetype ("c", used with :Neomake):',
@@ -43,7 +51,7 @@ Execute (:NeomakeInfo with FuncRef):
 Execute (:NeomakeInfo with unusual filetype):
   new
   set filetype=ft1.gentoo-package-keywords
-  let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+  let info = neomake#debug#_get_info_lines()
   Assert index(info, 'NOTE: you can define g:neomake_ft1_gentoo_package_keywords_enabled_makers to configure it (or b:neomake_ft1_gentoo_package_keywords_enabled_makers).') != -1, 'Line was found'
   bwipe
 
@@ -60,7 +68,7 @@ Execute (:NeomakeInfo displays issues):
   \ 'process_output': function('tr'),
   \ }
 
-  let info = split(neomake#utils#redir('NeomakeInfo'), '\n')
+  let info = neomake#debug#_get_info_lines()
   let idx = -1
   for line in [
       \ '#### Neomake information (use ":verbose NeomakeInfo" for extra output)',
@@ -81,7 +89,7 @@ Execute (:NeomakeInfo displays issues):
   endfor
 
 Execute (:verb NeomakeInfo displays extra info):
-  let info = split(neomake#utils#redir('verbose NeomakeInfo'), '\n')
+  verbose let info = neomake#debug#_get_info_lines()
   let idx = -1
   for line in [
       \ '#### Neomake debug information',
@@ -133,3 +141,41 @@ Execute (NeomakeInfo! copies to clipboard):
   let messages_lines = split(messages_output, "\n")
   AssertEqual NeomakeTestsGetVimMessages(), [
   \ 'Copied Neomake info to clipboard ("+).']
+
+Execute (NeomakeInfo displays new-style config):
+  Save g:neomake
+  unlet! g:neomake
+  new
+
+  let info = neomake#debug#_get_info_lines()
+  let idx = -1
+  for line in [
+      \ '#### Neomake information (use ":verbose NeomakeInfo" for extra output)',
+      \ '##### Settings',
+      \ '###### New-style (dict, overrides old-style)',
+      \ "g:neomake: unset",
+      \ 'b:neomake: unset',
+      \ ]
+    let i = index(info, line)
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
+    let idx = i
+  endfor
+
+  " Using neomake#config#get() should not trigger setting g:neomake.
+  AssertEqual neomake#config#get('doesnotexist'), g:neomake#config#undefined
+  let b:neomake = {}
+  let info = neomake#debug#_get_info_lines()
+  let idx = -1
+  for line in [
+      \ '#### Neomake information (use ":verbose NeomakeInfo" for extra output)',
+      \ '##### Settings',
+      \ '###### New-style (dict, overrides old-style)',
+      \ "g:neomake: unset",
+      \ 'b:neomake: {}',
+      \ ]
+    let i = index(info, line)
+    Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
+    let idx = i
+  endfor
+
+  bwipe
