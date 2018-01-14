@@ -177,5 +177,16 @@ Execute (NeomakeInfo displays new-style config):
     Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
     let idx = i
   endfor
-
   bwipe
+
+Execute (Verbose NeomakeInfo does not display message for filetype with no makers):
+  new
+  noautocmd set filetype=doesnotexist
+
+  call NeomakeTestsSetVimMessagesMarker()
+  verbose let info = neomake#debug#_get_info_lines()
+  let msgs = NeomakeTestsGetVimMessages()
+  bwipe
+
+  AssertEqual msgs, []
+  Assert index(info, 'For the current filetype ("doesnotexist", used with :Neomake):') > 0
