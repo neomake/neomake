@@ -896,3 +896,37 @@ Execute (neomake#Make ignores calls during autocommands):
 
   lclose
   bwipe
+
+Execute (Neovim: detects buffered output feature):
+  if has('nvim-0.2.3')
+    AssertEqual neomake#_get_s().nvim_can_buffer_output, -1
+
+    CallNeomake 0, [{'exe': 'true'}]
+    AssertEqual neomake#_get_s().nvim_can_buffer_output, -1
+
+    let maker = {'buffer_output': 1, 'exe': 'printf', 'args': 'output'}
+    CallNeomake 0, [maker]
+    AssertEqual getqflist()[0].text, 'output'
+
+    let s = neomake#_get_s()
+    let s.nvim_can_buffer_output = 1
+  else
+    if has('nvim-0.2.4')
+      AssertEqual neomake#_get_s().nvim_can_buffer_output, 1
+    else
+      AssertEqual neomake#_get_s().nvim_can_buffer_output, 0
+
+      if has('nvim')
+        " Test that specialized handlers are used, i.e. no output with wrong
+        " nvim_can_buffer_output.
+        let s = neomake#_get_s()
+        let s.nvim_can_buffer_output = 1
+
+        let maker = {'buffer_output': 1, 'exe': 'printf', 'args': 'output'}
+        CallNeomake 0, [maker]
+        AssertEqual getqflist(), []
+
+        let s.nvim_can_buffer_output = 0
+      endif
+    endif
+  endif
