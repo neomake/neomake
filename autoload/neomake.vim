@@ -1172,7 +1172,7 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
     let list = file_mode ? getloclist(0) : getqflist()
     let prev_index = len(a:prev_list)
     let index = prev_index-1
-    let Postprocess = neomake#utils#GetSetting('postprocess', maker, function('neomake#utils#CompressWhitespace'), a:jobinfo.ft, a:jobinfo.bufnr)
+    let Postprocess = neomake#utils#GetSetting('postprocess', maker, [], a:jobinfo.ft, a:jobinfo.bufnr)
     if type(Postprocess) != type([])
         let postprocessors = [Postprocess]
     else
