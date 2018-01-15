@@ -113,7 +113,7 @@ function! neomake#makers#ft#haskell#HlintEntryProcess(entry) abort
     let a:entry.text = substitute(a:entry.text, '\v(Found:)\s*\n', ' | \1', 'g')
     let a:entry.text = substitute(a:entry.text, '\v(Why not:)\s*\n', ' | \1', 'g')
     let a:entry.text = substitute(a:entry.text, '^No hints$', '', 'g')
-    call neomake#utils#CompressWhitespace(a:entry)
+    call neomake#postprocess#compress_whitespace(a:entry)
 endfunction
 
 function! neomake#makers#ft#haskell#hlint() abort

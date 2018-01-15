@@ -3,8 +3,6 @@ Include: include/setup.vader
 Execute (hook handling gets queued for global g:neomake_hook_context):
   call g:NeomakeSetupAutocmdWrappers()
   let maker = copy(g:success_maker)
-  " No postprocessing (defaults to neomake#utils#CompressWhitespace).
-  let maker.postprocess = []
 
   " Change to initial window to trigger processing there.
   let s:finished_called = []
@@ -37,7 +35,7 @@ Execute (hook handling gets queued for global g:neomake_hook_context):
 Execute (hook handling gets queued for global g:neomake_hook_context (with postprocessing)):
   call g:NeomakeSetupAutocmdWrappers()
   let maker = copy(g:success_maker)
-  let maker.postprocess = ['neomake#utils#CompressWhitespace']
+  let maker.postprocess = ['neomake#postprocess#compress_whitespace']
 
   " Change to initial window to trigger processing there.
   let s:finished_called = []

@@ -5,7 +5,7 @@
 "  - enclosing patterns should be returned as \1 and \2, where \1 is used as
 "    offset when the first entry did not match.
 " See tests/postprocess.vader for tests/examples.
-function! neomake#postprocess#GenericLengthPostprocess(entry) abort dict
+function! neomake#postprocess#generic_length(entry) abort dict
     if a:entry.bufnr == bufnr('%') && a:entry.lnum > 0 && a:entry.col
         let pattern = get(self, 'pattern', '\v(["''`])\zs[^\1]{-}\ze(\1)')
         let start = 0
@@ -38,4 +38,17 @@ function! neomake#postprocess#GenericLengthPostprocess(entry) abort dict
     endif
 endfunction
 
-" vim: ts=2 sw=2 et
+" Deprecated: renamed to neomake#postprocess#generic_length.
+function! neomake#postprocess#GenericLengthPostprocess(entry) abort dict
+    return neomake#postprocess#generic_length(a:entry)
+endfunction
+
+function! neomake#postprocess#compress_whitespace(entry) abort
+    let text = a:entry.text
+    let text = substitute(text, "\001", '', 'g')
+    let text = substitute(text, '\r\?\n', ' ', 'g')
+    let text = substitute(text, '\m\s\{2,}', ' ', 'g')
+    let text = substitute(text, '\m^\s\+', '', '')
+    let text = substitute(text, '\m\s\+$', '', '')
+    let a:entry.text = text
+endfunction

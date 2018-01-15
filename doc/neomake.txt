@@ -296,9 +296,10 @@ The following `mapexpr` could be used to prefix the output type: >
     "printf('[%s] %s', neomake_output_source, v:val)"
 <
                                                   *neomake-makers-postprocess*
-The `postprocess` property is a function that gets called for each entry in
-the location or quickfix list. It allows to change entries there or remove
-them by setting the `valid` entry to `-1`.
+The `postprocess` property is a function (or list of functions) that get(s)
+called for each entry in the location or quickfix list.
+It allows to change entries there or remove them by setting the `valid` entry
+to `-1`.
 
 Example: make all entries a warning where `nr` is in the range of 100-199: >
     function PostprocessLintMaker(entry)
@@ -320,11 +321,11 @@ Example: remove some entry for a specific maker (using |expr-lambda|): >
         \ : entry}
 <
 
-The default is to use `neomake#utils#CompressWhitespace` here, which fixes
-whitespace issues (important with multiline error messages).
-
-This can also be used to set the `length` property of an entry, which is used
-to highlight entries in the text (|neomake-highlight|).
+Builtin postprocessors are `neomake#postprocess#compress_whitespace`, which
+fixes whitespace issues (which is useful with multiline error messages),
+and `neomake#postprocess#generic_length`, which adds a length property (used
+for highlights |neomake-highlight|) for entries, when the message refers to an
+identifier at the entry's column.
 See `neomake#makers#ft#text#PostprocessWritegood` for an example.
 
 Entries can be selectively removed in post-processing by setting its "valid"

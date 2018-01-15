@@ -25,7 +25,8 @@ function! neomake#makers#ft#go#go() abort
             \ '%E%f:%l:%c:%m,' .
             \ '%E%f:%l:%m,' .
             \ '%C%\s%\+%m,' .
-            \ '%-G#%.%#'
+            \ '%-G#%.%#',
+        \ 'postprocess': function('neomake#postprocess#compress_whitespace'),
         \ }
 endfunction
 

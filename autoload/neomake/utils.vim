@@ -431,14 +431,9 @@ function! neomake#utils#ReverseSynIDattr(attr) abort
     return a:attr
 endfunction
 
+" Deprecated: moved to neomake#postprocess#compress_whitespace.
 function! neomake#utils#CompressWhitespace(entry) abort
-    let text = a:entry.text
-    let text = substitute(text, "\001", '', 'g')
-    let text = substitute(text, '\r\?\n', ' ', 'g')
-    let text = substitute(text, '\m\s\{2,}', ' ', 'g')
-    let text = substitute(text, '\m^\s\+', '', '')
-    let text = substitute(text, '\m\s\+$', '', '')
-    let a:entry.text = text
+    call neomake#postprocess#compress_whitespace(a:entry)
 endfunction
 
 function! neomake#utils#redir(cmd) abort

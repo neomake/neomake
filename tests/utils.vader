@@ -37,21 +37,6 @@ Execute (NeomakeTestsCreateExe overrides existing exe):
   call g:NeomakeTestsCreateExe('true', [])
   AssertNotEqual system('which true'), true
 
-Execute (neomake#utils#CompressWhitespace):
-  function! s:F(text)
-    let entry = {'text': a:text}
-    call neomake#utils#CompressWhitespace(entry)
-    return entry.text
-  endfunction
-  AssertEqual s:F('foo'), 'foo'
-  AssertEqual s:F(' foo'), 'foo'
-  AssertEqual s:F('foo '), 'foo'
-  AssertEqual s:F('foo bar '), 'foo bar'
-  AssertEqual s:F("foo\nbar "), 'foo bar'
-  AssertEqual s:F("foo\r\nbar "), 'foo bar'
-  AssertEqual s:F("foo\n bar "), 'foo bar'
-  AssertEqual s:F("foo\n bar \r\n"), 'foo bar'
-
 Execute (neomake#utils#GetSetting serialize):
   Save g:maker
   let g:maker = {'name': 'mymaker'}

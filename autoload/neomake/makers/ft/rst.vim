@@ -20,6 +20,7 @@ function! neomake#makers#ft#rst#rstlint() abort
             \ '%WWARNING %f:%l %m,'.
             \ '%IINFO %f:%l %m,'.
             \ '%C%m',
+        \ 'postprocess': function('neomake#postprocess#compress_whitespace'),
         \ }
 endfunction
 
@@ -58,5 +59,6 @@ function! neomake#makers#ft#rst#sphinx() abort
             \ '%Z%m,' .
             \ '%-G%.%#',
         \ 'output_stream': 'stderr',
+        \ 'postprocess': function('neomake#postprocess#compress_whitespace'),
         \ }
 endfunction
