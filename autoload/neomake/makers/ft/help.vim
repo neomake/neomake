@@ -25,7 +25,7 @@ function! neomake#makers#ft#help#vimhelplint() abort
     return {
         \ 'exe': s:vimhelplint_exe,
         \ 'errorformat': '%f:%l:%c:%trror:%n:%m,%f:%l:%c:%tarning:%n:%m',
-        \ 'postprocess': function('neomake#postprocess#GenericLengthPostprocess'),
+        \ 'postprocess': function('neomake#postprocess#generic_length'),
         \ 'output_stream': 'stdout',
         \ }
 endfunction

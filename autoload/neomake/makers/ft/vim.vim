@@ -19,7 +19,7 @@ function! neomake#makers#ft#vim#vint() abort
         \   .'%f:%l:%c:%t%*[^:]:%m',
         \ 'output_stream': 'stdout',
         \ 'postprocess': {
-        \   'fn': function('neomake#postprocess#GenericLengthPostprocess'),
+        \   'fn': function('neomake#postprocess#generic_length'),
         \   'pattern': '\v(Undefined variable: |:)\zs([^ ]+)',
         \ }}
 endfunction

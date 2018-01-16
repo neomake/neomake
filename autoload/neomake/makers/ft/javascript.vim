@@ -18,8 +18,8 @@ endfunction
 function! neomake#makers#ft#javascript#jshint() abort
     return {
         \ 'args': ['--verbose'],
-        \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
-        \ 'postprocess': function('neomake#postprocess#GenericLengthPostprocess'),
+        \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\),%-G,%-G%\\d%\\+ errors',
+        \ 'postprocess': function('neomake#postprocess#generic_length'),
         \ }
 endfunction
 

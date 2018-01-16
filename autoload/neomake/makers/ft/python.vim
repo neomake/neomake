@@ -37,7 +37,7 @@ function! neomake#makers#ft#python#pylint() abort
             \ '%-G%.%#',
         \ 'output_stream': 'stdout',
         \ 'postprocess': [
-        \   function('neomake#postprocess#GenericLengthPostprocess'),
+        \   function('neomake#postprocess#generic_length'),
         \   function('neomake#makers#ft#python#PylintEntryProcess'),
         \ ]}
     function! maker.filter_output(lines, context) abort
@@ -218,7 +218,7 @@ function! neomake#makers#ft#python#pydocstyle() abort
         \ 'errorformat':
         \   '%W%f:%l %.%#:,' .
         \   '%+C        %m',
-        \ 'postprocess': function('neomake#utils#CompressWhitespace'),
+        \ 'postprocess': function('neomake#postprocess#compress_whitespace'),
         \ }
 endfunction
 

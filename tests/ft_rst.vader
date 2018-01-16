@@ -17,7 +17,7 @@ Execute (rst: rstlint: errorformat):
   \ }]
 
   " Newline gets trimmed when going through postprocess.
-  let maker = {'exe': 'printf', 'args': ['%s\n'] + output, 'append_file': 0}
+  let maker = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rst#rstlint', output)
   CallNeomake 1, [maker]
   AssertEqual getloclist(0), [
   \ {'lnum': 40, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0,
