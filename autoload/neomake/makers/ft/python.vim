@@ -1,5 +1,7 @@
 " vim: ts=4 sw=4 et
 
+let s:python_version = -1
+
 if !exists('s:compile_script')
     let s:slash = neomake#utils#Slash()
     let s:compile_script = expand('<sfile>:p:h', 1).s:slash.'python'.s:slash.'compile.py'
@@ -21,6 +23,17 @@ function! neomake#makers#ft#python#EnabledMakers() abort
 endfunction
 
 let neomake#makers#ft#python#project_root_files = ['setup.cfg', 'tox.ini']
+
+function! neomake#makers#ft#python#DetectPythonVersion() abort
+    let output = neomake#compat#systemlist('python -V 2>&1')
+    if v:shell_error
+        call neomake#utils#ErrorMessage(printf(
+                    \ 'Failed to detect Python version: %s.',
+                    \ join(output)))
+    else
+        let s:python_version = split(split(output[0])[1], '\.')
+    endif
+endfunction
 
 function! neomake#makers#ft#python#pylint() abort
     let maker = {
@@ -299,10 +312,10 @@ function! neomake#makers#ft#python#mypy() abort
     let l:args = ['--check-untyped-defs', '--ignore-missing-imports']
 
     " Append '--py2' to args with Python 2 for Python 2 mode.
-    if !exists('s:python_version')
-        let s:python_version = split(split(system('python -V 2>&1'))[1], '\.')
+    if s:python_version is -1
+        call neomake#makers#ft#python#DetectPythonVersion()
     endif
-    if !v:shell_error && s:python_version[0] ==# '2'
+    if s:python_version[0] ==# '2'
         call add(l:args, '--py2')
     endif
 
