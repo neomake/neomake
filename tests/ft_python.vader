@@ -204,7 +204,7 @@ Execute (python: mypy: handles --py2):
   Save $PATH
   let $PATH = ''
 
-  let base_args = ['--check-untyped-defs', '--ignore-missing-imports', '--show-column-numbers']
+  let base_args = ['--check-untyped-defs', '--ignore-missing-imports']
 
   " Defaults to py3.
   let maker = neomake#makers#ft#python#mypy()
