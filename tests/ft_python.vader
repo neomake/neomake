@@ -201,15 +201,13 @@ Execute (python: pylint: filters expected msgs on stderr):
   \ ]
 
 Execute (python: mypy: handles --py2):
-  Save $PATH
-  let $PATH = ''
-
+  call g:NeomakeTestsSetPATH('')
   let base_args = ['--check-untyped-defs', '--ignore-missing-imports']
 
   " Defaults to py3.
   let maker = neomake#makers#ft#python#mypy()
   AssertEqual maker.args, base_args
-  AssertNeomakeMessage 'Failed to detect Python version: /usr/bin/bash: python: No such file or directory.', 0
+  AssertNeomakeMessage '\v^Failed to detect Python version: .*', 0
 
   " Appends --py2 with Python 2.
   call g:NeomakeTestsCreateExe('python', ['#!/bin/sh', 'echo Python 2.7.14'])

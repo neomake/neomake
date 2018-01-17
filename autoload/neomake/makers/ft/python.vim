@@ -1,7 +1,5 @@
 " vim: ts=4 sw=4 et
 
-let s:python_version = -1
-
 if !exists('s:compile_script')
     let s:slash = neomake#utils#Slash()
     let s:compile_script = expand('<sfile>:p:h', 1).s:slash.'python'.s:slash.'compile.py'
@@ -30,6 +28,7 @@ function! neomake#makers#ft#python#DetectPythonVersion() abort
         call neomake#utils#ErrorMessage(printf(
                     \ 'Failed to detect Python version: %s.',
                     \ join(output)))
+        let s:python_version = [-1, -1, -1]
     else
         let s:python_version = split(split(output[0])[1], '\.')
     endif
@@ -312,7 +311,7 @@ function! neomake#makers#ft#python#mypy() abort
     let l:args = ['--check-untyped-defs', '--ignore-missing-imports']
 
     " Append '--py2' to args with Python 2 for Python 2 mode.
-    if s:python_version is -1
+    if !exists('s:python_version')
         call neomake#makers#ft#python#DetectPythonVersion()
     endif
     if s:python_version[0] ==# '2'
