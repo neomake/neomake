@@ -26,6 +26,11 @@ function! neomake#makers#ft#php#phpcs() abort
         call add(l:args, '--standard=' . expand(g:neomake_php_phpcs_args_standard))
     endif
 
+    "Add warning severity argument if one is set.
+    if exists('g:neomake_php_phpcs_args_warning_severity')
+        call add(l:args, '--warning-severity=' . expand(g:neomake_php_phpcs_args_warning_severity))
+    endif
+
     return {
         \ 'args': args,
         \ 'errorformat':
