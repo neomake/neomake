@@ -205,6 +205,7 @@ Execute (python: mypy: handles --py2):
   let base_args = ['--check-untyped-defs', '--ignore-missing-imports']
 
   " Defaults to py3.
+  call neomake#makers#ft#python#DetectPythonVersion()
   let maker = neomake#makers#ft#python#mypy()
   AssertEqual maker.args, base_args
   AssertNeomakeMessage '\v^Failed to detect Python version: .*', 0
