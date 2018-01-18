@@ -734,12 +734,6 @@ function! neomake#GetMaker(name_or_maker, ...) abort
         if maker is# s:unset_dict
             if !empty(ft)
                 let maker = s:GetMakerForFiletype(ft, a:name_or_maker)
-                if maker isnot# s:unset_dict
-                    " Filetype makers default to 1 for append_file.
-                    if !has_key(maker, 'append_file')
-                        let maker.append_file = 1
-                    endif
-                endif
             endif
             if maker is# s:unset_dict
                 call neomake#utils#load_global_makers()
