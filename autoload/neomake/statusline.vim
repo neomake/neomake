@@ -45,6 +45,7 @@ endfunction
 
 function! neomake#statusline#ResetCountsForBuf(...) abort
     let bufnr = a:0 ? +a:1 : bufnr('%')
+    call s:clear_cache(bufnr)
     if has_key(s:loclist_counts, bufnr)
       let r = s:loclist_counts[bufnr] != {}
       unlet s:loclist_counts[bufnr]
@@ -52,7 +53,6 @@ function! neomake#statusline#ResetCountsForBuf(...) abort
           call neomake#utils#hook('NeomakeCountsChanged', {
                 \ 'reset': 1, 'file_mode': 1, 'bufnr': bufnr})
       endif
-      call s:clear_cache(bufnr)
       return r
     endif
     return 0
@@ -61,10 +61,12 @@ endfunction
 function! neomake#statusline#ResetCountsForProject(...) abort
     let r = s:qflist_counts != {}
     let s:qflist_counts = {}
+    let bufnr = bufnr('%')
     if r
         call neomake#utils#hook('NeomakeCountsChanged', {
-              \ 'reset': 1, 'file_mode': 0, 'bufnr': bufnr('%')})
+              \ 'reset': 1, 'file_mode': 0, 'bufnr': bufnr})
     endif
+    call s:clear_cache(bufnr)
     return r
 endfunction
 
@@ -137,7 +139,7 @@ let s:formatter = {
             \ }
 function! s:formatter.running_job_names() abort
     let jobs = get(self.args, 'running_jobs', s:running_jobs(self.args.bufnr))
-    return join(map(jobs, 'v:val.name'), ', ')
+    return join(map(jobs, "v:val.name . (v:val.file_mode ? '' : '!')"), ', ')
 endfunction
 
 function! s:formatter._substitute(m) abort
