@@ -5,14 +5,14 @@ Execute (NeomakeSh: simple serialized makers):
   Save g:neomake_serialize
   let g:neomake_serialize = 1
 
-  call neomake#Make(1, [g:sleep_maker, g:success_maker])
+  call neomake#Make(1, [g:sleep_maker, g:error_maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(getloclist(0), 'v:val.text'),
-  \ ['slept', 'success']
-  AssertNeomakeMessage 'Running makers: sleep-maker, success-maker.', 3
+  \ ['slept', 'error']
+  AssertNeomakeMessage 'Running makers: sleep-maker, error-maker.', 3
   AssertNeomakeMessage 'exit: sleep-maker: 0.'
-  AssertNeomakeMessage 'exit: success-maker: 0.'
+  AssertNeomakeMessage 'exit: error-maker: 1.'
 
 Execute (NeomakeSh: simple serialized makers: two buffers in parallel):
   if NeomakeAsyncTestsSetup()
@@ -24,24 +24,24 @@ Execute (NeomakeSh: simple serialized makers: two buffers in parallel):
     let g:neomake_serialize = 1
 
     new
-    call neomake#Make(1, [sleep_maker1, g:success_maker])
+    call neomake#Make(1, [sleep_maker1, g:error_maker])
     new
-    call neomake#Make(1, [sleep_maker2, g:success_maker])
+    call neomake#Make(1, [sleep_maker2, g:error_maker])
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual map(getloclist(0), 'v:val.text'),
-    \ ['slept2', 'success']
-    AssertNeomakeMessage 'Running makers: sleep-maker1, success-maker.', 3
-    AssertNeomakeMessage 'Running makers: sleep-maker2, success-maker.', 3
+    \ ['slept2', 'error']
+    AssertNeomakeMessage 'Running makers: sleep-maker1, error-maker.', 3
+    AssertNeomakeMessage 'Running makers: sleep-maker2, error-maker.', 3
     AssertNeomakeMessage 'exit: sleep-maker1: 0.'
-    AssertNeomakeMessage 'exit: success-maker: 0.'
+    AssertNeomakeMessage 'exit: error-maker: 1.'
     AssertNeomakeMessage 'exit: sleep-maker2: 0.'
-    AssertNeomakeMessage 'exit: success-maker: 0.'
+    AssertNeomakeMessage 'exit: error-maker: 1.'
 
     bwipe
     AssertEqual len(g:neomake_test_finished), 2
     AssertEqual map(getloclist(0), 'v:val.text'),
-    \ ['slept1', 'success']
+    \ ['slept1', 'error']
     bwipe
   endif
 
@@ -54,7 +54,7 @@ Execute (NeomakeSh: simple serialized maker with error):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(getloclist(0), 'v:val.text'),
-  \ ['error', 'success']
+  \ ['error']
   AssertNeomakeMessage 'Running makers: error-maker, success-maker.', 3
   AssertNeomakeMessage 'exit: error-maker: 1.'
   AssertNeomakeMessage 'exit: success-maker: 0.'
@@ -76,15 +76,20 @@ Execute (NeomakeSh: serialized with global abort):
 
 Execute (NeomakeSh: serialized with buffer overriding global abort):
   call g:NeomakeSetupAutocmdWrappers()
+  new
 
   Save g:neomake_serialize
   let g:neomake_serialize = 1
+  Save g:neomake_serialize_abort_on_error
+  let g:neomake_serialize_abort_on_error = 1
+  let b:neomake_serialize_abort_on_error = 0
 
-  call neomake#Make(0, [g:error_maker, g:success_maker])
+  call neomake#Make(0, [g:error_maker, g:error_maker])
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 2
   AssertEqual len(g:neomake_test_finished), 1
-  AssertEqual map(getqflist(), 'v:val.text'), ['error', 'success']
+  AssertEqual map(getqflist(), 'v:val.text'), ['error', 'error']
+  bwipe
 
 Execute (NeomakeSh: serialized with abort from maker):
   call g:NeomakeSetupAutocmdWrappers()
@@ -126,10 +131,12 @@ Execute (NeomakeSh: serialized after doesnotexist: continue):
     Save g:neomake_serialize
     let g:neomake_serialize = 1
 
-    call neomake#Make(0, [g:doesnotexist_maker, g:success_maker])
+    call neomake#Make(0, [g:doesnotexist_maker, g:error_maker])
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_finished), 1
-    AssertEqual map(getqflist(), 'v:val.text'), ['success']
+    AssertEqual map(getqflist(), 'v:val.text'), ['error']
+
+    AssertNeomakeMessage 'Exe (doesnotexist) of maker unnamed_maker is not executable.'
   endif
 
 Execute (NeomakeSh: serialized after doesnotexist with abort: continue):
@@ -242,9 +249,9 @@ Execute (Neomake#Make starts new jobs before waiting for the old to finish):
 
 Execute (Neomake#Make does not cancel maker from same run):
   if NeomakeAsyncTestsSetup()
-    call neomake#Make(0, [g:success_maker, g:success_maker])
+    call neomake#Make(0, [g:error_maker, g:error_maker])
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(getqflist(), 'v:val.text'), ['success', 'success']
+    AssertEqual map(getqflist(), 'v:val.text'), ['error', 'error']
   endif
 
 Execute (Neomake#Make handles cwd properly):
