@@ -134,7 +134,7 @@ function! neomake#CancelMake(make_id, ...) abort
     for job in jobs
         call neomake#CancelJob(job.id, bang)
     endfor
-    call s:clean_action_queue(get(s:make_info, a:make_id, {'make_id': a:make_id}))
+    call s:clean_action_queue(make_info)
     " Ensure that make gets cleaned really, e.g. if there were no jobs yet.
     if has_key(s:make_info, a:make_id)
         call s:clean_make_info(make_info, bang)
@@ -152,9 +152,22 @@ endfunction
 " Remove any queued actions for a jobinfo or make_info object.
 function! s:clean_action_queue(job_or_make_info) abort
     let removed = 0
+
+    " @vimlint(EVL102, 1, l:make_id)
+    " @vimlint(EVL102, 1, l:jobinfo)
+    if has_key(a:job_or_make_info, 'options')
+        " Make run: filter make runs and jobinfos.
+        let make_id = a:job_or_make_info.options.make_id
+        let f = "get(v:val[1][0], 'make_id', -1) != make_id"
+                    \ . " && get(get(v:val[1][0], 'options'), 'make_id', -1) != make_id"
+    else
+        let jobinfo = a:job_or_make_info
+        let f = "get(v:val[1][0], 'id', -1) != jobinfo.id"
+    endif
+
     for [event, q] in items(s:action_queue)
         let len_before = len(q)
-        call filter(q, 'v:val[1][0] != a:job_or_make_info')
+        call filter(q, f)
         let len_after = len(q)
         if len_before != len_after
             let removed += (len_before - len_after)
@@ -177,7 +190,7 @@ function! neomake#CancelJob(job_id, ...) abort
     let jobinfo = get(s:jobs, job_id, {})
     call neomake#utils#DebugMessage('Cancelling job.', jobinfo)
 
-    call s:clean_action_queue(jobinfo)
+    call s:clean_action_queue(empty(jobinfo) ? {'id': job_id} : jobinfo)
 
     if empty(jobinfo)
         call neomake#utils#ErrorMessage('CancelJob: job not found: '.job_id.'.')
@@ -256,8 +269,8 @@ function! s:handle_get_list_entries(jobinfo, ...) abort
         return s:pcall('s:handle_get_list_entries', [a:jobinfo])
     endif
     let jobinfo = a:jobinfo
-    let maker = jobinfo.maker
     let jobinfo.serialize = 0
+    let maker = jobinfo.maker
     try
         let entries = maker.get_list_entries(jobinfo)
     catch /^\%(Vim\%((\a\+)\)\=:\%(E48\|E523\)\)\@!/  " everything, but E48/E523 (sandbox / not allowed here)
@@ -269,6 +282,8 @@ function! s:handle_get_list_entries(jobinfo, ...) abort
                     \ jobinfo.maker.name, v:exception), jobinfo)
         call s:CleanJobinfo(jobinfo)
         return 1
+    finally
+        let jobinfo.finished = 1
     endtry
 
     if type(entries) != type([])
@@ -333,7 +348,8 @@ function! s:MakeJob(make_id, options) abort
         call neomake#utils#LoudMessage(printf(
                     \ '%s: getting entries via get_list_entries.',
                     \ maker.name), jobinfo)
-        let jobinfo.serialize = 1
+        let s:jobs[jobinfo.id] = jobinfo
+        let s:make_info[a:make_id].active_jobs += [jobinfo]
         call s:handle_get_list_entries(jobinfo)
         return jobinfo
     endif
@@ -999,6 +1015,12 @@ function! s:process_action_queue(event) abort
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '')
             call neomake#utils#log_exception(error, log_context)
+
+            " Cancel job in case its action failed to get re-queued after X
+            " attempts.
+            if has_key(job_or_make_info, 'id')
+                call neomake#CancelJob(job_or_make_info.id)
+            endif
             continue
         endtry
     endfor
@@ -1668,6 +1690,7 @@ function! s:pcall(fn, args) abort
     catch /^\%(Vim\%((\a\+)\)\=:\%(E48\|E523\)\)/  " only E48/E523 (sandbox / not allowed here)
         call neomake#utils#DebugMessage('Error during pcall: '.v:exception.'.', jobinfo)
         call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), jobinfo)
+        " Might throw in case of X failed attempts.
         call s:queue_action('Timer', [a:fn, a:args])
     endtry
     return 0
