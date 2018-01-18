@@ -164,8 +164,6 @@ function! s:clean_action_queue(job_or_make_info) abort
         let jobinfo = a:job_or_make_info
         let f = "get(v:val[1][0], 'id', -1) != jobinfo.id"
     endif
-    " @vimlint(EVL102, 0, l:make_id)
-    " @vimlint(EVL102, 0, l:jobinfo)
 
     for [event, q] in items(s:action_queue)
         let len_before = len(q)
