@@ -88,6 +88,8 @@ Execute (Location list handling is postponed with visible popup menu):
     normal! oword2
 
     function! s:close_pum(...)
+      NeomakeTestsWaitForMessage 'Postponing final location list handling during completion.', 3
+      AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for CompleteDone.'
       call neomake#utils#DebugMessage('tests: closing popupmenu.')
       call feedkeys("\<esc>")
     endfunction
@@ -98,9 +100,7 @@ Execute (Location list handling is postponed with visible popup menu):
     call timer_start(100, 's:close_pum')
     call feedkeys("oword\<C-p>", 'x!')
 
-    AssertNeomakeMessage 'Postponing final location list handling during completion.', 3
-    AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for CompleteDone.'
-    AssertNeomakeMessage 'tests: closing popupmenu.', 3
+    NeomakeTestsWaitForMessage 'tests: closing popupmenu.', 3
 
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'action queue: processing for CompleteDone (1 items, winnr: 2).', 3
