@@ -153,6 +153,8 @@ endfunction
 function! s:clean_action_queue(job_or_make_info) abort
     let removed = 0
 
+    " @vimlint(EVL102, 1, l:make_id)
+    " @vimlint(EVL102, 1, l:jobinfo)
     if has_key(a:job_or_make_info, 'options')
         " Make run: filter make runs and jobinfos.
         let make_id = a:job_or_make_info.options.make_id
@@ -162,6 +164,8 @@ function! s:clean_action_queue(job_or_make_info) abort
         let jobinfo = a:job_or_make_info
         let f = "get(v:val[1][0], 'id', -1) != jobinfo.id"
     endif
+    " @vimlint(EVL102, 0, l:make_id)
+    " @vimlint(EVL102, 0, l:jobinfo)
 
     for [event, q] in items(s:action_queue)
         let len_before = len(q)
