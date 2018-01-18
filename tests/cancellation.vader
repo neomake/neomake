@@ -229,3 +229,22 @@ Execute (neomake#CancelJob handles string with job_id at the beginning):
     AssertNeomakeMessage 'Stopping job.', 3, jobinfo
     NeomakeTestsWaitForFinishedJobs
   endif
+
+Execute (neomake#CancelJob clears action queue for get_list_entries maker):
+  if NeomakeAsyncTestsSetup()
+    let maker = {}
+    function! maker.get_list_entries(...) abort dict
+      " causes E48
+      sandbox bprevious
+    endfunction
+
+    let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
+    AssertNeomakeMessage 'Queueing action: s:handle_get_list_entries for Timer.'
+
+    " Job cannot be canceled (processed directly).
+    AssertEqual neomake#CancelJob(jobinfo), 0
+    AssertNeomakeMessage 'Cancelling job.', 3, jobinfo
+    AssertNeomakeMessage 'Removed 1 action queue entries.', 3
+    AssertNeomakeMessage 'Cleaning jobinfo.', 3
+    AssertNeomakeMessage 'Cleaning make info.', 3
+  endif
