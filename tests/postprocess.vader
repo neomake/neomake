@@ -390,13 +390,13 @@ Execute (Postprocess: lambda from conf):
 
 Execute (Hook context gets cleaned on error in postprocess):
   call NeomakeTestsSetVimMessagesMarker()
-  let maker = copy(g:success_maker)
+  let maker = copy(g:error_maker)
   function! maker.postprocess(entry)
     throw 'error from postprocess'
   endfunction
   call neomake#Make({'enabled_makers': [maker]})
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Error during output processing for success-maker: error from postprocess.', 0
+  AssertNeomakeMessage 'Error during output processing for error-maker: error from postprocess.', 0
   let vim_msgs = NeomakeTestsGetVimMessages()
   Assert vim_msgs[-1] =~# 'Neomake error in: function .*', 'message found'
   AssertEqual len(vim_msgs), 1

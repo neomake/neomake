@@ -339,6 +339,7 @@ function! g:error_maker.postprocess(entry) abort
   let a:entry.lnum = 1
 endfunction
 let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
+let g:success_maker.errorformat = '%-Gsuccess'
 let g:true_maker = NeomakeTestsCommandMaker('true-maker', 'true')
 let g:entry_maker = {'name': 'entry_maker'}
 function! g:entry_maker.get_list_entries(...) abort
