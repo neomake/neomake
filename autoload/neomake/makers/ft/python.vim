@@ -22,6 +22,18 @@ endfunction
 
 let neomake#makers#ft#python#project_root_files = ['setup.cfg', 'tox.ini']
 
+function! neomake#makers#ft#python#DetectPythonVersion() abort
+    let output = neomake#compat#systemlist('python -V 2>&1')
+    if v:shell_error
+        call neomake#utils#ErrorMessage(printf(
+                    \ 'Failed to detect Python version: %s.',
+                    \ join(output)))
+        let s:python_version = [-1, -1, -1]
+    else
+        let s:python_version = split(split(output[0])[1], '\.')
+    endif
+endfunction
+
 function! neomake#makers#ft#python#pylint() abort
     let maker = {
         \ 'args': [
@@ -300,9 +312,9 @@ function! neomake#makers#ft#python#mypy() abort
 
     " Append '--py2' to args with Python 2 for Python 2 mode.
     if !exists('s:python_version')
-        let s:python_version = split(split(system('python -V 2>&1'))[1], '\.')
+        call neomake#makers#ft#python#DetectPythonVersion()
     endif
-    if !v:shell_error && s:python_version[0] ==# '2'
+    if s:python_version[0] ==# '2'
         call add(l:args, '--py2')
     endif
 
