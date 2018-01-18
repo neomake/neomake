@@ -102,7 +102,12 @@ Execute (neomake#statusline#get_status: clears cache with new job (file mode)):
   let bufnr = bufnr('%')
   CallNeomake {'enabled_makers': [g:error_maker]}
   AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatColorTypeE# E:1 '
-  CallNeomake {'enabled_makers': [g:success_maker]}
+
+  call neomake#Make({'enabled_makers': [g:success_maker]})
+  if neomake#has_async_support()
+    AssertEqual neomake#statusline#get(bufnr, {}), '… (success-maker)'
+    NeomakeTestsWaitForFinishedJobs
+  endif
   AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatusGood#✓'
   bwipe
 
@@ -111,6 +116,15 @@ Execute (neomake#statusline#get_status: clears cache with new job (project mode)
   let bufnr = bufnr('%')
   CallNeomake {'file_mode': 0, 'enabled_makers': [g:error_maker]}
   AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatColorQuickfixTypeE# QE:1 '
-  CallNeomake {'file_mode': 0, 'enabled_makers': [g:true_maker]}
+
+  call neomake#Make({'file_mode': 0, 'enabled_makers': [g:true_maker]})
+  if neomake#has_async_support()
+    AssertEqual neomake#statusline#get(bufnr, {}), '… (true-maker!)'
+  endif
+  call neomake#Make({'file_mode': 0, 'enabled_makers': [g:success_maker]})
+  if neomake#has_async_support()
+    AssertEqual neomake#statusline#get(bufnr, {}), '… (true-maker!, success-maker!)'
+    NeomakeTestsWaitForFinishedJobs
+  endif
   AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatusGood#✓'
   bwipe
