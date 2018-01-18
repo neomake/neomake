@@ -18,10 +18,10 @@ Execute (Output is only processed in normal/insert mode (loclist)):
     AssertEqual mode(), 'n'
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 0
-    Assert exists('#neomake_process_pending#CursorHold'), 'neomake_process_pending augroup exists'
+    Assert exists('#neomake_event_queue#CursorHold'), 'neomake_event_queue augroup exists'
     doautocmd CursorHold
     sleep 100m
-    Assert !exists('#neomake_process_pending#CursorHold'), 'neomake_process_pending is empty'
+    Assert !exists('#neomake_event_queue#CursorHold'), 'neomake_event_queue is empty'
     AssertEqual len(g:neomake_test_countschanged), 1
     AssertEqual len(g:neomake_test_finished), 1, "b"
     AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
@@ -50,6 +50,64 @@ Execute (Output is only processed in normal/insert mode (qflist)):
     call neomake#signs#ResetProject()
     call neomake#signs#CleanAllOldSigns('project')
     bwipe
+  endif
+
+Execute (Output is not processed with visible popup menu):
+  if NeomakeAsyncTestsSetup()
+    new
+    file file_sleep_efm
+    normal! iword1
+    normal! oword2
+
+    function! s:close_pum(...)
+      call feedkeys("\<c-e>", 'x')
+      call feedkeys("\<esc>")
+    endfunction
+
+    call neomake#Make(0, [g:sleep_efm_maker])[0]
+    let jobinfo = neomake#GetJobs()[-1]
+
+    call timer_start(100, 's:close_pum')
+    call feedkeys("oword\<C-p>", 'x!')
+
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Not processing output during completion.', 3
+    AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
+    AssertNeomakeMessage 'action queue: processing for CompleteDone (1 items, winnr: 2).'
+    AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
+    AssertNeomakeMessage 'Processed pending output.', 3, jobinfo
+    AssertEqual map(getqflist(), 'v:val.text'), ['error message', 'warning', 'error2']
+    bwipe!
+  endif
+
+Execute (Location list handling is postponed with visible popup menu):
+  if NeomakeAsyncTestsSetup()
+    new
+    file file_sleep_efm
+    normal! iword1
+    normal! oword2
+
+    function! s:close_pum(...)
+      call neomake#utils#DebugMessage('tests: closing popupmenu.')
+      call feedkeys("\<esc>")
+    endfunction
+
+    let maker = NeomakeTestsCommandMaker('silent-sleep-success', 'sleep .01')
+    call neomake#Make(1, [maker])
+
+    call timer_start(100, 's:close_pum')
+    call feedkeys("oword\<C-p>", 'x!')
+
+    AssertNeomakeMessage 'Postponing final location list handling during completion.', 3
+    AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for CompleteDone.'
+    AssertNeomakeMessage 'tests: closing popupmenu.', 3
+
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'action queue: processing for CompleteDone (1 items, winnr: 2).', 3
+    AssertNeomakeMessage 'action queue: processed 1 items.', 3
+
+    AssertEqual getloclist(0), []
+    bwipe!
   endif
 
 Execute (Location list is only cleared in normal/insert mode on success):
@@ -355,11 +413,11 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
     doautocmd CursorHold
 
     AssertEqual map(getloclist(0), 'v:val.text'),
-    \ ['2:0: buf: b1', '2:1: buf: b1']
+    \ ['1:0: buf: b1']
 
     lolder
     AssertEqual map(getloclist(0), 'v:val.text'),
-    \ ['1:0: buf: b1']
+    \ ['2:0: buf: b1', '2:1: buf: b1']
     AssertEqual len(g:neomake_test_finished), 2
     AssertEqual len(g:neomake_test_jobfinished), 2
     bwipe
@@ -385,19 +443,19 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
       \ .make_id.'.'.jobinfo1.id.') for the same maker.', 2, {'make_id': make_id+1}
     AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual len(g:neomake_test_jobfinished), 2
-    AssertEqual len(g:neomake_test_finished), 2
+    AssertEqual len(g:neomake_test_jobfinished), 1
+    AssertEqual len(g:neomake_test_finished), 1
 
     AssertEqual map(getqflist(), 'v:val.text'),
     \ ['2:0: buf: b1', '2:1: buf: b1']
     doautocmd CursorHold
 
     AssertEqual map(getqflist(), 'v:val.text'),
-    \ ['2:0: buf: b1', '2:1: buf: b1']
+    \ ['1:0: buf: b1']
 
     colder
     AssertEqual map(getqflist(), 'v:val.text'),
-    \ ['1:0: buf: b1']
+    \ ['2:0: buf: b1', '2:1: buf: b1']
 
     AssertEqual len(g:neomake_test_finished), 2
     AssertEqual len(g:neomake_test_jobfinished), 2
@@ -434,16 +492,17 @@ Execute (Second make finishes before first (loclist)):
 Execute (Handle finished job that got canceled (#1158)):
   call g:NeomakeSetupAutocmdWrappers()
   norm! V
-  CallNeomake 0, [g:success_maker]
-  let jobs = neomake#Make(0, [g:success_maker])
+  call neomake#Make(0, [g:success_maker])
   if neomake#has_async_support()
-    AssertNeomakeMessage '\mCancelling already running job (\d\+.\d\+) for the same maker.'
     NeomakeTestsWaitForFinishedJobs
-    call neomake#CancelJob(jobs[0])
-    AssertEqual len(g:neomake_test_jobfinished), 0
-  else
-    " XXX: should not run in non-async Vim (in this constructed case).
-    AssertEqual len(g:neomake_test_jobfinished), 2
+  endif
+  AssertNeomakeMessage 'Not processing output for mode "V".', 3
+  let jobs = neomake#Make(0, [g:success_maker])
+  AssertNeomakeMessage '\mCancelling already running job (\d\+.\d\+) for the same maker.'
+  AssertEqual len(g:neomake_test_jobfinished), 0
+  call neomake#CancelJob(jobs[0])
+  if neomake#has_async_support()
+    NeomakeTestsWaitForFinishedJobs
   endif
 
 Execute (Job does not get restarted when canceled):
@@ -637,8 +696,8 @@ Execute (Pending output gets processed in order of jobs (project first)):
   doautocmd CursorHold
   NeomakeTestsWaitForRemovedJobs
   AssertNeomakeMessage 'Not processing output for mode "V".'
-  AssertNeomakeMessage 'Creating quickfix list.'
   AssertNeomakeMessage 'Creating location list.'
+  AssertNeomakeMessage 'Creating quickfix list.'
 
   AssertEqual map(getloclist(0), 'v:val.text'), ['file_maker']
   AssertEqual map(getqflist(), 'v:val.text'), ['project_maker']
@@ -740,7 +799,7 @@ Execute (action queue handles E48 in process_output):
   AssertNeomakeMessage 'exit: unnamed_maker: 0.'
   AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.'
   AssertNeomakeMessage 'Error during pcall: Vim(bprevious):E48: Not allowed in sandbox:   sandbox bprevious.', 3
-  AssertNeomakeMessage 'Queueing action: s:ProcessJobOutput for Timer.'
+  AssertNeomakeMessage 'Queueing action: s:ProcessJobOutput for Timer, WinEnter.'
   if has('timers')
     AssertNeomakeMessage 'Retrying Timer event in 10ms.'
   else
@@ -753,19 +812,16 @@ Execute (action queue handles E48 in process_output):
   AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
 
   bwipe
-  AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 1).'
-  if async
-    AssertNeomakeMessage 'action queue: processing Timer queue first.', 3
-    AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 1).'
-    AssertNeomakeMessage 'action queue: calling s:ProcessJobOutput.'
-    AssertNeomakeMessage 'Postponing location list processing.'
-    AssertNeomakeMessage 'Queueing action: s:ProcessJobOutput for WinEnter.'
-    AssertNeomakeMessage 'action queue: processed 0 items.'
-  endif
-  AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.'
-  AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:ProcessJobOutput.'
-  AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
-  AssertNeomakeMessage 'action queue: processed 0 items.'
+
+  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).', 3
+  AssertNeomakeMessage 'action queue: calling s:ProcessJobOutput.', 3
+  AssertNeomakeMessage 'Postponing location list processing.', 3
+  AssertNeomakeMessage 'Queueing action: s:ProcessJobOutput for BufEnter, WinEnter.', 3
+  AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.', 3
+  AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:ProcessJobOutput.', 3
+  AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.', 3
+  AssertNeomakeMessage 'action queue: processed 0 items.', 3
+  AssertNeomakeMessage 'action queue: processing for BufEnter (1 items, winnr: 1).', 3
 
   call neomake#CancelAllMakes()
   AssertNeomakeMessage 'Removed 2 action queue entries.', 3, jobinfo
@@ -796,7 +852,7 @@ Execute (job finishes while in tabline function):
 
     NeomakeTestsWaitForMessage 'Error during pcall: Vim(laddexpr):E523: Not allowed here:                 laddexpr a:lines.', 3
     AssertNeomakeMessage '\v\(in function .*\.\.\<SNR\>\d+_NeomakeTestTabline\[\d+\]\.\..*\)', 3
-    AssertNeomakeMessage 'Queueing action: s:ProcessJobOutput for Timer.', 3
+    AssertNeomakeMessage 'Queueing action: s:ProcessJobOutput for Timer, WinEnter.', 3
 
     AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:ProcessJobOutput.'
     AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'

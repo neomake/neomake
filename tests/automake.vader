@@ -667,6 +667,49 @@ Execute (Automake restarts if context changed):
     bwipe!
   endif
 
+Execute (Automake restarts if popup menu is visible):
+  if !has('timers')
+    NeomakeTestsSkip 'only with timers feature'
+  else
+    new
+    file file_sleep_efm
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call append(0, ['word1', 'word2'])
+
+    function s:close_pum(...)
+      call feedkeys("\<c-e>\<esc>")
+    endfunction
+
+    call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 5}})
+    doautocmd CursorHold
+    AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
+    let base_timer = g:neomake_test_matchlist[1]
+
+    " Trigger popup menu.
+    call timer_start(100, 's:close_pum')
+    call feedkeys("oword\<C-p>", 'x!')
+
+    AssertNeomakeMessage 'automake: callback for timer '.base_timer.' (via CursorHold).'
+    AssertNeomakeMessage 'automake: postponing automake during completion.', 3
+    AssertNeomakeMessage 'automake: re-starting postponed automake.'
+    AssertNeomakeMessage 'automake: tick changed (new).'
+    " +2 since we use timer_start above.
+    AssertNeomakeMessage 'automake: started timer (5ms): '.(base_timer + 2).'.'
+    NeomakeTestsWaitForMessage 'automake: callback for timer '.(base_timer + 2).' (via CursorHold).'
+    AssertNeomakeMessage "automake: context/position changed: [[0, 4, 5, 0], 'i'] => [[0, 4, 4, 0], 'n']."
+    AssertNeomakeMessage 'automake: tick changed (new).'
+    AssertNeomakeMessage 'automake: started timer (5ms): '.(base_timer + 3).'.'
+    AssertNeomakeMessage 'automake: neomake_do_automake: CursorHold.'
+    AssertNeomakeMessage 'automake: tick changed (new).'
+    AssertNeomakeMessage '\vautomake: Updating tick: \d+.'
+    AssertNeomakeMessage 'automake: enabled makers: true-maker.'
+
+    NeomakeTestsWaitForFinishedJobs
+
+    bwipe!
+  endif
+
 Execute (Timer callback ignores wiped buffer):
   if !has('timers')
     NeomakeTestsSkip 'only with timers feature'

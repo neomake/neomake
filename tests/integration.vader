@@ -183,11 +183,15 @@ Execute (Neomake: handle result for current window):
   if neomake#has_async_support()
     new
     NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage "Queueing action: s:process_pending_output for BufEnter, WinEnter.", 3
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 0, "output pending"
     AssertEqual map(getloclist(0), 'v:val.text'), []
     let bufnr = bufnr('%')
+    Assert exists('#neomake_event_queue'), 'action queue exists'
     quit
+    AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 2).'
+    Assert !exists('#neomake_event_queue'), 'action queue does not exist'
     AssertEqual winnr(), orig_winnr
     AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
   endif
@@ -210,6 +214,7 @@ Execute (Neomake: handle output for removed window):
     AssertEqual len(g:neomake_test_countschanged), 0,
       \ "counts changed (".len(g:neomake_test_countschanged).")"
     AssertEqual len(g:neomake_test_finished), 0
+    AssertNeomakeMessage 'Skipped pending job output for another buffer.', 3
     AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.'
 
     new
@@ -218,6 +223,7 @@ Execute (Neomake: handle output for removed window):
 
     " Opening the buffer in another window should process its output.
     exe 'b' bufnr
+    doautocmd BufEnter
     AssertNeomakeMessage "Processing pending output for job's buffer in new window."
     AssertNeomakeMessage 'Creating location list.', 3, jobinfo
     AssertEqual len(g:neomake_test_finished), 1
@@ -236,25 +242,19 @@ Execute (Neomake: handle wiped buffer):
     new
     edit tests/fixtures/errors.sh
     let bufnr = bufnr('%')
-    Neomake sh
+
+    call neomake#Make(1, [g:sleep_maker])
     bwipe
     let jobinfo = neomake#GetJobs()[0]
     let make_info = values(neomake#GetStatus().make_info)[0]
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0,
       \ "counts changed (".len(g:neomake_test_countschanged).")"
-    AssertEqual len(g:neomake_test_jobfinished), 0
-    AssertEqual len(g:neomake_test_finished), 0
-    AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.'
-
-    " Trigger processing of pending output.
-    new
     AssertEqual len(g:neomake_test_jobfinished), 1
     AssertEqual len(g:neomake_test_finished), 1
-    AssertNeomakeMessage 'No buffer found for output!', 2, jobinfo
+    AssertNeomakeMessage 'No buffer found for output!', 2
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfo
-    AssertNeomakeMessage 'File-level errors cleaned.', 3, make_info.options
-    AssertNeomakeMessage 'No buffer found for location list!', 2, {'make_id': jobinfo.make_id, 'bufnr': jobinfo.bufnr}
+    AssertNeomakeMessage 'No buffer found for location list!', 2
     AssertNeomakeMessage 'Cleaning make info.', 3
 
     AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
@@ -262,7 +262,6 @@ Execute (Neomake: handle wiped buffer):
 
     AssertEqual getloclist(0)[0].text, 'init_loclist'
 
-    bwipe
     bwipe
   endif
 
@@ -470,11 +469,12 @@ Execute (NeomakeListJobs with job cancellation):
     let log_context = {'make_id': job3.make_id, 'bufnr': bufnr('%')}
     AssertNeomakeMessage 'Postponing final location list handling for mode "V".', 3, log_context
     AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for Timer.', 3, log_context
-    AssertNeomakeMessage 'Retrying Timer event in 10ms.'
     AssertNeomakeMessage 'Skipping cleaning of make info for queued actions.', 3
 
     doautocmd CursorHold
+    AssertNeomakeMessage 'action queue: processing for CursorHold (1 items, winnr: 1).', 3
     AssertNeomakeMessage 'cmd maker 2: processing 1 lines of output.', 3
+    AssertNeomakeMessage 'action queue: processed 1 items.', 3
 
     sleep 10m
     AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 1).'
