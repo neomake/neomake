@@ -588,11 +588,17 @@ Execute (Neomake/Neomake! run ft maker in project mode):
   Neomake! echo_args
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Running makers: echo_args.'
+  AssertEqual map(getqflist(), 'v:val.text'), ['']
+
+  call neomake#config#set('b:append_file', 1)
+  CallNeomake 0, ['echo_args']
+  AssertNeomakeMessage 'Running makers: echo_args.'
+  AssertNeomakeMessage "Using setting append_file=1 from 'buffer'.", 3
   AssertEqual map(getqflist(), 'v:val.text'), [expand('%:p')]
 
   AssertEqual map(getloclist(0), 'v:val.text'), [expand('%:p')]
 
-  AssertEqual map(copy(g:neomake_test_jobfinished), 'v:val.jobinfo.file_mode'), [1, 0]
+  AssertEqual map(copy(g:neomake_test_jobfinished), 'v:val.jobinfo.file_mode'), [1, 0, 0]
   bwipe
 
 Execute (Maker can pass opts for jobstart/job_start):
