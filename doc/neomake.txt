@@ -577,21 +577,20 @@ This setting enables highlighting of lines for items from the location and
 quickfix list. This overrides |g:neomake_highlight_columns|, since it
 highlights the whole line already. Defaults to 0.
 
-The following highlighting groups are used. They default to fg/bg colors from
-common highlighting groups, similar to |neomake-signs|, but
-underlined/undercurled (GUI).
- - NeomakeError
- - NeomakeWarning
- - NeomakeInfo
- - NeomakeMessage
+The following highlighting groups are used:
+ - NeomakeError: links to "SpellBad" (|hl-SpellBad|)
+ - NeomakeWarning: links to "SpellCap" (|hl-SpellCap|)
+ - NeomakeInfo: links to "NeomakeWarning"
+ - NeomakeMessage: links to "NeomakeWarning"
 
 You can define them yourself: >
 
     augroup my_neomake_highlights
         au!
         autocmd ColorScheme *
-          \ hi link NeomakeError SpellBad |
-          \ hi link NeomakeWarning SpellCap
+          \ highlight NeomakeError … |
+          \ highlight NeomakeWarning …
+          guisp=White
     augroup END
 >
 
