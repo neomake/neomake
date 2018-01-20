@@ -120,20 +120,15 @@ else
 endif
 
 function! neomake#highlights#DefineHighlights() abort
-    for [group, fg_from] in items({
-                \ 'NeomakeError': ['Error', 'bg'],
-                \ 'NeomakeWarning': ['Todo', 'fg'],
-                \ 'NeomakeInfo': ['Question', 'fg'],
-                \ 'NeomakeMessage': ['ModeMsg', 'fg']
+    for [group, link] in items({
+                \ 'NeomakeError': 'SpellBad',
+                \ 'NeomakeWarning': 'SpellCap',
+                \ 'NeomakeInfo': 'NeomakeWarning',
+                \ 'NeomakeMessage': 'NeomakeWarning'
                 \ })
-        let [fg_group, fg_attr] = fg_from
-        let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr)
-        let guisp = neomake#utils#GetHighlight(fg_group, fg_attr.'#')
-        exe 'hi '.group.'Default ctermfg='.ctermfg.' guisp='.guisp.' cterm=underline gui=undercurl'
-        if neomake#utils#highlight_is_defined(group)
-            continue
+        if !neomake#utils#highlight_is_defined(group)
+            exe 'highlight link '.group.' '.link
         endif
-        exe 'hi link '.group.' '.group.'Default'
     endfor
 endfunction
 
