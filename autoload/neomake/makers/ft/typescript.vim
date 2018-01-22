@@ -26,6 +26,7 @@ function! neomake#makers#ft#typescript#tslint() abort
     let maker = {
         \ 'process_output': function('neomake#makers#ft#typescript#TslintProcessOutput'),
         \ 'args': ['--format', 'json'],
+        \ 'output_stream': 'stdout',
         \ }
     let config = neomake#utils#FindGlobFile('tsconfig.json')
     if !empty(config)
