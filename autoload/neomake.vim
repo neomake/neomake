@@ -595,55 +595,63 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
     let temp_file = ''
     if empty(bufname)
         let temp_file = self._get_tempfilename(a:jobinfo)
-        if !empty(temp_file)
-            call neomake#utils#DebugMessage(printf(
-                        \ 'Using tempfile for unnamed buffer: "%s".', temp_file),
-                        \ a:jobinfo)
-        else
+        if !get(a:jobinfo, 'uses_stdin', 0) && empty(temp_file)
             throw 'Neomake: no file name.'
         endif
+        let used_for = 'unnamed'
     elseif getbufvar(bufnr, '&modified')
         let temp_file = self._get_tempfilename(a:jobinfo)
-        if !empty(temp_file)
-            call neomake#utils#DebugMessage(printf(
-                        \ 'Using tempfile for modified buffer: "%s".', temp_file),
-                        \ a:jobinfo)
-        else
+        if !get(a:jobinfo, 'uses_stdin', 0) && empty(temp_file)
             call neomake#utils#DebugMessage('warning: buffer is modified. You might want to enable tempfiles.',
                         \ a:jobinfo)
         endif
+        let used_for = 'modified'
     elseif !filereadable(bufname)
         let temp_file = self._get_tempfilename(a:jobinfo)
-        if !empty(temp_file)
-            call neomake#utils#DebugMessage(printf(
-                        \ 'Using tempfile for unreadable buffer: "%s".', temp_file),
-                        \ a:jobinfo)
-        else
+        if !get(a:jobinfo, 'uses_stdin', 0) && empty(temp_file)
             " Using ':p' as modifier is unpredictable as per doc, but OK.
             throw printf('Neomake: file is not readable (%s)', fnamemodify(bufname, ':p'))
         endif
+        let used_for = 'unreadable'
     else
         let bufname = fnamemodify(bufname, ':p')
+        let used_for = ''
+    endif
+
+    if !empty(used_for)
+        if get(a:jobinfo, 'uses_stdin', 0)
+            call neomake#utils#DebugMessage(printf(
+                        \ 'Using stdin for %s buffer.', used_for),
+                        \ a:jobinfo)
+        endif
+        if !empty(temp_file)
+            call neomake#utils#DebugMessage(printf(
+                        \ 'Using tempfile for %s buffer: "%s".', used_for, temp_file),
+                        \ a:jobinfo)
+        endif
     endif
 
     let make_info = s:make_info[a:jobinfo.make_id]
+    " Handle stdin when supports_stdin sets self.tempfile_name = ''.
+    if get(a:jobinfo, 'uses_stdin', 0)
+        if !has_key(make_info, 'buffer_lines')
+            let make_info.buffer_lines = neomake#utils#get_buffer_lines(bufnr)
+        endif
+    endif
     if !empty(temp_file)
         let bufname = temp_file
-        let uses_stdin = get(a:jobinfo, 'uses_stdin', 0)
-        if uses_stdin
-            if !has_key(make_info, 'buffer_lines')
-                let make_info.buffer_lines = neomake#utils#get_buffer_lines(bufnr)
+        if temp_file !=# '-'
+            if !has_key(make_info, 'tempfiles')
+                let make_info.tempfiles = [temp_file]
+                let make_info.created_dirs = s:create_dirs_for_file(temp_file)
+                call neomake#utils#write_tempfile(bufnr, temp_file)
+            elseif temp_file !=# make_info.tempfiles[0]
+                call extend(make_info.created_dirs, s:create_dirs_for_file(temp_file))
+                call writefile(readfile(make_info.tempfiles[0], 'b'), temp_file, 'b')
+                call add(make_info.tempfiles, temp_file)
             endif
-        elseif !has_key(make_info, 'tempfiles')
-            let make_info.tempfiles = [temp_file]
-            let make_info.created_dirs = s:create_dirs_for_file(temp_file)
-            call neomake#utils#write_tempfile(bufnr, temp_file)
-        elseif temp_file !=# make_info.tempfiles[0]
-            call extend(make_info.created_dirs, s:create_dirs_for_file(temp_file))
-            call writefile(readfile(make_info.tempfiles[0], 'b'), temp_file, 'b')
-            call add(make_info.tempfiles, temp_file)
+            let a:jobinfo.tempfile = temp_file
         endif
-        let a:jobinfo.tempfile = temp_file
     endif
 
     if !has_key(make_info, 'automake_tick')
@@ -1252,22 +1260,34 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
     let removed_entries = []
     let different_bufnrs = {}
     let llen = len(list)
+    let wipe_unlisted_buffers = {}
     while index < llen - 1
         let index += 1
         let entry = list[index]
         let entry.maker_name = maker_name
 
         let before = copy(entry)
-        if file_mode && has_key(make_info, 'tempfiles')
-            if entry.bufnr
-                for tempfile in make_info.tempfiles
-                    let tempfile_bufnr = bufnr(tempfile)
-                    if tempfile_bufnr != -1 && entry.bufnr == tempfile_bufnr
-                        call neomake#utils#DebugMessage(printf(
-                                    \ 'Setting bufnr according to tempfile for entry: %s.', string(entry)), a:jobinfo)
-                        let entry.bufnr = a:jobinfo.bufnr
-                    endif
-                endfor
+        if file_mode
+            " NOTE: also handled below with the generic stdin case?!
+            if has_key(make_info, 'tempfiles')
+                if entry.bufnr
+                    for tempfile in make_info.tempfiles
+                        let tempfile_bufnr = bufnr(tempfile)
+                        if tempfile_bufnr != -1 && entry.bufnr == tempfile_bufnr
+                            call neomake#utils#DebugMessage(printf(
+                                        \ 'Setting bufnr according to tempfile for entry: %s.', string(entry)), a:jobinfo)
+                            let entry.bufnr = a:jobinfo.bufnr
+                        endif
+                    endfor
+                endif
+            endif
+            if get(a:jobinfo, 'uses_stdin', 0)
+                if !buflisted(entry.bufnr) && bufexists(entry.bufnr)
+                    call neomake#utils#DebugMessage(printf(
+                                \ 'Setting bufnr according to stdin filename for entry: %s.', string(entry)), a:jobinfo)
+                    let wipe_unlisted_buffers[entry.bufnr] = 1
+                    let entry.bufnr = a:jobinfo.bufnr
+                endif
             endif
         endif
         if debug && entry.bufnr && entry.bufnr != a:jobinfo.bufnr
@@ -1360,6 +1380,11 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
 
     if !empty(different_bufnrs)
         call neomake#utils#DebugMessage(printf('WARN: seen entries with bufnr different from jobinfo.bufnr (%d): %s, current bufnr: %d.', a:jobinfo.bufnr, string(different_bufnrs), bufnr('%')))
+    endif
+
+    if !empty(wipe_unlisted_buffers)
+        call neomake#utils#DebugMessage(printf('Wiping out %d unlisted/remapped buffers.', len(wipe_unlisted_buffers)))
+        exe 'bwipeout '.join(keys(wipe_unlisted_buffers))
     endif
 
     return s:ProcessEntries(a:jobinfo, entries, a:prev_list)
