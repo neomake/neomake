@@ -430,12 +430,11 @@ Execute (Makers: get_list_entries with sandbox exception):
   let jobinfo.maker.should_throw = 0
   if has('timers')
     AssertNeomakeMessage 'Retrying Timer event in 10ms.', 3
-    sleep 20m
   else
     AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
     doautocmd CursorHold
   endif
-  AssertNeomakeMessage 'The get_list_entries method for maker unnamed_maker did not return a list of dicts, but: [1].'
+  NeomakeTestsWaitForMessage 'The get_list_entries method for maker unnamed_maker did not return a list of dicts, but: [1].', 0
 
   AssertEqual len(g:neomake_test_countschanged), 0
   AssertEqual len(g:neomake_test_jobfinished), 1
