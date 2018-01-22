@@ -396,8 +396,9 @@ function! NeomakeTestsGetMakerWithOutput(func, lines) abort
   call writefile(a:lines, output_file)
 
   let maker = call(a:func, [])
-  let maker.exe = 'cat'
-  let maker.args = [output_file]
+  let maker.exe = &shell
+  let maker.args = [&shellcmdflag, 'cat '.fnameescape(output_file)]
+  let maker.name = printf('%s-mocked', substitute(a:func, '^.*#', '', ''))
   return maker
 endfunction
 
