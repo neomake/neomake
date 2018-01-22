@@ -31,6 +31,7 @@ function! neomake#makers#ft#typescript#tslint() abort
     if !empty(config)
         call extend(maker.args, ['--project', config])
         let maker.cwd = fnamemodify(config, ':h')
+        let maker.tempfile_enabled = 0
     endif
     return maker
 endfunction
