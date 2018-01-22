@@ -24,12 +24,39 @@ endfunction
 
 function! neomake#makers#ft#typescript#tslint() abort
     let maker = {
-        \ 'errorformat': '%-G,%EERROR: %f[%l\, %c]: %m,%E%f[%l\, %c]: %m',
+        \ 'process_output': function('neomake#makers#ft#typescript#TslintProcessOutput'),
+        \ 'args': ['--format', 'json'],
         \ }
     let config = neomake#utils#FindGlobFile('tsconfig.json')
     if !empty(config)
-        let maker.args = ['--project', config]
+        call extend(maker.args, ['--project', config])
         let maker.cwd = fnamemodify(config, ':h')
     endif
     return maker
+endfunction
+
+function! neomake#makers#ft#typescript#TslintProcessOutput(context) abort
+    let errors = []
+    for line in a:context['output']
+        let decoded = neomake#utils#JSONdecode(line)
+        for data in decoded
+            let error = {
+                \ 'maker_name': 'tslint',
+                \ 'filename': data.name,
+                \ 'text': data.failure,
+                \ 'lnum': data.startPosition.line + 1,
+                \ 'col': data.startPosition.character + 1,
+                \ 'length': data.endPosition.position - data.startPosition.position,
+                \ }
+            if get(data, 'ruleSeverity') ==# 'WARNING'
+                let error.type = 'W'
+            else
+                let error.type = 'E'
+            endif
+
+            call add(errors, error)
+        endfor
+    endfor
+
+    return errors
 endfunction

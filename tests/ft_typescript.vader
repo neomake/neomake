@@ -1,19 +1,29 @@
 Include: include/setup.vader
 
 Execute (typescript: tslint):
-  Save &errorformat
-  let &errorformat = neomake#makers#ft#typescript#tslint().errorformat
   new
   file t.ts
+  let tslint = neomake#makers#ft#typescript#tslint()
+  let tslint.exe = 'cat'
+  let tslint.args = 'tests/fixtures/typescript/tslint_output.json'
 
-  " tslint adds newlines before/after.
-  lgetexpr
-  \ "\nERROR: t.ts[7, 15]: Missing semicolon\n"
+  call neomake#Make(1, [tslint])
+  NeomakeTestsWaitForFinishedJobs
 
   AssertEqual getloclist(0), [{
   \ 'lnum': 7,
   \ 'bufnr': bufnr('%'),
-  \ 'col': 15,
+  \ 'col': 1,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'W',
+  \ 'pattern': '',
+  \ 'text': "Calls to 'console.log' are not allowed.",
+  \ }, {
+  \ 'lnum': 5,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 23,
   \ 'valid': 1,
   \ 'vcol': 0,
   \ 'nr': -1,
