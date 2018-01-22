@@ -103,7 +103,7 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
             let info = deepcopy(error)
             let info.type = 'I'
             let info.text = child.message
-            call neomake#utils#CompressWhitespace(info)
+            call neomake#postprocess#compress_whitespace(info)
             if has_key(child, 'rendered')
                         \ && !(child.rendered is g:neomake#compat#json_null)
                 let info.text = info.text . ': ' . child.rendered
