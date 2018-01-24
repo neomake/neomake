@@ -161,7 +161,11 @@ endfunction
 
 function! s:formatter.format(f, args) abort
     let self.args = a:args
-    return substitute(a:f, '{{\(.\{-}\)}}', '\=self._substitute(submatch(1))', 'g')
+    if a:f == ''
+        return ''
+    else
+        return substitute(a:f, '{{\(.\{-}\)}}', '\=self._substitute(submatch(1))', 'g')
+    endif
 endfunction
 
 
