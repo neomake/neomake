@@ -1600,16 +1600,6 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
         endif
     endif
 
-    if create_list
-        if file_mode
-            call neomake#utils#DebugMessage('Cleaning location list.', {'make_id': a:make_info.options.make_id})
-            call setloclist(0, [])
-        else
-            call neomake#utils#DebugMessage('Cleaning quickfix list.', {'make_id': a:make_info.options.make_id})
-            call setqflist([])
-        endif
-    endif
-
     " Close empty list.
     if close_list
         if file_mode
@@ -1618,6 +1608,16 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
         else
             call neomake#utils#DebugMessage('Handling quickfix list: executing cclose.')
             cclose
+        endif
+    endif
+
+    if create_list
+        if file_mode
+            call neomake#utils#DebugMessage('Cleaning location list.', {'make_id': a:make_info.options.make_id})
+            call setloclist(0, [])
+        else
+            call neomake#utils#DebugMessage('Cleaning quickfix list.', {'make_id': a:make_info.options.make_id})
+            call setqflist([])
         endif
     endif
 
