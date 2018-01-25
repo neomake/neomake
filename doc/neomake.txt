@@ -1,4 +1,4 @@
-*Neomake* - asynchronous make for Vim version 7.4+ and Neovim
+*neomake.txt* - asynchronous make for Vim version 7.4+ and Neovim
 
         ███╗   ██╗███████╗ ██████╗ ███╗   ███╗ █████╗ ██╗  ██╗███████╗
         ████╗  ██║██╔════╝██╔═══██╗████╗ ████║██╔══██╗██║ ██╔╝██╔════╝
@@ -7,15 +7,15 @@
         ██║ ╚████║███████╗╚██████╔╝██║ ╚═╝ ██║██║  ██║██║  ██╗███████╗
         ╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
 
-       Run make tasks (such as linters and build tools) asynchronously
+       Run make tasks (such as linters and build tools) asynchronously.
 
 ==============================================================================
-CONTENTS                                                    *neomake-contents*
+CONTENTS                                                             *neomake*
 
     1. Introduction ............................... |neomake-introduction|
     2. Commands ....................................... |neomake-commands|
     3. Configuration ............................. |neomake-configuration|
-    3.1. Automake
+    3.1. Automake ..................................... |neomake-automake|
     4. Functions ..................................... |neomake-functions|
     5. Autocommands/Hooks ............................. |neomake-autocmds|
     6. Frequently Asked Questions (FAQ) .................... |neomake-faq|
@@ -26,8 +26,9 @@ CONTENTS                                                    *neomake-contents*
 Neomake leverages Neovim's or Vim's |job-control| feature where available to
 run programs like syntax checkers asynchronously. Where job control is not
 available, it resorts to a synchronous |system()| call, making it possible to
-run this plugin in both Vim and Neovim. This plugin is heavily inspired by
-fantastic Vim plugins such as syntastic and dispatch.
+run this plugin in both older Vims and Neovim.
+This plugin is heavily inspired by Vim plugins such as Syntastic and
+dispatch.
 
 ==============================================================================
 2. Commands                                                 *neomake-commands*
@@ -77,25 +78,25 @@ fantastic Vim plugins such as syntastic and dispatch.
 2.1. Toggle commands                                          *neomake-toggle*
 
 The following commands enable, disable or toggle Neomake globally, per tab or
-per buffer by changing the `disabled` setting, which is checked when Neomake
-is called via autocommands. Calling |:Neomake| manually will not use this
-setting.
-In verbose mode (e.g. when called with |:verbose|) the new status gets
-displayed.
+per buffer by changing the `disabled` setting, which gets checked when Neomake
+gets called via autocommands, e.g. with |neomake-automake| or custom
+autocommands. You can still call e.g. |:Neomake| manually, and it will run.
+In verbose mode (e.g. when called with |:verbose| (`:verb Neomake`)) the new
+status gets displayed.
 
-*:NeomakeToggle* toggles Neomake globally.
-*:NeomakeToggleBuffer* toggles Neomake for the current buffer.
-*:NeomakeToggleTab* toggles Neomake for the current tab.
+*:NeomakeToggle*        toggles Neomake globally.
+*:NeomakeToggleBuffer*  toggles Neomake for the current buffer.
+*:NeomakeToggleTab*     toggles Neomake for the current tab.
                                                              *neomake-disable*
-*:NeomakeDisable* disables Neomake globally.
+*:NeomakeDisable*       disables Neomake globally.
 *:NeomakeDisableBuffer* disables Neomake for the current buffer.
-*:NeomakeDisableTab* disables Neomake for the current tab.
+*:NeomakeDisableTab*    disables Neomake for the current tab.
                                                               *neomake-enable*
-*:NeomakeEnable* enables Neomake globally.
-*:NeomakeEnableBuffer* enables Neomake for the current buffer.
-*:NeomakeEnableTab* enables Neomake for the current tab.
+*:NeomakeEnable*        enables Neomake globally.
+*:NeomakeEnableBuffer*  enables Neomake for the current buffer.
+*:NeomakeEnableTab*     enables Neomake for the current tab.
 
-*:NeomakeStatus* displays the current status.
+*:NeomakeStatus*        displays the current status.
 
 ==============================================================================
 3. Configuration                                       *neomake-configuration*
