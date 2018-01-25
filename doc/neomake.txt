@@ -1,4 +1,4 @@
-*Neomake* - asynchronous make for Vim version 7.4+ and Neovim
+*neomake.txt* - asynchronous make for Vim version 7.4+ and Neovim
 
         ███╗   ██╗███████╗ ██████╗ ███╗   ███╗ █████╗ ██╗  ██╗███████╗
         ████╗  ██║██╔════╝██╔═══██╗████╗ ████║██╔══██╗██║ ██╔╝██╔════╝
@@ -7,10 +7,10 @@
         ██║ ╚████║███████╗╚██████╔╝██║ ╚═╝ ██║██║  ██║██║  ██╗███████╗
         ╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
 
-       Run make tasks (such as linters and build tools) asynchronously
+       Run make tasks (such as linters and build tools) asynchronously.
 
 ==============================================================================
-CONTENTS                                                    *neomake-contents*
+CONTENTS                                                             *neomake*
 
     1. Introduction ............................... |neomake-introduction|
     2. Commands ....................................... |neomake-commands|
