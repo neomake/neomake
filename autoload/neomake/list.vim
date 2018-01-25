@@ -809,7 +809,9 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
 
         if !empty(changed_entries) || !empty(removed_entries)
             " Need to update/replace current list.
-            let list = self._get_qflist_entries()
+            " @vimlint(EVL104, 1, l:new_list)
+            let list = copy(new_list)
+            " @vimlint(EVL104, 0, l:new_list)
             if !empty(changed_entries)
                 for k in keys(changed_entries)
                     let list[new_index + k] = changed_entries[k]
@@ -821,6 +823,18 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
                 endfor
             endif
             call self._set_qflist_entries(list, 'r')
+
+            " Assert: the list is what we expect (without fetching it anew).
+            " 953938ca indicates that for changed/removed entries it needs to be
+            " refetched, but there is no failing test.
+            " Only does this for when 'valid' gets not changed when setting the
+            " list (patch-8.0.8580).
+            if exists('g:neomake_test_messages') && has('patch-8.0.0580')
+                let filter_keys = ['maker_name', 'length']
+                let comp_list = map(deepcopy(list), "filter(v:val, 'index(filter_keys, v:key) == -1')")
+                let new_list = file_mode ? getloclist(0) : getqflist()
+                call vader#assert#equal(comp_list, new_list)
+            endif
         endif
     endif
 
