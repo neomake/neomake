@@ -160,12 +160,11 @@ function! s:formatter._substitute(m) abort
 endfunction
 
 function! s:formatter.format(f, args) abort
-    let self.args = a:args
-    if a:f == ''
-        return ''
-    else
-        return substitute(a:f, '{{\(.\{-}\)}}', '\=self._substitute(submatch(1))', 'g')
+    if empty(a:f)
+        return a:f
     endif
+    let self.args = a:args
+    return substitute(a:f, '{{\(.\{-}\)}}', '\=self._substitute(submatch(1))', 'g')
 endfunction
 
 
