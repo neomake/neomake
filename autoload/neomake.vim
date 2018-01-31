@@ -1497,11 +1497,11 @@ function! s:clean_make_info(make_info, ...) abort
                 call neomake#signs#CleanAllOldSigns('project')
             endif
         endif
+        call s:clean_for_new_make(a:make_info)
         call neomake#EchoCurrentError(1)
         if exists('*neomake#statusline#make_finished')
             call neomake#statusline#make_finished(a:make_info)
         endif
-        call s:clean_for_new_make(a:make_info)
         if get(a:make_info, 'canceled', 0)
             call neomake#utils#DebugMessage('Skipping final processing for canceled make.', a:make_info)
             call s:do_clean_make_info(a:make_info)
