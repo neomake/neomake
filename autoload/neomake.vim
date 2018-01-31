@@ -2566,11 +2566,11 @@ function! neomake#GetCurrentErrorMsg() abort
 endfunction
 
 function! neomake#EchoCurrentError(...) abort
-    " a:1 might be a timer from the VimResized event.
-    let force = a:0 ? a:1 : 0
-    if !force && !get(g:, 'neomake_echo_current_error', 1)
+    if !get(g:, 'neomake_echo_current_error', 1)
         return
     endif
+    " a:1 might be a timer from the VimResized event.
+    let force = a:0 ? a:1 : 0
 
     let message = neomake#GetCurrentErrorMsg()
     if empty(message)
