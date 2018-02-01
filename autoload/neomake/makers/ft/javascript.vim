@@ -34,17 +34,13 @@ function! neomake#makers#ft#javascript#eslint() abort
     return {
         \ 'args': ['-f', 'compact'],
         \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
-        \   '%W%f: line %l\, col %c\, Warning - %m,%-G,%-G%*\d problems%#'
+        \   '%W%f: line %l\, col %c\, Warning - %m,%-G,%-G%*\d problems%#',
+        \ 'cwd': '%:p:h',
         \ }
 endfunction
 
 function! neomake#makers#ft#javascript#eslint_d() abort
-    return {
-        \ 'args': ['-f', 'compact'],
-        \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
-        \ '%W%f: line %l\, col %c\, Warning - %m',
-        \ 'cwd': '%:p:h',
-        \ }
+    return neomake#makers#ft#javascript#eslint()
 endfunction
 
 function! neomake#makers#ft#javascript#standard() abort
