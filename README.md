@@ -39,6 +39,9 @@ Plug 'neomake/neomake'
 If you want to run Neomake automatically (in file mode), you can configure it
 in your `vimrc` by using `neomake#configure#automake`, e.g. by picking one of:
 
+(Any function calls like these need to come after indicating the end of plugins
+to your plugin manager, e.g. after `call plug#end()` with vim-plug.)
+
 ```vim
 " When writing a buffer.
 call neomake#configure#automake('w')
