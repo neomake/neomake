@@ -10,7 +10,8 @@ function! neomake#makers#ft#markdown#mdl() abort
     return {
         \ 'errorformat':
         \   '%W%f:%l: MD%n %m,' .
-        \   '%W%f:%l: %m'
+        \   '%W%f:%l: %m',
+        \ 'output_stream': 'stdout',
         \ }
 endfunction
 
