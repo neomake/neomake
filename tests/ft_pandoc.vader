@@ -1,3 +1,0 @@
-Execute (pandoc: makers):
-  AssertEqual neomake#GetMakers('pandoc'),
-  \ ['alex', 'markdownlint', 'mdl', 'proselint', 'writegood']
