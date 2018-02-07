@@ -48,6 +48,8 @@ endfunction
 let s:unset_list = []
 let s:unset_dict = {}
 
+let s:is_testing = exists('g:neomake_test_messages')
+
 let s:async = has('nvim')
             \ || has('channel') && has('job') && has('patch-8.0.0027')
 function! neomake#has_async_support() abort
@@ -84,7 +86,7 @@ endfunction
 
 " neomake#GetMakeOptions: not documented, only used internally for now.
 " More lax when not being used in tests to avoid errors, but fail during tests.
-if exists('g:neomake_test_messages')  " is_testing
+if s:is_testing
     function! neomake#GetMakeOptions(...) abort
         let make_id = a:0 ? a:1 : s:make_id
         try
@@ -1468,7 +1470,7 @@ function! s:clean_make_info(make_info, ...) abort
     endif
 
     " Assert: there should be no queued actions for jobs or makes.
-    if exists('g:neomake_test_messages')  " is_testing
+    if s:is_testing
         let queued = []
         for [_, v] in s:action_queue
             if has_key(v[1][0], 'make_id')
