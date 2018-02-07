@@ -39,6 +39,16 @@ Execute (neomake#compat#json_decode):
   AssertEqual neomake#compat#json_decode(''), g:neomake#compat#json_none
   Assert neomake#compat#json_decode('') is g:neomake#compat#json_none
 
+  if has('nvim')
+    let expected_exception = 'Vim(return):E474: Unidentified byte: success'
+  elseif exists('*json_decode')
+    let expected_exception = 'Vim(return):E474: Invalid argument'
+  else
+    let expected_exception = 'Neomake: Failed to parse JSON input'
+  endif
+  AssertThrows call neomake#compat#json_decode('success')
+  AssertEqual g:vader_exception, expected_exception
+
 Execute (neomake#compat#json_none):
   AssertThrows call items(g:neomake#compat#json_none)
   AssertEqual g:vader_exception, 'Vim(call):E715: Dictionary required'

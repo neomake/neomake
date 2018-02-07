@@ -3,17 +3,32 @@
 function! neomake#debug#validate_maker(maker) abort
     let issues = {'errors': [], 'warnings': []}
 
-    if has_key(a:maker, 'process_output')
-        if has_key(a:maker, 'mapexpr')
-            let issues.warnings += ['maker has mapexpr, but only process_output will be used.']
-        endif
-        if has_key(a:maker, 'postprocess')
-            let issues.warnings += ['maker has postprocess, but only process_output will be used.']
-        endif
-        if has_key(a:maker, 'errorformat')
-            let issues.warnings += ['maker has errorformat, but only process_output will be used.']
-        endif
+    if has_key(a:maker, 'process_json') && has_key(a:maker, 'process_output')
+        let issues.warnings += ['maker has process_json and process_output, but only process_json will be used.']
+        let check_process = ['process_json']
+    else
+        let check_process = ['process_json', 'process_output']
     endif
+
+    for f in check_process
+        if has_key(a:maker, f)
+            if has_key(a:maker, 'mapexpr')
+                let issues.warnings += [printf(
+                            \ 'maker has mapexpr, but only %s will be used.',
+                            \ f)]
+            endif
+            if has_key(a:maker, 'postprocess')
+                let issues.warnings += [printf(
+                            \ 'maker has postprocess, but only %s will be used.',
+                            \ f)]
+            endif
+            if has_key(a:maker, 'errorformat')
+                let issues.warnings += [printf(
+                            \ 'maker has errorformat, but only %s will be used.',
+                            \ f)]
+            endif
+        endif
+    endfor
 
     if !executable(a:maker.exe)
         let t = get(a:maker, 'auto_enabled', 0) ? 'warnings' : 'errors'

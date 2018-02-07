@@ -1,0 +1,26 @@
+Include: include/setup.vader
+
+Execute (neomake#debug#validate_maker):
+  let maker = {'exe': 'true'}
+  function maker.process_json()
+  endfunction
+  function maker.process_output()
+  endfunction
+
+  AssertEqual neomake#debug#validate_maker(maker), {
+  \ 'errors': [],
+  \ 'warnings': [
+  \   'maker has process_json and process_output, but only process_json will be used.',
+  \ ]}
+
+  let maker.mapexpr = 'v:val'
+  let maker.postprocess = function('tr')
+  let maker.errorformat = '%m'
+  AssertEqual neomake#debug#validate_maker(maker), {
+  \ 'errors': [],
+  \ 'warnings': [
+  \   'maker has process_json and process_output, but only process_json will be used.',
+  \   'maker has mapexpr, but only process_json will be used.',
+  \   'maker has postprocess, but only process_json will be used.',
+  \   'maker has errorformat, but only process_json will be used.',
+  \ ]}
