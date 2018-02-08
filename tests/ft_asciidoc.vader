@@ -29,10 +29,4 @@ Execute (asciidoc):
   \  'type': 'E',
   \  'pattern': '',
   \  'text': 'only book doctypes can contain level 0 sections'}]
-
   bwipe
-
-Execute (asciidoc: enabled makers):
-  AssertEqual map(copy(neomake#GetEnabledMakers('asciidoc')), 'v:val.name'), ['asciidoc']
-  AssertEqual neomake#GetMakers('asciidoc'),
-  \ ['asciidoc', 'asciidoctor', 'proselint', 'writegood']
