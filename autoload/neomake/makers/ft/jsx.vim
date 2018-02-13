@@ -3,7 +3,7 @@ function! neomake#makers#ft#jsx#SupersetOf() abort
 endfunction
 
 function! neomake#makers#ft#jsx#EnabledMakers() abort
-    return ['jshint', 'eslint']
+    return ['jshint', executable('eslint_d') ? 'eslint_d' : 'eslint']
 endfunction
 
 function! neomake#makers#ft#jsx#jsxhint() abort

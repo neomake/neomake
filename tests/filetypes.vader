@@ -2,19 +2,19 @@ Include: include/setup.vader
 
 Execute (GetEnabledMakers for javascript.jsx):
   AssertEqual map(neomake#GetEnabledMakers('javascript.jsx'), 'v:val.name'),
-  \ ['jshint', 'jscs', 'eslint']
+  \ ['jshint', 'jscs', executable('eslint_d') ? 'eslint_d' : 'eslint']
 
 Execute (GetEnabledMakers for jsx.javascript):
   AssertEqual map(neomake#GetEnabledMakers('jsx.javascript'), 'v:val.name'),
-  \ ['jshint', 'eslint']
+  \ ['jshint', executable('eslint_d') ? 'eslint_d' : 'eslint']
 
 Execute (GetEnabledMakers for javascript):
   AssertEqual map(neomake#GetEnabledMakers('javascript'), 'v:val.name'),
-  \ ['jshint', 'jscs', 'eslint']
+  \ ['jshint', 'jscs', executable('eslint_d') ? 'eslint_d' : 'eslint']
 
 Execute (GetEnabledMakers for jsx):
   AssertEqual map(neomake#GetEnabledMakers('jsx'), 'v:val.name'),
-  \ ['jshint', 'eslint']
+  \ ['jshint', executable('eslint_d') ? 'eslint_d' : 'eslint']
 
 
 Execute (GetMakers for javascript.jsx):
@@ -40,7 +40,8 @@ Execute (GetMakers for jsx):
 Execute (standard maker in javascript.jsx):
   new
   set filetype=javascript.jsx
-  AssertEqual map(neomake#GetEnabledMakers('jsx'), 'v:val.name'), ['jshint', 'eslint']
+  AssertEqual map(neomake#GetEnabledMakers('jsx'), 'v:val.name'), [
+  \ 'jshint', executable('eslint_d') ? 'eslint_d' : 'eslint']
   let b:neomake_javascript_enabled_makers = ['standard']
   let b:neomake_javascript_standard_exe = 'true'
   let b:neomake_jsx_jshint_exe = 'true'
