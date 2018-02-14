@@ -176,7 +176,7 @@ vimhelplint: | $(if $(VIMHELPLINT_DIR),,build/vimhelplint)
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=19
+DOCKER_TAG:=20
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
@@ -188,6 +188,14 @@ docker_image:
 	docker build -f Dockerfile.tests -t $(DOCKER_REPO):$(DOCKER_TAG) .
 docker_push:
 	docker push $(DOCKER_REPO):$(DOCKER_TAG)
+docker_update_image:
+	git diff --cached --exit-code >/dev/null || { echo "Index is not clean."; exit 1 ; }
+	git diff --exit-code Makefile >/dev/null || { echo "Makefile is not clean."; exit 2 ; }
+	sed -i '/^DOCKER_TAG:=/s/:=.*/:=$(shell echo $$(($(DOCKER_TAG)+1)))/' Makefile
+	sed -i '/^ENV NEOMAKE_DOCKERFILE_UPDATE=/s/=.*/=$(shell date +%Y-%m-%d)/' Dockerfile.tests
+	make docker_image
+	make docker_test DOCKER_VIM=neovim-master
+	@echo "Done.  Use 'make docker_push' to push it."
 
 DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8069 vim-master neovim-v0.1.7 neovim-v0.2.0 neovim-v0.2.1 neovim-v0.2.2 neovim-master
 _DOCKER_VIM_TARGETS:=$(addprefix docker_test-,$(DOCKER_VIMS))
@@ -301,12 +309,10 @@ check:
 	contrib/vim-checks $(LINT_ARGS) || (( ret+= 16 )); \
 	exit $$ret
 
-build/coverage: $(shell find . -name '*.vim')
+.coverage.covimerage: .coveragerc $(shell find . -name '*.vim')
 	$(MAKE) testcoverage
-.coverage: build/coverage
-	covimerage write_coverage $?/*.profile
-coverage: .coverage
-	coverage report -m --skip-covered
+coverage: .coverage.covimerage
+	coverage report -m
 
 clean:
 	$(RM) -r build
