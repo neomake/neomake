@@ -334,18 +334,18 @@ Execute (neomake#utils#ExpandArgs):
   bwipe
 
 Execute (neomake#utils#diff_dict):
-  AssertEqual neomake#utils#diff_dict({}, {}), [{}, {}, {}]
+  AssertEqual neomake#utils#diff_dict({}, {}), {}
   AssertEqual neomake#utils#diff_dict({'a': 1}, {'a': 2}),
-    \ [{'a': [1, 2]}, {}, {}]
+    \ {'changed': {'a': [1, 2]}}
   AssertEqual neomake#utils#diff_dict({'a': 1}, {'b': 2}),
-    \ [{}, {'a': 1}, {'b': 2}]
+    \ {'removed': {'a': 1}, 'added': {'b': 2}}
   AssertEqual neomake#utils#diff_dict({'a': 1}, {'a': 1, 'b': 2}),
-    \ [{}, {}, {'b': 2}]
+    \ {'added': {'b': 2}}
 
   AssertEqual neomake#utils#diff_dict({'a': '1'}, {'a': 1}),
-    \ [{'a': ['1', 1]}, {}, {}]
+    \ {'changed': {'a': ['1', 1]}}
   AssertEqual neomake#utils#diff_dict({'a': []}, {'a': {}}),
-    \ [{'a': [[], {}]}, {}, {}]
+    \ {'changed': {'a': [[], {}]}}
 
 Execute (neomake#utils#wstrpart):
   AssertEqual neomake#utils#wstrpart('123', 0, 0), ''
