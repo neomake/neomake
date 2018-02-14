@@ -66,7 +66,7 @@ Execute (AddExprCallback with changed windows inbetween):
     wincmd k
     AssertEqual map(getloclist(0), 'v:val.text'), ['2 SUFFIX:1']
     bwipe
-    AssertNeomakeMessage "Modified list entry (postprocess): text: '2' => '2 SUFFIX:1'."
+    AssertNeomakeMessage "Modified list entry (postprocess): {'changed': {'text': ['2', '2 SUFFIX:1']}}."
   endif
 
 Execute (Goes back to original window after opening list):
