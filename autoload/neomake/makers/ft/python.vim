@@ -130,13 +130,14 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
         let type = ''
     endif
 
-    let l:token = matchstr(a:entry.text, "'.*'")
-    if strlen(l:token)
-        " remove quotes
-        let l:token = substitute(l:token, "'", '', 'g')
-        if a:entry.type ==# 'F' && (a:entry.nr == 401 ||  a:entry.nr == 811)
-            " The unused column is incorrect for import errors and redefinition
-            " errors.
+    let token_pattern = '\v''\zs[^'']+\ze'
+    if a:entry.type ==# 'F' && (a:entry.nr == 401 || a:entry.nr == 811)
+        " Special handling for F401 (``module`` imported but unused) and
+        " F811 (redefinition of unused ``name`` from line ``N``).
+        " The unused column is incorrect for import errors and redefinition
+        " errors.
+        let token = matchstr(a:entry.text, token_pattern)
+        if !empty(token)
             let l:view = winsaveview()
             call cursor(a:entry.lnum, a:entry.col)
             " The number of lines to give up searching afterwards
@@ -172,9 +173,11 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
             endif
 
             call winrestview(l:view)
-        endif
 
-        let a:entry.length = strlen(l:token) " subtract the quotes
+            let a:entry.length = strlen(l:token)
+        endif
+    else
+        call neomake#postprocess#generic_length_with_pattern(a:entry, token_pattern)
     endif
 
     let a:entry.text = a:entry.type . a:entry.nr . ' ' . a:entry.text
