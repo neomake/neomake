@@ -3,22 +3,27 @@ Include: include/setup.vader
 Execute (Displays custom formatted quickfix buffer):
   call neomake#quickfix#enable()
   try
+    new
+    let bufnr = bufnr('%')
+    noautocmd set filetype=python
+    Assert !hlexists('neomakePythonLint'), 'neomakePythonLint does not exist'
+
     call setloclist(0, [{
         \   'lnum': 1,
-        \   'bufnr': 1,
-        \   'text': 'Line 1 nmcfg:{"name": "Alpha", "short": "Alph"}',
+        \   'bufnr': bufnr,
+        \   'text': 'Line 1 nmcfg:{"name": "python", "short": "Alph"}',
         \ },
         \ {
         \   'lnum': 2,
         \   'col': 5,
-        \   'bufnr': 1,
+        \   'bufnr': bufnr,
         \   'text': 'Line 2',
         \ }])
 
     lopen
     let loclist_bufnr = bufnr('%')
     AssertEqual b:current_syntax, 'neomake_qf'
-
+    Assert hlexists('neomakePythonLint'), 'neomakePythonLint does exists'
 
     AssertEqual getline(1, '$'),
       \ ['Alph 1:- Line 1', 'Alph 2:5 Line 2']
@@ -75,6 +80,7 @@ Execute (Displays custom formatted quickfix buffer):
     close
   finally
     call neomake#quickfix#disable()
+    bwipe
   endtry
 
 Execute (Sets quickfix title (location list)):
