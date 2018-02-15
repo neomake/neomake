@@ -56,6 +56,18 @@ function! neomake#quickfix#set_syntax(names) abort
     endfor
 endfunction
 
+function! s:clean_qf_annotations() abort
+    if exists('b:_neomake_maker_match_id')
+        silent! call matchdelete(b:_neomake_maker_match_id)
+    endif
+    if exists('b:_neomake_gutter_match_id')
+        silent! call matchdelete(b:_neomake_gutter_match_id)
+    endif
+    if exists('b:_neomake_cursor_match_id')
+        silent! call matchdelete(b:_neomake_cursor_match_id)
+    endif
+endfunction
+
 
 function! neomake#quickfix#FormatQuickfix() abort
     let buf = bufnr('%')
@@ -79,6 +91,8 @@ function! neomake#quickfix#FormatQuickfix() abort
     endif
 
     if empty(qflist) || qflist[0].text !~# ' nmcfg:{.\{-}}$'
+        call neomake#utils#DebugMessage('Resetting custom qf for non-Neomake change.')
+        call s:clean_qf_annotations()
         set syntax=qf
         return
     endif

@@ -319,14 +319,42 @@ Execute (neomake#quickfix#FormatQuickfix reuses signs):
     lopen
     let loclist_bufnr = bufnr('%')
     AssertEqual getline(1), 'b 1:- Text with marker'
-    let bufnr = bufnr('%')
-    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.bufnr.'.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
 
     call setloclist(0, [{
         \ 'lnum': 1,
         \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
         \}])
     AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3, {'bufnr': loclist_bufnr}
+
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (custom qf gets disabled with manual setloclist()):
+  call neomake#quickfix#enable()
+  try
+    new
+    call setloclist(0, [{
+        \ 'lnum': 1,
+        \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    lopen
+    AssertEqual getline(1), 'b 1:- Text with marker'
+    doautocmd CursorMoved
+
+    Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are existing matches.'
+    call setloclist(0, [{'text': 'something custom'}])
+    AssertNeomakeMessage 'Resetting custom qf for non-Neomake change.', 3
+    Assert empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are no existing matches.'
+
+    call setloclist(0, [{
+        \ 'lnum': 1,
+        \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are existing matches again.'
 
     lclose
     bwipe
