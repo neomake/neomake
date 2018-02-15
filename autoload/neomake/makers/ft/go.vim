@@ -62,7 +62,7 @@ function! neomake#makers#ft#go#gometalinter() abort
         \ 'append_file': 0,
         \ 'cwd': '%:h',
         \ 'errorformat':
-            \ '%f:%l:%c:%t%*[^:]: %m', .
+            \ '%f:%l:%c:%t%*[^:]: %m,' .
             \ '%f:%l::%t%*[^:]: %m'
         \ }
 endfunction
