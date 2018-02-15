@@ -1319,10 +1319,8 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
             if debug
                 call neomake#utils#DebugMessage(printf(
                   \ 'Modified list entry (postprocess): %s.',
-                  \ join(values(map(neomake#utils#diff_dict(before, entry)[0],
-                  \ "v:key.': '.string(v:val[0]).' => '.string(v:val[1])")))),
+                  \ string(neomake#utils#diff_dict(before, entry))),
                   \ a:jobinfo)
-
             endif
         endif
 

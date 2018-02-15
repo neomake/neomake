@@ -441,7 +441,7 @@ Execute (Temporary buffer is not wiped if opened):
   exe 'bwipe' unlisted_bufnr
 
   AssertNeomakeMessage '\v^Setting bufnr according to tempfile for entry: .* ''bufnr'': '.tempfile_bufnr
-  AssertNeomakeMessage 'Modified list entry (postprocess): bufnr: '.tempfile_bufnr.' => '.bufnr.'.'
+  AssertNeomakeMessage printf("Modified list entry (postprocess): {'changed': {'bufnr': [%d, %d]}}.", tempfile_bufnr, bufnr)
   AssertNeomakeMessage 'WARN: seen entries with bufnr different from jobinfo.bufnr ('.bufnr.'): {'''.unlisted_bufnr.''': 1}, current bufnr: '.bufnr.'.'
 
 Execute (unlisted buffers created for tempfiles get wiped):
