@@ -332,3 +332,32 @@ Execute (neomake#quickfix#FormatQuickfix reuses signs):
   finally
     call neomake#quickfix#disable()
   endtry
+
+Execute (custom qf gets disabled with manual setloclist()):
+  call neomake#quickfix#enable()
+  try
+    new
+    call setloclist(0, [{
+        \ 'lnum': 1,
+        \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    lopen
+    AssertEqual getline(1), 'b 1:- Text with marker'
+    doautocmd CursorMoved
+
+    Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are existing matches.'
+    call setloclist(0, [{'text': 'something custom'}])
+    AssertNeomakeMessage 'Resetting custom qf for non-Neomake change.', 3
+    Assert empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are no existing matches.'
+
+    call setloclist(0, [{
+        \ 'lnum': 1,
+        \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are existing matches again.'
+
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
