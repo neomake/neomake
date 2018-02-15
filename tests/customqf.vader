@@ -319,8 +319,7 @@ Execute (neomake#quickfix#FormatQuickfix reuses signs):
     lopen
     let loclist_bufnr = bufnr('%')
     AssertEqual getline(1), 'b 1:- Text with marker'
-    let bufnr = bufnr('%')
-    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.bufnr.'.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
 
     call setloclist(0, [{
         \ 'lnum': 1,
