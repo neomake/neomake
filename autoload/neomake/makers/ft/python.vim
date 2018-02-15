@@ -178,6 +178,38 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
         endif
     else
         call neomake#postprocess#generic_length_with_pattern(a:entry, token_pattern)
+
+        " Special processing for F821 (undefined name) in f-strings.
+        if !has_key(a:entry, 'length') && a:entry.type ==# 'F' && a:entry.nr == 821
+            let token = matchstr(a:entry.text, token_pattern)
+            if !empty(token)
+                " Search for '{token}' in reported and following lines.
+                " It seems like for the first line it is correct already (i.e.
+                " flake8 reports the column therein), but we still test there
+                " to be sure.
+                " https://gitlab.com/pycqa/flake8/issues/407
+                let line = get(getbufline(a:entry.bufnr, a:entry.lnum), 0, '')
+                " NOTE: uses byte offset, starting at col means to start after
+                " the opening quote.
+                let pos = match(line, '\C\V{'.token, a:entry.col)
+                if pos == -1
+                    let line_offset = 0
+                    while line_offset < 10
+                        let line_offset += 1
+                        let line = get(getbufline(a:entry.bufnr, a:entry.lnum + line_offset), 0, '')
+                        let pos = match(line, '\C\V{'.token)
+                        if pos != -1
+                            let a:entry.lnum = a:entry.lnum + line_offset
+                            break
+                        endif
+                    endwhile
+                endif
+                if pos > 0
+                    let a:entry.col = pos + 2
+                    let a:entry.length = strlen(token)
+                endif
+            endif
+        endif
     endif
 
     let a:entry.text = a:entry.type . a:entry.nr . ' ' . a:entry.text

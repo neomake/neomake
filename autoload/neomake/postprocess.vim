@@ -19,7 +19,7 @@ function! neomake#postprocess#generic_length(entry) abort dict
             let l = len(m[0])
             if l > best
                 " Ensure that the text is there.
-                let line = getbufline(a:entry.bufnr, a:entry.lnum)[0]
+                let line = get(getbufline(a:entry.bufnr, a:entry.lnum), 0, '')
                 if line[a:entry.col-1 : a:entry.col-2+l] == m[0]
                     let best = l
                 endif
