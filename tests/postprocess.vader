@@ -15,7 +15,7 @@ Execute (neomake#postprocess#generic_length):
   call call('neomake#postprocess#generic_length', [new], this)
   AssertEqual new.length, 7
 
-  " Skips handling of unexpected buffer.
+  " Handles non-existing buffer.
   let new = deepcopy(entry)
   let new.bufnr = entry.bufnr + 1
   call call('neomake#postprocess#generic_length', [new], this)
@@ -45,6 +45,15 @@ Execute (neomake#postprocess#generic_length):
   let new = deepcopy(entry)
   call call('neomake#postprocess#generic_length', [new], this)
   AssertEqual new.length, 3
+
+  " Handles entry for another buffer.
+  new
+  let this = {'postprocess': {}}
+  let new = deepcopy(entry)
+  call call('neomake#postprocess#generic_length', [new], this)
+  AssertEqual new.length, 7
+  bwipe!
+
   bwipe!
 
 Execute (Postprocess: called with dict+maker as self for list):

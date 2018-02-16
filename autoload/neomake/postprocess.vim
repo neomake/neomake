@@ -1,12 +1,13 @@
 " Generic postprocessor to add `length` to `a:entry`.
-" The pattern can be overridden on `self`, and should adhere to this:
+" The pattern can be overridden on `self` and should adhere to this:
 "  - the matched word should be returned as the whole match (you can use \zs
 "    and \ze).
 "  - enclosing patterns should be returned as \1 and \2, where \1 is used as
 "    offset when the first entry did not match.
 " See tests/postprocess.vader for tests/examples.
+" See neomake#postprocess#generic_length_with_pattern for a non-dict variant.
 function! neomake#postprocess#generic_length(entry) abort dict
-    if a:entry.bufnr == bufnr('%') && a:entry.lnum > 0 && a:entry.col
+    if a:entry.lnum > 0 && a:entry.col
         let pattern = get(self, 'pattern', '\v(["''`])\zs[^\1]{-}\ze(\1)')
         let start = 0
         let best = 0
@@ -18,7 +19,8 @@ function! neomake#postprocess#generic_length(entry) abort dict
             let l = len(m[0])
             if l > best
                 " Ensure that the text is there.
-                if getline(a:entry.lnum)[a:entry.col-1 : a:entry.col-2+l] == m[0]
+                let line = get(getbufline(a:entry.bufnr, a:entry.lnum), 0, '')
+                if line[a:entry.col-1 : a:entry.col-2+l] == m[0]
                     let best = l
                 endif
             endif
@@ -36,6 +38,12 @@ function! neomake#postprocess#generic_length(entry) abort dict
             let a:entry.length = best
         endif
     endif
+endfunction
+
+" Wrapper to call neomake#process#generic_length (a dict function).
+function! neomake#postprocess#generic_length_with_pattern(entry, pattern) abort
+    let this = {'pattern': a:pattern}
+    return call('neomake#postprocess#generic_length', [a:entry], this)
 endfunction
 
 " Deprecated: renamed to neomake#postprocess#generic_length.

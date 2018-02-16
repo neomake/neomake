@@ -112,20 +112,64 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'text': "F811 redefinition of unused 'os' from line 2"}, e
   bwipe!
 
+Execute (flake8: postprocess for F821 in continuous f-strings):
+  new
+  let bufnr = bufnr('%')
+  file t-undefined-in-fstring.py
+  call append(0, [
+  \ 'bar',
+  \ 'BAZ = 1',
+  \ 'foo = (f"prefix {foo}"',
+  \ '       f"prefix {BAZ} {baz} {obj.attr}")',
+  \ ])
+
+  " Output from flake8:
+  " t-undefined-in-fstring.py:1:1: F821 undefined name 'bar'
+  " t-undefined-in-fstring.py:3:9: F821 undefined name 'baz'
+  " t-undefined-in-fstring.py:3:9: F821 undefined name 'obj'
+  " t-undefined-in-fstring.py:3:18: F821 undefined name 'foo'
+
+  let e = {'lnum': 1, 'bufnr': bufnr, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': 821, 'type': 'F', 'pattern': '', 'text': 'F821 undefined name ''bar'''}
+  call neomake#makers#ft#python#Flake8EntryProcess(e)
+  AssertEqual [e.lnum, e.col, e.length], [1, 1, 3]
+
+  " Correct for first line in f-string.
+  let e = {'lnum': 3, 'bufnr': bufnr, 'col': 18, 'valid': 1, 'vcol': 0, 'nr': 821, 'type': 'F', 'pattern': '', 'text': 'F821 undefined name ''foo'''}
+  call neomake#makers#ft#python#Flake8EntryProcess(e)
+  AssertEqual [e.lnum, e.col, e.length], [3, 18, 3]
+
+  " Needs adjustment for second line in f-string.
+  let e = {'lnum': 3, 'bufnr': bufnr, 'col': 9, 'valid': 1, 'vcol': 0, 'nr': 821, 'type': 'F', 'pattern': '', 'text': 'F821 undefined name ''baz'''}
+  call neomake#makers#ft#python#Flake8EntryProcess(e)
+  AssertEqual [e.lnum, e.col, e.length], [4, 24, 3]
+
+  " Needs adjustment for second line in f-string, handling objects.
+  let e = {'lnum': 3, 'bufnr': bufnr, 'col': 9, 'valid': 1, 'vcol': 0, 'nr': 821, 'type': 'F', 'pattern': '', 'text': 'F821 undefined name ''obj'''}
+  call neomake#makers#ft#python#Flake8EntryProcess(e)
+  AssertEqual [e.lnum, e.col, e.length], [4, 30, 3]
+
+  " Something that cannot be found.
+  let e = {'lnum': 3, 'bufnr': bufnr, 'col': 9, 'valid': 1, 'vcol': 0, 'nr': 821, 'type': 'F', 'pattern': '', 'text': 'F821 undefined name ''cannotbefound'''}
+  call neomake#makers#ft#python#Flake8EntryProcess(e)
+  AssertEqual [e.lnum, e.col], [3, 9]
+  Assert !has_key(e, 'length')
+  bwipe!
+
 Execute (neomake#makers#ft#python#Flake8EntryProcess):
-  let entry = {'type': 'F', 'nr': 841, 'text': "local variable 'foo' is assigned to but never used"}
+  let bufnr = bufnr('%')
+  let entry = {'type': 'F', 'nr': 841, 'text': "local variable 'foo' is assigned to but never used", 'lnum': 1, 'col': 1, 'bufnr': bufnr}
   call neomake#makers#ft#python#Flake8EntryProcess(entry)
   AssertEqual entry.type, 'W'
 
-  let entry = {'type': 'F', 'nr': 999, 'text': "something"}
+  let entry = {'type': 'F', 'nr': 999, 'text': "something", 'lnum': 1, 'col': 1, 'bufnr': bufnr}
   call neomake#makers#ft#python#Flake8EntryProcess(entry)
   AssertEqual entry.type, 'E'
 
-  let entry = {'type': 'F', 'nr': 404, 'text': "not found"}
+  let entry = {'type': 'F', 'nr': 404, 'text': "not found", 'lnum': 1, 'col': 1, 'bufnr': bufnr}
   call neomake#makers#ft#python#Flake8EntryProcess(entry)
   AssertEqual entry.type, 'W'
 
-  let entry = {'type': 'F', 'nr': 407, 'text': "no future"}
+  let entry = {'type': 'F', 'nr': 407, 'text': "no future", 'lnum': 1, 'col': 1, 'bufnr': bufnr}
   call neomake#makers#ft#python#Flake8EntryProcess(entry)
   AssertEqual entry.type, 'E'
 
