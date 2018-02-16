@@ -314,6 +314,14 @@ check:
 coverage: .coverage.covimerage
 	coverage report -m
 
+NEOMAKE_LOG:=/tmp/neomake.log
+tail_log:
+	fifo=$(shell mktemp -u); \
+	  mkfifo $$fifo; \
+	  tail -f $(NEOMAKE_LOG) \
+	  | $(CURDIR)/contrib/highlight-log >> $$fifo & \
+		less --force --chop-long-lines +F $$fifo
+
 clean:
 	$(RM) -r build
 .PHONY: clean
