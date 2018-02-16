@@ -11,11 +11,17 @@ function! neomake#quickfix#enable() abort
         autocmd!
         autocmd FileType qf call neomake#quickfix#FormatQuickfix()
     augroup END
+    if &filetype ==# 'qf'
+        call neomake#quickfix#FormatQuickfix()
+    endif
 endfunction
 
 
 function! neomake#quickfix#disable() abort
     let s:is_enabled = 0
+    if &filetype ==# 'qf'
+        call neomake#quickfix#FormatQuickfix()
+    endif
 endfunction
 
 
@@ -56,12 +62,25 @@ function! neomake#quickfix#set_syntax(names) abort
     endfor
 endfunction
 
+function! s:set_qf_lines(lines) abort
+    let ul = &l:undolevels
+    setlocal modifiable nonumber undolevels=-1
+
+    call setline(1, a:lines)
+
+    let &l:undolevels = ul
+    setlocal nomodifiable nomodified
+endfunction
+
 function! s:clean_qf_annotations() abort
     if exists('b:_neomake_maker_match_id')
         silent! call matchdelete(b:_neomake_maker_match_id)
     endif
     if exists('b:_neomake_gutter_match_id')
         silent! call matchdelete(b:_neomake_gutter_match_id)
+    endif
+    if exists('b:_neomake_bufname_match_id')
+        silent! call matchdelete(b:_neomake_bufname_match_id)
     endif
     if exists('b:_neomake_cursor_match_id')
         silent! call matchdelete(b:_neomake_cursor_match_id)
@@ -74,10 +93,15 @@ function! neomake#quickfix#FormatQuickfix() abort
     if !s:is_enabled || &filetype !=# 'qf'
         if exists('b:neomake_qf')
             call neomake#signs#Clean(buf, 'file')
+            if exists('b:_neomake_qf_orig_lines')
+                call s:set_qf_lines(b:_neomake_qf_orig_lines)
+                unlet b:_neomake_qf_orig_lines
+            endif
             unlet! b:neomake_qf
             augroup neomake_qf
                 autocmd! * <buffer>
             augroup END
+            call s:clean_qf_annotations()
         endif
         return
     endif
@@ -103,9 +127,6 @@ function! neomake#quickfix#FormatQuickfix() abort
     else
         let b:neomake_qf = 'project'
     endif
-
-    let ul = &l:undolevels
-    setlocal modifiable nonumber undolevels=-1
 
     let lines = []
     let signs = []
@@ -214,9 +235,10 @@ function! neomake#quickfix#FormatQuickfix() abort
         endif
     endfor
 
-    call setline(1, lines)
-    let &l:undolevels = ul
-    setlocal nomodifiable nomodified
+    if !exists('b:_neomake_qf_orig_lines')
+        let b:_neomake_qf_orig_lines = getbufline('%', 1, '$')
+    endif
+    call s:set_qf_lines(lines)
 
     if exists('+breakindent')
         " Keeps the text aligned with the fake gutter.
@@ -242,6 +264,12 @@ function! neomake#quickfix#FormatQuickfix() abort
                     \ '\%>'.(maker_width).'c'
                     \ .'.*\%<'.(b:neomake_start_col + 2).'c',
                     \ s:match_base_priority+2)
+        if exists('b:_neomake_bufname_match_id')
+            silent! call matchdelete(b:_neomake_bufname_match_id)
+        endif
+        let b:_neomake_bufname_match_id = matchadd('neomakeBufferName',
+                    \ '.*\%<'.(maker_width + 1).'c',
+                    \ s:match_base_priority+3)
     endif
 
     augroup neomake_qf
