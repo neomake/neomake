@@ -120,13 +120,15 @@ Execute (flake8: postprocess for F821 in continuous f-strings):
   \ 'bar',
   \ 'BAZ = 1',
   \ 'foo = (f"prefix {foo}"',
-  \ '       f"prefix {BAZ} {baz} {obj.attr}")',
+  \ '       f"prefix {BAZ} {baz} {obj.attr} {f(arg)}")',
   \ ])
 
   " Output from flake8:
   " t-undefined-in-fstring.py:1:1: F821 undefined name 'bar'
   " t-undefined-in-fstring.py:3:9: F821 undefined name 'baz'
   " t-undefined-in-fstring.py:3:9: F821 undefined name 'obj'
+  " t-undefined-in-fstring.py:3:9: F821 undefined name 'f'
+  " t-undefined-in-fstring.py:3:11: F821 undefined name 'arg'
   " t-undefined-in-fstring.py:3:18: F821 undefined name 'foo'
 
   let e = {'lnum': 1, 'bufnr': bufnr, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': 821, 'type': 'F', 'pattern': '', 'text': 'F821 undefined name ''bar'''}
@@ -147,6 +149,16 @@ Execute (flake8: postprocess for F821 in continuous f-strings):
   let e = {'lnum': 3, 'bufnr': bufnr, 'col': 9, 'valid': 1, 'vcol': 0, 'nr': 821, 'type': 'F', 'pattern': '', 'text': 'F821 undefined name ''obj'''}
   call neomake#makers#ft#python#Flake8EntryProcess(e)
   AssertEqual [e.lnum, e.col, e.length], [4, 30, 3]
+
+  " Needs adjustment for second line in f-string, handling func.
+  let e = {'lnum': 3, 'bufnr': bufnr, 'col': 9, 'valid': 1, 'vcol': 0, 'nr': 821, 'type': 'F', 'pattern': '', 'text': 'F821 undefined name ''f'''}
+  call neomake#makers#ft#python#Flake8EntryProcess(e)
+  AssertEqual [e.lnum, e.col, e.length], [4, 41, 1]
+
+  " Needs adjustment for second line in f-string, handling func arg.
+  let e = {'lnum': 3, 'bufnr': bufnr, 'col': 11, 'valid': 1, 'vcol': 0, 'nr': 821, 'type': 'F', 'pattern': '', 'text': 'F821 undefined name ''arg'''}
+  call neomake#makers#ft#python#Flake8EntryProcess(e)
+  AssertEqual [e.lnum, e.col, e.length], [4, 43, 3]
 
   " Something that cannot be found.
   let e = {'lnum': 3, 'bufnr': bufnr, 'col': 9, 'valid': 1, 'vcol': 0, 'nr': 821, 'type': 'F', 'pattern': '', 'text': 'F821 undefined name ''cannotbefound'''}
