@@ -361,3 +361,64 @@ Execute (custom qf gets disabled with manual setloclist()):
   finally
     call neomake#quickfix#disable()
   endtry
+
+Execute (disabling it restores initial lines (in qf window)):
+  new
+  call setloclist(0, [{
+      \ 'lnum': 1,
+      \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+      \}])
+  lopen
+  AssertEqual getline(1), '|1| Text with marker nmcfg:{"name": "b", "short": "b"}'
+  call neomake#quickfix#enable()
+  try
+    AssertEqual getline(1), 'b 1:- Text with marker'
+    call neomake#quickfix#disable()
+    AssertEqual getline(1), '|1| Text with marker nmcfg:{"name": "b", "short": "b"}'
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (enabling does not touch existing lists (in another window)):
+  new
+  call setloclist(0, [{
+      \ 'lnum': 1,
+      \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+      \}])
+  lopen
+  AssertEqual getline(1), '|1| Text with marker nmcfg:{"name": "b", "short": "b"}'
+  wincmd p
+  call neomake#quickfix#enable()
+  try
+    wincmd p
+    AssertEqual getline(1), '|1| Text with marker nmcfg:{"name": "b", "short": "b"}'
+    call neomake#quickfix#disable()
+    AssertEqual getline(1), '|1| Text with marker nmcfg:{"name": "b", "short": "b"}'
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (enabling does not touch existing lists (in another window)):
+  new
+  call setloclist(0, [{
+      \ 'lnum': 1,
+      \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+      \}])
+  lopen
+  AssertEqual getline(1), '|1| Text with marker nmcfg:{"name": "b", "short": "b"}'
+  call neomake#quickfix#enable()
+  try
+    AssertEqual getline(1), 'b 1:- Text with marker'
+    wincmd p
+    call neomake#quickfix#disable()
+    wincmd p
+    AssertEqual getline(1), 'b 1:- Text with marker'
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
