@@ -191,13 +191,14 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
                 let line = get(getbufline(a:entry.bufnr, a:entry.lnum), 0, '')
                 " NOTE: uses byte offset, starting at col means to start after
                 " the opening quote.
-                let pos = match(line, '\C\V{'.token, a:entry.col)
+                let pattern = '\V\C{\.\{-}\zs'.escape(token, '\').'\>'
+                let pos = match(line, pattern, a:entry.col)
                 if pos == -1
                     let line_offset = 0
                     while line_offset < 10
                         let line_offset += 1
                         let line = get(getbufline(a:entry.bufnr, a:entry.lnum + line_offset), 0, '')
-                        let pos = match(line, '\C\V{'.token)
+                        let pos = match(line, pattern)
                         if pos != -1
                             let a:entry.lnum = a:entry.lnum + line_offset
                             break
@@ -205,7 +206,7 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
                     endwhile
                 endif
                 if pos > 0
-                    let a:entry.col = pos + 2
+                    let a:entry.col = pos + 1
                     let a:entry.length = strlen(token)
                 endif
             endif
