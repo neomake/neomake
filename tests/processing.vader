@@ -60,6 +60,8 @@ Execute (Output is not processed with visible popup menu):
     normal! oword2
 
     function! s:close_pum(...)
+      NeomakeTestsWaitForMessage 'Not processing output during completion.', 3
+      call neomake#utils#DebugMessage('test: closing PUM.')
       call feedkeys("\<c-e>", 'x')
       call feedkeys("\<esc>")
     endfunction
@@ -67,11 +69,11 @@ Execute (Output is not processed with visible popup menu):
     call neomake#Make(0, [g:sleep_efm_maker])[0]
     let jobinfo = neomake#GetJobs()[-1]
 
-    call timer_start(100, 's:close_pum')
+    call timer_start(1, 's:close_pum')
+    call neomake#utils#DebugMessage('test: opening PUM.')
     call feedkeys("oword\<C-p>", 'x!')
 
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'Not processing output during completion.', 3
     AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
     AssertNeomakeMessage 'action queue: processing for CompleteDone (1 items, winnr: 2).'
     AssertNeomakeMessage 'sleep_efm_maker: processing 3 lines of output.'
