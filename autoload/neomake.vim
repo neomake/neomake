@@ -92,7 +92,9 @@ if s:is_testing
         try
             let r = s:make_info[make_id]
         catch
-            let g:neomake_test_errors += [printf('GetMakeOptions failed: %s (in %s)', v:exception, v:throwpoint)]
+            let msg = printf('GetMakeOptions failed: %s (in %s)', v:exception, v:throwpoint)
+            call vader#log(msg)
+            let g:neomake_test_errors += [msg]
             return {'verbosity': 3}
         endtry
         return r
