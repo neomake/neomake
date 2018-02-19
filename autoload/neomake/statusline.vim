@@ -17,12 +17,8 @@ function! s:clear_cache(bufnr) abort
     endif
 endfunction
 
-function! neomake#statusline#clear_cache(...) abort
-    if a:0
-        call s:clear_cache(a:1)
-    else
-        let s:cache = {}
-    endif
+function! neomake#statusline#clear_cache() abort
+    let s:cache = {}
 endfunction
 
 function! s:incCount(counts, item, buf) abort
