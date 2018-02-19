@@ -97,7 +97,7 @@ Execute (neomake#statusline#get_status):
   AssertEqual neomake#statusline#get_status(bufnr, {}), '?'
   AssertEqual neomake#statusline#get(bufnr, {}), '?'
 
-Execute (neomake#statusline#get_status: clears cache with new job (file mode)):
+Execute (neomake#statusline#get: clears cache with new job (file mode)):
   new
   let bufnr = bufnr('%')
   CallNeomake {'enabled_makers': [g:error_maker]}
@@ -111,7 +111,7 @@ Execute (neomake#statusline#get_status: clears cache with new job (file mode)):
   AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatusGood#✓'
   bwipe
 
-Execute (neomake#statusline#get_status: clears cache with new job (project mode)):
+Execute (neomake#statusline#get: clears cache with new job (project mode)):
   new
   let bufnr = bufnr('%')
   CallNeomake {'file_mode': 0, 'enabled_makers': [g:error_maker]}
@@ -127,4 +127,14 @@ Execute (neomake#statusline#get_status: clears cache with new job (project mode)
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatusGood#✓'
+  bwipe
+
+Execute (neomake#statusline#get: clears cache when changing disabled state):
+  new
+  let bufnr = bufnr('%')
+  AssertEqual neomake#statusline#get(bufnr, {}), '?'
+  NeomakeDisableBuffer
+  AssertEqual neomake#statusline#get(bufnr, {}), 'b-'
+  NeomakeToggleBuffer
+  AssertEqual neomake#statusline#get(bufnr, {}), '?'
   bwipe
