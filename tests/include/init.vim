@@ -487,8 +487,8 @@ function! s:After()
 
   let new_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val) && index(g:neomake_test_buffers_before, v:val) == -1')
   if !empty(new_buffers)
-    call add(errors, 'Unexpected/not wiped buffers: '.join(new_buffers, ', '))
-    Log neomake#utils#redir('ls!')
+    let curbuffers = neomake#utils#redir('ls!')
+    call add(errors, 'Unexpected/not wiped buffers: '.join(new_buffers, ', ')."\ncurrent buffers:".curbuffers)
     for b in new_buffers
       exe 'bwipe!' b
     endfor
