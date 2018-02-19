@@ -17,6 +17,14 @@ function! s:clear_cache(bufnr) abort
     endif
 endfunction
 
+function! neomake#statusline#clear_cache(...) abort
+    if a:0
+        call s:clear_cache(a:1)
+    else
+        let s:cache = {}
+    endif
+endfunction
+
 function! s:incCount(counts, item, buf) abort
     if !empty(a:item.type) && (!a:buf || a:item.bufnr ==# a:buf)
         let type = toupper(a:item.type)
