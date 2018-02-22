@@ -1,0 +1,188 @@
+Include: include/setup.vader
+
+Execute (stdin maker):
+  let maker = {'exe': 'cat', 'supports_stdin': 1, 'errorformat': '%f:%m'}
+  new
+  " Stdin should be used also when tempfiles are disabled.
+  let b:neomake_tempfile_enabled = 0
+  normal! ifile1.test:line1
+  normal! ofile1.test:line2
+  call neomake#Make(1, [maker])
+  AssertNeomakeMessage "Using buffer's directory for cwd with uses_stdin.", 3
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: ['cat', '-'].", 2
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertNeomakeMessage 'cwd: .', 3
+  AssertNeomakeMessage '\mstdout: unnamed_maker: [''file1.test:line1.*'
+  AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line2']
+  bwipe!
+
+Execute (stdin maker (args as string)):
+  let maker = {'exe': 'cat', 'args': '', 'supports_stdin': 1, 'errorformat': '%f:%m'}
+  new
+  " Stdin should be used also when tempfiles are disabled.
+  let b:neomake_tempfile_enabled = 0
+  normal! ifile1.test:line1
+  normal! ofile1.test:line2
+  call neomake#Make(1, [maker])
+  if neomake#has_async_support()
+    if has('nvim')
+      AssertNeomakeMessage "Starting async job: 'cat \\-'.", 2
+    else
+      let shell_argv = "'".join(split(&shell) + split(&shellcmdflag), "', '")."'"
+      AssertNeomakeMessage "Starting async job: [".shell_argv.", 'cat \\-'].", 2
+    endif
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertNeomakeMessage '\mstdout: unnamed_maker: [''file1.test:line1.*'
+  AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line2']
+  bwipe!
+
+Execute (stdin maker (disabled tempfiles)):
+  let maker = {'exe': 'cat', 'supports_stdin': 1, 'tempfile_name': '-'}
+  new
+  " Stdin should be used also when tempfiles are disabled.
+  let b:neomake_tempfile_enabled = 0
+  normal! iline1
+  normal! oline2
+  call neomake#Make(1, [maker])
+  AssertNeomakeMessage 'Using stdin for unnamed buffer.'
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: ['cat', '-'].", 2
+    NeomakeTestsWaitForFinishedJobs
+  else
+    AssertNeomakeMessage 'Starting: cat -.', 2
+  endif
+  AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
+  AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line2']
+  bwipe!
+
+Execute (stdin maker (project mode: append_file)):
+  let maker = {'exe': 'cat', 'supports_stdin': 1, 'tempfile_name': '-',
+  \ 'append_file': 1}
+  new
+  " Stdin should be used also when tempfiles are disabled.
+  let b:neomake_tempfile_enabled = 0
+  normal! iline1
+  normal! oline2
+  call neomake#Make(0, [maker])
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: ['cat', '-'].", 2
+    NeomakeTestsWaitForFinishedJobs
+  else
+    AssertNeomakeMessage 'Starting: cat -.', 2
+  endif
+  AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
+  AssertEqual map(getqflist(), 'v:val.text'), ['line1', 'line2']
+  bwipe!
+
+Execute (stdin maker (project mode: uses_filename)):
+  let maker = {'exe': 'cat', 'args': '$NEOMAKE_FILE', 'supports_stdin': 1,
+  \ 'uses_filename': 1}
+  new
+  " Stdin should be used also when tempfiles are disabled.
+  let b:neomake_tempfile_enabled = 0
+  normal! iline1
+  normal! oline2
+  call neomake#Make(0, [maker])
+  AssertNeomakeMessage 'Using stdin for unnamed buffer.'
+  if neomake#has_async_support()
+    if has('nvim')
+      AssertNeomakeMessage "Starting async job: 'cat $NEOMAKE_FILE'.", 2
+    else
+      let shell_argv = "'".join(split(&shell) + split(&shellcmdflag), "', '")."'"
+      AssertNeomakeMessage "Starting async job: [".shell_argv.", 'cat $NEOMAKE_FILE'].", 2
+    endif
+    NeomakeTestsWaitForFinishedJobs
+  else
+    AssertNeomakeMessage 'Starting: cat $NEOMAKE_FILE.', 2
+  endif
+  AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
+  AssertEqual map(getqflist(), 'v:val.text'), ['line1', 'line2']
+  bwipe!
+
+Execute (stdin maker: supports_stdin can be a callback adding args):
+  let maker = {'exe': 'printf', 'args': ['%s\n']}
+  function maker.supports_stdin(jobinfo)
+    let self.args += ['added_arg']
+    return 1
+  endfunction
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Using stdin for unnamed buffer.'
+  AssertEqual map(getloclist(0), 'v:val.text'), ['added_arg', '-']
+  bwipe
+
+Execute (stdin maker: supports_stdin can be a callback adding args, and setting tempfile_name):
+  let maker = {'exe': 'printf', 'args': ['%s\n']}
+  function maker.supports_stdin(jobinfo)
+    let self.args += ['added_arg']
+    let self.tempfile_name = 'custom_tempfile'
+    return 1
+  endfunction
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Using stdin for unnamed buffer.'
+  AssertEqual map(getloclist(0), 'v:val.text'), ['added_arg', 'custom_tempfile']
+  bwipe
+
+Execute (stdin maker: supports_stdin can be a callback returning 0):
+  let maker = {'exe': 'printf', 'args': ['%s\n']}
+  function maker.supports_stdin(jobinfo)
+    return 0
+  endfunction
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)".$'
+  let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual map(getloclist(0), 'v:val.text'), [tempfile_name]
+  bwipe
+
+Execute (stdin maker: supports_stdin can be a callback returning 0 and change args):
+  let maker = {'exe': 'printf', 'args': ['%s\n']}
+  function maker.supports_stdin(jobinfo)
+    let self.args += ['added_arg']
+    return 0
+  endfunction
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)".$'
+  let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual map(getloclist(0), 'v:val.text'), ['added_arg', tempfile_name]
+  bwipe
+
+Execute (stdin maker: uses neomake#utils#get_buffer_lines for buffer_lines):
+  let maker = {'exe': 'cat', 'supports_stdin': 1}
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)".$'
+  let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual map(getloclist(0), 'v:val.text'), []
+
+  normal! o
+  CallNeomake 1, [maker]
+  AssertEqual map(getloclist(0), 'v:val.text'), ['', '']
+  bwipe
+
+Execute (stdin maker: uses buffer's cwd by default):
+  let maker = {'exe': 'true', 'supports_stdin': 1}
+  let fname = tempname()
+  new
+  exe 'file '.fname
+
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage printf('cwd: %s (changed).', fnamemodify(fname, ':h')), 3
+
+  CallNeomake 0, [extend(copy(maker), {'uses_filename': 1})]
+  AssertNeomakeMessage printf('cwd: %s (changed).', fnamemodify(fname, ':h')), 3
+
+  let maker.cwd = '.'
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage printf('cwd: %s.', getcwd()), 3
+  bwipe

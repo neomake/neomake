@@ -367,7 +367,8 @@ You can specify the default for this via |g:neomake_remove_invalid_entries|.
 
                                                           *neomake-makers-cwd*
 The working directory of a maker defaults to the current working directory
-of the make run (|getcwd()|).
+of the make run (|getcwd()|), or the buffer's directory in case of using stdin
+(see |neomake-makers-supports_stdin|).
 The `cwd` property overrides this, and gets expanded in the context of the
 current buffer. Special buffers (like fugitive blobs) get handled for values
 starting with `%:` (typically used in this context), falling back to

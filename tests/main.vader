@@ -30,6 +30,7 @@ Include (Processing): processing.vader
 Include (Serialize): serialize.vader
 Include (Signs): signs.vader
 Include (Statusline): statusline.vader
+Include (Stdin): stdin.vader
 Include (Temporary files): tempfiles.vader
 Include (Toggling): toggle.vader
 Include (Utils): utils.vader
