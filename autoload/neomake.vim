@@ -2,7 +2,7 @@
 scriptencoding utf-8
 
 if !exists('s:make_id')
-    let s:make_id = 0
+  let s:make_id = 0
 endif
 " A map of make_id to options, e.g. cwd when jobs where started.
 if !exists('s:make_info')
