@@ -345,17 +345,19 @@ function! s:MakeJob(make_id, options) abort
         \ 'buffer_output': a:options.maker.buffer_output,
         \ }, 'keep')
 
-    let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
-    if !empty(cd_error)
-        throw printf("Neomake: %s: could not change to maker's cwd (%s): %s.",
-                    \ maker.name, cwd, cd_error)
-    endif
-
+    let error = ''
+    let cd_back_cmd = ''
     try
-        let error = ''
         let jobinfo.argv = maker._get_argv(jobinfo)
-        call neomake#utils#hook('NeomakeJobInit', {'jobinfo': jobinfo})
 
+        " Change to job's cwd (after args, which may use uses_stdin to set it).
+        let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
+        if !empty(cd_error)
+            throw printf("Neomake: %s: could not change to maker's cwd (%s): %s.",
+                        \ maker.name, cwd, cd_error)
+        endif
+
+        call neomake#utils#hook('NeomakeJobInit', {'jobinfo': jobinfo})
         if s:async
             call neomake#utils#LoudMessage(printf('Starting async job: %s.', string(jobinfo.argv)), jobinfo)
         else
@@ -1702,12 +1704,15 @@ function! s:cd_to_jobs_cwd(jobinfo) abort
                 let cwd = expand(cwd, 1)
             endif
             let a:jobinfo.cwd = substitute(fnamemodify(cwd, ':p'), '[\/]$', '', '')
+        elseif get(a:jobinfo, 'uses_stdin', 0)
+            call neomake#utils#DebugMessage("Using buffer's directory for cwd with uses_stdin.", a:jobinfo)
+            let a:jobinfo.cwd = neomake#utils#fnamemodify(a:jobinfo.bufnr, ':h')
         else
             let a:jobinfo.cwd = s:make_info[a:jobinfo.make_id].cwd
         endif
     endif
     let cwd = a:jobinfo.cwd
-    if empty(cwd)
+    if empty(cwd) || cwd ==# '.'
         return ['', '', '']
     endif
     let cwd = substitute(fnamemodify(cwd, ':p'), '[\/]$', '', '')
