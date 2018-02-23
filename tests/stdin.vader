@@ -118,15 +118,17 @@ Execute (stdin maker: supports_stdin can be a callback adding args):
 Execute (stdin maker: supports_stdin can be a callback adding args, and setting tempfile_name):
   let maker = {'exe': 'printf', 'args': ['%s\n']}
   function maker.supports_stdin(jobinfo)
-    let self.args += ['added_arg']
+    let self.args += ['added_arg', '%:p']
     let self.tempfile_name = 'custom_tempfile'
     return 1
   endfunction
+  let fname = tempname()
   new
+  exe 'file '.fname
   set buftype=nofile
   CallNeomake 1, [maker]
-  AssertNeomakeMessage 'Using stdin for unnamed buffer.'
-  AssertEqual map(getloclist(0), 'v:val.text'), ['added_arg', 'custom_tempfile']
+  AssertNeomakeMessage 'Using stdin for unreadable buffer.'
+  AssertEqual map(getloclist(0), 'v:val.text'), ['added_arg', fname, 'custom_tempfile']
   bwipe
 
 Execute (stdin maker: supports_stdin can be a callback returning 0):
