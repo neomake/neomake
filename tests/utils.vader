@@ -328,8 +328,7 @@ Execute (neomake#utils#ExpandArgs):
   \ '\~',
   \ ]
 
-  call neomake#utils#ExpandArgs(args)
-  AssertEqual expected_args, args
+  AssertEqual expected_args, neomake#utils#ExpandArgs(args)
   AssertEqual isk, &iskeyword
   bwipe
 

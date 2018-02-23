@@ -471,7 +471,7 @@ function! neomake#utils#ExpandArgs(args) abort
     " \\% is expanded to \\file.ext
     " %% becomes %
     " % must be followed with an expansion keyword
-    let ret = map(a:args,
+    let ret = map(copy(a:args),
                 \ 'substitute(v:val, '
                 \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre]\+\)*\)\ze\)\w\@!'', '
                 \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
