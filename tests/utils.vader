@@ -633,6 +633,7 @@ Execute (neomake#utils#shellescape):
   AssertEqual neomake#utils#shellescape('foo_bar'), 'foo_bar'
   AssertEqual neomake#utils#shellescape('foo bar'), "'foo bar'"
   AssertEqual neomake#utils#shellescape('foo bar "baz"'), "'foo bar \"baz\"'"
+  AssertEqual neomake#utils#shellescape('--foo=bar'), '--foo=bar'
 
   Save &shell
   let &shell = 'cmd.exe'
