@@ -605,7 +605,7 @@ function! s:gsub(str,pat,rep) abort
 endfunction
 
 function! neomake#utils#shellescape(arg) abort
-    if a:arg =~# '^[A-Za-z0-9_/.-]\+$'
+    if a:arg =~# '^[A-Za-z0-9_/.=-]\+$'
         return a:arg
     elseif &shell =~? 'cmd' || exists('+shellslash') && !&shellslash
         return '"'.s:gsub(s:gsub(a:arg, '"', '""'), '\%', '"%"').'"'
