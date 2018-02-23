@@ -257,36 +257,33 @@ function! neomake#statusline#get(bufnr, options) abort
     if !has_key(s:cache, a:bufnr)
         let s:cache[a:bufnr] = {}
     endif
-    if has_key(s:cache[a:bufnr], cache_key)
-        return s:cache[a:bufnr][cache_key]
-    endif
-    let bufnr = +a:bufnr
-    call s:setup_statusline_augroup_for_use()
+    if !has_key(s:cache[a:bufnr], cache_key)
+        let bufnr = +a:bufnr
+        call s:setup_statusline_augroup_for_use()
 
-    " TODO: needs to go into cache key then!
-    if getbufvar(bufnr, '&filetype') ==# 'qf'
-        let s:cache[a:bufnr][cache_key] = ''
-        return ''
-    endif
-
-    let r = ''
-    let [disabled, source] = neomake#config#get_with_source('disabled', -1, {'bufnr': bufnr})
-    if disabled != -1
-        if disabled
-            let r .= source[0].'-'
+        " TODO: needs to go into cache key then!
+        if getbufvar(bufnr, '&filetype') ==# 'qf'
+            let s:cache[a:bufnr][cache_key] = ''
         else
-            let r .= source[0].'+'
-        endif
-    else
-        let status = neomake#statusline#get_status(bufnr, a:options)
-        if has_key(a:options, 'format_status')
-            let status = printf(a:options.format_status, status)
-        endif
-        let r .= status
-    endif
+            let r = []
+            let [disabled, source] = neomake#config#get_with_source('disabled', -1, {'bufnr': bufnr})
+            if disabled != -1
+                if disabled
+                    let r += [source[0].'-']
+                else
+                    let r += [source[0].'+']
+                endif
+            endif
+            let status = neomake#statusline#get_status(bufnr, a:options)
+            if has_key(a:options, 'format_status')
+                let status = printf(a:options.format_status, status)
+            endif
+            let r += [status]
 
-    let s:cache[a:bufnr][cache_key] = r
-    return r
+            let s:cache[a:bufnr][cache_key] = join(r, ' ')
+        endif
+    endif
+    return s:cache[a:bufnr][cache_key]
 endfunction
 
 " XXX: TODO: cleanup/doc?!
