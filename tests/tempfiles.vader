@@ -140,7 +140,7 @@ Execute (Maker can specify temporary file to use via fn):
 Execute (Previously existing temporary dir is kept):
   let tempname = tempname()
   call mkdir(tempname, '', 0700)
-  let tempfile_name = tempname.'/injected/with/subdir'
+  let tempfile_name = tempname.'/injected/with/subdir and spaces'
   let maker = {
   \ 'exe': 'true',
   \ 'tempfile_name': tempfile_name,
@@ -158,9 +158,9 @@ Execute (Previously existing temporary dir is kept):
   AssertNeomakeMessage 'Using tempfile for unnamed buffer: "'.tempfile_name.'".', 3
   NeomakeTestsWaitForFinishedJobs
   if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: ['true', '".tempfile_name."']."
+    AssertNeomakeMessage printf("Starting async job: true '%s'.", tempfile_name)
   else
-    AssertNeomakeMessage printf('Starting: true %s.', fnameescape(tempfile_name))
+    AssertNeomakeMessage printf("Starting [string]: true '%s'.", tempfile_name)
   endif
   AssertNeomakeMessage 'Removing temporary file: "'.tempfile_name.'".'
   Assert !filereadable(tempfile_name), 'tempfile has been removed'

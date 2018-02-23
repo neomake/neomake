@@ -174,7 +174,7 @@ Execute (Neomake#Make cancels previous jobs):
     AssertEqual neomake#GetStatus().last_make_id, make_id + 1, 'two make instance'
 
     " Restarted job should use new make_id.
-    AssertNeomakeMessage "Starting async job: ['".&shell."', '-c', 'echo error; false'].",
+    AssertNeomakeMessage printf("Starting async job: %s -c 'echo error; false'.", &shell),
     \ 2, {'id': second_jobs[1], 'make_id': make_id+1, 'bufnr': bufnr}
   endif
 
@@ -211,7 +211,7 @@ Execute (Neomake#Make cancels previous jobs (serialized)):
     AssertEqual neomake#GetStatus().last_make_id, make_id + 1, 'two make instance'
 
     " Restarted job should use new make_id.
-    AssertNeomakeMessage "Starting async job: ['".&shell."', '-c', 'echo error; false'].",
+    AssertNeomakeMessage printf("Starting async job: %s -c 'echo error; false'.", &shell),
     \ 2, {'id': second_jobs[0].id, 'make_id': make_id+1, 'bufnr': bufnr}
   endif
 

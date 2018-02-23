@@ -599,7 +599,7 @@ Execute (Already running job gets restarted in case of exception):
     AssertNeomakeMessage printf('Cancelling already running job (%d.%d) for the same maker.',
     \ make_id, jobinfo.id), 2, {'make_id': make_id+1}
     AssertNeomakeMessage 'Job exited already.', 3, jobinfo
-    AssertNeomakeMessage "Starting async job: ['printf', 'foo']."
+    AssertNeomakeMessage "Starting async job: printf foo."
 
     " Needs careful cleanup after exception.
     NeomakeTestsWaitForMessage 'Cleaning jobinfo.'

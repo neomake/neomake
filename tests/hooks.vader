@@ -93,9 +93,9 @@ Execute (NeomakeJobInit can make processes nicer):
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
   if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: ['nice', '-n18', '".&shell."', '-c', 'cat /proc/$$/stat | cut -f19 -d\\ '].", 2
+    AssertNeomakeMessage printf("Starting async job: nice -n18 %s -c 'cat /proc/$$/stat | cut -f19 -d\\ '.", &shell), 2
   else
-    AssertNeomakeMessage "Starting: nice -n 18 ".&shell." -c 'cat /proc/$$/stat | cut -f19 -d\\ '.", 2
+    AssertNeomakeMessage printf("Starting [string]: nice -n 18 %s -c 'cat /proc/$$/stat | cut -f19 -d\\ '.", &shell)
   endif
 
   let niceness = getqflist()[0].text
