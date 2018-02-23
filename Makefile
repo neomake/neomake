@@ -189,13 +189,20 @@ docker_image:
 docker_push:
 	docker push $(DOCKER_REPO):$(DOCKER_TAG)
 docker_update_image:
-	git diff --cached --exit-code >/dev/null || { echo "Index is not clean."; exit 1 ; }
-	git diff --exit-code Makefile >/dev/null || { echo "Makefile is not clean."; exit 2 ; }
-	sed -i '/^DOCKER_TAG:=/s/:=.*/:=$(shell echo $$(($(DOCKER_TAG)+1)))/' Makefile
-	sed -i '/^ENV NEOMAKE_DOCKERFILE_UPDATE=/s/=.*/=$(shell date +%Y-%m-%d)/' Dockerfile.tests
+	@git diff --cached --exit-code >/dev/null || { echo "WARN: git index is not clean."; }
+	@if git diff --exit-code Makefile >/dev/null; then \
+	  sed -i '/^DOCKER_TAG:=/s/:=.*/:=$(shell echo $$(($(DOCKER_TAG)+1)))/' Makefile; \
+	else \
+	  echo "WARN: Makefile is not clean. Not updating."; \
+	fi
+	@if git diff --exit-code Dockerfile.tests >/dev/null; then \
+	  sed -i '/^ENV NEOMAKE_DOCKERFILE_UPDATE=/s/=.*/=$(shell date +%Y-%m-%d)/' Dockerfile.tests \
+	else \
+	  echo "WARN: Dockerfile.tests is not clean. Not updating."; \
+	fi
 	make docker_image
 	make docker_test DOCKER_VIM=neovim-master
-	@echo "Done.  Use 'make docker_push' to push it."
+	@echo "Done.  Use 'make docker_push' to push it, and then update .circleci/config.yml."
 
 DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8069 vim-master neovim-v0.1.7 neovim-v0.2.0 neovim-v0.2.1 neovim-v0.2.2 neovim-master
 _DOCKER_VIM_TARGETS:=$(addprefix docker_test-,$(DOCKER_VIMS))
