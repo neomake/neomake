@@ -167,7 +167,7 @@ Execute (flake8: postprocess for F821 in continuous f-strings):
   Assert !has_key(e, 'length')
   bwipe!
 
-Execute (neomake#makers#ft#python#Flake8EntryProcess):
+Execute (python: flake8: neomake#makers#ft#python#Flake8EntryProcess):
   let bufnr = bufnr('%')
   let entry = {'type': 'F', 'nr': 841, 'text': "local variable 'foo' is assigned to but never used", 'lnum': 1, 'col': 1, 'bufnr': bufnr}
   call neomake#makers#ft#python#Flake8EntryProcess(entry)
@@ -203,6 +203,18 @@ Execute (python: flake8):
   AssertEqual entry, {'lnum': 90, 'bufnr': bufnr, 'col': 1, 'valid': 1,
   \ 'vcol': 0, 'nr': '', 'type': 'I', 'pattern': '',
   \ 'text': 'I1 isort found an import in the wrong position'}
+  bwipe
+
+Execute (python: flake8: supports_stdin):
+  new
+  let fname = ''
+  noautocmd setfiletype python
+
+  let b:neomake = {'flake8': {'exe': 'echo', 'errorformat': '%m'}}
+  CallNeomake 1, ['flake8']
+  AssertNeomakeMessage "\\vStarting .{-}: echo --format\\=default --stdin-display-name '' -.", 2
+  AssertEqual getloclist(0)[0].text,
+  \ '-1 --format=default --stdin-display-name  -'
   bwipe
 
 Execute (python: pylint):
