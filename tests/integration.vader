@@ -113,10 +113,10 @@ Execute (Neomake picks up custom maker correctly):
 
   Neomake lint
   if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: ['echo', '".fname."', '--foo', 'bar']."
+    AssertNeomakeMessage printf("Starting async job: echo %s --foo bar.", fname)
     NeomakeTestsWaitForFinishedJobs
   else
-    AssertNeomakeMessage printf('Starting: echo %s --foo bar.', fname)
+    AssertNeomakeMessage printf('Starting [string]: echo %s --foo bar.', fname)
   endif
   bwipe
 
@@ -604,9 +604,9 @@ Execute (Neomake#Make: error with failing job via jobstart/argv):
   NeomakeTestsWaitForFinishedJobs
 
   if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: ['doesnotexist']."
+    AssertNeomakeMessage "Starting async job: doesnotexist."
   else
-    AssertNeomakeMessage "Starting: doesnotexist."
+    AssertNeomakeMessage "Starting [string]: doesnotexist."
   endif
 
   if has('nvim-0.1.8')
@@ -643,9 +643,9 @@ Execute (Neomake#Make: error with failing job via jobstart/argv + true):
   NeomakeTestsWaitForFinishedJobs
 
   if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: ['doesnotexist']."
+    AssertNeomakeMessage "Starting async job: doesnotexist."
   else
-    AssertNeomakeMessage "Starting: doesnotexist."
+    AssertNeomakeMessage "Starting [string]: doesnotexist."
   endif
 
   if has('nvim-0.1.8')

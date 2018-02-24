@@ -10,7 +10,7 @@ Execute (stdin maker):
   call neomake#Make(1, [maker])
   AssertNeomakeMessage "Using buffer's directory for cwd with uses_stdin.", 3
   if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: ['cat', '-'].", 2
+    AssertNeomakeMessage "Starting async job: cat -.", 2
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertNeomakeMessage 'cwd: .', 3
@@ -28,10 +28,10 @@ Execute (stdin maker (args as string)):
   call neomake#Make(1, [maker])
   if neomake#has_async_support()
     if has('nvim')
-      AssertNeomakeMessage "Starting async job: 'cat \\-'.", 2
+      AssertNeomakeMessage "Starting async job [string]: cat \\-.", 2
     else
-      let shell_argv = "'".join(split(&shell) + split(&shellcmdflag), "', '")."'"
-      AssertNeomakeMessage "Starting async job: [".shell_argv.", 'cat \\-'].", 2
+      let shell_argv = join(split(&shell) + split(&shellcmdflag))
+      AssertNeomakeMessage 'Starting async job: '.shell_argv." 'cat \\-'.", 2
     endif
     NeomakeTestsWaitForFinishedJobs
   endif
@@ -49,10 +49,10 @@ Execute (stdin maker (disabled tempfiles)):
   call neomake#Make(1, [maker])
   AssertNeomakeMessage 'Using stdin for unnamed buffer.'
   if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: ['cat', '-'].", 2
+    AssertNeomakeMessage "Starting async job: cat -.", 2
     NeomakeTestsWaitForFinishedJobs
   else
-    AssertNeomakeMessage 'Starting: cat -.', 2
+    AssertNeomakeMessage 'Starting [string]: cat -.', 2
   endif
   AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
   AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line2']
@@ -68,10 +68,10 @@ Execute (stdin maker (project mode: append_file)):
   normal! oline2
   call neomake#Make(0, [maker])
   if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: ['cat', '-'].", 2
+    AssertNeomakeMessage "Starting async job: cat -.", 2
     NeomakeTestsWaitForFinishedJobs
   else
-    AssertNeomakeMessage 'Starting: cat -.', 2
+    AssertNeomakeMessage 'Starting [string]: cat -.', 2
   endif
   AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
   AssertEqual map(getqflist(), 'v:val.text'), ['line1', 'line2']
@@ -89,14 +89,14 @@ Execute (stdin maker (project mode: uses_filename)):
   AssertNeomakeMessage 'Using stdin for unnamed buffer.'
   if neomake#has_async_support()
     if has('nvim')
-      AssertNeomakeMessage "Starting async job: 'cat $NEOMAKE_FILE'.", 2
+      AssertNeomakeMessage "Starting async job [string]: cat $NEOMAKE_FILE.", 2
     else
-      let shell_argv = "'".join(split(&shell) + split(&shellcmdflag), "', '")."'"
-      AssertNeomakeMessage "Starting async job: [".shell_argv.", 'cat $NEOMAKE_FILE'].", 2
+      let shell_argv = join(split(&shell) + split(&shellcmdflag))
+      AssertNeomakeMessage 'Starting async job: '.shell_argv." 'cat $NEOMAKE_FILE'.", 2
     endif
     NeomakeTestsWaitForFinishedJobs
   else
-    AssertNeomakeMessage 'Starting: cat $NEOMAKE_FILE.', 2
+    AssertNeomakeMessage 'Starting [string]: cat $NEOMAKE_FILE.', 2
   endif
   AssertNeomakeMessage '\mstdout: unnamed_maker: [''line1.*'
   AssertEqual map(getqflist(), 'v:val.text'), ['line1', 'line2']
