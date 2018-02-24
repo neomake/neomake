@@ -176,12 +176,13 @@ vimhelplint: | $(if $(VIMHELPLINT_DIR),,build/vimhelplint)
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=21
+DOCKER_TAG:=22
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
 DOCKER=docker run $(DOCKER_STREAMS) --rm \
     -v $(PWD):/testplugin \
+    -w /testplugin \
     -e NEOMAKE_TEST_NO_COLORSCHEME \
     $(DOCKER_IMAGE)
 docker_image:
@@ -204,7 +205,7 @@ docker_update_image:
 	make docker_test DOCKER_VIM=neovim-master
 	@echo "Done.  Use 'make docker_push' to push it, and then update .circleci/config.yml."
 
-DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim8069 vim-master neovim-v0.1.7 neovim-v0.2.0 neovim-v0.2.1 neovim-v0.2.2 neovim-master
+DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim-8.0.586 vim-master neovim-v0.1.7 neovim-v0.2.0 neovim-v0.2.1 neovim-v0.2.2 neovim-master
 _DOCKER_VIM_TARGETS:=$(addprefix docker_test-,$(DOCKER_VIMS))
 
 docker_test_all: $(_DOCKER_VIM_TARGETS)
@@ -229,8 +230,11 @@ docker_run: $(DEP_PLUGINS)
 docker_run:
 	$(DOCKER) $(if $(DOCKER_RUN),$(DOCKER_RUN),bash)
 
-docker_make: DOCKER_RUN=make -C /testplugin $(DOCKER_MAKE_TARGET)
+docker_make: DOCKER_RUN=make $(DOCKER_MAKE_TARGET)
 docker_make: docker_run
+
+docker_check: DOCKER_MAKE_TARGET=check_docker
+docker_check: docker_make
 
 docker_vimhelplint:
 	$(MAKE) docker_make "DOCKER_MAKE_TARGET=vimhelplint \
@@ -264,8 +268,7 @@ check_lint_diff:
 
 check_lint: vimlint vint vimhelplint
 
-# Checks to be run with Docker.
-# This is kept separate from "check" to not require Docker there.
+# Checks to be run within the Docker image.
 check_docker:
 	@:; set -e; ret=0; \
 	echo '== Checking for DOCKER_VIMS to be in sync'; \
@@ -273,8 +276,7 @@ check_docker:
 	docker_vims="$$(printf '%s\n' $(DOCKER_VIMS) | sort)"; \
 	if ! [ "$$vims" = "$$docker_vims" ]; then \
 	  echo "DOCKER_VIMS is out of sync with Vims in image."; \
-	  echo "DOCKER_VIMS: $$docker_vims"; \
-	  echo "in image:    $$vims"; \
+	  diff <(echo "$$vims") <(echo "$$docker_vims"); \
 	  (( ret+=8 )); \
 	fi; \
 	exit $$ret
