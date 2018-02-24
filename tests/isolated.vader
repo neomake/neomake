@@ -5,3 +5,4 @@ Include: isolated/highlights.vader
 Include: isolated/ft_help.vader
 Include: isolated/tempfiles-cleanup.vader
 Include: isolated/modes.vader
+Include: isolated/configure.vader
