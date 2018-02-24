@@ -698,10 +698,6 @@ function! s:command_maker_base._bind_args() abort dict
     else
         let args = copy(self.args)
     endif
-    let args_is_list = type(args) == type([])
-    if args_is_list
-        call neomake#utils#ExpandArgs(args)
-    endif
     let self.args = args
 endfunction
 
