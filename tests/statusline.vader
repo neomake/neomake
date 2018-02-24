@@ -66,7 +66,7 @@ Execute (neomake#statusline#get_status):
   AssertEqual neomake#statusline#get_status(bufnr, {'format_loclist_unknown': '{{running_job_names}}'}), ''
   " {{running_jobs}} is only available with 'format_running' (internally).
   AssertEqual neomake#statusline#get_status(bufnr, {'format_loclist_unknown': '{{running_jobs}}'}), '{{running_jobs}}'
-  AssertNeomakeMessage 'Unknown statusline format: {{running_jobs}}.', 0
+  AssertNeomakeMessage "Error when formatting '{{running_jobs}}': Unknown statusline format: {{running_jobs}}.", 0
 
   call neomake#Make({'enabled_makers': [g:sleep_maker]})
   if neomake#has_async_support()
@@ -80,7 +80,7 @@ Execute (neomake#statusline#get_status):
     Assert neomake#statusline#get_status(bufnr, {'format_running': '{{running_jobs}}'}) =~# '\m^{''', '{{running_jobs}} is replaced in format_running'
 
     call neomake#statusline#get_status(bufnr(''), {'format_running': 'Neomake: {{does_not_exist}}'})
-    AssertNeomakeMessage 'Unknown statusline format: {{does_not_exist}}.', 0
+    AssertNeomakeMessage "Error when formatting 'Neomake: {{does_not_exist}}': Unknown statusline format: {{does_not_exist}}.", 0
     NeomakeTestsWaitForFinishedJobs
   else
     AssertEqual neomake#statusline#get_status(bufnr, {'format_running': '...'}), '%#NeomakeStatusGood#✓'
@@ -89,7 +89,9 @@ Execute (neomake#statusline#get_status):
   endif
 
   call neomake#statusline#get_status(bufnr(''), {'format_loclist_ok': 'Neomake: {{does_not_exist}}'})
-  AssertNeomakeMessage 'Unknown statusline format: {{does_not_exist}}.', 0
+  AssertNeomakeMessage "Error when formatting 'Neomake: {{does_not_exist}}': Unknown statusline format: {{does_not_exist}}.", 0
+  call neomake#statusline#get_status(bufnr(''), {'format_loclist_ok': '{{foo}} {{bar}}'})
+  AssertNeomakeMessage "Errors when formatting '{{foo}} {{bar}}': Unknown statusline format: {{foo}}., Unknown statusline format: {{bar}}.", 0
 
   AssertEqual neomake#statusline#get_status(bufnr, {}), '%#NeomakeStatusGood#✓'
   AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatusGood#✓'

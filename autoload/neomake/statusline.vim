@@ -151,8 +151,7 @@ function! s:formatter._substitute(m) abort
         return self.args[a:m]
     endif
     if !has_key(self, a:m)
-        call neomake#utils#ErrorMessage(printf(
-                    \ 'Unknown statusline format: {{%s}}.', a:m))
+        let self.errors += [printf('Unknown statusline format: {{%s}}.', a:m)]
         return '{{'.a:m.'}}'
     endif
     try
@@ -168,7 +167,15 @@ function! s:formatter.format(f, args) abort
         return a:f
     endif
     let self.args = a:args
-    return substitute(a:f, '{{\(.\{-}\)}}', '\=self._substitute(submatch(1))', 'g')
+    let self.errors = []
+    let r = substitute(a:f, '{{\(.\{-}\)}}', '\=self._substitute(submatch(1))', 'g')
+    if !empty(self.errors)
+        call neomake#utils#ErrorMessage(printf(
+                    \ 'Error%s when formatting %s: %s',
+                    \ len(self.errors) > 1 ? 's' : '',
+                    \ string(a:f), join(self.errors, ', ')))
+    endif
+    return r
 endfunction
 
 
