@@ -5,19 +5,19 @@ FROM testbed/vim:10@sha256:be6e7e3b7b424671da955ccc71a980f329ec10b773cbae001e696
 #  - v7.3.429 (Ubuntu Precise, 12.04LTS)
 #  - v7.4.052 (Ubuntu Trusty, 14.04LTS)
 #  - v7.4.1689 (Ubuntu Xenial, 16.04LTS)
-#  - v8.0.8069 (Updated Vim 8, https://groups.google.com/forum/#!topic/vim_dev/ro_FpeXgc24)
+#  - v8.0.586 (Updated Vim 8, https://vim.sourceforge.io/download.php)
 # TODO: clean up names to make them usable as-is in CircleCI config.
 RUN install_vim -tag v7.3.429 -name vim73 --with-features=huge -build \
                 -tag v7.4.052 -name vim74-trusty --with-features=huge -build \
                 -tag v7.4.1689 -name vim74-xenial --with-features=huge -build \
-                -tag v8.0.0069 -name vim8069 -py2 -build \
+                -tag v8.0.0586 -name vim-8.0.586 -py2 -build \
                 -tag neovim:v0.1.7 -build \
                 -tag neovim:v0.2.0 -build \
                 -tag neovim:v0.2.1 -build \
                 -tag neovim:v0.2.2 -py3 -build \
   && rm -rf /vim-build/vim/vim/*/share/vim/*/tutor
 
-ENV NEOMAKE_DOCKERFILE_UPDATE=2018-02-20
+ENV NEOMAKE_DOCKERFILE_UPDATE=2018-02-23
 
 # Git master in a separate layer, since the above is meant to be stable.
 RUN install_vim -tag master -build \

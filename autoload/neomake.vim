@@ -2189,6 +2189,7 @@ function! s:vim_exit_handler(channel) abort
         try
             let job_info = job_info(ch_getjob(a:channel))
         catch /^Vim(let):E916:/
+            " Might happen with older Vim (8.0.69, but not 8.0.586).
             call neomake#utils#DebugMessage(printf('exit: job not found: %s.', a:channel))
             return
         endtry
