@@ -155,9 +155,9 @@ The image for this gets pulled from Docker Hub via
 NOTE: the Docker image used for tests does not include (different versions)
 of Neovim at the moment.
 
-#### Run all tests for Vim 8.0.568
+#### Run all tests for Vim 8.0.586
 
-    make docker_test DOCKER_VIM=vim-8.0.568
+    make docker_test DOCKER_VIM=vim-8.0.586
 
 #### Run all tests against all Vims in the Docker image
 
