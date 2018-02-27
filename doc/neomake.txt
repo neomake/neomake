@@ -288,6 +288,15 @@ are required.  `bufnr` defaults to the jobs's buffer.
 Using this method skips the processing based on `errorformat` (including
 `mapexpr` and `postprocess`).
 
+                                                *neomake-makers-filter_output*
+A maker's `filter_output` function can filter any output before it gets
+processed further.
+
+The function gets called with two arguments: the list of lines (to be modified
+in place) and a context dictionary with the following entries:
+ - `source`: the source of the output (`stderr`, `stdout`)
+ - `jobinfo`: the jobinfo object, see |neomake-object-jobinfo|
+
                                                       *neomake-makers-mapexpr*
 You can define two optional properties on a maker object to process its
 output: `mapexpr` is applied to the maker's output before any processing, and
