@@ -1388,7 +1388,7 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
 
     if !empty(wipe_unlisted_buffers)
         call neomake#utils#DebugMessage(printf('Wiping out %d unlisted/remapped buffers.', len(wipe_unlisted_buffers)))
-        exe 'bwipeout '.join(keys(wipe_unlisted_buffers))
+        exe (&report < 2 ? 'silent ' : '').'bwipeout '.join(keys(wipe_unlisted_buffers))
     endif
 
     return s:ProcessEntries(a:jobinfo, entries, a:prev_list)
