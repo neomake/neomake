@@ -511,10 +511,10 @@ function! s:MakeJob(make_id, options) abort
             let s:jobs[job_id] = jobinfo
             let s:make_info[a:make_id].active_jobs += [jobinfo]
 
-            call s:output_handler(jobinfo, split(output, '\r\?\n', 1), 'stdout')
+            call s:output_handler(jobinfo, split(output, '\r\?\n', 1), 'stdout', 0)
             let stderr_output = readfile(stderr_file)
             if !empty(stderr_output)
-                call s:output_handler(jobinfo, stderr_output, 'stderr')
+                call s:output_handler(jobinfo, stderr_output, 'stderr', 1)
             endif
             call delete(stderr_file)
 
@@ -2236,10 +2236,8 @@ function! s:vim_output_handler(channel, output, event_type) abort
         call neomake#utils#DebugMessage(printf("output [%s]: job '%s' not found.", a:event_type, a:channel))
         return
     endif
-
-    let data = split(a:output, '\v\r?\n', 1)
-
-    call s:output_handler_queued(jobinfo, data, a:event_type)
+    let data = split(a:output, '\r\?\n', 1)
+    call s:output_handler_queued(jobinfo, data, a:event_type, 0)
 endfunction
 
 function! s:vim_output_handler_stdout(channel, output) abort
@@ -2293,7 +2291,7 @@ if has('nvim-0.2.0')
             " EOF in Neovim (see :h on_data).
             return
         endif
-        call s:output_handler_queued(jobinfo, copy(a:data), a:event_type)
+        call s:output_handler_queued(jobinfo, copy(a:data), a:event_type, 1)
     endfunction
 else
     " Neovim: register output from jobs as quick as possible, and trigger
@@ -2306,7 +2304,7 @@ else
             call neomake#utils#DebugMessage(printf('output [%s]: job %d not found.', a:event_type, a:job_id))
             return
         endif
-        let args = [jobinfo, copy(a:data), a:event_type]
+        let args = [jobinfo, copy(a:data), a:event_type, 1]
         call add(s:nvim_output_handler_queue, args)
         if !exists('jobinfo._nvim_in_handler')
             let jobinfo._nvim_in_handler = 1
@@ -2352,7 +2350,8 @@ function! s:nvim_exit_handler_buffered(job_id, data, event_type) abort
 
     for stream in ['stdout', 'stderr']
         if has_key(jobinfo.jobstart_opts, stream)
-            call s:output_handler(jobinfo, copy(jobinfo.jobstart_opts[stream]), stream)
+            let data = copy(jobinfo.jobstart_opts[stream])
+            call s:output_handler(jobinfo, data, stream, 1)
         endif
     endfor
 
@@ -2474,18 +2473,18 @@ function! s:exit_handler(jobinfo, data) abort
     call s:handle_next_job(jobinfo)
 endfunction
 
-function! s:output_handler_queued(jobinfo, data, event_type) abort
+function! s:output_handler_queued(jobinfo, data, event_type, trim_CR) abort
     let jobinfo = a:jobinfo
     if exists('jobinfo._output_while_in_handler')
         call neomake#utils#DebugMessage(printf('Queueing: %s: %s: %s.',
                     \ a:event_type, jobinfo.maker.name, string(a:data)), jobinfo)
-        let jobinfo._output_while_in_handler += [[jobinfo, a:data, a:event_type]]
+        let jobinfo._output_while_in_handler += [[jobinfo, a:data, a:event_type, a:trim_CR]]
         return
     else
         let jobinfo._output_while_in_handler = []
     endif
 
-    call s:output_handler(jobinfo, a:data, a:event_type)
+    call s:output_handler(jobinfo, a:data, a:event_type, a:trim_CR)
 
     " Process queued events that might have arrived by now.
     " The attribute might be unset here, since output_handler might have
@@ -2504,12 +2503,12 @@ function! s:output_handler_queued(jobinfo, data, event_type) abort
     endif
 endfunction
 
-function! s:output_handler(jobinfo, data, event_type) abort
+function! s:output_handler(jobinfo, data, event_type, trim_CR) abort
     let jobinfo = a:jobinfo
     call neomake#utils#DebugMessage(printf('%s: %s: %s.',
                 \ a:event_type, jobinfo.maker.name, string(a:data)), jobinfo)
     let data = copy(a:data)
-    if !empty(a:data)
+    if a:trim_CR && !empty(a:data)
         call map(data, "substitute(v:val, '\\r$', '', '')")
     endif
     if get(jobinfo, 'canceled')
