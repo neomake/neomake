@@ -2220,6 +2220,10 @@ if has('nvim-0.2.0')
             call neomake#utils#DebugMessage(printf('output [%s]: job %d not found.', a:event_type, a:job_id))
             return
         endif
+        if a:data == [''] && !exists('jobinfo[a:event_type]')
+            " EOF in Neovim (see :h on_data).
+            return
+        endif
         call s:output_handler_queued(jobinfo, copy(a:data), a:event_type)
     endfunction
 else
