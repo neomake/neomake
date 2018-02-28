@@ -509,7 +509,6 @@ function! s:MakeJob(make_id, options) abort
             call s:output_handler(jobinfo, split(output, '\r\?\n', 1), 'stdout')
             let stderr_output = readfile(stderr_file)
             if !empty(stderr_output)
-                call map(stderr_output, "substitute(v:val, '\\r$', '', '')")
                 call s:output_handler(jobinfo, stderr_output, 'stderr')
             endif
             call delete(stderr_file)
@@ -2221,8 +2220,7 @@ if has('nvim-0.2.0')
             call neomake#utils#DebugMessage(printf('output [%s]: job %d not found.', a:event_type, a:job_id))
             return
         endif
-        let data = map(copy(a:data), "substitute(v:val, '\\r$', '', '')")
-        call s:output_handler_queued(jobinfo, data, a:event_type)
+        call s:output_handler_queued(jobinfo, copy(a:data), a:event_type)
     endfunction
 else
     " Neovim: register output from jobs as quick as possible, and trigger
@@ -2235,8 +2233,7 @@ else
             call neomake#utils#DebugMessage(printf('output [%s]: job %d not found.', a:event_type, a:job_id))
             return
         endif
-        let data = map(copy(a:data), "substitute(v:val, '\\r$', '', '')")
-        let args = [jobinfo, data, a:event_type]
+        let args = [jobinfo, copy(a:data), a:event_type]
         call add(s:nvim_output_handler_queue, args)
         if !exists('jobinfo._nvim_in_handler')
             let jobinfo._nvim_in_handler = 1
@@ -2282,9 +2279,7 @@ function! s:nvim_exit_handler_buffered(job_id, data, event_type) abort
 
     for stream in ['stdout', 'stderr']
         if has_key(jobinfo.jobstart_opts, stream)
-            let output = copy(jobinfo.jobstart_opts[stream])
-            call map(output, "substitute(v:val, '\\r$', '', '')")
-            call s:output_handler(jobinfo, output, stream)
+            call s:output_handler(jobinfo, copy(jobinfo.jobstart_opts[stream]), stream)
         endif
     endfor
 
@@ -2440,22 +2435,26 @@ function! s:output_handler(jobinfo, data, event_type) abort
     let jobinfo = a:jobinfo
     call neomake#utils#DebugMessage(printf('%s: %s: %s.',
                 \ a:event_type, jobinfo.maker.name, string(a:data)), jobinfo)
+    let data = copy(a:data)
+    if !empty(a:data)
+        call map(data, "substitute(v:val, '\\r$', '', '')")
+    endif
     if get(jobinfo, 'canceled')
         call neomake#utils#DebugMessage('Ignoring output (job was canceled).', jobinfo)
         return
     endif
     let last_event_type = get(jobinfo, 'event_type', a:event_type)
 
-    " a:data is a list of 'lines' read. Each element *after* the first
+    " data is a list of 'lines' read. Each element *after* the first
     " element represents a newline.
     if has_key(jobinfo, a:event_type)
         let lines = jobinfo[a:event_type]
         " As per https://github.com/neovim/neovim/issues/3555
         let jobinfo[a:event_type] = lines[:-2]
-                    \ + [lines[-1] . get(a:data, 0, '')]
-                    \ + a:data[1:]
+                    \ + [lines[-1] . get(data, 0, '')]
+                    \ + data[1:]
     else
-        let jobinfo[a:event_type] = a:data
+        let jobinfo[a:event_type] = data
     endif
 
     if !jobinfo.buffer_output || last_event_type !=# a:event_type
