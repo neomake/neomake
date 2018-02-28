@@ -787,7 +787,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             \ 'exe': maker.name,
             \ 'args': [],
             \ })
-        if !has_key(maker, 'process_output')
+        if !has_key(maker, 'process_output') && !has_key(maker, 'process_json')
             call extend(defaults, {
                 \ 'errorformat': &errorformat,
                 \ })
@@ -1772,7 +1772,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         let prev_list = a:1
         let new_list = file_mode ? getloclist(0) : getqflist()
     else
-        " Fix entries with get_list_entries/process_output.
+        " Fix entries with get_list_entries/process_output/process_json.
         let maker_name = a:jobinfo.maker.name
         call map(a:entries, 'extend(v:val, {'
                     \ . "'bufnr': str2nr(get(v:val, 'bufnr', 0)),"
@@ -1952,16 +1952,43 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
                 \ '%s: processing %d lines of output.',
                 \ maker.name, len(a:lines)), a:jobinfo)
     try
-        if has_key(maker, 'process_output')
-            let entries = call(maker.process_output, [{
-                        \ 'output': a:lines,
-                        \ 'source': a:source,
-                        \ 'jobinfo': a:jobinfo}], maker)
+        if has_key(maker, 'process_json') || has_key(maker, 'process_output')
+            if has_key(maker, 'process_json')
+                let method = 'process_json'
+                let output = join(a:lines, "\n")
+                try
+                    let json = neomake#compat#json_decode(output)
+                catch
+                    let error = printf(
+                                \ 'Failed to decode JSON: %s (output: %s).',
+                                \ substitute(v:exception, '^Neomake: ', '', ''), string(output))
+                    call neomake#utils#log_exception(error, a:jobinfo)
+                    return
+                endtry
+                call neomake#utils#DebugMessage(printf(
+                            \ "Calling maker's process_json method with %d JSON entries.",
+                            \ len(json)), a:jobinfo)
+                let entries = call(maker.process_json, [{
+                            \ 'json': json,
+                            \ 'source': a:source,
+                            \ 'jobinfo': a:jobinfo}], maker)
+            else
+                call neomake#utils#DebugMessage(printf(
+                            \ "Calling maker's process_output method with %d lines of output on %s.",
+                            \ len(a:lines), a:source), a:jobinfo)
+                let method = 'process_output'
+                let entries = call(maker.process_output, [{
+                            \ 'output': a:lines,
+                            \ 'source': a:source,
+                            \ 'jobinfo': a:jobinfo}], maker)
+            endif
             if type(entries) != type([])
-                call neomake#utils#ErrorMessage(printf('The process_output method for maker %s did not return a list, but: %s.', maker.name, string(entries)[:100]), a:jobinfo)
+                call neomake#utils#ErrorMessage(printf('The %s method for maker %s did not return a list, but: %s.',
+                            \ method, maker.name, string(entries)[:100]), a:jobinfo)
                 return 0
             elseif !empty(entries) && type(entries[0]) != type({})
-                call neomake#utils#ErrorMessage(printf('The process_output method for maker %s did not return a list of dicts, but: %s.', maker.name, string(entries)[:100]), a:jobinfo)
+                call neomake#utils#ErrorMessage(printf('The %s method for maker %s did not return a list of dicts, but: %s.',
+                            \ method, maker.name, string(entries)[:100]), a:jobinfo)
                 return 0
             endif
             return s:ProcessEntries(a:jobinfo, entries)

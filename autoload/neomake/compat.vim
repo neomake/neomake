@@ -68,11 +68,10 @@ else
             try
                 let object = eval(a:json)
             catch
-                " malformed JSON
-                let object = ''
+                throw 'Neomake: Failed to parse JSON input'
             endtry
         else
-            let object = ''
+            throw 'Neomake: Failed to parse JSON input'
         endif
 
         return object

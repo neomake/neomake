@@ -406,6 +406,56 @@ Execute (Makers: get_list_entries with exception):
   AssertEqual len(g:neomake_test_jobfinished), 1
   AssertEqual len(g:neomake_test_finished), 1
 
+Execute (Makers: process_output with non-list return value):
+  call neomake#statusline#ResetCounts()
+  call g:NeomakeSetupAutocmdWrappers()
+
+  let maker = copy(g:success_maker)
+  function! maker.process_output(...) abort dict
+  endfunction
+
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage "Calling maker's process_output method with 1 lines of output on stdout.", 3
+  AssertNeomakeMessage 'The process_output method for maker success-maker did not return a list, but: 0.', 0
+
+  AssertEqual len(g:neomake_test_countschanged), 0
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_finished), 1
+
+Execute (Makers: process_json with invalid JSON):
+  call neomake#statusline#ResetCounts()
+  call g:NeomakeSetupAutocmdWrappers()
+
+  let maker = copy(g:success_maker)
+  function! maker.process_json(...) abort dict
+  endfunction
+
+  CallNeomake 1, [maker]
+  if has('nvim')
+    AssertNeomakeMessage "Failed to decode JSON: Vim(return):E474: Unidentified byte: success (output: 'success').", 0
+  elseif exists('*json_decode')
+    AssertNeomakeMessage "Failed to decode JSON: Vim(return):E474: Invalid argument (output: 'success').", 0
+  else
+    AssertNeomakeMessage "Failed to decode JSON: Failed to parse JSON input (output: 'success').", 0
+  endif
+
+Execute (Makers: process_json with non-list return value):
+  call neomake#statusline#ResetCounts()
+  call g:NeomakeSetupAutocmdWrappers()
+
+  let maker = NeomakeTestsCommandMaker('json-maker', 'echo ''{"foo": 1, "bar": 2}''')
+  function! maker.process_json(...) abort dict
+  endfunction
+
+  CallNeomake 1, [maker]
+
+  AssertNeomakeMessage "Calling maker's process_json method with 2 JSON entries.", 3
+  AssertNeomakeMessage 'The process_json method for maker json-maker did not return a list, but: 0.', 0
+
+  AssertEqual len(g:neomake_test_countschanged), 0
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_finished), 1
+
 Execute (Makers: get_list_entries with sandbox exception):
   call neomake#statusline#ResetCounts()
   call g:NeomakeSetupAutocmdWrappers()
