@@ -24,7 +24,8 @@ endfunction
 
 function! neomake#makers#ft#typescript#tslint() abort
     let maker = {
-        \ 'process_output': function('neomake#makers#ft#typescript#TslintProcessOutput'),
+        \ 'filter_output': function('neomake#makers#ft#typescript#TslintFilterOutput'),
+        \ 'process_json': function('neomake#makers#ft#typescript#TslintProcessJson'),
         \ 'args': ['--format', 'json'],
         \ 'output_stream': 'stdout',
         \ }
@@ -37,27 +38,29 @@ function! neomake#makers#ft#typescript#tslint() abort
     return maker
 endfunction
 
-function! neomake#makers#ft#typescript#TslintProcessOutput(context) abort
-    let errors = []
-    for line in a:context['output']
-        let decoded = neomake#utils#JSONdecode(line)
-        for data in decoded
-            let error = {
-                \ 'maker_name': 'tslint',
-                \ 'filename': data.name,
-                \ 'text': data.failure,
-                \ 'lnum': data.startPosition.line + 1,
-                \ 'col': data.startPosition.character + 1,
-                \ 'length': data.endPosition.position - data.startPosition.position,
-                \ }
-            if get(data, 'ruleSeverity') ==# 'WARNING'
-                let error.type = 'W'
-            else
-                let error.type = 'E'
-            endif
+function! neomake#makers#ft#typescript#TslintFilterOutput(lines, context) abort
+    call filter(a:lines,
+        \ { val -> v:val !~# '^''.\+'' is not included in project\.$' })
+endfunction
 
-            call add(errors, error)
-        endfor
+function! neomake#makers#ft#typescript#TslintProcessJson(context) abort
+    let errors = []
+    for data in a:context['json']
+        let error = {
+            \ 'maker_name': 'tslint',
+            \ 'filename': data.name,
+            \ 'text': data.failure,
+            \ 'lnum': data.startPosition.line + 1,
+            \ 'col': data.startPosition.character + 1,
+            \ 'length': data.endPosition.position - data.startPosition.position,
+            \ }
+        if get(data, 'ruleSeverity') ==# 'WARNING'
+            let error.type = 'W'
+        else
+            let error.type = 'E'
+        endif
+
+        call add(errors, error)
     endfor
 
     return errors
