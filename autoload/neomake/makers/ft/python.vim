@@ -91,11 +91,12 @@ function! neomake#makers#ft#python#flake8() abort
             \ '%-G%.%#',
         \ 'postprocess': function('neomake#makers#ft#python#Flake8EntryProcess'),
         \ 'short_name': 'fl8',
+        \ 'output_stream': 'stdout',
         \ }
 
     " @vimlint(EVL103, 1, a:jobinfo)
     function! maker.supports_stdin(jobinfo) abort
-        let self.args += ['--stdin-display-name', bufname('%')]
+        let self.args += ['--stdin-display-name', '%:p']
         return 1
     endfunction
     " @vimlint(EVL103, 0, a:jobinfo)
