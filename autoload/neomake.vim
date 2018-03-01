@@ -34,6 +34,11 @@ if !has('nvim')
     let s:kill_vim_timers = {}
 endif
 
+" A list of references to keep when profiling.
+" Workaround for https://github.com/vim/vim/issues/2350, where
+" https://github.com/blueyed/vader.vim/commit/e66d91dea is not enough.
+let s:hack_keep_refs_for_profiling = []
+
 " Can Neovim buffer output?
 " This uses detection since the appimage for 0.2.2 reports as being 0.2.3.
 let s:nvim_can_buffer_output = (has('nvim-0.2.4') ? 1 :
@@ -796,6 +801,9 @@ function! neomake#GetMaker(name_or_maker, ...) abort
             let maker[key] = neomake#utils#GetSetting(key, {'name': maker.name}, get(maker, key, default), ft, bufnr, 1)
             unlet default  " for Vim without patch-7.4.1546
         endfor
+    endif
+    if v:profiling
+        call add(s:hack_keep_refs_for_profiling, maker)
     endif
     return maker
 endfunction
