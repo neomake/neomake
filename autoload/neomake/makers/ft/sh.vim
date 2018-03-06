@@ -5,6 +5,7 @@ function! neomake#makers#ft#sh#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#sh#shellcheck() abort
+    " TODO: fishy: expects to be in the affected buffer.
     let ext = expand('%:e')
     let maker = {
         \ 'args': ['-fgcc', '-x'],
