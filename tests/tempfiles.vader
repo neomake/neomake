@@ -428,6 +428,7 @@ Execute (Temporary buffer is not wiped if opened):
   wincmd p
 
   let unlisted_bufnr = bufnr('^another_file$')
+  AssertNotEqual unlisted_bufnr, -1
 
   AssertEqual getloclist(0), [
   \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
@@ -440,18 +441,20 @@ Execute (Temporary buffer is not wiped if opened):
   exe 'bwipe' tempfile_name
   exe 'bwipe' unlisted_bufnr
 
-  AssertNeomakeMessage '\v^Setting bufnr according to tempfile for entry: .* ''bufnr'': '.tempfile_bufnr
-  AssertNeomakeMessage printf("Modified list entry (postprocess): {'changed': {'bufnr': [%d, %d]}}.", tempfile_bufnr, bufnr)
+  AssertNeomakeMessage printf("Modified list entry 1 (postprocess): {'changed': {'bufnr': [%d, %d]}}.", tempfile_bufnr, bufnr)
+  AssertNeomakeMessage printf(
+  \ 'Used bufnr from temporary buffer %d (%s) for 1 entries: 1.',
+  \ tempfile_bufnr, tempfile_name), 3
   AssertNeomakeMessage 'WARN: seen entries with bufnr different from jobinfo.bufnr ('.bufnr.'): {'''.unlisted_bufnr.''': 1}, current bufnr: '.bufnr.'.'
 
 Execute (unlisted buffers created for tempfiles get wiped):
   if NeomakeAsyncTestsSetup()
     new
-    let maker1 = NeomakeTestsCommandMaker('echo_file', 'cat')
+    let maker1 = NeomakeTestsCommandMaker('echo_file 1', 'cat')
     let maker1.append_file = 1
     let maker1.tempfile_name = tempname()
     let maker1.errorformat = '%f: %m'
-    let maker2 = NeomakeTestsCommandMaker('echo_file', 'cat')
+    let maker2 = NeomakeTestsCommandMaker('echo_file 2', 'cat')
     let maker2.append_file = 1
     let maker2.tempfile_name = tempname()
     let maker2.errorformat = '%m: %f'
@@ -472,8 +475,12 @@ Execute (unlisted buffers created for tempfiles get wiped):
     AssertEqual map(getloclist(0), 'v:val.text'),
     \ [maker2.tempfile_name, maker1.tempfile_name]
 
-    AssertNeomakeMessage '\mSetting bufnr according to tempfile for entry: {.*''text'': '''.maker2.tempfile_name
-    AssertNeomakeMessage '\mSetting bufnr according to tempfile for entry: {.*''text'': '''.maker1.tempfile_name
+    AssertNeomakeMessage printf(
+    \ '\vUsed bufnr from temporary buffer \d+ \(%s\) for 1 entries: 1.',
+    \ maker1.tempfile_name)
+    AssertNeomakeMessage printf(
+    \ '\vUsed bufnr from temporary buffer \d+ \(%s\) for 1 entries: 2.',
+    \ maker2.tempfile_name)
     Assert !bufexists(maker1.tempfile_name)
     Assert !bufexists(maker2.tempfile_name)
     bwipe!

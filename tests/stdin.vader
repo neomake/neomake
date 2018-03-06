@@ -15,7 +15,10 @@ Execute (stdin maker):
   endif
   AssertNeomakeMessage 'cwd: .', 3
   AssertNeomakeMessage '\mstdout: unnamed_maker: [''file1.test:line1.*'
+  AssertNeomakeMessage '\vUsed bufnr from stdin buffer (\d+) \(file1.test\) for 2 entries: 1, 2.'
+  let tempbuf = g:neomake_test_matchlist[1]
   AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line2']
+  AssertNeomakeMessage "Wiping out 1 unlisted/remapped buffers: ['".tempbuf."']."
   bwipe!
 
 Execute (stdin maker (args as string)):
