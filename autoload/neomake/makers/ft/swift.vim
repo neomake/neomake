@@ -1,7 +1,25 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#swift#EnabledMakers() abort
-    return ['swiftc']
+    let package = neomake#utils#FindGlobFile('Package.swift')
+    if !empty(package)
+        return ['swiftpm']
+    else
+        return ['swiftc']
+    endif
+endfunction
+
+function! neomake#makers#ft#swift#swiftpm() abort
+    return {
+        \ 'exe': 'swift',
+        \ 'args': ['build'],
+        \ 'append_file': 0,
+        \ 'errorformat':
+            \ '%E%f:%l:%c: error: %m,' .
+            \ '%W%f:%l:%c: warning: %m,' .
+            \ '%Z%\s%#^~%#,' .
+            \ '%-G%.%#',
+        \ }
 endfunction
 
 function! neomake#makers#ft#swift#swiftc() abort
