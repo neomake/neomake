@@ -5,6 +5,16 @@ Execute (neomake#compat#uniq):
   AssertEqual neomake#compat#uniq([1, 2]), [1, 2]
   AssertEqual neomake#compat#uniq([1, 2, 1]), [1, 2, 1]
   AssertEqual neomake#compat#uniq([1, 1, 2]), [1, 2]
+  AssertEqual neomake#compat#uniq([1, 1, 2, 2]), [1, 2]
+  AssertEqual neomake#compat#uniq([1, 1, 2, 2, '2']), [1, 2, '2']
+
+  AssertEqual neomake#compat#uniq([[1], [1]]), [[1]]
+  AssertEqual neomake#compat#uniq([{'a': 1}]), [{'a': 1}]
+
+Execute (neomake#compat#uniq modifies list in place):
+  let l = [5, 5]
+  call neomake#compat#uniq(l)
+  AssertEqual l, [5]
 
 Execute (neomake#compat#reltimefloat):
   let r = neomake#compat#reltimefloat()
