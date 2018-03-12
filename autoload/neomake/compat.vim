@@ -90,21 +90,23 @@ if exists('*uniq')
         return uniq(a:l)
     endfunction
 else
-    " From ingo#collections#UniqueSorted.
     function! neomake#compat#uniq(l) abort
-        if len(a:l) < 2
+        let n = len(a:l)
+        if n < 2
             return a:l
         endif
-
-        let l:previousItem = a:l[0]
-        let l:result = [a:l[0]]
-        for l:item in a:l[1:]
-            if l:item !=# l:previousItem
-                call add(l:result, l:item)
-                let l:previousItem = l:item
+        let prev = a:l[0]
+        let idx = 1
+        while idx < n
+            if a:l[idx] ==# prev && type(a:l[idx]) == type(prev)
+                call remove(a:l, idx)
+                let n -= 1
+            else
+                let prev = a:l[idx]
+                let idx += 1
             endif
-        endfor
-        return l:result
+        endwhile
+        return a:l
     endfunction
 endif
 
