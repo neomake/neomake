@@ -736,14 +736,17 @@ Execute (Timer callback ignores wiped buffer with noautocmd):
 Execute (Toggling disables automaking):
   Save g:neomake
   new
+  let bufnr = bufnr('%')
+  let log_context = {'bufnr': bufnr}
   set filetype=neomake_tests
   let b:neomake_enabled_makers = [g:true_maker]
   NeomakeToggleBuffer
+  AssertNeomakeMessage "Using setting disabled=1 from 'buffer'.", 3, log_context
   call neomake#configure#automake({'InsertLeave': {'delay': 0}})
+  AssertNeomakeMessage 'automake: registered events: InsertLeave.', 3, log_context
   doautocmd InsertLeave
-  AssertNeomakeMessage 'automake: registered events: InsertLeave.'
-  AssertNeomakeMessage 'automake: automake for event InsertLeave.'
-  AssertNeomakeMessage 'automake: disabled (buffer).'
+  NeomakeTestsWaitForMessage "Using setting disabled=1 from 'buffer'.", 3, log_context
+  AssertNeomakeMessage 'automake: disabled (buffer).', 3, log_context
   bwipe
 
 Execute (Handles timeout in another buffer):

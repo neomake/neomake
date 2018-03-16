@@ -70,11 +70,6 @@ function! s:tick_changed(context, update) abort
 endfunction
 
 function! s:neomake_do_automake(context) abort
-    let disabled = neomake#config#get_with_source('disabled', 0)
-    if disabled[0]
-        call s:debug_log(printf('disabled (%s)', disabled[1]))
-        return
-    endif
     let bufnr = +a:context.bufnr
 
     if a:context.delay
@@ -427,6 +422,11 @@ endfunction
 
 " Called from autocommands.
 function! s:neomake_automake(event, bufnr) abort
+    let disabled = neomake#config#get_with_source('disabled', 0)
+    if disabled[0]
+        call s:debug_log(printf('disabled (%s)', disabled[1]))
+        return
+    endif
     let bufnr = +a:bufnr
 
     " TODO: blacklist/whitelist.
