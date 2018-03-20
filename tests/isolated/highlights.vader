@@ -281,4 +281,7 @@ Execute (cargo error message children):
   bwipe
 
 Execute (Teardown: undo monkeypatching):
-  runtime autoload/neomake/highlights.vim
+  " Restore if not run separately.
+  if fnamemodify(g:vader_file, ':t') == 'isolated.vader'
+    runtime autoload/neomake/highlights.vim
+  endif
