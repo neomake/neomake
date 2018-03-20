@@ -721,7 +721,7 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
             let args .= (empty(args) ? '' : ' ').fnameescape(filename)
         endif
     endif
-    return neomake#compat#get_argv(self.exe, args, args_is_list)
+    return neomake#compat#get_argv(self, args, args_is_list)
 endfunction
 
 function! s:GetMakerForFiletype(ft, maker_name) abort

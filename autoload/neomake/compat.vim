@@ -160,26 +160,70 @@ function! neomake#compat#globpath_list(path, pattern, suf) abort
     return split(globpath(a:path, a:pattern, a:suf), '\n')
 endfunction
 
+" NOTE: 'shellxquote' etc is empty on Neovim, due to how the shell (cmd.exe)
+" is spawned (see neovim/neovim/d31d177a0).
+" NOTE: cmd.exe removes first and last double quotes?  (see Vim's `:h
+" shellxquote')
+" From src/option.c:
+" /*
+"  * cmd.exe on Windows will strip the first and last double quote given
+"  * on the command line, e.g. most of the time things like:
+"  *   cmd /c "my path/to/echo" "my args to echo"
+"  * become:
+"  *   my path/to/echo" "my args to echo
+"  * when executed.
+"  *
+"  * To avoid this, set shellxquote to surround the command in
+"  * parenthesis.  This appears to make most commands work, without
+"  * breaking commands that worked previously, such as
+"  * '"path with spaces/cmd" "a&b"'.
+
+" function! neomake#compat#wrap_in_shell(argv, is_list) abort
+"     if a:is_list
+"         return split(&shell) + split(&shellcmdflag) + a:argv
+"     endif
+"     return join(split(&shell) + split(&shellcmdflag) + a:argv
+" endfunction
+"
 if neomake#utils#IsRunningWindows()
     " Windows needs a shell to handle PATH/%PATHEXT% etc.
-    function! neomake#compat#get_argv(exe, args, args_is_list) abort
-        let prefix = &shell.' '.&shellcmdflag.' '
-        if a:args_is_list
-            let args = neomake#utils#ExpandArgs(a:args)
-            if a:exe ==# &shell && get(args, 0) ==# &shellcmdflag
-                " Remove already existing &shell/&shellcmdflag from e.g. NeomakeSh.
-                let argv = join(args[1:])
-            else
-                let argv = join(map(copy([a:exe] + args), 'neomake#utils#shellescape(v:val)'))
+    if has('nvim')
+        " Neovim can handle lists, Vim needs a string.
+        function! neomake#compat#get_argv(maker, args, args_is_list) abort
+            if a:args_is_list
+                if get(a:maker, '_argv_wrapped_in_shell', 0)
+                    return [a:maker.exe] + neomake#utils#ExpandArgs(a:args)
+                endif
+                let argv = join(map([a:maker.exe] + neomake#utils#ExpandArgs(a:args),
+                      \ 'neomake#utils#shellescape(v:val)'))
+                return split(&shell) + split(&shellcmdflag) + [argv]
             endif
-        else
-            let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
-            if argv[0:len(prefix)-1] ==# prefix
+            let argv = a:maker.exe . (empty(a:args) ? '' : ' '.a:args)
+            if get(a:maker, '_argv_wrapped_in_shell', 0)
                 return argv
             endif
-        endif
-        return prefix.argv
-    endfunction
+            if &shell ==# 'cmd.exe'
+                let argv = '('.argv.')'
+            endif
+            return &shell.' '.&shellcmdflag.' '.argv
+        endfunction
+    else
+        function! neomake#compat#get_argv(maker, args, args_is_list) abort
+            if a:args_is_list
+                if get(a:maker, '_argv_wrapped_in_shell', 0)
+                    return join([a:maker.exe] + a:args)
+                endif
+                let argv = join(map([a:maker.exe] + neomake#utils#ExpandArgs(a:args),
+                      \ 'neomake#utils#shellescape(v:val)'))
+            else
+                let argv = a:maker.exe . (empty(a:args) ? '' : ' '.a:args)
+            endif
+            if &shell ==# 'cmd.exe'
+                let argv = '('.argv.')'
+            endif
+            return &shell.' '.&shellcmdflag.' '.argv
+        endfunction
+    endif
 elseif has('nvim')
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
         if a:args_is_list
@@ -201,7 +245,7 @@ else
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
         if a:args_is_list
             let args = neomake#utils#ExpandArgs(a:args)
-            return join(map(copy([a:exe] + args), 'neomake#utils#shellescape(v:val)'))
+            return join(map([a:exe] + args, 'neomake#utils#shellescape(v:val)'))
         endif
         return a:exe . (empty(a:args) ? '' : ' '.a:args)
     endfunction
