@@ -160,8 +160,6 @@ function! neomake#compat#globpath_list(path, pattern, suf) abort
     return split(globpath(a:path, a:pattern, a:suf), '\n')
 endfunction
 
-" NOTE: 'shellxquote' etc is empty on Neovim, due to how the shell (cmd.exe)
-" is spawned (see neovim/neovim/d31d177a0).
 " NOTE: cmd.exe removes first and last double quotes?  (see Vim's `:h
 " shellxquote')
 " From src/option.c:
@@ -187,8 +185,8 @@ endfunction
 "
 if neomake#utils#IsRunningWindows()
     " Windows needs a shell to handle PATH/%PATHEXT% etc.
+    " Neovim can handle lists, Vim needs a string.
     if has('nvim')
-        " Neovim can handle lists, Vim needs a string.
         function! neomake#compat#get_argv(maker, args, args_is_list) abort
             if a:args_is_list
                 if get(a:maker, '_argv_wrapped_in_shell', 0)
@@ -225,29 +223,29 @@ if neomake#utils#IsRunningWindows()
         endfunction
     endif
 elseif has('nvim')
-    function! neomake#compat#get_argv(exe, args, args_is_list) abort
+    function! neomake#compat#get_argv(maker, args, args_is_list) abort
         if a:args_is_list
-            return [a:exe] + neomake#utils#ExpandArgs(a:args)
+            return [a:maker.exe] + neomake#utils#ExpandArgs(a:args)
         endif
-        return a:exe . (empty(a:args) ? '' : ' '.a:args)
+        return a:maker.exe . (empty(a:args) ? '' : ' '.a:args)
     endfunction
 elseif neomake#has_async_support()  " Vim-async.
-    function! neomake#compat#get_argv(exe, args, args_is_list) abort
+    function! neomake#compat#get_argv(maker, args, args_is_list) abort
         if a:args_is_list
-            return [a:exe] + neomake#utils#ExpandArgs(a:args)
+            return [a:maker.exe] + neomake#utils#ExpandArgs(a:args)
         endif
         " Use a shell to handle argv properly (Vim splits at spaces).
-        let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
+        let argv = a:maker.exe . (empty(a:args) ? '' : ' '.a:args)
         return [&shell, &shellcmdflag, argv]
     endfunction
 else
     " Vim (synchronously), via system().
-    function! neomake#compat#get_argv(exe, args, args_is_list) abort
+    function! neomake#compat#get_argv(maker, args, args_is_list) abort
         if a:args_is_list
             let args = neomake#utils#ExpandArgs(a:args)
-            return join(map([a:exe] + args, 'neomake#utils#shellescape(v:val)'))
+            return join(map([a:maker.exe] + args, 'neomake#utils#shellescape(v:val)'))
         endif
-        return a:exe . (empty(a:args) ? '' : ' '.a:args)
+        return a:maker.exe . (empty(a:args) ? '' : ' '.a:args)
     endfunction
 endif
 
