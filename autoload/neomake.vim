@@ -414,12 +414,12 @@ function! s:MakeJob(make_id, options) abort
                                 \ 'on_exit': function('s:nvim_exit_handler'),
                                 \ }
                 endif
-                if !has('nvim-0.2.3')
-                    " Always use detach to trigger setsid().
-                    let opts.detach = 1
-                endif
                 if has_key(maker, 'nvim_job_opts')
                     call extend(opts, maker.nvim_job_opts)
+                endif
+                if !has('nvim-0.2.3') && !has_key(opts, 'detach') && !has_key(opts, 'pty')
+                    " Always use detach to trigger setsid().
+                    let opts.detach = 1
                 endif
                 try
                     let job = jobstart(jobinfo.argv, opts)
