@@ -37,5 +37,9 @@ Execute (neomake#utils#DebugMessage handles missing make_options):
   AssertEqual NeomakeTestsGetVimMessages(), []
 
   let g:neomake_test_messages = []
-  runtime autoload/neomake/utils.vim
-  runtime autoload/neomake.vim
+
+  " Restore if not run separately.
+  if fnamemodify(g:vader_file, ':t') == 'isolated.vader'
+    runtime autoload/neomake/utils.vim
+    runtime autoload/neomake.vim
+  endif
