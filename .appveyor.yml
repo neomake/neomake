@@ -40,5 +40,7 @@ test_script:
   - C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc -cq
   - C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/appveyor.vader"
   - C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/utils.vader"
+
+on_finish:
   - type "%VADER_OUTPUT_FILE%"
   - del "%VADER_OUTPUT_FILE%"
