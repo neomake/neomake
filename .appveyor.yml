@@ -37,8 +37,8 @@ test_script:
     set VADER_OUTPUT_FILE=%~dp0\vader_output
     type nul > "%VADER_OUTPUT_FILE%"
     C:\vim\vim\vim80\vim.exe --version
-    C:\vim\vim\vim80\vim.exe -u tests/vim/vimrc -cq
-    C:\vim\vim\vim80\vim.exe -u tests/vim/vimrc "+Vader! tests/appveyor.vader"
-    C:\vim\vim\vim80\vim.exe -u tests/vim/vimrc "+Vader! tests/utils.vader"
+    C:\vim\vim\vim80\vim.exe -V19vim.log -u tests\vim\vimrc -cq
+    C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/appveyor.vader"
+    C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/utils.vader"
     type "%VADER_OUTPUT_FILE%"
     del "%VADER_OUTPUT_FILE%"
