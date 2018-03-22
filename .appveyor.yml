@@ -32,15 +32,13 @@ install:
 
 test_script:
   - cd C:\projects\neomake
-  - |
-    @echo on
-    set VADER_OUTPUT_FILE=%~dp0\vader_output
-    set NEOMAKE_TEST_NO_COLORSCHEME=1
-    type nul > "%VADER_OUTPUT_FILE%"
-    C:\vim\vim\vim80\vim.exe --version
-    C:\vim\vim\vim80\vim.exe -V12 -cq
-    C:\vim\vim\vim80\vim.exe -V12 -u tests\vim\vimrc -cq
-    C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/appveyor.vader"
-    C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/utils.vader"
-    type "%VADER_OUTPUT_FILE%"
-    del "%VADER_OUTPUT_FILE%"
+  - C:\vim\vim\vim80\vim.exe --version
+  - C:\vim\vim\vim80\vim.exe -V12 -cq
+  - set VADER_OUTPUT_FILE=%~dp0\vader_output
+  - set NEOMAKE_TEST_NO_COLORSCHEME=1
+  - type nul > "%VADER_OUTPUT_FILE%"
+  - C:\vim\vim\vim80\vim.exe -V12 -u tests\vim\vimrc -cq
+  - C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/appveyor.vader"
+  - C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/utils.vader"
+  - type "%VADER_OUTPUT_FILE%"
+  - del "%VADER_OUTPUT_FILE%"
