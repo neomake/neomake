@@ -70,7 +70,7 @@ augroup ssshhhhhh
 augroup END
 
 set noswapfile
-syntax on
+" syntax on
 set number
 set colorcolumn=80
 set showcmd
