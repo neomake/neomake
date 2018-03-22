@@ -34,4 +34,4 @@ test_script:
   - cd C:\projects\neomake
   - C:\vim\vim\vim80\vim.exe --version
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
-  - C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/utils.vader tests/isolated/compat-get_argv-on-emulated-windows.vader"
+  - C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/isolated/compat-get_argv-on-emulated-windows.vader"
