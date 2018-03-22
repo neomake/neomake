@@ -35,6 +35,7 @@ test_script:
   - |
     @echo off
     set VADER_OUTPUT_FILE=%~dp0\vader_output
+    set NEOMAKE_TEST_NO_COLORSCHEME=1
     type nul > "%VADER_OUTPUT_FILE%"
     C:\vim\vim\vim80\vim.exe --version
     C:\vim\vim\vim80\vim.exe -V19 -u tests\vim\vimrc -cq
