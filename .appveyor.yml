@@ -36,4 +36,4 @@ test_script:
   - C:\vim\vim\vim80\vim.exe -cq
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
   - C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc -cq
-  - C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/utils.vader"
+  - C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/main.vader tests/isolated/*.vader"
