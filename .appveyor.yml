@@ -33,11 +33,5 @@ install:
 test_script:
   - cd C:\projects\neomake
   - C:\vim\vim\vim80\vim.exe --version
-  - set VADER_OUTPUT_FILE=%~dp0\vader_output
-  - type nul > "%VADER_OUTPUT_FILE%"
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
   - C:\vim\vim\vim80\vim.exe -u tests\vim\vimrc "+Vader! tests/utils.vader tests/isolated/compat-get_argv-on-emulated-windows.vader"
-
-on_finish:
-  - type "%VADER_OUTPUT_FILE%"
-  - del "%VADER_OUTPUT_FILE%"
