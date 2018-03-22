@@ -1572,8 +1572,9 @@ function! s:do_clean_make_info(make_info) abort
             call neomake#utils#DebugMessage(printf('Removing temporary file: "%s".',
                         \ tempfile))
             call delete(tempfile)
-            if bufexists(tempfile) && !buflisted(tempfile)
-                let wipe_unlisted_buffers += [tempfile]
+            let bufnr_tempfile = bufnr(tempfile)
+            if bufnr_tempfile != -1 && !buflisted(bufnr_tempfile)
+                let wipe_unlisted_buffers += [bufnr_tempfile]
             endif
         endfor
 
@@ -1592,6 +1593,9 @@ function! s:do_clean_make_info(make_info) abort
         call neomake#utils#DebugMessage(printf('Wiping out %d unlisted/remapped buffers: %s.',
                     \ len(wipe_unlisted_buffers),
                     \ string(wipe_unlisted_buffers)))
+        echom string(wipe_unlisted_buffers)
+        " XXX: fails with buffers like "[foo]": E94: No matching buffer - '['
+        " needs to be escaped!
         exe (&report < 2 ? 'silent ' : '').'bwipeout '.join(wipe_unlisted_buffers)
     endif
 

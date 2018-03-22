@@ -486,6 +486,36 @@ Execute (unlisted buffers created for tempfiles get wiped):
     bwipe!
   endif
 
+Execute (Handles tempfiles for bufnames with brackets):
+  let maker = NeomakeTestsCommandMaker('echo-error', "echo 1:msg")
+  let maker.errorformat = '%l:%m %f'
+  let maker.append_file = 1
+
+  new
+  exe 'file \[fname-with-brackets\]'
+  let bufnr = bufnr('%')
+  let b:neomake_tempfile_enabled = 1
+
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)".$'
+  let tempfile_name = g:neomake_test_matchlist[1]
+  Assert stridx(tempfile_name, getcwd().neomake#utils#Slash().'.[fname-with-brackets]') == 0, 'tempfile_name is correct'
+  let tempfile_bufnr = bufnr+1
+
+  AssertNeomakeMessage printf(
+  \ 'Used bufnr from temporary buffer %d (%s) for 1 entries: 1.',
+  \ tempfile_bufnr, tempfile_name)
+  AssertNeomakeMessage printf(
+  \ 'Wiping out 1 unlisted/remapped buffers: [%d].', tempfile_bufnr)
+  AssertEqual getloclist(0), [{
+  \ 'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
+  \ 'type': 'W', 'pattern': '', 'text': 'msg'}]
+
+  Assert !bufexists(tempfile_bufnr), 'temporary buffer has been removed'
+  bwipe
+
 Execute (Uses temporary dir for non-writable directory):
   new
   file /non-writable-dir/file
