@@ -535,7 +535,7 @@ function! s:After()
       Log "Error while cleaning windows: ".v:exception.' (in '.v:throwpoint.').'
     endtry
     call add(errors, error)
-  elseif bufname(winbufnr(1)) !=# '[Vader-workbench]'
+  elseif bufname(winbufnr(1)) !=# shellescape('[Vader-workbench]')
     call add(errors, 'Vader-workbench has been renamed: '.bufname(winbufnr(1)))
   endif
 
