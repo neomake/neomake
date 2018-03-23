@@ -70,4 +70,4 @@ test_script:
       }
       echo $env:TEST_VIM
       & $env:TEST_VIM --version
-      & make --trace test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/isolated/compat-get_argv-on-emulated-windows.vader
+      & make --trace test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/isolated/compat-get_argv-on-emulated-windows.vader _REDIR_STDOUT=
