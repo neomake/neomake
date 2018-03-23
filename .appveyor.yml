@@ -35,7 +35,7 @@ install:
 
   # Install covimerage
   - ps: >-
-      %PYTHON% -m pip install -vvv --user covimerage
+      "$env:PYTHON" -m pip install -vvv --user covimerage
       $env:PATH = 'C:\Users\appveyor\AppData\Roaming\Python\Python36\Scripts;' + $env:PATH
 
 test_script:
