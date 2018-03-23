@@ -2,6 +2,10 @@
 # Disabling building for AppVeyor. We are just testing things.
 build: false
 clone_depth: 10
+branches:
+  only:
+    - master
+skip_branch_with_pr: true
 
 configuration:
   - VIM
