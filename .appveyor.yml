@@ -26,7 +26,6 @@ init:
 install:
   # Download and unpack Vim
   - ps: |
-      if ($env:CONFIGURATION -eq 'VIM') {
         if (!(Test-Path -Path C:\vim)){
           Add-Type -A System.IO.Compression.FileSystem
           Invoke-WebRequest ftp://ftp.vim.org/pub/vim/pc/vim80-586w32.zip `
@@ -37,7 +36,6 @@ install:
           [IO.Compression.ZipFile]::ExtractToDirectory('C:\rt.zip', 'C:\vim')
         }
         $env:TEST_VIM = C:/vim/vim/vim80/vim.exe
-      }
   # Install Neovim
   - ps: |
       if ($env:CONFIGURATION -eq 'NEOVIM') {
