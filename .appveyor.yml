@@ -40,7 +40,12 @@ install:
   # Install Neovim
   - ps: |
       if ($env:CONFIGURATION -eq 'NEOVIM') {
-        choco install neovim
+        if (!(Test-Path -Path C:\neovim)){
+          Add-Type -A System.IO.Compression.FileSystem
+          Invoke-WebRequest https://github.com/neovim/neovim/releases/download/v0.2.2/nvim-win64.zip
+            -OutFile C:\neovim.zip
+          [IO.Compression.ZipFile]::ExtractToDirectory('C:\neovim.zip', 'C:\neovim')
+        }
       }
   # Clone Vader and check out the commit we want
   - ps: >-
@@ -61,7 +66,7 @@ test_script:
       if ($env:CONFIGURATION -eq 'VIM') {
         $env:TEST_VIM = 'C:/vim/vim/vim80/vim.exe'
       } else {
-        $env:TEST_VIM = 'nvim'
+        $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
       }
       echo $env:TEST_VIM
       & $env:TEST_VIM --version
