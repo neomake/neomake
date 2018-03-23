@@ -34,7 +34,8 @@ test_script:
   - cd C:\projects\neomake
   - C:\vim\vim\vim80\vim.exe --version
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
-  - C:\Python36-x64\python -m pip install covimerage
+  - C:\Python36-x64\python -m pip install --user covimerage
+  - where.exe covimerage
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
       make --keep-going testcoverage TEST_VIM=C:/vim/vim/vim80/vim.exe VADER_ARGS=tests/isolated/compat-get_argv-on-emulated-windows.vader
