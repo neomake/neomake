@@ -3,6 +3,9 @@
 build: false
 clone_depth: 10
 
+environment:
+  PYTHON: "C:\\Python36-x64\\python"
+
 # Cache the vim and vader directories between builds.
 cache:
   - C:\vim -> .appveyor.yml
@@ -34,7 +37,9 @@ test_script:
   - cd C:\projects\neomake
   - C:\vim\vim\vim80\vim.exe --version
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
-  - C:\Python36-x64\python -m pip install --user covimerage
+  - "%PYTHON% -m pip install -vvv --user covimerage"
+  - "%PYTHON% -m pip install -vvv covimerage"
+  - "dir %PYTHON%"
   - where.exe covimerage
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
