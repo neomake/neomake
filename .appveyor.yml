@@ -42,7 +42,7 @@ install:
       if ($env:CONFIGURATION -eq 'NEOVIM') {
         if (!(Test-Path -Path C:\neovim)){
           Add-Type -A System.IO.Compression.FileSystem
-          Invoke-WebRequest https://github.com/neovim/neovim/releases/download/v0.2.2/nvim-win64.zip
+          Invoke-WebRequest https://github.com/neovim/neovim/releases/download/v0.2.2/nvim-win64.zip `
             -OutFile C:\neovim.zip
           [IO.Compression.ZipFile]::ExtractToDirectory('C:\neovim.zip', 'C:\neovim')
         }
