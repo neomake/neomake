@@ -56,4 +56,4 @@ test_script:
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
-      make --trace testvim_interactive VADER_ARGS=tests/isolated/compat-get_argv-on-emulated-windows.vader
+      make --trace test VADER_ARGS=tests/isolated/compat-get_argv-on-emulated-windows.vader
