@@ -25,7 +25,7 @@ init:
 
 install:
   # Download and unpack Vim
-  - ps: >-
+  - ps: |
       if ($env:CONFIGURATION -eq 'VIM') {
         if (!(Test-Path -Path C:\vim)){
           Add-Type -A System.IO.Compression.FileSystem
@@ -39,7 +39,7 @@ install:
         $env:TEST_VIM=C:/vim/vim/vim80/vim.exe
       }
   # Install Neovim
-  - ps: >-
+  - ps: |
       if ($env:CONFIGURATION -eq 'NEOVIM') {
         choco install neovim
         $env:TEST_VIM=nvim
