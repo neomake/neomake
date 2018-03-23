@@ -54,7 +54,6 @@ install:
 
 test_script:
   - cd C:\projects\neomake
-  - C:\vim\vim\vim80\vim.exe --version
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
@@ -63,4 +62,5 @@ test_script:
       } else {
         $env:TEST_VIM = 'nvim'
       }
+      & $env:TEST_VIM --version
       make --trace test VADER_ARGS=tests/isolated/compat-get_argv-on-emulated-windows.vader
