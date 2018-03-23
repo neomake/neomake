@@ -57,10 +57,12 @@ test_script:
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+      echo $env:CONFIGURATION
       if ($env:CONFIGURATION -eq 'VIM') {
         $env:TEST_VIM = 'C:/vim/vim/vim80/vim.exe'
       } else {
         $env:TEST_VIM = 'nvim'
       }
+      echo $env:TEST_VIM
       & $env:TEST_VIM --version
       make --trace test VADER_ARGS=tests/isolated/compat-get_argv-on-emulated-windows.vader
