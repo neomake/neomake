@@ -68,6 +68,12 @@ test_script:
       } else {
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
       }
-      echo $env:TEST_VIM
       & $env:TEST_VIM --version
-      & make --trace test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/isolated/compat-get_argv-on-emulated-windows.vader
+      Get-ChildItem "tests/*.vader" | Foreach-Object {
+          & echo $_.Name
+          & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/$_.Name
+      }
+      Get-ChildItem "tests/isolated/*.vader" | Foreach-Object {
+          & echo $_.Name
+          & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/isolated/$_.Name
+      }
