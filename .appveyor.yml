@@ -70,8 +70,10 @@ test_script:
       }
       & $env:TEST_VIM --version
       Get-ChildItem "tests/*.vader" | Foreach-Object {
-          & echo $_.Name
-          & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_"
+          if ($_.Name -ne "main.vader") {
+              & echo $_.Name
+              & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_"
+          }
       }
       Get-ChildItem "tests/isolated/*.vader" | Foreach-Object {
           & echo $_.Name
