@@ -10,13 +10,14 @@ TEST_VIM_PREFIX:=SHELL=$(bash)
 SHELL:=$(bash) -o pipefail
 
 # Use nvim if it is installed, otherwise vim.
+ifeq ($(TEST_VIM),)
 ifeq ($(shell command -v nvim 2>/dev/null),)
-  DEFAULT_VIM:=vim
+  TEST_VIM:=nvim
 else
-  DEFAULT_VIM:=nvim
+  TEST_VIM:=vim
+endif
 endif
 
-TEST_VIM:=nvim
 IS_NEOVIM=$(findstring nvim,$(TEST_VIM))$(findstring neovim,$(TEST_VIM))
 # Run testnvim and testvim by default, and only one if TEST_VIM is given.
 test: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim,testvim),testnvim testvim)
@@ -117,7 +118,7 @@ runnvim: testnvim_interactive
 TESTS:=$(wildcard tests/*.vader tests/*/*.vader)
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 _TESTS_REL_AND_ABS:=$(call uniq,$(abspath $(TESTS)) $(TESTS))
-FILE_TEST_TARGET=test$(DEFAULT_VIM)
+FILE_TEST_TARGET=test$(TEST_VIM)
 $(_TESTS_REL_AND_ABS):
 	$(MAKE) --no-print-directory $(FILE_TEST_TARGET) VADER_ARGS='$@'
 .PHONY: $(_TESTS_REL_AND_ABS)
