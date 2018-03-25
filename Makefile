@@ -56,10 +56,6 @@ testnvimx: testnvim
 testvimx: override VADER_OPTIONS+=-x
 testvimx: testvim
 
-# Neovim might quit after ~5s with stdin being closed.  Use --headless mode to
-# work around this.
-# > Vim: Error reading input, exiting...
-# > Vim: Finished.
 testnvim: TEST_VIM:=nvim
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 testnvim: build/neovim-test-home
@@ -83,11 +79,17 @@ _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log --compact vader
 # Redirect to stderr again for Docker (where only stderr is used from).
 _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS) >&2
 
+# Neovim might quit after ~5s with stdin being closed.  Use --headless mode to
+# work around this.
+# > Vim: Error reading input, exiting...
+# > Vim: Finished.
+# For Vim `-s /dev/null` is used to skip the 2s delay with warning
+# "Vim: Warning: Output is not to a terminal".
 _COVIMERAGE=$(if $(filter-out 0,$(NEOMAKE_DO_COVERAGE)),covimerage run --append --no-report ,)
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) $(TEST_VIM) --version | head -n2))
 	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)$(TEST_VIM) \
-	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X) \
+	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X $(if $(_REDIR_STDOUT),-s /dev/null,)) \
 	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 endef
 
