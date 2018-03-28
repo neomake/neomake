@@ -5,7 +5,19 @@ let s:is_enabled = 0
 
 let s:match_base_priority = 10
 
-function! neomake#quickfix#enable() abort
+" args: a:1: force enabling?  (used in tests and for VimEnter callback)
+function! neomake#quickfix#enable(...) abort
+    if has('vim_starting') && !(a:0 && a:1)
+        " Delay enabling for our FileType autocommand to happen as late as
+        " possible, since placing signs triggers a redraw, and together with
+        " vim-qf_resize this causes flicker.
+        " https://github.com/vim/vim/issues/2763
+        augroup neomake_qf
+            autocmd!
+            autocmd VimEnter * call neomake#quickfix#enable(1)
+        augroup END
+        return
+    endif
     let s:is_enabled = 1
     augroup neomake_qf
         autocmd!
