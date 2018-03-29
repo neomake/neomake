@@ -79,7 +79,9 @@ Execute (Displays custom formatted quickfix buffer):
 
     close
   finally
+    Assert exists('#neomake_qf'), '#neomake_qf exists'
     call neomake#quickfix#disable()
+    Assert !exists('#neomake_qf'), '#neomake_qf does not exist'
     bwipe
   endtry
 

@@ -22,6 +22,9 @@ function! neomake#quickfix#disable() abort
     if &filetype ==# 'qf'
         call neomake#quickfix#FormatQuickfix()
     endif
+    if exists('#neomake_qf')
+        augroup! neomake_qf
+    endif
 endfunction
 
 
