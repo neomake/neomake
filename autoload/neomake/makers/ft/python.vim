@@ -36,7 +36,7 @@ endfunction
 
 " Filter Python warnings (the warning and the following line).
 " To be used as a funcref with filter().
-function! s:filter_py_warnings(k, v) abort
+function! s:filter_py_warnings(v) abort
     if s:filter_next_py_warning
         let s:filter_next_py_warning = 0
         " Only keep (expected) lines starting with two spaces.
@@ -52,7 +52,7 @@ endfunction
 function! neomake#makers#ft#python#FilterPythonWarnings(lines, context) abort
     if a:context.source ==# 'stderr'
         let s:filter_next_py_warning = 0
-        call filter(a:lines, 's:filter_py_warnings(v:key, v:val)')
+        call filter(a:lines, 's:filter_py_warnings(v:val)')
     endif
 endfunction
 
