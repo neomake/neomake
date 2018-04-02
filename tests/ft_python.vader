@@ -262,10 +262,40 @@ Execute (python: pylint: filters expected msgs on stderr):
   \ ]
   let output = copy(stderr)
   call maker.filter_output(output, {'source': 'stdout'})
-  AssertEqual output, [
-  \ 'No config file found, using default configuration',
-  \ 'Using config file /Users/liyong/.pylintrc',
+  AssertEqual output, stderr
+
+Execute (python: pylint: filters Python warnings):
+  let stderr = [
+  \ '/usr/lib/python3.6/inspect.py:79: Warning: gsignal.c:1675: parameter 1 of type ''<invalid>'' for signal "GstBus::sync_message" is not a value type',
+  \ '  return isinstance(object, type)',
+  \ '/usr/lib/python3.6/inspect.py:79: Warning: gsignal.c:1675: parameter 1 of type ''<invalid>'' for signal "GstBus::message" is not a value type',
+  \ '  return isinstance(object, type)',
   \ 'Some unexpected error',
+  \ '/usr/lib/python3.6/inspect.py:79: Warning: g_param_spec_boxed: assertion ''G_TYPE_IS_BOXED (boxed_type)'' failed',
+  \ '  return isinstance(object, type)',
+  \ '/usr/lib/python3.6/inspect.py:79: Warning: validate_pspec_to_install: assertion ''G_IS_PARAM_SPEC (pspec)'' failed',
+  \ '  return isinstance(object, type)',
+  \ 'Another unexpected error',
+  \ ]
+  let maker = neomake#GetMaker('pylint', 'python')
+  let output = copy(stderr)
+  call maker.filter_output(output, {'source': 'stderr'})
+  AssertEqual output, [
+  \ 'Some unexpected error',
+  \ 'Another unexpected error',
+  \ ]
+  let output = copy(stderr)
+  call maker.filter_output(output, {'source': 'stdout'})
+  AssertEqual output, stderr
+
+Execute (neomake#makers#ft#python#FilterPythonWarnings):
+  let lines = [
+  \ '/usr/lib/python3.6/inspect.py:79: Warning: gsignal.c:1675: parameter 1 of type ''<invalid>'' for signal "GstBus::sync_message" is not a value type',
+  \ 'this is not a source location',
+  \]
+  call neomake#makers#ft#python#FilterPythonWarnings(lines, {'source': 'stderr'})
+  AssertEqual lines, [
+  \ 'this is not a source location',
   \ ]
 
 Execute (python: mypy: handles --py2):
