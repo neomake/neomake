@@ -52,7 +52,7 @@ endfunction
 function! neomake#makers#ft#python#FilterPythonWarnings(lines, context) abort
     if a:context.source ==# 'stderr'
         let s:filter_next_py_warning = 0
-        call filter(a:lines, function('s:filter_py_warnings'))
+        call filter(a:lines, 's:filter_py_warnings(v:key, v:val)')
     endif
 endfunction
 
