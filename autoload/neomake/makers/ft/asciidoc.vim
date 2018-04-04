@@ -3,7 +3,8 @@ function! neomake#makers#ft#asciidoc#SupersetOf() abort
 endfunction
 
 function! neomake#makers#ft#asciidoc#EnabledMakers() abort
-    return ['asciidoc'] + neomake#makers#ft#text#EnabledMakers()
+    let makers = executable('asciidoctor') ? ['asciidoctor'] : ['asciidoc']
+    return makers + neomake#makers#ft#text#EnabledMakers()
 endfunction
 
 function! neomake#makers#ft#asciidoc#asciidoc() abort
