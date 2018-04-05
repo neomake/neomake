@@ -22,12 +22,15 @@ function! neomake#makers#ft#erlang#erlc_glob_paths() abort
 endfunction
 
 function! neomake#makers#ft#erlang#glob_paths() abort
+    " Pick the rebar3 profile to use.
     if match(expand('%'), 'SUITE.erl$') > -1
         let profile = 'test'
     else
         let profile = 'default'
     endif
-    let ebins = glob('_build/' . profile . '/lib/*/ebin', '', 1)
+    " Find project root directory.
+    let root = fnamemodify(neomake#utils#FindGlobFile('rebar.config'), ':h')
+    let ebins = glob(root . '/_build/' . profile . '/lib/*/ebin', '', 1)
     " Set g:erlang_extra_deps in a project-local .vimrc, e.g.:
     "   let g:erlang_extra_deps = ['deps.local']
     if exists('g:erlang_extra_deps')
