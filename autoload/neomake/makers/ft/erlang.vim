@@ -11,27 +11,23 @@ function! neomake#makers#ft#erlang#erlc() abort
         \ }
 endfunction
 
-if !exists("g:rebar3_command")
-    let g:rebar3_command = "rebar3"
-endif
-
 function! neomake#makers#ft#erlang#rebar3_erlc() abort
     return {
         \ 'exe': 'erlc',
-        \ 'args': function("neomake#makers#ft#erlang#rebar3_paths"),
+        \ 'args': function("neomake#makers#ft#erlang#rebar3_glob_paths"),
         \ 'errorformat':
             \ '%W%f:%l: Warning: %m,' .
             \ '%E%f:%l: %m'
         \ }
 endfunction
 
-function! neomake#makers#ft#erlang#rebar3_paths() abort
+function! neomake#makers#ft#erlang#rebar3_glob_paths() abort
     if match(expand('%'), "SUITE.erl$") > -1
-        let l:maybe_profile = "as test"
+        let l:profile = "test"
     else
-        let l:maybe_profile = ""
+        let l:profile = "default"
     endif
-    let l:ebins = split(system(g:rebar3_command . " " . l:maybe_profile . " path"), " ")
+    let l:ebins = glob("_build/" . l:profile . "/lib/*/ebin", "", 1)
     let l:args = []
     for ebin in ebins
         call add(l:args, '-pa')
