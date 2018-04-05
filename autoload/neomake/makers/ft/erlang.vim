@@ -40,7 +40,9 @@ function! neomake#makers#ft#erlang#glob_paths() abort
     " the same way erlc does by default.
     if isdirectory(build_dir)
         let target_dir = build_dir . '/neomake'
-        call mkdir(target_dir)
+        if !isdirectory(target_dir)
+            call mkdir(target_dir, 'p')
+        endif
         let args += ['-o', target_dir]
     endif
     return args
