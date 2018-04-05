@@ -35,7 +35,7 @@ function! neomake#makers#ft#erlang#glob_paths() abort
             let l:ebins += glob(extra_deps . "/*/ebin", "", 1)
         endfor
     endif
-    let l:args = ['-I', 'include', '-I', 'src']
+    let l:args = ['-pa', 'ebin', '-I', 'include', '-I', 'src']
     for ebin in ebins
         call add(l:args, '-pa')
         call add(l:args, ebin)
