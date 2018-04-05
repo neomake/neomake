@@ -282,11 +282,15 @@ Execute (neomake#quickfix#FormatQuickfix handles entries without bufnr)):
     file test_bufname
     call setloclist(0, [
     \ {'text': 'msg1 nmcfg:{"name": "maker", "short": "makr"}', 'bufnr': 0},
-    \ {'text': 'msg2', 'bufnr': bufnr('%')}
+    \ {'text': 'msg2', 'bufnr': bufnr('%')},
+    \ {'text': 'msg3', 'bufnr': 0},
+    \ {'text': 'msg4', 'bufnr': bufnr('%')},
     \ ])
     lopen
-    AssertEqual getline(1), "makr   [buf:0] msg1"
-    AssertEqual getline(2), "makr   [test_bufname] msg2"
+    AssertEqual getline(1), "makr   msg1"
+    AssertEqual getline(2), "makr   msg2"
+    AssertEqual getline(3), "makr   msg3"
+    AssertEqual getline(4), "makr   msg4"
     lclose
     bwipe
   finally
