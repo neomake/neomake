@@ -194,18 +194,14 @@ function! neomake#quickfix#FormatQuickfix() abort
     let buffer_names = {}
     if len(buffers) > 1
         for b in buffers
-            if b
-                let bufname = bufname(b)
-                if empty(bufname)
-                    let bufname = 'buf:'.b
-                else
-                    let bufname = fnamemodify(bufname, ':t')
-                    if len(bufname) > 15
-                        let bufname = bufname[0:13].'…'
-                    endif
-                endif
+            let bufname = bufname(b)
+            if empty(bufname)
+                let bufname = 'buf:'.b
             else
-                let bufname = ''
+                let bufname = fnamemodify(bufname, ':t')
+                if len(bufname) > 15
+                    let bufname = bufname[0:13].'…'
+                endif
             endif
             let buffer_names[b] = bufname
         endfor
