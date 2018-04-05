@@ -43,7 +43,13 @@ function! neomake#makers#ft#erlang#glob_paths() abort
         let args += [ '-pa', ebin,
                     \ '-I', substitute(ebin, 'ebin$', 'include', '') ]
     endfor
-    call add(args, '-o')
-    call add(args, '_build/neomake')
+    let build_dir = root . '/_build'
+    " If <project-root>/_build doesn't exist we'll clutter CWD with .beam files,
+    " the same way erlc does by default.
+    if isdirectory(build_dir)
+        let target_dir = build_dir . '/neomake'
+        call mkdir(target_dir)
+        let args += ['-o', target_dir]
+    endif
     return args
 endfunction
