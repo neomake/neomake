@@ -6,14 +6,14 @@ endfunction
 function! neomake#makers#ft#erlang#erlc() abort
     return {
         \ 'exe': 'erlc',
-        \ 'args': function('neomake#makers#ft#erlang#glob_paths'),
+        \ 'args': function('neomake#makers#ft#erlang#GlobPaths'),
         \ 'errorformat':
             \ '%W%f:%l: Warning: %m,' .
             \ '%E%f:%l: %m'
         \ }
 endfunction
 
-function! neomake#makers#ft#erlang#glob_paths() abort
+function! neomake#makers#ft#erlang#GlobPaths() abort
     " Pick the rebar3 profile to use.
     if match(expand('%'), 'SUITE.erl$') > -1
         let profile = 'test'
