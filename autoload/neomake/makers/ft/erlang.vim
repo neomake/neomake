@@ -16,7 +16,22 @@ if !exists("g:rebar3_command")
 endif
 
 function! neomake#makers#ft#erlang#rebar3_erlc() abort
-    let l:ebins = systemlist(g:rebar3_command . " path")
+    return {
+        \ 'exe': 'erlc',
+        \ 'args': function("neomake#makers#ft#erlang#rebar3_paths"),
+        \ 'errorformat':
+            \ '%W%f:%l: Warning: %m,' .
+            \ '%E%f:%l: %m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#erlang#rebar3_paths() abort
+    if match(expand('%'), "SUITE.erl$") > -1
+        let l:maybe_profile = "as test"
+    else
+        let l:maybe_profile = ""
+    endif
+    let l:ebins = split(system(g:rebar3_command . " " . l:maybe_profile . " path"), " ")
     let l:args = []
     for ebin in ebins
         call add(l:args, '-pa')
@@ -26,11 +41,5 @@ function! neomake#makers#ft#erlang#rebar3_erlc() abort
     endfor
     call add(l:args, '-o')
     call add(l:args, '_build/neomake')
-    return {
-        \ 'exe': 'erlc',
-        \ 'args': l:args,
-        \ 'errorformat':
-            \ '%W%f:%l: Warning: %m,' .
-            \ '%E%f:%l: %m'
-        \ }
+    return l:args
 endfunction
