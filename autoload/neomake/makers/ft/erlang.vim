@@ -1,17 +1,9 @@
 
 function! neomake#makers#ft#erlang#EnabledMakers() abort
-    return ['erlc_glob_paths']
+    return ['erlc']
 endfunction
 
 function! neomake#makers#ft#erlang#erlc() abort
-    return {
-        \ 'errorformat':
-            \ '%W%f:%l: Warning: %m,' .
-            \ '%E%f:%l: %m'
-        \ }
-endfunction
-
-function! neomake#makers#ft#erlang#erlc_glob_paths() abort
     return {
         \ 'exe': 'erlc',
         \ 'args': function('neomake#makers#ft#erlang#glob_paths'),
