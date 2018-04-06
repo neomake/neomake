@@ -30,9 +30,11 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
         let ebins += glob(build_dir . '/' . profile . '/lib/*/ebin', '', 1)
         let target_dir = build_dir . '/neomake'
     else
-        " If <root>/_build doesn't exist it might be a rebar2/erlang.mk project
-        let ebins += glob(root . '/deps/*/ebin', '', 1)
         let target_dir = tempname()
+    endif
+    " If <root>/_build doesn't exist it might be a rebar2/erlang.mk project
+    if isdirectory(root . '/deps')
+        let ebins += glob(root . '/deps/*/ebin', '', 1)
     endif
     " Set g:neomake_erlang_erlc_extra_deps in a project-local .vimrc, e.g.:
     "   let g:neomake_erlang_erlc_extra_deps = ['deps.local']
