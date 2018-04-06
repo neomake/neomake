@@ -46,7 +46,7 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
                         \ get(g:, 'neomake_erlang_erlc_extra_deps'))
     if !empty(extra_deps_dirs)
         for extra_deps in extra_deps_dirs
-            if extra_deps[-1] != '/'
+            if extra_deps[-1] !=# '/'
                 let extra_deps .= '/'
             endif
             let ebins += glob(extra_deps . '*/ebin', '', 1)
