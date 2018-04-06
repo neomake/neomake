@@ -17,7 +17,7 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
     let root = fnamemodify(neomake#utils#FindGlobFile('rebar.config'), ':h')
     if empty(root)
         " At least try with CWD
-        root = getcwd()
+        let root = getcwd()
     endif
     let build_dir = root . '/_build'
     let ebins = []
