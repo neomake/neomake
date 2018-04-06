@@ -209,14 +209,6 @@ function! neomake#utils#IsRunningWindows() abort
     return has('win32') || has('win64')
 endfunction
 
-" This comes straight out of syntastic.
-function! neomake#utils#DevNull() abort
-    if neomake#utils#IsRunningWindows()
-        return 'NUL'
-    endif
-    return '/dev/null'
-endfunction
-
 " Get directory/path separator.
 function! neomake#utils#Slash() abort
     return (!exists('+shellslash') || &shellslash) ? '/' : '\'

@@ -14,7 +14,7 @@ function! neomake#makers#ft#go#go() abort
     return {
         \ 'args': [
             \ 'test', '-c',
-            \ '-o', neomake#utils#DevNull(),
+            \ '-o', g:neomake#compat#dev_null,
         \ ],
         \ 'append_file': 0,
         \ 'cwd': '%:h',

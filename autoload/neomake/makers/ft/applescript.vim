@@ -4,7 +4,7 @@ endfunction
 
 function! neomake#makers#ft#applescript#osacompile() abort
     return {
-        \ 'args': ['-o', neomake#utils#DevNull()],
+        \ 'args': ['-o', g:neomake#compat#dev_null],
         \ 'errorformat': '%f:%l: %trror: %m',
         \ }
 endfunction
