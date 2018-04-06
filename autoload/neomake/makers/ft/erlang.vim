@@ -5,7 +5,6 @@ endfunction
 
 function! neomake#makers#ft#erlang#erlc() abort
     return {
-        \ 'exe': 'erlc',
         \ 'args': function('neomake#makers#ft#erlang#GlobPaths'),
         \ 'errorformat':
             \ '%W%f:%l: Warning: %m,' .
