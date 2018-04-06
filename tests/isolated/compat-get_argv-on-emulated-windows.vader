@@ -33,8 +33,8 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
   let bound_maker = maker.fn(jobinfo)
   AssertEqual bound_maker._get_argv(jobinfo), 'cmd.exe /c echo "1 2"'
 
-Execute (neomake#utils#DevNull on (emulated) Windows):
-  AssertEqual neomake#utils#DevNull(), 'NUL'
+Execute (neomake#compat#dev_null on (emulated) Windows):
+  AssertEqual g:neomake#compat#dev_null, 'NUL'
 
   " Restore if not run separately.
   if fnamemodify(g:vader_file, ':t') == 'isolated.vader'

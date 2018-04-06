@@ -1,4 +1,10 @@
-" Function to wrap Compatibility across different (Neo)Vim versions.
+" Compatibility wrappers for different (Neo)Vim versions and platforms.
+
+if neomake#utils#IsRunningWindows()
+    let g:neomake#compat#dev_null = 'NUL'
+else
+    let g:neomake#compat#dev_null = '/dev/null'
+endif
 
 if v:version >= 704
     function! neomake#compat#getbufvar(buf, key, def) abort

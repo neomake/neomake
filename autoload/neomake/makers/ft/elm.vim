@@ -7,7 +7,7 @@ endfunction
 function! neomake#makers#ft#elm#elmMake() abort
     return {
         \ 'exe': 'elm-make',
-        \ 'args': ['--report=json', '--output=' . neomake#utils#DevNull()],
+        \ 'args': ['--report=json', '--output=' . g:neomake#compat#dev_null],
         \ 'process_output': function('neomake#makers#ft#elm#ElmMakeProcessOutput')
         \ }
 endfunction

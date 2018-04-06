@@ -18,7 +18,7 @@ function! neomake#makers#ft#asciidoc#asciidoc() abort
         \   '%W%\w%\+: %tARNING: %f: %m,' .
         \   '%W%\w%\+: DEPRECATED: %f: line %l: %m,' .
         \   '%W%\w%\+: DEPRECATED: %f: %m',
-        \ 'args': ['-o', neomake#utils#DevNull()],
+        \ 'args': ['-o', g:neomake#compat#dev_null],
         \ }
 endfunction
 
