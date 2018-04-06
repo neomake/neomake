@@ -3,9 +3,11 @@ Include: include/setup.vader
 Before (prepare an empty working directory):
   let s:root = tempname()
   call mkdir(s:root, 'p')
+  let s:old_cwd = fnamemodify('.', ':p')
   execute 'cd ' . s:root
 
 After (clean up the working directory):
+  execute 'cd ' . s:old_cwd
   execute 'silent !rm -rf ' . s:root
 
 Execute (erlc: common settings):
