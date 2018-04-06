@@ -14,12 +14,15 @@ endfunction
 
 function! neomake#makers#ft#erlang#GlobPaths() abort
     " Find project root directory.
-    let root = fnamemodify(neomake#utils#FindGlobFile('rebar.config'), ':h')
-    if empty(root)
+    let rebar_config = neomake#utils#FindGlobFile('rebar.config')
+    if !empty(rebar_config)
+        let root = fnamemodify(rebar_config, ':h')
+    else
         " At least try with CWD
         let root = getcwd()
     endif
-    let build_dir = root . '/_build'
+    let root = fnamemodify(root, ':p')
+    let build_dir = root . '_build'
     let ebins = []
     if isdirectory(build_dir)
         " Pick the rebar3 profile to use
@@ -33,8 +36,8 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
         let target_dir = tempname()
     endif
     " If <root>/_build doesn't exist it might be a rebar2/erlang.mk project
-    if isdirectory(root . '/deps')
-        let ebins += glob(root . '/deps/*/ebin', '', 1)
+    if isdirectory(root . 'deps')
+        let ebins += glob(root . 'deps/*/ebin', '', 1)
     endif
     " Set g:neomake_erlang_erlc_extra_deps in a project-local .vimrc, e.g.:
     "   let g:neomake_erlang_erlc_extra_deps = ['deps.local']
@@ -43,7 +46,10 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
                         \ get(g:, 'neomake_erlang_erlc_extra_deps'))
     if !empty(extra_deps_dirs)
         for extra_deps in extra_deps_dirs
-            let ebins += glob(extra_deps . '/*/ebin', '', 1)
+            if extra_deps[-1] != '/'
+                let extra_deps .= '/'
+            endif
+            let ebins += glob(extra_deps . '*/ebin', '', 1)
         endfor
     endif
     let args = ['-pa', 'ebin', '-I', 'include', '-I', 'src']
