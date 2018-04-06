@@ -15,7 +15,7 @@ endfunction
 
 function! neomake#makers#ft#erlang#GlobPaths() abort
     " Pick the rebar3 profile to use.
-    if match(expand('%'), 'SUITE.erl$') > -1
+    if expand('%') =~# '_SUITE.erl$'
         let profile = 'test'
     else
         let profile = 'default'
