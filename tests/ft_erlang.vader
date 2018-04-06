@@ -90,7 +90,6 @@ Execute (erlc: buffer local extra deps):
   let args = neomake#makers#ft#erlang#GlobPaths()
   let dep1_ebin_opt = args[6:7]
   let dep1_include_opt = args[8:9]
-  "AssertEqual '', args
   AssertEqual ['-pa', 'deps.local/dep1/ebin'], dep1_ebin_opt
   AssertEqual ['-I', 'deps.local/dep1/include'], dep1_include_opt
   bwipe
