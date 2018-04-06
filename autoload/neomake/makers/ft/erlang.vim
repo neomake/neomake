@@ -14,15 +14,27 @@ function! neomake#makers#ft#erlang#erlc() abort
 endfunction
 
 function! neomake#makers#ft#erlang#GlobPaths() abort
-    " Pick the rebar3 profile to use.
-    if expand('%') =~# '_SUITE.erl$'
-        let profile = 'test'
-    else
-        let profile = 'default'
-    endif
     " Find project root directory.
     let root = fnamemodify(neomake#utils#FindGlobFile('rebar.config'), ':h')
-    let ebins = glob(root . '/_build/' . profile . '/lib/*/ebin', '', 1)
+    if empty(root)
+        " At least try with CWD
+        root = getcwd()
+    endif
+    let build_dir = root . '/_build'
+    let ebins = []
+    if isdirectory(build_dir)
+        " Pick the rebar3 profile to use
+        let profile = 'default'
+        if expand('%') =~# '_SUITE.erl$'
+            let profile = 'test'
+        endif
+        let ebins += glob(build_dir . '/' . profile . '/lib/*/ebin', '', 1)
+        let target_dir = build_dir . '/neomake'
+    else
+        " If <root>/_build doesn't exist it might be a rebar2/erlang.mk project
+        let ebins += glob(root . '/deps/*/ebin', '', 1)
+        let target_dir = tempname()
+    endif
     " Set g:neomake_erlang_erlc_extra_deps in a project-local .vimrc, e.g.:
     "   let g:neomake_erlang_erlc_extra_deps = ['deps.local']
     " Or just b:neomake_erlang_erlc_extra_deps in a specific buffer.
@@ -38,15 +50,9 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
         let args += [ '-pa', ebin,
                     \ '-I', substitute(ebin, 'ebin$', 'include', '') ]
     endfor
-    let build_dir = root . '/_build'
-    " If <project-root>/_build doesn't exist we'll clutter CWD with .beam files,
-    " the same way erlc does by default.
-    if isdirectory(build_dir)
-        let target_dir = build_dir . '/neomake'
-        if !isdirectory(target_dir)
-            call mkdir(target_dir, 'p')
-        endif
-        let args += ['-o', target_dir]
+    if !isdirectory(target_dir)
+        call mkdir(target_dir, 'p')
     endif
+    let args += ['-o', target_dir]
     return args
 endfunction
