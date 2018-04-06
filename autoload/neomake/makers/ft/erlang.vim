@@ -23,10 +23,13 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
     " Find project root directory.
     let root = fnamemodify(neomake#utils#FindGlobFile('rebar.config'), ':h')
     let ebins = glob(root . '/_build/' . profile . '/lib/*/ebin', '', 1)
-    " Set g:erlang_extra_deps in a project-local .vimrc, e.g.:
-    "   let g:erlang_extra_deps = ['deps.local']
-    if exists('g:erlang_extra_deps')
-        for extra_deps in g:erlang_extra_deps
+    " Set g:neomake_erlang_erlc_extra_deps in a project-local .vimrc, e.g.:
+    "   let g:neomake_erlang_erlc_extra_deps = ['deps.local']
+    " Or just b:neomake_erlang_erlc_extra_deps in a specific buffer.
+    let extra_deps_dirs = get(b:, 'neomake_erlang_erlc_extra_deps',
+                        \ get(g:, 'neomake_erlang_erlc_extra_deps'))
+    if !empty(extra_deps_dirs)
+        for extra_deps in extra_deps_dirs
             let ebins += glob(extra_deps . '/*/ebin', '', 1)
         endfor
     endif
