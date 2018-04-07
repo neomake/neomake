@@ -30,14 +30,14 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
         if expand('%') =~# '_SUITE.erl$'
             let profile = 'test'
         endif
-        let ebins += neomake#makers#ft#erlang#Glob(build_dir . '/' . profile . '/lib/*/ebin')
+        let ebins += neomake#compat#glob_list(build_dir . '/' . profile . '/lib/*/ebin')
         let target_dir = build_dir . '/neomake'
     else
         let target_dir = tempname()
     endif
     " If <root>/_build doesn't exist it might be a rebar2/erlang.mk project
     if isdirectory(root . 'deps')
-        let ebins += neomake#makers#ft#erlang#Glob(root . 'deps/*/ebin')
+        let ebins += neomake#compat#glob_list(root . 'deps/*/ebin')
     endif
     " Set g:neomake_erlang_erlc_extra_deps in a project-local .vimrc, e.g.:
     "   let g:neomake_erlang_erlc_extra_deps = ['deps.local']
@@ -49,7 +49,7 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
             if extra_deps[-1] !=# '/'
                 let extra_deps .= '/'
             endif
-            let ebins += neomake#makers#ft#erlang#Glob(extra_deps . '*/ebin')
+            let ebins += neomake#compat#glob_list(extra_deps . '*/ebin')
         endfor
     endif
     let args = ['-pa', 'ebin', '-I', 'include', '-I', 'src']
@@ -62,11 +62,4 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
     endif
     let args += ['-o', target_dir]
     return args
-endfunction
-
-function! neomake#makers#ft#erlang#Glob(expr) abort
-    if v:version <= 703
-        return split(glob(a:expr))
-    endif
-    return glob(a:expr, '', 1)
 endfunction

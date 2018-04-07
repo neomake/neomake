@@ -166,6 +166,13 @@ function! neomake#compat#globpath_list(path, pattern, suf) abort
     return split(globpath(a:path, a:pattern, a:suf), '\n')
 endfunction
 
+function! neomake#compat#glob_list(pattern) abort
+    if v:version <= 703
+        return split(glob(a:pattern), '\n')
+    endif
+    return glob(a:pattern, '', 1)
+endfunction
+
 if neomake#utils#IsRunningWindows()
     " Windows needs a shell to handle PATH/%PATHEXT% etc.
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
