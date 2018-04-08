@@ -82,6 +82,15 @@ function! s:neomake_do_automake(context) abort
             return
         endif
 
+        " Cancel any already running automake runs.
+        let prev_make_ids = getbufvar(bufnr, 'neomake_automake_make_ids')
+        if !empty(prev_make_ids)
+            call s:debug_log(printf('stopping previous make runs: %s', join(prev_make_ids, ', ')))
+            for prev_make_id in prev_make_ids
+              call neomake#CancelMake(prev_make_id)
+            endfor
+        endif
+
         let timer = timer_start(a:context.delay, function('s:automake_delayed_cb'))
         let s:timer_info[timer] = a:context
         if !has_key(a:context, 'pos')
@@ -100,13 +109,6 @@ function! s:neomake_do_automake(context) abort
     if !s:tick_changed({'event': event, 'bufnr': bufnr, 'ft': ft}, 1)
         call s:debug_log('buffer was not changed', {'bufnr': bufnr})
         return
-    endif
-    let prev_make_ids = getbufvar(bufnr, 'neomake_automake_make_ids')
-    if !empty(prev_make_ids)
-        call s:debug_log(printf('stopping previous make runs: %s', join(prev_make_ids, ', ')))
-        for prev_make_id in prev_make_ids
-          call neomake#CancelMake(prev_make_id)
-        endfor
     endif
 
     call s:debug_log(printf('enabled makers: %s', join(map(copy(a:context.maker_jobs), 'v:val.maker.name'), ', ')))
