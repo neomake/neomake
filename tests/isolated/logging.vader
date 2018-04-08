@@ -40,7 +40,7 @@ Execute (neomake#log#debug handles missing make_options):
 
 Execute (neomake#log#debug_obj does not call neomake#utils#Stringify if not necessary):
   Save g:neomake_verbose
-  unlet g:neomake_verbose
+  unlet! g:neomake_verbose
 
   let s:calls = []
   function! neomake#utils#Stringify(...)
@@ -57,6 +57,7 @@ Execute (neomake#log#debug_obj does not call neomake#utils#Stringify if not nece
 
   " Restore if not run separately.
   if fnamemodify(g:vader_file, ':t') == 'isolated.vader'
+    runtime autoload/neomake/utils.vim
     runtime autoload/neomake/log.vim
     runtime autoload/neomake.vim
   endif
