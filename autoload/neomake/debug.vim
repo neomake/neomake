@@ -83,7 +83,7 @@ function! neomake#debug#display_info(...) abort
         try
             call setreg('+', join(lines, "\n"), 'l')
         catch
-            call neomake#utils#ErrorMessage(printf(
+            call neomake#log#error(printf(
                         \ 'Could not set clipboard: %s.', v:exception))
             return
         endtry

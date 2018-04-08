@@ -111,7 +111,7 @@ function! neomake#config#get_with_source(name, ...) abort
             endif
             if R isnot# g:neomake#config#undefined
                 let log_name = join(map(copy(parts), "substitute(v:val, '\\.', '|', '')"), '.')
-                call neomake#utils#DebugMessage(printf(
+                call neomake#log#debug(printf(
                             \ "Using setting %s=%s from '%s'%s.",
                             \ log_name, string(R), source,
                             \   empty(prefix) ? '' : ' (prefix: '.string(prefix).')'),

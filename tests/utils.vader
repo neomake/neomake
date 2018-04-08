@@ -1,31 +1,5 @@
 Include: include/setup.vader
 
-Execute (neomake#utils#LogMessage writes to logfile always):
-  Save g:neomake_verbose, g:neomake_logfile
-  let neomake_verbose = 0
-  let g:neomake_logfile = tempname()
-  call neomake#utils#LogMessage(1, 'msg1.')
-  call neomake#utils#LogMessage(1, 'msg2.')
-  if has('patch-7.4.503')
-    let logfile_msg = readfile(g:neomake_logfile)[1]
-  else
-    let logfile_msg = readfile(g:neomake_logfile)[0]
-  endif
-  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \[W      \] msg2.$', 'unexpected msg: '.logfile_msg
-
-  call neomake#utils#LogMessage(1, 'msg3.')
-  sleep 10m
-  call neomake#utils#LogMessage(1, 'msg4.')
-  let logfile_msg = readfile(g:neomake_logfile)[-1]
-  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \[W \+0.0\d\] msg4.$', 'Message does not match: '.logfile_msg
-
-Execute (neomake#utils#LogMessage unsets logfile in case of errors):
-  Save g:neomake_logfile
-  let g:neomake_logfile = '/does/not/exist'
-  call neomake#utils#LogMessage(1, 'msg1.')
-  AssertNeomakeMessage '\vError when trying to write to logfile /does/not/exist: Vim\(call\):E.*.  Unsetting g:neomake_logfile.', 0
-  Assert !exists('g:neomake_logfile'), 'g:neomake_logfile has been unset.'
-
 Execute (NeomakeTestsCreateExe creates exe):
   Assert !executable('boobar'), 'boobar is not executable'
   call g:NeomakeTestsCreateExe('boobar', [])
@@ -803,14 +777,3 @@ Execute (NeomakeTestsGetVimMessages):
   echom 2
   echom 3
   AssertEqual NeomakeTestsGetVimMessages(), ['2', '3']
-
-Execute (neomake#utils#DebugMessage throws with missing make_options in tests):
-  AssertThrows call neomake#utils#DebugMessage('msg1')
-  AssertEqual g:vader_exception, 'Log msg does not end with punctuation: "msg1".'
-
-  " Non-existing make_id should not make it verbose.
-  AssertEqual g:neomake_test_errors, []
-  call neomake#utils#DebugMessage('msg1.', {'make_id': -42})
-  AssertEqual len(g:neomake_test_errors), 1
-  Assert g:neomake_test_errors[0] =~# '\v^GetMakeOptions failed: Vim\(let\):E716: Key not present in Dictionary: -42 \(in function .*\)$'
-  let g:neomake_test_errors = []

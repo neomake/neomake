@@ -115,7 +115,7 @@ function! neomake#quickfix#FormatQuickfix() abort
     endif
 
     if empty(qflist) || qflist[0].text !~# ' nmcfg:{.\{-}}$'
-        call neomake#utils#DebugMessage('Resetting custom qf for non-Neomake change.')
+        call neomake#log#debug('Resetting custom qf for non-Neomake change.')
         call s:clean_qf_annotations()
         set syntax=qf
         return
@@ -150,7 +150,7 @@ function! neomake#quickfix#FormatQuickfix() abort
                     endif
                     let item.text = idx == 0 ? '' : item.text[:(idx-1)]
                 catch
-                    call neomake#utils#log_exception(printf(
+                    call neomake#log#exception(printf(
                                 \ 'Error when evaluating nmcfg (%s): %s.',
                                 \ config, v:exception))
                 endtry

@@ -2,7 +2,7 @@
 scriptencoding utf-8
 
 if !has('signs')
-    call neomake#utils#ErrorMessage('Trying to load signs.vim, without +signs.')
+    call neomake#log#error('Trying to load signs.vim, without +signs.')
     finish
 endif
 
@@ -39,7 +39,7 @@ function! neomake#signs#Clean(bufnr, type) abort
     if has_key(s:placed_signs[a:type], a:bufnr)
         for sign_id in keys(s:placed_signs[a:type][a:bufnr])
             let cmd = 'sign unplace '.sign_id.' buffer='.a:bufnr
-            call neomake#utils#DebugMessage('Unplacing sign: '.cmd.'.')
+            call neomake#log#debug('Unplacing sign: '.cmd.'.')
             exe cmd
         endfor
         unlet s:placed_signs[a:type][a:bufnr]
@@ -118,7 +118,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
         endif
         if existing_sign[1] == sign_type
             let sign_id = existing_sign[0]
-            call neomake#utils#DebugMessage(printf(
+            call neomake#log#debug(printf(
                         \ 'Reusing sign: id=%d, type=%s, lnum=%d.',
                         \ sign_id, existing_sign[1], lnum), log_context)
 
@@ -128,7 +128,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
             endif
         else
             let cmd = 'sign place '.existing_sign[0].' name='.sign_type.' buffer='.a:bufnr
-            call neomake#utils#DebugMessage('Upgrading sign for lnum='.lnum.': '.cmd.'.', log_context)
+            call neomake#log#debug('Upgrading sign for lnum='.lnum.': '.cmd.'.', log_context)
             exe cmd
         endif
     endfor
@@ -146,7 +146,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
         let cmd = 'sign place '.next_sign_id.' line='.lnum.
                     \ ' name='.sign_type.
                     \ ' buffer='.a:bufnr
-        call neomake#utils#DebugMessage('Placing sign: '.cmd.'.', log_context)
+        call neomake#log#debug('Placing sign: '.cmd.'.', log_context)
         let placed_signs[lnum] = [next_sign_id, sign_type]
         exe cmd
     endfor
@@ -158,7 +158,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
 endfunction
 
 function! neomake#signs#CleanAllOldSigns(type) abort
-    call neomake#utils#DebugObject('Removing signs', s:last_placed_signs)
+    call neomake#log#debug_obj('Removing signs', s:last_placed_signs)
     for buf in keys(s:last_placed_signs[a:type])
         call neomake#signs#CleanOldSigns(buf, a:type)
     endfor
@@ -172,10 +172,10 @@ function! neomake#signs#CleanOldSigns(bufnr, type) abort
     let placed_signs = s:last_placed_signs[a:type][a:bufnr]
     unlet s:last_placed_signs[a:type][a:bufnr]
     if bufexists(+a:bufnr)
-        call neomake#utils#DebugObject('Cleaning old signs in buffer '.a:bufnr, placed_signs)
+        call neomake#log#debug_obj('Cleaning old signs in buffer '.a:bufnr, placed_signs)
         for sign_id in keys(placed_signs)
             let cmd = 'sign unplace '.sign_id.' buffer='.a:bufnr
-            call neomake#utils#DebugMessage('Unplacing sign: '.cmd.'.')
+            call neomake#log#debug('Unplacing sign: '.cmd.'.')
             exe cmd
             if has_key(s:placed_signs[a:type], a:bufnr)
                 if has_key(s:placed_signs[a:type][a:bufnr], sign_id)
@@ -184,7 +184,7 @@ function! neomake#signs#CleanOldSigns(bufnr, type) abort
             endif
         endfor
     else
-        call neomake#utils#DebugObject('Skipped cleaning of old signs in non-existing buffer '.a:bufnr, placed_signs)
+        call neomake#log#debug_obj('Skipped cleaning of old signs in non-existing buffer '.a:bufnr, placed_signs)
     endif
 endfunction
 
@@ -193,7 +193,7 @@ function! neomake#signs#RedefineSign(name, opts) abort
     for attr in keys(a:opts)
         let sign_define .= ' '.attr.'='.a:opts[attr]
     endfor
-    call neomake#utils#DebugMessage(printf('Defining sign: %s.', sign_define))
+    call neomake#log#debug(printf('Defining sign: %s.', sign_define))
     exe sign_define
 endfunction
 

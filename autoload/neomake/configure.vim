@@ -33,7 +33,7 @@ function! s:debug_log(msg, ...) abort
     if a:0
         call extend(context, a:1)
     endif
-    call neomake#utils#DebugMessage(printf('automake: %s.', a:msg), context)
+    call neomake#log#debug(printf('automake: %s.', a:msg), context)
 endfunction
 
 " Check if buffer's tick (or ft) changed.
@@ -219,7 +219,7 @@ function! s:parse_events_from_args(config, string_or_dict_config, ...) abort
             let delay = a:1
         else
             if a:1 != 0
-                call neomake#utils#QuietMessage('automake: timer support is required for delayed events.')
+                call neomake#log#warning('automake: timer support is required for delayed events.')
             endif
             let delay = 0
         endif
@@ -233,14 +233,14 @@ function! s:parse_events_from_args(config, string_or_dict_config, ...) abort
         " Validate events.
         for [event, config] in items(events)
             if !exists('##'.event)
-                call neomake#utils#ErrorMessage(printf(
+                call neomake#log#error(printf(
                             \ 'automake: event %s does not exist.', event))
                 unlet events[event]
                 continue
             endif
 
             if get(config, 'delay', 0) && !has('timers')
-                call neomake#utils#ErrorMessage(printf(
+                call neomake#log#error(printf(
                             \ 'automake: timer support is required for automaking, removing event %s.',
                             \ event))
                 unlet events[event]

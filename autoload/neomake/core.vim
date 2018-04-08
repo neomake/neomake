@@ -33,9 +33,9 @@ function! s:bind_makers_for_job(options, makers, ...) abort
                     let error = printf('Non-string given for executable of maker %s: type %s.',
                                 \ maker.name, type(maker.exe))
                     if !get(maker, 'auto_enabled', 0)
-                        call neomake#utils#ErrorMessage(error, options)
+                        call neomake#log#error(error, options)
                     else
-                        call neomake#utils#DebugMessage(error, options)
+                        call neomake#log#debug(error, options)
                     endif
                     continue
                 endif
@@ -44,12 +44,12 @@ function! s:bind_makers_for_job(options, makers, ...) abort
                         let error = printf('Exe (%s) of maker %s is not executable.', maker.exe, maker.name)
                         if !has_key(s:exe_error_thrown, maker.exe)
                             let s:exe_error_thrown[maker.exe] = 1
-                            call neomake#utils#ErrorMessage(error, options)
+                            call neomake#log#error(error, options)
                         else
-                            call neomake#utils#DebugMessage(error, options)
+                            call neomake#log#debug(error, options)
                         endif
                     else
-                        call neomake#utils#DebugMessage(printf(
+                        call neomake#log#debug(printf(
                                     \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name), options)
                     endif
                     continue
@@ -58,7 +58,7 @@ function! s:bind_makers_for_job(options, makers, ...) abort
 
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '').'.'
-            call neomake#utils#ErrorMessage(error, {'make_id': options.make_id})
+            call neomake#log#error(error, {'make_id': options.make_id})
             continue
         endtry
         let options.maker = maker
