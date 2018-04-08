@@ -38,6 +38,23 @@ Execute (neomake#log#debug handles missing make_options):
 
   let g:neomake_test_messages = []
 
+Execute (neomake#log#debug_obj does not call neomake#utils#Stringify if not necessary):
+  Save g:neomake_verbose
+  unlet g:neomake_verbose
+
+  let s:calls = []
+  function! neomake#utils#Stringify(...)
+    let s:calls += [a:000]
+  endfunction
+
+  call neomake#log#debug_obj('msg', 'obj')
+  AssertEqual s:calls, []
+
+  let g:neomake_verbose = 3
+  call neomake#log#debug_obj('msg', 'obj')
+  AssertEqual s:calls, [['obj']]
+
+
   " Restore if not run separately.
   if fnamemodify(g:vader_file, ':t') == 'isolated.vader'
     runtime autoload/neomake/log.vim

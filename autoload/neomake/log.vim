@@ -3,26 +3,6 @@ let s:name_to_level = {'error': 0, 'warning': 1, 'verbose': 2, 'debug': 3}
 let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 let s:is_testing = exists('g:neomake_test_messages')
 
-function! neomake#log#error(...) abort
-    call call('s:log', [0] + a:000)
-endfunction
-
-function! neomake#log#warning(...) abort
-    call call('s:log', [1] + a:000)
-endfunction
-
-function! neomake#log#info(...) abort
-    call call('s:log', [2] + a:000)
-endfunction
-
-function! neomake#log#debug(...) abort
-    call call('s:log', [3] + a:000)
-endfunction
-
-function! neomake#log#debug_obj(msg, obj) abort
-    call neomake#log#debug(a:msg.': '.neomake#utils#Stringify(a:obj).'.')
-endfunction
-
 function! s:reltime_lastmsg() abort
     if exists('s:last_msg_ts')
         let cur = neomake#compat#reltimefloat()
@@ -49,29 +29,20 @@ function! s:reltime_lastmsg() abort
 endfunction
 
 function! s:log(level, msg, ...) abort
-    if a:0
-        let context = a:1
-        let verbosity = neomake#utils#get_verbosity(context)
-    else
-        let context = {}  " just for vimlint (EVL104)
-        let verbosity = neomake#utils#get_verbosity()
-    endif
+    let context = a:0 ? a:1 : {}
+    let verbosity = neomake#utils#get_verbosity(context)
     let logfile = get(g:, 'neomake_logfile', '')
 
-    if !s:is_testing && verbosity < a:level && logfile is# ''
+    if !s:is_testing && verbosity < a:level && empty(logfile)
         return
     endif
 
-    if a:0
-        let msg = printf('[%s.%s:%s:%d] %s',
-                    \ get(context, 'make_id', '-'),
-                    \ get(context, 'id', '-'),
-                    \ get(context, 'bufnr', get(context, 'file_mode', 0) ? '?' : '-'),
-                    \ winnr(),
-                    \ a:msg)
-    else
-        let msg = a:msg
-    endif
+    let msg = printf('[%s.%s:%s:%d] %s',
+                \ get(context, 'make_id', '-'),
+                \ get(context, 'id', '-'),
+                \ get(context, 'bufnr', get(context, 'file_mode', 0) ? '?' : '-'),
+                \ winnr(),
+                \ a:msg)
 
     " Use Vader's log for messages during tests.
     " @vimlint(EVL104, 1, l:timediff)
@@ -138,6 +109,28 @@ function! s:log(level, msg, ...) abort
         endtry
     endif
     " @vimlint(EVL104, 0, l:timediff)
+endfunction
+
+function! neomake#log#error(...) abort
+    call call('s:log', [0] + a:000)
+endfunction
+
+function! neomake#log#warning(...) abort
+    call call('s:log', [1] + a:000)
+endfunction
+
+function! neomake#log#info(...) abort
+    call call('s:log', [2] + a:000)
+endfunction
+
+function! neomake#log#debug(...) abort
+    call call('s:log', [3] + a:000)
+endfunction
+
+function! neomake#log#debug_obj(msg, obj) abort
+    if neomake#utils#get_verbosity() >= 3 || !empty(get(g:, 'neomake_logfile', ''))
+        call neomake#log#debug(a:msg.': '.neomake#utils#Stringify(a:obj).'.')
+    endif
 endfunction
 
 function! neomake#log#exception(error, ...) abort
