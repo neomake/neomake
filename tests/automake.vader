@@ -604,13 +604,11 @@ Execute (Automake stops previous jobs):
 
     normal! ifoo
     doautocmd TextChanged
-    NeomakeTestsWaitForMessage '\vautomake: callback for timer \d+'
+    NeomakeTestsWaitForMessage '\vautomake: stopping previous make runs: '.first_make_id
+    AssertNeomakeMessage '\vautomake: callback for timer \d+'
+    AssertNeomakeMessage '\vautomake: started jobs: \[\d+\].'
     let second_make_id = neomake#GetStatus().last_make_id
-
     Assert index(b:neomake_automake_make_ids, second_make_id) > -1, 'Second make is registered'
-    AssertNeomakeMessage '\vautomake: stopping previous make runs: (\d+)'
-    let make_id = g:neomake_test_matchlist[1]
-    AssertEqual make_id + 1, second_make_id
     NeomakeTestsWaitForFinishedJobs
     bwipe!
   endif
