@@ -128,7 +128,7 @@ function! neomake#log#debug(...) abort
 endfunction
 
 function! neomake#log#debug_obj(msg, obj) abort
-    if neomake#utils#get_verbosity() >= 3 || !empty(get(g:, 'neomake_logfile', ''))
+    if s:is_testing || neomake#utils#get_verbosity() >= 3 || !empty(get(g:, 'neomake_logfile', ''))
         call neomake#log#debug(a:msg.': '.neomake#utils#Stringify(a:obj).'.')
     endif
 endfunction
