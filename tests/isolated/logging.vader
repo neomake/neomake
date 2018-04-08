@@ -2,6 +2,7 @@ Include: ../include/setup.vader
 
 Execute (neomake#log#debug handles missing make_options):
   Save g:neomake_verbose
+  " Unset g:neomake_test_messages for s:is_testing in autoload/neomake/log.vim.
   unlet g:neomake_test_messages
   unlet! g:neomake_verbose
   call NeomakeTestsSetVimMessagesMarker()
@@ -37,6 +38,10 @@ Execute (neomake#log#debug handles missing make_options):
   AssertEqual NeomakeTestsGetVimMessages(), []
 
   let g:neomake_test_messages = []
+
+Execute (neomake#log#error uses echohl):
+  call neomake#log#error('some error.')
+  AssertEqual NeomakeTestsGetVimMessages(), ['Neomake: [-.-:-:1] some error.']
 
 Execute (neomake#log#debug_obj does not call neomake#utils#Stringify if not necessary):
   Save g:neomake_verbose
