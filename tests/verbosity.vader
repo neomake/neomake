@@ -1,46 +1,46 @@
 Include: include/setup.vader
 
-Execute (neomake#utils#LogMessage uses &verbose):
+Execute (neomake#log uses &verbose):
   Save g:neomake_verbose, &verbose
   unlet! g:neomake_verbose
   set verbose=0
 
   unlet g:neomake_test_log_all_messages
 
-  call neomake#utils#LogMessage(1, 'msg.')
+  call neomake#log#warning('msg.')
   AssertEqual g:neomake_test_messages, [[1, 'msg.', {}]]
 
   let g:neomake_test_messages = []
-  1verb call neomake#utils#LogMessage(1, 'msg.')
+  1verb call neomake#log#warning('msg.')
   AssertEqual g:neomake_test_messages, [[1, 'msg.', {}]]
 
   let g:neomake_test_messages = []
-  1verb call neomake#utils#LogMessage(2, 'msg.')
+  1verb call neomake#log#info('msg.')
   AssertEqual g:neomake_test_messages, [[2, 'msg.', {}]]
 
   let g:neomake_test_messages = []
-  2verb call neomake#utils#LogMessage(2, 'msg.')
+  2verb call neomake#log#info('msg.')
   AssertEqual g:neomake_test_messages, [[2, 'msg.', {}]]
 
   let g:neomake_test_messages = []
   let g:neomake_verbose = 3
-  call neomake#utils#LogMessage(1, 'msg.')
+  call neomake#log#warning('msg.')
   AssertEqual g:neomake_test_messages, [[1, 'msg.', {}]]
 
   let g:neomake_test_messages = []
   let g:neomake_verbose = 1
-  0verb call neomake#utils#LogMessage(1, 'msg.')
+  0verb call neomake#log#warning('msg.')
   AssertEqual g:neomake_test_messages, [[1, 'msg.', {}]]
 
   let g:neomake_verbose = 0
   NeomakeTestsResetMessages
-  0verb call neomake#utils#LogMessage(1, 'msg.')
+  0verb call neomake#log#warning('msg.')
   AssertEqual g:neomake_test_messages, []
 
-  1verb call neomake#utils#LogMessage(1, 'msg.')
+  1verb call neomake#log#warning('msg.')
   AssertNeomakeMessage 'msg.', 1
 
-  3verb call neomake#utils#LogMessage(1, 'msg.')
+  3verb call neomake#log#warning('msg.')
   AssertNeomakeMessage 'msg.', 1
 
 Execute (neomake#Make uses &verbose):

@@ -16,13 +16,14 @@ Execute (Handles unexpected output on stderr from maker):
   \ 'Neomake: stderr_maker: unexpected output on stderr: failed to run',
   \ 'because something bad happened']
 
-  if index(messages_lines, 'Neomake: appending to the logfile is not supported in your Vim version.') >= 0
+  let can_append = v:version > 704 || (v:version == 704 && has('patch503'))
+  if !can_append
     NeomakeTestsSkip 'Cannot check logfile contents.'
   else
     let log_lines = readfile(g:neomake_logfile)
     let found = 0
     for line in log_lines
-      if line =~# '\v^\d+:\d+:\d+ \[D.*\] stderr_maker: unexpected output on stderr: failed to run\\nbecause something bad happened.$'
+      if line =~# '\v^\d+:\d+:\d+ \[D .*\] stderr_maker: unexpected output on stderr: failed to run\\nbecause something bad happened.$'
         let found = 1
         break
       endif

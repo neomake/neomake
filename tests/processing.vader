@@ -61,7 +61,7 @@ Execute (Output is not processed with visible popup menu):
 
     function! s:close_pum(...)
       NeomakeTestsWaitForMessage 'Not processing output during completion.', 3
-      call neomake#utils#DebugMessage('test: closing PUM.')
+      call neomake#log#debug('test: closing PUM.')
       call feedkeys("\<c-e>", 'x')
       call feedkeys("\<esc>")
     endfunction
@@ -70,7 +70,7 @@ Execute (Output is not processed with visible popup menu):
     let jobinfo = neomake#GetJobs()[-1]
 
     call timer_start(1, 's:close_pum')
-    call neomake#utils#DebugMessage('test: opening PUM.')
+    call neomake#log#debug('test: opening PUM.')
     call feedkeys("oword\<C-p>", 'x!')
 
     NeomakeTestsWaitForFinishedJobs
@@ -92,7 +92,7 @@ Execute (Location list handling is postponed with visible popup menu):
     function! s:close_pum(...)
       NeomakeTestsWaitForMessage 'Postponing final location list handling during completion.', 3
       AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for CompleteDone.'
-      call neomake#utils#DebugMessage('tests: closing popupmenu.')
+      call neomake#log#debug('tests: closing popupmenu.')
       call feedkeys("\<esc>")
     endfunction
 
@@ -651,7 +651,7 @@ Execute (get_list_entries: delayed for location list (but in current context)):
   endfunction
 
   augroup neomake_tests
-    au User NeomakeJobFinished call neomake#utils#DebugMessage('Changing to window 1.')
+    au User NeomakeJobFinished call neomake#log#debug('Changing to window 1.')
     au User NeomakeJobFinished 1wincmd w
   augroup END
 
@@ -841,7 +841,7 @@ Execute (job finishes while in tabline function):
     function! s:NeomakeTestTabline()
       call writefile(['1'], g:neomake_test_flagfile)
       NeomakeTestsWaitForFinishedJobs
-      call neomake#utils#DebugMessage('tabline_end.')
+      call neomake#log#debug('tabline_end.')
     endfunction
 
     new
@@ -935,7 +935,7 @@ Execute (neomake#Make ignores calls during autocommands):
 
   call g:NeomakeSetupAutocmdWrappers()
   augroup neomake_tests
-    autocmd WinEnter * call neomake#utils#DebugMessage('WinEnter: '.winnr().': '.&ft.'.')
+    autocmd WinEnter * call neomake#log#debug('WinEnter: '.winnr().': '.&ft.'.')
     autocmd WinEnter * Neomake
   augroup END
 

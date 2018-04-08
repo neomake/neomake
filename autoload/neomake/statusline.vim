@@ -157,7 +157,7 @@ function! s:formatter._substitute(m) abort
     try
         return call(self[a:m], [], self)
     catch
-        call neomake#utils#ErrorMessage(printf(
+        call neomake#log#error(printf(
                     \ 'Error while formatting statusline: %s.', v:exception))
     endtry
 endfunction
@@ -170,7 +170,7 @@ function! s:formatter.format(f, args) abort
     let self.errors = []
     let r = substitute(a:f, '{{\(.\{-}\)}}', '\=self._substitute(submatch(1))', 'g')
     if !empty(self.errors)
-        call neomake#utils#ErrorMessage(printf(
+        call neomake#log#error(printf(
                     \ 'Error%s when formatting %s: %s',
                     \ len(self.errors) > 1 ? 's' : '',
                     \ string(a:f), join(self.errors, ', ')))

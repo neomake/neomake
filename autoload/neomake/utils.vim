@@ -1,150 +1,12 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
-let s:level_to_name = {0: 'error  ', 1: 'warning', 2: 'verbose', 3: 'debug  '}
-let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
-
-let s:is_testing = exists('g:neomake_test_messages')
-
-function! s:reltime_lastmsg() abort
-    if exists('s:last_msg_ts')
-        let cur = neomake#compat#reltimefloat()
-        let diff = (cur - s:last_msg_ts)
-    else
-        let diff = 0
-    endif
-    let s:last_msg_ts = neomake#compat#reltimefloat()
-
-    if diff < 0.01
-        return '     '
-    elseif diff < 10
-        let format = '+%.2f'
-    elseif diff < 100
-        let format = '+%.1f'
-    elseif diff < 100
-        let format = '  +%.0f'
-    elseif diff < 1000
-        let format = ' +%.0f'
-    else
-        let format = '+%.0f'
-    endif
-    return printf(format, diff)
-endfunction
-
 " Get verbosity, optionally based on jobinfo's make_id (a:1).
 function! neomake#utils#get_verbosity(...) abort
     if a:0 && has_key(a:1, 'make_id')
         return neomake#GetMakeOptions(a:1.make_id).verbosity
     endif
     return get(g:, 'neomake_verbose', 1) + &verbose
-endfunction
-
-function! neomake#utils#LogMessage(level, msg, ...) abort
-    if a:0
-        let context = a:1
-        let verbosity = neomake#utils#get_verbosity(context)
-    else
-        let context = {}  " just for vimlint (EVL104)
-        let verbosity = neomake#utils#get_verbosity()
-    endif
-    let logfile = get(g:, 'neomake_logfile', '')
-
-    if !s:is_testing && verbosity < a:level && logfile is# ''
-        return
-    endif
-
-    if a:0
-        let msg = printf('[%s.%s:%s:%d] %s',
-                    \ get(context, 'make_id', '-'),
-                    \ get(context, 'id', '-'),
-                    \ get(context, 'bufnr', get(context, 'file_mode', 0) ? '?' : '-'),
-                    \ winnr(),
-                    \ a:msg)
-    else
-        let msg = a:msg
-    endif
-
-    " Use Vader's log for messages during tests.
-    " @vimlint(EVL104, 1, l:timediff)
-    if s:is_testing && (verbosity >= a:level || get(g:, 'neomake_test_log_all_messages', 0))
-        let timediff = s:reltime_lastmsg()
-        if timediff !=# '     '
-            let test_msg = '['.s:short_level_to_name[a:level].' '.timediff.']: '.msg
-        else
-            let test_msg = '['.s:level_to_name[a:level].']: '.msg
-        endif
-
-        call vader#log(test_msg)
-        " Only keep context entries that are relevant for / used in the message.
-        let context = a:0
-                    \ ? filter(copy(context), "index(['id', 'make_id', 'bufnr'], v:key) != -1")
-                    \ : {}
-        call add(g:neomake_test_messages, [a:level, a:msg, context])
-        if index(['.', '!', ')', ']'], a:msg[-1:-1]) == -1
-            Assert 0, 'Log msg does not end with punctuation: "'.a:msg.'".'
-        endif
-    elseif verbosity >= a:level
-        redraw
-        if a:level ==# 0
-            echohl ErrorMsg
-        endif
-        if verbosity > 2
-            if !exists('timediff')
-                let timediff = s:reltime_lastmsg()
-            endif
-            echom 'Neomake ['.timediff.']: '.msg
-        else
-            echom 'Neomake: '.msg
-        endif
-        if a:level ==# 0
-            echohl None
-        endif
-    endif
-    if !empty(logfile) && type(logfile) ==# type('')
-        if !exists('s:logfile_writefile_opts')
-            " Use 'append' with writefile, but only if it is available.  Otherwise, just
-            " overwrite the file.  'S' is used to disable fsync in Neovim
-            " (https://github.com/neovim/neovim/pull/6427).
-            let s:can_append_to_logfile = v:version > 704 || (v:version == 704 && has('patch503'))
-            if !s:can_append_to_logfile
-                redraw
-                echohl WarningMsg
-                echom 'Neomake: appending to the logfile is not supported in your Vim version.'
-                echohl NONE
-            endif
-            let s:logfile_writefile_opts = s:can_append_to_logfile ? 'aS' : ''
-        endif
-
-        let date = strftime('%H:%M:%S')
-        if !exists('timediff')
-            let timediff = s:reltime_lastmsg()
-        endif
-        try
-            call writefile([printf('%s [%s %s] %s',
-                        \ date, s:short_level_to_name[a:level], timediff, msg)],
-                        \ logfile, s:logfile_writefile_opts)
-        catch
-            unlet g:neomake_logfile
-            call neomake#utils#ErrorMessage(printf('Error when trying to write to logfile %s: %s.  Unsetting g:neomake_logfile.', logfile, v:exception))
-        endtry
-    endif
-    " @vimlint(EVL104, 0, l:timediff)
-endfunction
-
-function! neomake#utils#ErrorMessage(...) abort
-    call call('neomake#utils#LogMessage', [0] + a:000)
-endfunction
-
-function! neomake#utils#QuietMessage(...) abort
-    call call('neomake#utils#LogMessage', [1] + a:000)
-endfunction
-
-function! neomake#utils#LoudMessage(...) abort
-    call call('neomake#utils#LogMessage', [2] + a:000)
-endfunction
-
-function! neomake#utils#DebugMessage(...) abort
-    call call('neomake#utils#LogMessage', [3] + a:000)
 endfunction
 
 function! neomake#utils#Stringify(obj) abort
@@ -170,10 +32,6 @@ function! neomake#utils#Stringify(obj) abort
     endif
 endfunction
 
-function! neomake#utils#DebugObject(msg, obj) abort
-    call neomake#utils#DebugMessage(a:msg.': '.neomake#utils#Stringify(a:obj).'.')
-endfunction
-
 function! neomake#utils#wstrpart(mb_string, start, len) abort
     return matchstr(a:mb_string, '.\{,'.a:len.'}', 0, a:start+1)
 endfunction
@@ -197,7 +55,7 @@ function! neomake#utils#WideMessage(msg) abort " {{{2
     set noruler noshowcmd
     redraw
 
-    call neomake#utils#DebugMessage('WideMessage: echo '.msg.'.')
+    call neomake#log#debug('WideMessage: echo '.msg.'.')
     echo msg
 
     let &ruler = old_ruler
@@ -476,14 +334,6 @@ function! neomake#utils#ExpandArgs(args) abort
     return ret
 endfunction
 
-function! neomake#utils#log_exception(error, ...) abort
-    let log_context = a:0 ? a:1 : {'bufnr': bufnr('%')}
-    redraw
-    echom printf('Neomake error in: %s', v:throwpoint)
-    call neomake#utils#ErrorMessage(a:error, log_context)
-    call neomake#utils#DebugMessage(printf('(in %s)', v:throwpoint), log_context)
-endfunction
-
 let s:hook_context_stack = []
 function! neomake#utils#hook(event, context, ...) abort
     if exists('#User#'.a:event)
@@ -495,7 +345,7 @@ function! neomake#utils#hook(event, context, ...) abort
         if !empty(jobinfo)
             let args += [jobinfo]
         endif
-        call call('neomake#utils#LoudMessage', args)
+        call call('neomake#log#info', args)
 
         if exists('g:neomake_hook_context')
             call add(s:hook_context_stack, g:neomake_hook_context)
@@ -510,7 +360,7 @@ function! neomake#utils#hook(event, context, ...) abort
                 exec 'doautocmd User ' . a:event
             endif
         catch
-            call neomake#utils#log_exception(printf(
+            call neomake#log#exception(printf(
                         \ 'Error during User autocmd for %s: %s.',
                         \ a:event, v:exception), jobinfo)
         finally

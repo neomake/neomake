@@ -82,7 +82,7 @@ Execute (Instantiate all default makers):
     let makers = neomake#GetMakers(ft)
     if ft ==# 'rst'
       " Skip sphinx, would throw an error; it is tested separately.
-      " TODO: align with clippy maker, which only uses neomake#utils#ErrorMessage.
+      " TODO: align with clippy maker, which only uses neomake#log#error
       "       (https://github.com/neomake/neomake/issues/1453).
       call filter(makers, "v:val !=# 'sphinx'")
     endif
