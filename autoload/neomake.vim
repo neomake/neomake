@@ -1593,9 +1593,6 @@ function! s:do_clean_make_info(make_info) abort
         call neomake#utils#DebugMessage(printf('Wiping out %d unlisted/remapped buffers: %s.',
                     \ len(wipe_unlisted_buffers),
                     \ string(wipe_unlisted_buffers)))
-        echom string(wipe_unlisted_buffers)
-        " XXX: fails with buffers like "[foo]": E94: No matching buffer - '['
-        " needs to be escaped!
         exe (&report < 2 ? 'silent ' : '').'bwipeout '.join(wipe_unlisted_buffers)
     endif
 
