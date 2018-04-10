@@ -37,12 +37,16 @@ function! s:log(level, msg, ...) abort
         return
     endif
 
-    let msg = printf('[%s.%s:%s:%d] %s',
-                \ get(context, 'make_id', '-'),
-                \ get(context, 'id', '-'),
-                \ get(context, 'bufnr', get(context, 'file_mode', 0) ? '?' : '-'),
-                \ winnr(),
-                \ a:msg)
+    if a:0
+        let msg = printf('[%s.%s:%s:%d] %s',
+                    \ get(context, 'make_id', '-'),
+                    \ get(context, 'id', '-'),
+                    \ get(context, 'bufnr', get(context, 'file_mode', 0) ? '?' : '-'),
+                    \ winnr(),
+                    \ a:msg)
+    else
+        let msg = a:msg
+    endif
 
     " Use Vader's log for messages during tests.
     " @vimlint(EVL104, 1, l:timediff)
