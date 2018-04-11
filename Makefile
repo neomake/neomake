@@ -12,9 +12,9 @@ SHELL:=$(bash) -o pipefail
 # Use nvim if it is installed, otherwise vim.
 ifeq ($(TEST_VIM),)
 ifeq ($(shell command -v nvim 2>/dev/null),)
-  TEST_VIM:=nvim
-else
   TEST_VIM:=vim
+else
+  TEST_VIM:=nvim
 endif
 endif
 
