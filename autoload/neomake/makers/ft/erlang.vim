@@ -30,10 +30,8 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
     let ebins = []
     if isdirectory(build_dir)
         " Pick the rebar3 profile to use
-        let profile = 'default'
-        if expand('%') =~# '_SUITE.erl$'
-            let profile = 'test'
-        endif
+        let default_profile = expand('%') =~# '_SUITE.erl$' ?  'test' : 'default'
+        let profile = get(b:, 'neomake_erlang_erlc_rebar3_profile', default_profile)
         let ebins += neomake#compat#glob_list(build_dir . '/' . profile . '/lib/*/ebin')
         let target_dir = build_dir . '/neomake'
     else
