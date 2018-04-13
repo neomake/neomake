@@ -20,7 +20,7 @@ function! neomake#makers#ft#vim#vint() abort
         \ 'output_stream': 'stdout',
         \ 'postprocess': {
         \   'fn': function('neomake#postprocess#generic_length'),
-        \   'pattern': '\v(^[^:]+: )\zs([^ ]+)',
+        \   'pattern': '\v%(^:|%([^:]+: ))\zs(\S+)',
         \ }}
 endfunction
 
