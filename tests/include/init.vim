@@ -399,6 +399,21 @@ function! NeomakeTestsGetMakerWithOutput(func, lines) abort
   return maker
 endfunction
 
+function! NeomakeTestsFixtureMaker(func, fname) abort
+  let output_base = substitute(a:fname, '^tests/fixtures/input/', 'tests/fixtures/output/', '')
+  let stdout = printf('%s.stdout', output_base)
+  let stderr = printf('%s.stderr', output_base)
+  let exitcode = readfile(printf('%s.exitcode', output_base))[0]
+
+  let maker = call(a:func, [])
+  let maker.exe = &shell
+  let maker.args = [&shellcmdflag, printf(
+        \ 'cat %s; cat %s >&2; exit %d',
+        \ fnameescape(stdout), fnameescape(stderr), exitcode)]
+  let maker.name = printf('%s-fixture', substitute(a:func, '^.*#', '', ''))
+  return maker
+endfunction
+
 function! s:After()
   if exists('#neomake_automake')
     au! neomake_automake

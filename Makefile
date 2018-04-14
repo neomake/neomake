@@ -336,6 +336,34 @@ clean:
 	$(RM) -r build
 .PHONY: clean
 
+# Fixtures {{{
+define func-generate-fixture
+	@baseout=tests/fixtures/output/$*; \
+	$1 $< >$$baseout.stdout 2>$$baseout.stderr; \
+	ret=$$?; \
+	if [ "$$ret" != $2 ]; then \
+	  echo "Unexpected exitcode ($$ret, expected $2) with: '$1' for $<, check $$baseout.*." >&2; exit 1; \
+	fi; \
+	if ! [ -f $$baseout.stdout ]; then \
+	  echo 'Missing output: $$baseout.stdout.' >&2; exit 1; \
+	fi; \
+	printf $$ret > $$baseout.exitcode
+endef
+
+tests/fixtures/output/%.stderr tests/fixtures/output/%.stdout tests/fixtures/output/%.exitcode: tests/fixtures/input/%
+	$(call func-generate-fixture,xmllint --xinclude --postvalid --noout,3)
+
+_FIXTURES_INPUT:=$(wildcard tests/fixtures/input/*/*)
+_FIXTURES_OUTPUT:=$(patsubst tests/fixtures/input/%,tests/fixtures/output/%,$(addsuffix .stdout,$(_FIXTURES_INPUT)) $(addsuffix .stderr,$(_FIXTURES_INPUT)))
+fixtures: $(_FIXTURES_OUTPUT)
+.PHONY: fixtures
+
+fixtures-rebuild:
+	$(RM) tests/fixtures/output/*/*.stdout tests/fixtures/output/*/*.stderr
+	$(MAKE) fixtures
+.PHONY: fixtures-rebuild
+# }}}
+
 .PHONY: vint vint-errors vimlint vimlint-errors
 .PHONY: test testnvim testvim testnvim_interactive testvim_interactive
 .PHONY: runvim runnvim tags _run_tests

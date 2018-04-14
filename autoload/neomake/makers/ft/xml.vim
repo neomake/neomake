@@ -5,10 +5,11 @@ function! neomake#makers#ft#xml#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#xml#xmllint() abort
-    let l:args = ['--xinclude', '--postvalid', '--noout']
+    let args = ['--xinclude', '--postvalid', '--noout']
 
     return {
-        \ 'args': l:args,
+        \ 'args': args,
+        \ 'supports_stdin': 1,
         \ 'errorformat':
             \ '%E%f:%l: error : %m,' .
             \ '%-G%f:%l: validity error : Validation failed: no DTD found %m,' .
@@ -18,6 +19,7 @@ function! neomake#makers#ft#xml#xmllint() abort
             \ '%E%f:%l: parser error : %m,' .
             \ '%E%f:%l: %m,' .
             \ '%-Z%p^,' .
-            \ '%-G%.%#'
+            \ '%-C%.%#,' .
+            \ '%-G%.%#',
         \ }
 endfunction
