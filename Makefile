@@ -19,8 +19,7 @@ endif
 endif
 
 IS_NEOVIM=$(findstring nvim,$(TEST_VIM))$(findstring neovim,$(TEST_VIM))
-# Run testnvim and testvim by default, and only one if TEST_VIM is given.
-test: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim,testvim),testnvim testvim)
+test: $(if $(IS_NEOVIM),testnvim,testvim)
 test_interactive: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim_interactive,testvim_interactive),testnvim_interactive testvim_interactive)
 
 VADER:=Vader!
@@ -119,7 +118,7 @@ runnvim: testnvim_interactive
 TESTS:=$(wildcard tests/*.vader tests/*/*.vader)
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 _TESTS_REL_AND_ABS:=$(call uniq,$(abspath $(TESTS)) $(TESTS))
-FILE_TEST_TARGET=test$(TEST_VIM)
+FILE_TEST_TARGET=$(if $(IS_NEOVIM),testnvim,testvim)
 $(_TESTS_REL_AND_ABS):
 	$(MAKE) --no-print-directory $(FILE_TEST_TARGET) VADER_ARGS='$@'
 .PHONY: $(_TESTS_REL_AND_ABS)
