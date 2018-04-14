@@ -375,6 +375,7 @@ Execute (open_list=1 with job: just opens location window):
 
 Execute (open_list=0: does not open location window):
   if exists('#neomake_event_queue')
+    autocmd! neomake_event_queue
     augroup! neomake_event_queue
   endif
   Save g:neomake_open_list

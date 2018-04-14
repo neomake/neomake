@@ -35,9 +35,7 @@ function! neomake#quickfix#disable() abort
         call neomake#quickfix#FormatQuickfix()
     endif
     if exists('#neomake_qf')
-        augroup neomake_qf
-            autocmd!
-        augroup END
+        autocmd! neomake_qf
         augroup! neomake_qf
     endif
 endfunction
