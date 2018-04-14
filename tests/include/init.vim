@@ -517,6 +517,11 @@ function! s:After()
     augroup! neomake_event_queue
   endif
 
+  if !empty(v:warningmsg)
+    call add(errors, printf('There was a v:warningmsg: %s', v:warningmsg))
+    let v:warningmsg = ''
+  endif
+
   if !empty(errors)
     call map(errors, "printf('%d. %s', v:key+1, v:val)")
     throw len(errors)." error(s) in teardown:\n".join(errors, "\n")

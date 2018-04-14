@@ -79,6 +79,7 @@ function! neomake#makers#ft#c#clangtidy() abort
             \ '%W%f:%l:%c: warning: %m,' .
             \ '%-G%\m%\%%(LLVM ERROR:%\|No compilation database found%\)%\@!%.%#,' .
             \ '%E%m',
+        \ 'short_name': 'ctdy',
         \ }
 endfunction
 
