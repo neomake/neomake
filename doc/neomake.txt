@@ -720,6 +720,7 @@ A simpler example: >
           \ 'format_quickfix_issues': '%s',
           \ })
 <
+
 You can use the following options:
   - format_running: used in case there are jobs running.  Use 0 (as a number)
     to disable this, but fall through to the last known status.
@@ -747,14 +748,35 @@ You can use the following options:
     be useful for non-current windows.
     Default: `'%s'` (used with |printf()|).
 
-  - format_status: used to wrap the whole status (if Neomake is not enabled).
+  - format_status: used to wrap the whole status.
     This is a |printf()| format string, where `%s` gets replaced with the
     whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
     Default: not used / `'%s'`
+  - format_status_disabled: used to wrap the whole status when disabled.
+    This is a |printf()| format string, where `%s` gets replaced with the
+    whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
+    Default: `'{{disabled_info}} %s'`
+  - format_disabled_info: The `disabled_info` placeholder from the
+    "format_status_disabled" argument. There `disabled_scope` placeholder is
+    available here. Default: `'{{disabled_scope}}-'`
+  - format_status_enabled: used to wrap the whole status when enabled.
+    This is a |printf()| format string, where `%s` gets replaced with the
+    whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
+    Default: not used / `'%s'`
+  - format_running_job_file: Wrap the running job name for file-level makers.
+    Default: not used / `'%s'`
+  - format_running_job_project: Wrap the running job name for project makers.
+    Default: `'%s!'`.
+  - running_jobs_separator: Separator for formatted running job names.
+    Default: `', '`.
 
 You can use the following format placeholders:
   - `{{running_job_names}}}`: comma-separated list of running jobs (typically
-    their maker names)
+    their maker names).
+    This gets built using `format_running_job_file`,
+    `format_running_job_project`, and `running_jobs_separator`.
+  - `{{disabled_scope}}`: When manually overriden, the scope of the disabling.
+    One of "b", "t", "g".
 
 *neomake#statusline#LoclistStatus*
 *neomake#statusline#QflistStatus*
