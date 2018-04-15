@@ -89,7 +89,11 @@ function! s:command_maker.fn(jobinfo) dict abort
     if type(command) == type('')
         let argv = split(&shell) + split(&shellcmdflag)
         let maker.exe = argv[0]
+        if &shell ==# 'cmd.exe'
+            let command = '('.command.')'
+        endif
         let maker.args = argv[1:] + [command]
+        let maker._argv_wrapped_in_shell = 1
     else
         let maker.exe = command[0]
         let maker.args = command[1:]
@@ -106,8 +110,8 @@ function! s:command_maker.fn(jobinfo) dict abort
 endfunction
 
 " @vimlint(EVL103, 1, a:jobinfo)
-function! s:command_maker._get_argv(jobinfo) abort dict
-    return neomake#compat#get_argv(self.exe, self.args, 1)
+function! s:command_maker._get_fname_for_args(jobinfo) abort dict
+    return ''
 endfunction
 " @vimlint(EVL103, 0, a:jobinfo)
 
