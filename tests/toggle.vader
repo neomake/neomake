@@ -130,14 +130,9 @@ Execute (Neomake via autocommand uses 'disabled' setting):
   new
   NeomakeDisableBuffer
 
-  augroup neomake_test_user_setup
-    au!
+  augroup neomake_tests
     autocmd BufWritePost * Neomake
   augroup END
   doautocmd BufWritePost
   AssertNeomakeMessage 'Make through autocommand disabled via buffer.', 3
   bwipe
-  augroup neomake_test_user_setup
-    au!
-  augroup END
-  augroup! neomake_test_user_setup

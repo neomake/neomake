@@ -37,9 +37,7 @@ function! s:disable(scope, disabled) abort
     call neomake#config#set_dict(a:scope, 'neomake.disabled', a:disabled)
     if a:scope is# g:
         if a:disabled
-            augroup neomake
-                au!
-            augroup END
+            autocmd! neomake
             augroup! neomake
         else
             call s:setup_autocmds()
