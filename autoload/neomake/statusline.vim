@@ -143,7 +143,18 @@ let s:formatter = {
             \ }
 function! s:formatter.running_job_names() abort
     let jobs = get(self.args, 'running_jobs', s:running_jobs(self.args.bufnr))
-    return join(map(jobs, "v:val.name . (v:val.file_mode ? '' : '!')"), ', ')
+    let sep = get(self.args, 'running_jobs_separator', ', ')
+    let format_running_job_file = get(self.args, 'format_running_job_file', '%s')
+    let format_running_job_project = get(self.args, 'format_running_job_project', '%s!')
+    let formatted = []
+    for job in jobs
+        if job.file_mode
+            call add(formatted, printf(format_running_job_file, job.name))
+        else
+            call add(formatted, printf(format_running_job_project, job.name))
+        endif
+    endfor
+    return join(formatted, sep)
 endfunction
 
 function! s:formatter._substitute(m) abort
@@ -191,9 +202,13 @@ function! neomake#statusline#get_status(bufnr, options) abort
     if !empty(running_jobs)
         let format_running = get(a:options, 'format_running', '… ({{running_job_names}})')
         if format_running isnot 0
-            return s:formatter.format(format_running, {
-                        \ 'bufnr': a:bufnr,
-                        \ 'running_jobs': running_jobs})
+            let args = {'bufnr': a:bufnr, 'running_jobs': running_jobs}
+            for opt in ['running_jobs_separator', 'format_running_job_project', 'format_running_job_file']
+                if has_key(a:options, opt)
+                    let args[opt] = a:options[opt]
+                endif
+            endfor
+            return s:formatter.format(format_running, args)
         endif
     endif
 
@@ -264,36 +279,43 @@ function! neomake#statusline#get(bufnr, options) abort
     if !has_key(s:cache, a:bufnr)
         let s:cache[a:bufnr] = {}
     endif
-    if has_key(s:cache[a:bufnr], cache_key)
-        return s:cache[a:bufnr][cache_key]
-    endif
-    let bufnr = +a:bufnr
-    call s:setup_statusline_augroup_for_use()
+    if !has_key(s:cache[a:bufnr], cache_key)
+        let bufnr = +a:bufnr
+        call s:setup_statusline_augroup_for_use()
 
-    " TODO: needs to go into cache key then!
-    if getbufvar(bufnr, '&filetype') ==# 'qf'
-        let s:cache[a:bufnr][cache_key] = ''
-        return ''
-    endif
-
-    let r = ''
-    let [disabled, source] = neomake#config#get_with_source('disabled', -1, {'bufnr': bufnr})
-    if disabled != -1
-        if disabled
-            let r .= source[0].'-'
+        " TODO: needs to go into cache key then!
+        if getbufvar(bufnr, '&filetype') ==# 'qf'
+            let s:cache[a:bufnr][cache_key] = ''
         else
-            let r .= source[0].'+'
-        endif
-    else
-        let status = neomake#statusline#get_status(bufnr, a:options)
-        if has_key(a:options, 'format_status')
-            let status = printf(a:options.format_status, status)
-        endif
-        let r .= status
-    endif
+            let [disabled, src] = neomake#config#get_with_source('disabled', -1, {'bufnr': bufnr})
+            if src ==# 'default'
+                let disabled_scope = ''
+            else
+                let disabled_scope = src[0]
+            endif
+            if disabled != -1 && disabled
+                " Automake Disabled
+                let format_disabled_info = get(a:options, 'format_disabled_info', '{{disabled_scope}}-')
+                let disabled_info = s:formatter.format(format_disabled_info,
+                      \ {'disabled_scope': disabled_scope})
+                " Defaults to showing the disabled information (i.e. scope)
+                let format_disabled = get(a:options, 'format_status_disabled', '{{disabled_info}} %s')
+                let outer_format = s:formatter.format(format_disabled, {'disabled_info': disabled_info})
+            else
+                " Automake Enabled
+                " Defaults to showing only the status
+                let format_enabled = get(a:options, 'format_status_enabled', '%s')
+                let outer_format = s:formatter.format(format_enabled, {})
+            endif
+            let format_status = get(a:options, 'format_status', '%s')
+            let status = neomake#statusline#get_status(bufnr, a:options)
 
-    let s:cache[a:bufnr][cache_key] = r
-    return r
+            let r = printf(outer_format, printf(format_status, status))
+
+            let s:cache[a:bufnr][cache_key] = r
+        endif
+    endif
+    return s:cache[a:bufnr][cache_key]
 endfunction
 
 " XXX: TODO: cleanup/doc?!
