@@ -31,10 +31,7 @@ Before:
     " Save list of already defined (and whitelisted functions).
     " This gets used to check that no new global functions are left over
     " on teardown.
-    redir => neomake_output_func_before
-      silent function /\C^[A-Z]
-    redir END
-    let g:neomake_test_funcs_before = map(split(neomake_output_func_before, '\n'),
+    let g:neomake_test_funcs_before = map(split(neomake#utils#redir('function /\C^[A-Z]'), '\n'),
         \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
 
     call extend(g:neomake_test_funcs_before, [

@@ -379,11 +379,8 @@ function! NeomakeTestsSetVimMessagesMarker()
 endfunction
 
 function! NeomakeTestsGetVimMessages()
-  redir => messages_output
-    silent messages
-  redir END
+  let msgs = split(neomake#utils#redir('messages'), "\n")
   call NeomakeTestsSetVimMessagesMarker()
-  let msgs = split(messages_output, "\n")
   let idx = index(reverse(msgs), s:vim_msgs_marker)
   if idx <= 0
     return []
@@ -500,9 +497,7 @@ function! s:After()
   endif
 
   " Check that no new global functions are defined.
-  redir => neomake_output_func_after
-    silent function /\C^[A-Z]
-  redir END
+  let neomake_output_func_after = neomake#utils#redir('function /\C^[A-Z]')
   let funcs = map(split(neomake_output_func_after, '\n'),
         \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
   let new_funcs = filter(copy(funcs), 'index(g:neomake_test_funcs_before, v:val) == -1')
