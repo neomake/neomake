@@ -262,9 +262,13 @@ Execute (Automake):
   norm oline4
   if has('timers')
     AssertEqual len(g:neomake_test_jobfinished), 3
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+).', 3, {'bufnr': bufnr}
+    let timer = g:neomake_test_matchlist[1]
     exe 'doautocmd' event
     AssertEqual len(g:neomake_test_jobfinished), 3
+    AssertNeomakeMessage 'automake: stopped existing timer: '.timer.'.', 3, {'bufnr': bufnr}
     NeomakeTestsWaitForNextFinishedJob
+    AssertNeomakeMessage 'automake: started timer (10ms): '.(timer+1).'.', 3, {'bufnr': bufnr}
   endif
 
   AssertEqual len(g:neomake_test_jobfinished), 4
@@ -713,7 +717,7 @@ Execute (Timer callback ignores wiped buffer):
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
     let timer = g:neomake_test_matchlist[1]
     bwipe
-    AssertNeomakeMessage 'automake: automake: cleaning timer for wiped buffer: '.timer.'.'
+    AssertNeomakeMessage 'automake: stopped timer for wiped buffer: '.timer.'.'
   endif
 
 Execute (Timer callback ignores wiped buffer with noautocmd):
@@ -757,7 +761,6 @@ Execute (Handles timeout in another buffer):
     \ 'TextChanged': {'delay': 10}})
     doautocmd TextChanged
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
-    let timer = g:neomake_test_matchlist[1]
     let timer = g:neomake_test_matchlist[1]
     new
     let bufnr2 = bufnr('%')
@@ -836,3 +839,21 @@ Execute (Automake pre-creates maker_job instances):
   NeomakeTestsWaitForFinishedJobs
 
   bwipe!
+
+Execute (neomake#configure#reset_automake stops timers):
+  if !has('timers')
+    NeomakeTestsSkip 'Only with timers feature'
+  else
+    Save g:neomake
+
+    new
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call neomake#configure#automake({'TextChanged': {'delay': 10}})
+    doautocmd TextChanged
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    let timer = g:neomake_test_matchlist[1]
+    call neomake#configure#reset_automake()
+    AssertNeomakeMessage 'automake: stopping timers: '.timer.'.'
+    bwipe
+  endif
