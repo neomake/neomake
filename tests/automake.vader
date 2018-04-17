@@ -841,15 +841,19 @@ Execute (Automake pre-creates maker_job instances):
   bwipe!
 
 Execute (neomake#configure#reset_automake stops timers):
-  Save g:neomake
+  if !has('timers')
+    NeomakeTestsSkip 'Only with timers feature'
+  else
+    Save g:neomake
 
-  new
-  set filetype=neomake_tests
-  let b:neomake_enabled_makers = [g:true_maker]
-  call neomake#configure#automake({'TextChanged': {'delay': 10}})
-  doautocmd TextChanged
-  AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
-  let timer = g:neomake_test_matchlist[1]
-  call neomake#configure#reset_automake()
-  AssertNeomakeMessage 'automake: stopping timers: '.timer.'.'
-  bwipe
+    new
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call neomake#configure#automake({'TextChanged': {'delay': 10}})
+    doautocmd TextChanged
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    let timer = g:neomake_test_matchlist[1]
+    call neomake#configure#reset_automake()
+    AssertNeomakeMessage 'automake: stopping timers: '.timer.'.'
+    bwipe
+  endif
