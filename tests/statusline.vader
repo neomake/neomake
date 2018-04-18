@@ -137,8 +137,10 @@ Execute (neomake#statusline#get: disabling/enabling: clears cache):
   AssertEqual neomake#statusline#get(bufnr, {}), '?'
   NeomakeDisableBuffer
   AssertEqual neomake#statusline#get(bufnr, {}), 'b- ?'
+  AssertNeomakeMessage "Using setting disabled=1 from 'buffer' (statusline#get).", 3, {'bufnr': bufnr}
   NeomakeToggleBuffer
   AssertEqual neomake#statusline#get(bufnr, {}), '?'
   NeomakeEnableBuffer
   AssertEqual neomake#statusline#get(bufnr, {}), '?'
+  AssertNeomakeMessage "Using setting disabled=0 from 'buffer' (statusline#get).", 3, {'bufnr': bufnr}
   bwipe

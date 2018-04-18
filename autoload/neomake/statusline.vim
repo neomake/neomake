@@ -287,7 +287,7 @@ function! neomake#statusline#get(bufnr, options) abort
         if getbufvar(bufnr, '&filetype') ==# 'qf'
             let s:cache[a:bufnr][cache_key] = ''
         else
-            let [disabled, src] = neomake#config#get_with_source('disabled', -1, {'bufnr': bufnr})
+            let [disabled, src] = neomake#config#get_with_source('disabled', -1, {'bufnr': bufnr, 'log_source': 'statusline#get'})
             if src ==# 'default'
                 let disabled_scope = ''
             else

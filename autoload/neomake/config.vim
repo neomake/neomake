@@ -48,7 +48,8 @@ function! neomake#config#get(name, ...) abort
 endfunction
 
 " Get a:name (string (split on dots), or list of keys) from config, with
-" information about the setting's source.
+" information about the setting's source ('buffer', 'tab', 'global', 'maker',
+" 'default').
 " Optional args:
 "  - a:1: default value
 "  - a:2: context: defaults to {'ft': &filetype}
@@ -58,6 +59,7 @@ endfunction
 "    - bufnr: buffer number
 "    - maker_only: should settings get looked up only in the maker context?
 "                  (i.e. with maker.name prefix in general and in context.maker)
+"    - log_source: additional information to log.
 function! neomake#config#get_with_source(name, ...) abort
     let context = a:0 > 1 ? a:2 : {'ft': &filetype, 'bufnr': bufnr('%')}
     let parts = type(a:name) == type([]) ? a:name : split(a:name, '\.')
@@ -111,10 +113,12 @@ function! neomake#config#get_with_source(name, ...) abort
             endif
             if R isnot# g:neomake#config#undefined
                 let log_name = join(map(copy(parts), "substitute(v:val, '\\.', '|', '')"), '.')
+                let log_source = get(context, 'log_source', '')
                 call neomake#log#debug(printf(
-                            \ "Using setting %s=%s from '%s'%s.",
+                            \ "Using setting %s=%s from '%s'%s%s.",
                             \ log_name, string(R), source,
-                            \   empty(prefix) ? '' : ' (prefix: '.string(prefix).')'),
+                            \   empty(prefix) ? '' : ' (prefix: '.string(prefix).')',
+                            \   empty(log_source) ? '' : ' ('.log_source.')'),
                             \ context)
                 return [R, source]
             endif
