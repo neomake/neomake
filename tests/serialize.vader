@@ -162,7 +162,7 @@ Execute (Neomake#Make cancels previous jobs):
     for jobinfo in first_jobs
       AssertNeomakeMessage printf('Cancelling already running job (%d.%d) for the same maker.',
       \ make_id, jobinfo.id), 2, {'make_id': make_id+1}
-      AssertNeomakeMessage 'Stopping job.', 3, jobinfo
+      AssertNeomakeMessage '\v^Stopping job: .+\.$', 3, jobinfo
     endfor
 
     NeomakeTestsWaitForFinishedJobs
@@ -199,7 +199,7 @@ Execute (Neomake#Make cancels previous jobs (serialized)):
 
     AssertNeomakeMessage printf('Cancelling already running job (%d.%d) for the same maker.',
     \ make_id, first_jobs[0].id + 1), 2, {'make_id': make_id+1}
-    AssertNeomakeMessage 'Stopping job.', 3
+    AssertNeomakeMessage '\v^Stopping job: .+\.$', 3
 
     NeomakeTestsWaitForFinishedJobs
     AssertEqual has_key(neomake#GetStatus().make_info, make_id), 0
@@ -232,11 +232,11 @@ Execute (Neomake#Make starts new jobs before waiting for the old to finish):
     AssertNeomakeMessage '\m^Starting async job:'
     AssertNeomakeMessage 'Running makers: sleep.'
     AssertNeomakeMessage '\m^Cancelling already running job'
-    AssertNeomakeMessage 'Stopping job.'
+    AssertNeomakeMessage '\v^Stopping job: .+\.$'
     AssertNeomakeMessage '\m^Starting async job:'
     AssertNeomakeMessage 'Running makers: sleep.'
     AssertNeomakeMessage '\m^Cancelling already running job'
-    AssertNeomakeMessage 'Stopping job.'
+    AssertNeomakeMessage '\v^Stopping job: .+\.$'
     AssertNeomakeMessage '\m^Starting async job:'
     AssertNeomakeMessage '\mexit: job not found:'
     AssertNeomakeMessage '\mexit: job not found:'
