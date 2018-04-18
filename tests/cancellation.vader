@@ -4,8 +4,9 @@ Execute (neomake#CancelJob):
   if NeomakeAsyncTestsSetup()
     let job_id = neomake#Sh("sh -c 'while true; do sleep 0.01; done'")
     let jobinfo = neomake#GetJob(job_id)
+    let job = has('nvim') ? jobinfo.nvim_job : jobinfo.vim_job
     AssertEqual neomake#CancelJob(job_id), 1
-    AssertNeomakeMessage 'Stopping job.', 3, jobinfo
+    AssertNeomakeMessage printf('Stopping job: %s.', job), 3, jobinfo
 
     AssertEqual neomake#CancelJob(job_id), 0
     AssertNeomakeMessage 'Job was canceled already.', 2, jobinfo
@@ -40,7 +41,7 @@ Execute (neomake#CancelJob with invalid job):
     AssertEqual ret, 0, 'CancelJob returned 0.'
     AssertEqual len(neomake#GetJobs()), 0, 'There are no more jobs'
     AssertNeomakeMessageAbsent 'exit: job not found: '.job_id.'.'
-    AssertNeomakeMessage 'Stopping job.', 3, jobinfo
+    AssertNeomakeMessage '\v^Stopping job: .+\.$', 3, jobinfo
     if has('nvim')
       AssertNeomakeMessage '\vjobstop failed: Vim\(call\):E900: Invalid (job|channel) id.', 2, jobinfo
     else
@@ -71,7 +72,7 @@ Execute (neomake#CancelJobs! removes canceled jobs):
     NeomakeCancelJobs!
     AssertNeomakeMessage 'Cancelling 2 jobs.', 3
     AssertNeomakeMessage 'Job was canceled already.', 2, jobinfos[0]
-    AssertNeomakeMessage 'Stopping job.', 3, jobinfos[1]
+    AssertNeomakeMessage '\v^Stopping job: .+\.$', 3, jobinfos[1]
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfos[1]
 
     NeomakeTestsWaitForMessage '\m^exit: job not found'
@@ -101,14 +102,14 @@ Execute (neomake#CancelJob! with invalid job):
       AssertEqual ret, 0, "CancelJob (1) returned ".ret
     endif
     AssertNeomakeMessageAbsent 'exit: job not found: '.job_id.'.'
-    AssertNeomakeMessage 'Stopping job.', 3, jobinfo
+    AssertNeomakeMessage '\v^Stopping job: .+\.$', 3, jobinfo
     if has('nvim')
       AssertNeomakeMessage '\vjobstop failed: Vim\(call\):E900: Invalid (job|channel) id.', 2, jobinfo
     endif
     AssertEqual neomake#GetJobs(), []
 
     AssertEqual neomake#CancelJob(job_id), 0
-    AssertNeomakeMessageAbsent 'Stopping job.', 3, jobinfo
+    AssertNeomakeMessageAbsent '\v^Stopping job: .+\.$', 3, jobinfo
 
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessageAbsent 'exit: job not found: '.job_id.'.'
@@ -133,7 +134,7 @@ Execute (neomake#CancelJob with trapped TERM):
     let pid = g:neomake_test_matchlist[1]
 
     AssertEqual neomake#CancelJob(job_id), 1
-    AssertNeomakeMessage 'Stopping job.', 3, jobinfo
+    AssertNeomakeMessage '\v^Stopping job: .+\.$', 3, jobinfo
 
     NeomakeTestsWaitForMessage '\Mstdout: \.\*''not stopping on SIGTERM''', 3, jobinfo
     AssertNeomakeMessage 'Ignoring output (job was canceled).', 3, jobinfo
@@ -152,8 +153,8 @@ Execute (neomake#CancelMake stops all jobs):
     let make_id = neomake#GetStatus().last_make_id
     AssertEqual neomake#CancelMake(make_id), 1
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'Stopping job.'
-    AssertNeomakeMessage 'Stopping job.'
+    AssertNeomakeMessage '\v^Stopping job: .+\.$'
+    AssertNeomakeMessage '\v^Stopping job: .+\.$'
     AssertNeomakeMessage 'exit: job was canceled.'
     AssertNeomakeMessage 'Cleaning jobinfo.'
     AssertNeomakeMessage 'exit: job was canceled.'
@@ -218,7 +219,7 @@ Execute (neomake#CancelJob handles dict):
     let jobinfo = neomake#Make({'enabled_makers': [g:sleep_maker]})[0]
     Assert type(jobinfo), type({})
     AssertEqual neomake#CancelJob(jobinfo), 1
-    AssertNeomakeMessage 'Stopping job.', 3, jobinfo
+    AssertNeomakeMessage '\v^Stopping job: .+\.$', 3, jobinfo
     NeomakeTestsWaitForFinishedJobs
   endif
 
@@ -226,7 +227,7 @@ Execute (neomake#CancelJob handles string with job_id at the beginning):
   if NeomakeAsyncTestsSetup()
     let jobinfo = neomake#Make({'enabled_makers': [g:sleep_maker]})[0]
     AssertEqual neomake#CancelJob(jobinfo.id . ':'), 1
-    AssertNeomakeMessage 'Stopping job.', 3, jobinfo
+    AssertNeomakeMessage '\v^Stopping job: .+\.$', 3, jobinfo
     NeomakeTestsWaitForFinishedJobs
   endif
 

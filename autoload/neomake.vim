@@ -200,28 +200,27 @@ function! neomake#CancelJob(job_id, ...) abort
     elseif has_key(jobinfo, 'exit_code')
         call neomake#log#debug('Job exited already.', jobinfo)
     elseif s:async
-        call neomake#log#debug('Stopping job.', jobinfo)
+        let job = has('nvim') ? jobinfo.nvim_job : jobinfo.vim_job
+        call neomake#log#debug(printf('Stopping job: %s.', job), jobinfo)
         if has('nvim')
             try
-                call jobstop(jobinfo.nvim_job)
+                call jobstop(job)
                 let ret = 1
             catch /^Vim\%((\a\+)\)\=:\(E474\|E900\):/
                 call neomake#log#info(printf(
                             \ 'jobstop failed: %s.', v:exception), jobinfo)
             endtry
         else
-            let vim_job = jobinfo.vim_job
             " Use ch_status here, since job_status might be 'dead' already,
             " without the exit handler being called yet.
-            if job_status(vim_job) !=# 'run'
+            if job_status(job) !=# 'run'
                 call neomake#log#info(
                             \ 'job_stop: job was not running anymore.', jobinfo)
             else
                 " NOTE: might be "dead" already, but that is fine.
-                call job_stop(vim_job)
+                call job_stop(job)
                 let ret = 1
-
-                if job_status(vim_job) ==# 'run'
+                if job_status(job) ==# 'run'
                     let timer = timer_start(1000, function('s:kill_vimjob_cb'))
                     let s:kill_vim_timers[timer] = jobinfo
                 endif
