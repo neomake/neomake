@@ -329,7 +329,6 @@ function! neomake#statusline#get(...) abort
             let s:cache[bufnr] = {}
         endif
         let bufnr = +bufnr
-        call s:setup_statusline_augroup_for_use()
 
         " TODO: needs to go into cache key then!
         if getbufvar(bufnr, '&filetype') ==# 'qf'
@@ -400,20 +399,10 @@ function! neomake#statusline#DefineHighlights() abort
     hi link NeomakeStatColorQuickfixTypeW NeomakeStatColorTypeW
 endfunction
 
-let s:did_setup_statusline_augroup_for_use = 0
-function! s:setup_statusline_augroup_for_use() abort
-    if s:did_setup_statusline_augroup_for_use
-        return
-    endif
-    augroup neomake_statusline
-        autocmd ColorScheme * call neomake#statusline#DefineHighlights()
-    augroup END
-    let s:did_setup_statusline_augroup_for_use = 1
-endfunction
-
 " Global augroup, gets configured always currently when autoloaded.
 augroup neomake_statusline
     autocmd!
     autocmd BufWipeout * call s:clear_cache(expand('<abuf>'))
+    autocmd ColorScheme * call neomake#statusline#DefineHighlights()
 augroup END
 call neomake#statusline#DefineHighlights()
