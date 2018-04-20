@@ -324,10 +324,10 @@ function! neomake#statusline#get(...) abort
         let options = {}
     endif
     let cache_key = string(options)
-    if !has_key(s:cache, bufnr)
-        let s:cache[bufnr] = {}
-    endif
-    if !has_key(s:cache[bufnr], cache_key)
+    if !exists('s:cache[bufnr][cache_key]')
+        if !has_key(s:cache, bufnr)
+            let s:cache[bufnr] = {}
+        endif
         let bufnr = +bufnr
         call s:setup_statusline_augroup_for_use()
 
