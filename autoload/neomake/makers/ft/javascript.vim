@@ -33,12 +33,22 @@ function! neomake#makers#ft#javascript#jscs() abort
 endfunction
 
 function! neomake#makers#ft#javascript#eslint() abort
-    return {
-        \ 'args': ['-f', 'compact'],
+    let maker = {
+        \ 'args': ['--format=compact'],
         \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
         \   '%W%f: line %l\, col %c\, Warning - %m,%-G,%-G%*\d problems%#',
         \ 'cwd': '%:p:h',
         \ }
+
+    " @vimlint(EVL103, 1, a:jobinfo)
+    function! maker.supports_stdin(jobinfo) abort
+        let self.args += ['--stdin', '--stdin-filename=%:p']
+        let self.tempfile_name = ''
+        return 1
+    endfunction
+    " @vimlint(EVL103, 0, a:jobinfo)
+
+    return maker
 endfunction
 
 function! neomake#makers#ft#javascript#eslint_d() abort
