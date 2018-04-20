@@ -168,9 +168,9 @@ endfunction
 
 function! neomake#compat#glob_list(pattern) abort
     if v:version <= 703
-        return split(glob(a:pattern), '\n')
+        return split(glob(a:pattern, 1), '\n')
     endif
-    return glob(a:pattern, '', 1)
+    return glob(a:pattern, 1, 1)
 endfunction
 
 if neomake#utils#IsRunningWindows()

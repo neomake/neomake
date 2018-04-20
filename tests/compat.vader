@@ -147,3 +147,12 @@ Execute (neomake#compat#get_mode with insert mode completion (imap)):
   AssertEqual getline('.'), 'word'
 
   bwipe!
+
+Execute (neomake#compat#glob_list):
+  AssertEqual neomake#compat#glob_list('doesnotexist'), []
+  AssertEqual neomake#compat#glob_list(g:vader_file), [g:vader_file]
+
+  Save &wildignore
+  let &wildignore = '*.vader'
+  AssertEqual fnamemodify(g:vader_file, ':e'), 'vader'
+  AssertEqual neomake#compat#glob_list(g:vader_file), [g:vader_file]
