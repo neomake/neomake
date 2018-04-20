@@ -875,7 +875,7 @@ Execute (job finishes while in tabline function):
     AssertEqual map(getloclist(0), 'v:val.text'), ['finished_in_tabline']
     bwipe
     Assert exists('#neomake_statusline'), 'statusline augroup was created'
-    Assert !exists('#neomake_statusline#ColorScheme'), 'ColorScheme was not hooked into'
+    Assert exists('#neomake_statusline#ColorScheme'), 'ColorScheme autocmd was created'
   endif
 
 Execute (get_list_entries job processes entries while in tabline function):
