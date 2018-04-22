@@ -2,6 +2,7 @@ Include: include/setup.vader
 
 Execute (xml: xmllint: uses stdin and handles generic validity error):
   new
+  let b:neomake_tests_massage_buffer = 0
   file example.xml
   let fname = expand('%:p')
   let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#xml#xmllint',
@@ -14,6 +15,7 @@ Execute (xml: xmllint: uses stdin and handles generic validity error):
 
 Execute (xml: xmllint: missing dtd):
   new
+  let b:neomake_tests_massage_buffer = 0
   let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#xml#xmllint',
   \ 'tests/fixtures/input/xmllint/missingdtd.xml')
   CallNeomake 1, [maker]
