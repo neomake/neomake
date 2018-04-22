@@ -62,7 +62,7 @@ testnvim: TEST_VIM_PREFIX+=HOME=$(CURDIR)/build/neovim-test-home
 testnvim: TEST_VIM_PREFIX+=VADER_OUTPUT_FILE=/dev/stderr
 testnvim: | build $(DEP_PLUGINS)
 	$(call func-run-vim)
-	
+
 testvim: TEST_VIM:=vim
 testvim: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim: | build $(DEP_PLUGINS)
@@ -361,11 +361,13 @@ tests/fixtures/output/$1/%.stderr tests/fixtures/output/$1/%.stdout tests/fixtur
 endef
 
 # Call and eval the above function to generate rules for different tools.
-$(eval $(call func-generate-fixture,xmllint,--xinclude --postvalid --noout))
 $(eval $(call func-generate-fixture,puppet,parser validate --color=false))
+$(eval $(call func-generate-fixture,puppet-lint,--log-format "%{path}:%{line}:%{column}:%{kind}:[%{check}] %{message}"))
+$(eval $(call func-generate-fixture,xmllint,--xinclude --postvalid --noout))
 
 _FIXTURES_INPUT:=$(wildcard tests/fixtures/input/*/*)
 _FIXTURES_OUTPUT:=$(patsubst tests/fixtures/input/%,tests/fixtures/output/%,$(addsuffix .stdout,$(_FIXTURES_INPUT)) $(addsuffix .stderr,$(_FIXTURES_INPUT)))
+
 fixtures: $(_FIXTURES_OUTPUT)
 .PHONY: fixtures
 
