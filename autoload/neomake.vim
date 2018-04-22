@@ -2599,7 +2599,7 @@ function! s:handle_next_job(prev_jobinfo) abort
     return {}
 endfunction
 
-function! neomake#GetCurrentErrorMsg() abort
+function! neomake#get_nearest_error() abort
     let buf = bufnr('%')
     let ln = line('.')
     let ln_errors = []
@@ -2610,14 +2610,21 @@ function! neomake#GetCurrentErrorMsg() abort
     endfor
 
     if empty(ln_errors)
-        return ''
+        return {}
     endif
 
     if len(ln_errors) > 1
         let ln_errors = copy(ln_errors)
         call sort(ln_errors, function('neomake#utils#sort_by_col'))
     endif
-    let entry = ln_errors[0]
+    return ln_errors[0]
+endfunction
+
+function! neomake#GetCurrentErrorMsg() abort
+    let entry = neomake#get_nearest_error()
+    if empty(entry)
+        return ''
+    endif
     let r = entry.maker_name . ': ' . entry.text
     let suffix = entry.type . (entry.nr != -1 ? entry.nr : '')
     if !empty(suffix)
