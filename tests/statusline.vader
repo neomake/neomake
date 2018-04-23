@@ -60,6 +60,8 @@ Execute (LoclistCounts for wiped buffer should clean s:loclist_counts):
   AssertEqual '', getbufvar(g:neomake_test_countschanged[0].bufnr, 'test')
 
 Execute (neomake#statusline#get_status):
+  call neomake#statusline#ResetCounts()
+  new
   let bufnr = bufnr('')
   AssertEqual neomake#statusline#get_status(bufnr, {}), '?'
 
@@ -98,6 +100,7 @@ Execute (neomake#statusline#get_status):
   call neomake#statusline#ResetCountsForBuf(bufnr)
   AssertEqual neomake#statusline#get_status(bufnr, {}), '?'
   AssertEqual neomake#statusline#get(bufnr, {}), '?'
+  bwipe
 
 Execute (neomake#statusline#get: clears cache with new job (file mode)):
   new
@@ -128,7 +131,19 @@ Execute (neomake#statusline#get: clears cache with new job (project mode)):
     AssertEqual neomake#statusline#get(bufnr, {}), '… (true-maker!, success-maker!)'
     NeomakeTestsWaitForFinishedJobs
   endif
-  AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatusGood#✓'
+  " Unknown status, only project makers have been run.
+  AssertEqual neomake#statusline#get(bufnr, {}), '?'
+  bwipe
+
+Execute (neomake#statusline#get: clears cache with canceled job: keeps '?'):
+  new
+  let bufnr = bufnr('%')
+  call neomake#Make({'file_mode': 0, 'enabled_makers': [g:sleep_maker]})
+  AssertEqual neomake#statusline#get(bufnr, {}), '… (sleep-maker!)'
+  NeomakeCancelJobs
+  AssertEqual neomake#statusline#get(bufnr, {}), '… (sleep-maker!)'
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual neomake#statusline#get(bufnr, {}), '?'
   bwipe
 
 Execute (neomake#statusline#get: disabling/enabling: clears cache):
