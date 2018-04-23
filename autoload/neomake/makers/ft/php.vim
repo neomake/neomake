@@ -35,11 +35,11 @@ function! neomake#makers#ft#php#phpcs() abort
 endfunction
 
 function! neomake#makers#ft#php#phpmd() abort
-    if exists('b:neomake_php_phpmd_args_standard') 
+    if exists('b:neomake_php_phpmd_args_standard')
         let l:standard = b:neomake_php_phpmd_args_standard
-    elseif exists('g:neomake_php_phpmd_args_standard') 
+    elseif exists('g:neomake_php_phpmd_args_standard')
         let l:standard = g:neomake_php_phpmd_args_standard
-    else 
+    else
         let l:standard =  'codesize,design,unusedcode,naming'
     endif
 
