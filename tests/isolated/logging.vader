@@ -40,6 +40,16 @@ Execute (neomake#log#debug handles missing make_options):
   let g:neomake_test_messages = []
 
 Execute (neomake#log#error uses echohl):
+  Save g:neomake_verbose
+  let g:neomake_verbose = 1
+  call neomake#log#error('some error with context.', {})
+  call neomake#log#error('some error without context.')
+  AssertEqual NeomakeTestsGetVimMessages(), [
+  \ 'Neomake: some error with context.',
+  \ 'Neomake: some error without context.',
+  \ ]
+
+  let g:neomake_verbose = 3
   call neomake#log#error('some error with context.', {})
   call neomake#log#error('some error without context.')
   AssertEqual NeomakeTestsGetVimMessages(), [
