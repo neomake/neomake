@@ -1167,7 +1167,12 @@ function! s:Make(options) abort
             let makers = call('neomake#GetEnabledMakers', file_mode ? [options.ft] : [])
             if empty(makers)
                 if file_mode
-                    call neomake#log#debug('Nothing to make: no enabled file mode makers (filetype='.options.ft.').', options)
+                    let msg = printf('Nothing to make: no enabled file mode makers (filetype=%s).', options.ft)
+                    if is_automake
+                        call neomake#log#debug(msg, options)
+                    else
+                        call neomake#log#warning(msg, options)
+                    endif
                     unlet s:make_info[make_id]
                     return []
                 else
