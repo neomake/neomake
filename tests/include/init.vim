@@ -149,7 +149,7 @@ function! s:AssertNeomakeMessage(msg, ...)
   let level = a:0 ? a:1 : -1
   let context = a:0 > 1 ? copy(a:2) : -1
   let options = a:0 > 2 ? a:3 : {}
-  let found_but_before = 0
+  let found_but_before = -1
   let found_but_context_diff = []
   let ignore_order = get(options, 'ignore_order', 0)
   let found_but_other_level = -1
@@ -177,9 +177,7 @@ function! s:AssertNeomakeMessage(msg, ...)
     endif
     if r
       if !ignore_order && idx <= g:neomake_test_messages_last_idx
-        if idx < g:neomake_test_messages_last_idx
-          let found_but_before = 1
-        endif
+        let found_but_before = g:neomake_test_messages_last_idx - idx
         let r = 0
       endif
     endif
@@ -232,15 +230,15 @@ function! s:AssertNeomakeMessage(msg, ...)
     call add(g:_neomake_test_asserted_messages, msg_entry)
     return 1
   endfor
-  if found_but_before || found_but_other_level != -1
+  if found_but_before != -1 || found_but_other_level != -1
     let msgs = []
     if found_but_other_level != -1
       let msgs += ['for level '.found_but_other_level]
     endif
-    if found_but_before
-      let msgs += ['_before_ last asserted one']
+    if found_but_before != -1
+      let msgs += [printf('%d entries before last asserted one', found_but_before)]
     endif
-    let msg = "Message '".a:msg."' was found, but ".join(msgs, ' and ')
+    let msg = printf('Message %s was found, but %s.', string(a:msg), join(msgs, ' and '))
     throw msg
   endif
   if !empty(found_but_context_diff)
