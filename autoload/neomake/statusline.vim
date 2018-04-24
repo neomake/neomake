@@ -144,6 +144,8 @@ function! neomake#statusline#QflistStatus(...) abort
     return s:showErrWarning(neomake#statusline#QflistCounts(), a:0 ? a:1 : '')
 endfunction
 
+" Get counts for a bufnr or 'project'.
+" Returns all counts when used without arguments.
 function! neomake#statusline#get_counts(...) abort
     if a:0
         return get(s:counts, a:1, s:unknown_counts)

@@ -136,15 +136,19 @@ Execute (neomake#statusline#get: clears cache with new job (project mode)):
   bwipe
 
 Execute (neomake#statusline#get: clears cache with canceled job: keeps '?'):
-  new
-  let bufnr = bufnr('%')
-  call neomake#Make({'file_mode': 0, 'enabled_makers': [g:sleep_maker]})
-  AssertEqual neomake#statusline#get(bufnr, {}), '… (sleep-maker!)'
-  NeomakeCancelJobs
-  AssertEqual neomake#statusline#get(bufnr, {}), '… (sleep-maker!)'
-  NeomakeTestsWaitForFinishedJobs
-  AssertEqual neomake#statusline#get(bufnr, {}), '?'
-  bwipe
+  if neomake#has_async_support()
+    new
+    let bufnr = bufnr('%')
+    call neomake#Make({'file_mode': 0, 'enabled_makers': [g:sleep_maker]})
+    AssertEqual neomake#statusline#get(bufnr, {}), '… (sleep-maker!)'
+    NeomakeCancelJobs
+    AssertEqual neomake#statusline#get(bufnr, {}), '… (sleep-maker!)'
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual neomake#statusline#get(bufnr, {}), '?'
+    bwipe
+  else
+    NeomakeTestsSkip 'no async support.'
+  endif
 
 Execute (neomake#statusline#get: disabling/enabling: clears cache):
   new
