@@ -1523,6 +1523,9 @@ function! s:clean_make_info(make_info, ...) abort
         endif
     endif
 
+    if exists('*neomake#statusline#make_finished')
+        call neomake#statusline#make_finished(a:make_info)
+    endif
     if !empty(a:make_info.finished_jobs)
         " Clean old signs after all jobs have finished, so that they can be
         " reused, avoiding flicker and keeping them for longer in general.
@@ -1535,9 +1538,6 @@ function! s:clean_make_info(make_info, ...) abort
         endif
         call s:clean_for_new_make(a:make_info)
         call neomake#EchoCurrentError(1)
-        if exists('*neomake#statusline#make_finished')
-            call neomake#statusline#make_finished(a:make_info)
-        endif
         if get(a:make_info, 'canceled', 0)
             call neomake#log#debug('Skipping final processing for canceled make.', a:make_info)
             call s:do_clean_make_info(a:make_info)

@@ -1,15 +1,16 @@
 scriptencoding utf-8
 
-let s:qflist_counts = {}
-let s:loclist_counts = {}
+unlockvar s:unknown_counts
+let s:unknown_counts = {}
+lockvar s:unknown_counts
+
+let s:counts = {}
 
 " Key: bufnr, Value: dict with cache keys.
 let s:cache = {}
 
 " For debugging.
-function! neomake#statusline#get_s() abort
-    return s:
-endfunction
+let g:neomake#statusline#_s = s:
 
 function! s:clear_cache(bufnr) abort
     if has_key(s:cache, a:bufnr)
@@ -36,11 +37,18 @@ function! s:incCount(counts, item, buf) abort
 endfunction
 
 function! neomake#statusline#make_finished(make_info) abort
-    let bufnr = a:make_info.options.bufnr
-    if !has_key(s:loclist_counts, bufnr)
-        let s:loclist_counts[bufnr] = {}
+    if a:make_info.options.file_mode
+        let bufnr = a:make_info.options.bufnr
+        if !empty(a:make_info.finished_jobs) && !has_key(s:counts, bufnr)
+            let s:counts[bufnr] = {}
+        endif
+        call s:clear_cache(bufnr)
+    else
+        let s:cache = {}
+        if !empty(a:make_info.finished_jobs) && !has_key(s:counts, 'project')
+            let s:counts['project'] = {}
+        endif
     endif
-    call s:clear_cache(bufnr)
 
     " Trigger redraw of all statuslines.
     " TODO: only do this if some relevant formats are used?!
@@ -50,9 +58,9 @@ endfunction
 function! neomake#statusline#ResetCountsForBuf(...) abort
     let bufnr = a:0 ? +a:1 : bufnr('%')
     call s:clear_cache(bufnr)
-    if has_key(s:loclist_counts, bufnr)
-      let r = s:loclist_counts[bufnr] != {}
-      unlet s:loclist_counts[bufnr]
+    if has_key(s:counts, bufnr)
+      let r = s:counts[bufnr] != {}
+      unlet s:counts[bufnr]
       if r
           call neomake#utils#hook('NeomakeCountsChanged', {
                 \ 'reset': 1, 'file_mode': 1, 'bufnr': bufnr})
@@ -63,45 +71,49 @@ function! neomake#statusline#ResetCountsForBuf(...) abort
 endfunction
 
 function! neomake#statusline#ResetCountsForProject(...) abort
-    let r = s:qflist_counts != {}
-    let s:qflist_counts = {}
+    let s:cache = {}
+    if !has_key(s:counts, 'project')
+        return 0
+    endif
+    let r = s:counts['project'] != {}
     let bufnr = bufnr('%')
+    unlet s:counts['project']
     if r
         call neomake#utils#hook('NeomakeCountsChanged', {
               \ 'reset': 1, 'file_mode': 0, 'bufnr': bufnr})
     endif
-    call s:clear_cache(bufnr)
     return r
 endfunction
 
 function! neomake#statusline#ResetCounts() abort
     let r = neomake#statusline#ResetCountsForProject()
-    for bufnr in keys(s:loclist_counts)
+    for bufnr in keys(s:counts)
         let r = neomake#statusline#ResetCountsForBuf(bufnr) || r
     endfor
-    let s:loclist_counts = {}
+    let s:counts = {}
     return r
 endfunction
 
 function! neomake#statusline#AddLoclistCount(buf, item) abort
-    let s:loclist_counts[a:buf] = get(s:loclist_counts, a:buf, {})
-    return s:incCount(s:loclist_counts[a:buf], a:item, a:buf)
+    let s:counts[a:buf] = get(s:counts, a:buf, {})
+    return s:incCount(s:counts[a:buf], a:item, a:buf)
 endfunction
 
 function! neomake#statusline#AddQflistCount(item) abort
-    return s:incCount(s:qflist_counts, a:item, 0)
+    let s:counts['project'] = get(s:counts, 'project', {})
+    return s:incCount(s:counts['project'], a:item, 0)
 endfunction
 
 function! neomake#statusline#LoclistCounts(...) abort
     let buf = a:0 ? a:1 : bufnr('%')
     if buf is# 'all'
-        return s:loclist_counts
+        return s:counts
     endif
-    return get(s:loclist_counts, buf, {})
+    return get(s:counts, buf, {})
 endfunction
 
 function! neomake#statusline#QflistCounts() abort
-    return s:qflist_counts
+    return get(s:counts, 'project', s:unknown_counts)
 endfunction
 
 function! s:showErrWarning(counts, prefix) abort
@@ -132,9 +144,13 @@ function! neomake#statusline#QflistStatus(...) abort
     return s:showErrWarning(neomake#statusline#QflistCounts(), a:0 ? a:1 : '')
 endfunction
 
-let s:no_loclist_counts = {}
-function! neomake#statusline#get_counts(bufnr) abort
-    return [get(s:loclist_counts, a:bufnr, s:no_loclist_counts), s:qflist_counts]
+" Get counts for a bufnr or 'project'.
+" Returns all counts when used without arguments.
+function! neomake#statusline#get_counts(...) abort
+    if a:0
+        return get(s:counts, a:1, s:unknown_counts)
+    endif
+    return s:counts
 endfunction
 
 
@@ -212,9 +228,9 @@ function! neomake#statusline#get_status(bufnr, options) abort
         endif
     endif
 
-    let [loclist_counts, qflist_counts] = neomake#statusline#get_counts(a:bufnr)
+    let loclist_counts = get(s:counts, a:bufnr, s:unknown_counts)
     if empty(loclist_counts)
-        if loclist_counts is s:no_loclist_counts
+        if loclist_counts is s:unknown_counts
             let format_unknown = get(a:options, 'format_loclist_unknown', '?')
             let r .= s:formatter.format(format_unknown, {'bufnr': a:bufnr})
         else
@@ -244,6 +260,7 @@ function! neomake#statusline#get_status(bufnr, options) abort
     endif
 
     " Quickfix counts.
+    let qflist_counts = get(s:counts, 'project', s:unknown_counts)
     if empty(qflist_counts)
         let format_ok = get(a:options, 'format_quickfix_ok', '')
         if !empty(format_ok)
