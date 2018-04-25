@@ -58,7 +58,7 @@ function! neomake#makers#ft#go#gometalinter() abort
     "
     " All linters are only warnings, the go compiler will report errors
     return {
-        \ 'args': ['--disable-all', '--enable=errcheck', '--enable=megacheck'],
+        \ 'args': ['--disable-all', '--enable=errcheck', '--enable=megacheck', '--vendor'],
         \ 'append_file': 0,
         \ 'cwd': '%:h',
         \ 'errorformat':
