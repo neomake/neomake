@@ -921,7 +921,8 @@ Here are some tips to develop the 'errorformat' setting for makers:
 2. Set the errorformat, e.g. `:let &efm = '%E%f:%l:%c\,%n: %m,%Z%m`.
    See |errorformat| for documentation of the format itself.
 3. Load the buffer into the quickfix list: `:cgetbuffer`.
-4. Use `:echo getqflist()` to display the raw data.
+4. Use |:copen| to open the quickfix window, and/or `:echo getqflist()` to
+   display the raw data.
 5. Pay attention to the "`valid`" property of entries.
 
 vim: ft=help tw=78 isk+=<,>,\:,-,'
