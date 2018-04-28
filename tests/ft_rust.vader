@@ -16,9 +16,8 @@ Execute (cargo skip non json line):
 Execute (cargo info message):
   new
   file build/lib.rs
-  let cargo = neomake#makers#ft#rust#cargo()
-  let cargo.exe = 'cat'
-  let cargo.args = '../tests/fixtures/rust/cargo_info.json'
+  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+    \ '../tests/fixtures/rust/cargo_info.json')
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
@@ -29,9 +28,8 @@ Execute (cargo info message):
 Execute (cargo error without span):
   new
   file build/lib.rs
-  let cargo = neomake#makers#ft#rust#cargo()
-  let cargo.exe = 'cat'
-  let cargo.args = '../tests/fixtures/rust/cargo_error_without_span.json'
+  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+    \ '../tests/fixtures/rust/cargo_error_without_span.json')
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs

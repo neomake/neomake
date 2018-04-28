@@ -152,9 +152,8 @@ Execute (cargo error message):
   let g:neomake_tests_highlight_lengths = {}
   new
   file build/lib.rs
-  let cargo = neomake#makers#ft#rust#cargo()
-  let cargo.exe = 'cat'
-  let cargo.args = '../tests/fixtures/rust/cargo_error.json'
+  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+    \ '../tests/fixtures/rust/cargo_error.json')
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
@@ -201,9 +200,8 @@ Execute (cargo warning message):
   let g:neomake_tests_highlight_lengths = {}
   new
   file build/add_assign_like.rs
-  let cargo = neomake#makers#ft#rust#cargo()
-  let cargo.exe = 'cat'
-  let cargo.args = '../tests/fixtures/rust/cargo_warning.json'
+  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+    \ '../tests/fixtures/rust/cargo_warning.json')
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
@@ -228,10 +226,9 @@ Execute (cargo warning for file that is not open):
   new
   file build/some_other_file.rs
 
-  let cargo = neomake#makers#ft#rust#cargo()
-  let cargo.exe = 'cat'
   " Uses build/add_assign_like.rs.
-  let cargo.args = '../tests/fixtures/rust/cargo_warning.json'
+  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+    \ '../tests/fixtures/rust/cargo_warning.json')
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
@@ -258,9 +255,8 @@ Execute (cargo error message children):
   let g:neomake_tests_highlight_lengths = {}
   new
   file tests/from.rs
-  let cargo = neomake#makers#ft#rust#cargo()
-  let cargo.exe = 'cat'
-  let cargo.args = 'fixtures/rust/cargo_error_children.json'
+  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+    \ '../tests/fixtures/rust/cargo_error_children.json')
 
   call neomake#Make(1, [cargo])
   NeomakeTestsWaitForFinishedJobs
