@@ -187,3 +187,59 @@ Execute (Verbose NeomakeInfo does not display message for filetype with no maker
 
   AssertEqual msgs, []
   Assert index(info, 'For the current filetype ("doesnotexist", used with :Neomake):') > 0
+
+Execute (NeomakeInfo with maker name):
+  " NOTE: Vim needs non-empty PATH for executable to be false!
+  " (https://github.com/vim/vim/pull/3283)
+  call g:NeomakeTestsSetPATH('/doesnotexist')
+  Assert !executable('make')
+
+  new
+  noautocmd set filetype=neomake_tests
+  NeomakeInfo foo
+  AssertNeomakeMessage 'Maker not found: foo.', 0
+
+  call NeomakeTestsSetVimMessagesMarker()
+  NeomakeInfo makeprg
+  AssertEqual NeomakeTestsGetVimMessages(), []
+  AssertEqual neomake#debug#get_maker_info('maker_with_nonstring_exe')[-2:], [
+  \ ' - ERRORS:',
+  \ "   - Non-string given for executable of maker maker_with_nonstring_exe: type 2.",
+  \ ]
+
+  call NeomakeTestsSetVimMessagesMarker()
+  NeomakeInfo makeprg
+  AssertEqual NeomakeTestsGetVimMessages(), []
+  AssertEqual neomake#debug#get_maker_info('makeprg')[-2:], [
+  \ ' - ERRORS:',
+  \ "   - maker's exe (make) is not executable.",
+  \ ]
+
+  Save &makeprg
+  set makeprg=custommakeprg
+  NeomakeInfo makeprg
+  AssertEqual NeomakeTestsGetVimMessages(), []
+  AssertEqual neomake#debug#get_maker_info('makeprg')[-2:], [
+  \ ' - ERRORS:',
+  \ "   - maker's exe (custommakeprg) is not executable.",
+  \ ]
+
+  " Uses &shell when checking executable for makeprg with spaces.
+  Save &shell
+  set shell=customshell
+  set makeprg=custom\ make\ prg
+  NeomakeInfo makeprg
+  AssertEqual NeomakeTestsGetVimMessages(), []
+  AssertEqual neomake#debug#get_maker_info('makeprg')[-2:], [
+  \ ' - ERRORS:',
+  \ "   - maker's exe (customshell) is not executable.",
+  \ ]
+
+  let b:neomake_makeprg_exe = 'custom_exe'
+  NeomakeInfo makeprg
+  AssertEqual NeomakeTestsGetVimMessages(), []
+  AssertEqual neomake#debug#get_maker_info('makeprg')[-2:], [
+  \ ' - ERRORS:',
+  \ "   - maker's exe (custom_exe) is not executable.",
+  \ ]
+  bwipe

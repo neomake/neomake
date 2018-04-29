@@ -134,6 +134,7 @@ function! g:NeomakeTestsCreateExe(name, ...)
     call system('/bin/chmod 770 '.shellescape(exe))
     Assert !v:shell_error, 'Got shell_error with chmod: '.v:shell_error
   endif
+  return exe
 endfunction
 
 let s:saved_path = 0
@@ -394,8 +395,8 @@ endfunction
 
 function! NeomakeTestsGetVimMessages()
   let msgs = split(neomake#utils#redir('messages'), "\n")
-  call NeomakeTestsSetVimMessagesMarker()
   let idx = index(reverse(msgs), s:vim_msgs_marker)
+  call NeomakeTestsSetVimMessagesMarker()
   if idx <= 0
     return []
   endif
