@@ -85,20 +85,8 @@ let s:maker_from_command = extend(copy(g:neomake#core#command_maker_base), {
             \ })
 function! s:maker_from_command.fn(_options) dict abort
     " Return a cleaned up copy of self.
-    let maker = filter(deepcopy(self), "v:key !~# '^__' && v:key !=# 'fn'")
-
-    let command = self.__command
-    if type(command) == type('')
-        let argv = split(&shell) + split(&shellcmdflag)
-        let maker.exe = argv[0]
-        let maker.args = argv[1:] + [command]
-        let maker.__command_is_string = 1
-    else
-        let maker.exe = command[0]
-        let maker.args = command[1:]
-        let maker.__command_is_string = 0
-    endif
-    return maker
+    " TODO: remove completely?
+    return filter(deepcopy(self), "(v:key !~# '^__' || v:key ==# '__command_is_string') && v:key !=# 'fn'")
 endfunction
 
 function! s:maker_from_command._get_argv(jobinfo) abort dict
@@ -121,6 +109,16 @@ endfunction
 function! neomake#utils#MakerFromCommand(command) abort
     let maker = copy(s:maker_from_command)
     let maker.__command = a:command
+    if type(a:command) == type('')
+        let argv = split(&shell) + split(&shellcmdflag)
+        let maker.exe = argv[0]
+        let maker.args = argv[1:] + [a:command]
+        let maker.__command_is_string = 1
+    else
+        let maker.exe = a:command[0]
+        let maker.args = a:command[1:]
+        let maker.__command_is_string = 0
+    endif
     return maker
 endfunction
 

@@ -54,6 +54,8 @@ Execute (Error with non-existing filename for 2nd maker):
   bwipe!
 
 Execute (maker.exe gets checked):
+  call NeomakeTestsSetVimMessagesMarker()
+
   let maker = {'exe': 'doesnotexist'}
   let maker_non_string_exe = {}
   function maker_non_string_exe.exe()
@@ -65,16 +67,29 @@ Execute (maker.exe gets checked):
   AssertNeomakeMessage 'Exe (doesnotexist) of maker unnamed_maker is not executable.', 0, log_context
   AssertNeomakeMessage 'Non-string given for executable of maker unnamed_maker: type 2.', 0, log_context
   AssertNeomakeMessage 'Nothing to make: no valid makers.'
+  AssertEqual len(g:neomake_test_messages), 4
 
+  " Is still an error on second invocation (not autoconfigured).
   CallNeomake 1, [maker, maker_non_string_exe]
   let make_id = neomake#GetStatus().last_make_id
-
   let log_context = {'make_id': neomake#GetStatus().last_make_id, 'bufnr': bufnr('%')}
-  " Should get logged as debug message on the second error.
-  AssertNeomakeMessage 'Exe (doesnotexist) of maker unnamed_maker is not executable.', 3, log_context
+  AssertNeomakeMessage 'Exe (doesnotexist) of maker unnamed_maker is not executable.', 0, log_context
   AssertNeomakeMessage 'Non-string given for executable of maker unnamed_maker: type 2.', 0, log_context
   AssertNeomakeMessage 'Nothing to make: no valid makers.', 3, log_context
-  Assert len(g:neomake_test_messages), 4
+  AssertEqual len(g:neomake_test_messages), 8
+
+  " Error gets logged as debug message if auto-enabled.
+  let maker.auto_enabled = 1
+  let maker_non_string_exe.auto_enabled = 1
+  CallNeomake 1, [maker, maker_non_string_exe]
+  let make_id = neomake#GetStatus().last_make_id
+  let log_context = {'make_id': neomake#GetStatus().last_make_id, 'bufnr': bufnr('%')}
+  AssertNeomakeMessage 'Exe (doesnotexist) of auto-configured maker unnamed_maker is not executable, skipping.', 3, log_context
+  AssertNeomakeMessage 'Non-string given for executable of maker unnamed_maker: type 2.', 3, log_context
+  AssertNeomakeMessage 'Nothing to make: no valid makers.', 3, log_context
+  AssertEqual len(g:neomake_test_messages), 12
+
+  AssertEqual NeomakeTestsGetVimMessages(), []
 
 Execute (maker.exe gets checked (auto-enabled)):
   new
@@ -95,7 +110,11 @@ Execute (neomake#GetMaker with non-existent maker throws errors):
   AssertThrows call neomake#GetMaker('non-existent')
   AssertEqual g:vader_exception, 'Neomake: Invalid maker name: "non-existent"'
   AssertThrows call neomake#GetMaker('nonexistent')
+  AssertEqual g:vader_exception, 'Neomake: Maker not found (without filetype): nonexistent'
+  AssertThrows call neomake#GetMaker('nonexistent', '')
   AssertEqual g:vader_exception, 'Neomake: Maker not found (for empty filetype): nonexistent'
+  AssertThrows call neomake#GetMaker('nonexistent', 'c')
+  AssertEqual g:vader_exception, 'Neomake: Maker not found (for filetype c): nonexistent'
   AssertEqual len(g:neomake_test_messages), 0
 
 Execute (Errors from neomake#GetMaker get handled by neomake#Make):

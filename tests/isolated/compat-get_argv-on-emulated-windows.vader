@@ -27,8 +27,7 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
   let maker = neomake#GetMaker(maker)
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.file_mode = 0
-  " This is wrong/expected, since fn (constructor) was not called.
-  AssertEqual maker._get_argv(jobinfo), 'cmd.exe /c unnamed_maker'
+  AssertEqual maker._get_argv(jobinfo), 'cmd.exe /c echo "1 2"'
 
   let bound_maker = maker.fn(jobinfo)
   AssertEqual bound_maker._get_argv(jobinfo), 'cmd.exe /c echo "1 2"'
