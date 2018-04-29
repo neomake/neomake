@@ -3,15 +3,12 @@ let s:exe_error_thrown = {}
 
 function! neomake#core#create_jobs(options, makers) abort
     let args = [a:options, a:makers]
-    if a:options.file_mode
-        let args += [a:options.ft]
-    endif
     let jobs = call('s:bind_makers_for_job', args)
     return jobs
 endfunction
 
 " Map/bind a:makers to a list of job options, using a:options.
-function! s:bind_makers_for_job(options, makers, ...) abort
+function! s:bind_makers_for_job(options, makers) abort
     let r = []
     for maker in a:makers
         let options = copy(a:options)
