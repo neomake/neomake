@@ -62,6 +62,11 @@ Execute (neomake#GetMaker uses defined errorformat with makeprg):
   let &errorformat = '%Gcustom'
   AssertEqual neomake#GetMaker('makeprg', '').errorformat, '%Gcustom'
 
+Execute (neomake#GetMaker defaults to current filetype):
+"   Save &errorformat
+"   let &errorformat = '%Gcustom'
+"   AssertEqual neomake#GetMaker('makeprg', '').errorformat, '%Gcustom'
+
 Execute (neomake#GetMaker uses defaults from b:/g:):
   Save g:neomake_test_remove_invalid_entries
   Save b:neomake_test_remove_invalid_entries
@@ -280,7 +285,7 @@ Execute (Neomake with non-existing default makers, explicitly called):
   AssertNeomakeMessage "Exe (maker_without_exe) of maker maker_without_exe is not executable.", 0
 
   RunNeomake maker_without_exe
-  AssertNeomakeMessage "Exe (maker_without_exe) of maker maker_without_exe is not executable.", 3
+  AssertNeomakeMessage "Exe (maker_without_exe) of maker maker_without_exe is not executable.", 0
 
 Execute (neomake#GetEnabledMakers with defaults):
   new
@@ -306,8 +311,13 @@ Execute (neomake#GetEnabledMakers without filetype):
   Save g:neomake_enabled_makers
   unlet! g:neomake_enabled_makers
 
-  let makers = neomake#GetEnabledMakers()
-  AssertEqual makers, []
+  AssertEqual map(neomake#GetEnabledMakers(''), 'v:val.name'), []
+
+  AssertEqual map(neomake#GetEnabledMakers(), 'v:val.name'), ['makeprg']
+
+  Save &makeprg
+  set makeprg=
+  AssertEqual map(neomake#GetEnabledMakers(), 'v:val.name'), []
 
   Save g:neomake_mymaker_maker
   let g:neomake_mymaker_maker = {}
@@ -349,6 +359,7 @@ Execute (maker.fn can set env var):
   \ 'args': ['-c', 'echo MYENV:$MYENV'],
   \ 'append_file': 0,
   \ 'errorformat': '%m',
+  \ 'name': 'echo_env_maker',
   \ }
   function! maker.fn(jobinfo)
     let self.args = ['MYENV=custom', self.exe] + self.args
