@@ -79,9 +79,11 @@ Execute (NeomakeJobInit can make processes nicer):
     AssertEqual keys(a:context), ['jobinfo']
 
     let jobinfo = a:context.jobinfo
+    AssertEqual jobinfo.maker.name, 'nice-sleep'
+
     " argv can be a list or string.
     if type(jobinfo.argv) == type([])
-      call extend(jobinfo.argv, ['nice', '-n18'], 0)
+      let jobinfo.argv = ['nice', '-n18'] + jobinfo.argv
     else
       let jobinfo.argv = 'nice -n 18 '.jobinfo.argv
     endif
