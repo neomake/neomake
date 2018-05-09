@@ -26,7 +26,7 @@ Execute (Neomake uses temporary file for unsaved buffer):
 
   AssertNeomakeMessage '\vSkipped 2 entries without bufnr: .*\.', 3
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 0,
   \ 'bufnr': 0,
   \ 'col': 0,
@@ -395,7 +395,7 @@ Execute (Existing bufnr is kept with tempfiles):
   NeomakeTestsWaitForFinishedJobs
 
   AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)".$'
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
   \ 'type': 'W', 'pattern': '', 'text': 'error'}]
 
@@ -430,7 +430,7 @@ Execute (Temporary buffer is not wiped if opened):
   let unlisted_bufnr = bufnr('^another_file$')
   AssertNotEqual unlisted_bufnr, -1
 
-  AssertEqual getloclist(0), [
+  AssertEqualQf getloclist(0), [
   \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
   \  'type': 'W', 'pattern': '', 'text': 'error'},
   \ {'lnum': 2, 'bufnr': unlisted_bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
@@ -509,7 +509,7 @@ Execute (Handles tempfiles for bufnames with brackets):
   \ tempfile_bufnr, tempfile_name)
   AssertNeomakeMessage printf(
   \ 'Wiping out 1 unlisted/remapped buffers: [%d].', tempfile_bufnr)
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
   \ 'type': 'W', 'pattern': '', 'text': 'msg'}]
 

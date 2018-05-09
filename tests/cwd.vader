@@ -195,7 +195,7 @@ Execute (get_list_entries: filename with cwd (non-existing file)):
   " uses unlisted buffer if file does not exist
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': bufnr + 1,
   \ 'col': 42,
@@ -222,7 +222,7 @@ Execute (get_list_entries: filename with cwd (non-existing file)):
     let expected_bufnr = unlisted_bufnr + 1
     let bwipe_buffers += [expected_bufnr]
   endif
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': expected_bufnr,
   \ 'col': 42,
@@ -268,7 +268,7 @@ Execute (get_list_entries: filename with cwd):
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Updating entry bufnr: 0 => '.bufnr.'.'
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': bufnr('%'),
   \ 'col': 42,
@@ -310,7 +310,7 @@ Execute (process_output: filename with cwd):
 
   AssertNeomakeMessage 'Updating entry bufnr: 0 => '.bufnr.'.'
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': bufnr('%'),
   \ 'col': 42,
@@ -345,7 +345,7 @@ Execute (legacy errorformat maker: filename with cwd):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': bufnr('%'),
   \ 'col': 42,
@@ -412,7 +412,7 @@ Execute (legacy errorformat maker: filename with cwd (error: removed)):
   endif
 
   " Filtering out 'shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory'
-  AssertEqual filter(getloclist(0), "v:val.text !~# '^shell-init'"), [{
+  AssertEqualQf filter(getloclist(0), "v:val.text !~# '^shell-init'"), [{
   \ 'lnum': 23,
   \ 'bufnr': expected_bufnr,
   \ 'col': 42,
@@ -453,7 +453,7 @@ Execute (legacy errorformat maker: filename with cwd (error: maker rmdir)):
   AssertNotEqual bufnr('%'), unlisted_bufnr
 
   " Filtering out 'shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory'
-  AssertEqual filter(getloclist(0), "v:val.text !~# '^shell-init'"), [{
+  AssertEqualQf filter(getloclist(0), "v:val.text !~# '^shell-init'"), [{
   \ 'lnum': 23,
   \ 'bufnr': unlisted_bufnr,
   \ 'col': 42,

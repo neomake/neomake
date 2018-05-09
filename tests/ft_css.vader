@@ -11,7 +11,7 @@ Execute (csslint: errorformat):
   Save &errorformat
   let &errorformat = neomake#makers#ft#css#csslint().errorformat
   lgetexpr output
-  AssertEqual getloclist(0), [
+  AssertEqualQf getloclist(0), [
   \ {'lnum': 315, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
   \  'nr': -1, 'type': 'W', 'pattern': '',
   \  'text': 'Don''t use IDs in selectors. (ids)'},
@@ -72,7 +72,7 @@ Execute (stylelint: error with no config):
   CallNeomake 1, [maker]
 
   let bufnr = bufnr('/path/to/foo.css')
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 0, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
   \ 'nr': -1, 'type': 'E', 'pattern': '',
   \ 'text': 'Error: No configuration provided for /path/to/foo.css'}]

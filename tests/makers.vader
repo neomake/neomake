@@ -327,7 +327,7 @@ Execute (Makers: process_output):
   let expected.valid = 1
   " filename is removed
   unlet expected.filename
-  AssertEqual getloclist(0), [expected]
+  AssertEqualQf getloclist(0), [expected]
 
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
@@ -366,7 +366,7 @@ Execute (Makers: get_list_entries):
   let expected = map(copy(g:neomake_test_entries), "extend(v:val, {'valid': 1})")
   " filename and maker_name is removed
   let expected = map(expected, "filter(v:val, 'v:key != \"filename\"')")
-  AssertEqual getloclist(0), g:neomake_test_entries
+  AssertEqualQf getloclist(0), g:neomake_test_entries
 
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
@@ -596,7 +596,7 @@ Execute (Makers: get_list_entries via config):
   Assert !empty(unlisted_bufnr), 'unlisted_bufnr is not empty'
   let expected[0].bufnr = unlisted_bufnr
 
-  AssertEqual getloclist(0), expected
+  AssertEqualQf getloclist(0), expected
 
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
@@ -669,7 +669,7 @@ Execute (Maker can pass opts for jobstart/job_start):
       endif
 
       CallNeomake 0, [maker]
-      AssertEqual getqflist(), [
+      AssertEqualQf getqflist(), [
       \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1,
       \  'type': 'W', 'pattern': '', 'text': 'custom-term'}]
     endif
