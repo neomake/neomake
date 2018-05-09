@@ -411,7 +411,7 @@ function! s:MakeJob(make_id, options) abort
                     call extend(opts, maker.nvim_job_opts)
                 endif
                 if !has('nvim-0.3.0')
-                            \ && neomake#utils#IsRunningWindows()
+                            \ && !neomake#utils#IsRunningWindows()
                             \ && !has_key(opts, 'detach')
                             \ && !has_key(opts, 'pty')
                     " Always use detach to trigger setsid() with older Neovim.
