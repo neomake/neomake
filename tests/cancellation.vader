@@ -4,7 +4,7 @@ Execute (neomake#CancelJob):
   if NeomakeAsyncTestsSetup()
     let job_id = neomake#Sh("sh -c 'while true; do sleep 0.01; done'")
     let jobinfo = neomake#GetJob(job_id)
-    let job = has('nvim') ? jobinfo.nvim_job : jobinfo.vim_job
+    let job = has('nvim') ? jobinfo.nvim_job : string(jobinfo.vim_job)
     AssertEqual neomake#CancelJob(job_id), 1
     AssertNeomakeMessage printf('Stopping job: %s.', job), 3, jobinfo
 
