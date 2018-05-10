@@ -63,3 +63,4 @@ Include (PureScript): ft_purescript.vader
 Include (Go): ft_go.vader
 Include (ReStructuredText): ft_rst.vader
 Include (XML): ft_xml.vader
+Include (Puppet): ft_puppet.vader
