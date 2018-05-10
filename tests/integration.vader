@@ -170,7 +170,7 @@ Execute (Test Neomake on errors.sh with two makers):
   AssertEqual len(g:neomake_test_finished), 1
   AssertNeomakeMessage 'Running makers: sh, shellcheck.'
   AssertNeomakeMessage printf(
-  \ "Skipped 1 entries without bufnr: [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': 'W', 'maker_name': 'shellcheck', 'pattern': '', 'text': 'shellcheck -fgcc -x %s'}].",
+  \ "\\vSkipped 1 entries without bufnr: [{'lnum': 0, 'bufnr': 0, .*'text': 'shellcheck -fgcc -x %s'}].",
   \ expand('%:p')), 3
   bwipe
 
@@ -343,7 +343,7 @@ Execute (NeomakeSh: echo foo):
   AssertEqual g:neomake_test_countschanged, []
   let bufnr = bufnr('%')
   RunNeomakeSh echo foo
-  AssertEqual getqflist(),
+  AssertEqualQf getqflist(),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
     \   'type': '', 'pattern': '', 'text': 'foo'}]
   AssertEqual len(g:neomake_test_finished), 1
@@ -697,10 +697,10 @@ Execute (Neomake: remove_invalid_entries and default entry type):
       \ })
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage "Removing invalid entry: invalid ({'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': '', 'maker_name': 'custom_maker', 'pattern': ''})."
+  AssertNeomakeMessage "\\vRemoving invalid entry: invalid \\(\\{'lnum': 0, 'bufnr': 0, .*\\}\\)."
 
   let valid = has('patch-8.0.0580')
-  AssertEqual getloclist(0),
+  AssertEqualQf getloclist(0),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1, 'type': 'W', 'pattern': '', 'text': 'valid'}]
 
 Execute (Neomake: entry.valid < 0 and configured entry type):
@@ -728,12 +728,12 @@ Execute (Neomake: entry.valid < 0 and configured entry type):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'custom_maker: processing 4 lines of output.'
-  AssertNeomakeMessage "Removing invalid entry: invalid ({'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': -1, 'vcol': 0, 'nr': -1, 'type': '', 'maker_name': 'custom_maker', 'pattern': ''})."
+  AssertNeomakeMessage "\\vRemoving invalid entry: invalid \\(\\{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': -1, .*\\}\\)."
   AssertNeomakeMessage 'Processing 3 entries.'
 
   " Without this patch entries are invalid always after setqflist/setloclist.
   let valid = has('patch-8.0.0580')
-  AssertEqual getloclist(0), [
+  AssertEqualQf getloclist(0), [
     \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1, 'type': 'I', 'pattern': '', 'text': 'valid'},
     \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1, 'type': 'I', 'pattern': '', 'text': 'invalid_but_kept'},
     \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1, 'type': 'I', 'pattern': '', 'text': 'invalid_but_kept_as_valid'}]
@@ -753,30 +753,30 @@ Execute (Neomake: append_file from settings and empty entry type):
   call neomake#Make(1, [maker])
   let bufname = expand('%:p')
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual getloclist(0),
+  AssertEqualQf getloclist(0),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output '.bufname}]
 
   Save g:neomake_myft_custom_maker_maker, g:neomake_myft_custom_maker_append_file
   let g:neomake_myft_custom_maker_maker = copy(maker)
   let g:neomake_myft_custom_maker_append_file = 0
   RunNeomake custom_maker
-  AssertEqual getloclist(0),
+  AssertEqualQf getloclist(0),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output'}]
   let g:neomake_myft_custom_maker_append_file = 1
   RunNeomake custom_maker
-  AssertEqual getloclist(0),
+  AssertEqualQf getloclist(0),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output '.bufname}]
 
   let maker.append_file = 0
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual getloclist(0),
+  AssertEqualQf getloclist(0),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output '.bufname}]
 
   unlet g:neomake_myft_custom_maker_append_file
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual getloclist(0),
+  AssertEqualQf getloclist(0),
     \ [{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'output'}]
   bwipe
 
@@ -911,7 +911,7 @@ Execute (Highlights should be cleared after successful run):
   NeomakeTestsWaitForFinishedJobs
 
   AssertEqual getloclist(0)[0].text, 'error'
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 1,
   \ 'bufnr': bufnr('%'),
   \ 'col': 1,

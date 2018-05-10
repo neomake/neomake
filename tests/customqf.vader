@@ -96,7 +96,7 @@ Execute (Sets quickfix title (location list)):
     RunNeomake error_maker true
 
     " Location list entry contains marker.
-    AssertEqual getloclist(0), [
+    AssertEqualQf getloclist(0), [
     \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
     \  'type': 'E', 'pattern': '',
     \  'text': 'error_msg_1 nmcfg:{''short'': ''errmkr'', ''name'': ''error_maker''}'}]

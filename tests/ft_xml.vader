@@ -22,7 +22,7 @@ Execute (xml: xmllint: missing dtd):
   AssertNeomakeMessage '\vUsed bufnr from stdin buffer \d+ \(tests/fixtures/input/xmllint/missingdtd.xml\) for 2 entries: 1, 2.'
 
   let bufnr = bufnr('%')
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 2,
   \ 'bufnr': bufnr,
   \ 'col': 36,

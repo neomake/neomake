@@ -7,7 +7,7 @@ Execute (cs: msbuild: errorformat):
   file FooBar.cs
 
   lgetexpr "FooBar.cs(21,63): error CS1002: ; expected [Foo\Foobar.csproj]"
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
     \ 'lnum': 21,
     \ 'bufnr': bufnr('%'),
     \ 'col': 63,
@@ -19,7 +19,7 @@ Execute (cs: msbuild: errorformat):
     \ 'text': "; expected"}]
 
   lgetexpr "FooBar.cs(25,29): warning CS0168: The variable 'ex' is declared but never used [Foo\Foobar.csproj]"
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
     \ 'lnum': 25,
     \ 'bufnr': bufnr('%'),
     \ 'col': 29,

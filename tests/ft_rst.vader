@@ -10,7 +10,7 @@ Execute (rst: rstlint: errorformat):
   \ 'unknown option: "linenos".',
   \ ]
   lgetexpr output
-  AssertEqual getloclist(0), [
+  AssertEqualQf getloclist(0), [
   \ {'lnum': 40, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0,
   \  'nr': -1, 'type': 'E', 'pattern': '',
   \  'text': 'Error in "code-block" directive:'."\n".'unknown option: "linenos".',
@@ -19,7 +19,7 @@ Execute (rst: rstlint: errorformat):
   " Newline gets trimmed when going through postprocess.
   let maker = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rst#rstlint', output)
   CallNeomake 1, [maker]
-  AssertEqual getloclist(0), [
+  AssertEqualQf getloclist(0), [
   \ {'lnum': 40, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0,
   \  'nr': -1, 'type': 'E', 'pattern': '',
   \  'text': 'Error in "code-block" directive: unknown option: "linenos".',
@@ -103,27 +103,22 @@ Execute (rst: sphinx: handles docutils warnings and adds first additional line):
   let unlisted_bufnr = bufnr('/some/path/inline.rst')
   let bufnr = bufnr('%')
 
-  let loclist = getloclist(0)
-  AssertEqual len(loclist), 5, 'loclist should have 5 entries: '.string(loclist)
-  AssertEqual loclist[0],
+  AssertEqualQf getloclist(0), [
   \ {'lnum': 8, 'bufnr': unlisted_bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
   \  'nr': -1, 'type': 'E', 'pattern': '',
-  \  'text': 'Malformed table. No bottom table border found.'}
-  AssertEqual loclist[1],
+  \  'text': 'Malformed table. No bottom table border found.'},
   \ {'lnum': 9, 'bufnr': unlisted_bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
   \  'nr': -1, 'type': 'W', 'pattern': '',
-  \  'text': 'Block quote ends without a blank line; unexpected unindent.'}
-  AssertEqual loclist[2],
+  \  'text': 'Block quote ends without a blank line; unexpected unindent.'},
   \ {'lnum': 40, 'bufnr': unlisted_bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
   \  'nr': -1, 'type': 'E', 'pattern': '',
-  \  'text': 'Error in "code-block" directive: unknown option: "linenoss".'}
-  AssertEqual loclist[3],
+  \  'text': 'Error in "code-block" directive: unknown option: "linenoss".'},
   \ {'lnum': 70, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
   \  'nr': -1, 'type': 'W', 'pattern': '',
-  \  'text': 'numfig is disabled. :numref: is ignored.'}
-  AssertEqual loclist[4],
+  \  'text': 'numfig is disabled. :numref: is ignored.'},
   \ {'lnum': 71, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
   \  'nr': -1, 'type': 'W', 'pattern': '',
   \  'text': 'numfig is disabled. :numref: is ignored.'}
+  \ ]
   exe 'bwipe' unlisted_bufnr
   bwipe

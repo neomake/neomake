@@ -7,7 +7,7 @@ Execute (python: errorformat):
   Neomake python
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 1,
   \ 'bufnr': bufnr('%'),
   \ 'col': 22,
@@ -25,14 +25,14 @@ Execute (python: pylama: errorformat):
   new
   file file1.py
   lgetexpr "file1.py:16:1: [C] C901 'load_library' is too complex (13) [mccabe]"
-  AssertEqual getloclist(0), [
+  AssertEqualQf getloclist(0), [
     \ {'lnum': 16, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
     \  'nr': -1, 'type': 'C', 'pattern': '',
     \  'text': 'C901 ''load_library'' is too complex (13) [mccabe]'}]
 
   let e = getloclist(0)[0]
   call neomake#makers#ft#python#PylamaEntryProcess(e)
-  AssertEqual e, {
+  AssertEqualQf [e], [{
   \ 'lnum': 16,
   \ 'bufnr': bufnr('%'),
   \ 'col': 1,
@@ -41,7 +41,7 @@ Execute (python: pylama: errorformat):
   \ 'nr': 901,
   \ 'type': 'I',
   \ 'pattern': '',
-  \ 'text': "C901 'load_library' is too complex (13) [mccabe]"}
+  \ 'text': "C901 'load_library' is too complex (13) [mccabe]"}]
   bwipe
 
 Execute (python: pylama: cwd):
@@ -71,14 +71,14 @@ Execute (python: flake8: errorformat/postprocess: F811):
   norm ofrom os import os
   lgetexpr "file1.py:2:1: F811 redefinition of unused 'os' from line 1"
 
-  AssertEqual [
+  AssertEqualQf getloclist(0), [
   \ {'lnum': 2, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
   \  'nr': 811, 'type': 'F', 'pattern': '',
-  \  'text': "redefinition of unused 'os' from line 1"}], getloclist(0)
+  \  'text': "redefinition of unused 'os' from line 1"}]
 
   let e = getloclist(0)[0]
   call neomake#makers#ft#python#Flake8EntryProcess(e)
-  AssertEqual {
+  AssertEqualQf [e], [{
   \ 'lnum': 2,
   \ 'bufnr': bufnr('%'),
   \ 'col': 21,
@@ -88,18 +88,18 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'nr': '',
   \ 'length': 2,
   \ 'type': 'E',
-  \ 'text': "F811 redefinition of unused 'os' from line 1"}, e
+  \ 'text': "F811 redefinition of unused 'os' from line 1"}]
 
   lgetexpr "file1.py:3:1: F811 redefinition of unused 'os' from line 2"
 
-  AssertEqual [
+  AssertEqualQf getloclist(0), [
   \ {'lnum': 3, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
   \  'nr': 811, 'type': 'F', 'pattern': '',
-  \  'text': "redefinition of unused 'os' from line 2"}], getloclist(0)
+  \  'text': "redefinition of unused 'os' from line 2"}]
 
   let e = getloclist(0)[0]
   call neomake#makers#ft#python#Flake8EntryProcess(e)
-  AssertEqual {
+  AssertEqualQf [e], [{
   \ 'lnum': 3,
   \ 'bufnr': bufnr('%'),
   \ 'col': 16,
@@ -109,7 +109,7 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'nr': '',
   \ 'length': 2,
   \ 'type': 'E',
-  \ 'text': "F811 redefinition of unused 'os' from line 2"}, e
+  \ 'text': "F811 redefinition of unused 'os' from line 2"}]
   bwipe!
 
 Execute (flake8: postprocess for F821 in continuous f-strings):
@@ -194,15 +194,15 @@ Execute (python: flake8):
   lgetexpr 'foo/bar.py:90:1: I001 isort found an import in the wrong position'
   let llist = getloclist(0)
   let bufnr = bufnr('%')
-  AssertEqual llist, [
+  AssertEqualQf llist, [
   \ {'lnum': 90, 'bufnr': bufnr, 'col': 1, 'valid': 1, 'vcol': 0,
   \  'nr': 1, 'type': 'I', 'pattern': '',
   \  'text': 'isort found an import in the wrong position'}]
   let entry = llist[0]
   call neomake#makers#ft#python#Flake8EntryProcess(entry)
-  AssertEqual entry, {'lnum': 90, 'bufnr': bufnr, 'col': 1, 'valid': 1,
+  AssertEqualQf [entry], [{'lnum': 90, 'bufnr': bufnr, 'col': 1, 'valid': 1,
   \ 'vcol': 0, 'nr': '', 'type': 'I', 'pattern': '',
-  \ 'text': 'I1 isort found an import in the wrong position'}
+  \ 'text': 'I1 isort found an import in the wrong position'}]
   bwipe
 
 Execute (python: flake8: supports_stdin):

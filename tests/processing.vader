@@ -668,7 +668,7 @@ Execute (get_list_entries: delayed for location list (but in current context)):
   AssertEqual winnr(), 1
   AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:ProcessEntries.', 3
   let valid = has('patch-8.0.0580')
-  AssertEqual getloclist(2), [{
+  AssertEqualQf getloclist(2), [{
   \ 'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1,
   \ 'type': 'W', 'pattern': '', 'text': 'slept'}]
 

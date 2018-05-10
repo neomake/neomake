@@ -248,6 +248,15 @@ function! s:AssertNeomakeMessage(msg, ...)
 endfunction
 command! -nargs=+ AssertNeomakeMessage call s:AssertNeomakeMessage(<args>)
 
+function! s:AssertEqualQf(actual, expected, ...) abort
+  let expected = a:expected
+  if has('patch-8.0.1782')
+    let expected = map(copy(expected), "extend(v:val, {'module': ''})")
+  endif
+  call call('vader#assert#equal', [a:actual, expected] + a:000)
+endfunction
+command! -nargs=1 AssertEqualQf call s:AssertEqualQf(<args>)
+
 function! s:AssertNeomakeMessageAbsent(msg, ...)
   try
     call call('s:AssertNeomakeMessage', [a:msg] + a:000)

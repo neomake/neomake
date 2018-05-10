@@ -30,7 +30,7 @@ Execute (proselint):
   \ "file.txt:2:9: weasel_words.very Substitute 'damn' every time you're inclined to write 'very;' your editor will delete it and the writing will be just as it should be."])
   norm! Gdd
   lgetbuffer
-  AssertEqual getloclist(0), [
+  AssertEqualQf getloclist(0), [
   \ {'lnum': 1, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
   \  'type': 'W', 'pattern': '', 'text': 'typography.symbols.ellipsis ''...'' is an approximation, use the ellipsis symbol ''…''.'},
   \ {'lnum': 2, 'bufnr': bufnr('%'), 'col': 9, 'valid': 1, 'vcol': 0, 'nr': -1,
@@ -75,7 +75,7 @@ Execute (writegood: handles wrapped message):
   \ 'README.md:2:1:something else']
 
   let bufnr = bufnr('README.md')
-  AssertEqual getloclist(0), [
+  AssertEqualQf getloclist(0), [
   \ {'lnum': 1, 'bufnr': bufnr, 'col': 73, 'valid': 1, 'vcol': 0, 'nr': -1,
   \  'type': 'W', 'pattern': '', 'text': "\"be\nused\" may be passive voice"},
   \ {'lnum': 2, 'bufnr': bufnr, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,

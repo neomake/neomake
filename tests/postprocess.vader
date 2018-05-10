@@ -85,7 +85,7 @@ Execute (Postprocess: called with dict+maker as self for list):
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 1,
   \ 'bufnr': bufnr('%'),
   \ 'col': 7,
@@ -133,7 +133,7 @@ Execute (Postprocess: called with dict+maker as self for non-list):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 1,
   \ 'bufnr': bufnr('%'),
   \ 'col': 7,
@@ -176,7 +176,7 @@ Execute (Postprocess: removes entries with valid -1):
   AssertEqual len(g:neomake_test_called), 3
   AssertEqual g:neomake_test_called[0][1].jobinfo.maker._maker_marker, 1
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 2,
   \ 'bufnr': bufnr('%'),
   \ 'col': 5,
@@ -326,7 +326,7 @@ Execute (Postprocess: can be lambda):
     call neomake#Make(1, [maker])
     NeomakeTestsWaitForFinishedJobs
 
-    AssertEqual getloclist(0), [{
+    AssertEqualQf getloclist(0), [{
     \ 'lnum': 2,
     \ 'bufnr': bufnr('%'),
     \ 'col': 5,
@@ -359,7 +359,7 @@ Execute (Postprocess: lambda from maker):
     file file.adoc
     call neomake#Make(1, [maker])
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual getloclist(0), [{
+    AssertEqualQf getloclist(0), [{
     \ 'lnum': 1,
     \ 'bufnr': bufnr('%'),
     \ 'col': 0,
