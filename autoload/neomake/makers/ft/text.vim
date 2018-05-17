@@ -62,7 +62,7 @@ endfunction
 
 function! neomake#makers#ft#text#GetEntriesForOutput_Languagetool(context) abort
     let output = neomake#utils#JSONdecode(join(a:context.output, ''))
-    call neomake#utils#DebugObject('output', output)
+    call neomake#log#debug_obj('output', output)
     let entries = []
 
     for _m in output
