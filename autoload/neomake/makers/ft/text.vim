@@ -37,7 +37,8 @@ function! neomake#makers#ft#text#writegood() abort
 endfunction
 
 let s:languagetool_fallback_language = 'auto'
-" Public API: https://languagetool.org/api
+" See http://wiki.languagetool.org/public-http-api for a public instance. Use:
+"   :let g:neomake_text_languagetool_server = 'https://languagetool.org/api'
 let s:languagetool_fallback_server = 'http://localhost:8081'
 function! s:fn_languagetool(_jobinfo) abort dict
     let l:args = []
