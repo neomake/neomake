@@ -47,11 +47,13 @@ RUN cd /usr/local/bin && ln -s /vim-build/bin/vim-master vim
 RUN printf '#!/bin/sh -x\n/tools/vim-vimlint/bin/vimlint.sh -l /tools/vim-vimlint -p /tools/vim-vimlparser "$@"\n' > /usr/local/bin/vimlint
 RUN chmod +x /usr/local/bin/vimlint
 
-# Install covimerage, codecov and vint.
-RUN apk --no-cache add python3 \
-  && pip3 install --no-cache-dir codecov covimerage==0.0.4 vim-vint \
+# Install covimerage and vint.
+RUN apk --no-cache add curl python3 \
+  && pip3 install --no-cache-dir covimerage==0.0.4 vim-vint \
   && rm -rf /usr/include /usr/lib/python*/turtle* /usr/lib/python*/tkinter \
   && pip3 uninstall --yes pip \
+  && curl https://codecov.io/bash -o /usr/bin/codecov \
+  && chmod +x /usr/bin/codecov \
   && cd /usr/bin && ln -s python3 python
 
 RUN adduser -D -s /bin/bash neomake
