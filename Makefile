@@ -55,6 +55,8 @@ testnvimx: testnvim
 testvimx: override VADER_OPTIONS+=-x
 testvimx: testvim
 
+# Set Neovim logfile destination to prevent `.nvimlog` being created.
+testnvim: export NVIM_LOG_FILE:=/dev/stderr
 testnvim: TEST_VIM:=nvim
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 testnvim: build/neovim-test-home
