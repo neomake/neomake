@@ -208,7 +208,8 @@ docker_update_image:
 	make docker_test DOCKER_VIM=neovim-master
 	@echo "Done.  Use 'make docker_push' to push it, and then update .circleci/config.yml."
 
-DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim-8.0.586 vim-master neovim-v0.1.7 neovim-v0.2.0 neovim-v0.2.1 neovim-v0.2.2 neovim-v0.3.0 neovim-master
+DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim-8.0.586 vim-8.0.1832 vim-master \
+  neovim-v0.1.7 neovim-v0.2.0 neovim-v0.2.1 neovim-v0.2.2 neovim-v0.3.0 neovim-master
 _DOCKER_VIM_TARGETS:=$(addprefix docker_test-,$(DOCKER_VIMS))
 
 docker_test_all: $(_DOCKER_VIM_TARGETS)

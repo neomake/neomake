@@ -45,6 +45,10 @@ jobs:
     <<: *common
     environment:
       TEST_VIM=/vim-build/bin/vim-master
+  vim-8.0.1832:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/vim-8.0.1832
   vim-8.0.586:
     <<: *common
     environment:
@@ -78,6 +82,7 @@ workflows:
       - nvim-021
       - nvim-020
       - nvim-017
+      - vim-8.0.1832
       - vim-8.0.586
       - vim-master
       - vim-74-xenial
