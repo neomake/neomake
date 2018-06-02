@@ -50,6 +50,9 @@ endfunction
 " Sentinels.
 let s:unset_list = []
 let s:unset_dict = {}
+let s:unset = {}
+
+let s:can_use_env_in_job_opts = has('patch-8.0.0902') && has('patch-8.0.1832')
 
 let s:is_testing = exists('g:neomake_test_messages')
 
@@ -375,9 +378,17 @@ function! s:MakeJob(make_id, options) abort
             call neomake#log#debug('cwd: '.cwd.' (changed).', jobinfo)
         endif
 
+        let base_job_opts = {}
         if has_key(jobinfo, 'filename')
-            let save_env_file = $NEOMAKE_FILE
-            let $NEOMAKE_FILE = jobinfo.filename
+            if s:can_use_env_in_job_opts
+                let base_job_opts = {
+                            \ 'env': {
+                            \   'NEOMAKE_FILE': jobinfo.filename
+                            \ }}
+            else
+                let save_env_file = exists('$NEOMAKE_FILE') ? $NEOMAKE_FILE : s:unset
+                let $NEOMAKE_FILE = jobinfo.filename
+            endif
         endif
 
         " Lock maker to make sure it does not get changed accidentally, but
@@ -386,10 +397,10 @@ function! s:MakeJob(make_id, options) abort
         if s:async
             if has('nvim')
                 if jobinfo.buffer_output
-                    let opts = {
+                    let opts = extend(base_job_opts, {
                                 \ 'stdout_buffered': 1,
                                 \ 'stderr_buffered': 1,
-                                \ }
+                                \ })
                     if s:nvim_can_buffer_output == 1
                         let opts.on_exit = function('s:nvim_exit_handler_buffered')
                     else
@@ -443,12 +454,12 @@ function! s:MakeJob(make_id, options) abort
                 endif
             else
                 " vim-async.
-                let opts = {
+                let opts = extend(base_job_opts, {
                             \ 'out_cb': function('s:vim_output_handler_stdout'),
                             \ 'err_cb': function('s:vim_output_handler_stderr'),
                             \ 'close_cb': function('s:vim_exit_handler'),
                             \ 'mode': 'raw',
-                            \ }
+                            \ })
                 if has_key(maker, 'vim_job_opts')
                     call extend(opts, maker.vim_job_opts)
                 endif
@@ -526,16 +537,27 @@ function! s:MakeJob(make_id, options) abort
             exe cd_back_cmd
         endif
         if exists('save_env_file')
-            " Not possible to unlet environment vars
-            " (https://github.com/vim/vim/issues/1116).
-            " Should only set it for the job
-            " (https://github.com/vim/vim/pull/1160).
-            let $NEOMAKE_FILE = save_env_file
+            call s:restore_env('NEOMAKE_FILE', save_env_file)
         endif
     endtry
     let s:make_info[a:make_id].active_jobs += [jobinfo]
     return jobinfo
 endfunction
+
+if s:can_use_env_in_job_opts
+    function! s:restore_env(var, value) abort
+        if a:value is s:unset
+            exe 'unlet $'.a:var
+        else
+            let $NEOMAKE_FILE = a:value
+        endif
+    endfunction
+else
+    function! s:restore_env(var, value) abort
+        " Cannot unlet environment vars without patch 8.0.1832.
+        exe printf('let $%s = %s', a:var, string(a:value is s:unset ? '' : a:value))
+    endfunction
+endif
 
 let s:maker_base = {}
 let s:command_maker_base = copy(g:neomake#core#command_maker_base)
