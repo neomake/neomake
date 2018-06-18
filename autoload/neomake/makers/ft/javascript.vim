@@ -89,7 +89,7 @@ function! neomake#makers#ft#javascript#flow() abort
         \   '%-GNo errors!,'
         \   .'%EFile "%f"\, line %l\, characters %c-%m,'
         \   .'%trror: File "%f"\, line %l\, characters %c-%m,'
-        \   .'%C%m,%Z%m',
+        \   .'%C%m,%Z',
         \ 'postprocess': function('neomake#makers#ft#javascript#FlowProcess')
         \ }
 endfunction
