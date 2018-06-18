@@ -512,3 +512,48 @@ Execute (empty location list is handled with :lopen):
   CallNeomake 1, [ g:true_maker]
   AssertEqual map(getloclist(0), 'v:val.text'), []
   bwipe
+
+Execute (adjusts height of list for second maker):
+  Save g:neomake_open_list
+  let g:neomake_open_list = 2
+  new
+  let wincount = winnr('$')
+
+  let b:neomake_serialize = 1
+  CallNeomake 1, [g:error_maker, g:error_maker]
+
+  AssertEqual len(getloclist(0)), 2
+  AssertNeomakeMessage 'Resizing existing quickfix window (3, height=2).'
+
+  let qf_win = winnr('$')
+  AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
+  AssertEqual winheight(qf_win), 2
+
+  lclose
+  bwipe
+
+Execute (logs not found window):
+  Save g:neomake_open_list
+  let g:neomake_open_list = 2
+  new
+  let wincount = winnr('$')
+
+  " open/create location window already, which makes Neomake not set
+  " w:neomake_window_for_make_id therein.
+  lopen
+  AssertEqual winheight(winnr()), 10
+  wincmd p
+  let b:neomake_serialize = 1
+  CallNeomake 1, [g:error_maker, g:error_maker]
+
+  AssertEqual len(getloclist(0)), 2
+  AssertNeomakeMessage 'Could not find corresponding quickfix window.'
+  AssertNeomakeMessage 'Could not find corresponding quickfix window.'
+
+
+  let qf_win = winnr('$')
+  AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
+  AssertEqual winheight(qf_win), 10
+
+  lclose
+  bwipe
