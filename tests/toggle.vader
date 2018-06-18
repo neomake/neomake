@@ -105,6 +105,8 @@ Execute (NeomakeStatus with disabling commands):
 
   NeomakeDisable
   Assert !exists('#neomake'), 'neomake augroup has been removed'
+  " Can be disabled again (no error when trying to delete augroup).
+  NeomakeDisable
   NeomakeStatus
 
   NeomakeDisableTab
