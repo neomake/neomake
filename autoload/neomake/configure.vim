@@ -437,6 +437,16 @@ function! s:neomake_automake(event, bufnr) abort
                     \ {'bufnr': bufnr})
         return
     endif
+
+    if a:event ==# 'TextChanged' && has('patch-8.0.1494') && !has('patch-8.0.1633')
+      " TextChanged gets triggered in this case when loading a buffer (Vim
+      " issue #2742).
+      if !getbufvar(bufnr, '_neomake_seen_TextChanged', 0)
+        call s:debug_log('Ignoring first TextChanged')
+        call setbufvar(bufnr, '_neomake_seen_TextChanged', 1)
+        return
+      endif
+    endif
     call s:debug_log(printf('handling event %s', a:event), {'bufnr': bufnr})
 
     " NOTE: Do it later for BufWinEnter again, since &ft might not be defined (startify).
