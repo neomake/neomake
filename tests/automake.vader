@@ -857,3 +857,17 @@ Execute (neomake#configure#reset_automake stops timers):
     AssertNeomakeMessage 'automake: stopping timers: '.timer.'.'
     bwipe
   endif
+
+Execute (Ignores first TextChanged event (Vim issue #2742)):
+  Save g:neomake
+  if !has('patch-8.0.1494') || has('patch-8.0.1633')
+    NeomakeTestsSkip 'Only with affected patches (Vim issue #2742)'
+  else
+    call neomake#configure#automake('n')
+    new
+    doautocmd TextChanged
+    AssertNeomakeMessage 'automake: Ignoring first TextChanged.'
+    doautocmd TextChanged
+    AssertNeomakeMessage 'automake: handling event TextChanged.'
+    bwipe
+  endif
