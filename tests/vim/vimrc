@@ -28,7 +28,21 @@ function! s:load_plugin_on_demand(name) abort
   let dir = s:dep_plugins_base.'/'.a:name
   let &runtimepath .= ','.dir
   if index(s:sourced_plugins, a:name) == -1
+    let funcs_before = map(split(neomake#utils#redir('function /\C^[A-Z]'), '\n'),
+        \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
+
     exe 'source '.dir.'/plugin/*.vim'
+
+    let funcs_after = map(split(neomake#utils#redir('function /\C^[A-Z]'), '\n'),
+        \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
+
+    " Add new functions defined in the plugin to g:neomake_test_funcs_before,
+    " e.g. FugitiveDetect.
+    for f in funcs_after
+      if index(funcs_before, f) == -1
+        call add(g:neomake_test_funcs_before, f)
+      endif
+    endfor
     call add(s:sourced_plugins, a:name)
   endif
 endfunction
