@@ -26,22 +26,7 @@ Execute (rst: rstlint: errorformat):
   \ }]
   bwipe
 
-Execute (rst: sphinx: detects conf.py):
-  Save &errorformat
-  let &errorformat = neomake#makers#ft#rst#rstlint().errorformat
-  new
-  noautocmd set filetype=rst
-  CallNeomake 1, ['sphinx']
-  AssertNeomakeMessage 'sphinx: could not find conf.py.', 0
-
-  lcd build
-  call writefile([], 'conf.py')
-  let maker = neomake#GetMaker('sphinx', 'rst')
-  AssertEqual maker.args[-2], getcwd()
-
-  bwipe
-
-Execute (rst: enabled makers based on sphinx conf):
+Execute (rst: sphinx: enabled based on conf.py):
   call g:NeomakeTestsSetPATH('')
 
   AssertEqual neomake#makers#ft#rst#EnabledMakers(), ['rstlint', 'rstcheck']
@@ -49,19 +34,46 @@ Execute (rst: enabled makers based on sphinx conf):
   call g:NeomakeTestsCreateExe('sphinx-build', [])
   AssertEqual neomake#makers#ft#rst#EnabledMakers(), ['rstlint', 'rstcheck']
 
-  cd build
-  try
-    call writefile([], 'conf.py')
-    AssertEqual neomake#makers#ft#rst#EnabledMakers(), ['sphinx']
-  finally
-    cd -
-  endtry
+  new
+  let bufnr = bufnr('%')
+  noautocmd set filetype=rst
+  CallNeomake 1, ['sphinx']
+  AssertNeomakeMessage "sphinx: setting b:neomake.sphinx.source_dir=''.", 3
+  AssertNeomakeMessage 'sphinx: could not find conf.py.', 0
+
+  let tempdir = tempname()
+  let slash = neomake#utils#Slash()
+  call mkdir(tempdir.slash.'doc', 'p')
+
+  exe 'lcd '.fnameescape(tempdir)
+  call writefile([], 'conf.py')
+  " To please neomake#utils#get_project_root().
+  call writefile([], 'Makefile')
+  CallNeomake 1, ['sphinx']
+  AssertNeomakeMessage 'sphinx: could not find conf.py.', 0
+
+  " Still does not find it (because it was cached).
+  call writefile([], 'doc'.slash.'conf.py')
+  CallNeomake 1, ['sphinx']
+  AssertNeomakeMessage 'sphinx: could not find conf.py.', 0
+
+  AssertEqual b:neomake.sphinx, {'source_dir': ''}
+  unlet b:neomake.sphinx
+
+  let expected_srcdir = getcwd() . slash . 'doc'
+
+  let maker = neomake#GetMaker('sphinx', 'rst')
+  AssertEqual maker.args[-2], expected_srcdir
+
+  AssertNeomakeMessage printf("sphinx: setting b:neomake.sphinx.source_dir='%s'.", expected_srcdir), 3, {'bufnr': bufnr}
+
+  AssertEqual neomake#makers#ft#rst#EnabledMakers(), ['sphinx']
+  bwipe
 
 Execute (rst: sphinx: handles docutils warnings and adds first additional line):
   new
-  lcd build
-  call writefile(['1'], 'conf.py')
   file build/some.rst
+  let b:neomake = {'sphinx': {'source_dir': 'sphinx_source_dir'}}
 
   let output = [
   \ 'WARNING: /some/path/inline.rst:8: (ERROR/3) Malformed table.',
