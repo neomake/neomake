@@ -524,8 +524,9 @@ function! neomake#utils#highlight_is_defined(group) abort
     return neomake#utils#parse_highlight(a:group) !=# 'cleared'
 endfunction
 
-function! neomake#utils#get_project_root(bufnr) abort
-    let ft = getbufvar(a:bufnr, '&filetype')
+function! neomake#utils#get_project_root(...) abort
+    let bufnr = a:0 ? a:1 : bufnr('%')
+    let ft = getbufvar(bufnr, '&filetype')
     call neomake#utils#load_ft_makers(ft)
 
     let project_root_files = ['.git', 'Makefile']
@@ -535,7 +536,7 @@ function! neomake#utils#get_project_root(bufnr) abort
         let project_root_files = get(g:, ft_project_root_files) + project_root_files
     endif
 
-    let buf_dir = expand('#'.a:bufnr.':p:h')
+    let buf_dir = expand('#'.bufnr.':p:h')
     for fname in project_root_files
         let project_root = neomake#utils#FindGlobFile(fname, buf_dir)
         if !empty(project_root)
