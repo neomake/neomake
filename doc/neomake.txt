@@ -393,8 +393,7 @@ You can specify the default for this via |g:neomake_remove_invalid_entries|.
 
                                                           *neomake-makers-cwd*
 The working directory of a maker defaults to the current working directory
-of the make run (|getcwd()|), or the buffer's directory in case of using stdin
-(see |neomake-makers-supports_stdin|).
+of the make run (|getcwd()|).
 The `cwd` property overrides this, and gets expanded in the context of the
 current buffer. Special buffers (like fugitive blobs) get handled for values
 starting with `%:` (typically used in this context), falling back to
@@ -435,6 +434,8 @@ current jobinfo as its argument, and should return 1 or 0.
 This function can change `self.args`, which is useful to append options like
 e.g. "['--stdin-display-name', '%:p']".
 You can also change `self.tempfile_name` therein.
+Often it can be useful to also change `self.cwd`, e.g. when a maker does not
+use its `--stdin-display-name` (or similar) option to look for its config.
 
 Global Options                                               *neomake-options*
 

@@ -106,8 +106,8 @@ function! s:command_maker.fn(jobinfo) dict abort
 endfunction
 
 " @vimlint(EVL103, 1, a:jobinfo)
-function! s:command_maker._get_argv(jobinfo) abort dict
-    return neomake#compat#get_argv(self.exe, self.args, 1)
+function! s:command_maker._get_exe_and_args(jobinfo) abort dict
+    return [self.exe, self.args]
 endfunction
 " @vimlint(EVL103, 0, a:jobinfo)
 

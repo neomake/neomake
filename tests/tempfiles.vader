@@ -63,7 +63,6 @@ Execute (Uses temporary file for unreadable buffer):
   let b:neomake_neomake_tests_enabled_makers = ['true']
   let b:neomake_neomake_tests_true_tempfile_enabled = 1
 
-  let fname = fnamemodify(bufname('%'), ':p')
   RunNeomake
 
   let bufnr = bufnr('%')
@@ -71,8 +70,7 @@ Execute (Uses temporary file for unreadable buffer):
   let tempfile_name = g:neomake_test_matchlist[1]
   AssertEqual fnamemodify(tempfile_name, ':t'), printf(
   \ '.doesnotexist@neomake_%d_%d', getpid(), neomake#GetStatus().last_make_id)
-  let cwd = getcwd()
-  AssertEqual tempfile_name[0:len(cwd)-1], cwd
+  AssertEqual fnamemodify(tempfile_name, ':h'), '.'
   bwipe
 
 Execute (2nd maker uses temporary file):
@@ -127,7 +125,7 @@ Execute (Maker can specify temporary file to use via fn):
   call maker.fn(jobinfo)
 
   AssertEqual maker.args, []
-  call maker._get_argv(jobinfo)
+  call maker._get_exe_and_args(jobinfo)
   AssertEqual maker.args, []
   AssertEqual maker.tempfile_name, g:neomake_test_tempfile
   AssertNeomakeMessage '\m^Using tempfile for modified buffer: "'.g:neomake_test_tempfile.'"', 3, {'jobinfo': jobinfo, 'make_id': jobinfo.make_id, 'bufnr': bufnr}
@@ -180,20 +178,26 @@ Execute (maker._get_argv uses jobinfo for bufnr):
   let b:neomake_tempfile_enabled = 1
   let bufnr = bufnr('%')
   let jobinfo = NeomakeTestsFakeJobinfo()
-  call maker._get_argv(jobinfo)
+  call maker._get_exe_and_args(jobinfo)
   let make_info = values(neomake#GetStatus().make_info)[0]
   Assert !empty(make_info.tempfiles), 'make_info has tempfiles'
 
   let jobinfo = NeomakeTestsFakeJobinfo()
   let maker = neomake#GetMaker({'name': 'my_maker', 'append_file': 1})
   edit tests/fixtures/errors.py
-  call maker._get_argv(jobinfo)
+  call maker._get_exe_and_args(jobinfo)
   Assert !has_key(jobinfo, 'tempfile_name')
 
   wincmd p
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.bufnr = bufnr
-  let expected = ['my_maker', fnameescape(fnamemodify(bufname(bufnr), ':p'))]
+
+  let [exe, args] = maker._get_exe_and_args(jobinfo)
+  AssertEqual [exe, args],
+  \ ['my_maker', [fnameescape(fnamemodify(bufname(bufnr), ':.'))]]
+
+  let [maker.exe, maker.args] = [exe, args]
+  let expected = [exe] + args
   if neomake#has_async_support()
     AssertEqual expected, maker._get_argv(jobinfo)
   else
@@ -501,7 +505,7 @@ Execute (Handles tempfiles for bufnames with brackets):
 
   AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)".$'
   let tempfile_name = g:neomake_test_matchlist[1]
-  Assert stridx(tempfile_name, getcwd().neomake#utils#Slash().'.[fname-with-brackets]') == 0, 'tempfile_name is correct'
+  Assert stridx(tempfile_name, '.'.neomake#utils#Slash().'.[fname-with-brackets]') == 0, 'tempfile_name is correct'
   let tempfile_bufnr = bufnr+1
 
   AssertNeomakeMessage printf(
