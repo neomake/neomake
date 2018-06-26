@@ -8,22 +8,24 @@ endfunction
 " docs/ or doc/).  Caches the value in a buffer-local setting.
 function! s:get_sphinx_srcdir() abort
     let srcdir = neomake#config#get('sphinx.source_dir')
-    if srcdir is# g:neomake#config#undefined
-        let srcdir = ''
-        let project_root = neomake#utils#get_project_root()
-        if !empty(project_root)
-            let slash = neomake#utils#Slash()
-            for d in ['doc', 'docs']
-                if filereadable(d . slash . 'conf.py')
-                    let srcdir = fnamemodify(d, ':p:h')
-                    break
-                endif
-            endfor
-        endif
-        call neomake#log#debug(printf('sphinx: setting b:neomake.sphinx.source_dir=%s.', string(srcdir)), {'bufnr': bufnr('%')})
-        call neomake#config#set('b:sphinx.source_dir', srcdir)
+    if srcdir isnot# g:neomake#config#undefined
+        return srcdir
     endif
-    return srcdir
+
+    let r = ''
+    let project_root = neomake#utils#get_project_root()
+    if !empty(project_root)
+        let slash = neomake#utils#Slash()
+        for d in ['doc', 'docs']
+            if filereadable(d . slash . 'conf.py')
+                let r = fnamemodify(d, ':p:h')
+                break
+            endif
+        endfor
+    endif
+    call neomake#log#debug(printf('sphinx: setting b:neomake.sphinx.source_dir=%s.', string(r)), {'bufnr': bufnr('%')})
+    call neomake#config#set('b:sphinx.source_dir', r)
+    return r
 endfunction
 
 function! neomake#makers#ft#rst#EnabledMakers() abort
