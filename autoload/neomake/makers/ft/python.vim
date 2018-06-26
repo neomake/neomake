@@ -119,7 +119,7 @@ function! neomake#makers#ft#python#flake8() abort
 
     " @vimlint(EVL103, 1, a:jobinfo)
     function! maker.supports_stdin(jobinfo) abort
-        let self.args += ['--stdin-display-name', '%:p']
+        let self.args += ['--stdin-display-name', '%:.']
         if !has_key(self, 'cwd')
             let self.cwd = expand('%:h')
         endif
