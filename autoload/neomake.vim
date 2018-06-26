@@ -1767,8 +1767,8 @@ endfunction
 function! s:cd_to_jobs_cwd(jobinfo) abort
     if !has_key(a:jobinfo, 'cwd')
         let maker = a:jobinfo.maker
-        let cwd = neomake#utils#GetSetting('cwd', maker, g:neomake#config#undefined, a:jobinfo.ft, a:jobinfo.bufnr, 1)
-        if cwd isnot# g:neomake#config#undefined
+        let cwd = neomake#utils#GetSetting('cwd', maker, '', a:jobinfo.ft, a:jobinfo.bufnr, 1)
+        if cwd !=# ''
             if cwd[0:1] ==# '%:'
                 let cwd = neomake#utils#fnamemodify(a:jobinfo.bufnr, cwd[1:])
             else
