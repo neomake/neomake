@@ -125,7 +125,7 @@ Execute (Maker can specify temporary file to use via fn):
   call maker.fn(jobinfo)
 
   AssertEqual maker.args, []
-  call maker._get_argv(jobinfo)
+  call maker._get_exe_and_args(jobinfo)
   AssertEqual maker.args, []
   AssertEqual maker.tempfile_name, g:neomake_test_tempfile
   AssertNeomakeMessage '\m^Using tempfile for modified buffer: "'.g:neomake_test_tempfile.'"', 3, {'jobinfo': jobinfo, 'make_id': jobinfo.make_id, 'bufnr': bufnr}
@@ -178,24 +178,24 @@ Execute (maker._get_argv uses jobinfo for bufnr):
   let b:neomake_tempfile_enabled = 1
   let bufnr = bufnr('%')
   let jobinfo = NeomakeTestsFakeJobinfo()
-  call maker._get_argv(jobinfo)
+  call maker._get_exe_and_args(jobinfo)
   let make_info = values(neomake#GetStatus().make_info)[0]
   Assert !empty(make_info.tempfiles), 'make_info has tempfiles'
 
   let jobinfo = NeomakeTestsFakeJobinfo()
   let maker = neomake#GetMaker({'name': 'my_maker', 'append_file': 1})
   edit tests/fixtures/errors.py
-  call maker._get_argv(jobinfo)
+  call maker._get_exe_and_args(jobinfo)
   Assert !has_key(jobinfo, 'tempfile_name')
 
   wincmd p
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.bufnr = bufnr
-  let expected = ['my_maker', fnameescape(fnamemodify(bufname(bufnr), ':.'))]
+  let expected = ['my_maker', [fnameescape(fnamemodify(bufname(bufnr), ':.'))]]
   if neomake#has_async_support()
-    AssertEqual expected, maker._get_argv(jobinfo)
+    AssertEqual expected, maker._get_exe_and_args(jobinfo)
   else
-    AssertEqual join(expected), maker._get_argv(jobinfo)
+    AssertEqual join(expected), maker._get_exe_and_args(jobinfo)
   endif
 
   wincmd p

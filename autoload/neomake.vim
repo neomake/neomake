@@ -350,13 +350,13 @@ function! s:MakeJob(make_id, options) abort
     let error = ''
     let cd_back_cmd = ''
     try
+        let [maker.exe, maker.args] = maker._get_exe_and_args(jobinfo)
         " Change to job's cwd (before args, for relative filename).
         let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
         if !empty(cd_error)
             throw printf("Neomake: %s: could not change to maker's cwd (%s): %s.",
                         \ maker.name, cwd, cd_error)
         endif
-
         let jobinfo.argv = maker._get_argv(jobinfo)
 
         call neomake#utils#hook('NeomakeJobInit', {'jobinfo': jobinfo})
@@ -709,11 +709,11 @@ function! s:command_maker_base._bind_args() abort dict
     let self.args = args
 endfunction
 
-function! s:command_maker_base._get_argv(jobinfo) abort dict
+function! s:command_maker_base._get_exe_and_args(jobinfo) abort dict
     let args = self.args
-    let args_is_list = type(self.args) == type([])
     let filename = self._get_fname_for_args(a:jobinfo)
     if !empty(filename)
+        let args_is_list = type(self.args) == type([])
         let args = copy(args)
         if args_is_list
             call add(args, filename)
@@ -721,7 +721,7 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
             let args .= (empty(args) ? '' : ' ').fnameescape(filename)
         endif
     endif
-    return neomake#compat#get_argv(self.exe, args, args_is_list)
+    return [self.exe, args]
 endfunction
 
 function! s:GetMakerForFiletype(ft, maker_name) abort
@@ -1767,8 +1767,8 @@ endfunction
 function! s:cd_to_jobs_cwd(jobinfo) abort
     if !has_key(a:jobinfo, 'cwd')
         let maker = a:jobinfo.maker
-        if has_key(maker, 'cwd')
-            let cwd = maker.cwd
+        let cwd = neomake#utils#GetSetting('cwd', maker, g:neomake#config#undefined, a:jobinfo.ft, a:jobinfo.bufnr, 1)
+        if cwd isnot# g:neomake#config#undefined
             if cwd[0:1] ==# '%:'
                 let cwd = neomake#utils#fnamemodify(a:jobinfo.bufnr, cwd[1:])
             else

@@ -190,3 +190,37 @@ Execute (stdin maker: does not use buffer's cwd by default):
   CallNeomake 1, [maker]
   AssertNeomakeMessage printf('cwd: %s.', getcwd()), 3
   bwipe
+
+Execute (stdin maker: can use buffer's cwd):
+  let maker = {'exe': 'true', 'name': 'flake8'}
+  function maker.supports_stdin(jobinfo) abort
+    if !has_key(self, 'cwd')
+      let self.cwd = expand('%:h')
+    endif
+    return 1
+  endfunction
+  let fname = tempname()
+  new
+  exe 'file '.fname
+
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage printf('cwd: %s (changed).', fnamemodify(fname, ':h')), 3
+
+  CallNeomake 0, [extend(copy(maker), {'uses_filename': 1})]
+  AssertNeomakeMessage printf('cwd: %s (changed).', fnamemodify(fname, ':h')), 3
+
+  " Can be set using config.
+  let b:neomake_flake8_cwd = '.'
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage printf('cwd: %s.', getcwd()), 3
+
+  " Overridden by conf.
+  let maker.cwd = '..'
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage printf('cwd: %s.', getcwd()), 3
+
+  unlet b:neomake_flake8_cwd
+  let maker.cwd = '.'
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage printf('cwd: %s.', getcwd()), 3
+  bwipe

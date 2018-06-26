@@ -404,7 +404,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
   let jobinfo = {'file_mode': 0, 'bufnr': bufnr('%'), 'ft': ''}
   let shell_argv = split(&shell) + split(&shellcmdflag)
   AssertEqual maker.fn(jobinfo), {
-  \ '_get_argv': get(maker, '_get_argv'),
+  \ '_get_exe_and_args': get(maker, '_get_exe_and_args'),
   \ '_get_fname_for_args': get(maker, '_get_fname_for_args'),
   \ 'args': shell_argv[1:] + ['echo "%" 1'],
   \ 'exe': shell_argv[0],
@@ -439,7 +439,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
   let jobinfo = {'file_mode': 0, 'bufnr': bufnr('%'), 'ft': ''}
 
   AssertEqual maker.fn(jobinfo), {
-  \ '_get_argv': get(maker, '_get_argv'),
+  \ '_get_exe_and_args': get(maker, '_get_exe_and_args'),
   \ '_get_fname_for_args': get(maker, '_get_fname_for_args'),
   \ 'args': ['%', '1'],
   \ 'exe': 'echo',
