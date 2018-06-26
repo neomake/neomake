@@ -4,9 +4,32 @@ function! neomake#makers#ft#rst#SupersetOf() abort
     return 'text'
 endfunction
 
+" Get source dir for Sphinx (determined by looking for conf.py, typically in
+" docs/ or doc/).  Caches the value in a buffer-local setting.
+function! s:get_sphinx_srcdir() abort
+    let srcdir = neomake#config#get('sphinx.source_dir')
+    if srcdir isnot# g:neomake#config#undefined
+        return srcdir
+    endif
+
+    let r = ''
+    let project_root = neomake#utils#get_project_root()
+    if !empty(project_root)
+        let slash = neomake#utils#Slash()
+        for d in ['doc', 'docs']
+            if filereadable(d . slash . 'conf.py')
+                let r = fnamemodify(d, ':p:h')
+                break
+            endif
+        endfor
+    endif
+    call neomake#log#debug(printf('sphinx: setting b:neomake.sphinx.source_dir=%s.', string(r)), {'bufnr': bufnr('%')})
+    call neomake#config#set('b:sphinx.source_dir', r)
+    return r
+endfunction
+
 function! neomake#makers#ft#rst#EnabledMakers() abort
-    if executable('sphinx-build')
-                \ && !empty(neomake#utils#FindGlobFile('conf.py'))
+    if executable('sphinx-build') && !empty(s:get_sphinx_srcdir())
         return ['sphinx']
     endif
     return ['rstlint', 'rstcheck']
@@ -37,14 +60,13 @@ endfunction
 function! neomake#makers#ft#rst#sphinx() abort
     " TODO:
     "  - project mode (after cleanup branch)
+    let srcdir = s:get_sphinx_srcdir()
+    if empty(srcdir)
+        throw 'Neomake: sphinx: could not find conf.py'
+    endif
     if !exists('s:sphinx_cache')
         let s:sphinx_cache = tempname()
     endif
-    let conf = neomake#utils#FindGlobFile('conf.py')
-    if empty(conf)
-        throw 'Neomake: sphinx: could not find conf.py'
-    endif
-    let srcdir = fnamemodify(conf, ':h')
     " NOTE: uses '%Z%m,%-G%.%#' instead of '%C%m,%-G' to include next line in
     "       multiline errors (fixed in 7.4.203).
     return {
