@@ -279,6 +279,8 @@ Execute (neomake#utils#ExpandArgs):
   \ 'C:\\%:r\\',
   \ '~',
   \ '\~',
+  \ '%:.',
+  \ '%:,',
   \ ]
   let expected_args = [
   \ 'file1.ext',
@@ -300,6 +302,8 @@ Execute (neomake#utils#ExpandArgs):
   \ 'C:\\file1\\',
   \ '/home/sweet',
   \ '\~',
+  \ 'file1.ext',
+  \ 'file1.ext:,',
   \ ]
 
   AssertEqual expected_args, neomake#utils#ExpandArgs(args)
