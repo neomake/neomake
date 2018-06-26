@@ -136,7 +136,7 @@ Execute (cwd gets expanded correctly: relative and in another buffer):
     new
     edit tests/fixtures/errors.py
     let b:neomake_serialize = 1
-    let bufname = expand('%:p')
+    let bufname = expand('%:.')
     let expected_cwd = fnamemodify(bufname, ':p:h')
 
     let jobinfo = neomake#Make(1, [g:sleep_maker, maker])[0]

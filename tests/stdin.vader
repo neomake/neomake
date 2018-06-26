@@ -8,12 +8,11 @@ Execute (stdin maker):
   normal! ifile1.test:line1
   normal! ofile1.test:line2
   call neomake#Make(1, [maker])
-  AssertNeomakeMessage "Using buffer's directory for cwd with uses_stdin.", 3
   if neomake#has_async_support()
     AssertNeomakeMessage "Starting async job: cat -.", 2
     NeomakeTestsWaitForFinishedJobs
   endif
-  AssertNeomakeMessage 'cwd: .', 3
+  AssertNeomakeMessage 'cwd: '.getcwd().'.', 3
   AssertNeomakeMessage '\mstdout: unnamed_maker: [''file1.test:line1.*'
   AssertNeomakeMessage '\vUsed bufnr from stdin buffer (\d+) \(file1.test\) for 2 entries: 1, 2.'
   let tempbuf = g:neomake_test_matchlist[1]
@@ -175,17 +174,17 @@ Execute (stdin maker: uses neomake#utils#get_buffer_lines for buffer_lines):
   AssertEqual map(getloclist(0), 'v:val.text'), ['', '']
   bwipe
 
-Execute (stdin maker: uses buffer's cwd by default):
+Execute (stdin maker: does not use buffer's cwd by default):
   let maker = {'exe': 'true', 'supports_stdin': 1}
   let fname = tempname()
   new
   exe 'file '.fname
 
   CallNeomake 1, [maker]
-  AssertNeomakeMessage printf('cwd: %s (changed).', fnamemodify(fname, ':h')), 3
+  AssertNeomakeMessage printf('cwd: %s.', getcwd()), 3
 
   CallNeomake 0, [extend(copy(maker), {'uses_filename': 1})]
-  AssertNeomakeMessage printf('cwd: %s (changed).', fnamemodify(fname, ':h')), 3
+  AssertNeomakeMessage printf('cwd: %s.', getcwd()), 3
 
   let maker.cwd = '.'
   CallNeomake 1, [maker]

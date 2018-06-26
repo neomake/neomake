@@ -410,7 +410,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
   \ 'exe': shell_argv[0],
   \ 'remove_invalid_entries': 0}
 
-  let fname = expand('%:p')
+  let fname = bufname('%')
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.maker = maker
   let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
@@ -447,7 +447,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
 
   new
   edit tests/fixtures/a\ filename\ with\ spaces
-  let fname = expand('%:p')
+  let fname = bufname('%')
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.maker = maker
   let bound_maker = neomake#GetMaker(maker).fn(jobinfo)

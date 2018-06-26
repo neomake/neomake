@@ -350,14 +350,14 @@ function! s:MakeJob(make_id, options) abort
     let error = ''
     let cd_back_cmd = ''
     try
-        let jobinfo.argv = maker._get_argv(jobinfo)
-
-        " Change to job's cwd (after args, which may use uses_stdin to set it).
+        " Change to job's cwd (before args, for relative filename).
         let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
         if !empty(cd_error)
             throw printf("Neomake: %s: could not change to maker's cwd (%s): %s.",
                         \ maker.name, cwd, cd_error)
         endif
+
+        let jobinfo.argv = maker._get_argv(jobinfo)
 
         call neomake#utils#hook('NeomakeJobInit', {'jobinfo': jobinfo})
 
@@ -572,7 +572,7 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
         if empty(bufname)
             let temp_file = tempname() . slash . 'neomaketmp.'.a:jobinfo.ft
         else
-            let orig_file = neomake#utils#fnamemodify(a:jobinfo.bufnr, ':p')
+            let orig_file = neomake#utils#fnamemodify(a:jobinfo.bufnr, ':.')
             if empty(orig_file)
                 let dir = tempname()
                 let filename = fnamemodify(bufname, ':t')
@@ -628,7 +628,7 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         endif
         let used_for = 'unreadable'
     else
-        let bufname = fnamemodify(bufname, ':p')
+        let bufname = fnamemodify(bufname, ':.')
         let used_for = ''
     endif
 
@@ -1775,9 +1775,6 @@ function! s:cd_to_jobs_cwd(jobinfo) abort
                 let cwd = expand(cwd, 1)
             endif
             let a:jobinfo.cwd = substitute(fnamemodify(cwd, ':p'), '[\/]$', '', '')
-        elseif get(a:jobinfo, 'uses_stdin', 0)
-            call neomake#log#debug("Using buffer's directory for cwd with uses_stdin.", a:jobinfo)
-            let a:jobinfo.cwd = neomake#utils#fnamemodify(a:jobinfo.bufnr, ':h')
         else
             let a:jobinfo.cwd = s:make_info[a:jobinfo.make_id].cwd
         endif
