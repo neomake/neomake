@@ -22,6 +22,19 @@ function! neomake#makers#ft#swift#swiftpm() abort
         \ }
 endfunction
 
+function! neomake#makers#ft#swift#swiftpmtest() abort
+    return {
+        \ 'exe': 'swift',
+        \ 'args': ['test'],
+        \ 'append_file': 0,
+        \ 'errorformat':
+            \ '%E%f:%l: error: %m,' .
+            \ '%W%f:%l:%c: warning: %m,' .
+            \ '%Z%\s%#^~%#,' .
+            \ '%-G%.%#',
+        \ }
+endfunction
+
 function! neomake#makers#ft#swift#swiftc() abort
     " `export SDKROOT="$(xcodebuild -version -sdk macosx Path)"`
     return {
