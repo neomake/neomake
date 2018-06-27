@@ -15,6 +15,7 @@ function! neomake#makers#ft#php#php() abort
             \ '%EFatal error: %m in %f on line %l,'.
             \ '%-G\s%#,'.
             \ '%-GErrors parsing %.%#',
+        \ 'output_stream': 'stdout',
         \ }
 endfunction
 
