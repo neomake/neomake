@@ -292,6 +292,7 @@ Execute (Correct function binding from base maker):
   Assert string(maker) =~# '\v''_get_argv'': function\(''\d+''\),', 'Simple _get_argv'
 
 Execute (Makers: process_output):
+  new
   call neomake#statusline#ResetCounts()
   call g:NeomakeSetupAutocmdWrappers()
 
@@ -332,8 +333,10 @@ Execute (Makers: process_output):
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
   AssertEqual len(g:neomake_test_finished), 1
+  bwipe
 
 Execute (Makers: get_list_entries):
+  new
   call neomake#statusline#ResetCounts()
   call g:NeomakeSetupAutocmdWrappers()
 
@@ -371,6 +374,7 @@ Execute (Makers: get_list_entries):
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
   AssertEqual len(g:neomake_test_finished), 1
+  bwipe
 
 Execute (Makers: get_list_entries with non-list return value):
   call neomake#statusline#ResetCounts()
@@ -491,6 +495,7 @@ Execute (Makers: get_list_entries with sandbox exception):
   AssertEqual len(g:neomake_test_finished), 1
 
 Execute (pcall aborts after 3 attempts per job):
+  new
   call g:NeomakeSetupAutocmdWrappers()
 
   let maker = {'name': 'maker1'}
@@ -557,6 +562,7 @@ Execute (pcall aborts after 3 attempts per job):
   let vim_msgs = NeomakeTestsGetVimMessages()
   Assert vim_msgs[-1] =~# '\vNeomake error in: function .*_queue_action, line \d+'
   AssertEqual len(vim_msgs), 1
+  bwipe
 
 Execute (Makers: get_list_entries via config):
   call g:NeomakeSetupAutocmdWrappers()
