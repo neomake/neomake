@@ -191,11 +191,17 @@ Execute (maker._get_argv uses jobinfo for bufnr):
   wincmd p
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.bufnr = bufnr
-  let expected = ['my_maker', [fnameescape(fnamemodify(bufname(bufnr), ':.'))]]
+
+  let [exe, args] = maker._get_exe_and_args(jobinfo)
+  AssertEqual [exe, args],
+  \ ['my_maker', [fnameescape(fnamemodify(bufname(bufnr), ':.'))]]
+
+  let [maker.exe, maker.args] = [exe, args]
+  let expected = [exe] + args
   if neomake#has_async_support()
-    AssertEqual expected, maker._get_exe_and_args(jobinfo)
+    AssertEqual expected, maker._get_argv(jobinfo)
   else
-    AssertEqual join(expected), maker._get_exe_and_args(jobinfo)
+    AssertEqual join(expected), maker._get_argv(jobinfo)
   endif
 
   wincmd p
