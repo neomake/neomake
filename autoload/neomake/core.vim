@@ -66,6 +66,7 @@ endfunction
 
 " Base class for command makers.
 let g:neomake#core#command_maker_base = {}
+
 function! g:neomake#core#command_maker_base._get_fname_for_args(jobinfo) abort dict
     " Append file?  (defaults to jobinfo.file_mode, project/global makers should set it to 0)
     let append_file = neomake#utils#GetSetting('append_file', self, a:jobinfo.file_mode, a:jobinfo.ft, a:jobinfo.bufnr)
@@ -79,3 +80,9 @@ function! g:neomake#core#command_maker_base._get_fname_for_args(jobinfo) abort d
     endif
     return ''
 endfunction
+
+" @vimlint(EVL103, 1, a:jobinfo)
+function! g:neomake#core#command_maker_base._get_argv(jobinfo) abort dict
+    return neomake#compat#get_argv(self.exe, self.args, type(self.args) == type([]))
+endfunction
+" @vimlint(EVL103, 0, a:jobinfo)
