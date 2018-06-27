@@ -1,6 +1,7 @@
 Include: include/setup.vader
 
 Execute (NeomakeSh: simple serialized makers):
+  new
   call g:NeomakeSetupAutocmdWrappers()
   Save g:neomake_serialize
   let g:neomake_serialize = 1
@@ -13,6 +14,7 @@ Execute (NeomakeSh: simple serialized makers):
   AssertNeomakeMessage 'Running makers: sleep-maker, error-maker.', 3
   AssertNeomakeMessage 'exit: sleep-maker: 0.'
   AssertNeomakeMessage 'exit: error-maker: 1.'
+  bwipe
 
 Execute (NeomakeSh: simple serialized makers: two buffers in parallel):
   if NeomakeAsyncTestsSetup()
@@ -46,6 +48,7 @@ Execute (NeomakeSh: simple serialized makers: two buffers in parallel):
   endif
 
 Execute (NeomakeSh: simple serialized maker with error):
+  new
   call g:NeomakeSetupAutocmdWrappers()
   Save g:neomake_serialize
   let g:neomake_serialize = 1
@@ -58,8 +61,10 @@ Execute (NeomakeSh: simple serialized maker with error):
   AssertNeomakeMessage 'Running makers: error-maker, success-maker.', 3
   AssertNeomakeMessage 'exit: error-maker: 1.'
   AssertNeomakeMessage 'exit: success-maker: 0.'
+  bwipe
 
 Execute (NeomakeSh: serialized with global abort):
+  new
   call g:NeomakeSetupAutocmdWrappers()
 
   Save g:neomake_serialize
@@ -73,6 +78,7 @@ Execute (NeomakeSh: serialized with global abort):
   AssertEqual len(g:neomake_test_jobfinished), 1
   AssertEqual len(g:neomake_test_finished), 1
   AssertNeomakeMessage 'Aborting next makers: success-maker.', 2
+  bwipe
 
 Execute (NeomakeSh: serialized with buffer overriding global abort):
   call g:NeomakeSetupAutocmdWrappers()
@@ -92,6 +98,7 @@ Execute (NeomakeSh: serialized with buffer overriding global abort):
   bwipe
 
 Execute (NeomakeSh: serialized with abort from maker):
+  new
   call g:NeomakeSetupAutocmdWrappers()
 
   let error_abort_maker = copy(g:error_maker)
@@ -104,9 +111,11 @@ Execute (NeomakeSh: serialized with abort from maker):
   AssertEqual len(g:neomake_test_finished), 1
   AssertNeomakeMessage 'Aborting next makers: success-maker.'
   AssertEqual map(getloclist(0), 'v:val.text'), ['error']
+  bwipe
 
 Execute (NeomakeSh: serialized with previous buffer overriding global abort):
   if NeomakeAsyncTestsSetup()
+    new
     Save g:neomake_serialize, b:neomake_serialize_abort_on_error
     let g:neomake_serialize = 1
     let b:neomake_serialize_abort_on_error = 1
@@ -122,12 +131,14 @@ Execute (NeomakeSh: serialized with previous buffer overriding global abort):
     AssertEqual map(getloclist(0), 'v:val.text'), ['slept', 'error']
     wincmd p
     bwipe
+    bwipe
 
     AssertNeomakeMessage 'Aborting next makers: success-maker.'
   endif
 
 Execute (NeomakeSh: serialized after doesnotexist: continue):
   if NeomakeAsyncTestsSetup()
+    new
     Save g:neomake_serialize
     let g:neomake_serialize = 1
 
@@ -137,6 +148,7 @@ Execute (NeomakeSh: serialized after doesnotexist: continue):
     AssertEqual map(getqflist(), 'v:val.text'), ['error']
 
     AssertNeomakeMessage 'Exe (doesnotexist) of maker unnamed_maker is not executable.'
+    bwipe
   endif
 
 Execute (NeomakeSh: serialized after doesnotexist with abort: continue):
@@ -152,6 +164,7 @@ Execute (NeomakeSh: serialized after doesnotexist with abort: continue):
 
 Execute (Neomake#Make cancels previous jobs):
   if NeomakeAsyncTestsSetup()
+    new
     let first_jobs = neomake#Make({'file_mode': 0, 'enabled_makers': [g:sleep_maker, g:error_maker]})
     AssertEqual len(first_jobs), 2
     let make_id = neomake#GetStatus().last_make_id
@@ -176,10 +189,12 @@ Execute (Neomake#Make cancels previous jobs):
     " Restarted job should use new make_id.
     AssertNeomakeMessage printf("Starting async job: %s -c 'echo error; false'.", &shell),
     \ 2, {'id': second_jobs[1], 'make_id': make_id+1, 'bufnr': bufnr}
+    bwipe
   endif
 
 Execute (Neomake#Make cancels previous jobs (serialized)):
   if NeomakeAsyncTestsSetup()
+    new
     let first_jobs = neomake#Make({
     \ 'file_mode': 0,
     \ 'serialize': 1,
@@ -213,6 +228,7 @@ Execute (Neomake#Make cancels previous jobs (serialized)):
     " Restarted job should use new make_id.
     AssertNeomakeMessage printf("Starting async job: %s -c 'echo error; false'.", &shell),
     \ 2, {'id': second_jobs[0].id, 'make_id': make_id+1, 'bufnr': bufnr}
+    bwipe
   endif
 
 Execute (Neomake#Make starts new jobs before waiting for the old to finish):
@@ -249,9 +265,11 @@ Execute (Neomake#Make starts new jobs before waiting for the old to finish):
 
 Execute (Neomake#Make does not cancel maker from same run):
   if NeomakeAsyncTestsSetup()
+    new
     call neomake#Make(0, [g:error_maker, g:error_maker])
     NeomakeTestsWaitForFinishedJobs
     AssertEqual map(getqflist(), 'v:val.text'), ['error', 'error']
+    bwipe
   endif
 
 Execute (Neomake#Make handles cwd properly):

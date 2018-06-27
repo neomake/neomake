@@ -940,6 +940,7 @@ Execute (Highlights should be cleared after successful run):
   Assert !has_key(highlights['file'], bufnr('%')), 'highlight not present'
 
 Execute (neomake#GetCurrentErrorMsg):
+  new
   let maker = {'name': 'my_maker'}
   function maker.get_list_entries(...)
     let bufnr = bufnr('%')
@@ -961,3 +962,4 @@ Execute (neomake#GetCurrentErrorMsg):
   normal! A12
   normal! l
   AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.2 (0)'
+  bwipe!

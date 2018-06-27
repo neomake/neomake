@@ -549,6 +549,12 @@ function! s:After()
     call extend(g:neomake_test_funcs_before, new_funcs)
   endif
 
+  " Check that no highlights are left.
+  let highlights = neomake#highlights#_get()
+  if highlights != {'file': {}, 'project': {}}
+    call add(errors, printf('Highlights were not reset (use a new buffer): %s', highlights))
+  endif
+
   if exists('#neomake_event_queue')
     call add(errors, '#neomake_event_queue is not empty: ' . neomake#utils#redir('au neomake_event_queue'))
     autocmd! neomake_event_queue

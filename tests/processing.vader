@@ -636,6 +636,7 @@ Execute (process_output: gets delayed for location list):
   bwipe
 
 Execute (get_list_entries: delayed for location list (but in current context)):
+  new
   let maker = {}
   function! maker.get_list_entries(context)
     return [{
@@ -651,11 +652,11 @@ Execute (get_list_entries: delayed for location list (but in current context)):
   endfunction
 
   augroup neomake_tests
-    au User NeomakeJobFinished call neomake#log#debug('Changing to window 1.')
-    au User NeomakeJobFinished 1wincmd w
+    au User NeomakeJobFinished call neomake#log#debug('Changing to window 2.')
+    au User NeomakeJobFinished 2wincmd w
   augroup END
 
-  let win1_bufnr = bufnr('%')
+  let win2_bufnr = bufnr('%')
   new
   let b:neomake_serialize = 1
   let bufnr = bufnr('%')
@@ -665,23 +666,24 @@ Execute (get_list_entries: delayed for location list (but in current context)):
   AssertNeomakeMessage 'unnamed_maker: getting entries via get_list_entries.', 2
   AssertNeomakeMessage 'Postponing location list processing.', 3
   AssertEqual getloclist(0), []
-  AssertEqual winnr(), 1
+  AssertEqual winnr(), 2
   AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:ProcessEntries.', 3
   let valid = has('patch-8.0.0580')
-  AssertEqualQf getloclist(2), [{
+  AssertEqualQf getloclist(3), [{
   \ 'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1,
   \ 'type': 'W', 'pattern': '', 'text': 'slept'}]
 
-  2wincmd w
-  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 2).'
+  3wincmd w
+  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
   AssertNeomakeMessage 'Cleaning jobinfo.'
   AssertNeomakeMessage "Calling User autocmd NeomakeJobFinished with context: {'jobinfo': '…'}.", 2
 
-  AssertEqual winnr(), 1
-  AssertEqual map(getloclist(2), '[v:val.bufnr, v:val.text, v:val.type]'), [
+  AssertEqual winnr(), 2
+  AssertEqual map(getloclist(3), '[v:val.bufnr, v:val.text, v:val.type]'), [
   \ [0, 'slept', 'W'],
-  \ [win1_bufnr, 'error message', 'E']]
-  2wincmd w
+  \ [win2_bufnr, 'error message', 'E']]
+  3wincmd w
+  bwipe
   bwipe
 
 Execute (Pending output gets processed in order of jobs (project first)):
