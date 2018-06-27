@@ -1715,7 +1715,7 @@ endfunction
 
 " Create a location/quickfix list once per make run.
 " Returns the current list (empty if it was created).
-function! s:create_locqf_list(jobinfo, ...) abort
+function! s:create_locqf_list(jobinfo) abort
     let make_info = s:make_info[a:jobinfo.make_id]
     if get(make_info, 'created_locqf_list', 0)
         return a:jobinfo.file_mode ? getloclist(0) : getqflist()
@@ -1856,14 +1856,15 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                     \ . "'maker_name': maker_name,"
                     \ . '})')
 
-        let prev_list = s:create_locqf_list(a:jobinfo)
-
         let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(a:jobinfo)
         if !empty(cd_error)
             call neomake#log#debug(printf(
                         \ "Could not change to job's cwd (%s): %s.",
                         \ cwd, cd_error), a:jobinfo)
         endif
+
+        let prev_list = s:create_locqf_list(a:jobinfo)
+
         try
             let list_entries = a:entries
             " Add marker for custom quickfix to the first (new) entry.
