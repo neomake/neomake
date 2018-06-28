@@ -49,7 +49,7 @@ RUN chmod +x /usr/local/bin/vimlint
 
 # Install covimerage and vint.
 RUN apk --no-cache add curl python3 \
-  && pip3 install --no-cache-dir covimerage==0.0.4 vim-vint \
+  && pip3 install --no-cache-dir covimerage==0.0.6 vim-vint \
   && rm -rf /usr/include /usr/lib/python*/turtle* /usr/lib/python*/tkinter \
   && pip3 uninstall --yes pip \
   && curl https://codecov.io/bash -o /usr/bin/codecov \

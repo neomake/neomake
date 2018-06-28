@@ -544,15 +544,7 @@ function! s:MakeJob(make_id, options) abort
     return jobinfo
 endfunction
 
-if s:can_use_env_in_job_opts
-    function! s:restore_env(var, value) abort
-        if a:value is s:unset
-            exe 'unlet $'.a:var
-        else
-            let $NEOMAKE_FILE = a:value
-        endif
-    endfunction
-else
+if !s:can_use_env_in_job_opts
     function! s:restore_env(var, value) abort
         " Cannot unlet environment vars without patch 8.0.1832.
         exe printf('let $%s = %s', a:var, string(a:value is s:unset ? '' : a:value))
