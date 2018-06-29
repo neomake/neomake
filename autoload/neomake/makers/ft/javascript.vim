@@ -38,6 +38,7 @@ function! neomake#makers#ft#javascript#eslint() abort
         \ 'errorformat': '%E%f: line %l\, col %c\, Error - %m,' .
         \   '%W%f: line %l\, col %c\, Warning - %m,%-G,%-G%*\d problems%#',
         \ 'cwd': '%:p:h',
+        \ 'output_stream': 'stdout',
         \ }
 
     " @vimlint(EVL103, 1, a:jobinfo)
