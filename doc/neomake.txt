@@ -434,9 +434,15 @@ current jobinfo as its argument, and should return 1 or 0.
 This function can change `self.args`, which is useful to append options like
 e.g. "['--stdin-display-name', '%:p']".
 You can also change `self.tempfile_name` therein.
-Often it can be useful to also change `self.cwd`, e.g. when a maker does not
-use its `--stdin-display-name` (or similar) option to look for its config.
-
+It can be useful to change the current working directory for the maker here,
+e.g. when it does not use its `--stdin-display-name` (or similar) option
+to look for its config.  Use the jobinfo's `cd` method for this: >
+    function! maker.supports_stdin(jobinfo) abort
+        let self.args += ['--stdin-display-name', '%:.']
+        call a:jobinfo.cd('%:h')
+        return 1
+    endfunction
+<
 Global Options                                               *neomake-options*
 
 *g:neomake_<name>_maker*

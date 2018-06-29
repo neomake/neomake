@@ -466,3 +466,35 @@ Execute (legacy errorformat maker: filename with cwd (error: maker rmdir)):
 
   bwipe
   exe 'bwipe' unlisted_bufnr
+
+Execute (cwd):
+  new
+  file tests/fixtures/a\ filename\ with\ spaces
+  let maker = {
+      \ 'name': 'custom_maker',
+      \ 'exe': 'printf',
+      \ 'cwd': '%:p:h',
+      \ }
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage printf('cwd: %s/tests/fixtures (changed).', getcwd()), 3
+  AssertEqual map(getloclist(0), 'v:val.text'), ['a filename with spaces']
+  bwipe
+
+Execute (cwd (tempfile)):
+  new
+  file tests/fixtures/doesnotexist
+  let maker = {
+      \ 'name': 'custom_maker',
+      \ 'exe': 'printf',
+      \ 'cwd': '%:p:h',
+      \ }
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
+  let tempfile_name = g:neomake_test_matchlist[1]
+  " Temporary file gets created in maker's cwd.
+  AssertEqual fnamemodify(tempfile_name, ':h'), '.'
+  AssertNeomakeMessage printf('cwd: %s/tests/fixtures (changed).', getcwd()), 3
+  AssertEqual map(getloclist(0), 'v:val.text'), [tempfile_name]
+  bwipe
