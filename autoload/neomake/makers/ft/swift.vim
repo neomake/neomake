@@ -28,6 +28,7 @@ function! neomake#makers#ft#swift#swiftpmtest() abort
         \ 'args': ['test'],
         \ 'append_file': 0,
         \ 'errorformat':
+            \ '%E%f:%l:%c: error: %m,' .
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l:%c: warning: %m,' .
             \ '%Z%\s%#^~%#,' .
