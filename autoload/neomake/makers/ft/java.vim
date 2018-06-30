@@ -21,10 +21,8 @@ let g:neomake_java_javac_maven_pom_tags = ['build', 'properties']
 let g:neomake_java_javac_maven_pom_properties = {}
 let s:is_windows = has('win32') || has('win64') || has('win16') || has('dos32') || has('dos16')
 if s:is_windows
-    let s:fsep = ';'
     let s:psep = '\'
 else
-    let s:fsep = ':'
     let s:psep = '/'
 endif
 let g:neomake_java_checker_home = fnamemodify(expand('<sfile>'), ':p:h:gs?\\?/?')

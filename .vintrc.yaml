@@ -1,3 +1,10 @@
 policies:
   ProhibitImplicitScopeVariable:
     enabled: false
+  ProhibitUnusedVariable:
+    enabled: true
+    ignored_patterns:
+      - '^_+'
+      # Ignore false-positives (functions used in commands/autocommands).
+      # https://github.com/Kuniwak/vint/issues/284
+      - '^s:'

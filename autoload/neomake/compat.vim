@@ -75,9 +75,11 @@ else
         let json = substitute(a:json, "\n", '', 'g')
         if substitute(json, '\v\"%(\\.|[^"\\])*\"|true|false|null|[+-]?\d+%(\.\d+%([Ee][+-]?\d+)?)?', '', 'g') !~# "[^,:{}[\\] \t]"
             " JSON artifacts
+            " vint: -ProhibitUnusedVariable
             let true = g:neomake#compat#json_true
             let false = g:neomake#compat#json_false
             let null = g:neomake#compat#json_null
+            " vint: +ProhibitUnusedVariable
 
             try
                 let object = eval(json)
