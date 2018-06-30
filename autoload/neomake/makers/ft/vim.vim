@@ -4,6 +4,8 @@ function! neomake#makers#ft#vim#EnabledMakers() abort
     return ['vint']
 endfunction
 
+let s:vint_supports_stdin = {}
+
 function! neomake#makers#ft#vim#vint() abort
     let l:args = ['--style-problem', '--no-color',
         \ '-f', '{file_path}:{line_number}:{column_number}:{severity}:{description} ({policy_name})']
@@ -12,7 +14,7 @@ function! neomake#makers#ft#vim#vint() abort
         call add(l:args, '--enable-neovim')
     endif
 
-    return {
+    let maker = {
         \ 'args': l:args,
         \ 'errorformat': '%I%f:%l:%c:style_problem:%m,'
         \   .'%f:%l:%c:%t%*[^:]:E%n: %m,'
@@ -22,6 +24,29 @@ function! neomake#makers#ft#vim#vint() abort
         \   'fn': function('neomake#postprocess#generic_length'),
         \   'pattern': '\v%(^:|%([^:]+: ))\zs(\S+)',
         \ }}
+
+    " @vimlint(EVL103, 1, a:_jobinfo)
+    function! maker.supports_stdin(_jobinfo) abort
+        let exe = exists('*exepath') ? exepath(self.exe) : self.exe
+        let support = get(s:vint_supports_stdin, exe, -1)
+        if support == -1
+            let ver = neomake#compat#systemlist(['vint', '--version'])
+            let ver_split = split(ver[0], '\.')
+            if !empty(ver_split) && (ver_split[0] > 0 || +ver_split[1] >= 4)
+                let support = 1
+            else
+                let support = 0
+            endif
+            let s:vint_supports_stdin[exe] = support
+            call neomake#log#debug('vint: stdin support: '.support.'.')
+        endif
+        if support
+            let self.args += ['--stdin-display-name', '%:.']
+        endif
+        return support
+    endfunction
+    " @vimlint(EVL103, 0, a:_jobinfo)
+    return maker
 endfunction
 
 function! neomake#makers#ft#vim#vimlint() abort
