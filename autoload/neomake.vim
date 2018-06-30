@@ -641,6 +641,8 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
     if !empty(temp_file)
         let bufname = temp_file
         if temp_file !=# '-'
+            " Use absolute path internally, which is important for removal.
+            let temp_file = fnamemodify(temp_file, ':p')
             if !has_key(make_info, 'tempfiles')
                 let make_info.tempfiles = [temp_file]
                 let make_info.created_dirs = s:create_dirs_for_file(temp_file)
@@ -1580,17 +1582,20 @@ function! s:do_clean_make_info(make_info) abort
     let tempfiles = get(a:make_info, 'tempfiles')
     if !empty(tempfiles)
         for tempfile in tempfiles
-            call neomake#log#debug(printf('Removing temporary file: "%s".',
-                        \ tempfile))
-            call delete(tempfile)
+            if delete(tempfile) == 0
+                call neomake#log#debug(printf('Removing temporary file: "%s".',
+                            \ tempfile))
+            else
+                call neomake#log#warning(printf('Failed to remove temporary file: "%s".',
+                            \ tempfile))
+            endif
             let bufnr_tempfile = bufnr(tempfile)
             if bufnr_tempfile != -1 && !buflisted(bufnr_tempfile)
                 let wipe_unlisted_buffers += [bufnr_tempfile]
             endif
         endfor
 
-        " Only delete the dir, if Vim supports it.  It will be cleaned up
-        " when quitting Vim in any case.
+        " Only delete the dir, if Vim supports it.
         if v:version >= 705 || (v:version == 704 && has('patch1107'))
             for dir in reverse(copy(get(a:make_info, 'created_dirs')))
                 call delete(dir, 'd')

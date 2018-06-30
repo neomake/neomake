@@ -553,7 +553,7 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
 
   let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
   let make_info = values(neomake#GetStatus().make_info)[0]
-  let temp_file = make_info.tempfiles[0]
+  let temp_file = fnamemodify(make_info.tempfiles[0], ':.')
   let shell_argv = split(&shell) + split(&shellcmdflag)
   AssertEqual bound_maker.args, shell_argv[1:] + ['echo '.temp_file]
   AssertEqual bound_maker.exe, shell_argv[0]
@@ -562,7 +562,7 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
 
   doautocmd VimLeave
   Assert empty(glob(temp_file)), 'Temporary file was removed.'
-  AssertNeomakeMessage printf('Removing temporary file: "%s".', temp_file)
+  AssertNeomakeMessage printf('Removing temporary file: "%s".', make_info.tempfiles[0])
   bwipe!
 
 Execute (neomake#utils#get_config_fts):

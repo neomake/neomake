@@ -119,8 +119,13 @@ Execute (cwd handles fugitive buffer):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertNeomakeMessage '\v^Removing temporary file: "(.*)".'
+  AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
   let tempfile_name = g:neomake_test_matchlist[1]
+  " Temporary file gets created in maker's cwd, and displays relative name.
+  AssertEqual fnamemodify(tempfile_name, ':h'), 'autoload/neomake'
+
+  AssertNeomakeMessage printf('cwd: %s/autoload/neomake (changed).', getcwd()), 3
+  AssertNeomakeMessage printf('Removing temporary file: "%s".', fnamemodify(tempfile_name, ':p'))
 
   AssertEqual map(getloclist(0), 'v:val.text'), [
   \ expected_cwd, tempfile_name]
@@ -472,7 +477,7 @@ Execute (cwd):
   file tests/fixtures/a\ filename\ with\ spaces
   let maker = {
       \ 'name': 'custom_maker',
-      \ 'exe': 'printf',
+      \ 'exe': 'ls',
       \ 'cwd': '%:p:h',
       \ }
   call neomake#Make(1, [maker])
@@ -486,15 +491,20 @@ Execute (cwd (tempfile)):
   file tests/fixtures/doesnotexist
   let maker = {
       \ 'name': 'custom_maker',
-      \ 'exe': 'printf',
+      \ 'exe': 'ls',
       \ 'cwd': '%:p:h',
       \ }
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
   let tempfile_name = g:neomake_test_matchlist[1]
-  " Temporary file gets created in maker's cwd.
+
+  " Temporary file gets created in maker's cwd, and displays relative name.
   AssertEqual fnamemodify(tempfile_name, ':h'), '.'
   AssertNeomakeMessage printf('cwd: %s/tests/fixtures (changed).', getcwd()), 3
   AssertEqual map(getloclist(0), 'v:val.text'), [tempfile_name]
+
+  AssertNeomakeMessage printf('Removing temporary file: "%s/tests/fixtures/%s".',
+  \ getcwd(), fnamemodify(tempfile_name, ':t'))
+  Assert !filereadable(printf('tests/fixtures/%s', tempfile_name))
   bwipe
