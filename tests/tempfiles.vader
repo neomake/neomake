@@ -125,7 +125,7 @@ Execute (Maker can specify temporary file to use via fn):
   call maker.fn(jobinfo)
 
   AssertEqual maker.args, []
-  call maker._get_exe_and_args(jobinfo)
+  call maker._get_argv(jobinfo)
   AssertEqual maker.args, []
   AssertEqual maker.tempfile_name, g:neomake_test_tempfile
   AssertNeomakeMessage '\m^Using tempfile for modified buffer: "'.g:neomake_test_tempfile.'"', 3, {'jobinfo': jobinfo, 'make_id': jobinfo.make_id, 'bufnr': bufnr}
@@ -178,26 +178,21 @@ Execute (maker._get_argv uses jobinfo for bufnr):
   let b:neomake_tempfile_enabled = 1
   let bufnr = bufnr('%')
   let jobinfo = NeomakeTestsFakeJobinfo()
-  call maker._get_exe_and_args(jobinfo)
+  call maker._get_argv(jobinfo)
   let make_info = values(neomake#GetStatus().make_info)[0]
   Assert !empty(make_info.tempfiles), 'make_info has tempfiles'
 
   let jobinfo = NeomakeTestsFakeJobinfo()
   let maker = neomake#GetMaker({'name': 'my_maker', 'append_file': 1})
   edit tests/fixtures/errors.py
-  call maker._get_exe_and_args(jobinfo)
+  call maker._get_argv(jobinfo)
   Assert !has_key(jobinfo, 'tempfile_name')
 
   wincmd p
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.bufnr = bufnr
 
-  let [exe, args] = maker._get_exe_and_args(jobinfo)
-  AssertEqual [exe, args],
-  \ ['my_maker', [fnameescape(fnamemodify(bufname(bufnr), ':.'))]]
-
-  let [maker.exe, maker.args] = [exe, args]
-  let expected = [exe] + args
+  let expected = ['my_maker', fnameescape(fnamemodify(bufname(bufnr), ':.'))]
   if neomake#has_async_support()
     AssertEqual expected, maker._get_argv(jobinfo)
   else
@@ -569,3 +564,18 @@ Execute (Does not expand % in args as string):
   AssertNeomakeMessage 'Using temporary directory for non-writable parent directory.', 3
   AssertEqual map(getloclist(0), 'v:val.text'), ['%:h']
   bwipe!
+
+Execute (Warns when removal of tempfiles fails):
+  if neomake#has_async_support()
+    new
+    let maker = {'exe': 'true'}
+    call neomake#Make(1, [maker])
+    AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)"', 3
+    let tempfile_name = g:neomake_test_matchlist[1]
+    call delete(tempfile_name)
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage printf('Failed to remove temporary file: "%s".', tempfile_name), 1
+    bwipe
+  else
+    NeomakeTestsSkip 'no async support.'
+  endif

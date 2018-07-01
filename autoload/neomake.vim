@@ -288,33 +288,6 @@ function! s:handle_get_list_entries(jobinfo, ...) abort
     return 1
 endfunction
 
-let s:jobinfo_base = {}
-function! s:jobinfo_base.get_pid() abort
-    if has_key(self, 'vim_job')
-        let info = job_info(self.vim_job)
-        if info.status ==# 'run'
-            return info.process
-        endif
-        return -1
-    endif
-    try
-        return jobpid(self.nvim_job)
-    catch /^Vim(return):E900:/
-        return -1
-    endtry
-endfunction
-
-function! s:jobinfo_base.as_string() abort
-    let extra = []
-    for k in ['canceled', 'finished']
-        if get(self, k, 0)
-            let extra += [k]
-        endif
-    endfor
-    return printf('Job %d: %s%s', self.id, self.name,
-                \ empty(extra) ? '' : ' ['.join(extra, ', ').']')
-endfunction
-
 function! s:MakeJob(make_id, options) abort
     let job_id = s:job_id
     let s:job_id += 1
@@ -324,13 +297,14 @@ function! s:MakeJob(make_id, options) abort
     "                        1 for non-async)
     "  - serialize_abort_on_error (default: 0)
     "  - exit_callback (string/function, default: 0)
-    let jobinfo = extend(copy(s:jobinfo_base), extend({
+    let jobinfo = extend(copy(g:neomake#jobinfo#base), extend({
         \ 'id': job_id,
         \ 'name': empty(get(a:options.maker, 'name', '')) ? 'neomake_'.job_id : a:options.maker.name,
         \ 'maker': a:options.maker,
         \ 'bufnr': a:options.bufnr,
         \ 'file_mode': a:options.file_mode,
         \ 'ft': a:options.ft,
+        \ 'cwd': s:make_info[a:options.make_id].cwd,
         \ }, a:options))
 
     let maker = jobinfo.maker
@@ -351,14 +325,12 @@ function! s:MakeJob(make_id, options) abort
         \ }, 'keep')
 
     let error = ''
-    let cd_back_cmd = ''
     try
-        let [maker.exe, maker.args] = maker._get_exe_and_args(jobinfo)
         " Change to job's cwd (before args, for relative filename).
-        let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(jobinfo)
+        let cd_error = jobinfo.cd()
         if !empty(cd_error)
             throw printf("Neomake: %s: could not change to maker's cwd (%s): %s.",
-                        \ maker.name, cwd, cd_error)
+                        \ maker.name, jobinfo.cwd, cd_error)
         endif
         let jobinfo.argv = maker._get_argv(jobinfo)
 
@@ -372,10 +344,12 @@ function! s:MakeJob(make_id, options) abort
         endif
         call neomake#log#info(start_msg.'.', jobinfo)
 
-        if empty(cd_back_cmd)
-            call neomake#log#debug('cwd: '.cwd.'.', jobinfo)
-        else
+        let cwd = jobinfo.cwd
+        let changed = !empty(jobinfo.cd_back_cmd)
+        if changed
             call neomake#log#debug('cwd: '.cwd.' (changed).', jobinfo)
+        else
+            call neomake#log#debug('cwd: '.cwd.'.', jobinfo)
         endif
 
         let base_job_opts = {}
@@ -533,9 +507,7 @@ function! s:MakeJob(make_id, options) abort
             return jobinfo
         endif
     finally
-        if !empty(cd_back_cmd)
-            exe cd_back_cmd
-        endif
+        call jobinfo.cd_back()
         if exists('save_env_file')
             call s:restore_env('NEOMAKE_FILE', save_env_file)
         endif
@@ -669,6 +641,8 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
     if !empty(temp_file)
         let bufname = temp_file
         if temp_file !=# '-'
+            " Use absolute path internally, which is important for removal.
+            let temp_file = fnamemodify(temp_file, ':p')
             if !has_key(make_info, 'tempfiles')
                 let make_info.tempfiles = [temp_file]
                 let make_info.created_dirs = s:create_dirs_for_file(temp_file)
@@ -723,11 +697,11 @@ function! s:command_maker_base._bind_args() abort dict
     let self.args = args
 endfunction
 
-function! s:command_maker_base._get_exe_and_args(jobinfo) abort dict
+function! s:command_maker_base._get_argv(jobinfo) abort dict
     let args = self.args
+    let args_is_list = type(self.args) == type([])
     let filename = self._get_fname_for_args(a:jobinfo)
     if !empty(filename)
-        let args_is_list = type(self.args) == type([])
         let args = copy(args)
         if args_is_list
             call add(args, filename)
@@ -735,7 +709,7 @@ function! s:command_maker_base._get_exe_and_args(jobinfo) abort dict
             let args .= (empty(args) ? '' : ' ').fnameescape(filename)
         endif
     endif
-    return [self.exe, args]
+    return neomake#compat#get_argv(self.exe, args, args_is_list)
 endfunction
 
 function! s:GetMakerForFiletype(ft, maker_name) abort
@@ -1608,17 +1582,20 @@ function! s:do_clean_make_info(make_info) abort
     let tempfiles = get(a:make_info, 'tempfiles')
     if !empty(tempfiles)
         for tempfile in tempfiles
-            call neomake#log#debug(printf('Removing temporary file: "%s".',
-                        \ tempfile))
-            call delete(tempfile)
+            if delete(tempfile) == 0
+                call neomake#log#debug(printf('Removing temporary file: "%s".',
+                            \ tempfile))
+            else
+                call neomake#log#warning(printf('Failed to remove temporary file: "%s".',
+                            \ tempfile))
+            endif
             let bufnr_tempfile = bufnr(tempfile)
             if bufnr_tempfile != -1 && !buflisted(bufnr_tempfile)
                 let wipe_unlisted_buffers += [bufnr_tempfile]
             endif
         endfor
 
-        " Only delete the dir, if Vim supports it.  It will be cleaned up
-        " when quitting Vim in any case.
+        " Only delete the dir, if Vim supports it.
         if v:version >= 705 || (v:version == 704 && has('patch1107'))
             for dir in reverse(copy(get(a:make_info, 'created_dirs')))
                 call delete(dir, 'd')
@@ -1778,41 +1755,6 @@ endfunction
 "  - error (empty for success)
 "  - directory changed into (empty if skipped)
 "  - command to change back to the current workding dir (might be empty)
-function! s:cd_to_jobs_cwd(jobinfo) abort
-    if !has_key(a:jobinfo, 'cwd')
-        let maker = a:jobinfo.maker
-        let cwd = neomake#utils#GetSetting('cwd', maker, '', a:jobinfo.ft, a:jobinfo.bufnr, 1)
-        if cwd !=# ''
-            if cwd[0:1] ==# '%:'
-                let cwd = neomake#utils#fnamemodify(a:jobinfo.bufnr, cwd[1:])
-            else
-                let cwd = expand(cwd, 1)
-            endif
-            let a:jobinfo.cwd = substitute(fnamemodify(cwd, ':p'), '[\/]$', '', '')
-        else
-            let a:jobinfo.cwd = s:make_info[a:jobinfo.make_id].cwd
-        endif
-    endif
-    let cwd = a:jobinfo.cwd
-    if empty(cwd) || cwd ==# '.'
-        return ['', '', '']
-    endif
-    let cwd = substitute(fnamemodify(cwd, ':p'), '[\/]$', '', '')
-    let cur_wd = getcwd()
-    if cwd !=# cur_wd
-        let cd = haslocaldir() ? 'lcd' : (exists(':tcd') == 2 && haslocaldir(-1, 0)) ? 'tcd' : 'cd'
-        try
-            exe cd.' '.fnameescape(cwd)
-        catch
-            " Tests fail with E344, but in reality it is E472?!
-            " If uncaught, both are shown - let's just catch everything.
-            let cd_back_cmd = cur_wd ==# getcwd() ? '' : cd.' '.fnameescape(cur_wd)
-            return [v:exception, cwd, cd_back_cmd]
-        endtry
-        return ['', cwd, cd.' '.fnameescape(cur_wd)]
-    endif
-    return ['', cwd, '']
-endfunction
 
 " Call a:fn with a:args and queue it, in case if fails with E48/E523.
 function! s:pcall(fn, args) abort
@@ -1867,11 +1809,11 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                     \ . "'maker_name': maker_name,"
                     \ . '})')
 
-        let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(a:jobinfo)
+        let cd_error = a:jobinfo.cd()
         if !empty(cd_error)
             call neomake#log#debug(printf(
                         \ "Could not change to job's cwd (%s): %s.",
-                        \ cwd, cd_error), a:jobinfo)
+                        \ a:jobinfo.cwd, cd_error), a:jobinfo)
         endif
 
         let prev_list = s:create_locqf_list(a:jobinfo)
@@ -1903,9 +1845,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                 endif
             endif
         finally
-            if empty(cd_error)
-                exe cd_back_cmd
-            endif
+            call a:jobinfo.cd_back()
         endtry
         let new_list = file_mode ? getloclist(0) : getqflist()
         let parsed_entries = new_list[len(prev_list):]
@@ -2088,11 +2028,11 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
             call map(a:lines, maker.mapexpr)
         endif
 
-        let [cd_error, cwd, cd_back_cmd] = s:cd_to_jobs_cwd(a:jobinfo)
+        let cd_error = a:jobinfo.cd()
         if !empty(cd_error)
             call neomake#log#debug(printf(
                         \ "Could not change to job's cwd (%s): %s.",
-                        \ cwd, cd_error), a:jobinfo)
+                        \ a:jobinfo.cwd, cd_error), a:jobinfo)
         endif
 
         let prev_list = s:create_locqf_list(a:jobinfo)
@@ -2115,9 +2055,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
             endif
         finally
             let &errorformat = olderrformat
-            if empty(cd_error)
-                exe cd_back_cmd
-            endif
+            call a:jobinfo.cd_back()
             if exists('restore_vimqf')
                 if restore_vimqf[1] is# s:unset_dict
                     unlet g:[restore_vimqf[0]]
