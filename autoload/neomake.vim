@@ -558,7 +558,8 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
         if empty(bufname)
             let temp_file = tempname() . slash . 'neomaketmp.'.a:jobinfo.ft
         else
-            let orig_file = neomake#utils#fnamemodify(a:jobinfo.bufnr, ':.')
+            " Use absolute path internally, which is important for removal.
+            let orig_file = neomake#utils#fnamemodify(a:jobinfo.bufnr, ':p')
             if empty(orig_file)
                 let dir = tempname()
                 let filename = fnamemodify(bufname, ':t')
@@ -618,8 +619,10 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         let used_for = ''
     endif
 
+    let uses_stdin = get(a:jobinfo, 'uses_stdin', 0)
+
     if !empty(used_for)
-        if get(a:jobinfo, 'uses_stdin', 0)
+        if uses_stdin
             call neomake#log#debug(printf(
                         \ 'Using stdin for %s buffer.', used_for),
                         \ a:jobinfo)
@@ -633,27 +636,24 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
 
     let make_info = s:make_info[a:jobinfo.make_id]
     " Handle stdin when supports_stdin sets self.tempfile_name = ''.
-    if get(a:jobinfo, 'uses_stdin', 0)
+    if uses_stdin
         if !has_key(make_info, 'buffer_lines')
             let make_info.buffer_lines = neomake#utils#get_buffer_lines(bufnr)
         endif
     endif
     if !empty(temp_file)
-        let bufname = temp_file
-        if temp_file !=# '-'
-            " Use absolute path internally, which is important for removal.
-            let temp_file = fnamemodify(temp_file, ':p')
-            if !has_key(make_info, 'tempfiles')
-                let make_info.tempfiles = [temp_file]
-                let make_info.created_dirs = s:create_dirs_for_file(temp_file)
-                call neomake#utils#write_tempfile(bufnr, temp_file)
-            elseif temp_file !=# make_info.tempfiles[0]
-                call extend(make_info.created_dirs, s:create_dirs_for_file(temp_file))
-                call writefile(readfile(make_info.tempfiles[0], 'b'), temp_file, 'b')
-                call add(make_info.tempfiles, temp_file)
-            endif
-            let a:jobinfo.tempfile = temp_file
+        " Use relative path for args.
+        let bufname = fnamemodify(temp_file, ':.')
+        if !has_key(make_info, 'tempfiles')
+            let make_info.tempfiles = [temp_file]
+            let make_info.created_dirs = s:create_dirs_for_file(temp_file)
+            call neomake#utils#write_tempfile(bufnr, temp_file)
+        elseif temp_file !=# make_info.tempfiles[0]
+            call extend(make_info.created_dirs, s:create_dirs_for_file(temp_file))
+            call writefile(readfile(make_info.tempfiles[0], 'b'), temp_file, 'b')
+            call add(make_info.tempfiles, temp_file)
         endif
+        let a:jobinfo.tempfile = temp_file
     endif
 
     if !has_key(make_info, 'automake_tick')
