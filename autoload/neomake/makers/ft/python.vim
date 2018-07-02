@@ -34,25 +34,32 @@ function! neomake#makers#ft#python#DetectPythonVersion() abort
     endif
 endfunction
 
+let s:ignore_python_warnings = [
+            \ '\v[\/]inspect.py:\d+: Warning:',
+            \ '\v^.{-}:\d+: FutureWarning:',
+            \ ]
+
 " Filter Python warnings (the warning and the following line).
 " To be used as a funcref with filter().
-function! s:filter_py_warnings(v) abort
+function! s:filter_py_warning(v) abort
     if s:filter_next_py_warning
         let s:filter_next_py_warning = 0
         " Only keep (expected) lines starting with two spaces.
         return a:v[0:1] !=# '  '
     endif
-    if a:v =~# '\v^\S+[\/]inspect.py:\d+: Warning:'
-        let s:filter_next_py_warning = 1
-        return 0
-    endif
+    for pattern in s:ignore_python_warnings
+        if a:v =~# pattern
+            let s:filter_next_py_warning = 1
+            return 0
+        endif
+    endfor
     return 1
 endfunction
 
 function! neomake#makers#ft#python#FilterPythonWarnings(lines, context) abort
     if a:context.source ==# 'stderr'
         let s:filter_next_py_warning = 0
-        call filter(a:lines, 's:filter_py_warnings(v:val)')
+        call filter(a:lines, 's:filter_py_warning(v:val)')
     endif
 endfunction
 
@@ -115,6 +122,7 @@ function! neomake#makers#ft#python#flake8() abort
         \ 'postprocess': function('neomake#makers#ft#python#Flake8EntryProcess'),
         \ 'short_name': 'fl8',
         \ 'output_stream': 'stdout',
+        \ 'filter_output': function('neomake#makers#ft#python#FilterPythonWarnings'),
         \ }
 
     function! maker.supports_stdin(jobinfo) abort
