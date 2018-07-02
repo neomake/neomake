@@ -298,6 +298,14 @@ Execute (neomake#makers#ft#python#FilterPythonWarnings):
   \ 'this is not a source location',
   \ ]
 
+Execute (neomake#makers#ft#python#FilterPythonWarnings: FutureWarning):
+  let lines = [
+  \ '/some/.venv 37 with space/lib/python3.7/site-packages/pycodestyle.py:113: FutureWarning: Possible nested set at position 1',
+  \ "  EXTRANEOUS_WHITESPACE_REGEX = re.compile(r'[[({] | []}),;:]')",
+  \ ]
+  call neomake#makers#ft#python#FilterPythonWarnings(lines, {'source': 'stderr'})
+  AssertEqual lines, []
+
 Execute (python: mypy: handles --py2):
   call g:NeomakeTestsSetPATH('')
   let base_args = ['--check-untyped-defs', '--ignore-missing-imports']
