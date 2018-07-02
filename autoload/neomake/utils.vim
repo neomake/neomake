@@ -83,6 +83,7 @@ endfunction
 let s:maker_from_command = extend(copy(g:neomake#core#command_maker_base), {
             \ 'remove_invalid_entries': 0,
             \ })
+" @vimlint(EVL103, 1, a:options)
 function! s:maker_from_command.fn(options) dict abort
     " Return a cleaned up copy of self.
     let maker = filter(deepcopy(self), "v:key !~# '^__' && v:key !=# 'fn'")
@@ -100,8 +101,8 @@ function! s:maker_from_command.fn(options) dict abort
     endif
     return maker
 endfunction
+" @vimlint(EVL103, 0, a:options)
 
-" @vimlint(EVL103, 1, a:jobinfo)
 function! s:maker_from_command._get_argv(jobinfo) abort dict
     let args = self.args
     let fname = self._get_fname_for_args(a:jobinfo)
@@ -115,7 +116,6 @@ function! s:maker_from_command._get_argv(jobinfo) abort dict
     endif
     return neomake#compat#get_argv(self.exe, args, 1)
 endfunction
-" @vimlint(EVL103, 0, a:jobinfo)
 
 " Create a maker object, with a "fn" callback.
 " Args: command (string or list).  Gets wrapped in a shell in case it is a
