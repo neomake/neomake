@@ -77,11 +77,14 @@ function! neomake#utils#Exists(exe) abort
     return executable(a:exe)
 endfunction
 
-let s:command_maker = {
+" Object used with neomake#utils#MakerFromCommand.
+" It creates args in `.fn` and handles appending the filename according to
+" if it was created from a string or list of args.
+let s:maker_from_command = extend(copy(g:neomake#core#command_maker_base), {
             \ 'remove_invalid_entries': 0,
-            \ '_get_fname_for_args': get(g:neomake#core#command_maker_base, '_get_fname_for_args'),
-            \ }
-function! s:command_maker.fn(jobinfo) dict abort
+            \ })
+" @vimlint(EVL103, 1, a:options)
+function! s:maker_from_command.fn(options) dict abort
     " Return a cleaned up copy of self.
     let maker = filter(deepcopy(self), "v:key !~# '^__' && v:key !=# 'fn'")
 
@@ -90,32 +93,35 @@ function! s:command_maker.fn(jobinfo) dict abort
         let argv = split(&shell) + split(&shellcmdflag)
         let maker.exe = argv[0]
         let maker.args = argv[1:] + [command]
+        let maker.__command_is_string = 1
     else
         let maker.exe = command[0]
         let maker.args = command[1:]
-    endif
-    let fname = self._get_fname_for_args(a:jobinfo)
-    if !empty(fname)
-        if type(command) == type('')
-            let maker.args[-1] .= ' '.fname
-        else
-            call add(maker.args, fname)
-        endif
+        let maker.__command_is_string = 0
     endif
     return maker
 endfunction
+" @vimlint(EVL103, 0, a:options)
 
-" @vimlint(EVL103, 1, a:jobinfo)
-function! s:command_maker._get_argv(jobinfo) abort dict
-    return neomake#compat#get_argv(self.exe, self.args, 1)
+function! s:maker_from_command._get_argv(jobinfo) abort dict
+    let args = self.args
+    let fname = self._get_fname_for_args(a:jobinfo)
+    if !empty(fname)
+        let args = copy(args)
+        if self.__command_is_string
+            let args[-1] .= ' '.fname
+        else
+            call add(args, fname)
+        endif
+    endif
+    return neomake#compat#get_argv(self.exe, args, 1)
 endfunction
-" @vimlint(EVL103, 0, a:jobinfo)
 
 " Create a maker object, with a "fn" callback.
 " Args: command (string or list).  Gets wrapped in a shell in case it is a
 "       string.
 function! neomake#utils#MakerFromCommand(command) abort
-    let maker = copy(s:command_maker)
+    let maker = copy(s:maker_from_command)
     let maker.__command = a:command
     return maker
 endfunction
