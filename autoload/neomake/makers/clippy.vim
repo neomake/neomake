@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 " Yet to be determined
-let s:rustup_has_nightly = -1
+let s:rustup_has_nightly = get(g:, 'neomake_clippy_rustup_has_nightly', -1)
 
 function! neomake#makers#clippy#clippy() abort
     " When rustup and a nightly toolchain is installed, that is used.
