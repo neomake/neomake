@@ -639,11 +639,7 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         if !has_key(make_info, 'buffer_lines')
             let make_info.buffer_lines = neomake#utils#get_buffer_lines(bufnr)
         endif
-        if empty(temp_file)
-            let bufname = '-'
-        else
-            let bufname = temp_file
-        endif
+        let bufname = temp_file
     elseif !empty(temp_file)
         " Use relative path for args.
         let bufname = fnamemodify(temp_file, ':.')

@@ -144,7 +144,11 @@ Execute (Maker can use '-' as temporary filename):
   new
   let maker = neomake#GetMaker(maker)
   let jobinfo = NeomakeTestsFakeJobinfo()
-  AssertEqual maker._get_argv(jobinfo), ['true', '-']
+  if neomake#has_async_support()
+    AssertEqual maker._get_argv(jobinfo), ['true', '-']
+  else
+    AssertEqual maker._get_argv(jobinfo), 'true -'
+  endif
   AssertNeomakeMessage 'Using tempfile for unnamed buffer: "-".', 3
   Assert !has_key(jobinfo, 'supports_stdin')
   AssertEqual jobinfo.tempfile, fnamemodify('-', ':p')
@@ -152,22 +156,47 @@ Execute (Maker can use '-' as temporary filename):
   AssertNeomakeMessage printf('Removing temporary file: "%s".', jobinfo.tempfile)
   bwipe
 
-Execute (Maker can use '-' as tempfile_name (with supports_stdin)):
+Execute (Maker cannot use '-' as tempfile_name (with supports_stdin)):
   let maker = {
   \ 'exe': 'true',
   \ 'supports_stdin': 1,
+  \ 'tempfile_name': '-',
   \ }
 
   new
   let maker = neomake#GetMaker(maker)
   let jobinfo = NeomakeTestsFakeJobinfo()
-  AssertEqual maker._get_argv(jobinfo), ['true', '-']
+  if neomake#has_async_support()
+    AssertEqual maker._get_argv(jobinfo), ['true', '-']
+  else
+    AssertEqual maker._get_argv(jobinfo), 'true -'
+  endif
   AssertNeomakeMessage 'Using stdin for unnamed buffer (-).', 3
   AssertEqual jobinfo.uses_stdin, 1
   Assert !has_key(jobinfo, 'tempfile')
 
   CallNeomake 1, [maker]
-  bwipe!
+  bwipe
+
+Execute (Maker can use '' as tempfile_name (with supports_stdin)):
+  let maker = {
+  \ 'exe': 'true',
+  \ 'supports_stdin': 1,
+  \ 'tempfile_name': '',
+  \ }
+
+  new
+  let maker = neomake#GetMaker(maker)
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  if neomake#has_async_support()
+    AssertEqual maker._get_argv(jobinfo), ['true']
+  else
+    AssertEqual maker._get_argv(jobinfo), 'true'
+  endif
+  AssertNeomakeMessage 'Using stdin for unnamed buffer ().', 3
+  AssertEqual jobinfo.uses_stdin, 1
+  Assert !has_key(jobinfo, 'tempfile')
+  bwipe
 
 Execute (Previously existing temporary dir is kept):
   let tempname = tempname()
