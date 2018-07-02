@@ -8,7 +8,7 @@ Execute (xml: xmllint: uses stdin and handles generic validity error):
   let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#xml#xmllint',
   \ 'tests/fixtures/input/xmllint/validity-error.xml')
   CallNeomake 1, [maker]
-  AssertNeomakeMessage 'Using stdin for unreadable buffer.', 3
+  AssertNeomakeMessage 'Using stdin for unreadable buffer (-).', 3
   AssertNeomakeMessage 'exit: xmllint-fixture: 3.', 3
   AssertEqual getloclist(0), []
   bwipe
@@ -19,7 +19,7 @@ Execute (xml: xmllint: missing dtd):
   let maker = NeomakeTestsFixtureMaker('neomake#makers#ft#xml#xmllint',
   \ 'tests/fixtures/input/xmllint/missingdtd.xml')
   CallNeomake 1, [maker]
-  AssertNeomakeMessage 'Using stdin for unnamed buffer.', 3
+  AssertNeomakeMessage 'Using stdin for unnamed buffer (-).', 3
   AssertNeomakeMessage 'exit: xmllint-fixture: 3.', 3
   AssertNeomakeMessage '\vUsed bufnr from stdin buffer \d+ \(tests/fixtures/input/xmllint/missingdtd.xml\) for 2 entries: 1, 2.'
 

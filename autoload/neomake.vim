@@ -624,10 +624,9 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
     if !empty(used_for)
         if uses_stdin
             call neomake#log#debug(printf(
-                        \ 'Using stdin for %s buffer.', used_for),
+                        \ 'Using stdin for %s buffer (%s).', used_for, temp_file),
                         \ a:jobinfo)
-        endif
-        if !empty(temp_file)
+        elseif !empty(temp_file)
             call neomake#log#debug(printf(
                         \ 'Using tempfile for %s buffer: "%s".', used_for, temp_file),
                         \ a:jobinfo)
@@ -640,10 +639,15 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         if !has_key(make_info, 'buffer_lines')
             let make_info.buffer_lines = neomake#utils#get_buffer_lines(bufnr)
         endif
-    endif
-    if !empty(temp_file)
+        if empty(temp_file)
+            let bufname = '-'
+        else
+            let bufname = temp_file
+        endif
+    elseif !empty(temp_file)
         " Use relative path for args.
         let bufname = fnamemodify(temp_file, ':.')
+        let temp_file = fnamemodify(temp_file, ':p')
         if !has_key(make_info, 'tempfiles')
             let make_info.tempfiles = [temp_file]
             let make_info.created_dirs = s:create_dirs_for_file(temp_file)

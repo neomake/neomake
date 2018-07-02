@@ -135,6 +135,40 @@ Execute (Maker can specify temporary file to use via fn):
   AssertEqual readfile(g:neomake_test_tempfile), ['line1']
   bwipe!
 
+Execute (Maker can use '-' as temporary filename):
+  let maker = {
+  \ 'exe': 'true',
+  \ 'tempfile_name': '-',
+  \ }
+
+  new
+  let maker = neomake#GetMaker(maker)
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  AssertEqual maker._get_argv(jobinfo), ['true', '-']
+  AssertNeomakeMessage 'Using tempfile for unnamed buffer: "-".', 3
+  Assert !has_key(jobinfo, 'supports_stdin')
+  AssertEqual jobinfo.tempfile, fnamemodify('-', ':p')
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage printf('Removing temporary file: "%s".', jobinfo.tempfile)
+  bwipe
+
+Execute (Maker can use '-' as tempfile_name (with supports_stdin)):
+  let maker = {
+  \ 'exe': 'true',
+  \ 'supports_stdin': 1,
+  \ }
+
+  new
+  let maker = neomake#GetMaker(maker)
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  AssertEqual maker._get_argv(jobinfo), ['true', '-']
+  AssertNeomakeMessage 'Using stdin for unnamed buffer (-).', 3
+  AssertEqual jobinfo.uses_stdin, 1
+  Assert !has_key(jobinfo, 'tempfile')
+
+  CallNeomake 1, [maker]
+  bwipe!
+
 Execute (Previously existing temporary dir is kept):
   let tempname = tempname()
   call mkdir(tempname, '', 0700)
