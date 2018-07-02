@@ -470,7 +470,8 @@ function! s:After()
   endif
 
   let unexpected_warnings = filter(copy(g:neomake_test_messages),
-        \ 'v:val[0] == 1 && index(g:_neomake_test_asserted_messages, v:val) == -1')
+        \ 'v:val[0] == 1 && v:val[1] !=# "automake: timer support is required for delayed events."'.
+        \ '&& index(g:_neomake_test_asserted_messages, v:val) == -1')
   if !empty(unexpected_warnings)
     call add(errors, 'found unexpected warning messages: '.string(unexpected_warnings))
   endif
