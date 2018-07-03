@@ -24,7 +24,7 @@ test_interactive: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim_interactive,testvi
 
 VADER:=Vader!
 VADER_OPTIONS:=-q
-VADER_ARGS=tests/main.vader tests/isolated.vader
+VADER_ARGS=tests/all.vader
 VIM_ARGS='+$(VADER) $(VADER_OPTIONS) $(VADER_ARGS)'
 
 NEOMAKE_TESTS_DEP_PLUGINS_DIR?=build/vim/plugins
@@ -288,12 +288,12 @@ check_docker:
 check:
 	@:; set -e; ret=0; \
 	echo '== Checking that all tests are included'; \
-	for f in $(filter-out main.vader isolated.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
+	for f in $(filter-out all.vader main.vader isolated.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
 	  if ! grep -q "^Include.*: $$f" tests/main.vader; then \
 	    echo "Test not included in main.vader: $$f" >&2; ret=1; \
 	  fi; \
 	done; \
-	for f in $(filter-out main.vader,$(notdir $(shell git ls-files tests/isolated/*.vader))); do \
+	for f in $(notdir $(shell git ls-files tests/isolated/*.vader)); do \
 	  if ! grep -q "^Include.*: isolated/$$f" tests/isolated.vader; then \
 	    echo "Test not included in isolated.vader: $$f" >&2; ret=1; \
 	  fi; \

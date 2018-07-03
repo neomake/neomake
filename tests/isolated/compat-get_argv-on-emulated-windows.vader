@@ -36,8 +36,8 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
 Execute (neomake#compat#dev_null on (emulated) Windows):
   AssertEqual g:neomake#compat#dev_null, 'NUL'
 
-  " Restore if not run separately.
-  if fnamemodify(g:vader_file, ':t') == 'isolated.vader'
+  " Restore if not profiling.
+  if !v:profiling
     runtime autoload/neomake/utils.vim
     runtime autoload/neomake/compat.vim
   endif
