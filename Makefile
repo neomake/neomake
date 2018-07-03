@@ -192,6 +192,9 @@ docker_image:
 	docker build -f Dockerfile.tests -t $(DOCKER_REPO):$(DOCKER_TAG) .
 docker_push:
 	docker push $(DOCKER_REPO):$(DOCKER_TAG)
+docker_update_latest:
+	docker tag $(DOCKER_REPO):$(DOCKER_TAG) $(DOCKER_REPO):latest
+	docker push $(DOCKER_REPO):latest
 docker_update_image:
 	@git diff --cached --exit-code >/dev/null || { echo "WARN: git index is not clean."; }
 	@if git diff --exit-code Makefile >/dev/null; then \
