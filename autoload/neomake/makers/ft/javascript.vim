@@ -6,6 +6,10 @@ function! neomake#makers#ft#javascript#EnabledMakers() abort
                 \]
 endfunction
 
+function! neomake#makers#ft#javascript#tsc() abort
+    return neomake#makers#ft#typescript#tsc()
+endfunction
+
 function! neomake#makers#ft#javascript#gjslint() abort
     return {
         \ 'args': ['--nodebug_indentation', '--nosummary', '--unix_mode', '--nobeep'],
