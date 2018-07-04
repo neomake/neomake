@@ -296,26 +296,28 @@ check_docker:
 
 check:
 	@:; set -e; ret=0; \
+	[ $$TERM = dumb ] && export TERM=xterm; \
+	echo_bold() { tput bold; echo "$$@"; tput sgr0; }; \
 	echo '== Checking that all tests are included'; \
 	for f in $(filter-out all.vader main.vader isolated.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
 	  if ! grep -q "^Include.*: $$f" tests/main.vader; then \
-	    echo "Test not included in main.vader: $$f" >&2; ret=1; \
+	    echo_bold "Test not included in main.vader: $$f" >&2; ret=1; \
 	  fi; \
 	done; \
 	for f in $(notdir $(shell git ls-files tests/isolated/*.vader)); do \
 	  if ! grep -q "^Include.*: isolated/$$f" tests/isolated.vader; then \
-	    echo "Test not included in isolated.vader: $$f" >&2; ret=1; \
+	    echo_bold "Test not included in isolated.vader: $$f" >&2; ret=1; \
 	  fi; \
 	done; \
 	echo '== Checking for absent Before sections in tests'; \
 	if grep '^Before:' tests/*.vader; then \
-	  echo "Before: should not be used in tests itself, because it overrides the global one."; \
+	  echo_bold "Before: should not be used in tests itself, because it overrides the global one."; \
 	  (( ret+=2 )); \
 	fi; \
 	echo '== Checking for absent :Log calls'; \
 	if git --no-pager grep --line-number --color '^(\s*au.*\b)?\s*Log\b' \
 	    -- :^tests/include/init.vim :^tests/include/setup.vader; then \
-	  echo "Found Log commands."; \
+	  echo_bold "Found Log commands."; \
 	  (( ret+=4 )); \
 	fi; \
 	echo '== Checking tests'; \
@@ -323,12 +325,14 @@ check:
 		| grep -E '^[^[:space:]]+- ' \
 		| grep -v g:vader_exception | sed -e s/-/:/ -e s/-// || true)"; \
 	if [[ -n "$$output" ]]; then \
-		echo 'AssertThrows used without checking g:vader_exception:' >&2; \
+		echo_bold 'AssertThrows used without checking g:vader_exception:' >&2; \
 		echo "$$output" >&2; \
 	  (( ret+=16 )); \
 	fi; \
 	echo '== Running custom checks'; \
+	tput bold; \
 	contrib/vim-checks $(LINT_ARGS) || (( ret+= 16 )); \
+	tput sgr0; \
 	exit $$ret
 
 .coverage.covimerage: .coveragerc $(shell find . -name '*.vim')
