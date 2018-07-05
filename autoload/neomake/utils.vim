@@ -83,8 +83,7 @@ endfunction
 let s:maker_from_command = extend(copy(g:neomake#core#command_maker_base), {
             \ 'remove_invalid_entries': 0,
             \ })
-" @vimlint(EVL103, 1, a:options)
-function! s:maker_from_command.fn(options) dict abort
+function! s:maker_from_command.fn(_options) dict abort
     " Return a cleaned up copy of self.
     let maker = filter(deepcopy(self), "v:key !~# '^__' && v:key !=# 'fn'")
 
@@ -101,7 +100,6 @@ function! s:maker_from_command.fn(options) dict abort
     endif
     return maker
 endfunction
-" @vimlint(EVL103, 0, a:options)
 
 function! s:maker_from_command._get_argv(jobinfo) abort dict
     let args = self.args

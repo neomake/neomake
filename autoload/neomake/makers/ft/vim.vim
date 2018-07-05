@@ -25,7 +25,6 @@ function! neomake#makers#ft#vim#vint() abort
         \   'pattern': '\v%(^:|%([^:]+: ))\zs(\S+)',
         \ }}
 
-    " @vimlint(EVL103, 1, a:_jobinfo)
     function! maker.supports_stdin(_jobinfo) abort
         let exe = exists('*exepath') ? exepath(self.exe) : self.exe
         let support = get(s:vint_supports_stdin, exe, -1)
@@ -45,7 +44,6 @@ function! neomake#makers#ft#vim#vint() abort
         endif
         return support
     endfunction
-    " @vimlint(EVL103, 0, a:_jobinfo)
     return maker
 endfunction
 

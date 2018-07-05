@@ -45,13 +45,11 @@ function! neomake#makers#ft#javascript#eslint() abort
         \ 'output_stream': 'stdout',
         \ }
 
-    " @vimlint(EVL103, 1, a:jobinfo)
-    function! maker.supports_stdin(jobinfo) abort
+    function! maker.supports_stdin(_jobinfo) abort
         let self.args += ['--stdin', '--stdin-filename=%:p']
         let self.tempfile_name = ''
         return 1
     endfunction
-    " @vimlint(EVL103, 0, a:jobinfo)
 
     return maker
 endfunction
