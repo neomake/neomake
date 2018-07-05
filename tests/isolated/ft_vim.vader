@@ -24,7 +24,7 @@ Execute (vint: detects stdin support):
   AssertEqual maker.supports_stdin({}), 1
   AssertEqual maker.args[-2:], ['--stdin-display-name', '%:.']
 
-  " Restore if not run separately.
-  if fnamemodify(g:vader_file, ':t') == 'isolated.vader'
+  " Restore if not profiling.
+  if !v:profiling
     runtime autoload/neomake/compat.vim
   endif

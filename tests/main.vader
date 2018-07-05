@@ -1,4 +1,6 @@
-" Main entry point to run all Vader tests.
+" Main entry point to run main Vader tests (without isolated ones).
+" Use all.vader to run all tests.
+"
 " You can run the included files by themselves (since they also source
 " include/setup.vader).
 

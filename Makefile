@@ -24,7 +24,7 @@ test_interactive: $(if $(TEST_VIM),$(if $(IS_NEOVIM),testnvim_interactive,testvi
 
 VADER:=Vader!
 VADER_OPTIONS:=-q
-VADER_ARGS=tests/main.vader tests/isolated.vader
+VADER_ARGS=tests/all.vader
 VIM_ARGS='+$(VADER) $(VADER_OPTIONS) $(VADER_ARGS)'
 
 NEOMAKE_TESTS_DEP_PLUGINS_DIR?=build/vim/plugins
@@ -223,7 +223,8 @@ $(_DOCKER_VIM_TARGETS):
 _docker_test: DOCKER_VIM:=vim-master
 _docker_test: DOCKER_MAKE_TARGET=$(DOCKER_MAKE_TEST_TARGET) \
   TEST_VIM='/vim-build/bin/$(DOCKER_VIM)' \
-  VADER_OPTIONS="$(VADER_OPTIONS)" VADER_ARGS="$(VADER_ARGS)"
+  VADER_OPTIONS="$(VADER_OPTIONS)" VADER_ARGS="$(VADER_ARGS)" \
+	$(DOCKER_MAKE_TEST_ARGS)
 _docker_test: docker_make
 docker_test: DOCKER_MAKE_TEST_TARGET:=test
 docker_test: DOCKER_STREAMS:=-t
@@ -232,6 +233,14 @@ docker_test: _docker_test
 docker_test_interactive: DOCKER_MAKE_TEST_TARGET:=test_interactive
 docker_test_interactive: DOCKER_STREAMS:=-ti
 docker_test_interactive: _docker_test
+
+docker_testcoverage: DOCKER_MAKE_TEST_TARGET:=testcoverage
+# Pick up VADER_ARGS from command line for COVERAGE_VADER_ARGS.
+docker_testcoverage: DOCKER_MAKE_TEST_ARGS:=$(if $(filter command line,$(origin COVERAGE_VADER_ARGS)),COVERAGE_VADER_ARGS="$(COVERAGE_VADER_ARGS)",$(if $(filter command line,$(origin VADER_ARGS)),COVERAGE_VADER_ARGS="$(VADER_ARGS)",))
+docker_testcoverage: DOCKER_STREAMS:=-t
+docker_testcoverage: _docker_test
+	sed -i 's~/testplugin/~$(CURDIR)/~g' .coverage.covimerage
+	coverage report -m
 
 docker_run: $(DEP_PLUGINS)
 docker_run:
@@ -290,26 +299,28 @@ check_docker:
 
 check:
 	@:; set -e; ret=0; \
+	[ $$TERM = dumb ] && export TERM=xterm; \
+	echo_bold() { tput bold; echo "$$@"; tput sgr0; }; \
 	echo '== Checking that all tests are included'; \
-	for f in $(filter-out main.vader isolated.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
+	for f in $(filter-out all.vader main.vader isolated.vader,$(notdir $(shell git ls-files tests/*.vader))); do \
 	  if ! grep -q "^Include.*: $$f" tests/main.vader; then \
-	    echo "Test not included in main.vader: $$f" >&2; ret=1; \
+	    echo_bold "Test not included in main.vader: $$f" >&2; ret=1; \
 	  fi; \
 	done; \
-	for f in $(filter-out main.vader,$(notdir $(shell git ls-files tests/isolated/*.vader))); do \
+	for f in $(notdir $(shell git ls-files tests/isolated/*.vader)); do \
 	  if ! grep -q "^Include.*: isolated/$$f" tests/isolated.vader; then \
-	    echo "Test not included in isolated.vader: $$f" >&2; ret=1; \
+	    echo_bold "Test not included in isolated.vader: $$f" >&2; ret=1; \
 	  fi; \
 	done; \
 	echo '== Checking for absent Before sections in tests'; \
 	if grep '^Before:' tests/*.vader; then \
-	  echo "Before: should not be used in tests itself, because it overrides the global one."; \
+	  echo_bold "Before: should not be used in tests itself, because it overrides the global one."; \
 	  (( ret+=2 )); \
 	fi; \
 	echo '== Checking for absent :Log calls'; \
 	if git --no-pager grep --line-number --color '^(\s*au.*\b)?\s*Log\b' \
 	    -- :^tests/include/init.vim :^tests/include/setup.vader; then \
-	  echo "Found Log commands."; \
+	  echo_bold "Found Log commands."; \
 	  (( ret+=4 )); \
 	fi; \
 	echo '== Checking tests'; \
@@ -317,12 +328,14 @@ check:
 		| grep -E '^[^[:space:]]+- ' \
 		| grep -v g:vader_exception | sed -e s/-/:/ -e s/-// || true)"; \
 	if [[ -n "$$output" ]]; then \
-		echo 'AssertThrows used without checking g:vader_exception:' >&2; \
+		echo_bold 'AssertThrows used without checking g:vader_exception:' >&2; \
 		echo "$$output" >&2; \
 	  (( ret+=16 )); \
 	fi; \
 	echo '== Running custom checks'; \
+	tput bold; \
 	contrib/vim-checks $(LINT_ARGS) || (( ret+= 16 )); \
+	tput sgr0; \
 	exit $$ret
 
 .coverage.covimerage: .coveragerc $(shell find . -name '*.vim')

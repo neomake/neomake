@@ -73,9 +73,8 @@ Execute (neomake#log#debug_obj does not call neomake#utils#Stringify if not nece
   call neomake#log#debug_obj('msg', 'obj')
   AssertEqual s:calls, [['obj']]
 
-
-  " Restore if not run separately.
-  if fnamemodify(g:vader_file, ':t') == 'isolated.vader'
+  " Restore if not profiling.
+  if !v:profiling
     runtime autoload/neomake/utils.vim
     runtime autoload/neomake/log.vim
     runtime autoload/neomake.vim

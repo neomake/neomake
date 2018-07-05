@@ -34,9 +34,7 @@ Execute (Ensure that temporary files are not being left around):
   bwipe
   bwipe
 
-  " Restore if not run separately.
-  if !has('nvim') || has('nvim-0.2.0')
-    if fnamemodify(g:vader_file, ':t') == 'isolated.vader'
-      runtime autoload/neomake.vim
-    endif
+  " Restore if not profiling.
+  if !v:profiling
+    runtime autoload/neomake.vim
   endif
