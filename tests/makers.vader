@@ -11,6 +11,52 @@ Execute (neomake#GetMakers):
   let g:neomake_sh_enabled_makers = ['sh']
   AssertEqual sort(neomake#GetMakers('sh')), sh_makers
 
+Execute (neomake#GetMakers uses makers from buffer vars):
+  new
+  let b:neomake_ft1_my_custom_maker = {}
+  let b:neomake_ft1_my_custom2_maker = {}
+  let b:neomake_ft2_my_custom2_maker = {}
+
+  AssertEqual neomake#GetMakers('ft1'), ['my_custom', 'my_custom2']
+  AssertEqual neomake#GetMakers('ft2'), ['my_custom2']
+  AssertEqual neomake#GetMakers('ft1.ft2'), ['my_custom', 'my_custom2']
+  bwipe
+
+Execute (neomake#GetMakers uses makers from new-style config):
+  new
+  noautocmd set filetype=myft
+  let maker1 = {'name': 'maker1'}
+  let maker2 = {'name': 'maker2'}
+  call neomake#config#set('b:ft.myft.my_custom.maker', maker1)
+  call neomake#config#set('b:ft.myft.my_custom2.maker', maker2)
+
+  AssertEqual neomake#GetMaker('my_custom').name, 'maker1'
+  AssertNeomakeMessage "Using setting maker={'name': 'maker1'} from 'buffer' (prefix: ['ft', 'myft', 'my_custom']).", 3
+
+  AssertEqual neomake#GetMaker('my_custom2').name, 'maker2'
+  AssertNeomakeMessage "Using setting maker={'name': 'maker2'} from 'buffer' (prefix: ['ft', 'myft', 'my_custom2']).", 3
+
+  AssertEqual neomake#GetMakers('myft'), ['my_custom', 'my_custom2']
+  AssertNeomakeMessage "Using setting ft.myft={'my_custom': {'maker': {'name': 'maker1'}}, 'my_custom2': {'maker': {'name': 'maker2'}}} from 'buffer'.", 3
+  bwipe
+
+Execute (neomake#GetMakers new-style config with old-style):
+  new
+  noautocmd set filetype=myft
+
+  let maker1 = {'name': 'maker1'}
+  call neomake#config#set('b:ft.myft.my_custom.maker', maker1)
+
+  let maker2 = {'name': 'maker2'}
+  let b:neomake_myft_my_custom_maker = maker2
+
+  " Maker name is not duplicated.
+  AssertEqual neomake#GetMakers('myft'), ['my_custom']
+
+  " GetMaker prefers new-style config.
+  AssertEqual neomake#GetMaker('my_custom').name, 'maker1'
+  bwipe
+
 Execute (neomake#GetMaker uses defined errorformat with makeprg):
   Save &errorformat
   let &errorformat = '%Gcustom'
