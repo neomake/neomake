@@ -383,12 +383,15 @@ endfunction
 let s:vim_msgs_marker = '== neomake_tests_marker =='
 function! NeomakeTestsSetVimMessagesMarker()
   echom s:vim_msgs_marker
+  " Ensure there is a newline after it (relevant for contrib/highlight-log)
+  " to find "Starting Vader" at the beginning of a line.
+  echom ''
 endfunction
 
 function! NeomakeTestsGetVimMessages()
   let msgs = split(neomake#utils#redir('messages'), "\n")
   call NeomakeTestsSetVimMessagesMarker()
-  let idx = index(reverse(msgs), s:vim_msgs_marker)
+  let idx = index(reverse(msgs), s:vim_msgs_marker) - 1
   if idx <= 0
     return []
   endif
