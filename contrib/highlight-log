@@ -56,7 +56,7 @@ if [ "$1" = vader ]; then
       fi
       # quiet/compact: suppress output until "Starting Vader:".
       if ! ((quiet_started)); then
-        if [[ "$REPLY" == 'Starting Vader:'* ]]; then
+        if [[ "$REPLY" == *'Starting Vader:'* ]]; then
           printf "\r" >&2
           echo "$REPLY"
           quiet_started=1
