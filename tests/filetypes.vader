@@ -26,9 +26,14 @@ Execute (GetMakers for jsx.javascript):
   let expected = ['jsxhint', 'stylelint', 'eslint', 'eslint_d', 'flow', 'gjslint', 'jscs', 'jshint', 'rjsx', 'semistandard', 'standard', 'tsc', 'xo']
   AssertEqual neomake#GetMakers('jsx.javascript'), expected
 
-  Save b:neomake_jsx_javascript_foo_maker
+  new
   let b:neomake_jsx_javascript_foo_maker = {'name': 'foo'}
   AssertEqual neomake#GetMakers('jsx.javascript'), ['foo'] + expected
+
+  " NOTE: Shortcoming with old-style config: makes "javascript_foo" a possible
+  " maker for ft=jsx.
+  AssertEqual neomake#GetMaker('javascript_foo', 'jsx').name, 'foo'
+  bwipe
 
 Execute (GetMakers for javascript):
   AssertEqual neomake#GetMakers('javascript'),
