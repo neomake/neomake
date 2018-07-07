@@ -65,21 +65,36 @@ Execute (Instantiate all default makers):
   " NOTE: not using a list to support older Vim (on Travis).
   let ft_makers = split(call('glob', glob_args[0:-2]), '\n')
 
-  let errors = []
+  let errors_by_file = {}
+  let file_errors = []
   for maker_file in ft_makers
     let ft = fnamemodify(maker_file, ':t:r')
     if ft ==# 'haskell'
       NeomakeTestsSkip 'Skipping haskell - expensive setup'
       continue
     endif
+
     let f = 'neomake#makers#ft#'.ft.'#EnabledMakers'
     try
-      call call(f, [])
+      let enabled_makers = call(f, [])
     catch
-      call add(errors, 'Error when calling '.f.': '.v:exception)
+      call add(file_errors, 'Error when calling '.f.': '.v:exception)
     endtry
 
     let makers = neomake#GetMakers(ft)
+
+    " Check that all enabled makers are actually available.
+    " Skip neomake_tests, which has "nonexisting" there.
+    if ft !=# 'neomake_tests'
+        for m in enabled_makers
+            if index(makers, m) == -1
+                call add(file_errors, printf(
+                \ 'Enabled maker %s missing in available makers: %s',
+                \ string(m), string(makers)))
+            endif
+        endfor
+    endif
+
     if ft ==# 'rst'
       " Skip sphinx, would throw an error; it is tested separately.
       " TODO: align with clippy maker, which only uses neomake#log#error
@@ -90,21 +105,28 @@ Execute (Instantiate all default makers):
       try
         let maker = neomake#GetMaker(m, ft)
       catch
-        call add(errors, 'Could not load maker '.string(m).' for filetype '.ft.': '.v:exception)
+        call add(file_errors, 'Could not load maker '.string(m).' for filetype '.ft.': '.v:exception)
         continue
       endtry
 
       " Validate maker.
       let issues = neomake#debug#validate_maker(extend(maker, {'exe': 'true'}))
       if !empty(issues.errors)
-        call add(errors, 'Maker '.string(m).' for filetype '.ft.' has errors: '.join(issues.errors))
+        call add(file_errors, 'Maker '.string(m).' for filetype '.ft.' has errors: '.join(issues.errors))
       endif
       if !empty(issues.warnings)
-        call add(errors, 'Maker '.string(m).' for filetype '.ft.' has warnings: '.join(issues.warnings))
+        call add(file_errors, 'Maker '.string(m).' for filetype '.ft.' has warnings: '.join(issues.warnings))
       endif
     endfor
-  endfor
 
+    if !empty(file_errors)
+        let errors_by_file[maker_file] = copy(file_errors)
+        let file_errors = []
+    endif
+  endfor
+  Assert empty(file_errors)
+
+  let errors = []
   for m in neomake#GetProjectMakers()
     try
       let maker = neomake#GetMaker(m)
@@ -122,8 +144,17 @@ Execute (Instantiate all default makers):
       call add(errors, 'Project maker '.string(m).' has warnings: '.join(issues.warnings))
     endif
   endfor
-  AssertEqual exists('*neomake#makers#ft#neomake_tests#EnabledMakers'), 1
+
   Assert empty(errors), "Errors when loading makers:\n - ".join(errors, "\n - ")
+  if !empty(errors_by_file)
+    let msg = ''
+    for [fname, errors] in items(errors_by_file)
+      let msg .= "\n - ".fnamemodify(fname, ':p:.').":\n"
+      let msg .= '   - '.join(errors, "\n   - ")
+    endfor
+    Assert 0, "Errors when loading makers (per file):".msg
+  endif
+  AssertEqual exists('*neomake#makers#ft#neomake_tests#EnabledMakers'), 1
 
 Execute (neomake#GetEnabledMakers without make_id):
   Save g:neomake_myft_enabled_makers
