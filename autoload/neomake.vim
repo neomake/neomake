@@ -826,21 +826,47 @@ function! neomake#GetMakers(ft) abort
     " functions)?!
 
     let makers = []
+    " Do not use 'b:neomake_jsx_javascript_foo_maker' twice for
+    " ft=jsx.javascript.
+    let used_vars = []
     for ft in neomake#utils#get_config_fts(a:ft)
         call neomake#utils#load_ft_makers(ft)
 
+        " Add sorted list per filetype.
+        let add = []
+
         let maker_names = s:get_makers_for_pattern('neomake#makers#ft#'.ft.'#\l')
         for maker_name in maker_names
-            if index(makers, maker_name) == -1
-                let makers += [maker_name]
+            if index(makers, maker_name) == -1 && index(add, maker_name) == -1
+                let add += [maker_name]
             endif
         endfor
-        for v in extend(keys(g:), keys(b:))
-            let maker_name = matchstr(v, '\v^neomake_'.ft.'_\zs\l+\ze_maker$')
+
+        " Get makers from g:/b: variables.
+        for v in sort(extend(keys(g:), keys(b:)))
+            if index(used_vars, v) != -1
+                continue
+            endif
+            let maker_name = matchstr(v, '\v^neomake_'.ft.'_\zs[0-9a-z_]+\ze_maker$')
             if !empty(maker_name)
-                let makers += [maker_name]
+                        \ && index(makers, maker_name) == -1
+                        \ && index(add, maker_name) == -1
+                let used_vars += [v]
+                let add += [maker_name]
             endif
         endfor
+
+        " Get makers from new-style config.
+        for [maker_name, val] in items(neomake#config#get('ft.'.ft))
+            if has_key(val, 'maker')
+                        \ && index(makers, maker_name) == -1
+                        \ && index(add, maker_name) == -1
+                let add += [maker_name]
+            endif
+        endfor
+
+        call sort(add)
+        call extend(makers, add)
     endfor
     return makers
 endfunction
@@ -2661,6 +2687,9 @@ function! neomake#Make(file_mode_or_options, ...) abort
     endif
     if a:0
         if !empty(a:1)
+            let maker_names = a:1
+            " Split names on non-breaking space (annotation from completion).
+            call map(maker_names, "type(v:val) == 1 ? split(v:val, ' (')[0] : v:val")
             let options.enabled_makers = a:1
         endif
         if a:0 > 1
