@@ -35,6 +35,20 @@ function! neomake#debug#validate_maker(maker) abort
         let issues[t] += [printf("maker's exe (%s) is not executable.", a:maker.exe)]
     endif
 
+    if has_key(a:maker, 'name')
+        if a:maker.name !~# g:neomake#core#valid_maker_name_pattern
+            call add(issues['errors'], printf(
+                  \ 'Invalid maker name: %s (should match %s)',
+                  \ string(a:maker.name),
+                  \ string(g:neomake#core#valid_maker_name_pattern)))
+        elseif a:maker.name !~# g:neomake#core#good_maker_name_pattern
+            call add(issues['warnings'], printf(
+                  \ 'Problematic maker name: %s (should match %s)',
+                  \ string(a:maker.name),
+                  \ string(g:neomake#core#good_maker_name_pattern)))
+        endif
+    endif
+
     return issues
 endfunction
 
