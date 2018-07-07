@@ -1,3 +1,5 @@
+let g:neomake#core#valid_maker_name_pattern = '\v^\w+$'
+
 " Keep track of for what maker.exe an error was thrown.
 let s:exe_error_thrown = {}
 

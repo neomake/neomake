@@ -24,3 +24,36 @@ Execute (neomake#debug#validate_maker):
   \   'maker has postprocess, but only process_json will be used.',
   \   'maker has errorformat, but only process_json will be used.',
   \ ]}
+
+Execute (neomake#debug#validate_maker: validates maker name):
+  let maker = {'exe': 'true'}
+
+  AssertEqual neomake#debug#validate_maker(maker), {
+  \ 'errors': [],
+  \ 'warnings': [],
+  \ }
+
+  let maker.name = 'good'
+  AssertEqual neomake#debug#validate_maker(maker), {
+  \ 'errors': [],
+  \ 'warnings': [],
+  \ }
+
+  let maker.name = 'AlsoGood'
+  AssertEqual neomake#debug#validate_maker(maker), {
+  \ 'errors': [],
+  \ 'warnings': [],
+  \ }
+
+  let maker.name = 'also_good'
+  AssertEqual neomake#debug#validate_maker(maker), {
+  \ 'errors': [],
+  \ 'warnings': [],
+  \ }
+
+  let maker.name = 'invalid name'
+  AssertEqual neomake#debug#validate_maker(maker), {
+  \ 'errors': [printf('Invalid maker name: %s (should match %s)',
+  \            string(maker.name), string(g:neomake#core#valid_maker_name_pattern))],
+  \ 'warnings': [],
+  \ }
