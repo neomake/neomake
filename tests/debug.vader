@@ -39,14 +39,21 @@ Execute (neomake#debug#validate_maker: validates maker name):
   \ 'warnings': [],
   \ }
 
-  let maker.name = 'invalid name'
+  let maker.name = 'AlsoGood'
   AssertEqual neomake#debug#validate_maker(maker), {
-  \ 'errors': ['Invalid maker name: ''invalid name'' (should match ''\v^\w+$'')'],
+  \ 'errors': [],
   \ 'warnings': [],
   \ }
 
-  let maker.name = 'problematic_name'
+  let maker.name = 'also_good'
   AssertEqual neomake#debug#validate_maker(maker), {
   \ 'errors': [],
-  \ 'warnings': ['Problematic maker name: ''problematic_name'' (should match ''\v^[0-9a-z]+$'')'],
+  \ 'warnings': [],
+  \ }
+
+  let maker.name = 'invalid name'
+  AssertEqual neomake#debug#validate_maker(maker), {
+  \ 'errors': [printf('Invalid maker name: %s (should match %s)',
+  \            string(maker.name), string(g:neomake#core#valid_maker_name_pattern))],
+  \ 'warnings': [],
   \ }
