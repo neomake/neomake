@@ -85,7 +85,8 @@ _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS)
 # > Vim: Finished.
 # For Vim `-s /dev/null` is used to skip the 2s delay with warning
 # "Vim: Warning: Output is not to a terminal".
-_COVIMERAGE=$(if $(filter-out 0,$(NEOMAKE_DO_COVERAGE)),covimerage run --append --no-report ,)
+COVERAGE_FILE:=.coverage_covimerage
+_COVIMERAGE=$(if $(filter-out 0,$(NEOMAKE_DO_COVERAGE)),covimerage run --data-file $(COVERAGE_FILE) --append --no-report ,)
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) $(TEST_VIM) --version | head -n2))
 	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)$(TEST_VIM) \
@@ -127,7 +128,7 @@ $(_TESTS_REL_AND_ABS):
 
 testcoverage: COVERAGE_VADER_ARGS:=tests/main.vader $(wildcard tests/isolated/*.vader)
 testcoverage:
-	$(RM) .coverage.covimerage
+	$(RM) $(COVERAGE_FILE)
 	@ret=0; \
 	for testfile in $(COVERAGE_VADER_ARGS); do \
 	  $(MAKE) --no-print-directory test VADER_ARGS=$$testfile NEOMAKE_DO_COVERAGE=1 || (( ++ret )); \
@@ -179,7 +180,7 @@ vimhelplint: | $(if $(VIMHELPLINT_DIR),,build/vimhelplint)
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=27
+DOCKER_TAG:=28
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
@@ -239,7 +240,7 @@ docker_testcoverage: DOCKER_MAKE_TEST_TARGET:=testcoverage
 docker_testcoverage: DOCKER_MAKE_TEST_ARGS:=$(if $(filter command line,$(origin COVERAGE_VADER_ARGS)),COVERAGE_VADER_ARGS="$(COVERAGE_VADER_ARGS)",$(if $(filter command line,$(origin VADER_ARGS)),COVERAGE_VADER_ARGS="$(VADER_ARGS)",))
 docker_testcoverage: DOCKER_STREAMS:=-t
 docker_testcoverage: _docker_test
-	sed -i 's~/testplugin/~$(CURDIR)/~g' .coverage.covimerage
+	sed -i 's~/testplugin/~$(CURDIR)/~g' $(COVERAGE_FILE)
 	coverage report -m
 
 docker_run: $(DEP_PLUGINS)
@@ -338,9 +339,9 @@ check:
 	tput sgr0; \
 	exit $$ret
 
-.coverage.covimerage: .coveragerc $(shell find . -name '*.vim')
+$(COVERAGE_FILE): .coveragerc $(shell find . -name '*.vim')
 	$(MAKE) testcoverage
-coverage: .coverage.covimerage
+coverage: $(COVERAGE_FILE)
 	coverage report -m
 
 NEOMAKE_LOG:=/tmp/neomake.log
