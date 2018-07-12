@@ -912,8 +912,8 @@ function! neomake#GetEnabledMakers(...) abort
 endfunction
 
 let s:ignore_automake_events = 0
-function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist) abort
-    let open_val = get(g:, 'neomake_open_list', 0)
+function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
+    let open_val = a:0 ? a:1 : get(g:, 'neomake_open_list', 0)
     if !open_val
         return
     endif
@@ -962,6 +962,16 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist) abort
     else
         exe cmd height
     endif
+endfunction
+
+" Experimental/private wrapper.
+function! neomake#_handle_list_display(jobinfo, ...) abort
+    if a:0
+        let list = a:1
+    else
+        let list = a:jobinfo.file_mode ? getloclist(0) : getqflist()
+    endif
+    call s:HandleLoclistQflistDisplay(a:jobinfo, list, 2)
 endfunction
 
 " Queue an action to be processed later for autocmd a:event or through a timer
