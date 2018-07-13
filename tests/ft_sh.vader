@@ -104,3 +104,12 @@ Execute (Test Neomake on errors.sh with shellcheck):
   \ }]
   AssertNeomakeMessage 'exit: shellcheck: 1.', 3
   bwipe
+
+Execute (shellcheck copies base maker):
+  let maker = neomake#makers#ft#sh#shellcheck()
+  AssertEqual maker.args, ['-fgcc', '-x', '-s', 'bash']
+
+  let maker.args = ['changed']
+
+  let maker = neomake#makers#ft#sh#shellcheck()
+  AssertEqual maker.args, ['-fgcc', '-x', '-s', 'bash']
