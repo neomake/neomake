@@ -16,13 +16,12 @@ let s:shellcheck = {
         \ }
 
 function! neomake#makers#ft#sh#shellcheck() abort
-    let maker = s:shellcheck
+    let maker = deepcopy(s:shellcheck)
 
     let line1 = getline(1)
     if match(line1, '\v^#!.*<%(sh|dash|bash|ksh)') < 0
                 \ && match(line1, '\v^#\s*shellcheck\s+shell\=') < 0
         " shellcheck does not read the shebang by itself.
-        let maker = deepcopy(maker)
         let ext = expand('%:e')
         if ext ==# 'ksh'
             let maker.args += ['-s', 'ksh']
