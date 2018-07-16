@@ -344,8 +344,11 @@ function! neomake#utils#hook(event, context, ...) abort
         let jobinfo = a:0 ? a:1 : (
                     \ has_key(a:context, 'jobinfo') ? a:context.jobinfo : {})
 
+        let context_str = string(map(copy(a:context),
+                    \ "v:key ==# 'jobinfo' ? '…'"
+                    \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
         let args = [printf('Calling User autocmd %s with context: %s.',
-                    \ a:event, string(map(copy(a:context), "v:key ==# 'jobinfo' ? '…' : v:val")))]
+                    \ a:event, context_str)]
         if !empty(jobinfo)
             let args += [jobinfo]
         endif
