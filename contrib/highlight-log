@@ -76,6 +76,14 @@ if [ "$1" = vader ]; then
         echo "$REPLY"
       elif [[ "$REPLY" == '      Duration: '* ]]; then
         echo "$REPLY"
+      elif [[ "$REPLY" == *'(X)'* ]] || ! [[ "$REPLY" =~ $re_non_log_line ]]; then
+        # Should also match "(1/1) [EXECUTE] (X) Error: Vim(function):E126: Missing :endfunction" already.
+        if [[ -n "$filtered" ]]; then
+          echo "$filtered"
+        fi
+        echo "$REPLY"
+        filtered=
+        filtering=0
       elif [[ "$REPLY" =~ ^\ +(\(\ *[0-9]+/[0-9]+\)) ]]; then
         filtering=1
         if [[ ${BASH_REMATCH[1]} == "$last_start_match" ]]; then
@@ -93,13 +101,6 @@ if [ "$1" = vader ]; then
         echo "$REPLY"
         filtering=0
         filtered=
-      elif [[ "$REPLY" == *'(X)'* ]] || ! [[ "$REPLY" =~ $re_non_log_line ]]; then
-        if [[ -n "$filtered" ]]; then
-          echo "$filtered"
-        fi
-        echo "$REPLY"
-        filtered=
-        filtering=0
       elif ! ((filtering)); then
         echo "$REPLY"
       elif [[ -n "$filtered" ]]; then

@@ -65,7 +65,7 @@ function! s:log(level, msg, ...) abort
                     \ : {}
         call add(g:neomake_test_messages, [a:level, a:msg, context])
         if index(['.', '!', ')', ']'], a:msg[-1:-1]) == -1
-            Assert 0, 'Log msg does not end with punctuation: "'.a:msg.'".'
+            let g:neomake_test_errors += ['Log msg does not end with punctuation: "'.a:msg.'".']
         endif
     elseif verbosity >= a:level
         redraw
