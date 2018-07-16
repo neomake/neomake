@@ -1537,8 +1537,8 @@ function! s:CleanJobinfo(jobinfo, ...) abort
 
     if !get(a:jobinfo, 'canceled', 0)
                 \ && !get(a:jobinfo, 'failed_to_start', 0)
-        call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
         let make_info.finished_jobs += [a:jobinfo]
+        call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
     endif
 
     " Trigger cleanup (and autocommands) if all jobs have finished.
@@ -1581,6 +1581,7 @@ function! s:clean_make_info(make_info, ...) abort
     if exists('*neomake#statusline#make_finished')
         call neomake#statusline#make_finished(a:make_info)
     endif
+
     if !empty(a:make_info.finished_jobs)
         " Clean old signs after all jobs have finished, so that they can be
         " reused, avoiding flicker and keeping them for longer in general.

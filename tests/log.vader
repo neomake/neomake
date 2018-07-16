@@ -26,10 +26,12 @@ Execute (neomake#log#debug unsets logfile in case of errors):
   AssertNeomakeMessage '\vError when trying to write to logfile /does/not/exist: Vim\(call\):E.*.  Unsetting g:neomake_logfile.', 0
   Assert !exists('g:neomake_logfile'), 'g:neomake_logfile has been unset.'
 
-Execute (neomake#log#debug throws with missing make_options in tests):
-  AssertThrows call neomake#log#debug('msg1')
-  AssertEqual g:vader_exception, 'Log msg does not end with punctuation: "msg1".'
+Execute (neomake#log#debug is picky about punctuation):
+  call neomake#log#debug('msg1')
+  AssertEqual g:neomake_test_errors, ['Log msg does not end with punctuation: "msg1".']
+  let g:neomake_test_errors = []
 
+Execute (neomake#log#debug throws with missing make_options in tests):
   " Non-existing make_id should not make it verbose.
   AssertEqual g:neomake_test_errors, []
   call neomake#log#debug('msg1.', {'make_id': -42})
