@@ -11,22 +11,40 @@ Execute (Displays custom formatted quickfix buffer):
     call setloclist(0, [{
         \   'lnum': 1,
         \   'bufnr': bufnr,
+        \   'type': 'E',
         \   'text': 'Line 1 nmcfg:{"name": "python", "short": "Alph"}',
         \ },
         \ {
         \   'lnum': 2,
         \   'col': 5,
         \   'bufnr': bufnr,
+        \   'type': '',
         \   'text': 'Line 2',
-        \ }])
+        \ },
+        \ {
+        \   'bufnr': bufnr,
+        \   'type': 'E',
+        \   'text': 'No line',
+        \ },
+        \ {
+        \   'lnum': 4,
+        \   'bufnr': bufnr,
+        \   'type': 'W',
+        \   'text': 'Line 4 (warning)',
+        \ },
+        \ ])
 
     lopen
     let loclist_bufnr = bufnr('%')
     AssertEqual b:current_syntax, 'neomake_qf'
     Assert hlexists('neomakePythonLint'), 'neomakePythonLint does exists'
 
-    AssertEqual getline(1, '$'),
-      \ ['Alph 1:- Line 1', 'Alph 2:5 Line 2']
+    AssertEqual getline(1, '$'), [
+      \ 'Alph 1:- Line 1',
+      \ 'Alph 2:5 Line 2',
+      \ 'Alph     No line',
+      \ 'Alph 4:- Line 4 (warning)',
+      \ ]
 
     normal! 0
     " :normal! ignores autocmd's here?
@@ -36,6 +54,12 @@ Execute (Displays custom formatted quickfix buffer):
 
     AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
     AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5002 line=4 name=neomake_file_warn buffer='.loclist_bufnr.'.', 3
+    AssertEqual neomake#signs#by_lnum(loclist_bufnr), {
+    \ '1': [5000, 'neomake_file_err'],
+    \ '2': [5001, 'neomake_file_err'],
+    \ '4': [5002, 'neomake_file_warn'],
+    \ }
     wincmd p
 
     " Test changing the location list while it's open
@@ -63,8 +87,8 @@ Execute (Displays custom formatted quickfix buffer):
         \ }])
     AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3
     AssertNeomakeMessage 'Reusing sign: id=5001, type=neomake_file_err, lnum=2.', 3
-    AssertNeomakeMessage 'Placing sign: sign place 5002 line=3 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
-    AssertNeomakeMessage 'Placing sign: sign place 5003 line=4 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+    AssertNeomakeMessage 'Upgrading sign for lnum=4: sign place 5002 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5003 line=3 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
 
     wincmd p
 
