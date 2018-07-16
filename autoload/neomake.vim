@@ -995,13 +995,13 @@ function! s:queue_action(events, data) abort
 
     for event in a:events
         if event ==# 'Timer'
-            if exists('jobinfo.action_queue_timer_tries')
-                let job_or_make_info.action_queue_timer_tries += 1
+            if !exists('jobinfo.action_queue_timer_tries')
+                let job_or_make_info.action_queue_timer_tries = {'count': 1, 'data': a:data[0]}
             else
-                let job_or_make_info.action_queue_timer_tries = 1
+                let job_or_make_info.action_queue_timer_tries.count += 1
             endif
-            if has_key(s:action_queue_timer_timeouts, job_or_make_info.action_queue_timer_tries)
-                let timeout = s:action_queue_timer_timeouts[job_or_make_info.action_queue_timer_tries]
+            if has_key(s:action_queue_timer_timeouts, job_or_make_info.action_queue_timer_tries.count)
+                let timeout = s:action_queue_timer_timeouts[job_or_make_info.action_queue_timer_tries.count]
             else
                 throw printf('Neomake: Giving up handling Timer callbacks after %d attempts. Please report this. See :messages for more information.', len(s:action_queue_timer_timeouts))
             endif
@@ -1071,9 +1071,7 @@ function! s:process_action_queue(event) abort
         try
             " Call the queued action.  On failure they should have requeued
             " themselves already.
-            if call(data[0], data[1]) is# 1
-                let processed += [data]
-            endif
+            let rv = call(data[0], data[1])
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '')
             call neomake#log#exception(error, log_context)
@@ -1085,6 +1083,12 @@ function! s:process_action_queue(event) abort
             endif
             continue
         endtry
+        if rv is# 1
+            let processed += [data]
+        elseif a:event !=# 'Timer' && has_key(job_or_make_info, 'action_queue_timer_tries')
+            call neomake#log#debug('s:process_action_queue: decrementing timer tries for non-Timer event.', job_or_make_info)
+            let job_or_make_info.action_queue_timer_tries.count -= 1
+        endif
     endfor
     call neomake#log#debug(printf('action queue: processed %d items.',
                 \ len(processed)), {'bufnr': bufnr('%')})
@@ -2212,6 +2216,11 @@ function! s:need_to_postpone_output_processing(jobinfo) abort
     if s:has_getcmdwintype && !empty(getcmdwintype())
         call neomake#log#debug('Not processing output from command-line window "'.getcmdwintype().'".', a:jobinfo)
         return ['InsertLeave', 'CursorHold', 'CursorHoldI']
+    endif
+    " TODO: should be done in neomake#utils#hook directly instead, involves refactoring.
+    if exists('g:neomake_hook_context')
+        call neomake#log#debug('Not processing output during active hook processing.', a:jobinfo)
+        return ['Timer', 'BufEnter', 'WinEnter', 'InsertLeave', 'CursorHold', 'CursorHoldI']
     endif
     return []
 endfunction

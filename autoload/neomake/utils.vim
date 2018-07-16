@@ -338,21 +338,23 @@ function! neomake#utils#ExpandArgs(args) abort
     return ret
 endfunction
 
-let s:hook_context_stack = []
 function! neomake#utils#hook(event, context, ...) abort
     if exists('#User#'.a:event)
         let jobinfo = a:0 ? a:1 : (
                     \ has_key(a:context, 'jobinfo') ? a:context.jobinfo : {})
 
+        let context_str = string(map(copy(a:context),
+                    \ "v:key ==# 'jobinfo' ? '…'"
+                    \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
         let args = [printf('Calling User autocmd %s with context: %s.',
-                    \ a:event, string(map(copy(a:context), "v:key ==# 'jobinfo' ? '…' : v:val")))]
+                    \ a:event, context_str)]
         if !empty(jobinfo)
             let args += [jobinfo]
         endif
         call call('neomake#log#info', args)
 
         if exists('g:neomake_hook_context')
-            call add(s:hook_context_stack, g:neomake_hook_context)
+            throw printf('Neomake internal error: hook invocation must not be nested: %s.', a:event)
         endif
         unlockvar g:neomake_hook_context
         let g:neomake_hook_context = a:context
@@ -364,17 +366,15 @@ function! neomake#utils#hook(event, context, ...) abort
                 exec 'doautocmd User ' . a:event
             endif
         catch
-            call neomake#log#exception(printf(
-                        \ 'Error during User autocmd for %s: %s.',
-                        \ a:event, v:exception), jobinfo)
-        finally
-            if !empty(s:hook_context_stack)
-                unlockvar g:neomake_hook_context
-                let g:neomake_hook_context = remove(s:hook_context_stack, -1)
-                lockvar 1 g:neomake_hook_context
-            else
-                unlet g:neomake_hook_context
+            let error = v:exception
+            if error[-1:] !=# '.'
+                let error .= '.'
             endif
+            call neomake#log#exception(printf(
+                        \ 'Error during User autocmd for %s: %s',
+                        \ a:event, error), jobinfo)
+        finally
+            unlet g:neomake_hook_context
         endtry
     endif
 endfunction
