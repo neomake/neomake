@@ -18,6 +18,14 @@ if !exists('s:map_job_ids')
     let s:map_job_ids = {}
 endif
 
+" Timers for delayed list display.
+if !exists('s:list_display_timers')
+    let s:list_display_timers = {}
+endif
+if !exists('s:list_display_timers_by_make_id')
+    let s:list_display_timers_by_make_id = {}
+endif
+
 " Errors by [maker_type][bufnr][lnum]
 let s:current_errors = {'project': {}, 'file': {}}
 " List of pending outputs by job ID.
@@ -959,8 +967,8 @@ function! neomake#GetEnabledMakers(...) abort
 endfunction
 
 let s:ignore_automake_events = 0
-function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
-    let open_val = a:0 ? a:1 : get(g:, 'neomake_open_list', 0)
+function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist) abort
+    let open_val = get(g:, 'neomake_open_list', 0)
     if !open_val
         return
     endif
@@ -969,14 +977,46 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
         return
     endif
     let height = min([len(a:loc_or_qflist), height])
-    if a:jobinfo.file_mode
-        call neomake#log#debug('Handling location list: executing lwindow.', a:jobinfo)
-        let cmd = 'lwindow'
-    else
-        call neomake#log#debug('Handling quickfix list: executing cwindow.', a:jobinfo)
-        let cmd = 'cwindow'
+    call s:do_handle_list_display_via_timer(a:jobinfo, height, open_val)
+endfunction
+
+function! s:handle_list_display_timer_cb(timer) abort
+    let [make_id, jobinfo, height, open_val] = s:list_display_timers[a:timer]
+    unlet s:list_display_timers[a:timer]
+    unlet s:list_display_timers_by_make_id[make_id]
+    call s:do_handle_list_display(jobinfo, height, open_val)
+endfunction
+
+" Start a timer to handle list opening delayed (when it might trigger a
+" resize).
+function! s:do_handle_list_display_via_timer(jobinfo, height, open_val) abort
+    if !get(g:, 'neomake_open_list_resize_existing', 1)
+                \ || !get(g:, 'neomake_open_list_first_delay', 500)
+                \ || !has('timers')
+        call s:do_handle_list_display(a:jobinfo, a:height, a:open_val)
+        return
     endif
-    if open_val == 2
+
+    let make_id = a:jobinfo.make_id
+    let existing_timer = get(s:list_display_timers_by_make_id, make_id, 0)
+    if existing_timer
+        let s:list_display_timers[existing_timer][2] = a:height
+        return
+    endif
+
+    let delay = get(g:, 'neomake_open_list_first_delay', 500)
+    let timer = timer_start(delay, function('s:handle_list_display_timer_cb'))
+
+    let s:list_display_timers[timer] = [make_id, a:jobinfo, a:height, a:open_val]
+    let s:list_display_timers_by_make_id[make_id] = timer
+endfunction
+
+function! s:do_handle_list_display(jobinfo, height, open_val) abort
+    let cmd = (a:jobinfo.file_mode ? 'lwindow' : 'cwindow').' '.a:height
+    call neomake#log#debug(printf('Handling list display: executing %s.',
+                \ cmd), a:jobinfo)
+
+    if a:open_val == 2
         let make_id = a:jobinfo.make_id
         let make_info = s:make_info[make_id]
         let s:ignore_automake_events += 1
@@ -984,9 +1024,10 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
             call neomake#compat#save_prev_windows()
 
             let win_count = winnr('$')
-            exe cmd height
+            exe cmd
             let new_win_count = winnr('$')
-            if win_count == new_win_count
+            if get(g:, 'neomake_open_list_resize_existing', 1)
+                        \ && win_count == new_win_count
                 " No new window, adjust height eventually.
                 let found = 0
 
@@ -998,7 +1039,7 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
                         endif
                     endfor
                     if found
-                        let cmd = printf('%dresize %d', found, height)
+                        let cmd = printf('%dresize %d', found, a:height)
                         call neomake#log#debug(printf(
                                     \ 'Resizing existing quickfix window: %s.',
                                     \ cmd), a:jobinfo)
@@ -1031,18 +1072,13 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
             let s:ignore_automake_events -= 1
         endtry
     else
-        exe cmd height
+        exe cmd
     endif
 endfunction
 
 " Experimental/private wrapper.
-function! neomake#_handle_list_display(jobinfo, ...) abort
-    if a:0
-        let list = a:1
-    else
-        let list = a:jobinfo.file_mode ? getloclist(0) : getqflist()
-    endif
-    call s:HandleLoclistQflistDisplay(a:jobinfo, list, 2)
+function! neomake#_handle_list_display(jobinfo, height) abort
+    call s:do_handle_list_display_via_timer(a:jobinfo, a:height, 2)
 endfunction
 
 " Get a maker for &makeprg.
@@ -1562,6 +1598,14 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
     let file_mode = a:make_info.options.file_mode
     let create_list = !get(a:make_info, 'created_locqf_list', 0)
 
+    let make_id = a:make_info.options.make_id
+    if has_key(s:list_display_timers_by_make_id, make_id)
+        let timer = s:list_display_timers_by_make_id[make_id]
+        call timer_stop(timer)
+        let [_, jobinfo, height, open_val] = s:list_display_timers[timer]
+        call s:do_handle_list_display(jobinfo, height, open_val)
+    endif
+
     let open_val = get(g:, 'neomake_open_list', 0)
     let height = open_val ? get(g:, 'neomake_list_height', 10) : 0
     if height
@@ -1576,7 +1620,7 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
             let create_list = 0
             let close_list = 0
         elseif (create_list || close_list)
-            if index(get(w:, 'neomake_make_ids', []), a:make_info.options.make_id) == -1
+            if index(get(w:, 'neomake_make_ids', []), make_id) == -1
                 call neomake#log#debug(
                             \ 'Postponing final location list handling (in another window).',
                             \ {'make_id': a:make_info.options.make_id, 'winnr': winnr()})

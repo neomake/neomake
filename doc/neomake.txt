@@ -528,6 +528,20 @@ whether it is operating on a file) when adding entries. A value of 2 will
 preserve the cursor position when the |location-list| or |quickfix| window is
 opened. Defaults to 0.
 
+*g:neomake_open_list_first_delay*
+With `g:neomake_open_list != 0` this configures the delay of executing the
+first |:lwindow| or |:cwindow| command in milliseconds.
+This gets used with |g:neomake_open_list_resize_existing|, and avoids resizing
+the location list / quickfix window when jobs are finishing faster than that.
+Defaults to 500.
+
+*g:neomake_open_list_resize_existing*
+Should already opened location list / quickfix windows get resized for
+following job outputs?
+Otherwise the first job determines the height of the window.  Disabling this
+is useful if you control the size of the window yourself, e.g.
+when using a plugin like vim-qf_resize.  Defaults to 1.
+
 *g:neomake_list_height*
 The maximum height of the |location-list| or |quickfix| list window opened by
 Neomake.  If there are fewer entries it will use that instead.
