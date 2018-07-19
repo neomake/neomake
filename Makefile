@@ -384,6 +384,7 @@ endef
 $(eval $(call func-generate-fixture,puppet,parser validate --color=false))
 $(eval $(call func-generate-fixture,puppet-lint,--log-format "%{path}:%{line}:%{column}:%{kind}:[%{check}] %{message}"))
 $(eval $(call func-generate-fixture,xmllint,--xinclude --postvalid --noout))
+$(eval $(call func-generate-fixture,zsh,-n))
 
 _FIXTURES_INPUT:=$(wildcard tests/fixtures/input/*/*)
 _FIXTURES_OUTPUT:=$(patsubst tests/fixtures/input/%,tests/fixtures/output/%,$(addsuffix .stdout,$(_FIXTURES_INPUT)) $(addsuffix .stderr,$(_FIXTURES_INPUT)))
