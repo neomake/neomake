@@ -65,19 +65,21 @@ else
         " The following is inspired by https://github.com/MarcWeber/vim-addon-manager and
         " http://stackoverflow.com/questions/17751186/iterating-over-a-string-in-vimscript-or-parse-a-json-file/19105763#19105763
         " A hat tip to Marc Weber for this trick
-        if substitute(a:json, '\v\"%(\\.|[^"\\])*\"|true|false|null|[+-]?\d+%(\.\d+%([Ee][+-]?\d+)?)?', '', 'g') !~# "[^,:{}[\\] \t]"
+        " Replace newlines, which eval() does not like.
+        let json = substitute(a:json, "\n", '', 'g')
+        if substitute(json, '\v\"%(\\.|[^"\\])*\"|true|false|null|[+-]?\d+%(\.\d+%([Ee][+-]?\d+)?)?', '', 'g') !~# "[^,:{}[\\] \t]"
             " JSON artifacts
             let true = g:neomake#compat#json_true
             let false = g:neomake#compat#json_false
             let null = g:neomake#compat#json_null
 
             try
-                let object = eval(a:json)
+                let object = eval(json)
             catch
-                throw 'Neomake: Failed to parse JSON input'
+                throw 'Neomake: Failed to parse JSON input: '.v:exception
             endtry
         else
-            throw 'Neomake: Failed to parse JSON input'
+            throw 'Neomake: Failed to parse JSON input: invalid input'
         endif
 
         return object

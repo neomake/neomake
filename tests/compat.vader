@@ -54,10 +54,14 @@ Execute (neomake#compat#json_decode):
   elseif exists('*json_decode')
     let expected_exception = 'Vim(return):E474: Invalid argument'
   else
-    let expected_exception = 'Neomake: Failed to parse JSON input'
+    let expected_exception = 'Neomake: Failed to parse JSON input: invalid input'
   endif
   AssertThrows call neomake#compat#json_decode('success')
   AssertEqual g:vader_exception, expected_exception
+
+Execute (neomake#compat#json_decode: handles newlines):
+  let json = '{"foo": '."\n".'"bar"}'
+  AssertEqual neomake#compat#json_decode(json), {'foo': 'bar'}
 
 Execute (neomake#compat#json_none):
   AssertThrows call items(g:neomake#compat#json_none)
