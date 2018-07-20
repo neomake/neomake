@@ -53,6 +53,7 @@ Include (Go): ft_go.vader
 Include (Haskell): ft_haskell.vader
 Include (Idris): ft_idris.vader
 Include (JavaScript): ft_javascript.vader
+Include (Markdown): ft_markdown.vader
 Include (Perl): ft_perl.vader
 Include (PHP): ft_php.vader
 Include (Puppet): ft_puppet.vader
