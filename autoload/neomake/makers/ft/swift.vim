@@ -12,7 +12,7 @@ endfunction
 function! neomake#makers#ft#swift#swiftpm() abort
     return {
         \ 'exe': 'swift',
-        \ 'args': ['build'],
+        \ 'args': ['build', '--build-tests'],
         \ 'append_file': 0,
         \ 'errorformat':
             \ '%E%f:%l:%c: error: %m,' .
