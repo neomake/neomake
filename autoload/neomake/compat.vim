@@ -180,12 +180,11 @@ if neomake#utils#IsRunningWindows()
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
         let prefix = &shell.' '.&shellcmdflag.' '
         if a:args_is_list
-            let args = neomake#utils#ExpandArgs(a:args)
-            if a:exe ==# &shell && get(args, 0) ==# &shellcmdflag
+            if a:exe ==# &shell && get(a:args, 0) ==# &shellcmdflag
                 " Remove already existing &shell/&shellcmdflag from e.g. NeomakeSh.
-                let argv = join(args[1:])
+                let argv = join(a:args[1:])
             else
-                let argv = join(map(copy([a:exe] + args), 'neomake#utils#shellescape(v:val)'))
+                let argv = join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
             endif
         else
             let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
@@ -198,14 +197,14 @@ if neomake#utils#IsRunningWindows()
 elseif has('nvim')
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
         if a:args_is_list
-            return [a:exe] + neomake#utils#ExpandArgs(a:args)
+            return [a:exe] + a:args
         endif
         return a:exe . (empty(a:args) ? '' : ' '.a:args)
     endfunction
 elseif neomake#has_async_support()  " Vim-async.
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
         if a:args_is_list
-            return [a:exe] + neomake#utils#ExpandArgs(a:args)
+            return [a:exe] + a:args
         endif
         " Use a shell to handle argv properly (Vim splits at spaces).
         let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
@@ -215,8 +214,7 @@ else
     " Vim (synchronously), via system().
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
         if a:args_is_list
-            let args = neomake#utils#ExpandArgs(a:args)
-            return join(map(copy([a:exe] + args), 'neomake#utils#shellescape(v:val)'))
+            return join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
         endif
         return a:exe . (empty(a:args) ? '' : ' '.a:args)
     endfunction
