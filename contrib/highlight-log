@@ -76,7 +76,7 @@ if [ "$1" = vader ]; then
         echo "$REPLY"
       elif [[ "$REPLY" == '      Duration: '* ]]; then
         echo "$REPLY"
-      elif [[ "$REPLY" == *'(X)'* ]] || ! [[ "$REPLY" =~ $re_non_log_line ]]; then
+      elif [[ "$REPLY" == *'(X)'* ]]; then
         # Should also match "(1/1) [EXECUTE] (X) Error: Vim(function):E126: Missing :endfunction" already.
         if [[ -n "$filtered" ]]; then
           echo "$filtered"
@@ -101,6 +101,13 @@ if [ "$1" = vader ]; then
         echo "$REPLY"
         filtering=0
         filtered=
+      elif ! [[ "$REPLY" =~ $re_non_log_line ]]; then
+        if [[ -n "$filtered" ]]; then
+          echo "$filtered"
+        fi
+        echo "$REPLY"
+        filtered=
+        filtering=0
       elif ! ((filtering)); then
         echo "$REPLY"
       elif [[ -n "$filtered" ]]; then
