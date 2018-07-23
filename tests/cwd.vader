@@ -132,6 +132,9 @@ Execute (cwd handles fugitive buffer):
   \ expected_cwd, fnamemodify(tempfile_name, ':t')]
   bwipe
   bwipe autoload/neomake/debug.vim
+  if exists('*VimFtpluginUndo')
+    delfunction VimFtpluginUndo
+  endif
 
 Execute (cwd gets expanded correctly: relative and in another buffer):
   if NeomakeAsyncTestsSetup()
