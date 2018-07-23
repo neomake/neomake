@@ -174,7 +174,6 @@ build/vimhelplint: | build
 	&& wget -O- https://github.com/machakann/vim-vimhelplint/archive/master.tar.gz \
 	  | tar xz \
 	&& mv vim-vimhelplint-master vimhelplint
-vimhelplint: export VIMHELPLINT_VIM:=vim
 vimhelplint: | $(if $(VIMHELPLINT_DIR),,build/vimhelplint)
 	contrib/vimhelplint doc/neomake.txt
 
