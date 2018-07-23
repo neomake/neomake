@@ -933,3 +933,4 @@ Here are some tips to develop the 'errorformat' setting for makers:
 5. Pay attention to the "`valid`" property of entries.
 
 vim: ft=help tw=78 isk+=<,>,\:,-,'
+test
