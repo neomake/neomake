@@ -30,10 +30,10 @@ Execute (stdin maker (args as string)):
   call neomake#Make(1, [maker])
   if neomake#has_async_support()
     if has('nvim')
-      AssertNeomakeMessage "Starting async job [string]: cat \\-.", 2
+      AssertNeomakeMessage "Starting async job [string]: cat -.", 2
     else
       let shell_argv = join(split(&shell) + split(&shellcmdflag))
-      AssertNeomakeMessage 'Starting async job: '.shell_argv." 'cat \\-'.", 2
+      AssertNeomakeMessage 'Starting async job: '.shell_argv." 'cat -'.", 2
     endif
     NeomakeTestsWaitForFinishedJobs
   endif
@@ -107,6 +107,34 @@ Execute (stdin maker (project mode: uses_filename)):
 Execute (stdin maker: supports_stdin can be a callback adding args):
   let maker = {'exe': 'printf', 'args': ['%s\n']}
   function maker.supports_stdin(jobinfo)
+    let self.args += ['added_arg']
+    return 1
+  endfunction
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Using stdin for unnamed buffer (-).'
+  AssertEqual map(getloclist(0), 'v:val.text'), ['added_arg', '-']
+  bwipe
+
+Execute (stdin maker: supports_stdin can be a callback adding args (maker from command string)):
+  let maker = neomake#utils#MakerFromCommand('printf "%s\n"')
+  function maker.supports_stdin(jobinfo)
+    AssertEqual self.__command_is_string, 1
+    let self.args[-1] .= ' added_arg'
+    return 1
+  endfunction
+  new
+  set buftype=nofile
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Using stdin for unnamed buffer (-).'
+  AssertEqual map(getloclist(0), 'v:val.text'), ['added_arg', '-']
+  bwipe
+
+Execute (stdin maker: supports_stdin can be a callback adding args (maker from command list)):
+  let maker = neomake#utils#MakerFromCommand(['printf', '%s\n'])
+  function maker.supports_stdin(jobinfo)
+    AssertEqual self.__command_is_string, 0
     let self.args += ['added_arg']
     return 1
   endfunction

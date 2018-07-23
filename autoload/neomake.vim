@@ -698,16 +698,18 @@ function! s:command_maker_base._bind_args() abort dict
 endfunction
 
 function! s:command_maker_base._get_argv(jobinfo) abort dict
-    let args = self.args
-    let args_is_list = type(self.args) == type([])
     let filename = self._get_fname_for_args(a:jobinfo)
-    if !empty(filename)
-        let args = copy(args)
-        if args_is_list
+    let args_is_list = type(self.args) == type([])
+    if args_is_list
+        let args = neomake#utils#ExpandArgs(self.args)
+        if !empty(filename)
             call add(args, filename)
-        else
-            let args .= (empty(args) ? '' : ' ').fnameescape(filename)
         endif
+    elseif !empty(filename)
+        let args = copy(self.args)
+        let args .= (empty(args) ? '' : ' ').neomake#utils#shellescape(filename)
+    else
+        let args = self.args
     endif
     return neomake#compat#get_argv(self.exe, args, args_is_list)
 endfunction
