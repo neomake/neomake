@@ -50,7 +50,7 @@ jobs:
   checkqa:
     <<: *common
     environment:
-      VIMHELPLINT_VIM=vim81
+      VIMHELPLINT_VIM=/vim-build/bin/vim81
     steps:
       - checkout
       - run: make --keep-going check check_docker check_lint_diff
