@@ -2,7 +2,7 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:28@sha256:293549b1df6771c5a59b3a82f29c27c5342d421c4ebe49de9421de40bf5ac2e9
+    - image: neomake/vims-for-tests:29@sha256:4645fac4f6d962749665b0582fd1b0177d18764f27a821189d3f445c4e04335c
   working_directory: ~/repo
   steps:
     - checkout
@@ -18,42 +18,22 @@ common: &common
             -n "$CIRCLE_JOB" -F ${CIRCLE_JOB%%-*},${CIRCLE_JOB//[-.]/}
           set +x
 jobs:
-  nvim-master:
+  nvim-031:
     <<: *common
     environment:
-      TEST_VIM=/vim-build/bin/neovim-master
+      TEST_VIM=/vim-build/bin/neovim-v0.3.1
   nvim-017:
     <<: *common
     environment:
       TEST_VIM=/vim-build/bin/neovim-v0.1.7
-  nvim-020:
+  vim-81:
     <<: *common
     environment:
-      TEST_VIM=/vim-build/bin/neovim-v0.2.0
-  nvim-021:
+      TEST_VIM=/vim-build/bin/vim81
+  vim-80:
     <<: *common
     environment:
-      TEST_VIM=/vim-build/bin/neovim-v0.2.1
-  nvim-022:
-    <<: *common
-    environment:
-      TEST_VIM=/vim-build/bin/neovim-v0.2.2
-  nvim-030:
-    <<: *common
-    environment:
-      TEST_VIM=/vim-build/bin/neovim-v0.3.0
-  vim-master:
-    <<: *common
-    environment:
-      TEST_VIM=/vim-build/bin/vim-master
-  vim-8.0.1832:
-    <<: *common
-    environment:
-      TEST_VIM=/vim-build/bin/vim-8.0.1832
-  vim-8.0.586:
-    <<: *common
-    environment:
-      TEST_VIM=/vim-build/bin/vim-8.0.586
+      TEST_VIM=/vim-build/bin/vim80
   vim-74-xenial:
     <<: *common
     environment:
@@ -77,15 +57,10 @@ workflows:
   version: 2
   test:
     jobs:
-      - nvim-030
-      - nvim-022
-      - nvim-master
-      - nvim-021
-      - nvim-020
+      - nvim-031
       - nvim-017
-      - vim-8.0.1832
-      - vim-8.0.586
-      - vim-master
+      - vim-81
+      - vim-80
       - vim-74-xenial
       - vim-74-trusty
       - vim-73
