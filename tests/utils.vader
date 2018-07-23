@@ -279,6 +279,10 @@ Execute (neomake#utils#ExpandArgs):
   \ 'C:\\%:r\\',
   \ '~',
   \ '\~',
+  \ 't/~=+.view.vim',
+  \ '~/foo',
+  \ '~/',
+  \ '~foo',
   \ '%:.',
   \ '%:,',
   \ ]
@@ -302,6 +306,10 @@ Execute (neomake#utils#ExpandArgs):
   \ 'C:\\file1\\',
   \ '/home/sweet',
   \ '\~',
+  \ 't/~=+.view.vim',
+  \ '/home/sweet/foo',
+  \ '/home/sweet/',
+  \ '~foo',
   \ 'file1.ext',
   \ 'file1.ext:,',
   \ ]
@@ -400,43 +408,45 @@ Execute (neomake#utils#MakerFromCommand copies args):
   bwipe
 
 Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
-  let maker = neomake#utils#MakerFromCommand('echo "%" 1')
+  let maker = neomake#utils#MakerFromCommand('printf "%s\n" "%" 1')
 
   new
   edit tests/fixtures/a\ filename\ with\ spaces
 
-  let jobinfo = {'file_mode': 0, 'bufnr': bufnr('%'), 'ft': ''}
+  let jobinfo = NeomakeTestsFakeJobinfo()
   let shell_argv = split(&shell) + split(&shellcmdflag)
   AssertEqual maker.fn(jobinfo), {
   \ '__command_is_string': 1,
   \ '_get_argv': get(maker, '_get_argv'),
   \ '_get_fname_for_args': get(maker, '_get_fname_for_args'),
-  \ 'args': shell_argv[1:] + ['echo "%" 1'],
+  \ 'args': shell_argv[1:] + ['printf "%s\n" "%" 1'],
   \ 'exe': shell_argv[0],
   \ 'remove_invalid_entries': 0}
 
   let fname = bufname('%')
-  let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.maker = maker
   let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
-  AssertEqual bound_maker.args, shell_argv[1:] + ['echo "%" 1']
+  AssertEqual bound_maker.args, shell_argv[1:] + ['printf "%s\n" "%" 1']
   AssertEqual bound_maker.exe, shell_argv[0]
   AssertEqual bound_maker.remove_invalid_entries, 0
 
   call bound_maker._bind_args()
-  AssertEqual bound_maker.args, shell_argv[1:] + ['echo "%" 1']
+  AssertEqual bound_maker.args, shell_argv[1:] + ['printf "%s\n" "%" 1']
 
   let argv = bound_maker._get_argv(jobinfo)
   if type(argv) == type([])
-    AssertEqual argv, shell_argv + ['echo "'.bufname('%').'" 1 '.fname]
+    AssertEqual argv, shell_argv + ['printf "%s\n" "'.fname.'" 1 ''tests/fixtures/a filename with spaces''']
   else
-    AssertEqual argv, join(shell_argv)." 'echo \"".bufname('%').'" 1 '.fname."'"
+    AssertEqual argv, join(shell_argv).' ''printf "%s\n" "tests/fixtures/a filename with spaces" 1 ''\''''tests/fixtures/a filename with spaces''\'''''''
   endif
   " self.args is not changed.
-  AssertEqual bound_maker.args, shell_argv[1:] + ['echo "%" 1']
+  AssertEqual bound_maker.args, shell_argv[1:] + ['printf "%s\n" "%" 1']
 
-  CallNeomake 0, [maker]
-  AssertEqual getqflist()[0].text, 'tests/fixtures/a filename with spaces 1'
+  CallNeomake 1, [maker]
+  AssertEqual map(getloclist(0), 'v:val.text'), [
+  \ 'tests/fixtures/a filename with spaces',
+  \ '1',
+  \ 'tests/fixtures/a filename with spaces']
   bwipe
 
 Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
@@ -463,9 +473,9 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
 
   let argv = bound_maker._get_argv(jobinfo)
   if type(argv) == type([])
-    AssertEqual argv, ['echo', bufname('%'), '1', fname]
+    AssertEqual argv, ['echo', fname, '1', fname]
   else
-    AssertEqual argv, printf("echo '%s' 1 '%s'", bufname('%'), fname)
+    AssertEqual argv, printf("echo '%s' 1 '%s'", fname, 'tests/fixtures/a filename with spaces')
   endif
   AssertEqual bound_maker.args, ['%', '1']
 

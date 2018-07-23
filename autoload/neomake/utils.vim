@@ -102,11 +102,11 @@ function! s:maker_from_command.fn(_options) dict abort
 endfunction
 
 function! s:maker_from_command._get_argv(jobinfo) abort dict
-    let args = self.args
     let fname = self._get_fname_for_args(a:jobinfo)
+    let args = neomake#utils#ExpandArgs(self.args)
     if !empty(fname)
-        let args = copy(args)
         if self.__command_is_string
+            let fname = neomake#utils#shellescape(fname)
             let args[-1] .= ' '.fname
         else
             call add(args, fname)
@@ -330,11 +330,7 @@ function! neomake#utils#ExpandArgs(args) abort
                 \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre.]\+\)*\)\ze\)\w\@!'', '
                 \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
                 \ . '''g'')')
-    let ret = map(ret,
-                \ 'substitute(v:val, '
-                \ . '''\(\%(\\\@<!\\\)\@<!\~\)'', '
-                \ . 'expand(''~''), '
-                \ . '''g'')')
+    let ret = map(ret, 'substitute(v:val, ''\v^\~\ze%(/|$)'', expand(''~''), ''g'')')
     return ret
 endfunction
 
