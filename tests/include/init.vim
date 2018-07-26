@@ -573,7 +573,7 @@ function! s:After()
     let v:warningmsg = ''
   endif
 
-  if !empty(errors)
+  if !empty(errors) && get(g:, 'vader_case_ok', 1)
     call map(errors, "printf('%d. %s', v:key+1, v:val)")
     throw len(errors)." error(s) in teardown:\n".join(errors, "\n")
   endif
