@@ -573,9 +573,13 @@ function! s:After()
     let v:warningmsg = ''
   endif
 
-  if !empty(errors) && get(g:, 'vader_case_ok', 1)
-    call map(errors, "printf('%d. %s', v:key+1, v:val)")
-    throw len(errors)." error(s) in teardown:\n".join(errors, "\n")
+  if !empty(errors)
+    if get(g:, 'vader_case_ok', 1)
+      call map(errors, "printf('%d. %s', v:key+1, v:val)")
+      throw len(errors)." error(s) in teardown:\n".join(errors, "\n")
+    else
+      Log printf('NOTE: %d error(s) in teardown.', len(errors))
+    endif
   endif
 endfunction
 command! NeomakeTestsGlobalAfter call s:After()
