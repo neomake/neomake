@@ -1704,9 +1704,6 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         if !has_key(entries_with_lnum_by_bufnr, entry.bufnr)
             let entries_with_lnum_by_bufnr[entry.bufnr] = []
             let signs_by_bufnr[entry.bufnr] = []
-            if !exists('s:current_errors[maker_type][entry.bufnr]')
-                let s:current_errors[maker_type][entry.bufnr] = {}
-            endif
         endif
 
         if do_highlight || g:neomake_place_signs
@@ -1716,11 +1713,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
 
         " Track all errors by buffer and line
         let entry.maker_name = maker_name
-        if !has_key(s:current_errors[maker_type][entry.bufnr], entry.lnum)
-            let s:current_errors[maker_type][entry.bufnr][entry.lnum] = [entry]
-        else
-            call add(s:current_errors[maker_type][entry.bufnr][entry.lnum], entry)
-        endif
+        call neomake#_add_error(maker_type, entry)
     endfor
 
     " Handle placing signs and highlights.
@@ -2371,6 +2364,17 @@ function! s:handle_next_job(prev_jobinfo) abort
     endfor
     call s:clean_make_info(make_info)
     return {}
+endfunction
+
+function! neomake#_add_error(maker_type, entry) abort
+    if !has_key(s:current_errors[a:maker_type], a:entry.bufnr)
+        let s:current_errors[a:maker_type][a:entry.bufnr] = {}
+    endif
+    if !has_key(s:current_errors[a:maker_type][a:entry.bufnr], a:entry.lnum)
+        let s:current_errors[a:maker_type][a:entry.bufnr][a:entry.lnum] = [a:entry]
+    else
+        call add(s:current_errors[a:maker_type][a:entry.bufnr][a:entry.lnum], a:entry)
+    endif
 endfunction
 
 function! neomake#get_nearest_error() abort
