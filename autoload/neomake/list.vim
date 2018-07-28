@@ -52,7 +52,7 @@ let s:base_list = {
             \ 'entries': [],
             \ }
 " Info about contained jobs.
-let s:base_list.job_entries = {}
+let s:base_list.entries_by_jobid = {}
 let s:base_list.maker_info_by_jobid = {}
 
 function! s:base_list.sort_by_location() dict abort
@@ -64,18 +64,18 @@ endfunction
 " a:1: optional jobinfo
 function! s:base_list.add_entries(entries, ...) dict abort
     let idx = len(self.entries)
-    if a:0 && !has_key(self.job_entries, a:1.id)
-        let self.job_entries[a:1.id] = []
+    if a:0 && !has_key(self.entries_by_jobid, a:1.id)
+        let self.entries_by_jobid[a:1.id] = []
         let self.maker_info_by_jobid[a:1.id] = a:1.maker
     endif
     for entry in a:entries
         let idx += 1
-        let e = extend(copy(entry), {'nmqfidx': idx})
+        let entry = extend(copy(entry), {'nmqfidx': idx})
+        call add(self.entries, entry)
         if a:0
-            call add(self.job_entries[a:1.id], e)
-            let e.job_id = a:1.id
+            call add(self.entries_by_jobid[a:1.id], entry)
+            let entry.job_id = a:1.id
         endif
-        call add(self.entries, e)
     endfor
     if self.debug
         let indexes = map(copy(self.entries), 'v:val.nmqfidx')
@@ -149,8 +149,8 @@ function! s:base_list._get_title() abort
             let info .= '!'
             let ok = 0
         endif
-        if has_key(self.job_entries, job.id)
-            let c = len(self.job_entries[job.id])
+        if has_key(self.entries_by_jobid, job.id)
+            let c = len(self.entries_by_jobid[job.id])
             let info .= '('.c.')'
             let ok = 0
         endif
@@ -162,8 +162,8 @@ function! s:base_list._get_title() abort
     for job in self.make_info.active_jobs
         let info = job.maker.name
         let info .= '...'
-        if has_key(self.job_entries, job.id)
-            let c = len(self.job_entries[job.id])
+        if has_key(self.entries_by_jobid, job.id)
+            let c = len(self.entries_by_jobid[job.id])
             let info .= '('.c.')'
         endif
         call add(maker_info, info)

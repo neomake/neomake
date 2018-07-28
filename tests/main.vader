@@ -73,3 +73,6 @@ Include (Text): ft_text.vader
 Include (TypeScript): ft_typescript.vader
 Include (Vim): ft_vim.vader
 Include (XML): ft_xml.vader
+
+~ Experimental
+Include (Fixers): fix.vader

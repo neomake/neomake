@@ -130,6 +130,19 @@ function! neomake#makers#ft#python#flake8() abort
         call a:jobinfo.cd('%:h')
         return 1
     endfunction
+
+    function! maker.fix_entry(entry, action) abort
+        if a:action ==# 'ignore'
+            " TODO: provide a method/compat function to get a line's content
+            " (using nvim_buf_get_lines with Neovim), so that it could check
+            " if there is any "noqa:" already etc.
+            " NOTE: get the original code (type + number) from the text, since
+            " entry.type gets adjusted.
+            let code = matchstr(a:entry.text, '\v^[^ ]+')
+            return [['append_to_line', a:entry.lnum, printf('  # noqa: %s', code)]]
+        endif
+    endfunction
+
     return maker
 endfunction
 

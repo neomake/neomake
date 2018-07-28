@@ -1,0 +1,332 @@
+Include: include/setup.vader
+
+Execute (NeomakeApplyFix/NeomakeApplyIgnore without error):
+  NeomakeApplyFix
+  AssertNeomakeMessage 'No error found.', 0
+
+  NeomakeApplyIgnore
+  AssertNeomakeMessage 'No error found.', 0
+
+Execute (NeomakeApplyFix applies fix):
+  new
+  noautocmd set filetype=sh
+
+  call setline(1, ['echo $cmd'])
+  AssertEqual getline('.'), 'echo $cmd'
+
+  call neomake#_add_error('file', {
+  \ 'bufnr': bufnr('%'),
+  \ 'lnum': 1,
+  \ 'col': 6,
+  \ 'nr': 2086,
+  \ 'type': 'I',
+  \ 'maker_name': 'shellcheck',
+  \ 'text': 'Double quote to prevent globbing and word splitting.'})
+
+  NeomakeApplyFix
+
+  AssertNeomakeMessage "shellcheck: fixed 'echo $cmd' => 'echo \"$cmd\"' (line 1).", 2, {'bufnr': bufnr('%')}
+  AssertEqual getline('.'), 'echo "$cmd"'
+  bwipe!
+
+Execute (NeomakeApplyIgnore applies ignore instructions):
+  new
+  noautocmd set filetype=sh
+
+  call setline(1, ['exec $cmd'])
+  AssertEqual getline('.'), 'exec $cmd'
+  AssertEqual line('.'), 1
+
+  call neomake#_add_error('file', {
+  \ 'bufnr': bufnr('%'),
+  \ 'lnum': 1,
+  \ 'col': 6,
+  \ 'nr': 2086,
+  \ 'type': 'I',
+  \ 'maker_name': 'shellcheck',
+  \ 'text': 'Double quote to prevent globbing and word splitting.'})
+
+  NeomakeApplyIgnore
+
+  AssertEqual line('.'), 2
+  AssertEqual getline('.'), 'exec $cmd'
+  AssertEqual getline(1), '# shellcheck disable=SC2086'
+  AssertNeomakeMessage 'shellcheck: fix: adding 1 lines before line 1.', 2, {'bufnr': bufnr('%')}
+  bwipe!
+
+Execute (fixer: setline, setlines, append in current buffer):
+  new
+  let bufnr = bufnr('%')
+
+  let maker = {'name': 'fixer'}
+  function! maker.fix_entry(entry, action) abort
+    return [['setline', 1, 'line 1']]
+  endfunction
+
+  let entry = {
+  \ 'bufnr': bufnr,
+  \ 'maker': maker,
+  \ }
+
+"   call neomake#fix#entry('fix', entry)
+"   AssertNeomakeMessage "fixer: fixed '' => 'line 1' (line 1).", 2, {'bufnr': bufnr}
+"   AssertEqual getline(1, '$'), ['line 1']
+
+  bwipe!
+
+Execute (fixer: setlines):
+  new
+  let bufnr = bufnr('%')
+
+  let maker = {'name': 'fixer'}
+  function! maker.fix_entry(entry, action) abort
+    return [['setline', 1, 'line 1']]
+  endfunction
+
+  let entry = {
+  \ 'bufnr': bufnr,
+  \ 'maker': maker,
+  \ }
+  AssertEqual getline(1, '$'), ['']
+
+  " Add line.
+  function! maker.fix_entry(entry, action) abort
+    return [['setlines', 1, 1, ['line 1']]]
+  endfunction
+  call neomake#fix#entry('fix', entry)
+  AssertNeomakeMessage 'fixer: fix: replacing lines 1-1 with 1 lines.', 2, {'bufnr': bufnr}
+  AssertEqual getline(1, '$'), ['line 1', '']
+
+  " Add lines.
+  normal! ggdG
+  function! maker.fix_entry(entry, action) abort
+    return [['setlines', 1, 2, ['new line 1', 'new line 2']]]
+  endfunction
+  call neomake#fix#entry('fix', entry)
+  AssertNeomakeMessage 'fixer: fix: replacing lines 1-2 with 2 lines.', 2, {'bufnr': bufnr}
+  AssertEqual getline(1, '$'), ['new line 1', 'new line 2']
+
+  " Insert line.
+  normal! ggdG
+  AssertEqual getline(1, '$'), ['']
+  function! maker.fix_entry(entry, action) abort
+    return [['setlines', 1, 1, ['line 1']]]
+  endfunction
+  call neomake#fix#entry('fix', entry)
+"   AssertNeomakeMessage 'fixer: fix: replacing lines 1-0 with 1 lines.', 2, {'bufnr': bufnr}
+  AssertEqual getline(1, '$'), ['line 1', '']
+
+  " Replace lines (end of bound).
+  call setline(1, ['1', '2', '3'])
+  function! maker.fix_entry(entry, action) abort
+    return [['setlines', 1, 4, ['line 1']]]
+  endfunction
+  call neomake#fix#entry('fix', entry)
+  AssertEqual getline(1, '$'), ['line 1']
+
+  " Out of bounds: end > line('$').
+  call setline(1, ['1', '2', '3'])
+  function! maker.fix_entry(entry, action) abort
+    return [['setlines', 1, 5, ['line 1']]]
+  endfunction
+  call neomake#fix#entry('fix', entry)
+  AssertEqual getline(1, '$'), ['1', '2', '3']
+  if exists('*nvim_buf_set_lines')
+    AssertNeomakeMessage 'Fixing entry failed: neomake#utils#buf_set_lines: Index out of bounds.', 0
+  else
+    AssertNeomakeMessage 'Fixing entry failed: neomake#utils#buf_set_lines: end is higher than number of lines.', 0
+  endif
+
+  " Out of bounds: start > end.
+  call setline(1, ['1', '2', '3'])
+  function! maker.fix_entry(entry, action) abort
+    return [['setlines', 2, 1, []]]
+  endfunction
+  call neomake#fix#entry('fix', entry)
+  AssertNeomakeMessage 'Fixing entry failed: start is higher than end.', 0
+  AssertEqual getline(1, '$'), ['1', '2', '3']
+  bwipe!
+
+" Not supported (yet?).
+" Execute (fixer: setlines: negative indexing):
+"   new
+"   let bufnr = bufnr('%')
+"   let maker = {'name': 'fixer'}
+"   let entry = {
+"   \ 'bufnr': bufnr,
+"   \ 'maker': maker,
+"   \ }
+"
+"   function! maker.fix_entry(entry, action) abort
+"     return [['setline', 1, 'line 1']]
+"   endfunction
+"
+"   AssertEqual getline(1, '$'), ['']
+"
+"   " Insert line at the end (negative indexing).
+"   normal! ggdG
+"   call setline(1, ['1', '2', '3'])
+"   function! maker.fix_entry(entry, action) abort
+"     return [['setlines', -1, -1, ['EOF']]]
+"   endfunction
+"   call neomake#fix#entry('fix', entry)
+"   AssertEqual getline(1, '$'), ['1', '2', '3', 'EOF']
+"
+"   " Replace line at the end (negative indexing).
+"   normal! ggdG
+"   call setline(1, ['1', '2', '3'])
+"   function! maker.fix_entry(entry, action) abort
+"     return [['setlines', -1, 0, ['EOF']]]
+"   endfunction
+"   call neomake#fix#entry('fix', entry)
+"   AssertEqual getline(1, '$'), ['1', '2', 'EOF']
+
+Execute (Fix can be applied from quickfix mapping (ignore)):
+  new
+  file testbuf1.sh
+  noautocmd set filetype=sh
+
+  call setline(1, ['exec $cmd'])
+  AssertEqual getline(1, '$'), ['exec $cmd']
+
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#sh#shellcheck(), [
+    \ bufname('%').':1:6: note: Double quote to prevent globbing and word splitting. [SC2086]',
+    \ ])
+  let maker.name = 'shellcheck'
+
+  call neomake#quickfix#enable(1)
+  try
+    CallNeomake 1, [maker]
+
+    lopen
+    normal I
+
+    wincmd p
+    if exists('*nvim_buf_set_lines')
+    else
+      AssertNeomakeMessage 'Delaying fixing.'
+    endif
+
+    AssertEqual getline(1, '$'), ['# shellcheck disable=SC2086', 'exec $cmd']
+    AssertNeomakeMessage 'shellcheck: fix: replacing lines 1-1 with 1 lines.', 2
+    wincmd p
+    bwipe!
+    lclose
+
+    " Runs currently only for non-delayed fixes.
+    if exists('*nvim_buf_set_lines') && has('patch-8.0.0590')
+      AssertNeomakeMessage 'Running make for ignored entry.'
+      NeomakeTestsWaitForFinishedJobs
+    endif
+  finally
+    call neomake#quickfix#disable()
+  endtry
+  bwipe!
+
+Execute (Fix can be applied from quickfix mapping (fix)):
+  new
+  file testbuf1.sh
+  noautocmd set filetype=sh
+
+  call setline(1, ['exec $cmd'])
+  AssertEqual getline(1, '$'), ['exec $cmd']
+
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#sh#shellcheck(), [
+    \ bufname('%').':1:6: note: Double quote to prevent globbing and word splitting. [SC2086]',
+    \ ])
+  let maker.name = 'shellcheck'
+
+  call neomake#quickfix#enable(1)
+  try
+    CallNeomake 1, [maker]
+
+    lopen
+    normal F
+
+    wincmd p
+    if exists('*nvim_buf_set_lines')
+    else
+      AssertNeomakeMessage 'Delaying fixing.'
+    endif
+
+    AssertEqual getline(1, '$'), ['exec "$cmd"']
+    AssertNeomakeMessage 'shellcheck: fix: replacing lines 1-2 with 1 lines.', 2
+    wincmd p
+    bwipe!
+    lclose
+
+    " Runs currently only for non-delayed fixes.
+    if exists('*nvim_buf_set_lines') && has('patch-8.0.0590')
+      AssertNeomakeMessage 'Running make for fixed entry.'
+      NeomakeTestsWaitForFinishedJobs
+    endif
+  finally
+    call neomake#quickfix#disable()
+  endtry
+  bwipe!
+
+Execute (fixer: non-existing bufnr):
+  let maker = {'name': 'fixer'}
+  function! maker.fix_entry(entry, action) abort
+    return [['setlines', 1, 1, ['line 1']]]
+  endfunction
+
+  let bufnr = bufnr('$') + 1
+  let entry = {
+  \ 'bufnr': bufnr,
+  \ 'maker': maker,
+  \ }
+  call neomake#fix#entry('fix', entry)
+  AssertNeomakeMessage 'Cannot fix non-existing buffer '.bufnr.'.', 0
+
+Execute (fixer: unlisted buffer (delayed in Vim)):
+  new
+
+  " Create an unlisted buffer.
+  call setloclist(0, [{'filename': 'unlisted_buffer'}])
+
+  let bufnr = bufnr('^unlisted_buffer')
+
+  let maker = {'name': 'fixer'}
+  let entry = {
+  \ 'bufnr': bufnr,
+  \ 'maker': maker,
+  \ }
+
+  function! maker.fix_entry(entry, action) abort
+    return [['setlines', 1, 1, ['line 1']]]
+  endfunction
+  call neomake#fix#entry('fix', entry)
+
+  let s:c = 0
+  function! maker.fix_entry(entry, action) abort
+    let s:c += 1
+    return [['setlines', 2, 2, ['line 2 ('.s:c.')']]]
+  endfunction
+  call neomake#fix#entry('fix', entry)
+
+  if exists('*nvim_buf_set_lines')
+    AssertNeomakeMessage 'fixer: fix: adding 1 lines before line 1.'
+    AssertNeomakeMessage 'fixer: fix: adding 1 lines before line 2.'
+
+    AssertEqual nvim_buf_get_lines(bufnr, 0, -1, 1), ['line 1', 'line 2 (1)', '']
+  else
+    AssertNeomakeMessage 'Delaying fixing.', 3, {'bufnr': bufnr}
+    AssertNeomakeMessage 'Delaying fixing.', 3, {'bufnr': bufnr}
+
+    " Trigger delayed processing.
+    exe 'b '.bufnr
+
+    " NOTE: uses the update function in both cases.
+    AssertNeomakeMessage 'fixer: fix: adding 1 lines before line 2.'
+    AssertNeomakeMessage 'fixer: fix: adding 1 lines before line 2.'
+
+    doautocmd BufEnter
+
+    AssertEqual getline(1, '$'), ['', 'line 2 (2)', 'line 2 (1)']
+
+    bp
+  endif
+
+  bwipe
+  exe 'bwipe! '.bufnr
