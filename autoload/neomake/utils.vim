@@ -545,3 +545,24 @@ function! neomake#utils#get_project_root(...) abort
     endfor
     return ''
 endfunction
+
+" Return the number of lines for a given buffer.
+" This returns 0 for unloaded buffers.
+if exists('*nvim_buf_line_count')
+    function! neomake#utils#get_buf_line_count(bufnr) abort
+        if !bufloaded(a:bufnr)
+            " https://github.com/neovim/neovim/issues/7688
+            return 0
+        endif
+        return nvim_buf_line_count(a:bufnr)
+    endfunction
+else
+    function! neomake#utils#get_buf_line_count(bufnr) abort
+        if a:bufnr == bufnr('%')
+            return line('$')
+        endif
+        " TODO: this should get cached (based on b:changedtick), and cleaned
+        "       in BufWipeOut.
+        return len(getbufline(a:bufnr, 1, '$'))
+    endfunction
+endif
