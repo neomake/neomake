@@ -933,34 +933,37 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
     endif
     if open_val == 2
         let s:ignore_automake_events += 1
-        call neomake#compat#save_prev_windows()
+        try
+            call neomake#compat#save_prev_windows()
 
-        let win_count = winnr('$')
-        exe cmd height
-        if win_count == winnr('$')
-            " No new window, adjust height eventually.
-            let found = 0
-            for w in range(1, winnr('$'))
-                if getwinvar(w, 'neomake_window_for_make_id') == a:jobinfo.make_id
-                    let found = w
-                    break
+            let win_count = winnr('$')
+            exe cmd height
+            if win_count == winnr('$')
+                " No new window, adjust height eventually.
+                let found = 0
+                for w in range(1, winnr('$'))
+                    if getwinvar(w, 'neomake_window_for_make_id') == a:jobinfo.make_id
+                        let found = w
+                        break
+                    endif
+                endfor
+                if found
+                    call neomake#log#debug(printf(
+                                \ 'Resizing existing quickfix window (%d, height=%d).',
+                                \ found, height), a:jobinfo)
+                    exe printf('%dresize %d', found, height)
+                else
+                    call neomake#log#debug(
+                                \ 'Could not find corresponding quickfix window.',
+                                \ a:jobinfo)
                 endif
-            endfor
-            if found
-                call neomake#log#debug(printf(
-                            \ 'Resizing existing quickfix window (%d, height=%d).',
-                            \ found, height), a:jobinfo)
-                exe printf('%dresize %d', found, height)
             else
-                call neomake#log#debug(
-                            \ 'Could not find corresponding quickfix window.',
-                            \ a:jobinfo)
+                let w:neomake_window_for_make_id = a:jobinfo.make_id
             endif
-        else
-            let w:neomake_window_for_make_id = a:jobinfo.make_id
-        endif
-        call neomake#compat#restore_prev_windows()
-        let s:ignore_automake_events -= 1
+            call neomake#compat#restore_prev_windows()
+        finally
+            let s:ignore_automake_events -= 1
+        endtry
     else
         exe cmd height
     endif
