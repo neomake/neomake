@@ -7,3 +7,4 @@ Include: isolated/highlights.vader
 Include: isolated/logging.vader
 Include: isolated/modes.vader
 Include: isolated/tempfiles-cleanup.vader
+Include: isolated/resets-ignore_automake_events.vader
