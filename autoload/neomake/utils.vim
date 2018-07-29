@@ -554,11 +554,7 @@ if exists('*nvim_buf_line_count')
             " https://github.com/neovim/neovim/issues/7688
             return 0
         endif
-        try
-            return nvim_buf_line_count(a:bufnr)
-        catch /Vim(return):Invalid buffer id/
-            return 0
-        endtry
+        return nvim_buf_line_count(a:bufnr)
     endfunction
 else
     function! neomake#utils#get_buf_line_count(bufnr) abort
