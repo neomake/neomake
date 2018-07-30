@@ -523,7 +523,7 @@ function! s:neomake_automake_clean(bufnr) abort
 endfunction
 
 function! neomake#configure#disable_automake() abort
-    call s:debug_log('disabling automake %d')
+    call s:debug_log('disabling globally')
     call s:stop_timers()
 endfunction
 

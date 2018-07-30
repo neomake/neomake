@@ -29,6 +29,7 @@ function! s:handle_disabled_status(scope, disabled, verbose) abort
                 autocmd! neomake
                 augroup! neomake
             endif
+            call neomake#configure#disable_automake()
         else
             call s:setup_autocmds()
         endif

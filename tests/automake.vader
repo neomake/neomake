@@ -932,7 +932,7 @@ Execute (NeomakeDisableBuffer stops timers):
     bwipe
   endif
 
-Execute (NeomakeDisableBuffer stops timer and keeps custom config):
+Execute (NeomakeDisable stops timers and keeps custom config):
   if !has('timers')
     NeomakeTestsSkip 'Only with timers feature'
   else
@@ -941,30 +941,23 @@ Execute (NeomakeDisableBuffer stops timer and keeps custom config):
     new
     set filetype=neomake_tests
     let b:neomake_enabled_makers = [g:true_maker]
-    call neomake#configure#automake_for_buffer({'TextChanged': {'delay': 10}})
-    AssertNeomakeMessage 'automake: registered events: TextChanged.', 3
+    call neomake#configure#automake_for_buffer({'InsertLeave': {'delay': 10}})
+    AssertNeomakeMessage 'automake: registered events: InsertLeave.', 3
 
-    doautocmd TextChanged
-    if has('patch-8.0.1494') && !has('patch-8.0.1633')
-      AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
-      doautocmd TextChanged
-    endif
-    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    doautocmd InsertLeave
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)', 3
     let timer = g:neomake_test_matchlist[1]
-    NeomakeDisableBuffer
-    AssertNeomakeMessage 'automake: stopped timer for buffer: '.timer.'.', 3, {'bufnr': bufnr('%')}
-
-    " Unregisters event.
-    AssertNeomakeMessage 'automake: registered events: .', 3
+    NeomakeDisable
+    AssertNeomakeMessage 'automake: disabling globally.', 3
+    AssertNeomakeMessage 'automake: stopping timers: '.timer.'.'
 
     " Re-enabling it kept config.
-    NeomakeToggleBuffer
+    NeomakeEnable
     let bufnr = bufnr('%')
-    AssertNeomakeMessage printf('automake: Re-enabled buffer %d.', bufnr), 3, {'bufnr': bufnr}
-    AssertNeomakeMessage 'Neomake is enabled.'
-    AssertNeomakeMessage "Using setting automake.events={'TextChanged': {'delay': 10}} from 'buffer'."
-    AssertNeomakeMessage 'automake: registered events: TextChanged.'
-    doautocmd TextChanged
+    AssertNeomakeMessage 'Neomake is enabled (global).'
+    AssertNeomakeMessage "Using setting automake.events={'InsertLeave': {'delay': 10}} from 'buffer'."
+    AssertNeomakeMessage 'automake: registered events: InsertLeave.'
+    doautocmd InsertLeave
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
     bwipe
   endif
