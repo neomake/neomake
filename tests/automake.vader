@@ -916,6 +916,10 @@ Execute (NeomakeDisableBuffer stops timers):
     let b:neomake_enabled_makers = [g:true_maker]
     call neomake#configure#automake({'TextChanged': {'delay': 10}})
     doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+      AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
+      doautocmd TextChanged
+    endif
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
     let timer = g:neomake_test_matchlist[1]
     NeomakeDisableBuffer
@@ -941,6 +945,10 @@ Execute (NeomakeDisableBuffer stops timer and keeps custom config):
     AssertNeomakeMessage 'automake: registered events: TextChanged.', 3
 
     doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+      AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
+      doautocmd TextChanged
+    endif
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
     let timer = g:neomake_test_matchlist[1]
     NeomakeDisableBuffer
@@ -972,6 +980,10 @@ Execute (NeomakeDisableTab stops timers):
     let b:neomake_enabled_makers = [g:true_maker]
     call neomake#configure#automake({'TextChanged': {'delay': 10}})
     doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+      AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
+      doautocmd TextChanged
+    endif
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
     let timer_buffer = g:neomake_test_matchlist[1]
 
@@ -980,6 +992,10 @@ Execute (NeomakeDisableTab stops timers):
     let b:neomake_enabled_makers = [g:true_maker]
     call neomake#configure#automake({'TextChanged': {'delay': 10}})
     doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+      AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
+      doautocmd TextChanged
+    endif
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
     let timer = g:neomake_test_matchlist[1]
     NeomakeDisableTab
