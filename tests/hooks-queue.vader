@@ -118,7 +118,7 @@ Execute (Does not nest hooks / User autocommands):
       let jobinfo = g:neomake_hook_context.jobinfo
       if jobinfo.maker.name == 'maker1'
         NeomakeTestsWaitForMessage 'Not processing output during active hook processing.', 3
-        AssertNeomakeMessage 'Queueing action: s:process_pending_output for Timer, BufEnter, WinEnter, InsertLeave, CursorHold, CursorHoldI.', 3
+        AssertNeomakeMessage 'Queuing action process_pending_output for Timer, BufEnter, WinEnter, InsertLeave, CursorHold, CursorHoldI.', 3
         NeomakeTestsWaitForMessage 'Retrying Timer event in 10ms.', 3
       endif
       " call neomake#log#debug('OnNeomakeJobFinished finished.')

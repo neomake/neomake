@@ -91,7 +91,7 @@ Execute (Location list handling is postponed with visible popup menu):
 
     function! s:close_pum(...)
       NeomakeTestsWaitForMessage 'Postponing final location list handling during completion.', 3
-      AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for CompleteDone.'
+      AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for CompleteDone.'
       call neomake#log#debug('tests: closing popupmenu.')
       call feedkeys("\<esc>")
     endfunction
@@ -129,7 +129,7 @@ Execute (Location list is only cleared in normal/insert mode on success):
     AssertNeomakeMessage 'Cleaning jobinfo.', 3
     AssertNeomakeMessage 'File-level errors cleaned.', 3
     AssertNeomakeMessage 'Postponing final location list handling for mode "V".'
-    AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for Timer.'
+    AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for Timer.'
 
     AssertEqual mode(), 'V'
     exe "norm! \<Esc>"
@@ -177,7 +177,7 @@ Execute (Location list is not cleared in operator-pending mode (Vim)):
     AssertNeomakeMessage 'File-level errors cleaned.', 3
     AssertNeomakeMessage 'Postponing final location list handling for mode "no".'
     AssertEqual b:cb_called, 'no'
-    AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for Timer.'
+    AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for Timer.'
 
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 0
@@ -208,7 +208,7 @@ Execute (Location list is only cleared in same window on success):
     AssertEqual map(getloclist(win2), 'v:val.text'), ['init2'], 'Location list has not been updated'
     AssertNeomakeMessage 'Cleaning jobinfo.', 3
     AssertNeomakeMessage 'Postponing final location list handling (in another window).'
-    AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for WinEnter.'
+    AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for WinEnter.'
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 0
 
@@ -667,7 +667,7 @@ Execute (get_list_entries: delayed for location list (but in current context)):
   AssertNeomakeMessage 'Postponing location list processing.', 3
   AssertEqual getloclist(0), []
   AssertEqual winnr(), 2
-  AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:ProcessEntries.', 3
+  AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: ProcessEntries.', 3
   let valid = has('patch-8.0.0580')
   AssertEqualQf getloclist(3), [{
   \ 'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': valid, 'vcol': 0, 'nr': -1,
@@ -803,7 +803,7 @@ Execute (action queue handles E48 in process_output):
   AssertNeomakeMessage 'exit: unnamed_maker: 0.'
   AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.'
   AssertNeomakeMessage 'Error during pcall: Vim(bprevious):E48: Not allowed in sandbox:   sandbox bprevious.', 3
-  AssertNeomakeMessage 'Queueing action: s:ProcessJobOutput for Timer, WinEnter.'
+  AssertNeomakeMessage 'Queuing action ProcessJobOutput for Timer, WinEnter.'
   if has('timers')
     AssertNeomakeMessage 'Retrying Timer event in 10ms.'
   else
@@ -812,18 +812,18 @@ Execute (action queue handles E48 in process_output):
   if async
     AssertNeomakeMessage 'unnamed_maker: completed with exit code 0.'
   endif
-  AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:ProcessJobOutput.'
-  AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
+  AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: ProcessJobOutput.'
+  AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.'
 
   bwipe
 
   AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).', 3
-  AssertNeomakeMessage 'action queue: calling s:ProcessJobOutput.', 3
+  AssertNeomakeMessage 'action queue: calling ProcessJobOutput.', 3
   AssertNeomakeMessage 'Postponing location list processing.', 3
-  AssertNeomakeMessage 'Queueing action: s:ProcessJobOutput for BufEnter, WinEnter.', 3
-  AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.', 3
-  AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:ProcessJobOutput.', 3
-  AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.', 3
+  AssertNeomakeMessage 'Queuing action ProcessJobOutput for BufEnter, WinEnter.', 3
+  AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3
+  AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: ProcessJobOutput.', 3
+  AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.', 3
   AssertNeomakeMessage 'action queue: processed 0 items.', 3
   AssertNeomakeMessage 'action queue: processing for BufEnter (1 items, winnr: 1).', 3
 
@@ -856,21 +856,21 @@ Execute (job finishes while in tabline function):
 
     NeomakeTestsWaitForMessage 'Error during pcall: Vim(laddexpr):E523: Not allowed here:                 laddexpr a:lines.', 3
     AssertNeomakeMessage '\v\(in function .*\.\.\<SNR\>\d+_NeomakeTestTabline\[\d+\]\.\..*\)', 3
-    AssertNeomakeMessage 'Queueing action: s:ProcessJobOutput for Timer, WinEnter.', 3
+    AssertNeomakeMessage 'Queuing action ProcessJobOutput for Timer, WinEnter.', 3
 
-    AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:ProcessJobOutput.'
-    AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
+    AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: ProcessJobOutput.'
+    AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.'
     AssertNeomakeMessage 'tabline_end.', 3
     sleep 20m
     AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 2).', 3
-    AssertNeomakeMessage 'action queue: calling s:ProcessJobOutput.', 3
+    AssertNeomakeMessage 'action queue: calling ProcessJobOutput.', 3
 
     " Restore here already for vim8090 (E117: Unknown function: s:NeomakeTestTabline)
     Restore &tabline
     doautocmd WinEnter
     AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 2).', 3
     AssertNeomakeMessageAbsent 'action queue: processing for Timer (0 items, winnr: 2).', 3
-    AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.', 3
+    AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3
 
     AssertEqual map(getloclist(0), 'v:val.text'), ['finished_in_tabline']
     bwipe

@@ -740,7 +740,7 @@ Execute (pcall aborts after 3 attempts per job):
   endif
 
   NeomakeTestsWaitForMessage 'Giving up handling Timer callbacks after 3 attempts. Please report this. See :messages for more information.', 0, jobs[0]
-  AssertNeomakeMessage '\m^(in function .*queue_action.*)$', 3
+  AssertNeomakeMessage '\m^(in function .*neomake#action_queue#add,.*)$', 3
   AssertNeomakeMessage 'Processing 1 entries.', 3, jobs[1]
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual map(copy(g:neomake_test_jobfinished), 'v:val.jobinfo.maker.name'), ['maker2']
@@ -748,7 +748,7 @@ Execute (pcall aborts after 3 attempts per job):
   AssertEqual map(getloclist(0), 'v:val.text'), ['error']
 
   let vim_msgs = NeomakeTestsGetVimMessages()
-  Assert vim_msgs[-1] =~# '\vNeomake error in: function .*_queue_action, line \d+'
+  Assert vim_msgs[-1] =~# '\vNeomake error in: function .*neomake#action_queue#add, line \d+'
   AssertEqual len(vim_msgs), 1
   bwipe
 

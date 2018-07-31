@@ -313,27 +313,27 @@ Execute (Goes back to original window after opening list (wincmd in autocmd)):
 
     AssertNotEqual wincount + 1, winnr('$'), 'Location list has not appeared yet'
     Assert exists('#neomake_event_queue#WinEnter'), 'autocmd was setup'
-    AssertNeomakeMessage 'Queueing action: s:AddExprCallback for BufEnter, WinEnter.'
+    AssertNeomakeMessage 'Queuing action AddExprCallback for BufEnter, WinEnter.'
 
     " Go to first window for wincmd-p check.
     1wincmd w
     AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).'
-    AssertNeomakeMessage 'action queue: calling s:AddExprCallback.'
+    AssertNeomakeMessage 'action queue: calling AddExprCallback.'
     AssertNeomakeMessage 'Postponing location list processing.'
-    AssertNeomakeMessage 'Queueing action: s:AddExprCallback for BufEnter, WinEnter.'
-    AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:AddExprCallback.'
-    AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
+    AssertNeomakeMessage 'Queuing action AddExprCallback for BufEnter, WinEnter.'
+    AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: AddExprCallback.'
+    AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.'
     AssertNeomakeMessage 'action queue: processed 0 items.'
     exe winnr.'wincmd w'
     AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
     AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
 
-    AssertNeomakeMessage 'action queue: calling s:AddExprCallback.', 3
+    AssertNeomakeMessage 'action queue: calling AddExprCallback.', 3
     AssertNeomakeMessage 'Processing 1 entries.', 3
     AssertNeomakeMessage 'Handling location list: executing lwindow.', 3, jobinfo
     AssertNeomakeMessage 'action queue: processed 1 items.'
     doautocmd WinEnter
-    AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.', 3, jobinfo
+    AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3, jobinfo
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
     AssertNeomakeMessage 'action queue: processed 1 items.'
 
