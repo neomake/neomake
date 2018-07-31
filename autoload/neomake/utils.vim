@@ -327,44 +327,45 @@ function! neomake#utils#ExpandArgs(args) abort
 endfunction
 
 function! neomake#utils#hook(event, context, ...) abort
-    if exists('#User#'.a:event)
-        let jobinfo = a:0 ? a:1 : (
-                    \ has_key(a:context, 'jobinfo') ? a:context.jobinfo : {})
-
-        let context_str = string(map(copy(a:context),
-                    \ "v:key ==# 'jobinfo' ? '…'"
-                    \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
-        let args = [printf('Calling User autocmd %s with context: %s.',
-                    \ a:event, context_str)]
-        if !empty(jobinfo)
-            let args += [jobinfo]
-        endif
-        call call('neomake#log#info', args)
-
-        if exists('g:neomake_hook_context')
-            throw printf('Neomake internal error: hook invocation must not be nested: %s.', a:event)
-        endif
-        unlockvar g:neomake_hook_context
-        let g:neomake_hook_context = a:context
-        lockvar 1 g:neomake_hook_context
-        try
-            if v:version >= 704 || (v:version == 703 && has('patch442'))
-                exec 'doautocmd <nomodeline> User ' . a:event
-            else
-                exec 'doautocmd User ' . a:event
-            endif
-        catch
-            let error = v:exception
-            if error[-1:] !=# '.'
-                let error .= '.'
-            endif
-            call neomake#log#exception(printf(
-                        \ 'Error during User autocmd for %s: %s',
-                        \ a:event, error), jobinfo)
-        finally
-            unlet g:neomake_hook_context
-        endtry
+    if !exists('#User#'.a:event)
+        return
     endif
+    let jobinfo = a:0 ? a:1 : (
+                \ has_key(a:context, 'jobinfo') ? a:context.jobinfo : {})
+
+    let context_str = string(map(copy(a:context),
+                \ "v:key ==# 'jobinfo' ? '…'"
+                \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
+    let args = [printf('Calling User autocmd %s with context: %s.',
+                \ a:event, context_str)]
+    if !empty(jobinfo)
+        let args += [jobinfo]
+    endif
+    call call('neomake#log#info', args)
+
+    if exists('g:neomake_hook_context')
+        throw printf('Neomake internal error: hook invocation must not be nested: %s.', a:event)
+    endif
+    unlockvar g:neomake_hook_context
+    let g:neomake_hook_context = a:context
+    lockvar 1 g:neomake_hook_context
+    try
+        if v:version >= 704 || (v:version == 703 && has('patch442'))
+            exec 'doautocmd <nomodeline> User ' . a:event
+        else
+            exec 'doautocmd User ' . a:event
+        endif
+    catch
+        let error = v:exception
+        if error[-1:] !=# '.'
+            let error .= '.'
+        endif
+        call neomake#log#exception(printf(
+                    \ 'Error during User autocmd for %s: %s',
+                    \ a:event, error), jobinfo)
+    finally
+        unlet g:neomake_hook_context
+    endtry
 endfunction
 
 function! neomake#utils#diff_dict(old, new) abort
