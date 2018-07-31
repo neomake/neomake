@@ -111,15 +111,10 @@ function! s:process_action_queue(event) abort
 
     let processed = []
     let removed = 0
-    let abort = 0
     for [i, data] in q_for_this_event
         let job_or_make_info = data[1][0]
         let v = remove(queue, i - removed)
         let removed += 1
-        if abort
-            call add(queue, v)
-            continue
-        endif
         let log_context = has_key(job_or_make_info, 'make_id') ? job_or_make_info : job_or_make_info.options
 
         call neomake#log#debug(printf('action queue: calling %s.',
