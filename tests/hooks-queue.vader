@@ -85,8 +85,12 @@ Execute (Nested neomake#utils#hook must not be nested (directly)):
   augroup END
   call neomake#utils#hook('Event1', {'context': 1})
   AssertNeomakeMessage "Calling User autocmd Event1 with context: {'context': 1}.", 2
+  AssertNeomakeMessage 'Queuing action handle_hook for Timer, BufEnter, WinEnter, InsertLeave, CursorHold, CursorHoldI.', 3
+  doautocmd InsertLeave
   AssertNeomakeMessage "Calling User autocmd Event2 with context: {'context': 2}.", 2
-  AssertNeomakeMessage 'Error during User autocmd for Event1: Neomake internal error: hook invocation must not be nested: Event2.', 0
+  AssertNeomakeMessage 'Queuing action handle_hook for Timer, BufEnter, WinEnter, InsertLeave, CursorHold, CursorHoldI.', 3
+  doautocmd InsertLeave
+  AssertNeomakeMessage "Calling User autocmd Event3 with context: {'context': 3}.", 2
 
 Execute (neomake#utils#hook: reports exception):
   augroup neomake_tests

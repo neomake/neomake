@@ -26,7 +26,9 @@ endfunction
 " re-queued also).
 function! neomake#action_queue#add(events, data) abort
     let job_or_make_info = a:data[1][0]
-    if has_key(job_or_make_info, 'make_id')
+    if empty(job_or_make_info)
+        let log_context = {}
+    elseif has_key(job_or_make_info, 'make_id')
         let jobinfo = job_or_make_info
         let log_context = jobinfo
     else
@@ -115,8 +117,14 @@ function! s:process_action_queue(event) abort
         let job_or_make_info = data[1][0]
         let v = remove(queue, i - removed)
         let removed += 1
-        let log_context = has_key(job_or_make_info, 'make_id') ? job_or_make_info : job_or_make_info.options
 
+        if has_key(job_or_make_info, 'make_id')
+            let log_context = job_or_make_info
+        elseif has_key(job_or_make_info, 'options')
+            let log_context = job_or_make_info.options
+        else
+            let log_context = {}
+        endif
         call neomake#log#debug(printf('action queue: calling %s.',
                     \ s:actionname(data[0])), log_context)
         try

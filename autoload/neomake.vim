@@ -2109,11 +2109,6 @@ function! s:need_to_postpone_output_processing(jobinfo) abort
         call neomake#log#debug('Not processing output from command-line window "'.getcmdwintype().'".', a:jobinfo)
         return ['InsertLeave', 'CursorHold', 'CursorHoldI']
     endif
-    " TODO: should be done in neomake#utils#hook directly instead, involves refactoring.
-    if exists('g:neomake_hook_context')
-        call neomake#log#debug('Not processing output during active hook processing.', a:jobinfo)
-        return ['Timer', 'BufEnter', 'WinEnter', 'InsertLeave', 'CursorHold', 'CursorHoldI']
-    endif
     return []
 endfunction
 
