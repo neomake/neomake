@@ -208,7 +208,7 @@ docker_update_image:
 	  echo "WARN: Dockerfile.tests is not clean. Not updating."; \
 	fi
 	make docker_image
-	make docker_test DOCKER_VIM=neovim-master
+	make docker_test DOCKER_VIM=vim81
 	@echo "Done.  Use 'make docker_push' to push it, and then update .circleci/config.yml."
 
 DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim80 vim81 \
@@ -220,7 +220,7 @@ docker_test_all: $(_DOCKER_VIM_TARGETS)
 $(_DOCKER_VIM_TARGETS):
 	$(MAKE) docker_test DOCKER_VIM=$(patsubst docker_test-%,%,$@)
 
-_docker_test: DOCKER_VIM:=vim-master
+_docker_test: DOCKER_VIM:=vim81
 _docker_test: DOCKER_MAKE_TARGET=$(DOCKER_MAKE_TEST_TARGET) \
   TEST_VIM='/vim-build/bin/$(DOCKER_VIM)' \
   VADER_OPTIONS="$(VADER_OPTIONS)" VADER_ARGS="$(VADER_ARGS)" \
