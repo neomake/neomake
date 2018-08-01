@@ -6,6 +6,9 @@ if !exists('s:action_queue_registered_events')
 endif
 let s:action_queue_timer_timeouts = get(g:, 'neomake_action_queue_timeouts', {1: 100, 2: 200, 3: 500})
 
+let g:neomake#action_queue#processed = {}
+let g:neomake#action_queue#not_processed = {}
+
 let g:neomake#action_queue#_s = s:
 
 function! s:actionname(funcref) abort
@@ -76,6 +79,7 @@ function! neomake#action_queue#add(events, data) abort
         endif
     endfor
     call add(s:action_queue, [a:events, a:data])
+    return g:neomake#action_queue#not_processed
 endfunction
 
 " Remove any queued actions for a jobinfo or make_info object.
@@ -142,11 +146,16 @@ function! s:process_action_queue(event) abort
             endif
             continue
         endtry
-        if rv is# 1
+        if rv is# g:neomake#action_queue#processed
             let processed += [data]
-        elseif a:event !=# 'Timer' && has_key(job_or_make_info, 'action_queue_timer_tries')
-            call neomake#log#debug('s:process_action_queue: decrementing timer tries for non-Timer event.', job_or_make_info)
-            let job_or_make_info.action_queue_timer_tries.count -= 1
+        elseif rv is# g:neomake#action_queue#not_processed
+            if a:event !=# 'Timer' && has_key(job_or_make_info, 'action_queue_timer_tries')
+                call neomake#log#debug('s:process_action_queue: decrementing timer tries for non-Timer event.', job_or_make_info)
+                let job_or_make_info.action_queue_timer_tries.count -= 1
+            endif
+        else
+            let args_str = neomake#utils#Stringify(data[1])
+            throw printf('Internal Neomake error: hook function %s(%s) returned unexpected value (%s)', data[0], args_str, rv)
         endif
     endfor
     call neomake#log#debug(printf('action queue: processed %d items.',

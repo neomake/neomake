@@ -264,7 +264,7 @@ function! s:handle_get_list_entries(jobinfo, ...) abort
                     \ 'Error during get_list_entries for %s: %s.',
                     \ jobinfo.maker.name, v:exception), jobinfo)
         call s:CleanJobinfo(jobinfo)
-        return 1
+        return g:neomake#action_queue#processed
     finally
         let jobinfo.finished = 1
     endtry
@@ -277,7 +277,7 @@ function! s:handle_get_list_entries(jobinfo, ...) abort
         call s:ProcessEntries(jobinfo, entries)
     endif
     call s:CleanJobinfo(jobinfo)
-    return 1
+    return g:neomake#action_queue#processed
 endfunction
 
 function! s:MakeJob(make_id, options) abort
@@ -1434,7 +1434,7 @@ function! s:CleanJobinfo(jobinfo, ...) abort
     " Trigger cleanup (and autocommands) if all jobs have finished.
     if empty(make_info.active_jobs) && empty(make_info.jobs_queue)
         call s:clean_make_info(make_info)
-        return 1
+        return g:neomake#action_queue#processed
     endif
 endfunction
 
@@ -1626,7 +1626,7 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
                 \ }
     call neomake#utils#hook('NeomakeFinished', hook_context)
     call s:do_clean_make_info(a:make_info)
-    return 1
+    return g:neomake#action_queue#processed
 endfunction
 
 function! neomake#VimLeave() abort
@@ -1699,7 +1699,7 @@ function! s:pcall(fn, args) abort
         " Might throw in case of X failed attempts.
         call neomake#action_queue#add(['Timer', 'WinEnter'], [s:function(a:fn), a:args])
     endtry
-    return 0
+    return g:neomake#action_queue#not_processed
 endfunction
 
 " Do we need to replace (instead of append) the location/quickfix list, for
@@ -1890,7 +1890,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         call s:HandleLoclistQflistDisplay(a:jobinfo, new_list)
     endif
     call neomake#highlights#ShowHighlights()
-    return 1
+    return g:neomake#action_queue#processed
 endfunction
 
 function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
@@ -1919,7 +1919,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
                                 \ 'Failed to decode JSON: %s (output: %s).',
                                 \ substitute(v:exception, '^Neomake: ', '', ''), string(output))
                     call neomake#log#exception(error, a:jobinfo)
-                    return
+                    return g:neomake#action_queue#not_processed
                 endtry
                 call neomake#log#debug(printf(
                             \ "Calling maker's process_json method with %d JSON entries.",
@@ -1941,11 +1941,11 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
             if type(entries) != type([])
                 call neomake#log#error(printf('The %s method for maker %s did not return a list, but: %s.',
                             \ method, maker.name, string(entries)[:100]), a:jobinfo)
-                return 0
+                return g:neomake#action_queue#not_processed
             elseif !empty(entries) && type(entries[0]) != type({})
                 call neomake#log#error(printf('The %s method for maker %s did not return a list of dicts, but: %s.',
                             \ method, maker.name, string(entries)[:100]), a:jobinfo)
-                return 0
+                return g:neomake#action_queue#not_processed
             endif
             return s:ProcessEntries(a:jobinfo, entries)
         endif
@@ -2007,14 +2007,14 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
                     \ a:jobinfo.maker.name, v:exception), a:jobinfo)
         return
     endtry
-    return 1
+    return g:neomake#action_queue#processed
 endfunction
 
 function! s:process_pending_output(jobinfo, lines, source, ...) abort
     let retry_events = s:need_to_postpone_output_processing(a:jobinfo)
     if empty(retry_events)
         if s:ProcessPendingOutput(a:jobinfo, a:lines, a:source)
-            return 1
+            return g:neomake#action_queue#processed
         endif
         if a:0
             let retry_events = a:1
@@ -2023,7 +2023,7 @@ function! s:process_pending_output(jobinfo, lines, source, ...) abort
         endif
     endif
     let a:jobinfo.pending_output = 1
-    call neomake#action_queue#add(retry_events, [s:function('s:process_pending_output'), [a:jobinfo, a:lines, a:source, retry_events]])
+    return neomake#action_queue#add(retry_events, [s:function('s:process_pending_output'), [a:jobinfo, a:lines, a:source, retry_events]])
 endfunction
 
 function! s:ProcessPendingOutput(jobinfo, lines, source) abort
