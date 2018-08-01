@@ -194,9 +194,9 @@ endif
 function! neomake#action_queue#get_queued_actions(jobinfo) abort
     " Check if there are any queued actions for this job.
     let queued_actions = []
-    for [_, v] in s:action_queue
+    for [events, v] in s:action_queue
         if v[1][0] == a:jobinfo
-            let queued_actions += [s:actionname(v[0])]
+            let queued_actions += [[s:actionname(v[0]), events]]
         endif
     endfor
     return queued_actions

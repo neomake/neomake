@@ -200,7 +200,7 @@ Execute (neomake#CancelJob empties action queue):
     if has('patch-7.4.2299')
       NeomakeTestsWaitForFinishedJobs
       AssertNeomakeMessage 'Queuing action AddExprCallback for BufEnter, WinEnter.'
-      AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: AddExprCallback.'
+      AssertNeomakeMessage "Skipping cleaning of job info because of queued actions: ['AddExprCallback', ['BufEnter', 'WinEnter']].", 3
       AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.'
     endif
     call neomake#CancelJob(job_id)
