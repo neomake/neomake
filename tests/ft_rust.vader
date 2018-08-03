@@ -68,7 +68,7 @@ Execute (cargo test failures):
 
 Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
   let maker = neomake#makers#ft#rust#cargotest()
-  AssertEqual maker.cwd, '%p:h'
+  AssertEqual maker.cwd, '%:p:h'
 
   let tempdir = tempname()
   let slash = neomake#utils#Slash()
