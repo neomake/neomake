@@ -37,7 +37,7 @@ Execute (neomake#cmd#complete_makers: completes all (executable) makers, preferr
   new
   noautocmd set ft=rust
 
-  for m in ['cargo', 'cargotest'], 'rustc', 'cabal', 'clippy', 'gradle']
+  for m in ['cargo', 'cargotest', 'rustc', 'cabal', 'clippy', 'gradle']
     call g:NeomakeTestsCreateExe(m, [])
   endfor
 
