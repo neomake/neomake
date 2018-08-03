@@ -61,6 +61,32 @@ function! s:get_cargo_maker_cwd(default) abort
     return a:default
 endfunction
 
+function! neomake#makers#ft#rust#cargotest() abort
+    let maker = {
+        \ 'exe': 'cargo',
+        \ 'args': ['test', '--quiet'],
+        \ 'auto_enabled': 1,
+        \ 'cwd': '%:p:h',
+        \ 'errorformat':
+            \ '%-G,' .
+            \ '%-Gtest %.%#,' .
+            \ '%-Grunning %\\d%# test%.%#,' .
+            \ '%-Gfailures:%.%#,' .
+            \ '%-G----%.%#,' .
+            \ '%E%\\s%#error[E%n]: %m,' .
+            \ '%C%\\s%#-->\ %f:%l:%c,' .
+            \ '%+G%\\d%# %#|%.%#,' .
+            \ '%-Gthread %.%#,' .
+            \ '%-Gnote:%.%#RUST_BACKTRACE%.%#,' .
+            \ '%-G%\\s%\\+%.%#,',
+    \ }
+    let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
+    if !empty(cargo_toml)
+        let maker.cwd = fnamemodify(cargo_toml, ':h')
+    endif
+    return maker
+endfunction
+
 function! neomake#makers#ft#rust#cargo() abort
     let maker_command = get(b:, 'neomake_rust_cargo_command',
                 \ get(g:, 'neomake_rust_cargo_command', ['check']))
