@@ -131,6 +131,7 @@ Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
   call writefile([], cargo_toml)
 
   new
-  exe 'lcd' subdirlet maker = neomake#makers#ft#rust#cargotest()
+  exe 'lcd' subdir
+  let maker = neomake#makers#ft#rust#cargotest()
   AssertEqual maker.cwd, tempdir
   bwipe
