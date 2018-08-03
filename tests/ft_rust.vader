@@ -65,3 +65,19 @@ Execute (cargo test failures):
 
   AssertEqual 1, len(getloclist(0))
   bwipe
+
+Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
+  let maker = neomake#makers#ft#rut#cargotest()
+  AssertEqual maker.cwd, '%p:h'
+
+  let tempdir = tempname()
+  let slash = neomake#utils#Slash()
+  let subdir = tempdir . slash . 'subdir'
+  call mkdir(subdir, 'p')
+  let cargo_toml = tempdir . slash . 'Cargo.toml'
+  call writefile([], cargo_toml)
+
+  new
+  exe 'lcd' subdirlet maker = neomake#makers#ft#rust#cargotest()
+  AssertEqual maker.cwd, tempdir
+  bwipe
