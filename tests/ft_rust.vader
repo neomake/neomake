@@ -53,3 +53,15 @@ Execute (rust: cargo: uses directory with Cargo.toml as cwd):
   let maker = neomake#makers#ft#rust#cargo()
   AssertEqual maker.cwd, tempdir
   bwipe
+
+Execute (cargo test failures):
+  new
+  file build/lib.rs
+  let cargotest = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargotest',
+    \ '../test/fixtures/rust/cargotest_with_failures')
+
+  call neomake#Make(1, [cargotest])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual 4, len(getloclist(0)
+  bwipe
