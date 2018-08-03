@@ -318,7 +318,14 @@ endfunction
 
 function! NeomakeTestsFakeJobinfo() abort
   let make_id = -42
-  let jobinfo = {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': '', 'make_id': make_id}
+  let jobinfo = copy(g:neomake#jobinfo#base)
+  call extend(jobinfo, {
+        \ 'file_mode': 1,
+        \ 'bufnr': bufnr('%'),
+        \ 'ft': '',
+        \ 'make_id': make_id,
+        \ 'maker': {},
+        \ })
   let make_info = neomake#GetStatus().make_info
   let make_info[make_id] = {
         \ 'options': jobinfo,
