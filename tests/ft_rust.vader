@@ -120,7 +120,7 @@ Execute (cargo test failures):
   bwipe
 
 Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
-  let maker = neomake#makers#ft#rut#cargotest()
+  let maker = neomake#makers#ft#rust#cargotest()
   AssertEqual maker.cwd, '%p:h'
 
   let tempdir = tempname()
