@@ -948,10 +948,11 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
                     endif
                 endfor
                 if found
+                    let cmd = printf('%dresize %d', found, height)
                     call neomake#log#debug(printf(
-                                \ 'Resizing existing quickfix window (%d, height=%d).',
-                                \ found, height), a:jobinfo)
-                    exe printf('%dresize %d', found, height)
+                                \ 'Resizing existing quickfix window: %s.',
+                                \ cmd), a:jobinfo)
+                    exe cmd
                 else
                     call neomake#log#debug(
                                 \ 'Could not find corresponding quickfix window.',
