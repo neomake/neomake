@@ -42,27 +42,27 @@ Execute (neomake#cmd#complete_makers: completes all (executable) makers, preferr
 
   " Neomake! completes ft makers (first), and project makers.
   AssertEqual neomake#cmd#complete_makers('', 'Neomake! '), [
-  \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle']
+  \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle', 'cargotest']
 
   call g:NeomakeTestsCreateExe('mvn', [])
   AssertEqual neomake#cmd#complete_makers('', 'Neomake! '), [
-  \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle', 'mvn']
+  \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle', 'mvn', 'cargotest']
 
   " Neomake completes ft makers.
   AssertEqual neomake#cmd#complete_makers('', 'Neomake '), [
-  \ 'cargo', 'rustc']
+  \ 'cargo', 'rustc', 'cargotest']
 
   " Neomake completes ft makers with project makers when called again.
   AssertEqual neomake#cmd#complete_makers('', 'Neomake '), [
-  \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle', 'mvn']
+  \ 'cargo', 'rustc', 'cabal', 'clippy', 'gradle', 'mvn', 'cargotest']
 
   " Neomake with ArgLead completes ft makers.
   AssertEqual neomake#cmd#complete_makers('c', 'Neomake c'), [
-  \ 'cargo']
+  \ 'cargo', 'cargotest']
 
   " Neomake with ArgLead completes ft makers with project makers when called again.
   AssertEqual neomake#cmd#complete_makers('c', 'Neomake c'), [
-  \ 'cargo', 'cabal', 'clippy']
+  \ 'cargo', 'cabal', 'clippy', 'cargotest']
 
   " Neomake completes global makers when no filetype makers match.
   AssertEqual neomake#cmd#complete_makers('g', 'Neomake g'), [
@@ -70,7 +70,7 @@ Execute (neomake#cmd#complete_makers: completes all (executable) makers, preferr
 
   " Neomake with ArgLead completes ft makers only again afterwards.
   AssertEqual neomake#cmd#complete_makers('c', 'Neomake c'), [
-  \ 'cargo']
+  \ 'cargo', 'cargotest']
 
   bwipe
 
