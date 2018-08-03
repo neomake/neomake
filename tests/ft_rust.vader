@@ -116,5 +116,5 @@ Execute (cargo test failures):
   call neomake#Make(1, [cargotest])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual 4, len(getloclist(0))
+  AssertEqual 1, len(getloclist(0))
   bwipe
