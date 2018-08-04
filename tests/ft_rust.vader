@@ -109,7 +109,7 @@ Execute (rust: cargo: logs error when cd'ing fails):
 
 Execute (rust: cargotest detect failures):
   new
-  file build/lib.rs
+  file src/lib.rs
   let cargotest = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargotest',
     \ 'tests/fixtures/rust/cargotest_with_failures')
 
@@ -118,6 +118,7 @@ Execute (rust: cargotest detect failures):
 
   AssertEqual 4, len(getloclist(0))
   AssertEqual map(getloclist(0), 'v:val.text')[0],  'unresolved import `self::tests`'
+  bwipe
 
 Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
   let maker = neomake#makers#ft#rust#cargotest()
