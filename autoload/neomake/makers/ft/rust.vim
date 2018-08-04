@@ -64,7 +64,8 @@ endfunction
 function! neomake#makers#ft#rust#cargotest() abort
     let maker = {
         \ 'exe': 'cargo',
-        \ 'args': ['test', '--quiet'],
+        \ 'args': ['test', '%:t:r', '--quiet'],
+        \ 'append_file': 0,
         \ 'errorformat':
             \ '%-G,' .
             \ '%-Gtest %.%#,' .
