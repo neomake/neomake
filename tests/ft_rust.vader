@@ -63,13 +63,12 @@ Execute (rust: cargotest detect failures):
   call neomake#Make(1, [cargotest])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual 1, len(getloclist(0))
+  AssertEqual 4, len(getloclist(0))
   AssertEqual map(getloclist(0), 'v:val.text'),  [' unresolved import `self::tests`']
   bwipe
 
 Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
   let maker = neomake#makers#ft#rust#cargotest()
-  AssertEqual maker.cwd, '%:p:h'
 
   let tempdir = tempname()
   let slash = neomake#utils#Slash()
