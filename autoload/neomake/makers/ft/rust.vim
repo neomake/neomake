@@ -28,21 +28,23 @@ function! neomake#makers#ft#rust#cargotest() abort
         \ 'append_file': 0,
         \ 'errorformat':
             \ '%-G,' .
-            \ '%-Gtest %.%#,' .
-            \ '%-Grunning %\\d%# test%.%#,' .
-            \ '%-Gfailures:%.%#,' .
-            \ '%-G----%.%#,' .
-            \ '%-G%.%#note:%.%#,' .
-            \ '%-G%.%#--verbose%.%#,' .
-            \ '%-G%.%#--explain%.%#,' .
-            \ '%+E%\\s%#error[E%n]: %m,' .
-            \ '%-G%\\s%#error:%.%#,' .
-            \ '%+W%\\s%#warning: %m,' .
-            \ '%-C%\\s%#-->\ %f:%l:%c,' .
-            \ '%+G%\\d%# %#|%.%#,' .
-            \ '%E%\\s%#%m,' .
-            \ '%+G%\\s%#%.%#%\\,,' .
-            \ '%+Z%\\s%#%.%#%\\,%\\s%f:%l:%c,'
+            \ '%-Gtest %s,' .
+            \ '%-Grunning %\\d%# test%s,' .
+            \ '%-Gfailures:%s,' .
+            \ '%-G----%s,' .
+            \ '%-G%.%#--verbose%s,' .
+            \ '%-G%.%#--explain%s,' .
+            \ '%-G%\ %#error: aborting due to %\\d%#%\ %#previous errors,' .
+            \ '%E%\ %#error[E%n]:\ %m,' .
+            \ '%E%\ %#error:\ %m,' .
+            \ '%I%\ %#note:\ %m,'.
+            \ '%W%\ %#warning:\ %m,' .
+            \ '%-Z%\ %#-->\ %f:%l:%c,' .
+            \ '%G%\\d%# %#|\ %m,' .
+            \ '%G\ %#\= %*[^:]:\ %m,'.
+            \ '%E%\ %#%m,' .
+            \ '%G%\ %#%s%\\,,' .
+            \ '%Z%\ %#%s%\\,%\\s%f:%l:%c,'
     \ }
     let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
     if !empty(cargo_toml)
