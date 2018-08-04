@@ -663,3 +663,41 @@ Execute (Handles :lwindow closing the list window):
     AssertNeomakeMessage 'list window has been closed (old count: 3, new count: 2).', 3
     bwipe
   endif
+
+Execute (neomake#_handle_list_display can be used to open list only with errors):
+  function! s:OnNeomakeJobFinished(...) abort
+    let jobinfo = g:neomake_hook_context.jobinfo
+    let file_mode = jobinfo.file_mode
+    let list = file_mode ? getloclist(0) : getqflist()
+
+    function! s:list_has_errors(list)
+      for e in a:list
+        if get(e, 'type', 'E') ==? 'E'
+          return 1
+        endif
+      endfor
+      return 0
+    endfunction
+
+    if s:list_has_errors(list)
+      call neomake#_handle_list_display(jobinfo, min([10, len(list)]))
+    endif
+  endfunction
+
+  augroup neomake_tests
+    autocmd User NeomakeJobFinished nested call s:OnNeomakeJobFinished()
+  augroup END
+
+  Save g:neomake_open_list
+  let g:neomake_open_list = 0
+
+  new
+  let wincount = winnr('$')
+
+  CallNeomake 1, [g:error_maker]
+
+  AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
+  AssertEqual len(getloclist(0)), 1
+
+  lclose
+  bwipe
