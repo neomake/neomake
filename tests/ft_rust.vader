@@ -58,7 +58,7 @@ Execute (rust: cargotest detect failures):
   new
   file build/lib.rs
   let cargotest = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargotest',
-    \ '../tests/fixtures/rust/cargotest_with_failures')
+    \ 'tests/fixtures/rust/cargotest_with_failures')
 
   call neomake#Make(1, [cargotest])
   NeomakeTestsWaitForFinishedJobs
