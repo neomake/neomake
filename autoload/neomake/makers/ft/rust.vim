@@ -73,11 +73,15 @@ function! neomake#makers#ft#rust#cargotest() abort
             \ '%-Gfailures:%.%#,' .
             \ '%-G----%.%#,' .
             \ '%E%\\s%#error[E%n]: %m,' .
+            \ '%W%\\s%#warning: %m,' .
             \ '%C%\\s%#-->\ %f:%l:%c,' .
             \ '%+G%\\d%# %#|%.%#,' .
             \ '%-Gthread %.%#,' .
-            \ '%-Gnote:%.%#RUST_BACKTRACE%.%#,' .
-            \ '%-G%\\s%\\+%.%#,',
+            \ '%-Z%.%#note:%.%#,' .
+            \ '%E%\\s%#%m,' .
+            \ '+G%\\s%#%.%#%\\,,' .
+            \ '+G%\\s%#%.%#%\\,%\\s%f:%l:%c,' .
+            \ '%-Z%.%#note:%.%#,'
     \ }
     let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
     if !empty(cargo_toml)
