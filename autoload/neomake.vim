@@ -1026,12 +1026,10 @@ function! s:do_handle_list_display(jobinfo, height, open_val) abort
             let win_count = winnr('$')
             exe cmd
             let new_win_count = winnr('$')
-            if get(g:, 'neomake_open_list_resize_existing', 1)
-                        \ && win_count == new_win_count
+            if win_count == new_win_count
                 " No new window, adjust height eventually.
-                let found = 0
-
-                if get(make_info, '_did_lwindow', 0)
+                if get(g:, 'neomake_open_list_resize_existing', 1) && get(make_info, '_did_lwindow', 0)
+                    let found = 0
                     for w in range(1, winnr('$'))
                         if getwinvar(w, 'neomake_window_for_make_id') == make_id
                             let found = w
@@ -1068,6 +1066,10 @@ function! s:do_handle_list_display(jobinfo, height, open_val) abort
             endif
             call neomake#compat#restore_prev_windows()
             let make_info._did_lwindow = 1
+        catch
+            call neomake#log#exception(printf(
+                        \ 'Error during list display for %s: %s.',
+                        \ a:jobinfo.maker.name, v:exception), a:jobinfo)
         finally
             let s:ignore_automake_events -= 1
         endtry

@@ -603,6 +603,8 @@ Execute (adjusting height of list for second maker can be disabled):
   AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
   AssertEqual winheight(qf_win), 1
 
+  AssertNeomakeMessage 'Handling list display: executing lwindow 2.', 3
+
   lclose
   bwipe
 
