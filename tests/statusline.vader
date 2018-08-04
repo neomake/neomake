@@ -196,3 +196,25 @@ Execute (neomake#statusline#get: warning with bufnr):
   let v:warningmsg = ''
   AssertEqual neomake#statusline#get(bufnr('%')), '?'
   AssertEqual v:warningmsg, ''
+
+Execute (XXX: g:actual_curbuf is set in statusline expressions):
+  " This was meant to ensure that g:actual_curbuf is set in statusline
+  " expressions, but it turned out that it is not when wrapped in a function,
+  " like with Vader's tests.
+  " See https://github.com/vim/vim/issues/3279.
+  new
+
+  let s:called = 0
+  function! Statusline()
+    " Tests the current behavior.
+    Assert !exists('g:actual_curbuf')
+    let s:called = 1
+  endfunction
+
+  " NOTE: not being set with just '%!Statusline()' already.
+  setlocal statusline=%!'%{Statusline()}'
+  redraw
+
+  AssertEqual s:called, 1
+  bwipe
+  delfunction Statusline
