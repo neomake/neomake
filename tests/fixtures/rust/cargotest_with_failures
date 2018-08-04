@@ -1,34 +1,20 @@
-
-running 2 tests
-test tests::calling_with_unknown_subcommand ... ok
-test tests::calling_without_args ... ok
-
-test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
-
-
-running 0 tests
-
-test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
-
-
-running 1 test
-test src/lib.rs - create_image (line 26) ... FAILED
-
-failures:
-
----- src/lib.rs - create_image (line 26) stdout ----
-	error[E0432]: unresolved import `self::tests`
- --> src/lib.rs:28:11
+error[E0433]: failed to resolve. Maybe a missing `extern crate non;`?
+ --> src/lib.rs:5:13
   |
-5 | use self::tests::setup_database;
-  |           ^^^^^ Maybe a missing `extern crate tests;`?
+5 |         use non::existent::module;
+  |             ^^^ Maybe a missing `extern crate non;`?
 
-thread 'src/lib.rs - create_image (line 26)' panicked at 'couldn't compile the test', librustdoc/test.rs:321:13
-note: Run with `RUST_BACKTRACE=1` for a backtrace.
+warning: unused import: `non::existent::module`
+ --> src/lib.rs:5:13
+  |
+5 |         use non::existent::module;
+  |             ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: #[warn(unused_imports)] on by default
 
+error: aborting due to previous error
 
-failures:
-    src/lib.rs - create_image (line 26)
+For more information about this error, try `rustc --explain E0433`.
 
-test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out
+To learn more, run the command again with --verbose.
 
