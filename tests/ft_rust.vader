@@ -117,7 +117,7 @@ Execute (rust: cargotest detect failures):
   NeomakeTestsWaitForFinishedJobs
 
   AssertEqual 4, len(getloclist(0))
-  AssertEqual map(getloclist(0), 'v:val.text')[0],  ['unresolved import `self::tests`']
+  AssertEqual map(getloclist(0), 'v:val.text')[0],  'unresolved import `self::tests`'
   bwipe
 
 Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
