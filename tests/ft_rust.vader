@@ -63,8 +63,9 @@ Execute (rust: cargotest detect failures):
   call neomake#Make(1, [cargotest])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual 4, len(getloclist(0))
-  AssertEqual map(getloclist(0), 'v:val.text')[0],  'unresolved import `self::tests`'
+  AssertEqual 9, len(getloclist(0))
+  AssertEqual map(getloclist(0), 'v:val.text')[0],  'failed to resolve. Maybe a missing `extern crate non;`?'
+  AssertEqual map(getloclist(0), 'v:val.text')[1],  'unused import: `non::existent::module`
   bwipe
 
 Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
