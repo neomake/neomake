@@ -949,7 +949,8 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
 
             let win_count = winnr('$')
             exe cmd height
-            if win_count == winnr('$')
+            let new_win_count = winnr('$')
+            if win_count == new_win_count
                 " No new window, adjust height eventually.
                 let found = 0
                 for w in range(1, winnr('$'))
@@ -969,8 +970,21 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
                                 \ 'Could not find corresponding quickfix window.',
                                 \ a:jobinfo)
                 endif
+            elseif new_win_count > win_count
+                if &filetype !=# 'qf'
+                    call neomake#log#debug(printf(
+                                \ 'WARN: unexpected filetype for new window: %s',
+                                \ &filetype), a:jobinfo)
+                else
+                    call neomake#log#debug(printf(
+                                \ 'list window has been opened (old count: %d, new count: %d).',
+                                \ win_count, new_win_count), a:jobinfo)
+                    let w:neomake_window_for_make_id = a:jobinfo.make_id
+                endif
             else
-                let w:neomake_window_for_make_id = a:jobinfo.make_id
+                call neomake#log#debug(printf(
+                            \ 'list window has been closed (old count: %d, new count: %d).',
+                            \ win_count, new_win_count), a:jobinfo)
             endif
             call neomake#compat#restore_prev_windows()
         finally
