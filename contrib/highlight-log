@@ -26,6 +26,21 @@ while [ $# -ne 0 ]; do
 done
 
 if [ "$1" = vader ]; then
+  colorize() {
+    # Only colorize if stdout is connected to a tty (not with :!make).
+    [ -t 1 ] || cat -
+
+    # sed: add coloring to Vader's output:
+    # 1. failures (includes pending) in red "(X)"
+    # 2. test case header in bold "(2/2)"
+    # 3. Neomake's debug log messages in less intense grey
+    # 4. non-Neomake log lines (e.g. from :Log) in bold/bright yellow.
+    sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/' \
+      -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+)/[1m\0[0m/' \
+      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0[0m/' \
+      -e '/\[\(verbose\|warning\|error  \|\(\(V\|W\|\E\) +[.[:digit:]]\+\)\)\]/! s/^ \+> .*/[33;1m\0[0m/'
+  }
+
   if [ -n "$CI" ]; then
     # Travis does not seem to understand 256 color mode; use bright black.
     debug_color='[30;1m'
@@ -118,16 +133,7 @@ if [ "$1" = vader ]; then
     done
   else
     cat -
-  fi \
-  | sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/' \
-      -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+)/[1m\0[0m/' \
-      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0[0m/' \
-      -e '/\[\(verbose\|warning\|error  \|\(\(V\|W\|\E\) +[.[:digit:]]\+\)\)\]/! s/^ \+> .*/[33;1m\0[0m/'
-  # sed: add coloring to Vader's output:
-  # 1. failures (includes pending) in red "(X)"
-  # 2. test case header in bold "(2/2)"
-  # 3. Neomake's debug log messages in less intense grey
-  # 4. non-Neomake log lines (e.g. from :Log) in bold/bright yellow.
+  fi | colorize
 
 else
   # Output from neomake_logfile.
