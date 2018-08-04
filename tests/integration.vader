@@ -14,6 +14,7 @@ Execute (Neomake with unknown maker):
   \ [3, 'Cleaning make info.', {'make_id': make_id, 'bufnr': bufnr}]]
   " ACK the error.
   AssertNeomakeMessage 'Maker not found (for empty filetype): doesnotexist.', 0
+  Assert 0
 
 Execute (Neomake with unknown maker for multiple fts):
   Save g:neomake_verbose
