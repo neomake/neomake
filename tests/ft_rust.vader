@@ -116,7 +116,7 @@ Execute (rust: cargotest detect failures):
   call neomake#Make(1, [cargotest])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual 9, len(getloclist(0))
+  AssertEqual 11, len(getloclist(0))
   AssertEqual map(getloclist(0), 'v:val.text')[0],  'failed to resolve. Maybe a missing `extern crate non;`?'
   AssertEqual map(getloclist(0), 'v:val.text')[1],  'unused import: `non::existent::module`
   bwipe
