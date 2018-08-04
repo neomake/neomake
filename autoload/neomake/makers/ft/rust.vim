@@ -32,16 +32,17 @@ function! neomake#makers#ft#rust#cargotest() abort
             \ '%-Grunning %\\d%# test%.%#,' .
             \ '%-Gfailures:%.%#,' .
             \ '%-G----%.%#,' .
-            \ '%E%\\s%#error[E%n]: %m,' .
-            \ '%W%\\s%#warning: %m,' .
-            \ '%C%\\s%#-->\ %f:%l:%c,' .
+            \ '%-G%.%#note:%.%#,' .
+            \ '%-G%.%#--verbose%.%#,' .
+            \ '%-G%.%#--explain%.%#,' .
+            \ '%+E%\\s%#error[E%n]: %m,' .
+            \ '%-G%\\s%#error:%.%#,' .
+            \ '%+W%\\s%#warning: %m,' .
+            \ '%-C%\\s%#-->\ %f:%l:%c,' .
             \ '%+G%\\d%# %#|%.%#,' .
-            \ '%-Gthread %.%#,' .
-            \ '%-Z%.%#note:%.%#,' .
             \ '%E%\\s%#%m,' .
-            \ '+G%\\s%#%.%#%\\,,' .
-            \ '+G%\\s%#%.%#%\\,%\\s%f:%l:%c,' .
-            \ '%-Z%.%#note:%.%#,'
+            \ '%+G%\\s%#%.%#%\\,,' .
+            \ '%+Z%\\s%#%.%#%\\,%\\s%f:%l:%c,'
     \ }
     let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
     if !empty(cargo_toml)
