@@ -79,7 +79,7 @@ function! s:get_maker_info(...) abort
     if empty(maker_names)
         return ['None.']
     endif
-    let maker_defaults = neomake#config#get('maker_defaults')
+    let maker_defaults = g:neomake#config#_defaults['maker_defaults']
     let r = []
     for maker_name in maker_names
         let maker = call('neomake#GetMaker', [maker_name] + a:000)
