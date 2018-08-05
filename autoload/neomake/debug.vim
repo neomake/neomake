@@ -1,5 +1,31 @@
 " Debug/feedback helpers.
 
+function! neomake#debug#pprint(d, ...) abort
+    return call('s:pprint', [a:d] + a:000)
+endfunction
+
+function! s:pprint(v, ...) abort
+    let indent = a:0 ? a:1 : ''
+    if type(a:v) ==# type({})
+        if empty(a:v)
+            return '{}'
+        endif
+        let r = "{\n"
+        for [k, V] in items(a:v)
+            let r .= indent.'  '.string(k).': '.s:pprint(V, indent . '  ').",\n"
+        endfor
+        let r .= indent.'}'
+        return r
+    elseif type(a:v) ==# type([])
+        if empty(a:v)
+            return '[]'
+        endif
+        let r = '['."\n".join(map(copy(a:v), 'indent."  ".s:pprint(v:val, indent."  ")'), ",\n").",\n".indent.']'
+        return r
+    endif
+    return string(a:v)
+endfunction
+
 function! neomake#debug#validate_maker(maker) abort
     let issues = {'errors': [], 'warnings': []}
 
@@ -144,21 +170,6 @@ function! neomake#debug#_get_info_lines() abort
     let r += ['']
     let r += ['```']
 
-    function! s:pprint(d, ...) abort
-        if type(a:d) != type({})
-            return string(a:d)
-        endif
-        let indent = a:0 ? a:1 : ''
-        if empty(a:d)
-            return '{}'
-        endif
-        let r = "{\n"
-        for [k, v] in items(a:d)
-            let r .= indent.'  ' . string(k).': '.s:pprint(v, indent . '  ').",\n"
-        endfor
-        let r .= indent.'}'
-        return r
-    endfunction
     let r += ['g:neomake: '.(exists('g:neomake') ? s:pprint(g:neomake) : 'unset')]
     let r += ['b:neomake: '.(exists('b:neomake') ? s:pprint(b:neomake) : 'unset')]
     let r += ['```']
