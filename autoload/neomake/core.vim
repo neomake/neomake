@@ -6,9 +6,7 @@ function! neomake#core#create_jobs(options, makers) abort
     return jobs
 endfunction
 
-function! neomake#core#instantiate_maker(maker, options, ...) abort
-    " TODO: sane?
-    let check_executable = a:0 ? a:1 : 1
+function! neomake#core#instantiate_maker(maker, options, check_exe) abort
     let maker = a:maker
     let options = a:options
     " Call .fn function in maker object, if any.
@@ -33,7 +31,7 @@ function! neomake#core#instantiate_maker(maker, options, ...) abort
             call neomake#log#debug(error.'.', options)
             return {}
         endif
-        if check_executable && !executable(maker.exe)
+        if a:check_exe && !executable(maker.exe)
             if get(maker, 'auto_enabled', 0)
                 call neomake#log#debug(printf(
                             \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name), options)
@@ -53,7 +51,7 @@ function! s:bind_makers_for_job(options, makers) abort
     for maker in a:makers
         let options = copy(a:options)
         try
-            let maker = neomake#core#instantiate_maker(maker, options)
+            let maker = neomake#core#instantiate_maker(maker, options, 1)
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '').'.'
             call neomake#log#error(error, options)

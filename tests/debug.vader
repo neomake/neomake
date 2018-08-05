@@ -99,3 +99,7 @@ Execute (neomake#debug#get_maker_info: error with missing maker):
 Execute (neomake#debug#get_maker_info: displays maker for another filetype):
   let info = neomake#debug#get_maker_info('python')
   AssertEqual info[0], 'python (filetype python)'
+
+Execute (neomake#debug#get_maker_info: displays project maker):
+  let info = neomake#debug#get_maker_info('clippy')
+  AssertEqual info[0], 'clippy (project maker)'
