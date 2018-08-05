@@ -29,9 +29,6 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
   let jobinfo.file_mode = 0
   AssertEqual maker._get_argv(jobinfo), 'cmd.exe /c echo "1 2"'
 
-  let bound_maker = maker.fn(jobinfo)
-  AssertEqual bound_maker._get_argv(jobinfo), 'cmd.exe /c echo "1 2"'
-
 Execute (neomake#compat#dev_null on (emulated) Windows):
   AssertEqual g:neomake#compat#dev_null, 'NUL'
 

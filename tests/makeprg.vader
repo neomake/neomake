@@ -12,7 +12,6 @@ Execute (makeprg: exe):
 
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.file_mode = 0
-  let maker = maker.fn(jobinfo)
   AssertEqual maker.args, []
   AssertEqual maker.append_file, 0
 

@@ -78,17 +78,9 @@ function! neomake#utils#Exists(exe) abort
 endfunction
 
 " Object used with neomake#utils#MakerFromCommand.
-" It creates args in `.fn` and handles appending the filename according to
-" if it was created from a string or list of args.
 let s:maker_from_command = extend(copy(g:neomake#core#command_maker_base), {
             \ 'remove_invalid_entries': 0,
             \ })
-function! s:maker_from_command.fn(_options) dict abort
-    " Return a cleaned up copy of self.
-    " TODO: remove completely?
-    return filter(deepcopy(self), "(v:key !~# '^__' || v:key ==# '__command_is_string') && v:key !=# 'fn'")
-endfunction
-
 function! s:maker_from_command._get_argv(jobinfo) abort dict
     let fname = self._get_fname_for_args(a:jobinfo)
     let args = neomake#utils#ExpandArgs(self.args)
@@ -108,7 +100,6 @@ endfunction
 "       string.
 function! neomake#utils#MakerFromCommand(command) abort
     let maker = copy(s:maker_from_command)
-    let maker.__command = a:command
     if type(a:command) == type('')
         let argv = split(&shell) + split(&shellcmdflag)
         let maker.exe = argv[0]

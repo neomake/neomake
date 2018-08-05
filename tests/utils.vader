@@ -375,8 +375,7 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   else
     let expected_argv = "/bin/bash -o pipefail -c 'echo 1'"
   endif
-  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
-  AssertEqual bound_maker._get_argv(jobinfo), expected_argv
+  AssertEqual maker._get_argv(jobinfo), expected_argv
 
   let &shell = '/bin/bash'
   let &shellcmdflag = '-o pipefail -c'
@@ -386,8 +385,7 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   else
     let expected_argv = "/bin/bash -o pipefail -c 'echo 2'"
   endif
-  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
-  AssertEqual bound_maker._get_argv(jobinfo), expected_argv
+  AssertEqual maker._get_argv(jobinfo), expected_argv
 
 Execute (neomake#utils#MakerFromCommand copies args):
   new
@@ -395,7 +393,7 @@ Execute (neomake#utils#MakerFromCommand copies args):
   let maker = neomake#utils#MakerFromCommand('echo "%" 1')
   let maker.tempfile_name = 'tempfile'
   let jobinfo = NeomakeTestsFakeJobinfo()
-  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
+  let bound_maker = neomake#GetMaker(maker)
   let argv = bound_maker._get_argv(jobinfo)
   let shell_argv = split(&shell) + split(&shellcmdflag)
   if type(argv) == type([])
@@ -415,7 +413,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
 
   let jobinfo = NeomakeTestsFakeJobinfo()
   let shell_argv = split(&shell) + split(&shellcmdflag)
-  AssertEqual maker.fn(jobinfo), {
+  AssertEqual maker, {
   \ '__command_is_string': 1,
   \ '_get_argv': get(maker, '_get_argv'),
   \ '_get_fname_for_args': get(maker, '_get_fname_for_args'),
@@ -425,7 +423,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
 
   let fname = bufname('%')
   let jobinfo.maker = maker
-  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
+  let bound_maker = neomake#GetMaker(maker)
   AssertEqual bound_maker.args, shell_argv[1:] + ['printf "%s\n" "%" 1']
   AssertEqual bound_maker.exe, shell_argv[0]
   AssertEqual bound_maker.remove_invalid_entries, 0
@@ -453,7 +451,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
   let maker = neomake#utils#MakerFromCommand(['echo', '%', '1'])
   let jobinfo = {'file_mode': 0, 'bufnr': bufnr('%'), 'ft': ''}
 
-  AssertEqual maker.fn(jobinfo), {
+  AssertEqual maker, {
   \ '__command_is_string': 0,
   \ '_get_argv': get(maker, '_get_argv'),
   \ '_get_fname_for_args': get(maker, '_get_fname_for_args'),
@@ -466,7 +464,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
   let fname = bufname('%')
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.maker = maker
-  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
+  let bound_maker = neomake#GetMaker(maker)
   AssertEqual bound_maker.args, ['%', '1']
   AssertEqual bound_maker.exe, 'echo'
   AssertEqual bound_maker.remove_invalid_entries, 0
@@ -562,7 +560,7 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   let b:neomake_tempfile_enabled = 1
   let jobinfo = NeomakeTestsFakeJobinfo()
 
-  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
+  let bound_maker = neomake#GetMaker(maker)
   let make_info = values(neomake#GetStatus().make_info)[0]
   Assert !has_key(make_info, 'tempfiles')
   let shell_argv = split(&shell) + split(&shellcmdflag)
