@@ -1,12 +1,12 @@
 " Config API.
 
-let s:defaults = {
+let g:neomake#config#_defaults = {
       \ 'maker_defaults': {
       \   'buffer_output': 1,
       \   'output_stream': 'both',
       \   'remove_invalid_entries': 0,
       \ }}
-lockvar s:defaults
+lockvar g:neomake#config#_defaults
 
 let g:neomake#config#undefined = {}
 lockvar! g:neomake#config#undefined
@@ -130,8 +130,8 @@ function! neomake#config#get_with_source(name, ...) abort
     " Return default.
     if a:0
       return [a:1, 'default']
-    elseif has_key(s:defaults, a:name)
-      return [copy(s:defaults[a:name]), 'default']
+    elseif has_key(g:neomake#config#_defaults, a:name)
+      return [copy(g:neomake#config#_defaults[a:name]), 'default']
     endif
     return [g:neomake#config#undefined, 'default']
 endfunction
