@@ -100,6 +100,13 @@ Execute (neomake#GetMaker uses maker_defaults):
   call neomake#config#set('maker_defaults.remove_invalid_entries', 1)
   AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
 
+  " maker_defaults uses hard-coded defaults when only set partially/loaded.
+  AssertEqual neomake#GetMaker(maker).buffer_output, 1
+
+  " maker_defaults uses hard-coded defaults always.
+  call neomake#config#set('maker_defaults', {})
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 0
+
 Execute (neomake#GetMaker from g:neomake_foo_maker):
   let g:neomake_custom_maker = {
     \ 'exe': 'my-exe'

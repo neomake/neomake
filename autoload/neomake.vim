@@ -788,7 +788,9 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     endif
     if !has_key(maker, 'get_list_entries')
         " Set defaults for command/job based makers.
-        let defaults = neomake#config#get('maker_defaults')
+        let defaults = extend(
+                    \ copy(g:neomake#config#_defaults['maker_defaults']),
+                    \ neomake#config#get('maker_defaults'))
         call extend(defaults, {
             \ 'exe': maker.name,
             \ 'args': [],
