@@ -945,6 +945,8 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
         let cmd = 'cwindow'
     endif
     if open_val == 2
+        let make_id = a:jobinfo.make_id
+        let make_info = s:make_info[make_id]
         let s:ignore_automake_events += 1
         try
             call neomake#compat#save_prev_windows()
@@ -955,22 +957,25 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
             if win_count == new_win_count
                 " No new window, adjust height eventually.
                 let found = 0
-                for w in range(1, winnr('$'))
-                    if getwinvar(w, 'neomake_window_for_make_id') == a:jobinfo.make_id
-                        let found = w
-                        break
+
+                if get(make_info, '_did_lwindow', 0)
+                    for w in range(1, winnr('$'))
+                        if getwinvar(w, 'neomake_window_for_make_id') == make_id
+                            let found = w
+                            break
+                        endif
+                    endfor
+                    if found
+                        let cmd = printf('%dresize %d', found, height)
+                        call neomake#log#debug(printf(
+                                    \ 'Resizing existing quickfix window: %s.',
+                                    \ cmd), a:jobinfo)
+                        exe cmd
+                    else
+                        call neomake#log#debug(
+                                    \ 'Could not find corresponding quickfix window.',
+                                    \ a:jobinfo)
                     endif
-                endfor
-                if found
-                    let cmd = printf('%dresize %d', found, height)
-                    call neomake#log#debug(printf(
-                                \ 'Resizing existing quickfix window: %s.',
-                                \ cmd), a:jobinfo)
-                    exe cmd
-                else
-                    call neomake#log#debug(
-                                \ 'Could not find corresponding quickfix window.',
-                                \ a:jobinfo)
                 endif
             elseif new_win_count > win_count
                 if &filetype !=# 'qf'
@@ -989,6 +994,7 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
                             \ win_count, new_win_count), a:jobinfo)
             endif
             call neomake#compat#restore_prev_windows()
+            let make_info._did_lwindow = 1
         finally
             let s:ignore_automake_events -= 1
         endtry
