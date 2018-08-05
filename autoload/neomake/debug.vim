@@ -4,26 +4,26 @@ function! neomake#debug#pprint(d, ...) abort
     return call('s:pprint', [a:d] + a:000)
 endfunction
 
-function! s:pprint(d, ...) abort
+function! s:pprint(v, ...) abort
     let indent = a:0 ? a:1 : ''
-    if type(a:d) ==# type({})
-        if empty(a:d)
+    if type(a:v) ==# type({})
+        if empty(a:v)
             return '{}'
         endif
         let r = "{\n"
-        for [k, V] in items(a:d)
+        for [k, V] in items(a:v)
             let r .= indent.'  '.string(k).': '.s:pprint(V, indent . '  ').",\n"
         endfor
         let r .= indent.'}'
         return r
-    elseif type(a:d) ==# type([])
-        if empty(a:d)
+    elseif type(a:v) ==# type([])
+        if empty(a:v)
             return '[]'
         endif
-        let r = '['."\n".join(map(copy(a:d), 'indent."  ".s:pprint(v:val, indent."  ")'), ",\n").",\n".indent.']'
+        let r = '['."\n".join(map(copy(a:v), 'indent."  ".s:pprint(v:val, indent."  ")'), ",\n").",\n".indent.']'
         return r
     endif
-    return string(a:d)
+    return string(a:v)
 endfunction
 
 function! neomake#debug#validate_maker(maker) abort

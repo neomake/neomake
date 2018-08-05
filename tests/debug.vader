@@ -64,3 +64,4 @@ Execute (neomake#debug#pprint):
   AssertEqual neomake#debug#pprint([{}]), "[\n  {},\n]"
   AssertEqual neomake#debug#pprint([{'foo': ['bar', 'baz']}]),
   \ "[\n  {\n    'foo': [\n      'bar',\n      'baz',\n    ],\n  },\n]"
+  AssertEqual neomake#debug#pprint([[], []]), "[\n  [],\n  [],\n]"
