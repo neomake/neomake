@@ -523,7 +523,6 @@ if !s:can_use_env_in_job_opts
     endfunction
 endif
 
-let s:maker_base = {}
 let s:command_maker_base = copy(g:neomake#core#command_maker_base)
 " Check if a temporary file is used, and set it in s:make_info in case it is.
 function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
@@ -774,7 +773,7 @@ function! neomake#GetMaker(name_or_maker, ...) abort
     " Create the maker object.
     let GetEntries = neomake#utils#GetSetting('get_list_entries', maker, -1, ft, bufnr)
     if GetEntries isnot# -1
-        let maker = extend(copy(s:maker_base), copy(maker))
+        let maker = copy(maker)
         let maker.get_list_entries = GetEntries
     else
         let maker = extend(copy(s:command_maker_base), copy(maker))
