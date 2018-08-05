@@ -271,7 +271,11 @@ if exists('*win_getid')
         " Go back, maintaining the '#' window (CTRL-W_p).
         let [aw_id, pw_id] = remove(s:prev_windows, 0)
         let pw = win_id2win(pw_id)
-        if pw && winnr() != pw
+        if !pw
+            call neomake#log#debug(printf(
+                  \ 'Cannot restore previous windows (previous window with ID %d not found).',
+                  \ pw_id))
+        elseif winnr() != pw
             let aw = win_id2win(aw_id)
             if aw
                 exec aw . 'wincmd w'
@@ -287,7 +291,11 @@ else
     function! neomake#compat#restore_prev_windows() abort
         " Go back, maintaining the '#' window (CTRL-W_p).
         let [aw, pw] = remove(s:prev_windows, 0)
-        if winnr() != pw
+        if pw > winnr('$')
+            call neomake#log#debug(printf(
+                  \ 'Cannot restore previous windows (%d > %d).',
+                  \ pw, winnr('$')))
+        elseif winnr() != pw
             if aw
                 exec aw . 'wincmd w'
             endif
