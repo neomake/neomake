@@ -91,6 +91,15 @@ Execute (neomake#GetMaker uses defaults from b:/g: based on maker):
   let b:neomake_test_remove_invalid_entries = 3
   AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 3
 
+Execute (neomake#GetMaker uses maker_defaults):
+  Save g:neomake
+
+  let maker = {'name': 'test'}
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 0
+
+  call neomake#config#set('maker_defaults.remove_invalid_entries', 1)
+  AssertEqual neomake#GetMaker(maker).remove_invalid_entries, 1
+
 Execute (neomake#GetMaker from g:neomake_foo_maker):
   let g:neomake_custom_maker = {
     \ 'exe': 'my-exe'
