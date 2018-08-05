@@ -160,3 +160,18 @@ Execute (neomake#compat#glob_list):
   let &wildignore = '*.vader'
   AssertEqual fnamemodify(g:vader_file, ':e'), 'vader'
   AssertEqual neomake#compat#glob_list(g:vader_file), [g:vader_file]
+
+Execute (neomake#compat#restore_prev_windows handles removed windows):
+  new
+  new
+  if exists('*win_getid')
+    let expected_msg = printf('Cannot restore previous windows (previous window with ID %d not found).',
+    \ win_getid())
+  else
+    let expected_msg = 'Cannot restore previous windows (3 > 2).'
+  endif
+  call neomake#compat#save_prev_windows()
+  bwipe
+  call neomake#compat#restore_prev_windows()
+  AssertNeomakeMessage expected_msg, 3
+  bwipe
