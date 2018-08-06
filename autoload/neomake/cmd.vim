@@ -34,7 +34,14 @@ function! neomake#cmd#complete_makers(ArgLead, CmdLine, ...) abort
     " Only display executable makers.
     let makers = []
     for maker_name in maker_names
-        let maker = neomake#GetMaker(maker_name)
+        try
+            let maker = neomake#GetMaker(maker_name)
+        catch /^Neomake: /
+            let error = substitute(v:exception, '^Neomake: ', '', '').'.'
+            call neomake#log#debug(printf('Could not get maker %s: %s',
+                  \ maker_name, error))
+            continue
+        endtry
         if type(get(maker, 'exe', 0)) != type('') || executable(maker.exe)
             let makers += [[maker_name, maker]]
         endif
