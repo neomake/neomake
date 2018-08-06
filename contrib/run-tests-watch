@@ -36,17 +36,19 @@ title() {
 status_file=$(mktemp)
 handle_cmd_result() {
   if [ "$1" = 0 ]; then
+    last_test_succeeded=1
     title "✔ $2"
     if [ "${2#*${alltestsfile}*}" != "$2" ]; then
       alltests_succeeded=1
     fi
   else
+    last_test_succeeded=0
     title "✘ $2"
     if [ "${2#*${alltestsfile}*}" != "$2" ]; then
       alltests_succeeded=0
     fi
   fi
-  echo "$alltests_succeeded" > "$status_file"
+  echo "$last_test_succeeded $alltests_succeeded" > "$status_file"
 }
 
 # Recursively kill childs - required to get out of a running pdb.
@@ -73,10 +75,11 @@ while true; do
     echo "================================================================="
     echo "changed file: $changed_files"
 
-    read -r alltests_succeeded < "$status_file" || alltests_succeeded=0
+    read -r last_test_succeeded alltests_succeeded < "$status_file" || alltests_succeeded=0
 
-    if [ "${changed_files#tests/}" != "$changed_files" ]; then
-      # A test file was changed.
+    if [ "${changed_files#tests/}" != "$changed_files" ] \
+        && [ "${changed_files#tests/include/}" = "$changed_files" ]; then
+      # A test file was changed (but not an include file).
       last_changed_testsfile="$changed_files"
       testfiles="$last_changed_testsfile"
 
@@ -84,7 +87,8 @@ while true; do
       if [ "$testfiles" != "$alltestsfile" ] && [ "$alltests_succeeded" = 0 ]; then
         testfiles="$testfiles $alltestsfile"
       fi
-    else
+
+    elif [ "$last_test_succeeded" = 1 ]; then
       # Run all tests.
       alltests_succeeded=0
       testfiles="$alltestsfile"
