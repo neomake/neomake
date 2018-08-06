@@ -524,7 +524,9 @@ function! s:After()
         endif
       endfor
       " In case there are two windows with Vader-workbench.
-      only
+      if winnr('$') > 1
+        only
+      endif
     catch
       Log "Error while cleaning windows: ".v:exception.' (in '.v:throwpoint.').'
     endtry
