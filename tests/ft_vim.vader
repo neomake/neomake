@@ -92,3 +92,11 @@ Execute (vimlint: errorformat):
   \ 'lnum': 2, 'bufnr': bufnr('%'), 'col': 1, 'valid': 1, 'vcol': 0,
   \ 'nr': 204, 'type': 'W', 'pattern': '', 'text': 'constant in conditional context'}]
   bwipe
+
+Execute (vint: handles error with version check):
+  let exe = g:NeomakeTestsCreateExe('vint', [
+  \ '#!/bin/sh', 'echo "Traceback (most recent call last):" >&2'])
+
+  let maker = neomake#makers#ft#vim#vint()
+  let maker.exe = exe
+  AssertEqual maker.supports_stdin({}), 0

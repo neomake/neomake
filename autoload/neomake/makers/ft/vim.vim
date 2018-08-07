@@ -31,7 +31,7 @@ function! neomake#makers#ft#vim#vint() abort
         if support == -1
             let ver = neomake#compat#systemlist(['vint', '--version'])
             let ver_split = split(ver[0], '\.')
-            if !empty(ver_split) && (ver_split[0] > 0 || +ver_split[1] >= 4)
+            if len(ver_split) > 1 && (ver_split[0] > 0 || +ver_split[1] >= 4)
                 let support = 1
             else
                 let support = 0
