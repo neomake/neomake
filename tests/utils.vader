@@ -487,9 +487,14 @@ Execute (neomake#utils#MakerFromCommand calls _get_fname_for_buffer once):
   let maker.append_file = 1
   let maker.uses_filename = 1
   new
+  file bufname
   setlocal modified
   CallNeomake 1, [maker]
+  AssertNeomakeMessage '\v^Using tempfile for modified buffer: "(.*)".$'
+  let tempfile_name = g:neomake_test_matchlist[1]
   AssertEqual len(filter(copy(g:neomake_test_messages), "v:val[1] =~ '^Using tempfile '")), 1
+  AssertEqual map(getloclist(0), 'v:val.text'), [
+  \ printf('bufname 1 %s', fnamemodify(tempfile_name, ':.'))]
   bwipe!
 
 Execute (neomake#utils#Stringify):
