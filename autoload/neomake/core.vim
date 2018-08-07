@@ -94,7 +94,3 @@ function! g:neomake#core#command_maker_base._get_fname_for_args(jobinfo) abort d
     endif
     return ''
 endfunction
-
-function! g:neomake#core#command_maker_base._get_argv(_jobinfo) abort dict
-    return neomake#compat#get_argv(self.exe, self.args, type(self.args) == type([]))
-endfunction
