@@ -324,7 +324,7 @@ function! s:MakeJob(make_id, options) abort
             throw printf("Neomake: %s: could not change to maker's cwd (%s): %s.",
                         \ maker.name, jobinfo.cd_from_setting, cd_error)
         endif
-        let jobinfo.argv = maker._get_argv(jobinfo)
+        let jobinfo.argv = jobinfo.get_argv()
 
         call neomake#utils#hook('NeomakeJobInit', {'jobinfo': jobinfo})
 
