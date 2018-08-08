@@ -30,10 +30,10 @@ install:
         if (!(Test-Path -Path C:\vim)){
           Write-Host "Downloading Vim"
           Add-Type -A System.IO.Compression.FileSystem
-          Invoke-WebRequest ftp://ftp.vim.org/pub/vim/pc/vim80-586w32.zip `
+          Invoke-WebRequest ftp://ftp.vim.org/pub/vim/pc/vim81w32.zip `
             -OutFile C:\vim.zip
           [IO.Compression.ZipFile]::ExtractToDirectory('C:\vim.zip', 'C:\vim')
-          Invoke-WebRequest ftp://ftp.vim.org/pub/vim/pc/vim80-586rt.zip `
+          Invoke-WebRequest ftp://ftp.vim.org/pub/vim/pc/vim81rt.zip `
             -OutFile C:\rt.zip
           [IO.Compression.ZipFile]::ExtractToDirectory('C:\rt.zip', 'C:\vim')
         }
@@ -72,12 +72,12 @@ install:
 test_script:
   - cd C:\projects\neomake
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
-  - 'C:\vim\vim\vim80\vim.exe -Nu tests\vim\vimrc "+Vader! tests/config.vader"'
+  - 'C:\vim\vim\vim81\vim.exe -Nu tests\vim\vimrc "+Vader! tests/config.vader"'
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
       echo $env:CONFIGURATION
       if ($env:CONFIGURATION -eq 'VIM') {
-        $env:TEST_VIM = 'C:/vim/vim/vim80/vim.exe'
+        $env:TEST_VIM = 'C:/vim/vim/vim81/vim.exe'
       } else {
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
       }
