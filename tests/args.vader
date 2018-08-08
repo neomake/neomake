@@ -2,7 +2,7 @@ Include: include/setup.vader
 
 Execute (maker.args as list gets escaped):
   let maker = {
-        \ 'exe': '/usr/bin/printf',
+        \ 'exe': 'printf',
         \ 'args': ['%s\n', '1', '2', '3a 3b'],
         \ 'errorformat': '%f: %m',
         \ 'mapexpr': 'expand("%:p") . ": " . v:val',
@@ -21,7 +21,7 @@ Execute (maker.args as list gets escaped):
 
 Execute (maker.args as string gets not escaped):
   let maker = {
-        \ 'exe': '/usr/bin/printf',
+        \ 'exe': 'printf',
         \ 'args': "'%s\\n' 1 2 '3a 3b' 4",
         \ 'errorformat': '%f: %m',
         \ 'mapexpr': 'expand("%:p") . ": " . v:val',
