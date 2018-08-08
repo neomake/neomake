@@ -28,6 +28,7 @@ install:
   - ps: >-
       if ($env:CONFIGURATION -eq 'VIM') {
         if (!(Test-Path -Path C:\vim)){
+          Write-Host "Downloading Vim"
           Add-Type -A System.IO.Compression.FileSystem
           Invoke-WebRequest ftp://ftp.vim.org/pub/vim/pc/vim80-586w32.zip `
             -OutFile C:\vim.zip
@@ -41,8 +42,9 @@ install:
   - ps: >-
       if ($env:CONFIGURATION -eq 'NEOVIM') {
         if (!(Test-Path -Path C:\neovim)){
+          Write-Host "Downloading Neovim"
           Add-Type -A System.IO.Compression.FileSystem
-          Invoke-WebRequest https://github.com/neovim/neovim/releases/download/v0.2.2/nvim-win64.zip `
+          Invoke-WebRequest https://github.com/neovim/neovim/releases/download/v0.3.1/nvim-win64.zip `
             -OutFile C:\neovim.zip
           [IO.Compression.ZipFile]::ExtractToDirectory('C:\neovim.zip', 'C:\neovim')
         }
