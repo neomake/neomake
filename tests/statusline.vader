@@ -106,7 +106,7 @@ Execute (neomake#statusline#get: clears cache with new job (file mode)):
   new
   let bufnr = bufnr('%')
   CallNeomake {'enabled_makers': [g:error_maker]}
-  AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatColorTypeE# E:1 '
+  AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatColorTypeE# E:1 %#NeomakeStatReset#'
 
   call neomake#Make({'enabled_makers': [g:success_maker]})
   if neomake#has_async_support()
@@ -120,7 +120,7 @@ Execute (neomake#statusline#get: clears cache with new job (project mode)):
   new
   let bufnr = bufnr('%')
   CallNeomake {'file_mode': 0, 'enabled_makers': [g:error_maker]}
-  AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatColorQuickfixTypeE# QE:1 '
+  AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatColorQuickfixTypeE# QE:1 %#NeomakeStatReset#'
 
   call neomake#Make({'file_mode': 0, 'enabled_makers': [g:true_maker]})
   if neomake#has_async_support()
