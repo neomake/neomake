@@ -91,3 +91,9 @@ test_script:
           & echo $_.Name
           & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_"
       }
+on_success:
+  - ps: |
+      if ($true)
+      {
+        Write-Host "Success"
+      }
