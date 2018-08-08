@@ -240,7 +240,7 @@ function! neomake#statusline#get_status(bufnr, options) abort
         endif
     else
         let format_loclist = get(a:options, 'format_loclist_issues',
-                    \ '%s%%#NeomakeStatReset#')
+                    \ use_highlights_with_defaults ? '%s%%#NeomakeStatReset#' : '%s')
         if !empty(format_loclist)
             let loclist = ''
             for [type, c] in items(loclist_counts)
@@ -277,7 +277,7 @@ function! neomake#statusline#get_status(bufnr, options) abort
         endif
     else
         let format_quickfix = get(a:options, 'format_quickfix_issues',
-                    \ '%s%%#NeomakeStatReset#')
+                    \ use_highlights_with_defaults ? '%s%%#NeomakeStatReset#' : '%s')
         if !empty(format_quickfix)
             let quickfix = ''
             for [type, c] in items(qflist_counts)
@@ -309,26 +309,14 @@ function! neomake#statusline#get_status(bufnr, options) abort
     return r
 endfunction
 
-function! neomake#statusline#get(...) abort
-    if a:0
-        if type(a:1) == type({})
-            let options = a:1
-            let bufnr = get(options, 'bufnr', g:actual_curbuf)
-        else
-            call neomake#log#warn_once('Please use neomake#statusline#get with a single dictionary argument.', 'statusline#get: dict-arg')
-            let bufnr = a:1
-            let options = get(a:000, 1, {})
-        endif
-    else
-        let bufnr = g:actual_curbuf
-        let options = {}
-    endif
+function! neomake#statusline#get(bufnr, ...) abort
+    let options = a:0 ? a:1 : {}
     let cache_key = string(options)
-    if !exists('s:cache[bufnr][cache_key]')
-        if !has_key(s:cache, bufnr)
-            let s:cache[bufnr] = {}
+    if !exists('s:cache[a:bufnr][cache_key]')
+        if !has_key(s:cache, a:bufnr)
+            let s:cache[a:bufnr] = {}
         endif
-        let bufnr = +bufnr
+        let bufnr = +a:bufnr
 
         " TODO: needs to go into cache key then!
         if getbufvar(bufnr, '&filetype') ==# 'qf'
@@ -362,7 +350,7 @@ function! neomake#statusline#get(...) abort
             let s:cache[bufnr][cache_key] = r
         endif
     endif
-    return s:cache[bufnr][cache_key]
+    return s:cache[a:bufnr][cache_key]
 endfunction
 
 " XXX: TODO: cleanup/doc?!
