@@ -84,6 +84,7 @@ test_script:
           if ($_.Name -ne "main.vader" -And $_.Name -ne "all.vader") {
               & echo $_.Name
               & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_" 2>&1 | %{ "$_" }
+              if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
           }
       }
       Get-ChildItem "tests/isolated/*.vader" | Foreach-Object {
