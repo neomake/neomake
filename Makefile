@@ -4,6 +4,9 @@ CDPATH:=
 test_success:
 	true
 
+test_success_with_stderr:
+	echo true >&2
+
 test_failure:
 	false
 
