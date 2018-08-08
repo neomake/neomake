@@ -124,7 +124,7 @@ function! g:NeomakeTestsCreateExe(name, ...)
     if !isdirectory(tmpbindir)
       call mkdir(tmpbindir, 'p', 0770)
     endif
-    call g:NeomakeTestsSetPATH(tmpbindir . ':' . $PATH)
+    call g:NeomakeTestsSetPATH(tmpbindir.path_separator.$PATH)
   endif
   call writefile(lines, exe)
   if exists('*setfperm')
