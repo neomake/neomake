@@ -9,7 +9,7 @@ skip_branch_with_pr: true
 
 configuration:
   - VIM
-  - NEOVIM
+  # - NEOVIM
 
 environment:
   PYTHON: "C:\\Python36-x64\\python"
