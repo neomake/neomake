@@ -128,9 +128,11 @@ function! g:NeomakeTestsCreateExe(name, ...)
   endif
   call writefile(lines, exe)
   if exists('*setfperm')
+    Log 'Setting perms for exe: '.exe
     call setfperm(exe, 'rwxrwx---')
   else
     " XXX: Windows support
+    Log 'Using chmod for exe: '.exe
     call system('chmod 770 '.shellescape(exe))
     Assert !v:shell_error, 'Got shell_error with chmod: '.v:shell_error
   endif
