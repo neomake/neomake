@@ -713,9 +713,10 @@ define |g:neomake_error_sign|. >
 The main function for statusline integration is `neomake#statusline#get()`,
 which caches the information retrieved from `neomake#statusline#get_status()`.
 
-*neomake#statusline#get()* <bufnr> [options]
-The function requires the buffer number as first argument, and an optional
-dictionary.
+*neomake#statusline#get()* [options]
+Returns a string for a 'statusline'.
+
+The optional argument is a dictionary of options (see below).
 
 The following example creates a custom 'statusline' function, where `a:active`
 may reflect if the window is the current one (implementation not provided): >
@@ -738,7 +739,6 @@ A simpler example: >
           \ 'format_quickfix_issues': '%s',
           \ })
 <
-
 You can use the following options:
 For location list items:~
   - format_loclist_unknown: format for when the status for location list
@@ -795,6 +795,13 @@ For quickfix list items:~
     Default: `'%s!'`.
   - running_jobs_separator: Separator for formatted running job names.
     Default: `', '`.
+
+Advanced options:
+
+  - bufnr: the buffer number to act on, defaults to |g:actual_curbuf|.
+  - use_highlights_with_defaults: include highlight attributes with default
+    options (e.g. "%#NeomakeStatusGood#" with "format_loclist_ok").
+    Default: 1
 
 You can use the following format placeholders:
   - `{{running_job_names}}}`: comma-separated list of running jobs (typically
