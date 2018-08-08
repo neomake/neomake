@@ -90,6 +90,7 @@ test_script:
       Get-ChildItem "tests/isolated/*.vader" | Foreach-Object {
           & echo $_.Name
           & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_"
+          if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
       }
 on_success:
   - ps: |
