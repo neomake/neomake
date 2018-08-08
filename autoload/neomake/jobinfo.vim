@@ -90,6 +90,10 @@ function! s:jobinfo_base.get_argv() abort
 
     if argv_is_list
         return neomake#compat#get_argv(argv[0], argv[1:], argv_is_list)
+    elseif !has('nvim')
+        " Vim: need to wrap this in a shell for access to environment
+        " variables, and Vim wrapping this at spaces otherwise.
+        return split(&shell) + split(&shellcmdflag) + [argv]
     endif
     return argv
 endfunction
