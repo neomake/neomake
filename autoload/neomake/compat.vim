@@ -178,6 +178,7 @@ endfunction
 if neomake#utils#IsRunningWindows()
     " Windows needs a shell to handle PATH/%PATHEXT% etc.
     function! neomake#compat#massage_argv(argv) abort
+        Log 'neomake#compat#massage_argv: '.string(a:argv)
         let prefix = &shell.' '.&shellcmdflag.' '
         if type(a:argv) == type([])
             let shell_argv = split(&shell) + split(&shellcmdflag)
@@ -189,10 +190,13 @@ if neomake#utils#IsRunningWindows()
                 " neomake#utils#MakerFromCommand.
                 let argv = argv[len_shell_prefix :]
             endif
+            Log 'neomake#compat#massage_argv: => '.prefix.join(map(copy(argv), 'neomake#utils#shellescape(v:val)'))
             return prefix.join(map(copy(argv), 'neomake#utils#shellescape(v:val)'))
         elseif a:argv[0:len(prefix)-1] ==# prefix
+            Log 'neomake#compat#massage_argv: => '.a:argv
             return a:argv
         endif
+        Log 'neomake#compat#massage_argv: => '.prefix.a:argv
         return prefix.a:argv
     endfunction
 elseif has('nvim')
