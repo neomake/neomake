@@ -403,22 +403,26 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   let &shell = '/bin/bash -o pipefail'
   let &shellcmdflag = '-c'
   let maker = neomake#utils#MakerFromCommand('echo 1')
+  AssertEqual maker._get_argv(jobinfo), ['/bin/bash', '-o', 'pipefail', '-c', 'echo 1']
   if neomake#has_async_support()
     let expected_argv = ['/bin/bash', '-o', 'pipefail', '-c', 'echo 1']
   else
     let expected_argv = "/bin/bash -o pipefail -c 'echo 1'"
   endif
-  AssertEqual maker._get_argv(jobinfo), expected_argv
+  let jobinfo.maker = maker
+  AssertEqual jobinfo.get_argv(), expected_argv
 
   let &shell = '/bin/bash'
   let &shellcmdflag = '-o pipefail -c'
   let maker = neomake#utils#MakerFromCommand('echo 2')
+  AssertEqual maker._get_argv(jobinfo), ['/bin/bash', '-o', 'pipefail', '-c', 'echo 2']
   if neomake#has_async_support()
     let expected_argv = ['/bin/bash', '-o', 'pipefail', '-c', 'echo 2']
   else
     let expected_argv = "/bin/bash -o pipefail -c 'echo 2'"
   endif
-  AssertEqual maker._get_argv(jobinfo), expected_argv
+  let jobinfo.maker = maker
+  AssertEqual jobinfo.get_argv(), expected_argv
 
 Execute (neomake#utils#MakerFromCommand copies args):
   new
