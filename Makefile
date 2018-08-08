@@ -1,6 +1,12 @@
 # Do not let mess "cd" with user-defined paths.
 CDPATH:=
 
+test_success:
+	true
+
+test_failure:
+	false
+
 bash=$(shell command -v bash 2>/dev/null)
 TEST_SHELL:=$(bash)
 ifeq ($(TEST_SHELL),)
