@@ -740,10 +740,7 @@ A simpler example: >
 <
 
 You can use the following options:
-  - format_running: used in case there are jobs running.  Use 0 (as a number)
-    to disable this, but fall through to the last known status.
-    Default: `… ({{running_job_names}})`
-
+For location list items:~
   - format_loclist_unknown: format for when the status for location list
     issues is unknown, i.e. Neomake was not run on the current buffer.
     Default: `'?'`
@@ -752,19 +749,27 @@ You can use the following options:
     NeomakeStatusGood highlight group).
   - format_loclist_type_X: format for location list issues of type X
     (E, W, I, …).
-    Default: `' {{type}}:{{count}} '`
+    Default: looks up "format_loclist_type_default" first, and then uses
+    `' {{type}}:{{count}} '`, with an existing highlight group as prefix
+    ("NeomakeStatColorTypeX" or "NeomakeStatColorDefault"), e.g.
+  - format_loclist_type_default: default format for location list issues if
+    "format_loclist_type_X" is not defined.
   - format_loclist_issues: format for wrapping all location list issues.
-    Default: `'%s'` (used with |printf()|).
+    Default: `'%s%%#NeomakeStatReset'` (used with |printf()|).
 
+For quickfix list items:~
   - format_quickfix_ok: format for no quickfix issues.
     Default: `''`
   - format_quickfix_type_X: format for quickfix list issues of type X
     (E, W, I, …).
     Default: `' {{type}}:{{count}} '`
+    Default: looks up "format_quickfix_type_default" first, and then uses
+    `' Q{{type}}:{{count}} '`, with an existing highlight group as prefix
+    ("NeomakeStatColorQuickfixTypeX" or "NeomakeStatColorQuickfixDefault").
   - format_quickfix_issues: format for wrapping all quickfix list issues.
     You can use an empty string to skip displaying quickfix issues, which can
     be useful for non-current windows.
-    Default: `'%s'` (used with |printf()|).
+    Default: `'%s%%#NeomakeStatReset'` (used with |printf()|).
 
   - format_status: used to wrap the whole status.
     This is a |printf()| format string, where `%s` gets replaced with the
@@ -781,6 +786,9 @@ You can use the following options:
     This is a |printf()| format string, where `%s` gets replaced with the
     whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
     Default: not used / `'%s'`
+  - format_running: used in case there are jobs running.  Use 0 (as a number)
+    to disable this, but fall through to the last known status.
+    Default: `… ({{running_job_names}})`
   - format_running_job_file: Wrap the running job name for file-level makers.
     Default: not used / `'%s'`
   - format_running_job_project: Wrap the running job name for project makers.
