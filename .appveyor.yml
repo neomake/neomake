@@ -88,6 +88,8 @@ test_script:
       & make test_success_with_stderr 2>&1 | %{ "$_" }
       make test_failure
       & make test_failure | %{ "$_" }
+      Write-Host "test_failure with redirect"
+      & make test_failure 2>&1 | %{ "$_" }
       Get-ChildItem "tests/*.vader" | Foreach-Object {
           if ($_.Name -ne "main.vader" -And $_.Name -ne "all.vader") {
               & echo $_.Name
