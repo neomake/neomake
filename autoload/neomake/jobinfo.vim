@@ -86,16 +86,7 @@ endfunction
 
 function! s:jobinfo_base.get_argv() abort
     let argv = self.maker._get_argv(self)
-    let argv_is_list = type(argv) == type([])
-
-    if argv_is_list
-        return neomake#compat#get_argv(argv[0], argv[1:], argv_is_list)
-    elseif !has('nvim')
-        " Vim: need to wrap this in a shell for access to environment
-        " variables, and Vim wrapping this at spaces otherwise.
-        return split(&shell) + split(&shellcmdflag) + [argv]
-    endif
-    return argv
+    return neomake#compat#massage_argv(argv)
 endfunction
 
 let g:neomake#jobinfo#base = s:jobinfo_base
