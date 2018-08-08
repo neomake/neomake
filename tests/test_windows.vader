@@ -1,0 +1,6 @@
+Include: include/setup.vader
+
+Execute (printf 1):
+  let maker = {'exe': 'printf', 'args': ['1']}
+  CallNeomake 0, [maker]
+  AssertEqual map(getqflist(), 'v:val.text'), ['1']
