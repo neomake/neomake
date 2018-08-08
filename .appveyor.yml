@@ -81,17 +81,18 @@ test_script:
       & $env:TEST_VIM --version
       make test_success
       make test_failure
-      # Get-ChildItem "tests/*.vader" | Foreach-Object {
-      #     if ($_.Name -ne "main.vader") {
-      #         & echo $_.Name
-      #         & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_"
-      #     }
-      # }
+      Get-ChildItem "tests/*.vader" | Foreach-Object {
+          if ($_.Name -ne "main.vader" && $_.Name -ne "all.vader") {
+              & echo $_.Name
+              & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_"
+          }
+      }
       Get-ChildItem "tests/isolated/*.vader" | Foreach-Object {
           & echo $_.Name
           & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_"
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
       }
+
 on_success:
   - ps: |
       if ($true)
