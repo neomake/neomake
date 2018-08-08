@@ -144,11 +144,7 @@ Execute (Maker can use '-' as temporary filename):
   new
   let maker = neomake#GetMaker(maker)
   let jobinfo = NeomakeTestsFakeJobinfo()
-  if neomake#has_async_support()
-    AssertEqual maker._get_argv(jobinfo), ['true', '-']
-  else
-    AssertEqual maker._get_argv(jobinfo), 'true -'
-  endif
+  AssertEqual maker._get_argv(jobinfo), ['true', '-']
   AssertNeomakeMessage 'Using tempfile for unnamed buffer: "-".', 3
   Assert !has_key(jobinfo, 'supports_stdin')
   AssertEqual jobinfo.tempfile, fnamemodify('-', ':p')
@@ -166,11 +162,7 @@ Execute (Maker cannot use '-' as tempfile_name (with supports_stdin)):
   new
   let maker = neomake#GetMaker(maker)
   let jobinfo = NeomakeTestsFakeJobinfo()
-  if neomake#has_async_support()
-    AssertEqual maker._get_argv(jobinfo), ['true', '-']
-  else
-    AssertEqual maker._get_argv(jobinfo), 'true -'
-  endif
+  AssertEqual maker._get_argv(jobinfo), ['true', '-']
   AssertNeomakeMessage 'Using stdin for unnamed buffer (-).', 3
   AssertEqual jobinfo.uses_stdin, 1
   Assert !has_key(jobinfo, 'tempfile')
@@ -188,11 +180,7 @@ Execute (Maker can use '' as tempfile_name (with supports_stdin)):
   new
   let maker = neomake#GetMaker(maker)
   let jobinfo = NeomakeTestsFakeJobinfo()
-  if neomake#has_async_support()
-    AssertEqual maker._get_argv(jobinfo), ['true']
-  else
-    AssertEqual maker._get_argv(jobinfo), 'true'
-  endif
+  AssertEqual maker._get_argv(jobinfo), ['true']
   AssertNeomakeMessage 'Using stdin for unnamed buffer ().', 3
   AssertEqual jobinfo.uses_stdin, 1
   Assert !has_key(jobinfo, 'tempfile')
@@ -255,12 +243,7 @@ Execute (maker._get_argv uses jobinfo for bufnr):
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.bufnr = bufnr
 
-  let expected = ['my_maker', fnameescape(fnamemodify(bufname(bufnr), ':.'))]
-  if neomake#has_async_support()
-    AssertEqual expected, maker._get_argv(jobinfo)
-  else
-    AssertEqual join(expected), maker._get_argv(jobinfo)
-  endif
+  AssertEqual maker._get_argv(jobinfo), ['my_maker', fnameescape(fnamemodify(bufname(bufnr), ':.'))]
 
   wincmd p
   bwipe
