@@ -62,7 +62,7 @@ Execute (vint: highlights syntax error for command):
   norm! oendfor
   let vint_maker = neomake#makers#ft#vim#vint()
   let vint_maker.exe = 'printf'
-  let vint_maker.args = ["file1.vim:2:1:error:E588: :endfor without :for (SyntaxError)"]
+  let vint_maker.args = ['%s', 'file1.vim:2:1:error:E588: :endfor without :for (SyntaxError)']
   let vint_maker.append_file = 0
 
   CallNeomake 1, [vint_maker]
