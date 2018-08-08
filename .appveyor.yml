@@ -79,8 +79,6 @@ test_script:
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
       }
       & $env:TEST_VIM --version
-      make test_success
-      make test_failure
       Get-ChildItem "tests/*.vader" | Foreach-Object {
           if ($_.Name -ne "main.vader" -And $_.Name -ne "all.vader") {
               & echo $_.Name
