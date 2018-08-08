@@ -25,6 +25,7 @@ Include (Integration tests): integration.vader
 Include (Jobinfo): jobinfo.vader
 Include (JSON): json.vader
 Include (Lists): lists.vader
+Include (List entries): list-entries.vader
 Include (Logging): log.vader
 Include (Makeprg): makeprg.vader
 Include (Maker args): args.vader
