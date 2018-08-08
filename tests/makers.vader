@@ -782,7 +782,7 @@ Execute (Maker can pass opts for jobstart/job_start):
       CallNeomake 0, [maker]
       AssertEqualQf getqflist(), [
       \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': 0, 'vcol': 0, 'nr': -1,
-      \  'type': 'W', 'pattern': '', 'text': 'custom-term'}]
+      \  'type': '', 'pattern': '', 'text': 'custom-term'}]
     endif
   endif
 

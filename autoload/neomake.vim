@@ -1485,7 +1485,7 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
             endif
         endif
 
-        if empty(entry.type)
+        if empty(entry.type) && entry.valid
             if default_type ==# 'unset'
                 let default_type = neomake#utils#GetSetting('default_entry_type', maker, 'W', a:jobinfo.ft, a:jobinfo.bufnr)
             endif
