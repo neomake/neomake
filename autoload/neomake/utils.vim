@@ -92,7 +92,7 @@ function! s:maker_from_command._get_argv(jobinfo) abort dict
             call add(args, fname)
         endif
     endif
-    return neomake#compat#get_argv(self.exe, args, 1)
+    return [self.exe] + args
 endfunction
 
 " Create a maker object for a given command.

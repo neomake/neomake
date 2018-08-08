@@ -86,6 +86,11 @@ endfunction
 
 function! s:jobinfo_base.get_argv() abort
     let argv = self.maker._get_argv(self)
+    let argv_is_list = type(argv) == type([])
+
+    if argv_is_list
+        return neomake#compat#get_argv(argv[0], argv[1:], argv_is_list)
+    endif
     return argv
 endfunction
 
