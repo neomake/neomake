@@ -70,7 +70,7 @@ install:
 test_script:
   - cd C:\projects\neomake
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
-  - 'C:\vim\vim\vim80\vim.exe -Nu tests\vim\vimrc "+Vader! tests/config.vader"'
+  - 'C:\vim\vim\vim80\vim.exe -Nu tests\vim\vimrc "+Vader! tests/isolated/highlights.vader"'
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
       echo $env:CONFIGURATION
