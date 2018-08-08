@@ -517,13 +517,16 @@ function! s:After()
     augroup! neomake_tests
   endif
 
+  " NOTE: '\[Vader-workbench\]' is used on Windows.
+  let vader_workbench_name = has('win32') ? '\[Vader-workbench\]' : '[Vader-workbench]'
+
   if winnr('$') > 1
     let error = 'More than 1 window after tests: '
       \ .string(map(range(1, winnr('$')),
       \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
     try
       for b in neomake#compat#uniq(sort(tabpagebuflist()))
-        if bufname(b) !=# '[Vader-workbench]'
+        if bufname(b) !=# vader_workbench_name
           exe 'bwipe!' b
         endif
       endfor
@@ -535,7 +538,7 @@ function! s:After()
       Log "Error while cleaning windows: ".v:exception.' (in '.v:throwpoint.').'
     endtry
     call add(errors, error)
-  elseif bufname(winbufnr(1)) !=# '[Vader-workbench]'
+  elseif bufname(winbufnr(1)) !=# vader_workbench_name
     call add(errors, 'Vader-workbench has been renamed: '.bufname(winbufnr(1)))
   endif
 
