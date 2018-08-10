@@ -15,6 +15,7 @@ Execute (shell options):
 
 Execute (g:NeomakeTestsCreateExe):
   let exe = g:NeomakeTestsCreateExe('foo', ['#!/bin/sh', 'printf 1'])
+  Log 'exe: '.exe
   let exe_path = exepath('foo')
   Log exe_path
   AssertEqual system(exe), "1"
@@ -22,29 +23,31 @@ Execute (g:NeomakeTestsCreateExe):
 
 Execute (g:NeomakeTestsCreateExe: cmd):
   let exe = g:NeomakeTestsCreateExe('foo.cmd', ['#!/bin/sh', 'printf 1'])
-  let exe_path = exepath('foo.cmd')
-  Log exe_path
+  Log 'exe: '.exe
   let exe_path = exepath('foo')
+  Log exe_path
+  let exe_path = exepath('foo.cmd')
   Log exe_path
   AssertEqual system(exe), "1"
   Assert len(exe_path)
 
 Execute (g:NeomakeTestsCreateExe: sh):
   let exe = g:NeomakeTestsCreateExe('foo.sh', ['#!/bin/sh', 'printf 1'])
-  let exe_path = exepath('foo.sh')
-  Log exe_path
+  Log 'exe: '.exe
   let exe_path = exepath('foo')
+  Log exe_path
+  let exe_path = exepath('foo.sh')
   Log exe_path
   AssertEqual system(exe), "1"
   Assert len(exe_path)
 
 Execute (g:NeomakeTestsCreateExe: win cmd):
   let exe = g:NeomakeTestsCreateExe('foo.cmd', ['echo 1'])
-  let exe_path = exepath('foo.cmd')
-  Log exe_path
   let exe_path = exepath('foo.CMD')
   Log exe_path
   let exe_path = exepath('foo')
+  Log exe_path
+  let exe_path = exepath('foo.cmd')
   Log exe_path
   AssertEqual system(exe), "1\n"
   Assert len(exe_path)
