@@ -7,11 +7,10 @@ Execute (printf 1):
 
 Execute (g:NeomakeTestsCreateExe):
   Log 'shellslash: '.exists('+shellslash')
-  call g:NeomakeTestsCreateExe('foo')
+  call g:NeomakeTestsCreateExe('foo', ['#!/bin/sh', 'printf 1'])
   let exe = exepath('foo')
   Assert len(exe)
-  let which_exe = substitute(system('which foo'), '\n$', '', '')
-  AssertEqual exe, which_exe
+  AssertEqual system(exe), "1"
 
 Execute (escaping):
   Log neomake#utils#redir('verb set shell?')
