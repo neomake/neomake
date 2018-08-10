@@ -115,7 +115,7 @@ Execute (escaping):
 
     " cmd.exe with parenthesis.
     AssertEqual s:run_cmd('cmd /c (echo 1 2)'), ["1 2\r\n", '', 0]
-    AssertEqual s:run_cmd('cmd /c (echo "1 '2'")'), ["1 '2'\r\n", '', 0]
+    AssertEqual s:run_cmd('cmd /c (echo "1 ''2''")'), ["1 '2'\r\n", '', 0]
   endif
 
   AssertEqual s:run_cmd('bash -c "printf ''%s'' 1 2"'), ['12', '', 0]
