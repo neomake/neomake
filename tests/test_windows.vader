@@ -91,4 +91,11 @@ Execute (escaping):
     AssertEqual s:run_cmd('cmd /c "echo 1; echo 2"'), ["1; echo 2\r\n", '', 0]
     AssertEqual s:run_cmd('cmd /c echo 1'), ["1\r\n", '', 0]
     AssertEqual s:run_cmd('cmd /c echo 1 2'), ["1 2\r\n", '', 0]
+
+    " cmd.exe with parenthesis.
+    AssertEqual s:run_cmd('cmd /c (echo 1 2)'), ["1 2\r\n", '', 0]
+    AssertEqual s:run_cmd('cmd /c (echo "1 '2'")'), ["1 '2'\r\n", '', 0]
   endif
+
+  AssertEqual s:run_cmd('bash -c "printf ''%s'' 1 2"'), ['12', '', 0]
+  AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
