@@ -120,6 +120,9 @@ function! g:NeomakeTestsCreateExe(name, ...)
   let dir_separator = exists('+shellslash') ? '\' : '/'
   let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
   let exe = tmpbindir.dir_separator.a:name
+  if neomake#utils#IsRunningWindows()
+    let exe .= '.EXE'
+  endif
   if $PATH !~# tmpbindir . path_separator
     if !isdirectory(tmpbindir)
       call mkdir(tmpbindir, 'p', 0770)
