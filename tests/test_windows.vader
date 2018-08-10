@@ -6,7 +6,12 @@ Execute (printf 1):
   AssertEqual map(getqflist(), 'v:val.text'), ['1']
 
 Execute (g:NeomakeTestsCreateExe):
+  Log system('which true')
+  Log 'shellslash: '.exists('+shellslash')
+  Log '$PATH: '.$PATH
+  Log 'Creating exe foo'
   call g:NeomakeTestsCreateExe('foo')
+  Log '$PATH: '.$PATH
   let exe = exepath('foo')
   Assert len(exe)
   AssertEqual substitute(system('which foo'), '\n$', '', ''), exe
