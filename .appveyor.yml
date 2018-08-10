@@ -80,6 +80,13 @@ test_script:
       } else {
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
         set VADER_OUTPUT_FILE=CON
+
+        Write-Host "Neovim: write 1"
+        C:/neovim/Neovim/bin/nvim.exe --headless -c 'call writefile(["line1", "line2"], "CON")' -cq
+
+        Write-Host "Neovim: write 2"
+        C:/neovim/Neovim/bin/nvim.exe --headless -c 'call writefile(["line1", "line2"], "CON")' -cq
+
       }
       & $env:TEST_VIM --version
       & $env:TEST_VIM -Nu tests\vim\vimrc "+Vader! tests/test_windows.vader"
