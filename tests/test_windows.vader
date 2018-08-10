@@ -92,7 +92,7 @@ Execute (escaping):
   AssertEqual s:run_cmd('bash -c "echo 1; echo 2"'), ["1\n2\n", '', 0]
 
   if neomake#utils#IsRunningWindows()
-    AssertEqual s:run_cmd('cmd /c "echo 1"'), ["1\n", '', 0]
-    AssertEqual s:run_cmd('cmd /c "echo 1; echo 2"'), ["1\n2\n", '', 0]
-    AssertEqual s:run_cmd('cmd /c echo 1'), ["1\n", '', 0]
+    AssertEqual s:run_cmd('cmd /c "echo 1"'), ["1\r\n", '', 0]
+    AssertEqual s:run_cmd('cmd /c "echo 1; echo 2"'), ["1\r\n2\r\n", '', 0]
+    AssertEqual s:run_cmd('cmd /c echo 1'), ["1\r\n", '', 0]
   endif
