@@ -124,7 +124,8 @@ function! g:NeomakeTestsCreateExe(name, ...)
   let exe = s:tmpbindir.dir_separator.a:name
   if neomake#utils#IsRunningWindows()
     if empty(fnamemodify(exe, ':e'))
-      let exe .= '.CMD'
+      " Windows needs an extension.
+      let exe .= '.sh'
     endif
   endif
   if $PATH !~# s:tmpbindir . path_separator
