@@ -7,10 +7,31 @@ Execute (printf 1):
 
 Execute (g:NeomakeTestsCreateExe):
   Log 'shellslash: '.exists('+shellslash')
-  call g:NeomakeTestsCreateExe('foo', ['#!/bin/sh', 'printf 1'])
-  let exe = exepath('foo')
-  Assert len(exe)
+  let exe = g:NeomakeTestsCreateExe('foo', ['#!/bin/sh', 'printf 1'])
+  let exe_path = exepath('foo')
+  Log exe_path
   AssertEqual system(exe), "1"
+  Assert len(exe_path)
+
+Execute (g:NeomakeTestsCreateExe: cmd):
+  Log 'shellslash: '.exists('+shellslash')
+  let exe = g:NeomakeTestsCreateExe('foo.cmd', ['#!/bin/sh', 'printf 1'])
+  let exe_path = exepath('foo.cmd')
+  Log exe_path
+  let exe_path = exepath('foo')
+  Log exe_path
+  AssertEqual system(exe), "1"
+  Assert len(exe_path)
+
+Execute (g:NeomakeTestsCreateExe: sh):
+  Log 'shellslash: '.exists('+shellslash')
+  let exe = g:NeomakeTestsCreateExe('foo.sh', ['#!/bin/sh', 'printf 1'])
+  let exe_path = exepath('foo.sh')
+  Log exe_path
+  let exe_path = exepath('foo')
+  Log exe_path
+  AssertEqual system(exe), "1"
+  Assert len(exe_path)
 
 Execute (escaping):
   Log neomake#utils#redir('verb set shell?')

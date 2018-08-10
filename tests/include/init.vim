@@ -121,7 +121,9 @@ function! g:NeomakeTestsCreateExe(name, ...)
   let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
   let exe = tmpbindir.dir_separator.a:name
   if neomake#utils#IsRunningWindows()
-    let exe .= '.EXE'
+    if empty(fnamemodify(exe, ':e'))
+      let exe .= '.CMD'
+    endif
   endif
   if $PATH !~# tmpbindir . path_separator
     if !isdirectory(tmpbindir)
