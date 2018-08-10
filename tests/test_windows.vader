@@ -13,23 +13,35 @@ Execute (shell options):
     Log '&shellslash: '.neomake#utils#redir('verb set shellslash?')
   endif
 
-Execute (g:NeomakeTestsCreateExe):
-  let exe = g:NeomakeTestsCreateExe('foo', ['#!/bin/sh', 'printf 1'])
-  Log 'exe: '.exe
-  let exe_path = exepath('foo')
-  Log exe_path
-  AssertEqual system(exe), "1"
-  Assert len(exe_path)
+" Execute (g:NeomakeTestsCreateExe):
+"   let exe = g:NeomakeTestsCreateExe('foo', ['#!/bin/sh', 'printf 1'])
+"   Log 'exe: '.exe
+"   let exe_path = exepath('foo')
+"   Log exe_path
+"   AssertEqual system(exe), "1"
+"   Assert len(exe_path)
+"
+" Execute (g:NeomakeTestsCreateExe: cmd):
+"   let exe = g:NeomakeTestsCreateExe('foo.cmd', ['#!/bin/sh', 'printf 1'])
+"   Log 'exe: '.exe
+"   let exe_path = exepath('foo')
+"   Log exe_path
+"   let exe_path = exepath('foo.cmd')
+"   Log exe_path
+"   AssertEqual system(exe), "1"
+"   Assert len(exe_path)
 
-Execute (g:NeomakeTestsCreateExe: cmd):
-  let exe = g:NeomakeTestsCreateExe('foo.cmd', ['#!/bin/sh', 'printf 1'])
-  Log 'exe: '.exe
-  let exe_path = exepath('foo')
-  Log exe_path
-  let exe_path = exepath('foo.cmd')
-  Log exe_path
+Execute (g:NeomakeTestsCreateExe):
+  let exe = g:NeomakeTestsCreateExe('foo', ['printf 1'])
   AssertEqual system(exe), "1"
-  Assert len(exe_path)
+  if neomake#utils#IsRunningWindows()
+    Assert len(exepath('foo.sh'))
+
+    " Only .cmd, .exe get found without extension.
+    Assert empty(exepath('foo'))
+  else
+    Assert len(exepath('foo'))
+  endif
 
 Execute (g:NeomakeTestsCreateExe: sh):
   let exe = g:NeomakeTestsCreateExe('foo.sh', ['#!/bin/sh', 'printf 1'])
@@ -44,17 +56,13 @@ Execute (g:NeomakeTestsCreateExe: sh):
 Execute (g:NeomakeTestsCreateExe: win cmd):
   if neomake#utils#IsRunningWindows()
     let exe = g:NeomakeTestsCreateExe('foo.cmd', ['@echo off', 'echo 1'])
+    Assert fnamemodify(exepath('foo.CMD'), ':t'), 'foo.CMD'
+    Assert fnamemodify(exepath('foo'), ':t'), 'foo.CMD'
+    Assert fnamemodify(exepath('foo.cmd'), ':t'), 'foo.cmd'
   else
     let exe = g:NeomakeTestsCreateExe('foo.cmd', ['echo 1'])
   endif
-  let exe_path = exepath('foo.CMD')
-  Log exe_path
-  let exe_path = exepath('foo')
-  Log exe_path
-  let exe_path = exepath('foo.cmd')
-  Log exe_path
   AssertEqual system(exe), "1\n"
-  Assert len(exe_path)
 
 Execute (escaping):
   function! s:run_cmd(cmd)
