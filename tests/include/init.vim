@@ -125,7 +125,10 @@ function! g:NeomakeTestsCreateExe(name, ...)
   if neomake#utils#IsRunningWindows()
     if empty(fnamemodify(exe, ':e'))
       " Windows needs an extension.
-      let exe .= '.sh'
+      " IDEA: create .cmd wrapper script to call this via bash?!
+      let wrapper_cmd = exe . '.cmd'
+      call writefile(['@echo off', 'sh '.exe], wrapper_cmd)
+      " call setfperm(wrapper_cmd, 'rwxrwx---')
     endif
   endif
   if $PATH !~# s:tmpbindir . path_separator

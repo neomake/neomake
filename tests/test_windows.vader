@@ -35,10 +35,12 @@ Execute (g:NeomakeTestsCreateExe):
   let exe = g:NeomakeTestsCreateExe('foo', ['printf 1'])
   AssertEqual system(exe), "1"
   if neomake#utils#IsRunningWindows()
-    Assert len(exepath('foo.sh'))
+    Assert !empty(exepath('foo.sh'))
 
-    " Only .cmd, .exe get found without extension.
-    Assert empty(exepath('foo'))
+    " Creates a wrapper .cmd script.
+    Log exepath('foo')
+    Log exepath('foo.cmd')
+    Assert !empty(exepath('foo'))
   else
     Assert len(exepath('foo'))
   endif
