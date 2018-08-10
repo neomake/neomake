@@ -56,11 +56,12 @@ Execute (g:NeomakeTestsCreateExe: sh):
 Execute (g:NeomakeTestsCreateExe: win cmd):
   if neomake#utils#IsRunningWindows()
     let exe = g:NeomakeTestsCreateExe('foo.cmd', ['@echo off', 'echo 1'])
-    Assert fnamemodify(exepath('foo.CMD'), ':t'), 'foo.CMD'
-    Assert fnamemodify(exepath('foo'), ':t'), 'foo.CMD'
-    Assert fnamemodify(exepath('foo.cmd'), ':t'), 'foo.cmd'
+    AssertEqual fnamemodify(exepath('foo.CMD'), ':t'), 'foo.CMD'
+    AssertEqual fnamemodify(exepath('foo'), ':t'), 'foo.CMD'
+    AssertEqual fnamemodify(exepath('foo.cmd'), ':t'), 'foo.cmd'
   else
     let exe = g:NeomakeTestsCreateExe('foo.cmd', ['echo 1'])
+    AssertEqual fnamemodify(exepath('foo.cmd'), ':t'), 'foo.cmd'
   endif
   AssertEqual system(exe), "1\n"
 
@@ -143,7 +144,10 @@ Execute (escaping):
 
     " cmd.exe with parenthesis.
     AssertEqual s:run_cmd('cmd /c (echo 1 2)'), ["1 2\r\n", '', 0]
-    AssertEqual s:run_cmd('cmd /c (echo "1 ''2''")'), ["1 '2'\r\n", '', 0]
+    AssertEqual s:run_cmd('cmd /c (echo "1 ''2''")'), ["\"1 '2'\"\r\n", '', 0]
+
+    " bash with parenthesis.
+    AssertEqual s:run_cmd('bash -c (echo "1 ''2''")'), ["\"1 '2'\"\r\n", '', 0]
   endif
 
   AssertEqual s:run_cmd('bash -c "printf ''%s'' 1 2"'), ['12', '', 0]
