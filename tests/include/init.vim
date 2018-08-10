@@ -112,24 +112,26 @@ function! RunNeomakeSh(...)
   NeomakeTestsWaitForFinishedJobs
 endfunction
 
-let s:tempname = tempname()
+let s:tmpbindir = ''
 
 function! g:NeomakeTestsCreateExe(name, ...)
   let lines = a:0 ? a:1 : ['#!/bin/sh']
   let path_separator = exists('+shellslash') ? ';' : ':'
   let dir_separator = exists('+shellslash') && !&shellslash ? '\' : '/'
-  let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
-  let exe = tmpbindir.dir_separator.a:name
+  if empty(s:tmpbindir)
+    let s:tmpbindir = tempname() . dir_separator . 'neomake-vader-tests'
+  endif
+  let exe = s:tmpbindir.dir_separator.a:name
   if neomake#utils#IsRunningWindows()
     if empty(fnamemodify(exe, ':e'))
       let exe .= '.CMD'
     endif
   endif
-  if $PATH !~# tmpbindir . path_separator
-    if !isdirectory(tmpbindir)
-      call mkdir(tmpbindir, 'p', 0770)
+  if $PATH !~# s:tmpbindir . path_separator
+    if !isdirectory(s:tmpbindir)
+      call mkdir(s:tmpbindir, 'p', 0770)
     endif
-    call g:NeomakeTestsSetPATH(tmpbindir.path_separator.$PATH)
+    call g:NeomakeTestsSetPATH(s:tmpbindir.path_separator.$PATH)
   endif
   call writefile(lines, exe)
   if exists('*setfperm')
@@ -463,6 +465,8 @@ function! s:After()
   endif
 
   Restore
+  let s:saved_path = 0
+  let s:tmpbindir = ''
   unlet! g:expected  " for old Vim with Vader, that does not wrap tests in a function.
 
   let errors = g:neomake_test_errors
