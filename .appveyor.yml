@@ -82,18 +82,16 @@ test_script:
         set VADER_OUTPUT_FILE=CON
 
         Write-Host "Neovim: write 1"
-        & C:/neovim/Neovim/bin/nvim.exe --headless -c ('call writefile(["line1", "line2"], "CON")') -cq
+        & C:/neovim/Neovim/bin/nvim.exe --headless -c "call writefile(['line1', 'line2'], 'CON')") -cq
         Write-Host "Neovim: write 2"
-        & C:/neovim/Neovim/bin/nvim.exe --headless -c (call writefile(['line1', 'line2'], 'CON')) -cq
+        & C:/neovim/Neovim/bin/nvim.exe --headless -c "call writefile([""line1"", ""line2""], ""CON"")") -cq
         Write-Host "Neovim: write 3"
-        & "C:/neovim/Neovim/bin/nvim.exe --headless -c ('call writefile([""line1"", ""line2""], ""CON"")') -cq"
-        Write-Host "Neovim: write 4"
         & C:/neovim/Neovim/bin/nvim.exe --headless -c "echom 1" -cq
-        Write-Host "Neovim: write 5"
+        Write-Host "Neovim: write 4"
         & C:/neovim/Neovim/bin/nvim.exe --headless -c 'echom 1' -cq
-        Write-Host "Neovim: write 6"
+        Write-Host "Neovim: write 5"
         & C:/neovim/Neovim/bin/nvim.exe --headless -c (echom 1) -cq
-        Write-Host "Neovim: write 7"
+        Write-Host "Neovim: write 6"
         C:/neovim/Neovim/bin/nvim.exe --headless -c (echom 1) -cq
 
       }
