@@ -80,7 +80,7 @@ test_script:
       } else {
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
         set VADER_OUTPUT_FILE=%~dp0\vader_output
-        type nul > "%VADER_OUTPUT_FILE%"
+        type "" > "%VADER_OUTPUT_FILE%"
       }
       & $env:TEST_VIM --version
       & $env:TEST_VIM -Nu tests\vim\vimrc "+Vader! tests/test_windows.vader"
@@ -89,7 +89,7 @@ test_script:
       if ($env:CONFIGURATION -eq 'VIM') {
       } else {
         type "%VADER_OUTPUT_FILE%"
-        type nul > "%VADER_OUTPUT_FILE%"
+        type "" > "%VADER_OUTPUT_FILE%"
       }
 
       & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
@@ -97,7 +97,7 @@ test_script:
       if ($env:CONFIGURATION -eq 'VIM') {
       } else {
         type "%VADER_OUTPUT_FILE%"
-        type nul > "%VADER_OUTPUT_FILE%"
+        type "" > "%VADER_OUTPUT_FILE%"
       }
 
       # make test_success
@@ -113,7 +113,7 @@ test_script:
       if ($env:CONFIGURATION -eq 'VIM') {
       } else {
         type "%VADER_OUTPUT_FILE%"
-        type nul > "%VADER_OUTPUT_FILE%"
+        type "" > "%VADER_OUTPUT_FILE%"
       }
 
       # Get-ChildItem "tests/*.vader" | Foreach-Object {
@@ -131,7 +131,7 @@ test_script:
           if ($env:CONFIGURATION -eq 'VIM') {
           } else {
             type "%VADER_OUTPUT_FILE%"
-            type nul > "%VADER_OUTPUT_FILE%"
+            type "" > "%VADER_OUTPUT_FILE%"
             del "%VADER_OUTPUT_FILE%"
           }
       }
