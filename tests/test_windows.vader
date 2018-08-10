@@ -5,8 +5,13 @@ Execute (printf 1):
   CallNeomake 0, [maker]
   AssertEqual map(getqflist(), 'v:val.text'), ['1']
 
+Execute (shell options):
+  Log neomake#utils#redir('verb set shell?')
+  Log neomake#utils#redir('verb set shellcmdflag?')
+  Log '+shellslash: '.exists('+shellslash')
+  Log '&shellslash: '.neomake#utils#redir('verb set shellslash?')
+
 Execute (g:NeomakeTestsCreateExe):
-  Log 'shellslash: '.exists('+shellslash')
   let exe = g:NeomakeTestsCreateExe('foo', ['#!/bin/sh', 'printf 1'])
   let exe_path = exepath('foo')
   Log exe_path
@@ -14,7 +19,6 @@ Execute (g:NeomakeTestsCreateExe):
   Assert len(exe_path)
 
 Execute (g:NeomakeTestsCreateExe: cmd):
-  Log 'shellslash: '.exists('+shellslash')
   let exe = g:NeomakeTestsCreateExe('foo.cmd', ['#!/bin/sh', 'printf 1'])
   let exe_path = exepath('foo.cmd')
   Log exe_path
@@ -24,7 +28,6 @@ Execute (g:NeomakeTestsCreateExe: cmd):
   Assert len(exe_path)
 
 Execute (g:NeomakeTestsCreateExe: sh):
-  Log 'shellslash: '.exists('+shellslash')
   let exe = g:NeomakeTestsCreateExe('foo.sh', ['#!/bin/sh', 'printf 1'])
   let exe_path = exepath('foo.sh')
   Log exe_path
@@ -33,10 +36,18 @@ Execute (g:NeomakeTestsCreateExe: sh):
   AssertEqual system(exe), "1"
   Assert len(exe_path)
 
-Execute (escaping):
-  Log neomake#utils#redir('verb set shell?')
-  Log neomake#utils#redir('verb set shellcmdflag?')
+Execute (g:NeomakeTestsCreateExe: win cmd):
+  let exe = g:NeomakeTestsCreateExe('foo.cmd', ['echo 1'])
+  let exe_path = exepath('foo.cmd')
+  Log exe_path
+  let exe_path = exepath('foo.CMD')
+  Log exe_path
+  let exe_path = exepath('foo')
+  Log exe_path
+  AssertEqual system(exe), "1\r\n"
+  Assert len(exe_path)
 
+Execute (escaping):
   function! s:run_cmd(cmd)
     let s:exit = []
 
