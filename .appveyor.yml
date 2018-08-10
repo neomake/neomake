@@ -81,8 +81,14 @@ test_script:
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
         set VADER_OUTPUT_FILE=CON
 
+        Write-Host "Neovim: write 0"
+        & C:/neovim/Neovim/bin/nvim.exe --headless -c "call chansend(v:stderr, 'foo')" -cq
         Write-Host "Neovim: write 1"
         & C:/neovim/Neovim/bin/nvim.exe --headless -c "call writefile(['line1', 'line2'], 'CON')" -cq
+        & type CON
+        Write-Host "Neovim: write 1.1"
+        & C:/neovim/Neovim/bin/nvim.exe --headless -c "call writefile(['line1', 'line2'], 'CON')" -cq
+        & type CON
         Write-Host "Neovim: write 2"
         & C:/neovim/Neovim/bin/nvim.exe --headless -c "call writefile([""line1"", ""line2""], ""CON"")" -cq
         Write-Host "Neovim: write 3"
