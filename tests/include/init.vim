@@ -121,6 +121,12 @@ function! g:NeomakeTestsCreateExe(name, ...)
   if empty(s:tmpbindir)
     let s:tmpbindir = tempname() . dir_separator . 'neomake-vader-tests'
   endif
+  if $PATH !~# s:tmpbindir . path_separator
+    if !isdirectory(s:tmpbindir)
+      call mkdir(s:tmpbindir, 'p', 0770)
+    endif
+    call g:NeomakeTestsSetPATH(s:tmpbindir.path_separator.$PATH)
+  endif
   let exe = s:tmpbindir.dir_separator.a:name
   if neomake#utils#IsRunningWindows()
     if empty(fnamemodify(exe, ':e'))
@@ -130,12 +136,6 @@ function! g:NeomakeTestsCreateExe(name, ...)
       call writefile(['@echo off', 'sh '.exe], wrapper_cmd)
       " call setfperm(wrapper_cmd, 'rwxrwx---')
     endif
-  endif
-  if $PATH !~# s:tmpbindir . path_separator
-    if !isdirectory(s:tmpbindir)
-      call mkdir(s:tmpbindir, 'p', 0770)
-    endif
-    call g:NeomakeTestsSetPATH(s:tmpbindir.path_separator.$PATH)
   endif
   call writefile(lines, exe)
   if exists('*setfperm')
