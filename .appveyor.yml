@@ -9,7 +9,7 @@ skip_branch_with_pr: true
 
 configuration:
   - VIM
-  # - NEOVIM
+  - NEOVIM
 
 environment:
   PYTHON: "C:\\Python36-x64\\python"
@@ -72,7 +72,6 @@ install:
 test_script:
   - cd C:\projects\neomake
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
-  - 'C:\vim\vim\vim80\vim.exe -Nu tests\vim\vimrc "+Vader! tests/test_windows.vader"'
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
       echo $env:CONFIGURATION
@@ -82,6 +81,7 @@ test_script:
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
       }
       & $env:TEST_VIM --version
+      & $env:TEST_VIM -Nu tests\vim\vimrc "+Vader! tests/test_windows.vader"
       make test_success
       make test_success_with_stderr
       & make test_success_with_stderr | %{ "$_" }
