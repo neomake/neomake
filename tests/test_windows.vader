@@ -9,7 +9,9 @@ Execute (shell options):
   Log neomake#utils#redir('verb set shell?')
   Log neomake#utils#redir('verb set shellcmdflag?')
   Log '+shellslash: '.exists('+shellslash')
-  Log '&shellslash: '.neomake#utils#redir('verb set shellslash?')
+  if exists('+shellslash')
+    Log '&shellslash: '.neomake#utils#redir('verb set shellslash?')
+  endif
 
 Execute (g:NeomakeTestsCreateExe):
   let exe = g:NeomakeTestsCreateExe('foo', ['#!/bin/sh', 'printf 1'])
@@ -44,7 +46,7 @@ Execute (g:NeomakeTestsCreateExe: win cmd):
   Log exe_path
   let exe_path = exepath('foo')
   Log exe_path
-  AssertEqual system(exe), "1\r\n"
+  AssertEqual system(exe), "1\n"
   Assert len(exe_path)
 
 Execute (escaping):
