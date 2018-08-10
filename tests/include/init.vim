@@ -117,7 +117,7 @@ let s:tempname = tempname()
 function! g:NeomakeTestsCreateExe(name, ...)
   let lines = a:0 ? a:1 : ['#!/bin/sh']
   let path_separator = exists('+shellslash') ? ';' : ':'
-  let dir_separator = exists('+shellslash') ? '\' : '/'
+  let dir_separator = exists('+shellslash') && !&shellslash ? '\' : '/'
   let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
   let exe = tmpbindir.dir_separator.a:name
   if neomake#utils#IsRunningWindows()
