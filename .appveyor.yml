@@ -83,22 +83,29 @@ test_script:
 
         Write-Host "Neovim: write 0"
         & C:/neovim/Neovim/bin/nvim.exe --headless -c "call chansend(v:stderr, 'foo')" -cq
-        Write-Host "Neovim: write 1"
-        & C:/neovim/Neovim/bin/nvim.exe --headless -c "call writefile(['line1', 'line2'], 'CON')" -cq
-        & type CON
-        Write-Host "Neovim: write 1.1"
-        & C:/neovim/Neovim/bin/nvim.exe --headless -c "call writefile(['line1', 'line2'], 'CON')" -cq
-        & type CON
-        Write-Host "Neovim: write 2"
-        & C:/neovim/Neovim/bin/nvim.exe --headless -c "call writefile([""line1"", ""line2""], ""CON"")" -cq
-        Write-Host "Neovim: write 3"
-        & C:/neovim/Neovim/bin/nvim.exe --headless -c "echom 1" -cq
-        Write-Host "Neovim: write 4"
-        & C:/neovim/Neovim/bin/nvim.exe --headless -c 'echom 1' -cq
-        Write-Host "Neovim: write 5"
-        & C:/neovim/Neovim/bin/nvim.exe --headless -c (echom 1) -cq
-        Write-Host "Neovim: write 6"
-        C:/neovim/Neovim/bin/nvim.exe --headless -c (echom 1) -cq
+
+        Write-Host "Neovim: write 0.1"
+        & C:/neovim/Neovim/bin/nvim.exe --headless -c "call chansend(v:stderr, 'foo')" -cq | %{ "$_" }
+
+        Write-Host "Neovim: write 0.2"
+        & C:/neovim/Neovim/bin/nvim.exe --headless -c "call chansend(v:stderr, 'foo')" -cq 2>&1 | %{ "$_" }
+
+        # Write-Host "Neovim: write 1"
+        # & C:/neovim/Neovim/bin/nvim.exe --headless -c "call writefile(['line1', 'line2'], 'CON')" -cq
+        # & type CON
+        # Write-Host "Neovim: write 1.1"
+        # & C:/neovim/Neovim/bin/nvim.exe --headless -c "call writefile(['line1', 'line2'], 'CON')" -cq
+        # & type CON
+        # Write-Host "Neovim: write 2"
+        # & C:/neovim/Neovim/bin/nvim.exe --headless -c "call writefile([""line1"", ""line2""], ""CON"")" -cq
+        # Write-Host "Neovim: write 3"
+        # & C:/neovim/Neovim/bin/nvim.exe --headless -c "echom 1" -cq
+        # Write-Host "Neovim: write 4"
+        # & C:/neovim/Neovim/bin/nvim.exe --headless -c 'echom 1' -cq
+        # Write-Host "Neovim: write 5"
+        # & C:/neovim/Neovim/bin/nvim.exe --headless -c (echom 1) -cq
+        # Write-Host "Neovim: write 6"
+        # C:/neovim/Neovim/bin/nvim.exe --headless -c (echom 1) -cq
       }
 
       & $env:TEST_VIM --version
