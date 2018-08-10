@@ -42,7 +42,11 @@ Execute (g:NeomakeTestsCreateExe: sh):
   Assert len(exe_path)
 
 Execute (g:NeomakeTestsCreateExe: win cmd):
-  let exe = g:NeomakeTestsCreateExe('foo.cmd', ['echo 1'])
+  if neomake#utils#IsRunningWindows()
+    let exe = g:NeomakeTestsCreateExe('foo.cmd', ['@echo off', 'echo 1'])
+  else
+    let exe = g:NeomakeTestsCreateExe('foo.cmd', ['echo 1'])
+  endif
   let exe_path = exepath('foo.CMD')
   Log exe_path
   let exe_path = exepath('foo')
