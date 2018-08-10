@@ -6,12 +6,93 @@ Execute (printf 1):
   AssertEqual map(getqflist(), 'v:val.text'), ['1']
 
 Execute (g:NeomakeTestsCreateExe):
-  Log system('which true')
   Log 'shellslash: '.exists('+shellslash')
-  Log '$PATH: '.$PATH
-  Log 'Creating exe foo'
   call g:NeomakeTestsCreateExe('foo')
-  Log '$PATH: '.$PATH
   let exe = exepath('foo')
   Assert len(exe)
-  AssertEqual substitute(system('which foo'), '\n$', '', ''), exe
+  let which_exe = substitute(system('which foo'), '\n$', '', '')
+  if neomake#utils#IsRunningWindows()
+    AssertEqual exe.'.EXE', which_exe
+  else
+    AssertEqual exe, which_exe
+  endif
+
+Execute (escaping):
+  Log neomake#utils#redir('verb set shell?')
+  Log neomake#utils#redir('verb set shellcmdflag?')
+
+  function! s:run_cmd(cmd)
+    let s:exit = []
+
+    Log '== cmd: '.a:cmd
+
+    if exists('*job_start')
+      let s:output = ''
+      let s:err = ''
+      let s:closed = 0
+      unlet! s:exit
+
+      function! s:output(channel, data)
+        let s:output .= a:data
+      endfunction
+
+      function! s:err(channel, data)
+        let s:err .= a:data
+      endfunction
+
+      function! s:exit(job, status)
+        let s:exit = a:status
+      endfunction
+
+      function! s:close_cb(channel)
+        while ch_status(a:channel, {'part': 'out'}) == 'buffered'
+          sleep 10m
+        endwhile
+        let s:closed = 1
+      endfunction
+
+      let job = job_start(a:cmd, {
+      \ 'out_cb': function('s:output'),
+      \ 'err_cb': function('s:err'),
+      \ 'exit_cb': function('s:exit'),
+      \ 'close_cb': function('s:close_cb'),
+      \ 'out_mode': 'raw',
+      \ 'err_mode': 'raw',
+      \ })
+
+      while empty(s:closed)
+        sleep 10m
+      endwhile
+      return [s:output, s:err, s:exit]
+    else
+      let job = {'output': [''], 'err': ['']}
+
+      function! job.on_stdout(_job_id, data, _event)
+      Log a:data
+        let self.output[-1] .= a:data[0]
+        call extend(self.output, a:data[1:])
+      endfunction
+
+      function! job.on_stderr(_job_id, data, _event)
+        let self.err[-1] .= a:data[0]
+        call extend(self.err, a:data[1:])
+      endfunction
+
+      function! job.on_exit(_job_id, data, _event)
+        let self.exit = a:data
+      endfunction
+
+      call jobwait([jobstart(a:cmd, job)])
+      return [join(job.output, "\n"), join(job.err, "\n"), job.exit]
+    endif
+    return [our, err]
+  endfunction
+
+  AssertEqual s:run_cmd('bash -c "printf 1"'), ['1', '', 0]
+  AssertEqual s:run_cmd('bash -c "echo 1; echo 2"'), ["1\n2\n", '', 0]
+
+  if neomake#utils#IsRunningWindows()
+    AssertEqual s:run_cmd('cmd /c "echo 1"'), ["1\n", '', 0]
+    AssertEqual s:run_cmd('cmd /c "echo 1; echo 2"'), ["1\n2\n", '', 0]
+    AssertEqual s:run_cmd('cmd /c echo 1'), ["1\n", '', 0]
+  endif
