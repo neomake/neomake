@@ -11,11 +11,7 @@ Execute (g:NeomakeTestsCreateExe):
   let exe = exepath('foo')
   Assert len(exe)
   let which_exe = substitute(system('which foo'), '\n$', '', '')
-  if neomake#utils#IsRunningWindows()
-    AssertEqual exe.'.EXE', which_exe
-  else
-    AssertEqual exe, which_exe
-  endif
+  AssertEqual exe, which_exe
 
 Execute (escaping):
   Log neomake#utils#redir('verb set shell?')
@@ -93,6 +89,7 @@ Execute (escaping):
 
   if neomake#utils#IsRunningWindows()
     AssertEqual s:run_cmd('cmd /c "echo 1"'), ["1\r\n", '', 0]
-    AssertEqual s:run_cmd('cmd /c "echo 1; echo 2"'), ["1\r\n2\r\n", '', 0]
+    AssertEqual s:run_cmd('cmd /c "echo 1; echo 2"'), ["1; echo 2\r\n", '', 0]
     AssertEqual s:run_cmd('cmd /c echo 1'), ["1\r\n", '', 0]
+    AssertEqual s:run_cmd('cmd /c echo 1 2'), ["1 2\r\n", '', 0]
   endif
