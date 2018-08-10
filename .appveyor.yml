@@ -79,26 +79,12 @@ test_script:
         $env:TEST_VIM = 'C:/vim/vim/vim80/vim.exe'
       } else {
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
-        set VADER_OUTPUT_FILE=%~dp0\vader_output
-        type "" > "%VADER_OUTPUT_FILE%"
+        set VADER_OUTPUT_FILE=CON
       }
       & $env:TEST_VIM --version
       & $env:TEST_VIM -Nu tests\vim\vimrc "+Vader! tests/test_windows.vader"
 
-
-      if ($env:CONFIGURATION -eq 'VIM') {
-      } else {
-        type "%VADER_OUTPUT_FILE%"
-        type "" > "%VADER_OUTPUT_FILE%"
-      }
-
       & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
-
-      if ($env:CONFIGURATION -eq 'VIM') {
-      } else {
-        type "%VADER_OUTPUT_FILE%"
-        type "" > "%VADER_OUTPUT_FILE%"
-      }
 
       # make test_success
       # make test_success_with_stderr
@@ -110,11 +96,6 @@ test_script:
       # & make test_failure 2>&1 | %{ "$_" }
 
       & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/main.vader 2>&1 | %{ "$_" }
-      if ($env:CONFIGURATION -eq 'VIM') {
-      } else {
-        type "%VADER_OUTPUT_FILE%"
-        type "" > "%VADER_OUTPUT_FILE%"
-      }
 
       # Get-ChildItem "tests/*.vader" | Foreach-Object {
       #     if ($_.Name -ne "main.vader" -And $_.Name -ne "all.vader") {
@@ -128,12 +109,6 @@ test_script:
           & echo $_.Name
           & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_" 2>&1 | %{ "$_" }
           if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
-          if ($env:CONFIGURATION -eq 'VIM') {
-          } else {
-            type "%VADER_OUTPUT_FILE%"
-            type "" > "%VADER_OUTPUT_FILE%"
-            del "%VADER_OUTPUT_FILE%"
-          }
       }
 
 on_success:
