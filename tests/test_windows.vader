@@ -35,15 +35,13 @@ Execute (g:NeomakeTestsCreateExe):
   let exe = g:NeomakeTestsCreateExe('foo', ['printf 1'])
   AssertEqual system(exe), "1"
   if neomake#utils#IsRunningWindows()
-    Assert !empty(exepath('foo.sh'))
-
     " Creates a wrapper .cmd script.
     Log exepath('foo')
     Log exepath('foo.cmd')
-    Assert !empty(exepath('foo'))
-  else
-    Assert len(exepath('foo'))
+    Assert !empty(exepath('foo.cmd'))
   endif
+  AssertEqual system(exe), "1"
+  Assert !empty(exepath('foo'))
 
 Execute (g:NeomakeTestsCreateExe: sh):
   let exe = g:NeomakeTestsCreateExe('foo.sh', ['#!/bin/sh', 'printf 1'])
