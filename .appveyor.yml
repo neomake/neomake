@@ -86,10 +86,12 @@ test_script:
       & $env:TEST_VIM --version
 
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
-      & $env:TEST_VIM -Es -Nu tests\vim\vimrc "+Vader! tests/test_windows.vader" 2>&1 | %{ "$_" }
+
+  - cmd: %TEST_VIM% -Es -Nu tests\vim\vimrc "+Vader! tests/test_windows.vader"
+  - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/test_windows.vader
 
   - ps: |
-      & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
+      # & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
 
       # & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/main.vader 2>&1 | %{ "$_" }
 
