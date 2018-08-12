@@ -76,6 +76,9 @@ test_script:
       echo $env:CONFIGURATION
       if ($env:CONFIGURATION -eq 'VIM') {
         $env:TEST_VIM = 'C:/vim/vim/vim80/vim.exe'
+
+        Write-Host "Vim: test writing to stderr"
+        & C:/vim/vim/vim80/vim.exe -X -s /dev/null --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'echon 1' -c 'verbose echon 2' -cq
       } else {
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
         set VADER_OUTPUT_FILE=CON
@@ -88,7 +91,8 @@ test_script:
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
 
   - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/test_windows.vader
-  - cmd: "%TEST_VIM% -Es -Nu tests\vim\vimrc '+Vader! tests/test_windows.vader'"
+  - cmd: "%TEST_VIM% -Es -Nu tests\\vim\\vimrc '+Vader! tests/test_windows.vader'"
+  - cmd: "%TEST_VIM% -Es -Nu tests/vim/vimrc '+Vader! tests/test_windows.vader'"
 
   - ps: |
       # & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
