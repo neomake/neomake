@@ -44,7 +44,7 @@ Execute (neomake#compat#systemlist with empty args):
   AssertEqual neomake#compat#systemlist(''), []
   AssertEqual neomake#compat#systemlist([]), []
   let out = neomake#compat#systemlist('0')
-  Assert out =~# ': 0: command not found$']
+  Assert out[0] =~# ': 0: command not found$'
 
 Execute (neomake#compat#json_decode):
   AssertEqual neomake#compat#json_decode(''), g:neomake#compat#json_none
