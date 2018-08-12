@@ -62,7 +62,7 @@ install:
   # Clone Vader and check out the commit we want
   - ps: >-
       if (!(Test-Path -Path C:\projects\neomake\build\vim\plugins\vader)){
-        git clone -q --depth=1 --branch=display-source-with-exceptions https://github.com/blueyed/vader.vim C:\projects\neomake\build\vim\plugins\vader
+        git clone -q --depth=1 --branch=appveyor-integration https://github.com/blueyed/vader.vim C:\projects\neomake\build\vim\plugins\vader
       }
 
   # # Install covimerage
