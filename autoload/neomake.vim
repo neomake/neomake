@@ -2107,7 +2107,7 @@ function! s:need_to_postpone_output_processing(jobinfo) abort
         return ['CompleteDone']
     endif
     let mode = neomake#compat#get_mode()
-    if index(['n', 'i'], mode) == -1
+    if index(['n', 'i', 'cv', 'ce'], mode) == -1  " 'cv' is used in tests (-Es), 'ce' is '-es'.
         call neomake#log#debug('Not processing output for mode "'.mode.'".', a:jobinfo)
         return ['BufEnter', 'WinEnter', 'InsertLeave', 'CursorHold', 'CursorHoldI']
     endif
