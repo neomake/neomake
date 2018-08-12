@@ -44,6 +44,13 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
   " XXX: ok?"
   AssertEqual jobinfo.get_argv(), 'cmd.exe /c "echo ""1 2"""'
 
+Execute (neomake#compat#get_argv on (emulated) Windows (bash)):
+  Save &shell, &shellcmdflag
+  set shell=bash.exe
+  set shellcmdflag=-c
+  let out = neomake#compat#massage_argv(['printf', 'foo bar'])
+  AssertEqual out, 'bash.exe -c ''printf ''\''''foo bar''\'''''''
+
 Execute (neomake#compat#dev_null on (emulated) Windows):
   AssertEqual g:neomake#compat#dev_null, 'NUL'
 

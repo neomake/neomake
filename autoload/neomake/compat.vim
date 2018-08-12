@@ -190,15 +190,21 @@ if neomake#utils#IsRunningWindows()
                 " neomake#utils#MakerFromCommand.
                 let argv = argv[len_shell_prefix :]
             endif
-            let ret = prefix.neomake#utils#shellescape(
-                  \ join(map(argv, 'neomake#utils#shellescape(v:val)')))
+            let ret = join(map(argv, 'neomake#utils#shellescape(v:val)'))
+            if &shell !~? 'cmd'
+              let ret = neomake#utils#shellescape(ret)
+            endif
+            let ret = prefix.ret
             Log 'neomake#compat#massage_argv (1): => '.ret
             return ret
         elseif a:argv[0:len(prefix)-1] ==# prefix
             Log 'neomake#compat#massage_argv (2): => '.a:argv
             return a:argv
+        elseif &shell !~? 'cmd'
+            Log 'neomake#compat#massage_argv (3): => '.prefix.a:argv
+            return prefix.neomake#utils#shellescape(a:argv)
         endif
-        Log 'neomake#compat#massage_argv (3): => '.prefix.a:argv
+        Log 'neomake#compat#massage_argv (4): => '.prefix.a:argv
         return prefix.a:argv
     endfunction
 elseif has('nvim')
