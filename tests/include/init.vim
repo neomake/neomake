@@ -117,7 +117,8 @@ let s:tmpbindir = ''
 function! g:NeomakeTestsCreateExe(name, ...)
   let lines = a:0 ? a:1 : ['#!/bin/sh']
   let path_separator = exists('+shellslash') ? ';' : ':'
-  let dir_separator = exists('+shellslash') && !&shellslash ? '\' : '/'
+  " Use the same separator as with tempname().
+  let dir_separator = exists('+shellslash') && !&shellslash && &shellcmdflag[0] !=# '-' ? '\' : '/'
   if empty(s:tmpbindir)
     let s:tmpbindir = tempname() . dir_separator . 'neomake-vader-tests'
   endif
