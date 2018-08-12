@@ -73,7 +73,6 @@ test_script:
   - cd C:\projects\neomake
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
   - ps: |
-      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
       echo $env:CONFIGURATION
       if ($env:CONFIGURATION -eq 'VIM') {
         $env:TEST_VIM = 'C:/vim/vim/vim80/vim.exe'
@@ -84,9 +83,12 @@ test_script:
         Write-Host "Neovim: write to stderr"
         & C:/neovim/Neovim/bin/nvim.exe --headless -c "call chansend(v:stderr, 'foo')" -cq 2>&1 | %{ "$_" }
       }
+  - %TEST_VIM% --version
+  - %TEST_VIM% -Es -Nu tests\vim\vimrc "+Vader! tests/test_windows.vader"
+  - ps: |
+      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
 
-      & $env:TEST_VIM --version
-      & $env:TEST_VIM -Nu tests\vim\vimrc "+Vader! tests/test_windows.vader"
+      & $env:TEST_VIM -Es -Nu tests\vim\vimrc "+Vader! tests/test_windows.vader" 2>&1 | %{ "$_" }
 
       & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
 
