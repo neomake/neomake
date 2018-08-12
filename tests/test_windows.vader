@@ -149,6 +149,10 @@ Execute (escaping):
     " bash with parenthesis (does not work).
     " AssertEqual s:run_cmd('bash -c (echo "1 ''2''")'), ["\"1 '2'\"\r\n", '', 0]
     " AssertEqual s:run_cmd('bash -c (echo "1 ''2''";)'), ["\"1 '2'\"\r\n", '', 0]
+
+    let cmd = neomake#compat#massage_argv(['cmd.exe', '/c', 'echo', '"1 1"'])
+    AssertEqual cmd, 'cmd.exe /c echo "1 1"'
+    AssertEqual s:run_cmd(cmd), ["\"1 1\""]
   endif
 
   AssertEqual s:run_cmd('bash -c "printf ''%s'' 1 2"'), ['12', '', 0]

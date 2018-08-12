@@ -14,7 +14,7 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
 
   " Does not get wrapped in shell twice.
   let out = neomake#compat#massage_argv(['cmd.exe', '/c', 'echo 1'])
-  AssertEqual out, 'cmd.exe /c "echo 1"'
+  AssertEqual out, 'cmd.exe /c echo 1'
 
   let out = neomake#compat#massage_argv(['echo 1'])
   AssertEqual out, 'cmd.exe /c "echo 1"'
@@ -28,11 +28,11 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
 
   " XXX: ok?"
   let out = neomake#compat#massage_argv(['cmd.exe', '/c', 'echo "1 1"'])
-  AssertEqual out, 'cmd.exe /c "echo ""1 1"""'
+  AssertEqual out, 'cmd.exe /c echo "1 1"'
 
   " XXX: ok?"
   let out = neomake#compat#massage_argv(['cmd.exe', '/c', 'echo', '"1 1"'])
-  AssertEqual out, 'cmd.exe /c echo """1 1"""'
+  AssertEqual out, 'cmd.exe /c echo "1 1"'
 
   " Handled correctly with MakerFromCommand/NeomakeSh.
   let maker = neomake#utils#MakerFromCommand('echo "1 2"')
@@ -50,6 +50,9 @@ Execute (neomake#compat#get_argv on (emulated) Windows (bash)):
   set shellcmdflag=-c
   let out = neomake#compat#massage_argv(['printf', 'foo bar'])
   AssertEqual out, 'bash.exe -c ''printf ''\''''foo bar''\'''''''
+
+  let out = neomake#compat#massage_argv(['bash.exe', '-c', 'echo 1; echo 2'])
+  AssertEqual out, "bash -c 'echo 1; echo 2'"
 
 Execute (neomake#compat#dev_null on (emulated) Windows):
   AssertEqual g:neomake#compat#dev_null, 'NUL'

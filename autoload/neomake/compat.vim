@@ -186,11 +186,12 @@ if neomake#utils#IsRunningWindows()
 
             let argv = a:argv
             if argv[0:len_shell_prefix-1] == shell_argv
-                " Remove already existing &shell/&shellcmdflag from
+                " Already prefixed with shell, e.g. via
                 " neomake#utils#MakerFromCommand.
-                let argv = argv[len_shell_prefix :]
+                let ret = join(argv[len_shell_prefix :])
+            else
+                let ret = join(map(argv, 'neomake#utils#shellescape(v:val)'))
             endif
-            let ret = join(map(argv, 'neomake#utils#shellescape(v:val)'))
             if &shell !~? 'cmd'
               let ret = neomake#utils#shellescape(ret)
             endif
