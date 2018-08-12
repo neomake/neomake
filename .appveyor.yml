@@ -84,7 +84,7 @@ test_script:
         & C:/neovim/Neovim/bin/nvim.exe --headless -c "call chansend(v:stderr, 'foo')" -cq 2>&1 | %{ "$_" }
       }
   - "%TEST_VIM% --version"
-  - "%TEST_VIM% -Es -Nu tests\vim\vimrc '+Vader! tests/test_windows.vader'"
+  - "%TEST_VIM% -Es -Nu tests/vim/vimrc '+Vader! tests/test_windows.vader'"
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
 
