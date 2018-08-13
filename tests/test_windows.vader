@@ -155,10 +155,12 @@ Execute (escaping):
 
   AssertEqual s:run_cmd('bash -c "printf ''%s'' 1 2"'), ['12', '', 0]
 
-  AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\n2\n", '', 0]
   if has('nvim')
+    AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\n2\n", '', 0]
     AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
   else
     " XXX
     AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1n2n", '', 0]
+    " XXX
+    AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\\\n2\\\n", '', 0]
   endif
