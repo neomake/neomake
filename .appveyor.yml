@@ -78,7 +78,7 @@ test_script:
         $env:TEST_VIM = 'C:/vim/vim/vim80/vim.exe'
 
         Write-Host "Vim: test writing to stderr"
-        & C:/vim/vim/vim80/vim.exe -X --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'echon 1' -c 'verbose echon 2' -cq 2>&1 | %{ "$_" }
+        & C:/vim/vim/vim80/vim.exe -X --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verbose echon 1' -c 'verbose echon 2' -c 'verbose echon "3\n"' -c 'verbose echon "4\r\n"' -c 'verbose echon "5"' -cq 2>&1 | %{ "$_" }
       } else {
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
         set VADER_OUTPUT_FILE=CON
