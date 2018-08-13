@@ -1,10 +1,5 @@
 Include: include/setup.vader
 
-Execute (printf 1):
-  let maker = {'exe': 'printf', 'args': ['1']}
-  CallNeomake 0, [maker]
-  AssertEqual map(getqflist(), 'v:val.text'), ['1']
-
 Execute (shell options):
   Log neomake#utils#redir('verb set shell?')
   Log neomake#utils#redir('verb set shellcmdflag?')
@@ -12,6 +7,11 @@ Execute (shell options):
   if exists('+shellslash')
     Log '&shellslash: '.neomake#utils#redir('verb set shellslash?')
   endif
+
+Execute (printf 1):
+  let maker = {'exe': 'printf', 'args': ['1']}
+  CallNeomake 0, [maker]
+  AssertEqual map(getqflist(), 'v:val.text'), ['1']
 
 " Execute (g:NeomakeTestsCreateExe):
 "   let exe = g:NeomakeTestsCreateExe('foo', ['#!/bin/sh', 'printf 1'])
@@ -69,7 +69,7 @@ Execute (escaping):
   function! s:run_cmd(cmd)
     let s:exit = []
 
-    Log '== cmd: '.a:cmd
+    Log '== cmd: '.(type(a:cmd) == type('') ? a:cmd : string(a:cmd))
 
     if exists('*job_start')
       let s:output = ''
@@ -154,4 +154,11 @@ Execute (escaping):
   endif
 
   AssertEqual s:run_cmd('bash -c "printf ''%s'' 1 2"'), ['12', '', 0]
-  AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
+
+  AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\n2\n", '', 0]
+  if has('nvim')
+    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
+  else
+    " XXX
+    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1n2n", '', 0]
+  endif
