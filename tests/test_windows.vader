@@ -165,7 +165,35 @@ Execute (escaping):
     AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
   else
     " XXX
-    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1n2n", '', 0]
+    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\r\n2\r\n", '', 0]
     " XXX
     AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\\\n2\\\n", '', 0]
   endif
+
+Execute (tempname):
+  let tmpdir = tempname()
+  Log tmpdir
+
+Execute (… (ellipsis)):
+  " Neovim on Windows:
+  " Calling User autocmd NeomakeCountsChanged with context: {'jobinfo': 'ΓÇª', 'reset': 0}.
+  Log '…'
+  Log "…"
+
+Execute (fnamemodify):
+  if neomake#utils#IsRunningWindows()
+    AssertEqual fnamemodify('/doesnotexists', ':p'), 'C:\doesnotexist'
+  else
+    AssertEqual fnamemodify('/doesnotexists', ':p'), '/doesnotexist'
+  endif
+
+Execute (mkdir, writefile):
+  new
+  call mkdir('pylama/subdir', 'p')
+  call writefile([], 'pylama/setup.cfg')
+  lcd pylama/subdir
+  Log getcwd()
+  Log filereadable('../setup.cfg')
+  Log neomake#utils#FindGlobFile('{pylama.ini,setup.cfg,tox.ini,pytest.ini}')
+  Log neomake#utils#FindGlobFile('setup.cfg')
+  bwipe
