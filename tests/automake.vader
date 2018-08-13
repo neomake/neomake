@@ -669,7 +669,7 @@ Execute (Automake for normal mode handles ciw):
   AssertEqual len(g:neomake_test_jobfinished), 1
   bwipe!
 
-Execute (Automake restarts if context changed):
+Execute (Automake stops if context changed (CursorHold)):
   if !has('timers')
     NeomakeTestsSkip 'only with timers feature'
   else
@@ -681,9 +681,7 @@ Execute (Automake restarts if context changed):
     doautocmd CursorHold
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
     norm! ^
-    NeomakeTestsWaitForMessage "automake: context/position changed: [[0, 1, 11, 0], 'n'] => [[0, 1, 1, 0], 'n'].", 3
-    AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
-    NeomakeCancelJobs!
+    NeomakeTestsWaitForMessage '\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''n''] => [\d\+, [0, 1, 1, 0], ''n''].', 3
     bwipe!
   endif
 
@@ -717,15 +715,51 @@ Execute (Automake restarts if popup menu is visible):
     " +2 since we use timer_start above.
     AssertNeomakeMessage 'automake: started timer (5ms): '.(base_timer + 2).'.'
     NeomakeTestsWaitForMessage 'automake: callback for timer '.(base_timer + 2).' (via CursorHold).'
-    AssertNeomakeMessage "automake: context/position changed: [[0, 4, 5, 0], 'i'] => [[0, 4, 4, 0], 'n']."
-    AssertNeomakeMessage 'automake: tick changed (new).'
-    AssertNeomakeMessage 'automake: started timer (5ms): '.(base_timer + 3).'.'
     AssertNeomakeMessage 'automake: neomake_do_automake: CursorHold.'
     AssertNeomakeMessage 'automake: tick changed (new).'
     AssertNeomakeMessage '\vautomake: Updating tick: \d+.'
     AssertNeomakeMessage 'automake: enabled makers: true-maker.'
 
     NeomakeTestsWaitForFinishedJobs
+
+    bwipe!
+  endif
+
+Execute (Automake cleans up buffer context when restarting after popup menu fails):
+  if !has('timers')
+    NeomakeTestsSkip 'only with timers feature'
+  else
+    new
+    file file_sleep_efm
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call append(0, ['word1', 'word2'])
+
+    function! s:close_pum(...)
+      call feedkeys("\<c-e>\<esc>")
+    endfunction
+
+    call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 5}})
+    doautocmd CursorHold
+    AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
+    let base_timer = g:neomake_test_matchlist[1]
+
+    " Trigger popup menu.
+    call timer_start(100, 's:close_pum')
+    noautocmd call feedkeys("oword\<C-p>", 'x!')
+
+    AssertNeomakeMessage 'automake: callback for timer '.base_timer.' (via CursorHold).'
+    AssertNeomakeMessage 'automake: postponing automake during completion.', 3
+
+    Assert exists('#neomake_automake_retry#InsertLeave#<buffer='.bufnr('%').'>')
+    Assert exists('#neomake_automake_retry#CompleteDone#<buffer='.bufnr('%').'>')
+    Assert exists('b:_neomake_postponed_automake_context')
+    doautocmd InsertLeave
+    Assert !exists('#neomake_automake_retry#InsertLeave#<buffer='.bufnr('%').'>')
+    Assert !exists('#neomake_automake_retry#CompleteDone#<buffer='.bufnr('%').'>')
+    Assert !exists('b:_neomake_postponed_automake_context')
+
+    AssertNeomakeMessage 'automake: postponed automake: unexpected step 2, cleaning up.', 3
 
     bwipe!
   endif
