@@ -635,6 +635,11 @@ Execute (Automake stops previous jobs):
     doautocmd TextChanged
     NeomakeTestsWaitForMessage '\vautomake: started jobs: \[\d+\].'
     AssertNeomakeMessage '\vautomake: stopping previous make runs: '.first_make_id
+    " XXX: Neovim v0.3.1:
+    " (28/43) [EXECUTE] (X) Vim(sleep):E5210: dict key 'stdout' already set for buffered stream in channel 15
+    " 1126      > in <SNR>17_wait_for_message (line 20)
+    " 1127      >   exe 'sleep' ms.'m'
+    " 1128      > C:\projects\neomake\tests\automake.vader:636: NeomakeTestsWaitForMessage '\vautomake: started jobs: \[\d+\].'
     AssertNeomakeMessage '\vautomake: callback for timer \d+'
     let second_make_id = neomake#GetStatus().last_make_id
     Assert index(b:neomake_automake_make_ids, second_make_id) > -1, 'Second make is registered'
