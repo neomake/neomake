@@ -73,6 +73,14 @@ test_script:
   - cd C:\projects\neomake
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
   - ps: |
+      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+  - ps: |
+      & bash -c "printf '%s\n' 1 2"
+      & bash -c "printf '%s\n' 1 2" | cat -A
+  - ps: |
+      & bash -c "printf '%s\r\n' 1 2"
+      & bash -c "printf '%s\r\n' 1 2" | cat -A
+  - ps: |
       echo $env:CONFIGURATION
       if ($env:CONFIGURATION -eq 'VIM') {
         $env:TEST_VIM = 'C:/vim/vim/vim80/vim.exe'
@@ -87,8 +95,6 @@ test_script:
         & C:/neovim/Neovim/bin/nvim.exe --headless -c "call chansend(v:stderr, 'foo')" -cq 2>&1 | %{ "$_" }
       }
       & $env:TEST_VIM --version
-
-      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
 
   - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/test_windows.vader
   - cmd: |
