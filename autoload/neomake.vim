@@ -2599,11 +2599,8 @@ function! s:output_handler(jobinfo, data, event_type, trim_CR) abort
     " data is a list of 'lines' read. Each element *after* the first
     " element represents a newline.
     if has_key(jobinfo, a:event_type)
-        let lines = jobinfo[a:event_type]
-        " As per https://github.com/neovim/neovim/issues/3555
-        let jobinfo[a:event_type] = lines[:-2]
-                    \ + [lines[-1] . get(data, 0, '')]
-                    \ + data[1:]
+        let jobinfo[a:event_type][-1] .= data[0]
+        call extend(jobinfo[a:event_type], data[1:])
     else
         let jobinfo[a:event_type] = data
     endif
