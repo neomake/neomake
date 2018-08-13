@@ -74,15 +74,22 @@ test_script:
   - set NEOMAKE_TEST_NO_COLORSCHEME=1
   - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+
+  # Ok, leading newline though.
   - ps: |
-      & bash -c "printf '%s\n' 1 2"
-  - cmd: bash -c "printf '%s\n' 1 2"
+      & bash -c "printf '%s\n' 1:1 1:2"
+  - cmd: bash -c "printf '%s\r\n' 2:1 2:2"
+
+  # XXX: Prints "s".
+  - cmd: bash -c "printf '%s\n' 3:1 3:2"
+
   - ps: |
-      & bash -c "printf '%s\r\n' 1 2"
-  - cmd: bash -c "printf '%s\r\n' 1 2"
+      & bash -c "printf '%s\r\n' 4:1 4:2"
+
+  # Ellipsis.
   - cmd: |
       echo …
-      cmd /c /s echo …
+      cmd /s /c echo …
   - ps: |
       & echo …
       & echo "…"
