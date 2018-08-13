@@ -26,8 +26,8 @@ function! neomake#makers#ft#python#DetectPythonVersion() abort
     let output = neomake#compat#systemlist('python -V 2>&1')
     if v:shell_error
         call neomake#log#error(printf(
-                    \ 'Failed to detect Python version: %s.',
-                    \ join(output)))
+                    \ 'Failed to detect Python version: %s (%d).',
+                    \ join(output), v:shell_error))
         let s:python_version = [-1, -1, -1]
     else
         let s:python_version = split(split(output[0])[1], '\.')
