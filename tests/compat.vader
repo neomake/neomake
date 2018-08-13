@@ -44,7 +44,8 @@ Execute (neomake#compat#systemlist with empty args):
   AssertEqual neomake#compat#systemlist(''), []
   AssertEqual neomake#compat#systemlist([]), []
   let out = neomake#compat#systemlist('0')
-  Assert out[0] =~# 'command not found', 'command-not-found not found: '.string(out)
+  AssertEqual type(out), type('')
+  Assert !empty(out)
 
 Execute (neomake#compat#json_decode):
   AssertEqual neomake#compat#json_decode(''), g:neomake#compat#json_none
@@ -79,7 +80,10 @@ Execute (neomake#compat#get_mode):
 
   if has('nvim')
     let nvim_exe = '/proc/'.getpid().'/exe'
+    Log nvim_exe
+    Log filereadable(nvim_exe)
     let nvim = jobstart([nvim_exe, '-u', 'tests/vim/vimrc', '--embed'], {'rpc': v:true})
+    Log 'started nvim: '.string(nvim)
     call rpcrequest(nvim, 'nvim_call_function', 'feedkeys', ['d', '!'])
     call rpcrequest(nvim, 'nvim_eval', 'assert_equal(neomake#compat#get_mode(), "no")')
     let rpc_errors = rpcrequest(nvim, 'nvim_eval', 'v:errors')

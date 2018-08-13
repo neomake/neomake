@@ -68,8 +68,14 @@ function! neomake#utils#IsRunningWindows() abort
 endfunction
 
 " Get directory/path separator.
+" Use the same separator as with tempname().
 function! neomake#utils#Slash() abort
-    return (!exists('+shellslash') || &shellslash) ? '/' : '\'
+    " return (!exists('+shellslash') || &shellslash) ? '/' : '\'
+    return exists('+shellslash') && !&shellslash && &shellcmdflag[0] !=# '-' ? '\' : '/'
+endfunction
+
+function! neomake#utils#fname(...) abort
+  return join(a:000, neomake#utils#Slash())
 endfunction
 
 function! neomake#utils#Exists(exe) abort

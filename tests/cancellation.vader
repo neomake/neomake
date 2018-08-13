@@ -130,7 +130,7 @@ Execute (neomake#CancelJob with trapped TERM):
     let jobinfo = neomake#GetJob(job_id)
 
     " Ensure the script is running.
-    NeomakeTestsWaitForMessage '\vstdout: .*: \[''Started: (\d+)''', 3, jobinfo
+    NeomakeTestsWaitForMessage '\vstdout: .*''Started: (\d+)''', 3, jobinfo
     let pid = g:neomake_test_matchlist[1]
 
     AssertEqual neomake#CancelJob(job_id), 1

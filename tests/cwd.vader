@@ -86,7 +86,7 @@ Execute (tcd is handled properly):
   endif
 
 Execute (tempfile with pwd):
-  let maker = NeomakeTestsCommandMaker('pwd', 'pwd; printf')
+  let maker = NeomakeTestsCommandMaker('pwd', 'pwd && printf')
   let maker.cwd = '%:p:h'
   let maker.errorformat = '%m'
   let maker.append_file = 1
@@ -105,7 +105,7 @@ Execute (tempfile with pwd):
 
 Execute (cwd handles fugitive buffer):
   NeomakeTestsLoadPlugin 'vim-fugitive'
-  let maker = NeomakeTestsCommandMaker('pwd', 'pwd; ls')
+  let maker = NeomakeTestsCommandMaker('pwd', 'pwd && ls')
   let maker.cwd = '%:p:h'
   let maker.errorformat = '%m'
   let maker.append_file = 1
@@ -138,7 +138,7 @@ Execute (cwd handles fugitive buffer):
 
 Execute (cwd gets expanded correctly: relative and in another buffer):
   if NeomakeAsyncTestsSetup()
-    let maker = NeomakeTestsCommandMaker('pwd', 'pwd; ls')
+    let maker = NeomakeTestsCommandMaker('pwd', 'pwd && ls')
     let maker.cwd = '%:.:h'
     let maker.errorformat = '%m'
     let maker.append_file = 1
@@ -160,8 +160,9 @@ Execute (cwd gets expanded correctly: relative and in another buffer):
   endif
 
 Execute (cwd per maker and serialize via dict):
-  let maker1 = {'name': 'maker1', 'exe': 'pwd', 'cwd': tempname()}
-  let maker2 = {'name': 'maker2', 'exe': 'pwd', 'cwd': tempname()}
+  let cmd = &shell =~# 'cmd' ? 'cd' : 'pwd'
+  let maker1 = {'name': 'maker1', 'exe': cmd, 'cwd': tempname()}
+  let maker2 = {'name': 'maker2', 'exe': cmd, 'cwd': tempname()}
   call mkdir(maker1.cwd)
   call mkdir(maker2.cwd)
 
@@ -236,7 +237,7 @@ Execute (get_list_entries: filename with cwd (non-existing file)):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'error message'}]
-  AssertEqual bufname(unlisted_bufnr), orig_cwd.'/file_in_subdir_1'
+  AssertEqual bufname(unlisted_bufnr), neomake#utils#fname(orig_cwd, 'file_in_subdir_1')
   Assert !buflisted(unlisted_bufnr), 'buffer is unlisted (2)'
 
   for b in bwipe_buffers
@@ -246,8 +247,8 @@ Execute (get_list_entries: filename with cwd (non-existing file)):
 
 Execute (get_list_entries: filename with cwd):
   let tempdir = tempname()
-  let slash = neomake#utils#Slash()
-  let subdir = tempdir . slash . 'project' . slash . 'sub'
+  let fname = neomake#utils#fname(tempdir, 'project', 'sub', 'file_in_subdir_2')
+  let subdir = fnamemodify(fname, ':h')
   call mkdir(subdir, 'p', 0700)
 
   let maker = {'cwd': '%:p:h'}
@@ -265,8 +266,8 @@ Execute (get_list_entries: filename with cwd):
   let bufnr = bufnr('%')
   exe 'lcd' tempdir
   write project/sub/file_in_subdir_2
-  AssertEqual expand('%:p'), tempdir.'/project/sub/file_in_subdir_2'
-  Assert filereadable('project/sub/file_in_subdir_2'), 'file is readable'
+  AssertEqual expand('%:p'), fname
+  Assert filereadable(fname), 'file is readable'
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
@@ -287,8 +288,8 @@ Execute (get_list_entries: filename with cwd):
 
 Execute (process_output: filename with cwd):
   let tempdir = tempname()
-  let slash = neomake#utils#Slash()
-  let subdir = tempdir . slash . 'project' . slash . 'sub'
+  let fname = neomake#utils#fname(tempdir, 'project', 'sub', 'file_in_subdir_3')
+  let subdir = fnamemodify(fname, ':h')
   call mkdir(subdir, 'p', 0700)
 
   let maker = {'exe': 'printf', 'args': '1', 'cwd': '%:p:h'}
@@ -306,8 +307,8 @@ Execute (process_output: filename with cwd):
   let bufnr = bufnr('%')
   exe 'lcd' tempdir
   write project/sub/file_in_subdir_3
-  AssertEqual expand('%:p'), tempdir.'/project/sub/file_in_subdir_3'
-  Assert filereadable('project/sub/file_in_subdir_3'), 'file is readable'
+  AssertEqual expand('%:p'), fname
+  Assert filereadable(fname), 'file is readable'
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
@@ -329,8 +330,8 @@ Execute (process_output: filename with cwd):
 
 Execute (legacy errorformat maker: filename with cwd):
   let tempdir = tempname()
-  let slash = neomake#utils#Slash()
-  let subdir = tempdir . slash . 'project' . slash . 'sub'
+  let fname = neomake#utils#fname(tempdir, 'project', 'sub', 'file_in_subdir_4')
+  let subdir = fnamemodify(fname, ':h')
   call mkdir(subdir, 'p', 0700)
 
   let maker = {
@@ -343,8 +344,8 @@ Execute (legacy errorformat maker: filename with cwd):
   let bufnr = bufnr('%')
   exe 'lcd' tempdir
   write project/sub/file_in_subdir_4
-  AssertEqual expand('%:p'), tempdir.'/project/sub/file_in_subdir_4'
-  Assert filereadable('project/sub/file_in_subdir_4'), 'file is readable'
+  AssertEqual expand('%:p'), fname
+  Assert filereadable(fname), 'file is readable'
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
@@ -368,8 +369,8 @@ Execute (legacy errorformat maker: filename with cwd (error: removed)):
     return
   endif
   let tempdir = tempname()
-  let slash = neomake#utils#Slash()
-  let subdir = tempdir . slash . 'project' . slash . 'sub'
+  let fname = neomake#utils#fname(tempdir, 'project', 'sub', 'file_in_subdir_5')
+  let subdir = fnamemodify(fname, ':h')
   call mkdir(subdir, 'p', 0700)
 
   let maker = NeomakeTestsCommandMaker('print_error',
@@ -383,8 +384,8 @@ Execute (legacy errorformat maker: filename with cwd (error: removed)):
   write project/sub/file_in_subdir_5
   let tempfile = expand('%:p')
   let bufnr = bufnr('%')
-  AssertEqual tempfile, tempdir.'/project/sub/file_in_subdir_5'
-  Assert filereadable('project/sub/file_in_subdir_5'), 'file is readable'
+  AssertEqual tempfile, fname
+  Assert filereadable(fname), 'file is readable'
 
   call neomake#Make(1, [maker])
 
@@ -437,7 +438,8 @@ Execute (legacy errorformat maker: filename with cwd (error: maker rmdir)):
   call mkdir(tempdir, 'p', 0700)
 
   let maker = NeomakeTestsCommandMaker('remove_dir_and_print_error',
-  \ printf('rmdir %s && printf "file_in_subdir_6:23:42:E:error message"', tempdir))
+  \ printf('cd %s && rmdir %s && printf "file_in_subdir_6:23:42:E:error message"',
+  \ fnamemodify(tempdir, ':h'), tempdir))
   call extend(maker, {
   \ 'errorformat': '%f:%l:%c:%t:%m',
   \ 'cwd': tempdir})
@@ -480,7 +482,7 @@ Execute (cwd):
       \ }
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage printf('cwd: %s/tests/fixtures (changed).', getcwd()), 3
+  AssertNeomakeMessage printf('cwd: %s (changed).', neomake#utils#fname(getcwd(), 'tests', 'fixtures')), 3
   AssertEqual map(getloclist(0), 'v:val.text'), ['a filename with spaces']
   bwipe
 
@@ -499,12 +501,11 @@ Execute (cwd (tempfile)):
   let tempfile_name = g:neomake_test_matchlist[1]
 
   " Temporary file gets created in maker's cwd, and displays full name.
-  let tempfile_abs = fnamemodify(bufname, ':p')
-  AssertEqual fnamemodify(tempfile_name, ':h'), fnamemodify(tempfile_abs, ':h')
-  AssertNeomakeMessage printf('cwd: %s/tests/fixtures (changed).', getcwd()), 3
+  let bufname_abs = fnamemodify(bufname, ':p')
+  AssertEqual fnamemodify(tempfile_name, ':h'), fnamemodify(bufname_abs, ':h')
+  AssertNeomakeMessage printf('cwd: %s (changed).', fnamemodify(bufname_abs, ':h')), 3
   AssertEqual map(getloclist(0), 'v:val.text'), [fnamemodify(tempfile_name, ':t')]
 
-  AssertNeomakeMessage printf('Removing temporary file: "%s/tests/fixtures/%s".',
-  \ getcwd(), fnamemodify(tempfile_name, ':t'))
-  Assert !filereadable(printf('tests/fixtures/%s', tempfile_name))
+  AssertNeomakeMessage printf('Removing temporary file: "%s".', tempfile_name)
+  Assert !filereadable(tempfile_name)
   bwipe

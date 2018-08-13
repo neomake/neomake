@@ -117,8 +117,7 @@ let s:tmpbindir = ''
 function! g:NeomakeTestsCreateExe(name, ...)
   let lines = a:0 ? a:1 : ['#!/bin/sh']
   let path_separator = exists('+shellslash') ? ';' : ':'
-  " Use the same separator as with tempname().
-  let dir_separator = exists('+shellslash') && !&shellslash && &shellcmdflag[0] !=# '-' ? '\' : '/'
+  let dir_separator = neomake#utils#Slash()
   if empty(s:tmpbindir)
     let s:tmpbindir = tempname() . dir_separator . 'neomake-vader-tests'
   endif
@@ -360,8 +359,8 @@ let g:sleep_efm_maker = {
     \ 'errorformat': '%f:%l:%t:%m',
     \ 'append_file': 0,
     \ }
-let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05; echo slept')
-let g:error_maker = NeomakeTestsCommandMaker('error-maker', 'echo error; false')
+let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05 && echo slept')
+let g:error_maker = NeomakeTestsCommandMaker('error-maker', 'echo error && false')
 let g:error_maker.errorformat = '%E%m'
 function! g:error_maker.postprocess(entry) abort
   let a:entry.bufnr = bufnr('')
@@ -443,9 +442,11 @@ function! NeomakeTestsFixtureMaker(func, fname) abort
 
   let maker = call(a:func, [])
   let maker.exe = &shell
-  let maker.args = [&shellcmdflag, printf(
-        \ 'cat %s; cat %s >&2; exit %d',
-        \ fnameescape(stdout), fnameescape(stderr), exitcode)]
+  let cmd = &shell =~? 'cmd' ? 'type' : 'cat'
+  let maker.args = split(&shellcmdflag) + [printf(
+        \ '%s %s && %s %s >&2 && exit %d',
+        \ cmd, fnameescape(stdout),
+        \ cmd, fnameescape(stderr), exitcode)]
   let maker.name = printf('%s-fixture', substitute(a:func, '^.*#', '', ''))
 
   " Massage current buffer.

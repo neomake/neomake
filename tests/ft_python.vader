@@ -3,7 +3,7 @@ Include: include/setup.vader
 Execute (python: errorformat):
   new
   e tests/fixtures/errors.py
-  call neomake#config#set('b:ft.python.python.exe', 'python3')
+"   call neomake#config#set('b:ft.python.python.exe', 'python3')
   Neomake python
   NeomakeTestsWaitForFinishedJobs
 
@@ -56,6 +56,7 @@ Execute (python: pylama: cwd):
   call mkdir('pylama/subdir', 'p')
   call writefile([], 'pylama/setup.cfg')
   lcd pylama/subdir
+  Assert filereadable('../setup.cfg')
   let maker = neomake#makers#ft#python#pylama()
   AssertEqual maker.cwd, tempdir . neomake#utils#Slash() . 'pylama'
   bwipe
@@ -212,7 +213,7 @@ Execute (python: flake8: supports_stdin):
 
   let b:neomake = {'flake8': {'exe': 'echo', 'errorformat': '%m'}}
   CallNeomake 1, ['flake8']
-  AssertNeomakeMessage "\\vStarting .{-}: echo --format\\=default --stdin-display-name '' -.", 2
+  AssertNeomakeMessage "\\vStarting .{-} echo --format\\=default --stdin-display-name '' -.", 2
   AssertEqual getloclist(0)[0].text,
   \ '-1 --format=default --stdin-display-name  -'
   bwipe
@@ -314,7 +315,7 @@ Execute (python: mypy: handles --py2):
   call neomake#makers#ft#python#DetectPythonVersion()
   let maker = neomake#makers#ft#python#mypy()
   AssertEqual maker.args, base_args
-  AssertNeomakeMessage '\v^Failed to detect Python version: .*', 0
+  AssertNeomakeMessage '\v^Failed to detect Python version: .* \(127\)\.', 0
 
   " Appends --py2 with Python 2.
   call g:NeomakeTestsCreateExe('python', ['#!/bin/sh', 'echo Python 2.7.14'])

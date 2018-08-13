@@ -15,7 +15,7 @@ Execute (go: go):
   \'	/home/user/go/src/bytes (from $GOPATH)']
   CallNeomake 1, [maker]
 
-  AssertNeomakeMessage printf('cwd: %s/build (changed).', getcwd())
+  AssertNeomakeMessage printf('cwd: %s (changed).', neomake#utils#fname(getcwd(), 'build'))
   AssertNeomakeMessage 'unnamed_maker: processing 3 lines of output.'
   AssertNeomakeMessage 'Processing 1 entries.'
   AssertEqualQf getloclist(0), [
