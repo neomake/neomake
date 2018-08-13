@@ -57,7 +57,12 @@ Execute (g:NeomakeTestsCreateExe: win cmd):
   if neomake#utils#IsRunningWindows()
     let exe = g:NeomakeTestsCreateExe('foo.cmd', ['@echo off', 'echo 1'])
     AssertEqual fnamemodify(exepath('foo.CMD'), ':t'), 'foo.CMD'
-    AssertEqual fnamemodify(exepath('foo'), ':t'), 'foo.CMD'
+    if has('nvim')
+      " With &shell == 'cmd.exe' at least.
+      AssertEqual fnamemodify(exepath('foo'), ':t'), 'foo'
+    else
+      AssertEqual fnamemodify(exepath('foo'), ':t'), 'foo.CMD'
+    endif
     AssertEqual fnamemodify(exepath('foo.cmd'), ':t'), 'foo.cmd'
   else
     let exe = g:NeomakeTestsCreateExe('foo.cmd', ['echo 1'])

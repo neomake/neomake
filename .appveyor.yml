@@ -76,10 +76,10 @@ test_script:
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
   - ps: |
       & bash -c "printf '%s\n' 1 2"
-      & bash -c "printf '%s\n' 1 2" | cat -A
+  - cmd: bash -c "printf '%s\n' 1 2"
   - ps: |
       & bash -c "printf '%s\r\n' 1 2"
-      & bash -c "printf '%s\r\n' 1 2" | cat -A
+  - cmd: bash -c "printf '%s\r\n' 1 2"
   - ps: |
       echo $env:CONFIGURATION
       if ($env:CONFIGURATION -eq 'VIM') {
