@@ -1,5 +1,5 @@
 function! neomake#makers#ft#crystal#EnabledMakers() abort
-    return ['crystal']
+    return ['crystal', 'ameba']
 endfunction
 
 function! neomake#makers#ft#crystal#crystal() abort
@@ -12,5 +12,13 @@ function! neomake#makers#ft#crystal#crystal() abort
                 \ '%EError in %f:%l: %m,'.
                 \ '%C%p^,'.
                 \ '%-C%.%#'
+        \ }
+endfunction
+
+function! neomake#makers#ft#crystal#ameba() abort
+    " from vim-crystal
+    return {
+        \ 'args': ['--format', 'flycheck'],
+        \ 'errorformat': '%f:%l:%c: %t: %m'
         \ }
 endfunction
