@@ -111,7 +111,7 @@ test_script:
         Write-Host "Vim: write to CON"
         & $env:TEST_VIM -Es -c "call writefile(['1', '2'], 'CON')" -cq 2>&1 | %{ "$_" }
 
-      } else if ($env:CONFIGURATION -eq 'NEOVIM') {
+      } elseif ($env:CONFIGURATION -eq 'NEOVIM') {
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
         & $env:TEST_VIM --version
 
