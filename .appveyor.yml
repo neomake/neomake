@@ -121,24 +121,25 @@ test_script:
   - ps: |
       if ($env:CONFIGURATION -eq 'VIM') {
         Write-Host "Vim: test writing to stderr (verbose echon)"
-        & C:/vim/vim/vim80/vim.exe -X --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verbose echon 1' -c 'verbose echon 2' -c 'verbose echon `"3`".nr2char(10)' -c 'verbose echon `"4`".nr2char(13).nr2char(10)' -c 'verbose echon `"5`"' -cq 2>&1 | %{ "$_" }
+        & $env:TEST_VIM -X --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verbose echon 1' -c 'verbose echon 2' -cq 2>&1 | %{ "$_" }
+        & $env:TEST_VIM -X --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verbose echon 12' -c 'verbose echon "3".nr2char(10)' -c 'verbose echon "4".nr2char(13).nr2char(10)' -c 'verbose echon "5"' -cq 2>&1 | %{ "$_" }
 
         Write-Host "Vim: ellipsis"
-        & $env:TEST_VIM --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verb echon `"…`"' -cq 2>&1 | %{ "$_" }
+        & $env:TEST_VIM --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verb echon "…"' -cq 2>&1 | %{ "$_" }
       } elseif ($env:CONFIGURATION -eq 'NEOVIM') {
         Write-Host "Neovim: write to stderr (chansend)"
-        & C:/neovim/Neovim/bin/nvim.exe --headless -c "call chansend(v:stderr, 'foo')" -cq 2>&1 | %{ "$_" }
+        & $env:TEST_VIM --headless -c "call chansend(v:stderr, 'foo')" -cq 2>&1 | %{ "$_" }
 
         Write-Host "Neovim: test writing to stderr (verbose echon)"
-        & C:/vim/vim/vim80/vim.exe --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verbose echon 1' -c 'verbose echon 2' -c 'verbose echon `"3`".nr2char(10)' -c 'verbose echon `"4`".nr2char(13).nr2char(10)' -c 'verbose echon `"5`"' -cq 2>&1 | %{ "$_" }
+        & $env:TEST_VIM --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verbose echon 1' -c 'verbose echon 2' -c 'verbose echon `"3`".nr2char(10)' -c 'verbose echon `"4`".nr2char(13).nr2char(10)' -c 'verbose echon `"5`"' -cq 2>&1 | %{ "$_" }
 
         Write-Host "Neovim: ellipsis 1"
         # ΓÇª
-        & C:/neovim/Neovim/bin/nvim.exe --headless -c "call chansend(v:stderr, '…')" -cq 2>&1 | %{ "$_" }
+        & $env:TEST_VIM --headless -c "call chansend(v:stderr, '…')" -cq 2>&1 | %{ "$_" }
 
         Write-Host "Neovim: ellipsis 2"
-        & C:/neovim/Neovim/bin/nvim.exe -Es -c 'verb echon `"…`"' -cq 2>&1 | %{ "$_" }
-        & C:/neovim/Neovim/bin/nvim.exe -Es -c "verb echon '…'" -cq 2>&1 | %{ "$_" }
+        & $env:TEST_VIM -Es -c 'verb echon `"…`"' -cq 2>&1 | %{ "$_" }
+        & $env:TEST_VIM -Es -c "verb echon '…'" -cq 2>&1 | %{ "$_" }
       }
 
   - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/test_windows.vader
