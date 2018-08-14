@@ -98,28 +98,34 @@ test_script:
 
   - ps: |
       echo $env:CONFIGURATION
+
+  - ps: |
       if ($env:CONFIGURATION -eq 'VIM') {
         $env:TEST_VIM = 'C:/vim/vim/vim80/vim.exe'
+      } elseif ($env:CONFIGURATION -eq 'NEOVIM') {
+        $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
+      }
+
+  - ps: |
         & $env:TEST_VIM --version
 
+  - ps: |
+      if ($env:CONFIGURATION -eq 'VIM') {
+        Write-Host "Vim: write to CON"
+        & $env:TEST_VIM -Es -c "call writefile(['1', '2'], 'CON')" -cq 2>&1 | %{ "$_" }
+      } elseif ($env:CONFIGURATION -eq 'NEOVIM') {
+        Write-Host "Neovim: write to CON"
+        & $env:TEST_VIM --headless -c "call writefile(['1', '2'], 'CON')" -cq 2>&1 | %{ "$_" }
+      }
+
+  - ps: |
+      if ($env:CONFIGURATION -eq 'VIM') {
         Write-Host "Vim: test writing to stderr (verbose echon)"
         & C:/vim/vim/vim80/vim.exe -X --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verbose echon 1' -c 'verbose echon 2' -c 'verbose echon `"3`".nr2char(10)' -c 'verbose echon `"4`".nr2char(13).nr2char(10)' -c 'verbose echon `"5`"' -cq 2>&1 | %{ "$_" }
 
         Write-Host "Vim: ellipsis"
-        & $env:TEST_VIM --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verb echon `"…`" -cq 2>&1 | %{ "$_" }
-
-        Write-Host "Vim: write to CON"
-        & $env:TEST_VIM -Es -c "call writefile(['1', '2'], 'CON')" -cq 2>&1 | %{ "$_" }
-
+        & $env:TEST_VIM --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verb echon `"…`"' -cq 2>&1 | %{ "$_" }
       } elseif ($env:CONFIGURATION -eq 'NEOVIM') {
-        $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
-        & $env:TEST_VIM --version
-
-        set VADER_OUTPUT_FILE=CON
-
-        Write-Host "Neovim: write to CON"
-        & $env:TEST_VIM --headless -c "call writefile(['1', '2'], 'CON')" -cq 2>&1 | %{ "$_" }
-
         Write-Host "Neovim: write to stderr (chansend)"
         & C:/neovim/Neovim/bin/nvim.exe --headless -c "call chansend(v:stderr, 'foo')" -cq 2>&1 | %{ "$_" }
 
@@ -138,6 +144,11 @@ test_script:
   - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/test_windows.vader
   - cmd: |
       %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader"
+
+  - ps: |
+      & $env:TEST_VIM -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader" 2>&1 | %{ "$_" }
+  - ps: |
+      & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
 
   - ps: |
       # & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
