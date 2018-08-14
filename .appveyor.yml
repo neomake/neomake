@@ -113,33 +113,42 @@ test_script:
       if ($env:CONFIGURATION -eq 'VIM') {
         Write-Host "Vim: write to CON"
         & $env:TEST_VIM -Es -c "call writefile(['1', '2'], 'CON')" -cq 2>&1 | %{ "$_" }
+        Write-Host "type CON"
+        type CON
       } elseif ($env:CONFIGURATION -eq 'NEOVIM') {
         Write-Host "Neovim: write to CON"
         & $env:TEST_VIM --headless -c "call writefile(['1', '2'], 'CON')" -cq 2>&1 | %{ "$_" }
+        Write-Host "type CON"
+        type CON
       }
 
   - ps: |
       if ($env:CONFIGURATION -eq 'VIM') {
         Write-Host "Vim: test writing to stderr (verbose echon)"
-        & $env:TEST_VIM -X --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verbose echon 1' -c 'verbose echon 2' -cq 2>&1 | %{ "$_" }
-        & $env:TEST_VIM -X --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verbose echon 12' -c 'verbose echon "3".nr2char(10)' -c 'verbose echon "4".nr2char(13).nr2char(10)' -c 'verbose echon "5"' -cq 2>&1 | %{ "$_" }
+        & $env:TEST_VIM -Es -c 'verbose echon 1' -c 'verbose echon 2' -cq 2>&1 | %{ "$_" }
+        Write-Host "Vim: test writing to stderr (verbose echon, 2)"
+        & $env:TEST_VIM -Es -c 'verbose echon 12' -c 'verbose echon "3".nr2char(10)' -c 'verbose echon "4".nr2char(13).nr2char(10)' -c 'verbose echon "5"' -cq 2>&1 | %{ "$_" }
 
         Write-Host "Vim: ellipsis"
-        & $env:TEST_VIM --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verb echon "…"' -cq 2>&1 | %{ "$_" }
+        # Error detected while processing command line:
+        # E15: Invalid expression: à
+        # E15: Invalid expression: à
+        # & $env:TEST_VIM --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verb echon "…"' -cq 2>&1 | %{ "$_" }
       } elseif ($env:CONFIGURATION -eq 'NEOVIM') {
         Write-Host "Neovim: write to stderr (chansend)"
         & $env:TEST_VIM --headless -c "call chansend(v:stderr, 'foo')" -cq 2>&1 | %{ "$_" }
 
-        Write-Host "Neovim: test writing to stderr (verbose echon)"
-        & $env:TEST_VIM --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verbose echon 1' -c 'verbose echon 2' -c 'verbose echon `"3`".nr2char(10)' -c 'verbose echon `"4`".nr2char(13).nr2char(10)' -c 'verbose echon `"5`"' -cq 2>&1 | %{ "$_" }
+        Write-Host "Vim: test writing to stderr (verbose echon)"
+        & $env:TEST_VIM -Es -c 'verbose echon 1' -c 'verbose echon 2' -cq 2>&1 | %{ "$_" }
+        Write-Host "Vim: test writing to stderr (verbose echon, 2)"
+        & $env:TEST_VIM -Es -c 'verbose echon 12' -c 'verbose echon "3".nr2char(10)' -c 'verbose echon "4".nr2char(13).nr2char(10)' -c 'verbose echon "5"' -cq 2>&1 | %{ "$_" }
 
         Write-Host "Neovim: ellipsis 1"
         # ΓÇª
         & $env:TEST_VIM --headless -c "call chansend(v:stderr, '…')" -cq 2>&1 | %{ "$_" }
 
         Write-Host "Neovim: ellipsis 2"
-        & $env:TEST_VIM -Es -c 'verb echon `"…`"' -cq 2>&1 | %{ "$_" }
-        & $env:TEST_VIM -Es -c "verb echon '…'" -cq 2>&1 | %{ "$_" }
+        # & $env:TEST_VIM -Es -c "verb echon '…'" -cq 2>&1 | %{ "$_" }
       }
 
   - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/test_windows.vader
