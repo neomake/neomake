@@ -105,6 +105,7 @@ Execute (:verb NeomakeInfo displays extra info):
 Execute (NeomakeInfo! copies to clipboard):
   try
     let save_reg = getreg('+')
+    echom 'saved reg'
   catch
     NeomakeTestsSkip 'Clipboard is not available: '.v:exception
     return
@@ -114,7 +115,9 @@ Execute (NeomakeInfo! copies to clipboard):
   let restore = 1
   try
     verbose NeomakeInfo!
+    echom 'getting reg'
     let info = split(getreg('+'), '\n')
+    echom 'got reg'
     if empty(info)
       let restore = 0
       AssertNeomakeMessage "Could not set clipboard: Vim(call):E354: Invalid register name: '+'.", 0
@@ -122,7 +125,9 @@ Execute (NeomakeInfo! copies to clipboard):
     endif
   finally
     if restore
+      echom 'restore reg'
       call setreg('+', save_reg, 'l')
+      echom 'restored reg'
     endif
   endtry
   let idx = -1
