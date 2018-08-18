@@ -453,10 +453,10 @@ function! NeomakeTestsFixtureMaker(func, fname) abort
         \ cmd, fnameescape(stdout),
         \ cmd, fnameescape(stderr), exitcode)]
   let maker.name = printf('%s-fixture', substitute(a:func, '^.*#', '', ''))
-  let maker.append_file = 0
 
   " Massage current buffer.
   if get(b:, 'neomake_tests_massage_buffer', 1)
+    let maker.append_file = 0
     " Write the input file to the temporary root.
     let test_fname = s:fixture_root . '/' . a:fname
     let test_fname_dir = fnamemodify(test_fname, ':h')
