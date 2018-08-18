@@ -152,7 +152,7 @@ test_script:
       }
 
   - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/test_windows.vader
-  # - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/all.vader
+  - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/all.vader
 
   # - cmd: |
   #     %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader"
@@ -164,7 +164,7 @@ test_script:
 
   # - ps: |
   #     Write-Host "test_windows 2: make"
-  #     # XXX: extra newlines between Vader output lines
+  #     # XXX: extra newlines between Vader output lines with Vim
   #     & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
 
   # - ps: |
