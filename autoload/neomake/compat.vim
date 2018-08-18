@@ -178,7 +178,7 @@ endfunction
 if neomake#utils#IsRunningWindows()
     " Windows needs a shell to handle PATH/%PATHEXT% etc.
     function! neomake#compat#massage_argv(argv) abort
-        call neomake#utils#debug('neomake#compat#massage_argv: '.string(a:argv))
+        call neomake#log#debug('neomake#compat#massage_argv: '.string(a:argv).'.')
         let prefix = &shell.' '.&shellcmdflag.' '
         if type(a:argv) == type([])
             let shell_argv = split(&shell) + split(&shellcmdflag)
@@ -196,16 +196,16 @@ if neomake#utils#IsRunningWindows()
               let ret = neomake#utils#shellescape(ret)
             endif
             let ret = prefix.ret
-            call neomake#utils#debug('neomake#compat#massage_argv (1): => '.ret)
+            call neomake#log#debug('neomake#compat#massage_argv (1): => '.ret.'.')
             return ret
         elseif a:argv[0:len(prefix)-1] ==# prefix
-            call neomake#utils#debug('neomake#compat#massage_argv (2): => '.a:argv)
+            call neomake#log#debug('neomake#compat#massage_argv (2): => '.a:argv.'.')
             return a:argv
         elseif &shell !~? 'cmd'
-            call neomake#utils#debug('neomake#compat#massage_argv (3): => '.prefix.a:argv)
+            call neomake#log#debug('neomake#compat#massage_argv (3): => '.prefix.a:argv.'.')
             return prefix.neomake#utils#shellescape(a:argv)
         endif
-        call neomake#utils#debug('neomake#compat#massage_argv (4): => '.prefix.a:argv)
+        call neomake#log#debug('neomake#compat#massage_argv (4): => '.prefix.a:argv.'.')
         return prefix.a:argv
     endfunction
 elseif has('nvim')
