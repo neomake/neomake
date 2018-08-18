@@ -153,7 +153,7 @@ test_script:
 
   - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/test_windows.vader
 
-  - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/all.vader VADER_OPTIONS=-x
+  - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/all.vader
 
   # - cmd: |
   #     %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader"
@@ -186,10 +186,3 @@ test_script:
   #         & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_" 2>&1 | %{ "$_" }
   #         if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
   #     }
-
-on_success:
-  - ps: |
-      if ($true)
-      {
-        Write-Host "Success"
-      }
