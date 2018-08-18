@@ -228,31 +228,3 @@ Execute (NeomakeTestsCommandMaker with semicolons):
     AssertEqual map(getloclist(0), 'v:val.text'), ['1', '2']
   endif
   bwipe
-
-Execute (out of tests/makers.vader: Neomake/Neomake! run ft maker in project mode):
-  call g:NeomakeSetupAutocmdWrappers()
-  new
-  edit tests/fixtures/a\ filename\ with\ spaces
-  set ft=neomake_tests
-  let fname = bufname('%')
-
-  Neomake echo_args
-  NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Running makers: echo_args.'
-  AssertEqual map(getloclist(0), 'v:val.text'), [fname]
-
-  Neomake! echo_args
-  NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Running makers: echo_args.'
-  AssertEqual map(getqflist(), 'v:val.text'), ['']
-
-  call neomake#config#set('b:append_file', 1)
-  CallNeomake 0, ['echo_args']
-  AssertNeomakeMessage 'Running makers: echo_args.'
-  AssertNeomakeMessage "Using setting append_file=1 from 'buffer'.", 3
-  AssertEqual map(getqflist(), 'v:val.text'), [fname]
-
-  AssertEqual map(getloclist(0), 'v:val.text'), [fname]
-
-  AssertEqual map(copy(g:neomake_test_jobfinished), 'v:val.jobinfo.file_mode'), [1, 0, 0]
-  bwipe
