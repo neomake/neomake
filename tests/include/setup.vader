@@ -13,6 +13,11 @@ Before:
 
   " One-time setup.
   if exists(':NeomakeTestsWaitForFinishedJobs') != 2
+    let g:neomake_test_vader_bufname = bufname('%')
+    " NOTE: '\[Vader-workbench\]' or '/[Vader-workbench/]' is used on Windows.
+    " (https://github.com/vim/vim/issues/2749)
+    Assert g:neomake_test_vader_bufname =~# 'Vader-workbench', 'Before: not in Vader-workbench'
+
     if !exists('g:loaded_neomake')
       " When running a .vader file manually, without Neomake being loaded.
       let plugin_dir = fnamemodify(g:vader_file, ':p:h:h')
