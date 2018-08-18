@@ -275,7 +275,7 @@ Execute(neomake#utils#redir: recursive use without execute()):
 
 Execute (neomake#utils#ExpandArgs):
   Save $HOME
-  let $HOME='/home/sweet'
+  let $HOME=fnamemodify('/home/sweet', ':p')
 
   new
   file file1.ext
@@ -327,11 +327,11 @@ Execute (neomake#utils#ExpandArgs):
   \ '^file1.ext$',
   \ 'C:\\file1.ext\\',
   \ 'C:\\file1\\',
-  \ '/home/sweet',
+  \ $HOME,
   \ '\~',
   \ 't/~=+.view.vim',
-  \ '/home/sweet/foo',
-  \ '/home/sweet/',
+  \ $HOME.'/foo',
+  \ $HOME.'/',
   \ '~foo',
   \ 'file1.ext',
   \ 'file1.ext:,',
@@ -404,39 +404,26 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   let &shellcmdflag = '-c'
   let maker = neomake#utils#MakerFromCommand('echo 1')
   AssertEqual maker._get_argv(jobinfo), ['/bin/bash', '-o', 'pipefail', '-c', 'echo 1']
-  if neomake#has_async_support()
-    let expected_argv = ['/bin/bash', '-o', 'pipefail', '-c', 'echo 1']
-  else
-    let expected_argv = "/bin/bash -o pipefail -c 'echo 1'"
-  endif
-  let jobinfo.maker = maker
-  AssertEqual jobinfo.get_argv(), expected_argv
 
   let &shell = '/bin/bash'
   let &shellcmdflag = '-o pipefail -c'
   let maker = neomake#utils#MakerFromCommand('echo 2')
   AssertEqual maker._get_argv(jobinfo), ['/bin/bash', '-o', 'pipefail', '-c', 'echo 2']
-  if neomake#has_async_support()
-    let expected_argv = ['/bin/bash', '-o', 'pipefail', '-c', 'echo 2']
-  else
-    let expected_argv = "/bin/bash -o pipefail -c 'echo 2'"
-  endif
-  let jobinfo.maker = maker
-  AssertEqual jobinfo.get_argv(), expected_argv
 
 Execute (neomake#utils#MakerFromCommand copies args):
   new
   exe 'file file_with_escaped_\%:p'
   let maker = neomake#utils#MakerFromCommand('echo "%" 1')
-  let maker.tempfile_name = 'tempfile'
+  let tempfile = tempname()
+  let maker.tempfile_name = tempfile
   let jobinfo = NeomakeTestsFakeJobinfo()
   let bound_maker = neomake#GetMaker(maker)
   let argv = bound_maker._get_argv(jobinfo)
   let shell_argv = split(&shell) + split(&shellcmdflag)
   if type(argv) == type([])
-    AssertEqual argv, shell_argv + ['echo "file_with_escaped_%:p" 1 tempfile']
+    AssertEqual argv, shell_argv + ['echo "file_with_escaped_%:p" 1 '.neomake#utils#shellescape(tempfile)]
   else
-    AssertEqual argv, join(shell_argv)." 'echo \"file_with_escaped_%:p\" 1 tempfile'"
+    AssertEqual argv, join(shell_argv)." 'echo \"file_with_escaped_%:p\" 1 ".neomake#utils#shellescape(tempfile)."'"
   endif
   let again_argv = bound_maker._get_argv(jobinfo)
   AssertEqual argv, again_argv
@@ -470,7 +457,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
 
   let argv = bound_maker._get_argv(jobinfo)
   if type(argv) == type([])
-    AssertEqual argv, shell_argv + ['printf "%s\n" "'.fname.'" 1 ''tests/fixtures/a filename with spaces''']
+    AssertEqual argv, shell_argv + ['printf "%s\n" "'.fname.'" 1 '.neomake#utils#shellescape(fname)]
   else
     AssertEqual argv, join(shell_argv).' ''printf "%s\n" "tests/fixtures/a filename with spaces" 1 ''\''''tests/fixtures/a filename with spaces''\'''''''
   endif
@@ -478,10 +465,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
   AssertEqual bound_maker.args, shell_argv[1:] + ['printf "%s\n" "%" 1']
 
   CallNeomake 1, [maker]
-  AssertEqual map(getloclist(0), 'v:val.text'), [
-  \ 'tests/fixtures/a filename with spaces',
-  \ '1',
-  \ 'tests/fixtures/a filename with spaces']
+  AssertEqual map(getloclist(0), 'v:val.text'), [fname, '1', fname]
   bwipe
 
 Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
@@ -515,7 +499,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
   AssertEqual bound_maker.args, ['%', '1']
 
   CallNeomake 0, [maker]
-  AssertEqual getqflist()[0].text, 'tests/fixtures/a filename with spaces 1'
+  AssertEqual getqflist()[0].text, fname.' 1'
   bwipe
 
 Execute (neomake#utils#MakerFromCommand calls _get_fname_for_buffer once):
@@ -637,11 +621,13 @@ Execute (neomake#utils#fnamemodify handles fugitive buffer):
   let bufname = bufname('%')
   Gedit
   AssertNotEqual bufname, bufname('%')
-  Assert bufname('%') =~# '^fugitive://'
+  Assert bufname('%') =~# '^fugitive:', 'Unexpected bufname: '.bufname('%')
 
+  AssertEqual b:fugitive_type, 'blob'
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ''), bufname
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), fnamemodify(bufname, ':p')
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname, ':p:h')
+
   bwipe
   bwipe autoload/neomake/debug.vim
 
@@ -695,21 +681,22 @@ Execute (neomake#utils#shellescape):
   AssertEqual neomake#utils#shellescape('foo'), 'foo'
   AssertEqual neomake#utils#shellescape('foo-bar'), 'foo-bar'
   AssertEqual neomake#utils#shellescape('foo_bar'), 'foo_bar'
-  AssertEqual neomake#utils#shellescape('foo bar'), "'foo bar'"
-  AssertEqual neomake#utils#shellescape('foo bar "baz"'), "'foo bar \"baz\"'"
   AssertEqual neomake#utils#shellescape('--foo=bar'), '--foo=bar'
+  if neomake#utils#IsRunningWindows()
+    AssertEqual neomake#utils#shellescape('foo bar'), '"foo bar"'
+    AssertEqual neomake#utils#shellescape('foo bar "baz"'), '"foo bar ""baz"""'
 
-  Save &shell
-  let &shell = 'cmd.exe'
-  AssertEqual neomake#utils#shellescape('foo'), 'foo'
-  AssertEqual neomake#utils#shellescape('foo-bar'), 'foo-bar'
-  AssertEqual neomake#utils#shellescape('foo_bar'), 'foo_bar'
-  AssertEqual neomake#utils#shellescape('foo bar'), '"foo bar"'
-  AssertEqual neomake#utils#shellescape('foo bar "baz"'), '"foo bar ""baz"""'
+    AssertEqual neomake#utils#shellescape('"foo"'), '"""foo"""'
+    AssertEqual neomake#utils#shellescape('"foo bar"'), '"""foo bar"""'
+    AssertEqual neomake#utils#shellescape('-c "foo bar"'), '"-c ""foo bar"""'
+  else
+    AssertEqual neomake#utils#shellescape('foo bar'), "'foo bar'"
+    AssertEqual neomake#utils#shellescape('foo bar "baz"'), "'foo bar \"baz\"'"
 
-  AssertEqual neomake#utils#shellescape('"foo"'), '"""foo"""'
-  AssertEqual neomake#utils#shellescape('"foo bar"'), '"""foo bar"""'
-  AssertEqual neomake#utils#shellescape('-c "foo bar"'), '"-c ""foo bar"""'
+    AssertEqual neomake#utils#shellescape('"foo"'), '''"foo"'''
+    AssertEqual neomake#utils#shellescape('"foo bar"'), '''"foo bar"'''
+    AssertEqual neomake#utils#shellescape('-c "foo bar"'), '''-c "foo bar"'''
+  endif
 
 Execute (neomake#utils#fix_self_ref):
   AssertEqual neomake#utils#fix_self_ref(''), ''
