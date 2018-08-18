@@ -193,6 +193,7 @@ Execute (mkdir, writefile):
   call mkdir(tmp, 'p')
   Log tmp
   exe 'lcd '.tmp
+
   if has('nvim') && (!exists('+shellslash') || &shellslash)
     " Vim(call):E739: Cannot create directory: pylama/subdir
     call mkdir('pylama/subdir', 'p')

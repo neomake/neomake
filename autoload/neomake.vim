@@ -1594,7 +1594,7 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
                             \ [a:make_info] + a:000])
             endif
             let mode = neomake#compat#get_mode()
-            if index(['n', 'i'], mode) == -1
+            if index(['n', 'i', 'cv', 'ce'], mode) == -1  " 'cv' is used in tests (-Es), 'ce' is '-es'.
                 call neomake#log#debug(printf(
                             \ 'Postponing final location list handling for mode "%s".', mode),
                             \ a:make_info.options)
