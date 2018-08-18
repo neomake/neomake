@@ -189,7 +189,16 @@ Execute (fnamemodify):
 
 Execute (mkdir, writefile):
   new
-  call mkdir('pylama/subdir', 'p')
+  let tmp = tempname()
+  call mkdir(tmp, 'p')
+  Log tmp
+  exe 'lcd '.tmp
+  if has('nvim') && (!exists('+shellslash') || &shellslash)
+    " Vim(call):E739: Cannot create directory: pylama/subdir
+    call mkdir('pylama/subdir', 'p')
+  else
+    call mkdir('pylama\subdir', 'p')
+  endif
   call writefile([], 'pylama/setup.cfg')
   lcd pylama/subdir
   Log getcwd()
