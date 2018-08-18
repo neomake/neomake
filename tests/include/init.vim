@@ -326,7 +326,7 @@ function! NeomakeTestsCommandMaker(name, cmd)
   let cmd = a:cmd
   if &shell =~# 'cmd'
     " Replace ";" with "&" for cmd.exe
-    let cmd = substitute(cmd, ';', ' \&', 'g')
+    let cmd = substitute(cmd, ';', '\&', 'g')
   endif
   let maker = neomake#utils#MakerFromCommand(cmd)
   return extend(maker, {

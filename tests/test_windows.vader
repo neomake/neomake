@@ -210,14 +210,24 @@ Execute (mkdir, writefile):
 
 Execute (NeomakeTestsCommandMaker with semicolons):
   new
-  Save &shell
+  Save &shell, &shellcmdflag
   let &shell = 'cmd'
-  let maker = NeomakeTestsCommandMaker('cmd-with-;', 'echo 1; echo 2')
-  Log maker
-  CallNeomake 1, [maker]
-  AssertEqual map(getloclist(0), 'v:val.text'), ['1', '2']
-  bwipe
+  let &shellcmdflag = '/s /c'
+  let maker = NeomakeTestsCommandMaker('cmd-with-semicolon', 'echo 1; echo 2')
+  AssertEqual maker.args, ['/s', '/c', 'echo 1& echo 2']
+  if executable('cmd')
+    CallNeomake 1, [maker]
+    AssertEqual map(getloclist(0), 'v:val.text'), ['1', '2']
+  endif
 
+  let maker = NeomakeTestsCommandMaker('stderr_maker',
+  \ 'echo failed to run >&2; echo because something bad happened >&2')
+  AssertEqual maker.args, ['/s', '/c', 'echo failed to run >&2& echo because something bad happened >&2']
+  if executable('cmd')
+    CallNeomake 1, [maker]
+    AssertEqual map(getloclist(0), 'v:val.text'), ['1', '2']
+  endif
+  bwipe
 
 Execute (out of tests/makers.vader: Neomake/Neomake! run ft maker in project mode):
   call g:NeomakeSetupAutocmdWrappers()
