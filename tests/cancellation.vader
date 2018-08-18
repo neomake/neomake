@@ -124,7 +124,12 @@ Execute (neomake#CancelJob! with invalid job):
   endif
 
 Execute (neomake#CancelJob with trapped TERM):
-  if NeomakeAsyncTestsSetup()
+  if neomake#utils#IsRunningWindows()
+    " Trapping SIGTERM does not appear to work on Windows/AppVeyor.
+    NeomakeTestsSkip 'not on Windows.'
+  elseif !neomake#has_async_support()
+    NeomakeTestsSkip 'no async support.'
+  else
     let trap_sh = fnamemodify(g:vader_file, ':p:h').'/helpers/trap.sh'
     let job_id = neomake#ShCommand(1, trap_sh)
     let jobinfo = neomake#GetJob(job_id)

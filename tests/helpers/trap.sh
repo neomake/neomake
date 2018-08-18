@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
 #
 # A test script that ignores SIGTERM.
+# XXX: trapping SIGTERM does not appear to work on Windows/AppVeyor.
+# (https://ci.appveyor.com/project/blueyed/neomake/build/job/15d8b5thbpdgpu0m#L279)
 
-set -x
-
-# XXX: does not work on Windows (Neovim, does not appear to trap).
-# Started via "cmd.exe /s /c C:\projects\neomake\tests/helpers/trap.sh".
 trap 'echo not stopping on SIGTERM' TERM
-trap '' INT
-# trap 'echo stopping on SIGHUP; exit' HUP
 
 echo "SHELL: $SHELL"
 echo "Started: $$"
