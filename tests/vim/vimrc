@@ -9,20 +9,21 @@ let g:neomake_test_messages = []
 " Shorter timeouts during tests.
 let g:neomake_action_queue_timeouts = {1: 10, 2: 20, 3: 30}
 
-let s:slash = has('win32') ? '\' : '/'
+" Same as with tempname(), and neomake#utils#Slash.
+let s:slash = exists('+shellslash') && !&shellslash && &shellcmdflag[0] !=# '-' ? '\' : '/'
 
 if exists('$NEOMAKE_TESTS_DEP_PLUGINS_DIR')
   let s:dep_plugins_base = $NEOMAKE_TESTS_DEP_PLUGINS_DIR
 else
-  let s:dep_plugins_base = join(
+  let s:dep_plugins_base = fnamemodify(join(
         \ [expand('<sfile>:p:h'), '..', '..', 'build', 'vim', 'plugins'],
-        \ s:slash)
+        \ s:slash), ':p')
 endif
 
 if exists('$TESTS_VADER_DIR')
   let vader_dir = expand($TESTS_VADER_DIR)
 else
-  let vader_dir = s:dep_plugins_base . s:slash . 'vader'
+  let vader_dir = s:dep_plugins_base . 'vader'
 endif
 
 let &runtimepath .= ','.vader_dir
@@ -31,8 +32,11 @@ exe 'source' join([vader_dir, 'plugin', 'vader.vim'], s:slash)
 let s:sourced_plugins = []
 function! s:load_plugin_on_demand(name) abort
   Save &runtimepath
-  let dir = s:dep_plugins_base.'/'.a:name
-  let &runtimepath .= ','.dir
+  let dir = s:dep_plugins_base.a:name
+
+  " XXX: "X:\" in front (e.g. from plugin_dir) will prevent autoloading of
+  " fugitive!  (Windows Vim, 8.1.1), prepend it to work around this.
+  let &runtimepath = dir.','.&runtimepath
   if index(s:sourced_plugins, a:name) == -1
     let funcs_before = map(split(neomake#utils#redir('function /\C^[A-Z]'), '\n'),
         \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
