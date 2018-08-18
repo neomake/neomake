@@ -103,6 +103,8 @@ Execute (:verb NeomakeInfo displays extra info):
   endfor
 
 Execute (NeomakeInfo! copies to clipboard):
+  " XXX: flaky on AppVeyor/neovim?! ('clipboard: failed to execute: win32yank -i --crlf')
+  call NeomakeTestsSetVimMessagesMarker()
   try
     let save_reg = getreg('+')
     echom 'saved reg'
@@ -111,7 +113,6 @@ Execute (NeomakeInfo! copies to clipboard):
     return
   endtry
 
-  call NeomakeTestsSetVimMessagesMarker()
   let restore = 1
   try
     verbose NeomakeInfo!
@@ -142,7 +143,9 @@ Execute (NeomakeInfo! copies to clipboard):
   endfor
 
   AssertEqual NeomakeTestsGetVimMessages(), [
-  \ 'Copied Neomake info to clipboard ("+).']
+  \ 'saved reg',
+  \ 'Copied Neomake info to clipboard ("+).',
+  \ 'getting reg', 'got reg', 'restore reg', 'restored reg']
 
 Execute (NeomakeInfo displays new-style config):
   Save g:neomake
