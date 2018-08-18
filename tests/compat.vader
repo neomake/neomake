@@ -82,7 +82,15 @@ Execute (neomake#compat#get_mode):
   AssertEqual neomake#compat#get_mode(), initial_mode
 
   if has('nvim')
-    let nvim_exe = '/proc/'.getpid().'/exe'
+    if !empty($TEST_VIM)
+      let nvim_exe = $TEST_VIM
+    else
+      let nvim_exe = '/proc/'.getpid().'/exe'
+      if !filereadable(nvim_exe)
+        NeomakeTestsSkip 'could not determine nvim_exe.'
+        return
+      endif
+    end
     Log nvim_exe
     Log filereadable(nvim_exe)
     let nvim = jobstart([nvim_exe, '-u', 'tests/vim/vimrc', '--embed'], {'rpc': v:true})
