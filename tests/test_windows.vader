@@ -246,3 +246,10 @@ Execute (Warns when removal of tempfiles fails):
   else
     NeomakeTestsSkip 'no async support.'
   endif
+
+Execute (filewritable/mkdir):
+  let tmpdir = tempname()
+  call mkdir(tmpdir, 'p', 0550)
+  Log 'filewritable 1: '.filewritable(tmpdir)
+  call setfperm(tmpdir, 'r--r-----')
+  Log 'filewritable 2: '.filewritable(tmpdir)
