@@ -15,9 +15,13 @@ environment:
   PYTHON: "C:\\Python36-x64\\python"
 
 # Cache the vim and vader directories between builds.
+# cache:
+#   - C:\vim -> .appveyor.yml
+#   - C:\projects\neomake\build\vim\plugins\vader -> .appveyor.yml
 cache:
-  - C:\vim -> .appveyor.yml
-  - C:\projects\neomake\build\vim\plugins\vader -> .appveyor.yml
+  - C:\vim
+  - C:\neovim
+  - C:\projects\neomake\build\vim\plugins\vader
 
 init:
   # Stop git from changing newlines
