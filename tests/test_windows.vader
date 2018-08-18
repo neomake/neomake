@@ -167,7 +167,7 @@ Execute (escaping):
     " XXX
     AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
     " XXX
-    AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\n2\n", '', 0]
+    AssertEqual s:run_cmd(['bash', '-c', 'printf "%s\n" 1 2']), ["1\n2\n", '', 0]
   endif
 
 Execute (tempname):

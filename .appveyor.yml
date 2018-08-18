@@ -156,8 +156,11 @@ test_script:
       %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader"
 
   - ps: |
+      Write-Host "test_windows 1: direct (-Es)"
       & $env:TEST_VIM -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader" 2>&1 | %{ "$_" }
+
   - ps: |
+      Write-Host "test_windows 2: make"
       & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
 
   - ps: |
