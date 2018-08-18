@@ -27,7 +27,8 @@ Execute (neomake#compat#systemlist):
   if has('nvim')
     AssertEqual r, ''
   else
-    AssertEqual r, [&shell.': echo 1: command not found']
+    AssertEqual type(r), type('')
+    Assert !empty(r)
     AssertEqual v:shell_error, 127
   endif
 
