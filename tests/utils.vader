@@ -776,24 +776,28 @@ Execute (neomake#utils#write_tempfile):
   if !exists('+fixeol')
     NeomakeTestsSkip 'Skipping +fixeol variants'
     let variants = [
-    \ 'endofline   binary',
     \ 'endofline   nobinary',
-    \ 'noendofline binary',
+    \ 'endofline   binary',
     \ 'noendofline nobinary',
+    \ 'noendofline binary',
     \ ]
   else
     Save &fixeol
     let variants = [
-    \ 'fixeol   endofline   binary',
     \ 'fixeol   endofline   nobinary',
-    \ 'fixeol   noendofline binary',
+    \ 'fixeol   endofline   binary',
     \ 'fixeol   noendofline nobinary',
-    \ 'nofixeol endofline   binary',
+    \ 'fixeol   noendofline binary',
     \ 'nofixeol endofline   nobinary',
-    \ 'nofixeol noendofline binary',
+    \ 'nofixeol endofline   binary',
     \ 'nofixeol noendofline nobinary',
+    \ 'nofixeol noendofline binary',
     \ ]
   endif
+
+  function! s:catA(l)
+    return map(copy(a:l), 'substitute(v:val, "\r", ''\\r'', ''g'')')
+  endfunction
 
   for variant in variants
     new
@@ -803,14 +807,24 @@ Execute (neomake#utils#write_tempfile):
     exe 'w!' vim_temp
     new
     call neomake#utils#write_tempfile(bufnr, neomake_temp)
-    AssertEqual readfile(vim_temp, 'b'), readfile(neomake_temp, 'b')
+    let vim = readfile(vim_temp, 'b')
+    let neo = readfile(neomake_temp, 'b')
+    AssertEqual vim, neo,
+    \ 'comparison (1) failed for variant: '.string(variant)
+    \ ."\nvim: ".string(s:catA(vim))
+    \ ."\nneo: ".string(s:catA(neo))
 
     b#
     normal! ifoo
     exe 'w!' vim_temp
     b#
     call neomake#utils#write_tempfile(bufnr, neomake_temp)
-    AssertEqual readfile(vim_temp, 'b'), readfile(neomake_temp, 'b')
+    let vim = readfile(vim_temp, 'b')
+    let neo = readfile(neomake_temp, 'b')
+    AssertEqual vim, neo,
+    \ 'comparison (2) failed for variant: '.string(variant)
+    \ ."\nvim: ".string(s:catA(vim))
+    \ ."\nneo: ".string(s:catA(neo))
 
     bwipe!
     bwipe
