@@ -52,7 +52,6 @@ testvimx: testvim
 # Set Neovim logfile destination to prevent `.nvimlog` being created.
 testnvim: export NVIM_LOG_FILE:=/dev/stderr
 testnvim: TEST_VIM:=nvim
-testnvim: TEST_VIM_PREFIX+=VADER_OUTPUT_FILE=/dev/stderr
 testnvim: | build/vim-test-home $(DEP_PLUGINS)
 	$(call func-run-vim)
 
