@@ -468,6 +468,8 @@ function! neomake#utils#shellescape(arg) abort
     if a:arg =~# '^[A-Za-z0-9_/.=-]\+$'
         return a:arg
     elseif &shell =~? 'cmd' || exists('+shellslash') && !&shellslash
+        " NOTE: this simulates what shellescape() does, but does not actually
+        " make sense.  Should only be done for "cmd" only?!
         return '"'.s:gsub(s:gsub(a:arg, '"', '""'), '\%', '"%"').'"'
     endif
     return shellescape(a:arg)
