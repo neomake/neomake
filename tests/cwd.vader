@@ -1,25 +1,29 @@
 Include: include/setup.vader
 
 Execute (neomake#Make handles invalid cwd):
+  let nonexisting_dir = fnamemodify('/doesnotexist', ':p')
   let maker = {
       \ 'name': 'custom_maker',
       \ 'exe': 'true',
-      \ 'cwd': '/doesnotexist',
+      \ 'cwd': nonexisting_dir,
       \ }
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath.", 0
+  AssertNeomakeMessage printf("custom_maker: could not change to maker's cwd (%s): Vim(cd):E344: Can't find directory \"%s\" in cdpath.",
+  \ nonexisting_dir, nonexisting_dir), 0
 
 Execute (neomake#Make handles invalid cwd (serialized)):
+  let nonexisting_dir = fnamemodify('/doesnotexist', ':p')
   let maker = {
       \ 'name': 'custom_maker',
       \ 'exe': 'true',
-      \ 'cwd': '/doesnotexist',
+      \ 'cwd': nonexisting_dir,
       \ 'serialize': 1,
       \ }
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage "custom_maker: could not change to maker's cwd (/doesnotexist): Vim(cd):E344: Can't find directory \"/doesnotexist\" in cdpath.", 0
+  AssertNeomakeMessage printf("custom_maker: could not change to maker's cwd (%s): Vim(cd):E344: Can't find directory \"%s\" in cdpath.",
+  \ nonexisting_dir, nonexisting_dir), 0
 
 Execute (cwd gets compared with trailing slash removed):
   let cwd = getcwd()
@@ -160,9 +164,13 @@ Execute (cwd gets expanded correctly: relative and in another buffer):
   endif
 
 Execute (cwd per maker and serialize via dict):
-  let cmd = &shell =~# 'cmd' ? 'cd' : 'pwd'
-  let maker1 = {'name': 'maker1', 'exe': cmd, 'cwd': tempname()}
-  let maker2 = {'name': 'maker2', 'exe': cmd, 'cwd': tempname()}
+  if &shell =~# 'cmd'
+    Save &shell, &shellcmdflag
+    let &shell = 'bash'
+    let &shellcmdflag = '-c'
+  endif
+  let maker1 = {'name': 'maker1', 'exe': 'pwd', 'cwd': tempname()}
+  let maker2 = {'name': 'maker2', 'exe': 'pwd', 'cwd': tempname()}
   call mkdir(maker1.cwd)
   call mkdir(maker2.cwd)
 
