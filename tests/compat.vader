@@ -27,9 +27,10 @@ Execute (neomake#compat#systemlist):
   if has('nvim')
     AssertEqual r, ''
   else
-    AssertEqual type(r), type('')
-    Assert !empty(r)
     AssertEqual v:shell_error, 127
+    " Vim returns a list, e.g. ['zsh:1: command not found: echo 1']
+    AssertEqual type(r), type([])
+    Assert !empty(r)
   endif
 
   AssertEqual neomake#compat#systemlist(['echo', '1']), ['1']
@@ -45,7 +46,7 @@ Execute (neomake#compat#systemlist with empty args):
   AssertEqual neomake#compat#systemlist(''), []
   AssertEqual neomake#compat#systemlist([]), []
   let out = neomake#compat#systemlist('0')
-  AssertEqual type(out), type('')
+  AssertEqual type(out), type([])
   Assert !empty(out)
 
 Execute (neomake#compat#json_decode):
@@ -72,12 +73,13 @@ Execute (neomake#compat#json_none):
   Assert empty(g:neomake#compat#json_none), 'json_none is empty'
 
 Execute (neomake#compat#get_mode):
-  AssertEqual neomake#compat#get_mode(), 'n'
+  let initial_mode = neomake#compat#get_mode()
+  Assert index(['n', 'cv'], initial_mode) != -1
 
   norm! V
   AssertEqual neomake#compat#get_mode(), 'V'
   exe "norm! \<Esc>"
-  AssertEqual neomake#compat#get_mode(), 'n'
+  AssertEqual neomake#compat#get_mode(), initial_mode
 
   if has('nvim')
     let nvim_exe = '/proc/'.getpid().'/exe'
