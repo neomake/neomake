@@ -448,6 +448,7 @@ function! NeomakeTestsFixtureMaker(func, fname) abort
         \ cmd, fnameescape(stdout),
         \ cmd, fnameescape(stderr), exitcode)]
   let maker.name = printf('%s-fixture', substitute(a:func, '^.*#', '', ''))
+  let maker.append_file = 0
 
   " Massage current buffer.
   if get(b:, 'neomake_tests_massage_buffer', 1)
