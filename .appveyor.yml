@@ -152,36 +152,39 @@ test_script:
       }
 
   - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/test_windows.vader
-  - cmd: |
-      %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader"
+  # - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/all.vader
+
+  # - cmd: |
+  #     %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader"
 
   # - ps: |
   #     Write-Host "test_windows 1: direct (-Es)"
   #     # System.Management.Automation.RemoteException
   #     & $env:TEST_VIM -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader" 2>&1 | %{ "$_" }
 
-  - ps: |
-      Write-Host "test_windows 2: make"
-      & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
+  # - ps: |
+  #     Write-Host "test_windows 2: make"
+  #     # XXX: extra newlines between Vader output lines
+  #     & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
 
-  - ps: |
-      # & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
-
-      # & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/main.vader 2>&1 | %{ "$_" }
-
-      Get-ChildItem "tests/*.vader" | Foreach-Object {
-          if ($_.Name -ne "main.vader" -And $_.Name -ne "all.vader") {
-              & echo $_.Name
-              & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_" 2>&1 | %{ "$_" }
-              if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
-          }
-      }
-
-      Get-ChildItem "tests/isolated/*.vader" | Foreach-Object {
-          & echo $_.Name
-          & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_" 2>&1 | %{ "$_" }
-          if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
-      }
+  # - ps: |
+  #     # & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/test_windows.vader 2>&1 | %{ "$_" }
+  #
+  #     # & make test TEST_VIM=$env:TEST_VIM VADER_ARGS=tests/main.vader 2>&1 | %{ "$_" }
+  #
+  #     Get-ChildItem "tests/*.vader" | Foreach-Object {
+  #         if ($_.Name -ne "main.vader" -And $_.Name -ne "all.vader") {
+  #             & echo $_.Name
+  #             & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_" 2>&1 | %{ "$_" }
+  #             if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+  #         }
+  #     }
+  #
+  #     Get-ChildItem "tests/isolated/*.vader" | Foreach-Object {
+  #         & echo $_.Name
+  #         & make test TEST_VIM=$env:TEST_VIM VADER_ARGS="$_" 2>&1 | %{ "$_" }
+  #         if ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+  #     }
 
 on_success:
   - ps: |
