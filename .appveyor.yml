@@ -109,18 +109,18 @@ test_script:
   - ps: |
         & $env:TEST_VIM --version
 
-  - ps: |
-      if ($env:CONFIGURATION -eq 'VIM') {
-        Write-Host "Vim: write to CON"
-        & $env:TEST_VIM -Es -c "call writefile(['1', '2'], 'CON')" -cq 2>&1 | %{ "$_" }
-        Write-Host "type CON"
-        type CON
-      } elseif ($env:CONFIGURATION -eq 'NEOVIM') {
-        Write-Host "Neovim: write to CON"
-        & $env:TEST_VIM --headless -c "call writefile(['1', '2'], 'CON')" -cq 2>&1 | %{ "$_" }
-        Write-Host "type CON"
-        type CON
-      }
+  # - ps: |
+  #     if ($env:CONFIGURATION -eq 'VIM') {
+  #       Write-Host "Vim: write to CON"
+  #       & $env:TEST_VIM -Es -c "call writefile(['1', '2'], 'CON')" -cq 2>&1 | %{ "$_" }
+  #       Write-Host "type CON"
+  #       type CON
+  #     } elseif ($env:CONFIGURATION -eq 'NEOVIM') {
+  #       Write-Host "Neovim: write to CON"
+  #       & $env:TEST_VIM --headless -c "call writefile(['1', '2'], 'CON')" -cq 2>&1 | %{ "$_" }
+  #       Write-Host "type CON"
+  #       type CON
+  #     }
 
   - ps: |
       if ($env:CONFIGURATION -eq 'VIM') {
