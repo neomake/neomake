@@ -165,9 +165,9 @@ Execute (escaping):
     AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
   else
     " XXX
-    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\r\n2\r\n", '', 0]
+    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
     " XXX
-    AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\\\n2\\\n", '', 0]
+    AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\n2\n", '', 0]
   endif
 
 Execute (tempname):
@@ -182,9 +182,9 @@ Execute (… (ellipsis)):
 
 Execute (fnamemodify):
   if neomake#utils#IsRunningWindows()
-    AssertEqual fnamemodify('/doesnotexists', ':p'), 'C:\doesnotexist'
+    AssertEqual fnamemodify('/doesnotexist', ':p'), 'C:\doesnotexist'
   else
-    AssertEqual fnamemodify('/doesnotexists', ':p'), '/doesnotexist'
+    AssertEqual fnamemodify('/doesnotexist', ':p'), '/doesnotexist'
   endif
 
 Execute (mkdir, writefile):
