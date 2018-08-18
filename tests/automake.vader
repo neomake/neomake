@@ -674,6 +674,7 @@ Execute (Automake stops if context changed (CursorHold)):
     NeomakeTestsSkip 'only with timers feature'
   else
     new
+    let mode = neomake#compat#get_mode()
     norm! iword1 word2
     set filetype=neomake_tests
     let b:neomake_enabled_makers = [g:true_maker]
@@ -681,7 +682,8 @@ Execute (Automake stops if context changed (CursorHold)):
     doautocmd CursorHold
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
     norm! ^
-    NeomakeTestsWaitForMessage '\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''n''] => [\d\+, [0, 1, 1, 0], ''n''].', 3
+    NeomakeTestsWaitForMessage printf('\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''%s''] => [\d\+, [0, 1, 1, 0], ''%s''].',
+    \ mode, mode), 3
     bwipe!
   endif
 
