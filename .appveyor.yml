@@ -152,7 +152,8 @@ test_script:
       }
 
   - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/test_windows.vader
-  - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/all.vader
+
+  - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/all.vader VADER_OPTIONS=-x
 
   # - cmd: |
   #     %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader"
