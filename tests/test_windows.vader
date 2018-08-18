@@ -225,6 +225,7 @@ Execute (NeomakeTestsCommandMaker with semicolons):
   AssertEqual maker.args, ['/s', '/c', 'echo failed to run >&2& echo because something bad happened >&2']
   if executable('cmd')
     CallNeomake 1, [maker]
-    AssertEqual map(getloclist(0), 'v:val.text'), ['1', '2']
+    " Keeps space at end.
+    AssertEqual map(getloclist(0), 'v:val.text'), ['failed to run ', 'because something bad happened ']
   endif
   bwipe
