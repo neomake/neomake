@@ -323,7 +323,12 @@ function! NeomakeAsyncTestsSetup()
 endfunction
 
 function! NeomakeTestsCommandMaker(name, cmd)
-  let maker = neomake#utils#MakerFromCommand(a:cmd)
+  let cmd = a:cmd
+  if &shell =~# 'cmd'
+    " Replace ";" with "&" for cmd.exe
+    let cmd = substitute(cmd, ';', ' \&', 'g')
+  endif
+  let maker = neomake#utils#MakerFromCommand(cmd)
   return extend(maker, {
   \ 'name': a:name,
   \ 'errorformat': '%m',
