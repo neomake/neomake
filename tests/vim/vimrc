@@ -72,8 +72,9 @@ augroup ssshhhhhh
 augroup END
 
 set noswapfile
-" syntax on
+syntax on
 set number
+" set background=dark
 set colorcolumn=80
 set showcmd
 set lazyredraw
@@ -100,7 +101,6 @@ set nomore
 
 if expand('$NEOMAKE_TEST_NO_COLORSCHEME') !=# '1'
   colorscheme default
-  " set background=dark
 endif
 
 let &shell = '/bin/bash'
