@@ -69,8 +69,8 @@ if [ "$1" = vader ]; then
         printf "\r" >&2
         if [ -z "$REPLY" ]; then
           break
-          finished_reading=1
         fi
+        finished_reading=1
       fi
       if [[ "$REPLY" == *'Vader error:'* ]] || [[ "$REPLY" == 'Error'* ]] || [[ "$REPLY" == 'Traceback'* ]]; then
         printf "\r" >&2
