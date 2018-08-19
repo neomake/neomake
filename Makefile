@@ -1,7 +1,14 @@
 # Do not let mess "cd" with user-defined paths.
 CDPATH:=
 
-SHELL:=bash -o pipefail
+bash=$(shell command -v bash 2>/dev/null)
+TEST_SHELL:=$(bash)
+ifeq ($(TEST_SHELL),)
+  $(error Could not determine TEST_SHELL (defaults to bash))
+endif
+# This is expected in tests.
+TEST_VIM_PREFIX:=SHELL=$(TEST_SHELL)
+SHELL:=$(bash) -o pipefail
 
 # Use nvim if it is installed, otherwise vim.
 ifeq ($(TEST_VIM),)
@@ -71,7 +78,7 @@ _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS)
 
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 # Vim hangs with /dev/null on Windows (native Vim via MSYS2).
-TEST_VIM_PREFIX:=HOME=$(CURDIR)/build/vim-test-home
+TEST_VIM_PREFIX+=HOME=$(CURDIR)/build/vim-test-home
 
 # Neovim might quit after ~5s with stdin being closed.  Use --headless mode to
 # work around this.
