@@ -44,6 +44,12 @@ Execute (neomake#compat#get_argv on (emulated) Windows):
   " XXX: ok?"
   AssertEqual jobinfo.get_argv(), 'cmd.exe /c echo "1 2"'
 
+  let out = neomake#compat#massage_argv(['echo', 'a filename with spaces'])
+  AssertEqual out, 'cmd.exe /c echo "a filename with spaces"'
+
+  let out = neomake#compat#massage_argv(['echo 1'])
+  AssertEqual out, 'cmd.exe /c "echo 1"'
+
 Execute (neomake#compat#get_argv on (emulated) Windows (bash)):
   Save &shell, &shellcmdflag
   set shell=bash.exe

@@ -505,6 +505,7 @@ function! neomake#utils#get_buffer_lines(bufnr) abort
         if getbufvar(a:bufnr, '&endofline')
                     \ || (!getbufvar(a:bufnr, '&binary')
                     \     && (!exists('+fixendofline') || getbufvar(a:bufnr, '&fixendofline')))
+            " Add CR for ff=dos (Windows).
             if &fileformat ==# 'dos' && !getbufvar(a:bufnr, '&binary')
                 call map(buflines, 'v:val . "\r"')
             endif

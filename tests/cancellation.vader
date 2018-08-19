@@ -154,7 +154,9 @@ Execute (neomake#CancelJob with trapped TERM):
 
 Execute (neomake#CancelMake stops all jobs):
   if NeomakeAsyncTestsSetup()
-    let jobinfos = neomake#Make({'file_mode': 0, 'enabled_makers': [g:sleep_maker, g:sleep_maker]})
+    " NOTE: sleep 0.05 might be too short on MSYS2/Virtualbox.
+    let maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .1 && echo slept')
+    let jobinfos = neomake#Make({'file_mode': 0, 'enabled_makers': [maker, maker]})
     let make_id = neomake#GetStatus().last_make_id
     AssertEqual neomake#CancelMake(make_id), 1
     NeomakeTestsWaitForFinishedJobs

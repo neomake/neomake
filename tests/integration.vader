@@ -868,11 +868,9 @@ Execute (Location list should be cleared only after first output):
     autocmd User NeomakeJobFinished call OnNeomakeJobFinished()
   augroup END
 
-  let maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
-  let maker_success.serialize = 1
-  let maker_sleep = NeomakeTestsCommandMaker('sleep-maker', 'sleep .01; echo slept')
-
-  call neomake#Make(1, [maker_success, maker_sleep])
+  let true_maker = copy(g:true_maker)
+  let true_maker.serialize = 1
+  call neomake#Make(1, [true_maker, g:sleep_maker])
 
   if neomake#has_async_support()
     NeomakeTestsWaitForNextFinishedJob

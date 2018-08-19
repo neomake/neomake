@@ -619,8 +619,7 @@ Execute (Automake stops previous jobs):
     call neomake#configure#automake({
     \ 'TextChanged': {'delay': 10}})
     new
-    let maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .1; echo slept')
-    let g:neomake_test_enabledmakers = [maker]
+    let g:neomake_test_enabledmakers = [g:sleep_maker]
 
     set filetype=neomake_tests
     doautocmd TextChanged

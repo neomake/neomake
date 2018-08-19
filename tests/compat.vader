@@ -22,8 +22,12 @@ Execute (neomake#compat#reltimefloat):
   let r2 = neomake#compat#reltimefloat()
   Assert r2 > r, '2nd result is bigger'
 
-Execute (neomake#compat#systemlist):
-  let r = neomake#compat#systemlist(['echo 1'])
+Execute (neomake#compat#systemlist: list, unknown command):
+  try
+    let r = neomake#compat#systemlist(['echo 1'])
+  catch /^Vim(let):E484:/
+    NeomakeTestsSkip 'Ignoring E484 from systemlist (Windows)'
+  endtry
   if has('nvim')
     AssertEqual r, ''
   else
@@ -33,6 +37,7 @@ Execute (neomake#compat#systemlist):
     Assert !empty(r)
   endif
 
+Execute (neomake#compat#systemlist):
   AssertEqual neomake#compat#systemlist(['echo', '1']), ['1']
   AssertEqual v:shell_error, 0
   AssertEqual neomake#compat#systemlist(['sh', '-c', 'echo 1; echo  2']), ['1', '2']

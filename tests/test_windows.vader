@@ -40,7 +40,8 @@ Execute (g:NeomakeTestsCreateExe):
     Log exepath('foo.cmd')
     Assert !empty(exepath('foo.cmd'))
   endif
-  AssertEqual system(exe), "1"
+  Log $PATH
+  Log executable('foo')
   Assert !empty(exepath('foo'))
 
 Execute (g:NeomakeTestsCreateExe: sh):
@@ -179,13 +180,6 @@ Execute (… (ellipsis)):
   " Calling User autocmd NeomakeCountsChanged with context: {'jobinfo': 'ΓÇª', 'reset': 0}.
   Log '…'
   Log "…"
-
-Execute (fnamemodify):
-  if neomake#utils#IsRunningWindows()
-    AssertEqual fnamemodify('/doesnotexist', ':p'), 'C:\doesnotexist'
-  else
-    AssertEqual fnamemodify('/doesnotexist', ':p'), '/doesnotexist'
-  endif
 
 Execute (mkdir, writefile):
   new

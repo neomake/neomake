@@ -130,18 +130,18 @@ function! g:NeomakeTestsCreateExe(name, ...)
   let exe = s:tmpbindir.dir_separator.a:name
   if neomake#utils#IsRunningWindows()
     if empty(fnamemodify(exe, ':e'))
-      " Windows needs an extension.
-      " IDEA: create .cmd wrapper script to call this via bash?!
+      " Windows needs an extension, therefore we're creating a wrapper script
+      " to call the actual script (via "sh").
       let wrapper_cmd = exe . '.cmd'
       call writefile(['@echo off', 'sh '.exe], wrapper_cmd)
-      " call setfperm(wrapper_cmd, 'rwxrwx---')
     endif
   endif
   call writefile(lines, exe)
   if exists('*setfperm')
+    " NOTE: does not work with vim from/on MSYS2.
     call setfperm(exe, 'rwxrwx---')
   else
-    " XXX: Windows support
+    " XXX: Windows support?!
     call system('/bin/chmod 770 '.shellescape(exe))
     Assert !v:shell_error, 'Got shell_error with chmod: '.v:shell_error
   endif
