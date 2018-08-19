@@ -46,6 +46,9 @@ Execute (fname in args gets not expanded (command maker, args as list)):
   new
   lcd tests/fixtures
   edit ~
+  AssertEqual bufname('%'), '~'
+  " XXX: '~' gets expanded to $HOME here on MSYS2 with Windows Vim (8.1.1).
+  AssertEqual fnamemodify('~', ':.'), '~'
   CallNeomake 1, [maker]
   AssertEqual map(getloclist(0), 'v:val.text'), ['~']
   if neomake#has_async_support()

@@ -616,6 +616,7 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
             endif
             let used_for = 'unreadable'
         else
+            " XXX: '~' gets expanded to $HOME here on MSYS2 with Windows Vim.
             let bufname = fnamemodify(bufname, ':.')
             let used_for = ''
         endif
