@@ -50,5 +50,9 @@ RUN apk --no-cache add curl python3 \
   && chmod +x /usr/bin/codecov \
   && cd /usr/bin && ln -s python3 python
 
+# TEMP: update vader
+RUN rm -rf $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vader \
+  && git clone -q --depth=1 -b appveyor-integration https://github.com/blueyed/vader.vim $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vader
+
 RUN adduser -D -s /bin/bash neomake
 USER neomake
