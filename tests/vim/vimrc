@@ -103,5 +103,7 @@ if expand('$NEOMAKE_TEST_NO_COLORSCHEME') !=# '1'
   " set background=dark
 endif
 
+let &shell = '/bin/bash'
+
 " Avoid system call and warning.
 let g:neomake_clippy_rustup_has_nightly = 0
