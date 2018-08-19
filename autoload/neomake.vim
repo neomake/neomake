@@ -330,7 +330,7 @@ function! s:MakeJob(make_id, options) abort
         let cd_error = jobinfo.cd()
         if !empty(cd_error)
             throw printf("Neomake: %s: could not change to maker's cwd (%s): %s.",
-                        \ maker.name, jobinfo.cwd, cd_error)
+                        \ maker.name, jobinfo.cd_from_setting, cd_error)
         endif
         let jobinfo.argv = maker._get_argv(jobinfo)
 
@@ -1933,7 +1933,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         if !empty(cd_error)
             call neomake#log#debug(printf(
                         \ "Could not change to job's cwd (%s): %s.",
-                        \ a:jobinfo.cwd, cd_error), a:jobinfo)
+                        \ a:jobinfo.cd_from_setting, cd_error), a:jobinfo)
         endif
 
         let prev_list = s:create_locqf_list(a:jobinfo)
@@ -2152,7 +2152,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
         if !empty(cd_error)
             call neomake#log#debug(printf(
                         \ "Could not change to job's cwd (%s): %s.",
-                        \ a:jobinfo.cwd, cd_error), a:jobinfo)
+                        \ a:jobinfo.cd_from_setting, cd_error), a:jobinfo)
         endif
 
         let prev_list = s:create_locqf_list(a:jobinfo)
