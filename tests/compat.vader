@@ -73,47 +73,49 @@ Execute (neomake#compat#json_none):
   Assert empty(g:neomake#compat#json_none), 'json_none is empty'
 
 Execute (neomake#compat#get_mode):
-  let initial_mode = neomake#compat#get_mode()
-  Assert index(['n', 'cv'], initial_mode) != -1
-
-  norm! V
-  AssertEqual neomake#compat#get_mode(), 'V'
-  exe "norm! \<Esc>"
-  AssertEqual neomake#compat#get_mode(), initial_mode
-
-  if has('nvim')
-    if !empty($TEST_VIM)
-      let nvim_exe = $TEST_VIM
-    else
-      let nvim_exe = '/proc/'.getpid().'/exe'
-      if !filereadable(nvim_exe)
-        NeomakeTestsSkip 'could not determine nvim_exe.'
-        return
-      endif
-    end
-    Log nvim_exe
-    Log filereadable(nvim_exe)
-    let nvim = jobstart([nvim_exe, '-u', 'tests/vim/vimrc', '--embed'], {'rpc': v:true})
-    Log 'started nvim: '.string(nvim)
-    call rpcrequest(nvim, 'nvim_call_function', 'feedkeys', ['d', '!'])
-    call rpcrequest(nvim, 'nvim_eval', 'assert_equal(neomake#compat#get_mode(), "no")')
-    let rpc_errors = rpcrequest(nvim, 'nvim_eval', 'v:errors')
-    AssertEqual rpc_errors, []
-    call jobstop(nvim)
-  elseif exists('*timer_start')
-    let b:mode_in_cb = ''
-    function s:CB(...)
-        let b:mode_in_cb = neomake#compat#get_mode()
-        call feedkeys("\<Esc>")
-    endfunction
-    call timer_start(10, 's:CB')
-    call feedkeys('da', 'x!')
-    AssertEqual b:mode_in_cb, 'no'
+  if mode(1) !=# 'n'
+    NeomakeTestsSkip 'only for normal mode.'
+  else
     AssertEqual neomake#compat#get_mode(), 'n'
+
+    norm! V
+    AssertEqual neomake#compat#get_mode(), 'V'
+    exe "norm! \<Esc>"
+    AssertEqual neomake#compat#get_mode(), 'n'
+
+    if has('nvim')
+      if !empty($TEST_VIM)
+        let nvim_exe = $TEST_VIM
+      else
+        let nvim_exe = '/proc/'.getpid().'/exe'
+        if !filereadable(nvim_exe)
+          NeomakeTestsSkip 'could not determine nvim_exe.'
+          return
+        endif
+      end
+      let nvim = jobstart([nvim_exe, '-u', 'tests/vim/vimrc', '--embed'], {'rpc': v:true})
+      call rpcrequest(nvim, 'nvim_call_function', 'feedkeys', ['d', '!'])
+      call rpcrequest(nvim, 'nvim_eval', 'assert_equal(neomake#compat#get_mode(), "no")')
+      let rpc_errors = rpcrequest(nvim, 'nvim_eval', 'v:errors')
+      AssertEqual rpc_errors, []
+      call jobstop(nvim)
+    elseif exists('*timer_start')
+      let b:mode_in_cb = ''
+      function s:CB(...)
+          let b:mode_in_cb = neomake#compat#get_mode()
+          call feedkeys("\<Esc>")
+      endfunction
+      call timer_start(10, 's:CB')
+      call feedkeys('da', 'x!')
+      AssertEqual b:mode_in_cb, 'no'
+      AssertEqual neomake#compat#get_mode(), 'n'
+    endif
   endif
 
 Execute (neomake#compat#get_mode with insert mode completion (feedkeys)):
-  if has('timers')
+  if !has('timers') || mode(1) !=# 'n'
+    NeomakeTestsSkip 'only for normal mode with timers.'
+  else
     new
     file file_sleep_efm
     normal! iword1
@@ -139,34 +141,38 @@ Execute (neomake#compat#get_mode with insert mode completion (feedkeys)):
   endif
 
 Execute (neomake#compat#get_mode with insert mode completion (imap)):
-  new
-  file file_sleep_efm
-  normal! iword1
-  normal! oword2
-
-  function s:save_mode()
-    let s:mode = neomake#compat#get_mode()
-    let s:in_completion = neomake#compat#in_completion()
-    return ''
-  endfunction
-
-  inoremap <buffer> <F2> <C-r>=s:save_mode()<CR>
-
-  exe "normal oword\<C-p>\<F2>\<C-e>\<Esc>"
-  if has('patch-8.0.0283')
-    AssertEqual s:mode, 'ic'
+  if mode(1) !=# 'n'
+    NeomakeTestsSkip 'only for normal mode.'
   else
+    new
+    file file_sleep_efm
+    normal! iword1
+    normal! oword2
+
+    function s:save_mode()
+      let s:mode = neomake#compat#get_mode()
+      let s:in_completion = neomake#compat#in_completion()
+      return ''
+    endfunction
+
+    inoremap <buffer> <F2> <C-r>=s:save_mode()<CR>
+
+    exe "normal oword\<C-p>\<F2>\<C-e>\<Esc>"
+    if has('patch-8.0.0283')
+      AssertEqual s:mode, 'ic'
+    else
+      AssertEqual s:mode, 'i'
+    endif
+    AssertEqual s:in_completion, 1
+    AssertEqual getline('.'), 'word'
+
+    exe "normal oword\<C-p>\<C-e>\<F2>\<Esc>"
     AssertEqual s:mode, 'i'
+    AssertEqual s:in_completion, 0
+    AssertEqual getline('.'), 'word'
+
+    bwipe!
   endif
-  AssertEqual s:in_completion, 1
-  AssertEqual getline('.'), 'word'
-
-  exe "normal oword\<C-p>\<C-e>\<F2>\<Esc>"
-  AssertEqual s:mode, 'i'
-  AssertEqual s:in_completion, 0
-  AssertEqual getline('.'), 'word'
-
-  bwipe!
 
 Execute (neomake#compat#glob_list):
   AssertEqual neomake#compat#glob_list('doesnotexist'), []
