@@ -60,5 +60,10 @@ workflows:
   test:
     jobs:
       - nvim-031
+      - nvim-017
       - vim-81
+      - vim-80
+      - vim-74-xenial
+      - vim-74-trusty
       - vim-73
+      - checkqa
