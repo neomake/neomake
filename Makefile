@@ -1,14 +1,7 @@
 # Do not let mess "cd" with user-defined paths.
 CDPATH:=
 
-bash=$(shell command -v bash 2>/dev/null)
-TEST_SHELL:=$(bash)
-ifeq ($(TEST_SHELL),)
-  $(error Could not determine TEST_SHELL (defaults to bash))
-endif
-# This is expected in tests.
-TEST_VIM_PREFIX:=SHELL=$(TEST_SHELL)
-SHELL:=$(bash) -o pipefail
+SHELL:=bash -o pipefail
 
 # Use nvim if it is installed, otherwise vim.
 ifeq ($(TEST_VIM),)
@@ -59,16 +52,11 @@ testvimx: testvim
 # Set Neovim logfile destination to prevent `.nvimlog` being created.
 testnvim: export NVIM_LOG_FILE:=/dev/stderr
 testnvim: TEST_VIM:=nvim
-# Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
-testnvim: build/neovim-test-home
-testnvim: TEST_VIM_PREFIX+=HOME=$(CURDIR)/build/neovim-test-home
-testnvim: TEST_VIM_PREFIX+=VADER_OUTPUT_FILE=/dev/stderr
-testnvim: | build $(DEP_PLUGINS)
+testnvim: | build/vim-test-home $(DEP_PLUGINS)
 	$(call func-run-vim)
 
 testvim: TEST_VIM:=vim
-testvim: TEST_VIM_PREFIX+=HOME=/dev/null
-testvim: | build $(DEP_PLUGINS)
+testvim: | build/vim-test-home $(DEP_PLUGINS)
 	$(call func-run-vim)
 
 # Add coloring to Vader's output:
@@ -80,6 +68,10 @@ _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log --compact vader
 # Need to close stdin to fix spurious 'sed: couldn't write X items to stdout: Resource temporarily unavailable'.
 _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS)
 
+# Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
+# Vim hangs with /dev/null on Windows (native Vim via MSYS2).
+TEST_VIM_PREFIX:=HOME=$(CURDIR)/build/vim-test-home
+
 # Neovim might quit after ~5s with stdin being closed.  Use --headless mode to
 # work around this.
 # > Vim: Error reading input, exiting...
@@ -89,10 +81,11 @@ _REDIR_STDOUT:=2>&1 </dev/null >/dev/null $(_SED_HIGHLIGHT_ERRORS)
 COVERAGE_FILE:=.coverage_covimerage
 _COVIMERAGE=$(if $(filter-out 0,$(NEOMAKE_DO_COVERAGE)),covimerage run --data-file $(COVERAGE_FILE) --append --no-report ,)
 define func-run-vim
-	$(info Using: $(shell $(TEST_VIM_PREFIX) $(TEST_VIM) --version | head -n2))
-	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)$(TEST_VIM) \
-	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X $(if $(_REDIR_STDOUT),-s /dev/null,)) \
-	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
+	$(info Using: $(shell $(TEST_VIM_PREFIX) "$(TEST_VIM)" --version | head -n2))
+	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)"$(TEST_VIM)" \
+	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X $(if $(_REDIR_STDOUT),-Es -s /dev/null,)) \
+	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT); \
+		ret=$$?; echo RET:$$ret; exit $$ret
 endef
 
 # Interactive tests, keep Vader open.
@@ -102,11 +95,9 @@ _run_interactive:
 	$(call func-run-vim)
 
 testvim_interactive: TEST_VIM:=vim -X
-testvim_interactive: TEST_VIM_PREFIX+=HOME=/dev/null
 testvim_interactive: _run_interactive
 
 testnvim_interactive: TEST_VIM:=nvim
-testnvim_interactive: TEST_VIM_PREFIX+=HOME=$(CURDIR)/build/neovim-test-home
 testnvim_interactive: _run_interactive
 
 
@@ -167,7 +158,7 @@ vimlint: | $(firstword $(VIMLINT_BIN))
 vimlint-errors: | $(firstword VIMLINT_BIN)
 	$(VIMLINT_BIN) $(VIMLINT_OPTIONS) -E $(LINT_ARGS)
 
-build build/neovim-test-home:
+build build/vim-test-home:
 	mkdir $@
 build/neovim-test-home: | build
 build/vimhelplint: | build
@@ -338,11 +329,6 @@ check:
 	contrib/vim-checks $(LINT_ARGS) || (( ret+= 16 )); \
 	tput sgr0; \
 	exit $$ret
-
-$(COVERAGE_FILE): .coveragerc $(shell find . -name '*.vim')
-	$(MAKE) testcoverage
-coverage: $(COVERAGE_FILE)
-	coverage report -m
 
 NEOMAKE_LOG:=/tmp/neomake.log
 tail_log:
