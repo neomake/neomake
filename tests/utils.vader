@@ -639,7 +639,7 @@ Execute (neomake#utils#fnamemodify handles empty bufname):
   bwipe
 
 Execute (neomake#utils#FindGlobFile):
-  let tempdir = tempname()
+  let tempdir = neomake#utils#tempname()
   let slash = neomake#utils#Slash()
   let subdir = tempdir . slash . 'sub'
   call mkdir(subdir, 'p', 0700)
@@ -673,6 +673,7 @@ Execute (neomake#utils#FindGlobFile):
   AssertEqual neomake#utils#FindGlobFile('common-file', subdir), file_in_subdir
 
   " Only the first found file gets returned.
+  " XXX: does not work on MSYS2 with Vim Win?! (empty)
   AssertEqual neomake#utils#FindGlobFile('common-file{,-2}', subdir), file_in_subdir
   AssertEqual neomake#utils#FindGlobFile('common-file{-2,}', subdir), anotherfile_in_subdir
   bwipe

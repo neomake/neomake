@@ -67,11 +67,31 @@ function! neomake#utils#IsRunningWindows() abort
     return has('win32') || has('win64')
 endfunction
 
-" Get directory/path separator.
-" Use the same separator as with tempname().
-function! neomake#utils#Slash() abort
-    return exists('+shellslash') && !&shellslash && &shellcmdflag[0] !=# '-' ? '\' : '/'
-endfunction
+if exists('+shellslash')
+    " Get directory/path separator.
+    function! neomake#utils#Slash() abort
+        return exists('+shellslash') && !&shellslash ? '\' : '/'
+        " Use the same separator as with tempname(). ??
+        " return exists('+shellslash') && !&shellslash && &shellcmdflag[0] !=# '-' ? '\' : '/'
+    endfunction
+
+    function! neomake#utils#tempname() abort
+        " Fix up special handling of &shellcmdflag[0] ==# '-'.
+        let r = tempname()
+        if !&shellslash && &shellcmdflag[0] ==# '-'
+            let r = tr(r, '/', '\')
+        endif
+        return r
+    endfunction
+else
+    function! neomake#utils#Slash() abort
+        return '/'
+    endfunction
+
+    function! neomake#utils#tempname() abort
+        return tempname()
+    endfunction
+endif
 
 function! neomake#utils#fname(...) abort
   return join(a:000, neomake#utils#Slash())
