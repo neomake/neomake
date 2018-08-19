@@ -673,7 +673,7 @@ Execute (neomake#utils#FindGlobFile):
   AssertEqual neomake#utils#FindGlobFile('common-file', subdir), file_in_subdir
 
   " Only the first found file gets returned.
-  " XXX: does not work on MSYS2 with Vim Win?! (empty)
+  " NOTE: requires shell with globbing support, e.g. bash."
   AssertEqual neomake#utils#FindGlobFile('common-file{,-2}', subdir), file_in_subdir
   AssertEqual neomake#utils#FindGlobFile('common-file{-2,}', subdir), anotherfile_in_subdir
   bwipe
