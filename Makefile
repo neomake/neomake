@@ -52,6 +52,7 @@ testvimx: testvim
 # Set Neovim logfile destination to prevent `.nvimlog` being created.
 testnvim: export NVIM_LOG_FILE:=/dev/stderr
 testnvim: TEST_VIM:=nvim
+testnvim: TEST_VIM_PREFIX+=VADER_OUTPUT_FILE=/dev/stderr
 testnvim: | build/vim-test-home $(DEP_PLUGINS)
 	$(call func-run-vim)
 
@@ -83,7 +84,7 @@ _COVIMERAGE=$(if $(filter-out 0,$(NEOMAKE_DO_COVERAGE)),covimerage run --data-fi
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) "$(TEST_VIM)" --version | head -n2))
 	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)"$(TEST_VIM)" \
-	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X $(if $(_REDIR_STDOUT),-Es -s /dev/null,)) \
+	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X $(if $(_REDIR_STDOUT),-s /dev/null,)) \
 	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT); \
 		ret=$$?; echo RET:$$ret; exit $$ret
 endef
