@@ -73,15 +73,7 @@ Execute (fname in args gets not expanded (command maker, args as string)):
   edit ~
   CallNeomake 1, [maker]
   AssertEqual map(getloclist(0), 'v:val.text'), ['~']
-  if neomake#has_async_support()
-    if neomake#utils#IsRunningWindows()
-      AssertNeomakeMessage 'Starting async job [string]: cmd.exe /s /c printf %s "~".', 3
-    else
-      AssertNeomakeMessage "Starting async job [string]: printf %s '~'."
-    endif
-  else
-    AssertNeomakeMessage "Starting [string]: printf %s '~'."
-  endif
+  AssertNeomakeMessage '\vStarting .*: .*printf .*\~'
   bwipe
 
 Execute (fname in args gets not expanded (maker from command string)):
