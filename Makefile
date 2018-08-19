@@ -175,6 +175,7 @@ NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
 DOCKER=docker run $(DOCKER_STREAMS) --rm \
+    -v $(abspath $(TESTS_VADER_DIR)):/neomake-deps/vader \
     -v $(PWD):/testplugin \
     -w /testplugin \
     -e NEOMAKE_TEST_NO_COLORSCHEME \
