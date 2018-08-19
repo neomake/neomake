@@ -6,10 +6,15 @@ Execute (NeomakeTestsCreateExe creates exe):
   Assert executable('boobar'), 'boobar is now executable'
 
 Execute (NeomakeTestsCreateExe overrides existing exe):
-  let true = exepath('true')
-  Assert !empty(true), 'true is executable already'
+  if exists('*exepath')
+    let true = exepath('true')
+    Assert !empty(true), 'true is executable already (via exepath)'
+  endif
+  Assert executable('true'), 'true is executable already'
   call g:NeomakeTestsCreateExe('true', [])
-  AssertNotEqual exepath('true'), true
+  if exists('*exepath')
+    AssertNotEqual exepath('true'), true
+  endif
 
 Execute (neomake#utils#GetSetting serialize):
   Save g:maker

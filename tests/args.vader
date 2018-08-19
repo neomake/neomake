@@ -10,7 +10,7 @@ Execute (maker.args as list gets escaped):
 
   new
   let fname = neomake#utils#fname('tests', 'fixtures', 'a filename with spaces')
-  exe 'edit '.fname
+  exe 'edit '.fnameescape(fname)
   let fname = bufname('%')
 
   call neomake#Make(1, [maker])
@@ -29,7 +29,7 @@ Execute (maker.args as string gets not escaped):
 
   new
   let fname = neomake#utils#fname('tests', 'fixtures', 'a filename with spaces')
-  exe 'edit '.fname
+  exe 'edit '.fnameescape(fname)
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs

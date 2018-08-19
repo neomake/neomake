@@ -2650,6 +2650,7 @@ function! neomake#map_makers(makers, ft, auto_enabled) abort
             continue
         endtry
         call add(makers, m)
+        unlet maker  " for old Vim (when using dicts and strings).
     endfor
     if !empty(errors)
         let log_context = get(get(s:make_info, s:make_id, {}), 'options', {})
