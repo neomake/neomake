@@ -163,12 +163,12 @@ Execute (Test Neomake on errors.sh with two makers):
   new
   edit tests/fixtures/errors.sh
   call g:NeomakeTestsCreateExe('shellcheck', ['#!/bin/sh', 'echo shellcheck $@'])
-  RunNeomake sh shellcheck
+  CallNeomake 1, [g:error_maker, 'shellcheck']
   " NeomakeCountsChanged gets also triggered with location list changes where
   " entries are skipped.
   AssertEqual len(g:neomake_test_countschanged), 2
   AssertEqual len(g:neomake_test_finished), 1
-  AssertNeomakeMessage 'Running makers: sh, shellcheck.'
+  AssertNeomakeMessage 'Running makers: error-maker, shellcheck.'
   AssertNeomakeMessage printf(
   \ "\\vSkipped 1 entries without bufnr: [{'lnum': 0, 'bufnr': 0, .*'text': 'shellcheck -fgcc -x %s'}].",
   \ expand('%:p')), 3
@@ -293,9 +293,8 @@ Execute (Neomake: handle pending output across windows/buffers):
   if NeomakeAsyncTestsSetup()
     new
     AssertEqual winnr(), 2
-    edit tests/fixtures/errors.sh
     let bufnr = bufnr('%')
-    Neomake sh
+    call neomake#Make(1, [g:sleep_maker])
     new
     let jobinfo = neomake#GetJobs()[0]
     NeomakeTestsWaitForFinishedJobs
@@ -392,9 +391,9 @@ Execute (NeomakeSh: buffers output):
       if len(g:neomake_test_countschanged)
         break
       endif
-      sleep 5m
+      sleep 50m
     endfor
-    AssertNotEqual i, 10, "counts should have changed after 50ms"
+    AssertNotEqual i, 10, "counts should have changed after 500ms"
     NeomakeTestsWaitForFinishedJobs
   endif
   AssertEqual len(g:neomake_test_finished), 1
@@ -593,6 +592,8 @@ Execute (Neomake!: non-existing and proper job):
   endif
 
 Execute (Neomake#Make: error with failing job via jobstart/argv):
+  " NOTE: Vim on Windows uses a shell, and error code 127 is not reported from
+  " there as an error / failed job.
   call g:NeomakeSetupAutocmdWrappers()
 
   let maker = {'exe': 'true'}
@@ -603,24 +604,20 @@ Execute (Neomake#Make: error with failing job via jobstart/argv):
   call neomake#Make(0, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: doesnotexist."
-  else
-    AssertNeomakeMessage "Starting [string]: doesnotexist."
-  endif
+  AssertNeomakeMessage '\vStarting .*doesnotexist'
 
   if has('nvim-0.1.8')
     AssertNeomakeMessage "Failed to start Neovim job: Executable not found: ['doesnotexist'].", 0
   elseif has('nvim')
     AssertNeomakeMessage 'Failed to start Neovim job: [''doesnotexist'']: '
       \ .'Vim(let):E902: "doesnotexist" is not an executable.'
-  elseif neomake#has_async_support()
+  elseif neomake#has_async_support() && !neomake#utils#IsRunningWindows()
     AssertNeomakeMessage 'Vim job failed to run: executing job failed: No such file or directory.'
   else
     AssertNeomakeMessage 'exit: unnamed_maker: 127.', 3
   endif
 
-  if neomake#has_async_support()
+  if neomake#has_async_support() && !neomake#utils#IsRunningWindows()
     AssertEqual len(g:neomake_test_jobfinished), 0
     AssertEqual len(g:neomake_test_finished), 0
   else
@@ -642,24 +639,20 @@ Execute (Neomake#Make: error with failing job via jobstart/argv + true):
   call neomake#Make(0, [maker, {'exe': 'true'}])
   NeomakeTestsWaitForFinishedJobs
 
-  if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: doesnotexist."
-  else
-    AssertNeomakeMessage "Starting [string]: doesnotexist."
-  endif
+  AssertNeomakeMessage '\vStarting .*doesnotexist'
 
   if has('nvim-0.1.8')
     AssertNeomakeMessage "Failed to start Neovim job: Executable not found: ['doesnotexist'].", 0
   elseif has('nvim')
     AssertNeomakeMessage 'Failed to start Neovim job: [''doesnotexist'']: '
       \ .'Vim(let):E902: "doesnotexist" is not an executable.'
-  elseif neomake#has_async_support()
-    AssertNeomakeMessage 'Vim job failed to run: executing job failed: No such file or directory.'
+  elseif neomake#has_async_support() && !neomake#utils#IsRunningWindows()
+    AssertNeomakeMessage 'Vim job failed to run: executing job failed: No such file or directory.', 0
   else
     AssertNeomakeMessage 'exit: unnamed_maker: 127.', 3
   endif
 
-  if neomake#has_async_support()
+  if neomake#has_async_support() && !neomake#utils#IsRunningWindows()
     AssertEqual len(g:neomake_test_jobfinished), 1
     AssertEqual len(g:neomake_test_finished), 1
   else
@@ -673,7 +666,7 @@ Execute (Neomake#Make: error with Vim for unknown opt):
   else
     let maker = {'exe': 'true', 'vim_job_opts': {'invalid-job-opt': 1}}
     CallNeomake 0, [maker]
-    AssertNeomakeMessage "Failed to start Vim job: ['true']: Vim(let):E475: Invalid argument: invalid-job-opt.", 0
+    AssertNeomakeMessage '\VFailed to start Vim job: \.\*true\.\*: Vim(let):E475: Invalid argument: invalid-job-opt.', 0
   endif
 
 Execute (Neomake! for project maker via g:neomake_enabled_makers):
