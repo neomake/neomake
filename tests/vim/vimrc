@@ -104,6 +104,13 @@ if expand('$NEOMAKE_TEST_NO_COLORSCHEME') !=# '1'
 endif
 
 let &shell = '/bin/bash'
+let &shellcmdflag = '-c'
+if exists('+shellslash') && &shell !~? 'cmd'
+  " NOTE: this is/was assumed by fugitive's s:winshell, and might be good in
+  " general.  Should be done for one of the builds maybe, e.g. for Vim, but
+  " not Neovim.
+  set shellslash
+endif
 
 " Avoid system call and warning.
 let g:neomake_clippy_rustup_has_nightly = 0
