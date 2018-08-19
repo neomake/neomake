@@ -18,7 +18,7 @@ Execute (Hook execution gets logged):
 
 Execute (NeomakeJobFinished):
   if NeomakeAsyncTestsSetup()
-    let maker = extend(neomake#utils#MakerFromCommand('echo done; exit 7'), {
+    let maker = extend(NeomakeTestsCommandMaker('echo-exit', 'echo done; exit 7'), {
       \ 'errorformat': '%m'})
     call neomake#Make(0, [maker])
     let jobinfo = neomake#GetJobs()[-1]
@@ -30,7 +30,9 @@ Execute (NeomakeJobFinished):
   endif
 
 Execute (NeomakeJobStarted can renice process):
-  if NeomakeAsyncTestsSetup()
+  if neomake#utils#IsRunningWindows()
+    NeomakeTestsSkip 'not on Windows.'
+  elseif NeomakeAsyncTestsSetup()
     let maker = NeomakeTestsCommandMaker('nice-sleep', 'sleep .1')
 
     function! s:NeomakeTestJobStarted(context) abort
@@ -64,41 +66,45 @@ Execute (NeomakeJobStarted can renice process):
   endif
 
 Execute (NeomakeJobInit can make processes nicer):
-  " Create a maker that writes its niceness to stdout.
-  " Prefer procfs, since 'ps' in busybox cannot select a single PID.
-  let proc_stat = printf('/proc/%d/stat', getpid())
-  if filereadable(proc_stat)
-    let get_niceness_cmd = 'cat /proc/$$/stat | cut -f19 -d\ '
+  if neomake#utils#IsRunningWindows()
+    NeomakeTestsSkip 'not on Windows.'
   else
-    let get_niceness_cmd = printf('ps -o nice= %d | tr -d \ ', pid)
-  endif
-  let maker = NeomakeTestsCommandMaker('nice-sleep', get_niceness_cmd)
-
-  " Hook into NeomakeJobInit.
-  function! s:NeomakeTestJobInit(context) abort
-    AssertEqual keys(a:context), ['jobinfo']
-
-    let jobinfo = a:context.jobinfo
-    AssertEqual jobinfo.maker.name, 'nice-sleep'
-
-    " argv can be a list or string.
-    if type(jobinfo.argv) == type([])
-      let jobinfo.argv = ['nice', '-n18'] + jobinfo.argv
+    " Create a maker that writes its niceness to stdout.
+    " Prefer procfs, since 'ps' in busybox cannot select a single PID.
+    let proc_stat = printf('/proc/%d/stat', getpid())
+    if filereadable(proc_stat)
+      let get_niceness_cmd = 'cat /proc/$$/stat | cut -f19 -d\ '
     else
-      let jobinfo.argv = 'nice -n 18 '.jobinfo.argv
+      let get_niceness_cmd = printf('ps -o nice= %d | tr -d \ ', getpid())
     endif
-  endfunction
-  augroup neomake_tests
-    au User NeomakeJobInit call s:NeomakeTestJobInit(g:neomake_hook_context)
-  augroup END
+    let maker = NeomakeTestsCommandMaker('nice-sleep', get_niceness_cmd)
 
-  call neomake#Make(0, [maker])
-  NeomakeTestsWaitForFinishedJobs
-  if neomake#has_async_support()
-    AssertNeomakeMessage printf("Starting async job: nice -n18 %s -c 'cat /proc/$$/stat | cut -f19 -d\\ '.", &shell), 2
-  else
-    AssertNeomakeMessage printf("Starting [string]: nice -n 18 %s -c 'cat /proc/$$/stat | cut -f19 -d\\ '.", &shell)
+    " Hook into NeomakeJobInit.
+    function! s:NeomakeTestJobInit(context) abort
+      AssertEqual keys(a:context), ['jobinfo']
+
+      let jobinfo = a:context.jobinfo
+      AssertEqual jobinfo.maker.name, 'nice-sleep'
+
+      " argv can be a list or string.
+      if type(jobinfo.argv) == type([])
+        let jobinfo.argv = ['nice', '-n18'] + jobinfo.argv
+      else
+        let jobinfo.argv = 'nice -n 18 '.jobinfo.argv
+      endif
+    endfunction
+    augroup neomake_tests
+      au User NeomakeJobInit call s:NeomakeTestJobInit(g:neomake_hook_context)
+    augroup END
+
+    call neomake#Make(0, [maker])
+    NeomakeTestsWaitForFinishedJobs
+    if neomake#has_async_support()
+      AssertNeomakeMessage printf("Starting async job: nice -n18 %s -c 'cat /proc/$$/stat | cut -f19 -d\\ '.", &shell), 2
+    else
+      AssertNeomakeMessage printf("Starting [string]: nice -n 18 %s -c 'cat /proc/$$/stat | cut -f19 -d\\ '.", &shell)
+    endif
+
+    let niceness = getqflist()[0].text
+    AssertEqual niceness, '18'
   endif
-
-  let niceness = getqflist()[0].text
-  AssertEqual niceness, '18'
