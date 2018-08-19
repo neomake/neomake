@@ -15,10 +15,11 @@ let s:slash = exists('+shellslash') && !&shellslash && &shellcmdflag[0] !=# '-' 
 if exists('$NEOMAKE_TESTS_DEP_PLUGINS_DIR')
   let s:dep_plugins_base = $NEOMAKE_TESTS_DEP_PLUGINS_DIR
 else
-  let s:dep_plugins_base = fnamemodify(join(
+  let s:dep_plugins_base = join(
         \ [expand('<sfile>:p:h'), '..', '..', 'build', 'vim', 'plugins'],
-        \ s:slash), ':p')
+        \ s:slash)
 endif
+let s:dep_plugins_base = fnamemodify(s:dep_plugins_base, ':p')
 
 if exists('$TESTS_VADER_DIR')
   let vader_dir = expand($TESTS_VADER_DIR)
