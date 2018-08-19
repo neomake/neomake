@@ -160,7 +160,7 @@ vimlint-errors: | $(firstword VIMLINT_BIN)
 
 build build/vim-test-home:
 	mkdir $@
-build/neovim-test-home: | build
+build/vim-test-home: | build
 build/vimhelplint: | build
 	cd build \
 	&& wget -O- https://github.com/machakann/vim-vimhelplint/archive/master.tar.gz \
