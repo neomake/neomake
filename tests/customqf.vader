@@ -466,7 +466,7 @@ Execute (Enables customqf on VimEnter):
         \   'text': 'Line 1 nmcfg:{"name": "python", "short": "Alph"}',
         \ }])
     lopen
-    AssertEqual b:current_syntax, 'qf'
+    AssertEqual get(b:, 'current_syntax', 'qf'), 'qf'
     doautocmd VimEnter
     AssertEqual b:current_syntax, 'neomake_qf'
     lclose
