@@ -41,6 +41,7 @@ install:
             -OutFile C:\rt.zip
           [IO.Compression.ZipFile]::ExtractToDirectory('C:\rt.zip', 'C:\vim')
         }
+        $env:TEST_VIM = 'C:/vim/vim/vim81/vim.exe'
       }
   # Install Neovim
   - ps: >-
@@ -52,6 +53,7 @@ install:
             -OutFile C:\neovim.zip
           [IO.Compression.ZipFile]::ExtractToDirectory('C:\neovim.zip', 'C:\neovim')
         }
+        $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
       }
   # Install Neovim-dev
   - ps: >-
@@ -102,13 +104,6 @@ test_script:
 
   - ps: |
       echo $env:CONFIGURATION
-
-  - ps: |
-      if ($env:CONFIGURATION -eq 'VIM') {
-        $env:TEST_VIM = 'C:/vim/vim/vim80/vim.exe'
-      } elseif ($env:CONFIGURATION -eq 'NEOVIM') {
-        $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
-      }
 
   - ps: |
         & $env:TEST_VIM --version
