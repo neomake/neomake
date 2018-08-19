@@ -395,8 +395,7 @@ Execute (legacy errorformat maker: filename with cwd (error: removed)):
     AssertEqual 0, delete(tempfile_dir, 'd')
     NeomakeTestsWaitForFinishedJobs
 
-    AssertNeomakeMessage printf("Could not change to job's cwd (%s): %s",
-    \ tempfile_dir,
+    AssertNeomakeMessage printf("Could not change to job's cwd (%%:p:h): %s",
     \ printf("Vim(lcd):E344: Can't find directory \"%s\" in cdpath.", tempfile_dir))
 
     " A new unlisted buffer should have been created.
