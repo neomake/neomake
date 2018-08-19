@@ -29,6 +29,7 @@ endfunction
 function! neomake#makers#ft#neomake_tests#echo_args() abort
     return {
         \ 'exe': 'printf',
+        \ 'args': ['%s'],
         \ 'errorformat': '%m',
         \ }
 endfunction

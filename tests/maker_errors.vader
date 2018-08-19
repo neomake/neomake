@@ -5,7 +5,7 @@ Execute (Handles unexpected output on stderr from maker):
   let g:neomake_logfile = tempname()
 
   let maker = NeomakeTestsCommandMaker('stderr_maker',
-  \ 'printf failed to run >&2; printf because something bad happened >&2')
+  \ 'printf "%s\n" "failed to run" >&2; printf "%s\n" "because something bad happened" >&2')
   let maker.output_stream = 'stdout'
 
   call NeomakeTestsSetVimMessagesMarker()

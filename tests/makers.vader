@@ -832,7 +832,7 @@ Execute (Neomake/Neomake! run ft maker in project mode):
   Neomake! echo_args
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Running makers: echo_args.'
-  AssertEqual map(getqflist(), 'v:val.text'), ['']
+  AssertEqual map(getqflist(), 'v:val.text'), []
 
   call neomake#config#set('b:append_file', 1)
   CallNeomake 0, ['echo_args']
