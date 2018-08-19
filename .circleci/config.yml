@@ -62,4 +62,3 @@ workflows:
       - nvim-031
       - vim-81
       - vim-73
-      - checkqa

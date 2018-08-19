@@ -94,7 +94,7 @@ else
 endif
 
 function! neomake#utils#fname(...) abort
-  return join(a:000, neomake#utils#Slash())
+    return join(a:000, neomake#utils#Slash())
 endfunction
 
 function! neomake#utils#Exists(exe) abort
