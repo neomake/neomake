@@ -891,3 +891,20 @@ Execute (neomake#utils#temp_cd):
   finally
     exe 'cd '.fnameescape(cwd)
   endtry
+
+Execute (neomake#utils#get_exe_args_from_shebang):
+  new
+  let bufnr = bufnr('%')
+
+  call setline(1, [])
+  AssertEqual neomake#utils#get_exe_args_from_shebang(bufnr), []
+  call setline(1, ['#!'])
+  AssertEqual neomake#utils#get_exe_args_from_shebang(bufnr), []
+  call setline(1, ['#!/usr/bin/python'])
+  AssertEqual neomake#utils#get_exe_args_from_shebang(bufnr), ['/usr/bin/python']
+  call setline(1, ['#!/usr/bin/env python'])
+  AssertEqual neomake#utils#get_exe_args_from_shebang(bufnr), ['/usr/bin/env', 'python']
+
+  call setline(1, ['#! /usr/bin/env python '])
+  AssertEqual neomake#utils#get_exe_args_from_shebang(bufnr), ['/usr/bin/env', 'python']
+  bwipe!
