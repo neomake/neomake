@@ -9,10 +9,23 @@ endfunction
 function! neomake#core#instantiate_maker(maker, options, check_exe) abort
     let maker = a:maker
     let options = a:options
-    " Call .fn function in maker object, if any.
-    if has_key(maker, 'fn')
+    let ft = get(options, 'ft', '')
+    let bufnr = get(options, 'bufnr', '')
+
+    " Call InitForJob function in maker object, if any.
+    let Init = neomake#utils#GetSetting('InitForJob', maker, g:neomake#config#undefined, ft, bufnr)
+    if empty(Init)
+        " Deprecated: should use InitForJob instead.
+        if has_key(maker, 'fn')
+            unlet Init  " vim73
+            let Init = maker.fn
+            call neomake#log#warn_once(printf("Please use 'InitForJob' instead of 'fn' for maker %s.", maker.name),
+                        \ printf('deprecated-fn-%s', maker.name))
+        endif
+    endif
+    if !empty(Init)
         " TODO: Allow to throw and/or return 0 to abort/skip?!
-        let returned_maker = call(maker.fn, [options], maker)
+        let returned_maker = call(Init, [options], maker)
         if returned_maker isnot# 0
             " This conditional assignment allows to both return a copy
             " (factory), while also can be used as a init method.

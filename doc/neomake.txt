@@ -199,10 +199,17 @@ Here is a sample maker definition: >
     " Use the maker like this:
     :Neomake! make
 <
-The `exe` and `args` entries can be a function reference (see |Funcref|) or a
-dictionary with an expected entry `fn` (which has to be a function).
-The function will be called with no arguments, and should return the value to
-use.
+                                                   *neomake-makers-InitForJob*
+You can configure a maker dynamically through a `InitForJob` function, which
+gets the jobinfo (|neomake-object-jobinfo|) as its argument.
+
+This can also be configured as setting: >
+    function! CustomExe(jobinfo) abort
+        let self.args = [self.exe] + self.args
+        let self.exe = 'some_custom_wrapper'
+    endfunction
+    call neomake#config#set('ft.python.InitForJob', function('CustomExe'))
+<
 
 `exe` has to be a string, while `args` can be a list or a string.
 If `args` is a list, entries like '%' and '%:p' will be |expand()|ed, and
@@ -415,8 +422,8 @@ Default: 1
 This will pass a temporary file with the buffer's contents to the maker, in
 case the buffer is not readable, modified, or has no filename.
 A maker can specify the temporary file's name through the `tempfile_name`
-property, and you can set it through the experimental `maker.fn` callback (for
-advanced usage).
+property, and you can set it through the |neomake-makers-InitForJob| callback
+(for advanced usage).
 Otherwise it gets generated based on the original filename/filetype, and
 falls back to using |tempname()|.
 

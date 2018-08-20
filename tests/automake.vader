@@ -878,7 +878,7 @@ Execute (Automake pre-creates maker_job instances):
   new
   let s:call_count = 0
   let maker = {'exe': 'true', 'cwd': '%:h'}
-  function maker.fn(...)
+  function maker.InitForJob(...)
     let s:call_count += 1
   endfunction
   let b:neomake_enabled_makers = [maker]
