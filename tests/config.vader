@@ -270,3 +270,22 @@ Execute (neomake#config#get returns a copy for defaults):
   let d.k = 'changed'
   AssertEqual neomake#config#get('b:foo'), {'k': 'changed'}
   bwipe
+
+Execute (neomake#config#get can ignore buffer):
+  new
+  call neomake#config#set('b:foo', 42)
+
+  AssertEqual neomake#config#get('foo'), 42
+  AssertEqual neomake#config#get('b:foo'), 42
+
+  new
+  " 0 refers to the alternate buffer for the current window.
+  AssertEqual neomake#config#get('foo', 'default', {'bufnr': 0}), 42
+  AssertEqual neomake#config#get('b:foo', 'default', {'bufnr': 0}), 42
+
+  " '' ignores buffer.
+  AssertEqual neomake#config#get('foo', 'default', {'bufnr': ''}), 'default'
+  AssertEqual neomake#config#get('b:foo', 'default', {'bufnr': ''}), 'default'
+
+  bwipe
+  bwipe
