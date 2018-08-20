@@ -193,7 +193,8 @@ function! neomake#makers#ft#java#javac() abort
                 \ '%W%f:%l: warning: %m,'.
                 \ '%E%f:%l: %m,'.
                 \ '%Z%p^,'.
-                \ '%-G%.%#'
+                \ '%-G%.%#',
+                \ 'version_arg': '-version'
                 \ }
 endfunction
 
@@ -206,7 +207,8 @@ function! neomake#makers#ft#java#checkstyle() abort
                 \ '%-GAudit done.,'.
                 \ '%-GPicked up _JAVA_OPTIONS:%.%#,'.
                 \ '[%t%*[^]]] %f:%l:%c: %m [%s],'.
-                \ '[%t%*[^]]] %f:%l: %m [%s]'
+                \ '[%t%*[^]]] %f:%l: %m [%s]',
+                \ 'version_arg': '-v'
                 \ }
 endfunction
 
