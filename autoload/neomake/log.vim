@@ -152,6 +152,7 @@ function! neomake#log#warn_once(msg, key) abort
         echohl WarningMsg
         redraw | echom 'Neomake: ' . a:msg
         echohl None
-        let v:warningmsg = a:msg
+        let v:warningmsg = 'Neomake: '.a:msg
+        call neomake#log#debug('Neomake warning: '.a:msg)
     endif
 endfunction

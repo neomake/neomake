@@ -366,18 +366,18 @@ let g:doesnotexist_maker = {'exe': 'doesnotexist'}
 " A maker that generates incrementing errors.
 let g:neomake_test_inc_maker_counter = 0
 let s:shell_argv = split(&shell) + split(&shellcmdflag)
-function! s:IncMakerArgs()
+function! s:IncMakerInitForJobs(jobinfo) dict
   let g:neomake_test_inc_maker_counter += 1
   let cmd = ''
   for i in range(g:neomake_test_inc_maker_counter)
     let cmd .= 'echo b'.g:neomake_test_inc_maker_counter.' '.g:neomake_test_inc_maker_counter.':'.i.': buf: '.shellescape(bufname('%')).'; '
   endfor
-  return s:shell_argv[1:] + [cmd]
+  let self.args = s:shell_argv[1:] + [cmd]
 endfunction
 let g:neomake_test_inc_maker = {
       \ 'name': 'incmaker',
       \ 'exe': s:shell_argv[0],
-      \ 'args': function('s:IncMakerArgs'),
+      \ 'InitForJob': function('s:IncMakerInitForJobs'),
       \ 'errorformat': '%E%f %m',
       \ 'append_file': 0,
       \ }

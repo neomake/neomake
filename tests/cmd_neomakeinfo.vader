@@ -29,9 +29,11 @@ Execute (:NeomakeInfo with FuncRef):
   Save g:neomake_c_enabled_makers, g:neomake_c_doesnotexist_maker
   new
   set filetype=c
+  function! InitForJob(jobinfo) abort
+  endfunction
   let g:neomake_c_enabled_makers = ['doesnotexist']
   let g:neomake_c_doesnotexist_maker = {
-  \ 'args': function('getcwd'),
+  \ 'InitForJob': function('InitForJob'),
   \ 'errorformat': 'custom_efm: %m'}
 
   let info = neomake#debug#_get_info_lines()
@@ -39,13 +41,14 @@ Execute (:NeomakeInfo with FuncRef):
   for line in [
       \ 'For the current filetype ("c", used with :Neomake):',
       \ ' - doesnotexist',
-      \ '   - args: function(''getcwd'')',
       \ '   - errorformat: ''custom_efm: %m''',
       \ '   - exe: ''doesnotexist''']
     let i = index(info, line)
     Assert i > idx, 'line not found: "'.line.'" (idx: '.idx.')'."\n".join(info, "\n")
     let idx = i
   endfor
+  Assert len(map(info, 'v:val =~# "   - InitForJob: function.*"')), 'InitForJob not found'
+  delfunction InitForJob
   bwipe
 
 Execute (:NeomakeInfo with unusual filetype):
@@ -61,7 +64,6 @@ Execute (:NeomakeInfo displays issues):
   let g:neomake_enabled_makers = ['mymaker']
   let g:neomake_mymaker_maker = {
   \ 'exe': 'doesnotexist',
-  \ 'args': function('getcwd'),
   \ 'errorformat': 'custom_efm: %m',
   \ 'mapexpr': '',
   \ 'postprocess': function('tr'),
@@ -74,7 +76,6 @@ Execute (:NeomakeInfo displays issues):
       \ '#### Neomake information (use ":verbose NeomakeInfo" for extra output)',
       \ 'For the project (used with :Neomake!):',
       \ ' - mymaker',
-      \ '   - args: function(''getcwd'')',
       \ '   - errorformat: ''custom_efm: %m''',
       \ '   - exe: ''doesnotexist''',
       \ '   - ERRORS:',

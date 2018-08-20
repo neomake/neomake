@@ -343,7 +343,7 @@ Execute (same tempfile contents is used for all jobs):
 
     Save g:maker2_tempfile
     let g:maker2_tempfile = tempname()
-    function! maker2.fn(jobinfo)
+    function! maker2.InitForJob(jobinfo)
       let self.tempfile_name = g:maker2_tempfile
     endfunction
 
