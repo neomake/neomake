@@ -698,8 +698,14 @@ endfunction
 function! s:command_maker_base._bind_args() abort dict
     " Resolve args, which might be a function or dictionary.
     if type(self.args) == type(function('tr'))
+        " Deprecated: use InitForJob
+        call neomake#log#warn_once(printf("Please use 'InitForJob' instead of 'args' for maker %s.", self.name),
+                    \ printf('deprecated-args-%s', self.name))
         let args = call(self.args, [])
     elseif type(self.args) == type({})
+        " Deprecated: use InitForJob
+        call neomake#log#warn_once(printf("Please use 'InitForJob' instead of 'args.fn' for maker %s.", self.name),
+                    \ printf('deprecated-args-fn-%s', self.name))
         let args = call(self.args.fn, [], self.args)
     else
         let args = copy(self.args)

@@ -4,12 +4,15 @@ function! neomake#makers#ft#erlang#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#erlang#erlc() abort
-    return {
-        \ 'args': function('neomake#makers#ft#erlang#GlobPaths'),
+    let maker = {
         \ 'errorformat':
             \ '%W%f:%l: Warning: %m,' .
             \ '%E%f:%l: %m'
         \ }
+    function! maker.InitForJob(jobinfo) abort
+        let self.args = neomake#makers#ft#erlang#GlobPaths()
+    endfunction
+    return maker
 endfunction
 
 if !exists('g:neomake_erlang_erlc_target_dir')

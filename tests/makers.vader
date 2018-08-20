@@ -353,7 +353,7 @@ Execute (neomake#GetMaker for project maker):
   AssertThrows call neomake#GetMaker('cargo', 'foo')
   AssertEqual g:vader_exception, 'Neomake: Maker not found (for filetype foo): cargo'
 
-Execute (maker.fn can set env var):
+Execute (maker.InitForJob can set env var):
   let maker = {
   \ 'exe': 'sh',
   \ 'args': ['-c', 'echo MYENV:$MYENV'],
@@ -361,7 +361,7 @@ Execute (maker.fn can set env var):
   \ 'errorformat': '%m',
   \ 'name': 'echo_env_maker',
   \ }
-  function! maker.fn(jobinfo)
+  function! maker.InitForJob(jobinfo)
     let self.args = ['MYENV=custom', self.exe] + self.args
     let self.exe = 'env'
     let self.errorformat = '%m'
@@ -373,6 +373,90 @@ Execute (maker.fn can set env var):
   AssertEqual maker, prev_maker
   NeomakeTestsWaitForFinishedJobs
   AssertEqual map(getloclist(0), 'v:val.text'), ['MYENV:custom']
+
+Execute (maker.InitForJob can be a buffer setting (old-style)):
+  new
+  let maker = {'name': 'mymaker'}
+
+  let s:called = 0
+  function! MyInit(jobinfo) dict
+    let s:called = 1
+    let self.exe = 'doesnotexist'
+  endfunction
+
+  let b:neomake_mymaker_InitForJob = function('MyInit')
+
+  CallNeomake 1, [maker]
+  AssertEqual s:called, 1
+  AssertNeomakeMessage 'Exe (doesnotexist) of maker mymaker is not executable.', 0
+  delfunction MyInit
+  bwipe
+
+Execute (maker.InitForJob can be a buffer setting (new-style)):
+  new
+  noautocmd set filetype=neomake_tests
+  let maker = {'name': 'mymaker'}
+
+  let s:called = 0
+  function! MyInit(jobinfo) dict
+    let s:called = 1
+    let self.exe = 'doesnotexist'
+  endfunction
+
+  call neomake#config#set('b:ft.neomake_tests.InitForJob', function('MyInit'))
+
+  CallNeomake 1, [maker]
+  AssertEqual s:called, 1
+  AssertNeomakeMessage 'Exe (doesnotexist) of maker mymaker is not executable.', 0
+  delfunction MyInit
+  bwipe
+
+Execute (Using maker.fn results in deprecation warning):
+  let maker = {}
+  function! maker.fn(jobinfo) abort
+    let self.exe = 'doesnotexist'
+  endfunction
+
+  call NeomakeTestsSetVimMessagesMarker()
+  CallNeomake 1, [maker]
+
+  let expected_warningmsg = "Please use 'InitForJob' instead of 'fn' for maker unnamed_maker."
+  AssertEqual v:warningmsg, 'Neomake: '.expected_warningmsg
+  let v:warningmsg = ''
+  AssertNeomakeMessage 'Neomake warning: '.expected_warningmsg, 3
+  Assert index(NeomakeTestsGetVimMessages(), 'Neomake: '.expected_warningmsg) != -1
+  AssertNeomakeMessage 'Exe (doesnotexist) of maker unnamed_maker is not executable.', 0
+
+Execute (Using maker.args as function results in deprecation warning):
+  let maker = {}
+  let maker.args = function('getcwd')
+
+  call NeomakeTestsSetVimMessagesMarker()
+  CallNeomake 1, [maker]
+
+  let expected_warningmsg = "Please use 'InitForJob' instead of 'args' for maker unnamed_maker."
+  AssertEqual v:warningmsg, 'Neomake: '.expected_warningmsg
+  let v:warningmsg = ''
+  AssertNeomakeMessage 'Neomake warning: '.expected_warningmsg, 3
+  Assert index(NeomakeTestsGetVimMessages(), 'Neomake: '.expected_warningmsg) != -1
+  AssertNeomakeMessage 'Exe (unnamed_maker) of maker unnamed_maker is not executable.', 0
+
+Execute (Using maker.args.fn as function results in deprecation warning):
+  let maker = {}
+  let maker.args = {}
+  function! maker.args.fn() abort
+    return ['deprecated']
+  endfunction
+
+  call NeomakeTestsSetVimMessagesMarker()
+  CallNeomake 1, [maker]
+
+  let expected_warningmsg = "Please use 'InitForJob' instead of 'args.fn' for maker unnamed_maker."
+  AssertEqual v:warningmsg, 'Neomake: '.expected_warningmsg
+  let v:warningmsg = ''
+  AssertNeomakeMessage 'Neomake warning: '.expected_warningmsg, 3
+  Assert index(NeomakeTestsGetVimMessages(), 'Neomake: '.expected_warningmsg) != -1
+  AssertNeomakeMessage 'Exe (unnamed_maker) of maker unnamed_maker is not executable.', 0
 
 Execute (Set env from maker config):
   Save g:neomake_rust_cargo_maker
