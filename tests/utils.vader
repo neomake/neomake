@@ -222,6 +222,27 @@ Execute (neomake#utils#GetSetting does not create a partial for dict funcs):
   AssertEqual type(Func), type(function('tr'))
   AssertEqual Func, get(maker, 'func')
 
+Execute (neomake#utils#GetSetting (old-style) can ignore buffer):
+  new
+  let bufnr = bufnr('%')
+  noautocmd set filetype=neomake_tests
+  let b:neomake_foo = 42
+  let b:neomake_neomake_tests_foo = 43
+
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', '', bufnr), 42
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', &ft, bufnr), 43
+
+  " 0 is the alternate buffer for the current window.
+  new
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', '', 0), 42
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', 'neomake_tests', 0), 43
+
+  " Empty string ignores the buffer.
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', '', ''), 'default'
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', 'neomake_tests', ''), 'default'
+  bwipe
+  bwipe
+
 Execute(neomake#utils#redir):
   command! NeomakeTestCommand echo 1 | echo 2
   command! NeomakeTestErrorCommand echoerr 'error'

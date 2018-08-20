@@ -179,6 +179,7 @@ let s:unset = {}  " Sentinel.
 
 " Get a setting by key, based on filetypes, from the buffer or global
 " namespace, defaulting to default.
+" Use an empty bufnr ('') to ignore buffer-local settings.
 function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
     let maker_only = a:0 ? a:1 : 0
 
@@ -203,29 +204,31 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
         return a:default
     endif
 
-    if !empty(a:ft)
-        let fts = neomake#utils#get_config_fts(a:ft) + ['']
-    else
-        let fts = ['']
+    if a:bufnr isnot# ''
+        if !empty(a:ft)
+            let fts = neomake#utils#get_config_fts(a:ft) + ['']
+        else
+            let fts = ['']
+        endif
+        for ft in fts
+            " Look through the override vars for a filetype maker, like
+            " neomake_scss_sasslint_exe (should be a string), and
+            " neomake_scss_sasslint_args (should be a list).
+            let part = join(filter([ft, maker_name], '!empty(v:val)'), '_')
+            if empty(part)
+                break
+            endif
+            let config_var = 'neomake_'.part.'_'.a:key
+            unlet! Bufcfgvar  " vim73
+            let Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
+            if Bufcfgvar isnot s:unset
+                return copy(Bufcfgvar)
+            endif
+            if has_key(g:, config_var)
+                return copy(get(g:, config_var))
+            endif
+        endfor
     endif
-    for ft in fts
-        " Look through the override vars for a filetype maker, like
-        " neomake_scss_sasslint_exe (should be a string), and
-        " neomake_scss_sasslint_args (should be a list).
-        let part = join(filter([ft, maker_name], '!empty(v:val)'), '_')
-        if empty(part)
-            break
-        endif
-        let config_var = 'neomake_'.part.'_'.a:key
-        unlet! Bufcfgvar  " vim73
-        let Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
-        if Bufcfgvar isnot s:unset
-            return copy(Bufcfgvar)
-        endif
-        if has_key(g:, config_var)
-            return copy(get(g:, config_var))
-        endif
-    endfor
 
     if has_key(a:maker, a:key)
         return get(a:maker, a:key)
