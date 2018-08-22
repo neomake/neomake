@@ -54,6 +54,7 @@ install:
           [IO.Compression.ZipFile]::ExtractToDirectory('C:\neovim.zip', 'C:\neovim')
         }
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
+        $env:TEST_SHELL = 'C:/msys64/usr/bin/bash'
       }
   # Install Neovim-dev
   - ps: >-

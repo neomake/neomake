@@ -1,14 +1,18 @@
 # Do not let mess "cd" with user-defined paths.
 CDPATH:=
 
-bash=$(shell command -v bash 2>/dev/null)
-TEST_SHELL:=$(bash)
-ifeq ($(TEST_SHELL),)
-  $(error Could not determine TEST_SHELL (defaults to bash))
-endif
-# This is expected in tests.
-TEST_VIM_PREFIX:=SHELL=$(TEST_SHELL)
+bash:=$(shell command -v bash 2>/dev/null)
 SHELL:=$(bash) -o pipefail
+
+ifeq ($(origin TEST_SHELL),undefined)
+  ifeq ($(bash),)
+    $(error Could not determine TEST_SHELL (defaults to bash))
+  endif
+  TEST_SHELL:=$(bash)
+endif
+ifneq ($(TEST_SHELL),)
+  TEST_VIM_PREFIX:=SHELL=$(TEST_SHELL)
+endif
 
 # Use nvim if it is installed, otherwise vim.
 ifeq ($(TEST_VIM),)
