@@ -142,9 +142,26 @@ Execute (escaping):
   AssertEqual s:run_cmd('bash -c "printf 1"'), ['1', '', 0]
   AssertEqual s:run_cmd('bash -c "echo 1; echo 2"'), ["1\n2\n", '', 0]
 
+  AssertEqual s:run_cmd('bash -c "printf ''%s'' 1 2"'), ['12', '', 0]
+
+  if has('nvim')
+    AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\n2\n", '', 0]
+    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
+  else
+    " XXX
+    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
+    " XXX
+    AssertEqual s:run_cmd(['bash', '-c', 'printf "%s\n" 1 2']), ["1\n2\n", '', 0]
+  endif
+
   if neomake#utils#IsRunningWindows()
     AssertEqual s:run_cmd('cmd /c "echo 1"'), ["1\r\n", '', 0]
     AssertEqual s:run_cmd('cmd /c "echo 1; echo 2"'), ["1; echo 2\r\n", '', 0]
+
+    Save &shell, &shellcmdflag, &shellxquote
+    let &shell='cmd.exe'
+    set shellcmdflag& shellxquote&
+    " NOTE: hangs nvim, when using bash as shell.
     AssertEqual s:run_cmd('cmd /c echo 1'), ["1\r\n", '', 0]
     AssertEqual s:run_cmd('cmd /c echo 1 2'), ["1 2\r\n", '', 0]
 
@@ -157,18 +174,6 @@ Execute (escaping):
     " AssertEqual s:run_cmd('bash -c (echo "1 ''2''";)'), ["\"1 '2'\"\r\n", '', 0]
 
     AssertEqual s:run_cmd('cmd.exe /c echo "1 1"'), ["\"1 1\"\r\n", '', 0]
-  endif
-
-  AssertEqual s:run_cmd('bash -c "printf ''%s'' 1 2"'), ['12', '', 0]
-
-  if has('nvim')
-    AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\n2\n", '', 0]
-    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
-  else
-    " XXX
-    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
-    " XXX
-    AssertEqual s:run_cmd(['bash', '-c', 'printf "%s\n" 1 2']), ["1\n2\n", '', 0]
   endif
 
 Execute (tempname):
@@ -247,3 +252,16 @@ Execute (filewritable/mkdir):
   Log 'filewritable 1: '.filewritable(tmpdir)
   call setfperm(tmpdir, 'r--r-----')
   Log 'filewritable 2: '.filewritable(tmpdir)
+
+Execute (globpath):
+  new
+  let tmpdir = tempname()
+  call mkdir(tmpdir)
+  exe 'lcd '.tmpdir
+  call writefile([], 'foo')
+  call writefile([], 'foo-2')
+
+  AssertEqual split(globpath('.', 'foo*'), "\n"), ['./foo', './foo-2']
+  AssertEqual split(globpath('.', '*-2'), "\n"), ['./foo-2']
+  AssertEqual split(globpath('.', 'foo{,-2}'), "\n"), ['./foo', './foo-2']
+  bwipe
