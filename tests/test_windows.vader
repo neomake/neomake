@@ -1,6 +1,7 @@
 Include: include/setup.vader
 
 Execute (shell options):
+  Log 'SHELL='.$SHELL
   Log neomake#utils#redir('verb set shell?')
   Log neomake#utils#redir('verb set shellcmdflag?')
   Log '+shellslash: '.exists('+shellslash')
@@ -253,15 +254,16 @@ Execute (filewritable/mkdir):
   call setfperm(tmpdir, 'r--r-----')
   Log 'filewritable 2: '.filewritable(tmpdir)
 
-Execute (globpath):
-  new
-  let tmpdir = tempname()
-  call mkdir(tmpdir)
-  exe 'lcd '.tmpdir
-  call writefile([], 'foo')
-  call writefile([], 'foo-2')
-
-  AssertEqual split(globpath('.', 'foo*'), "\n"), ['./foo', './foo-2']
-  AssertEqual split(globpath('.', '*-2'), "\n"), ['./foo-2']
-  AssertEqual split(globpath('.', 'foo{,-2}'), "\n"), ['./foo', './foo-2']
-  bwipe
+" Execute (globpath: extended globbing):
+"   " Does not work on Windows.
+"   new
+"   let tmpdir = tempname()
+"   call mkdir(tmpdir)
+"   exe 'lcd '.tmpdir
+"   call writefile([], 'foo')
+"   call writefile([], 'foo-2')
+"
+"   AssertEqual split(globpath('.', 'foo*'), "\n"), ['./foo', './foo-2']
+"   AssertEqual split(globpath('.', '*-2'), "\n"), ['./foo-2']
+"   AssertEqual split(globpath('.', 'foo{,-2}'), "\n"), ['./foo', './foo-2']
+"   bwipe
