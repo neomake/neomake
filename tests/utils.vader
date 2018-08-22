@@ -639,7 +639,12 @@ Execute (neomake#utils#fnamemodify handles fugitive buffer):
   Assert bufname('%') =~# '^fugitive:', 'Unexpected bufname: '.bufname('%')
 
   AssertEqual b:fugitive_type, 'blob'
-  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ''), bufname
+
+  if !(has('win32') && has('nvim'))
+    " Uses relative path.
+    " Fails on Neovim/Windows (https://github.com/neovim/neovim/issues/7930#issuecomment-415102046).
+    AssertEqual neomake#utils#fnamemodify(bufnr('%'), ''), bufname
+  endif
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), fnamemodify(bufname, ':p')
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname, ':p:h')
 
