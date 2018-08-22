@@ -42,6 +42,7 @@ install:
           [IO.Compression.ZipFile]::ExtractToDirectory('C:\rt.zip', 'C:\vim')
         }
         $env:TEST_VIM = 'C:/vim/vim/vim81/vim.exe'
+        $env:TEST_SHELL = ''
       }
   # Install Neovim
   - ps: >-
