@@ -103,7 +103,7 @@ if expand('$NEOMAKE_TEST_NO_COLORSCHEME') !=# '1'
   colorscheme default
 endif
 
-let &shell = '/bin/bash'
+let &shell = exists('*exepath') ? exepath('bash') : 'bash'
 let &shellcmdflag = '-c'
 if exists('+shellslash') && &shell !~? 'cmd'
   " NOTE: this is/was assumed by fugitive's s:winshell, and might be good in
