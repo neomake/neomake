@@ -59,3 +59,13 @@ function! neomake#makers#ft#php#phpstan() abort
     endif
     return maker
 endfunction
+
+function! neomake#makers#ft#php#psalm() abort
+    let maker = {
+        \ 'args': [
+            \ '--output-format=pylint'
+        \ ],
+        \ 'errorformat': '%E%f:%l:%m',
+        \ }
+    return maker
+endfunction
