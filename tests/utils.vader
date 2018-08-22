@@ -586,8 +586,12 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   let maker = neomake#utils#MakerFromCommand('echo')
   Log 1
 
+  " Use a temporary dir to ensure that it is writable for temporary files.
+  let tempdir = tempname()
+  call mkdir(tempdir)
   new
-  edit tests/fixtures/a\ filename\ with\ spaces
+  exe 'lcd '.tempdir
+  edit a\ filename\ with\ spaces
   set modified
   let b:neomake_tempfile_enabled = 1
   let jobinfo = NeomakeTestsFakeJobinfo()
@@ -605,6 +609,7 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   call bound_maker._get_argv(jobinfo)
   let temp_file = fnamemodify(make_info.tempfiles[0], ':.')
   AssertNotEqual temp_file, fnameescape(temp_file)
+  Assert temp_file =~# '\V\^.a filename with spaces@'
 
   Log 'VimLeave'
   doautocmd VimLeave
