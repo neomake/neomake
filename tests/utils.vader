@@ -693,9 +693,13 @@ Execute (neomake#utils#FindGlobFile):
   AssertEqual neomake#utils#FindGlobFile('common-file', subdir), file_in_subdir
 
   " Only the first found file gets returned.
-  " NOTE: requires shell with globbing support, e.g. bash."
-  AssertEqual neomake#utils#FindGlobFile('common-file{,-2}', subdir), file_in_subdir
-  AssertEqual neomake#utils#FindGlobFile('common-file{-2,}', subdir), anotherfile_in_subdir
+  " NOTE: extended globbing does not work on Windows.
+  if !has('win32')
+    AssertEqual neomake#utils#FindGlobFile('common-file{,-2}', subdir), file_in_subdir
+    AssertEqual neomake#utils#FindGlobFile('common-file{-2,}', subdir), anotherfile_in_subdir
+  else
+    AssertEqual neomake#utils#FindGlobFile('common-file*', subdir), file_in_subdir
+  endif
   bwipe
 
 Execute (neomake#utils#shellescape):
