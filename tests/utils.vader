@@ -584,6 +584,7 @@ Execute (neomake#utils#Stringify):
 
 Execute (neomake#utils#MakerFromCommand uses tempfile):
   let maker = neomake#utils#MakerFromCommand('echo')
+  Log 1
 
   new
   edit tests/fixtures/a\ filename\ with\ spaces
@@ -591,6 +592,7 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   let b:neomake_tempfile_enabled = 1
   let jobinfo = NeomakeTestsFakeJobinfo()
 
+  Log 'GetMaker'
   let bound_maker = neomake#GetMaker(maker)
   let make_info = values(neomake#GetStatus().make_info)[0]
   Assert !has_key(make_info, 'tempfiles')
@@ -599,13 +601,16 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   AssertEqual bound_maker.exe, shell_argv[0]
   AssertEqual bound_maker.remove_invalid_entries, 0
 
+  Log '_get_argv'
   call bound_maker._get_argv(jobinfo)
   let temp_file = fnamemodify(make_info.tempfiles[0], ':.')
   AssertNotEqual temp_file, fnameescape(temp_file)
 
+  Log 'VimLeave'
   doautocmd VimLeave
   Assert empty(glob(temp_file)), 'Temporary file was removed.'
   AssertNeomakeMessage printf('Removing temporary file: "%s".', make_info.tempfiles[0])
+  Log 'bwipe'
   bwipe!
 
 Execute (neomake#utils#get_config_fts):
