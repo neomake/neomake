@@ -290,6 +290,7 @@ Execute (neomake#utils#ExpandArgs):
   \ '%z',
   \ '\%',
   \ '%%',
+  \ '%%NEOMAKE_FILE%%',
   \ '%:r.o',
   \ '%:r%',
   \ '%:r% %',
@@ -311,12 +312,13 @@ Execute (neomake#utils#ExpandArgs):
   \ 'file1.ext',
   \ '.',
   \ 'file1',
-  \ 'file1',
+  \ 'file1t',
   \ '--foo=.',
   \ '%s',
   \ '%z',
   \ '\%',
   \ '%',
+  \ '%NEOMAKE_FILE%',
   \ 'file1.o',
   \ 'file1file1.ext',
   \ 'file1file1.ext file1.ext',
@@ -338,6 +340,16 @@ Execute (neomake#utils#ExpandArgs):
   AssertEqual expected_args, neomake#utils#ExpandArgs(args)
   AssertEqual isk, &iskeyword
   bwipe
+
+Execute (neomake#utils#ExpandArgs: :S):
+  if !has('patch-7.4.191')
+    NeomakeTestsSkip 'Only with 7.4.191+'
+  else
+    new
+    file file1.ext
+    AssertEqual neomake#utils#ExpandArgs(['%:S']), ["'file1.ext'"]
+    bwipe
+  endif
 
 Execute (neomake#utils#diff_dict):
   AssertEqual neomake#utils#diff_dict({}, {}), {}
