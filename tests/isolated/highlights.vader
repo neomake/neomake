@@ -24,8 +24,7 @@ Execute (vimlint: length postprocessing):
   let maker.args = 'tests/fixtures/vim/func-with-errors.vim.output'
   let maker.append_file = 0
 
-  call neomake#Make(1, [maker])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [maker]
 
   let bufnr = bufnr('%')
   AssertEqualQf getloclist(0), [{
@@ -155,8 +154,7 @@ Execute (cargo error message):
   let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
     \ '../tests/fixtures/rust/cargo_error.json')
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   let bufnr = bufnr('%')
   AssertEqualQf getloclist(0), [{
@@ -203,8 +201,7 @@ Execute (cargo warning message):
   let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
     \ '../tests/fixtures/rust/cargo_warning.json')
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   let bufnr = bufnr('%')
   AssertEqualQf getloclist(0), [{
@@ -230,8 +227,7 @@ Execute (cargo warning for file that is not open):
   let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
     \ '../tests/fixtures/rust/cargo_warning.json')
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   let unlisted_bufnr = bufnr('^build/add_assign_like.rs$')
   AssertNotEqual -1, unlisted_bufnr
@@ -258,8 +254,7 @@ Execute (cargo error message children):
   let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
     \ '../tests/fixtures/rust/cargo_error_children.json')
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   let bufnr = bufnr('%')
   AssertEqualQf getloclist(0), [{
