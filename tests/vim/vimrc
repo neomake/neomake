@@ -103,9 +103,11 @@ if expand('$NEOMAKE_TEST_NO_COLORSCHEME') !=# '1'
   colorscheme default
 endif
 
-let &shell = exists('*exepath') ? exepath('bash') : 'bash'
-let &shellcmdflag = '-c'
-if exists('+shellslash') && &shell !~? 'cmd'
+" Configure shell.  SHELL is set from the Makefile.
+if exists('+shellslash')
+  if &shell !~# 'cmd'
+    set shellcmdflag=-c
+  endif
   " NOTE: this is/was assumed by fugitive's s:winshell, and might be good in
   " general.  Should be done for one of the builds maybe, e.g. for Vim, but
   " not Neovim.
