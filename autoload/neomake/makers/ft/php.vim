@@ -20,7 +20,7 @@ function! neomake#makers#ft#php#php() abort
 endfunction
 
 function! neomake#makers#ft#php#phpcs() abort
-    let l:args = ['--report=csv']
+    let l:args = ['--report=csv', '-q']
 
     "Add standard argument if one is set.
     if exists('g:neomake_php_phpcs_args_standard')
