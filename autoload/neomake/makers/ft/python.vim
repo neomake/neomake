@@ -330,6 +330,7 @@ function! neomake#makers#ft#python#pylama() abort
         \ 'args': ['--format', 'parsable'],
         \ 'errorformat': '%f:%l:%c: [%t] %m',
         \ 'postprocess': function('neomake#makers#ft#python#PylamaEntryProcess'),
+        \ 'output_stream': 'stdout',
         \ }
     " Pylama looks for the config only in the current directory.
     " Therefore we change to where the config likely is.
