@@ -24,14 +24,37 @@ function! neomake#makers#ft#markdown#markdownlint() abort
         \ }
 endfunction
 
+let s:alex_supports_stdin = {}
 function! neomake#makers#ft#markdown#alex() abort
-    return {
+    let maker = {
+        \ 'supports_stdin': 1,
         \ 'errorformat':
         \   '%P%f,'
         \   .'%-Q,'
         \   .'%*[ ]%l:%c-%*\d:%n%*[ ]%tarning%*[ ]%m,'
         \   .'%-G%.%#'
         \ }
+
+    function! maker.supports_stdin(_jobinfo) abort
+        let exe = exists('*exepath') ? exepath(self.exe) : self.exe
+        let support = get(s:alex_supports_stdin, exe, -1)
+        if support == -1
+            let ver = neomake#compat#systemlist(['alex', '--version'])
+            let ver_split = split(ver[0], '\.')
+            if len(ver_split) > 1 && (ver_split[0] > 0 || +ver_split[1] >= 6)
+                let support = 1
+            else
+                let support = 0
+            endif
+            let s:alex_supports_stdin[exe] = support
+            call neomake#log#debug('alex: stdin support: '.support.'.')
+        endif
+        if support
+          let self.args += ['--stdin']
+          let self.tempfile_name = ''
+        endif
+        return support
+    endfunction
 endfunction
 
 function! neomake#makers#ft#markdown#ProcessVale(context) abort
