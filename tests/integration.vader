@@ -971,6 +971,6 @@ Execute (neomake#GetCurrentErrorMsg):
   bwipe!
 
 Execute (Neomake! clippy):
-  call g:NeomakeTestsCreateExe('cargo', ['#!/bin/sh'])
+  call g:NeomakeTestsCreateExe('cargo')
   RunNeomakeProject clippy
   AssertNeomakeMessage 'Running makers: clippy.', 3
