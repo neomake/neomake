@@ -969,3 +969,8 @@ Execute (neomake#GetCurrentErrorMsg):
   normal! l
   AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.2 (0)'
   bwipe!
+
+Execute (Neomake! clippy):
+  call g:NeomakeTestsCreateExe('cargo')
+  RunNeomakeProject clippy
+  AssertNeomakeMessage 'Running makers: clippy.', 3
