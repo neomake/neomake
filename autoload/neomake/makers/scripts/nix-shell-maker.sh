@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 if [ -z $IN_NIX_SHELL ];
 then
-	echo "you are not in a nix-shell"
+	echo "you are not in a nix-shell" >&2
 	exit 1
 fi
 

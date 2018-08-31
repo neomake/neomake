@@ -23,4 +23,3 @@ function! neomake#makers#nix#nix() abort
     \ 'InitForJob': function('Check_build_folder')
     \ }
 endfunc
-
