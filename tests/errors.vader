@@ -121,7 +121,7 @@ Execute (Errors from neomake#GetMaker get handled by neomake#Make):
   CallNeomake 1, ['g:invalid-name']
   AssertNeomakeMessage 'Invalid maker name: "g:invalid-name".', 0
   CallNeomake 0, ['nonexistent']
-  AssertNeomakeMessage 'Maker not found (for empty filetype): nonexistent.', 0
+  AssertNeomakeMessage 'Maker not found (without filetype): nonexistent.', 0
 
 Execute (Error from neomake#GetMaker for non-dict maker):
   new
