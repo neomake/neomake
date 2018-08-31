@@ -1303,7 +1303,11 @@ function! s:Make(options) abort
         unlet options.jobs
     else
         if has_key(options, 'enabled_makers')
-            let makers = neomake#map_makers(options.enabled_makers, file_mode ? options.ft : -1, 0)
+            if file_mode
+                let makers = neomake#map_makers(options.enabled_makers, options.ft, 0)
+            else
+                let makers = neomake#map_makers(options.enabled_makers, -1, 0)
+            endif
             unlet options.enabled_makers
         else
             let makers = call('neomake#GetEnabledMakers', file_mode ? [options.ft] : [])
