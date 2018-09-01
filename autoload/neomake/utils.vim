@@ -312,14 +312,14 @@ function! neomake#utils#redir(cmd) abort
 endfunction
 
 function! neomake#utils#ExpandArgs(args) abort
-    " Expand % in args like when using :!
+    " Expand % in args similar to when using :!
     " \% is ignored
     " \\% is expanded to \\file.ext
     " %% becomes %
     " % must be followed with an expansion keyword
     let ret = map(copy(a:args),
                 \ 'substitute(v:val, '
-                \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtre.]\+\)*\)\ze\)\w\@!'', '
+                \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtreS8.~]\)\+\|\ze\w\@!\)\)'', '
                 \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
                 \ . '''g'')')
     let ret = map(ret, 'substitute(v:val, ''\v^\~\ze%(/|$)'', expand(''~''), ''g'')')
