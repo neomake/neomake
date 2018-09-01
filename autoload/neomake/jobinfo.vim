@@ -59,7 +59,7 @@ function! s:jobinfo_base.cd(...) abort
         endif
         let dir = fnamemodify(dir, ':p')
         " NOTE: need to keep trailing backslash with "/" and "X:\" on Windows.
-        if dir !=# '/' && dir[-1:] ==# neomake#utils#Slash() && dir[-2] !=# ':'
+        if dir !=# '/' && dir[-1:] ==# neomake#utils#Slash() && dir[-2:-2] !=# ':'
             let dir = dir[:-2]
         endif
     else
