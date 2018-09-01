@@ -4,12 +4,7 @@ CDPATH:=
 bash:=$(shell command -v bash 2>/dev/null)
 SHELL:=$(bash) -o pipefail
 
-ifeq ($(origin TEST_SHELL),undefined)
-  ifeq ($(bash),)
-    $(error Could not determine TEST_SHELL (defaults to bash))
-  endif
-  TEST_SHELL:=$(bash)
-endif
+TEST_SHELL:=$(bash)
 ifneq ($(TEST_SHELL),)
   TEST_VIM_PREFIX:=SHELL=$(TEST_SHELL)
 endif
