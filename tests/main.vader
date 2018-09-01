@@ -61,7 +61,7 @@ Include (PHP): ft_php.vader
 Include (Puppet): ft_puppet.vader
 Include (PureScript): ft_purescript.vader
 Include (Python): ft_python.vader
-Include (ReStructuredText): ft_rst.vader
+" Include (ReStructuredText): ft_rst.vader
 Include (Rust): ft_rust.vader
 Include (Shell): ft_sh.vader
 Include (SQL): ft_sql.vader
