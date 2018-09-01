@@ -109,11 +109,12 @@ if exists('+shellslash')
     set shellcmdflag=-c
     set shellxquote=
     " set shellquote=
+
+    " NOTE: this is/was assumed by fugitive's s:winshell, and might be good in
+    " general.  Should be done for one of the builds maybe, e.g. for Vim, but
+    " not Neovim.
+    set shellslash
   endif
-  " NOTE: this is/was assumed by fugitive's s:winshell, and might be good in
-  " general.  Should be done for one of the builds maybe, e.g. for Vim, but
-  " not Neovim.
-  set shellslash
 endif
 
 " Avoid system call and warning.
