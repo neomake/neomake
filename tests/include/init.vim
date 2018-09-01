@@ -121,7 +121,7 @@ function! g:NeomakeTestsCreateExe(name, ...)
   if empty(s:tmpbindir)
     let s:tmpbindir = tempname() . dir_separator . 'neomake-vader-tests'
   endif
-  if $PATH !~# s:tmpbindir . path_separator
+  if stridx($PATH, s:tmpbindir.path_separator) is -1
     if !isdirectory(s:tmpbindir)
       call mkdir(s:tmpbindir, 'p', 0770)
     endif
