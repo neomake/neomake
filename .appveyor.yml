@@ -152,9 +152,9 @@ test_script:
         # & $env:TEST_VIM -Es -c "verb echon '…'" -cq 2>&1 | %{ "$_" }
       }
 
-  - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/test_windows.vader _REDIR_STDOUT=">/dev/null"
+  - cmd: make test TEST_VIM=%TEST_VIM% TEST_SHELL=%TEST_SHELL% VADER_ARGS=tests/test_windows.vader _REDIR_STDOUT=">/dev/null"
 
-  - cmd: make test TEST_VIM=%TEST_VIM% VADER_ARGS=tests/all.vader
+  - cmd: make test TEST_VIM=%TEST_VIM% TEST_SHELL=%TEST_SHELL% VADER_ARGS=tests/all.vader
 
   # - cmd: |
   #     %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader"
