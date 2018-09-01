@@ -59,10 +59,10 @@ Execute (fnamemodify :p: trailing slash on non-root):
   Log getcwd()
   let cwd = fnamemodify(getcwd(), ':p')
   Log cwd
-  if exists('+shellslash')
-    AssertEqual cwd[-1:], '\'
-  else
+  if !exists('+shellslash') || &shellslash
     AssertEqual cwd[-1:], '/'
+  else
+    AssertEqual cwd[-1:], '\'
   endif
   bwipe
 
