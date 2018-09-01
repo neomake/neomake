@@ -141,6 +141,7 @@ function! neomake#compat#systemlist(cmd) abort
         " @vimlint(EVL108, 1)
         if !has('nvim-0.2.0')
             try
+                Log 'systemlist: nvim: using systemlist: '.string(a:cmd)
                 return systemlist(a:cmd)
             catch /^Vim\%((\a\+)\)\=:E902/
                 return ''
@@ -156,8 +157,10 @@ function! neomake#compat#systemlist(cmd) abort
         let cmd = a:cmd
     endif
     if exists('*systemlist')
+        Log 'systemlist: using systemlist: '.string(cmd)
         return systemlist(cmd)
     endif
+    Log 'systemlist: using system: '.string(cmd)
     return split(system(cmd), '\n')
 endfunction
 
