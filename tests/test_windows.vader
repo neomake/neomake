@@ -6,8 +6,65 @@ Execute (shell options):
   Log neomake#utils#redir('verb set shellcmdflag?')
   Log '+shellslash: '.exists('+shellslash')
   if exists('+shellslash')
-    Log '&shellslash: '.neomake#utils#redir('verb set shellslash?')
+    Log '&shellslash: '.&shellslash
+    Log neomake#utils#redir('verb set shellslash?')
   endif
+
+Execute (getcwd: trailing slash on root (cd)):
+  let old_cd = getcwd()
+  let root = fnamemodify('/', ':p')
+  Log 'cd '.root
+  exe 'cd '.root
+  try
+    let cwd = getcwd()
+    if !exists('+shellslash') || &shellslash
+      AssertEqual cwd[-1:], '/'
+    else
+      AssertEqual cwd[-1:], '\'
+    endif
+  finally
+    exe 'cd '.old_cd
+  endtry
+
+Execute (TODO: getcwd: trailing slash on root (lcd)):
+  " https://github.com/vim/vim/issues/3399
+  new
+  let root = fnamemodify('/', ':p')
+  Log 'lcd '.root
+  exe 'lcd '.root
+  let cwd = getcwd()
+  if !exists('+shellslash') || &shellslash
+    AssertEqual cwd[-1:], '/'
+  else
+    AssertEqual cwd[-1:], '\'
+  endif
+  bwipe
+
+Execute (fnamemodify :p: trailing slash on root):
+  new
+  let root = fnamemodify('/', ':p')
+  exe 'lcd '.root
+  let cwd = fnamemodify(getcwd(), ':p')
+  if !exists('+shellslash') || &shellslash
+    AssertEqual cwd[-1:], '/'
+  else
+    AssertEqual cwd[-1:], '\'
+  endif
+  bwipe
+
+Execute (fnamemodify :p: trailing slash on non-root):
+  new
+  Log 'lcd '.fnamemodify(tempname(), ':h')
+  exe 'lcd '.fnamemodify(tempname(), ':h')
+  Log getcwd()
+  let cwd = fnamemodify(getcwd(), ':p')
+  Log cwd
+  if exists('+shellslash')
+    AssertEqual cwd[-1:], '\'
+  else
+    AssertEqual cwd[-1:], '/'
+  endif
+  bwipe
 
 Execute (printf 1):
   let maker = {'exe': 'printf', 'args': ['1']}
