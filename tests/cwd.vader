@@ -26,13 +26,17 @@ Execute (neomake#Make handles invalid cwd (serialized)):
   \ nonexisting_dir, nonexisting_dir), 0
 
 Execute (cwd gets compared with trailing slash removed):
+  new
+  " NOTE: use tempdir to ensure this works with tests running on X:\ on Windows.
+  let tmpdir = tempname()
+  call mkdir(tmpdir)
+  exe 'lcd '.fnamemodify(tmpdir, ':h')
   let cwd = getcwd()
   let maker1 = {'name': 'maker1', 'exe': 'true', 'cwd': cwd.'/', 'append_file': 0}
   let maker2 = {'name': 'maker2', 'exe': 'true', 'cwd': cwd, 'append_file': 0}
 
-  new
   call neomake#Make(1, [maker1])
-  lcd build
+  exe 'lcd '.tmpdir
   call neomake#Make(1, [maker2])
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'cwd: '.cwd.'.'
