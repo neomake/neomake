@@ -72,7 +72,7 @@ Execute (neomake#CancelJobs! removes canceled jobs):
     NeomakeCancelJobs!
     AssertNeomakeMessage 'Cancelling 2 jobs.', 3
     AssertNeomakeMessage 'Job was canceled already.', 2, jobinfos[0]
-    AssertNeomakeMessage '\v^Stopping job: .+\.$', 3, jobinfos[1]
+    AssertNeomakeMessage '\v^Stopping job: .+\.$', 3, jobinfos[1], {'ignore_order': 1}
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfos[1]
 
     NeomakeTestsWaitForMessage '\m^exit: job not found'
