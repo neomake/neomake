@@ -129,12 +129,9 @@ function! g:NeomakeTestsCreateExe(name, ...)
   endif
   let exe = s:tmpbindir.dir_separator.a:name
   if neomake#utils#IsRunningWindows()
-    if empty(fnamemodify(exe, ':e'))
-      " Windows needs an extension, therefore we're creating a wrapper script
-      " to call the actual script (via "sh").
-      let wrapper_cmd = exe . '.cmd'
-      call writefile(['@echo off', 'sh '.exe], wrapper_cmd)
-    endif
+    " Windows needs an extension.
+    let exe .= '.CMD'
+    let lines = ['@echo off'] + lines
   endif
   call writefile(lines, exe)
   if exists('*setfperm')
@@ -144,9 +141,6 @@ function! g:NeomakeTestsCreateExe(name, ...)
     " XXX: Windows support?!
     call system('/bin/chmod 770 '.shellescape(exe))
     Assert !v:shell_error, 'Got shell_error with chmod: '.v:shell_error
-  endif
-  if exists('wrapper_cmd')
-    return wrapper_cmd
   endif
   return exe
 endfunction
