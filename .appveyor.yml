@@ -11,8 +11,19 @@ environment:
   PYTHON: "C:\\Python36-x64\\python"
 
   matrix:
+    # Default shell.
     - CONFIGURATION: "VIM"
+      TEST_SHELL: ""
     - CONFIGURATION: "NEOVIM"
+      TEST_SHELL: ""
+
+    # Bash as shell.
+    - CONFIGURATION: "VIM"
+      TEST_SHELL: "C:/msys64/usr/bin/bash"
+      SHELL: "C:/msys64/usr/bin/bash"
+    - CONFIGURATION: "NEOVIM"
+      TEST_SHELL: "C:/msys64/usr/bin/bash"
+      SHELL: "C:/msys64/usr/bin/bash"
 
 # Cache the vim and vader directories between builds.
 # cache:
@@ -42,7 +53,6 @@ install:
           [IO.Compression.ZipFile]::ExtractToDirectory('C:\rt.zip', 'C:\vim')
         }
         $env:TEST_VIM = 'C:/vim/vim/vim81/vim.exe'
-        $env:TEST_SHELL = ''
       }
   # Install Neovim
   - ps: >-
@@ -55,7 +65,6 @@ install:
           [IO.Compression.ZipFile]::ExtractToDirectory('C:\neovim.zip', 'C:\neovim')
         }
         $env:TEST_VIM = 'C:/neovim/Neovim/bin/nvim.exe'
-        $env:TEST_SHELL = 'C:/msys64/usr/bin/bash'
       }
   # Install Neovim-dev
   - ps: >-
@@ -130,7 +139,7 @@ test_script:
         Write-Host "Vim: test writing to stderr (verbose echon, 2)"
         & $env:TEST_VIM -Es -c 'verbose echon 12' -c 'verbose echon "3".nr2char(10)' -c 'verbose echon "4".nr2char(13).nr2char(10)' -c 'verbose echon "5"' -cq 2>&1 | %{ "$_" }
 
-        Write-Host "Vim: ellipsis"
+        # Write-Host "Vim: ellipsis"
         # Error detected while processing command line:
         # E15: Invalid expression: à
         # E15: Invalid expression: à
@@ -148,16 +157,17 @@ test_script:
         # ΓÇª
         & $env:TEST_VIM --headless -c "call chansend(v:stderr, '…')" -cq 2>&1 | %{ "$_" }
 
-        Write-Host "Neovim: ellipsis 2"
+        # Write-Host "Neovim: ellipsis 2"
         # & $env:TEST_VIM -Es -c "verb echon '…'" -cq 2>&1 | %{ "$_" }
       }
+
+  # Avoid Makefile.
+  - cmd: %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader" >NUL
 
   - cmd: make test TEST_VIM=%TEST_VIM% TEST_SHELL=%TEST_SHELL% VADER_ARGS=tests/test_windows.vader _REDIR_STDOUT=">/dev/null"
 
   - cmd: make test TEST_VIM=%TEST_VIM% TEST_SHELL=%TEST_SHELL% VADER_ARGS=tests/all.vader
 
-  # - cmd: |
-  #     %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader"
 
   # - ps: |
   #     Write-Host "test_windows 1: direct (-Es)"
