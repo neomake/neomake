@@ -303,7 +303,7 @@ Execute (Warns when removal of tempfiles fails):
     let tempfile_name = g:neomake_test_matchlist[1]
     call delete(tempfile_name)
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage printf('Failed to remove temporary file: "%s".', tempfile_name), 1
+    AssertNeomakeMessage printf('Failed to remove temporary file: "%s" (-1).', tempfile_name), 1
     bwipe
   else
     NeomakeTestsSkip 'no async support.'
