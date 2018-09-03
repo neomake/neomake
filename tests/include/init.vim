@@ -521,11 +521,11 @@ function! s:After()
 
     " Ensure that make_info gets emptied.
     let neomake_status = neomake#GetStatus()
-    Log 'status: '.string(status)
+    Log 'neomake_status: '.string(neomake_status)
     let make_info = neomake_status.make_info
     if !empty(make_info)
-        call add(errors, 'CancelAllMakes did not clean make_info: %s.', make_info)
-        let make_info = {}
+        call add(errors, printf('CancelAllMakes did not clean make_info: %s.', make_info))
+        let neomake_status.make_info = {}
     endif
   endif
   let actions = filter(copy(status.action_queue), '!empty(v:val)')
