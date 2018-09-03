@@ -210,8 +210,8 @@ Execute (get_list_entries: filename with cwd (non-existing file)):
   endfunction
 
   " uses unlisted buffer if file does not exist
-  call neomake#Make(1, [maker])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage "\\VCould not change to job's cwd (%:p:h): Vim(cd):E344:", 3
   AssertEqualQf getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': bufnr + 1,
@@ -230,8 +230,7 @@ Execute (get_list_entries: filename with cwd (non-existing file)):
   " uses unlisted buffer if file does not exist (cwd matches)
   let orig_cwd = getcwd()
   exe 'lcd' tempdir
-  call neomake#Make(1, [maker])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [maker]
 
   if has('patch-7.4.2017')
     let expected_bufnr = unlisted_bufnr
