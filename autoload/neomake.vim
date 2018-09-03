@@ -141,6 +141,7 @@ function! neomake#CancelMake(make_id, ...) abort
     endif
     let make_info = s:make_info[a:make_id]
     let make_info.canceled = 1
+    let make_info.make_id = a:make_id  " for logging.
     call neomake#log#debug('Cancelling make.', make_info)
     let bang = a:0 ? a:1 : 0
     let jobs = filter(copy(values(s:jobs)), 'v:val.make_id == a:make_id')
