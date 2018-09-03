@@ -145,6 +145,9 @@ function! g:NeomakeTestsCreateExe(name, ...)
     call system('/bin/chmod 770 '.shellescape(exe))
     Assert !v:shell_error, 'Got shell_error with chmod: '.v:shell_error
   endif
+  if exists('wrapper_cmd')
+    return wrapper_cmd
+  endif
   return exe
 endfunction
 
