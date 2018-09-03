@@ -71,68 +71,17 @@ Execute (TODO: fnamemodify :p: trailing slash on non-root):
   endif
   bwipe
 
-Execute (printf 1):
-  let maker = {'exe': 'printf', 'args': ['1']}
-  CallNeomake 0, [maker]
-  AssertEqual map(getqflist(), 'v:val.text'), ['1']
-
-" Execute (g:NeomakeTestsCreateExe):
-"   let exe = g:NeomakeTestsCreateExe('foo', ['#!/bin/sh', 'printf 1'])
-"   Log 'exe: '.exe
-"   let exe_path = exepath('foo')
-"   Log exe_path
-"   AssertEqual system(exe), "1"
-"   Assert len(exe_path)
-"
-" Execute (g:NeomakeTestsCreateExe: cmd):
-"   let exe = g:NeomakeTestsCreateExe('foo.cmd', ['#!/bin/sh', 'printf 1'])
-"   Log 'exe: '.exe
-"   let exe_path = exepath('foo')
-"   Log exe_path
-"   let exe_path = exepath('foo.cmd')
-"   Log exe_path
-"   AssertEqual system(exe), "1"
-"   Assert len(exe_path)
-
 Execute (g:NeomakeTestsCreateExe):
-  let exe = g:NeomakeTestsCreateExe('foo', ['printf 1'])
-  AssertEqual system(exe), "1"
-  if neomake#utils#IsRunningWindows()
-    " Creates a wrapper .cmd script.
-    Log exepath('foo')
-    Log exepath('foo.cmd')
-    Assert !empty(exepath('foo.cmd'))
-  endif
-  Log $PATH
-  Log executable('foo')
-  Assert !empty(exepath('foo'))
-
-Execute (g:NeomakeTestsCreateExe: sh):
-  let exe = g:NeomakeTestsCreateExe('foo.sh', ['#!/bin/sh', 'printf 1'])
+  let exe = g:NeomakeTestsCreateExe('foo', ['echo 1'])
   Log 'exe: '.exe
   let exe_path = exepath('foo')
   Log exe_path
-  let exe_path = exepath('foo.sh')
-  Log exe_path
-  AssertEqual system(exe), "1"
   Assert len(exe_path)
-
-Execute (g:NeomakeTestsCreateExe: win cmd):
-  if neomake#utils#IsRunningWindows()
-    let exe = g:NeomakeTestsCreateExe('foo.cmd', ['@echo off', 'echo 1'])
-    AssertEqual fnamemodify(exepath('foo.CMD'), ':t'), 'foo.CMD'
-    if has('nvim')
-      " With &shell == 'cmd.exe' at least.
-      AssertEqual fnamemodify(exepath('foo'), ':t'), 'foo'
-    else
-      AssertEqual fnamemodify(exepath('foo'), ':t'), 'foo.CMD'
-    endif
-    AssertEqual fnamemodify(exepath('foo.cmd'), ':t'), 'foo.cmd'
-  else
-    let exe = g:NeomakeTestsCreateExe('foo.cmd', ['echo 1'])
-    AssertEqual fnamemodify(exepath('foo.cmd'), ':t'), 'foo.cmd'
-  endif
   AssertEqual system(exe), "1\n"
+  if neomake#utils#IsRunningWindows()
+    " Creates a wrapper .cmd script.
+    Assert !empty(exepath('foo.cmd'))
+  endif
 
 Execute (escaping):
   function! s:run_cmd(cmd)
@@ -202,19 +151,21 @@ Execute (escaping):
     return [our, err]
   endfunction
 
-  AssertEqual s:run_cmd('bash -c "printf 1"'), ['1', '', 0]
-  AssertEqual s:run_cmd('bash -c "echo 1; echo 2"'), ["1\n2\n", '', 0]
+  if executable('bash')
+    AssertEqual s:run_cmd('bash -c "printf 1"'), ['1', '', 0]
+    AssertEqual s:run_cmd('bash -c "echo 1; echo 2"'), ["1\n2\n", '', 0]
 
-  AssertEqual s:run_cmd('bash -c "printf ''%s'' 1 2"'), ['12', '', 0]
+    AssertEqual s:run_cmd('bash -c "printf ''%s'' 1 2"'), ['12', '', 0]
 
-  if has('nvim')
-    AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\n2\n", '', 0]
-    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
-  else
-    " XXX
-    AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
-    " XXX
-    AssertEqual s:run_cmd(['bash', '-c', 'printf "%s\n" 1 2']), ["1\n2\n", '', 0]
+    if has('nvim')
+      AssertEqual s:run_cmd(['bash', '-c', "printf '%s\n' 1 2"]), ["1\n2\n", '', 0]
+      AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
+    else
+      " XXX
+      AssertEqual s:run_cmd('bash -c "printf ''%s\n'' 1 2"'), ["1\n2\n", '', 0]
+      " XXX
+      AssertEqual s:run_cmd(['bash', '-c', 'printf "%s\n" 1 2']), ["1\n2\n", '', 0]
+    endif
   endif
 
   if neomake#utils#IsRunningWindows()
@@ -292,43 +243,12 @@ Execute (NeomakeTestsCommandMaker with semicolons):
   endif
   bwipe
 
-Execute (Warns when removal of tempfiles fails):
-  if neomake#has_async_support()
-    Log neomake#utils#redir('au User NeomakeFinished')
-    Log neomake#utils#redir('au User')
-    new
-    let maker = {'exe': 'true'}
-    call neomake#Make(1, [maker])
-    AssertNeomakeMessage '\v^Using tempfile for unnamed buffer: "(.*)"', 3
-    let tempfile_name = g:neomake_test_matchlist[1]
-    call delete(tempfile_name)
-    NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage printf('Failed to remove temporary file: "%s" (-1).', tempfile_name), 1
-    bwipe
-  else
-    NeomakeTestsSkip 'no async support.'
-  endif
-
 Execute (filewritable/mkdir):
   let tmpdir = tempname()
   call mkdir(tmpdir, 'p', 0550)
   Log 'filewritable 1: '.filewritable(tmpdir)
   call setfperm(tmpdir, 'r--r-----')
   Log 'filewritable 2: '.filewritable(tmpdir)
-
-" Execute (globpath: extended globbing):
-"   " Does not work on Windows.
-"   new
-"   let tmpdir = tempname()
-"   call mkdir(tmpdir)
-"   exe 'lcd '.tmpdir
-"   call writefile([], 'foo')
-"   call writefile([], 'foo-2')
-"
-"   AssertEqual split(globpath('.', 'foo*'), "\n"), ['./foo', './foo-2']
-"   AssertEqual split(globpath('.', '*-2'), "\n"), ['./foo-2']
-"   AssertEqual split(globpath('.', 'foo{,-2}'), "\n"), ['./foo', './foo-2']
-"   bwipe
 
 Execute (delete: tempname):
   let file = tempname()
