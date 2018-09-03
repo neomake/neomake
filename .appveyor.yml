@@ -7,12 +7,12 @@ branches:
     - master
 skip_branch_with_pr: true
 
-configuration:
-  - VIM
-  - NEOVIM
-
 environment:
   PYTHON: "C:\\Python36-x64\\python"
+
+  matrix:
+    - CONFIGURATION: "VIM"
+    - CONFIGURATION: "NEOVIM"
 
 # Cache the vim and vader directories between builds.
 # cache:
