@@ -2,7 +2,7 @@ Include: include/setup.vader
 
 Execute (filter_output can filter messages on stderr):
   let maker = NeomakeTestsCommandMaker('stderr_and_stdout',
-  \ 'echo stderr >&2; echo stdout; echo stderr2 >&2')
+  \ 'echo stderr>&2; echo stdout; echo stderr2>&2')
 
   CallNeomake 0, [maker]
   AssertEqual sort(map(getqflist(), 'v:val.text')), ['stderr', 'stderr2', 'stdout']
@@ -18,7 +18,7 @@ Execute (filter_output can filter messages on stderr):
 
 Execute (filter_output can be set for a buffer):
   let maker = NeomakeTestsCommandMaker('stderr_and_stdout',
-  \ 'echo stderr >&2; echo stdout; echo stderr2 >&2')
+  \ 'echo stderr>&2; echo stdout; echo stderr2>&2')
   function! maker.filter_output(lines, context)
     Assert 0, 'should not get called'
   endfunction
@@ -42,7 +42,7 @@ Execute (filter_output can be set for a buffer):
 
 Execute (filter_output can be used to filter unexpected output):
   let maker = NeomakeTestsCommandMaker('stderr_and_stdout',
-  \ 'echo stderr >&2; echo stdout; echo stderr2 >&2')
+  \ 'echo stderr>&2; echo stdout; echo stderr2>&2')
   let maker.output_stream = 'stdout'
 
   CallNeomake 0, [maker]
