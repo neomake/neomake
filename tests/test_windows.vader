@@ -324,3 +324,25 @@ Execute (filewritable/mkdir):
 "   AssertEqual split(globpath('.', '*-2'), "\n"), ['./foo-2']
 "   AssertEqual split(globpath('.', 'foo{,-2}'), "\n"), ['./foo', './foo-2']
 "   bwipe
+
+Execute (delete: tempname):
+  let file = tempname()
+  Log file
+  call writefile([], file)
+  AssertEqual delete(file), 0
+
+Execute (delete: file in tempname: neomaketmp.):
+  let dir = tempname()
+  call mkdir(dir)
+  let file = dir . neomake#utils#Slash() . 'neomaketmp.'
+  Log file
+  call writefile([], file)
+  AssertEqual delete(file), 0
+
+Execute (delete: file in tempname: foo):
+  let dir = tempname()
+  call mkdir(dir)
+  let file = dir . neomake#utils#Slash() . 'foo'
+  Log file
+  call writefile([], file)
+  AssertEqual delete(file), 0
