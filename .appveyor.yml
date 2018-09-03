@@ -160,6 +160,7 @@ test_script:
         # Write-Host "Neovim: ellipsis 2"
         # & $env:TEST_VIM -Es -c "verb echon '…'" -cq 2>&1 | %{ "$_" }
       }
+      Write-Host "done"
 
   # Avoid Makefile.
   - cmd: |
