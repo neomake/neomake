@@ -122,7 +122,7 @@ Execute (cwd handles fugitive buffer):
   let expected_cwd = fnamemodify(bufname('%'), ':p:h')
   let orig_abs_bufname = expand('%:p')
   Gedit
-  Assert bufname('%') =~# '^fugitive://', 'Unexpected bufname: '.bufname('%')
+  Assert bufname('%') =~# '^fugitive:', 'Unexpected bufname: '.bufname('%')
 
   let b:neomake_tempfile_enabled = 1
   call neomake#Make(1, [maker])
