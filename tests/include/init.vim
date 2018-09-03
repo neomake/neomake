@@ -359,7 +359,15 @@ let g:sleep_efm_maker = {
     \ 'errorformat': '%f:%l:%t:%m',
     \ 'append_file': 0,
     \ }
-let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05; echo slept')
+
+" sleep-maker: sleep for a minimal time and echo "slept".
+if neomake#utils#IsRunningWindows()
+  let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'timeout 1 && echo slept')
+else
+  let g:sleep_maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05; echo slept')
+endif
+lockvar g:sleep_maker
+
 let g:error_maker = NeomakeTestsCommandMaker('error-maker', 'echo error; false')
 let g:error_maker.errorformat = '%E%m'
 function! g:error_maker.postprocess(entry) abort
@@ -369,12 +377,23 @@ endfunction
 let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
 let g:success_maker.errorformat = '%-Gsuccess'
 let g:true_maker = NeomakeTestsCommandMaker('true-maker', 'true')
+lockvar g:true_maker
 let g:entry_maker = {'name': 'entry_maker'}
 function! g:entry_maker.get_list_entries(...) abort
   return get(g:, 'neomake_test_getlistentries', [
   \   {'text': 'error', 'lnum': 1, 'type': 'E'}])
 endfunction
 let g:doesnotexist_maker = {'exe': 'doesnotexist'}
+
+" A maker to print the current working directory and its args.
+if neomake#utils#IsRunningWindows()
+  let g:pwd_maker = NeomakeTestsCommandMaker('pwd', 'echo %%CD%%&& echo')
+else
+  let g:pwd_maker = NeomakeTestsCommandMaker('pwd', 'pwd && ls')
+endif
+let g:pwd_maker.errorformat = '%m'
+let g:pwd_maker.append_file = 1
+lockvar g:pwd_maker
 
 " A maker that generates incrementing errors.
 let g:neomake_test_inc_maker_counter = 0
