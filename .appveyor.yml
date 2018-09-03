@@ -145,7 +145,7 @@ test_script:
         # E15: Invalid expression: à
         # & $env:TEST_VIM --noplugin -Nu tests/vim/vimrc -i NONE -Es -c 'verb echon "…"' -cq 2>&1 | %{ "$_" }
 
-        $env:TEST_VIM_ARGS = "-X -s /dev/null -Es -Nu tests/vim/vimrc"
+        $env:TEST_VIM_ARGS = "-X --not-a-term -Es -Nu tests/vim/vimrc"
       } elseif ($env:CONFIGURATION -eq 'NEOVIM') {
         Write-Host "Neovim: write to stderr (chansend)"
         & $env:TEST_VIM --headless -c "call chansend(v:stderr, 'foo')" -cq 2>&1 | %{ "$_" }
