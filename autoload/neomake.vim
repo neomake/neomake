@@ -1712,12 +1712,13 @@ function! s:do_clean_make_info(make_info) abort
     let tempfiles = get(a:make_info, 'tempfiles')
     if !empty(tempfiles)
         for tempfile in tempfiles
-            if delete(tempfile) == 0
+            let delete_ret = delete(tempfile)
+            if delete_ret == 0
                 call neomake#log#debug(printf('Removing temporary file: "%s".',
                             \ tempfile))
             else
-                call neomake#log#warning(printf('Failed to remove temporary file: "%s".',
-                            \ tempfile))
+                call neomake#log#warning(printf('Failed to remove temporary file: "%s" (%d).',
+                            \ tempfile, delete_ret))
             endif
             let bufnr_tempfile = bufnr(tempfile)
             if bufnr_tempfile != -1 && !buflisted(bufnr_tempfile)
