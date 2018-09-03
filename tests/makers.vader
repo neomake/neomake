@@ -649,6 +649,9 @@ Execute (Makers: process_json with non-list return value):
   AssertEqual len(g:neomake_test_finished), 1
 
 Execute (Makers: get_list_entries with sandbox exception):
+  " TODO: flaky on Vim/windows (8.1.1).
+  " Could use NeomakeTestsWaitForMessage, but would like to reproduce this.
+  " Ref: https://ci.appveyor.com/project/blueyed/neomake/build/1.0.277/job/1amdc6kodv8ju6to?fullLog=true#L2094
   call neomake#statusline#ResetCounts()
   call g:NeomakeSetupAutocmdWrappers()
 
