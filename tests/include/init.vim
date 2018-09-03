@@ -513,6 +513,7 @@ function! s:After()
   if !empty(make_info)
     call add(errors, 'make_info is not empty: '.string(make_info))
     try
+      Log 'cancelling all makes'
       call neomake#CancelAllMakes(1)
     catch
       call add(errors, 'Error during CancelAllMakes: '.v:exception)
@@ -520,6 +521,7 @@ function! s:After()
 
     " Ensure that make_info gets emptied.
     let neomake_status = neomake#GetStatus()
+    Log 'status: '.string(status)
     let make_info = neomake_status.make_info
     if !empty(make_info)
         call add(errors, 'CancelAllMakes did not clean make_info: %s.', make_info)
