@@ -166,14 +166,17 @@ test_script:
       }
       Write-Host "done"
 
+  # Use test_windows as smoke test.
   # Avoid Makefile.
   - cmd: |
       %TEST_VIM% %TEST_VIM_ARGS% "+Vader! tests/test_windows.vader" >NUL
-  - cmd: |
-      %TEST_VIM% %TEST_VIM_ARGS% "+Vader! tests/all.vader"
+  - cmd: make test TEST_VIM=%TEST_VIM% TEST_SHELL=%TEST_SHELL% VADER_ARGS=tests/test_windows.vader _REDIR_STDOUT=">/dev/null"
 
-  # - cmd: make test TEST_VIM=%TEST_VIM% TEST_SHELL=%TEST_SHELL% VADER_ARGS=tests/test_windows.vader _REDIR_STDOUT=">/dev/null"
-  # - cmd: make test TEST_VIM=%TEST_VIM% TEST_SHELL=%TEST_SHELL% VADER_ARGS=tests/all.vader
+  # XXX: hangs without any output on Vim.
+  # - cmd: |
+  #     %TEST_VIM% %TEST_VIM_ARGS% "+Vader! tests/all.vader"
+  - cmd: make test TEST_VIM=%TEST_VIM% TEST_SHELL=%TEST_SHELL% VADER_ARGS=tests/all.vader
+
 
 
   # - ps: |
