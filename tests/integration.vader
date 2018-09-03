@@ -113,7 +113,12 @@ Execute (Neomake picks up custom maker correctly):
 
   Neomake lint
   if neomake#has_async_support()
-    AssertNeomakeMessage printf("Starting async job: echo %s --foo bar.", fname)
+    if neomake#utils#IsRunningWindows()
+      let shell_argv = join(split(&hell) + split(&shellcmdflag))
+      AssertNeomakeMessage printf('Starting async job [string]: %s echo %s --foo bar.', shell_argv, fname)
+    else
+      AssertNeomakeMessage printf("Starting async job: echo %s --foo bar.", fname)
+    endif
     NeomakeTestsWaitForFinishedJobs
   else
     AssertNeomakeMessage printf('Starting [string]: echo %s --foo bar.', fname)
