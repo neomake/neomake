@@ -162,7 +162,8 @@ test_script:
       }
 
   # Avoid Makefile.
-  - cmd: %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader" >NUL
+  - cmd: |
+      %TEST_VIM% -Es -Nu tests/vim/vimrc "+Vader! tests/test_windows.vader" >NUL
 
   - cmd: make test TEST_VIM=%TEST_VIM% TEST_SHELL=%TEST_SHELL% VADER_ARGS=tests/test_windows.vader _REDIR_STDOUT=">/dev/null"
 
