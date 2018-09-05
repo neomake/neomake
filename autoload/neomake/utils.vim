@@ -338,21 +338,23 @@ else
 endif
 
 function! s:handle_hook(jobinfo, event, context) abort
+    let context_str = string(map(copy(a:context),
+                \ "v:key ==# 'jobinfo' ? v:val.as_string()"
+                \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
+
     if exists('g:neomake_hook_context')
+        call neomake#log#debug(printf('Queueing User autocmd %s for nested invocation (%s).', a:event, context_str))
         return neomake#action_queue#add(
                     \ ['Timer', 'BufEnter', 'WinEnter', 'InsertLeave', 'CursorHold', 'CursorHoldI'],
                     \ [s:function('s:handle_hook'), [a:jobinfo, a:event, a:context]])
     endif
 
-    let context_str = string(map(copy(a:context),
-                \ "v:key ==# 'jobinfo' ? '…'"
-                \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
-    let args = [printf('Calling User autocmd %s with context: %s.',
+    let log_args = [printf('Calling User autocmd %s with context: %s.',
                 \ a:event, context_str)]
     if !empty(a:jobinfo)
-        let args += [a:jobinfo]
+        let log_args += [a:jobinfo]
     endif
-    call call('neomake#log#info', args)
+    call call('neomake#log#info', log_args)
 
     unlockvar g:neomake_hook_context
     let g:neomake_hook_context = a:context

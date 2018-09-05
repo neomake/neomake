@@ -8,6 +8,7 @@ let s:action_queue_timer_timeouts = get(g:, 'neomake_action_queue_timeouts', {1:
 
 let g:neomake#action_queue#processed = {}
 let g:neomake#action_queue#not_processed = {}
+let g:neomake#action_queue#any_event = []
 
 let g:neomake#action_queue#_s = s:
 
@@ -88,7 +89,7 @@ function! neomake#action_queue#clean(job_or_make_info) abort
     call filter(s:action_queue, 'v:val[1][1][0] != a:job_or_make_info')
     let removed = len_before - len(s:action_queue)
     if removed
-        call s:clean_action_queue_augroup()
+        call s:clean_action_queue_events()
         call neomake#log#debug(printf(
                     \ 'Removed %d action queue entries.',
                     \ removed), a:job_or_make_info)
@@ -107,7 +108,7 @@ function! s:process_action_queue(event) abort
     let q_for_this_event = []
     let i = 0
     for [events, v] in queue
-        if index(events, a:event) != -1
+        if index(events, a:event) != -1 || events is# g:neomake#action_queue#any_event
             call add(q_for_this_event, [i, v])
         endif
         let i += 1
@@ -161,7 +162,7 @@ function! s:process_action_queue(event) abort
     call neomake#log#debug(printf('action queue: processed %d items.',
                 \ len(processed)), {'bufnr': bufnr('%')})
 
-    call s:clean_action_queue_augroup()
+    call s:clean_action_queue_events()
 endfunction
 
 if has('timers')
@@ -202,15 +203,14 @@ function! neomake#action_queue#get_queued_actions(jobinfo) abort
     return queued_actions
 endfunction
 
-function! s:clean_action_queue_augroup() abort
-    if empty(s:action_queue_registered_events)
-        return
-    endif
+function! s:clean_action_queue_events() abort
     let left_events = s:get_left_events()
 
     if empty(left_events)
-        autocmd! neomake_event_queue
-        augroup! neomake_event_queue
+        if exists('#neomake_event_queue')
+            autocmd! neomake_event_queue
+            augroup! neomake_event_queue
+        endif
     else
         let clean_events = []
         for event in s:action_queue_registered_events
@@ -229,4 +229,11 @@ function! s:clean_action_queue_augroup() abort
         endif
     endif
     let s:action_queue_registered_events = left_events
+
+    if index(left_events, 'Timer') == -1
+        if exists('s:action_queue_timer')
+            call timer_stop(s:action_queue_timer)
+            unlet s:action_queue_timer
+        endif
+    endif
 endfunction
