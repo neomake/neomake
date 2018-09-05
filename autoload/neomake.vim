@@ -1404,7 +1404,6 @@ function! s:CleanJobinfo(jobinfo, ...) abort
         return
     endif
     let make_info = s:make_info[a:jobinfo.make_id]
-    call filter(make_info.active_jobs, 'v:val != a:jobinfo')
 
     if has_key(s:jobs, get(a:jobinfo, 'id', -1))
         call remove(s:jobs, a:jobinfo.id)
@@ -1431,6 +1430,8 @@ function! s:CleanJobinfo(jobinfo, ...) abort
         call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
     endif
 
+    call filter(make_info.active_jobs, 'v:val != a:jobinfo')
+
     " Trigger cleanup (and autocommands) if all jobs have finished.
     if empty(make_info.active_jobs) && empty(make_info.jobs_queue)
         call s:clean_make_info(make_info)
@@ -1443,29 +1444,32 @@ function! s:clean_make_info(make_info, ...) abort
     let bang = a:0 ? a:1 : 0
     if !bang && !empty(a:make_info.active_jobs)
         call neomake#log#debug(printf(
-                    \ 'Skipping cleaning of make info: %d active jobs.',
-                    \ len(a:make_info.active_jobs)), a:make_info.options)
+                    \ 'Skipping cleaning of make info: %d active jobs: %s.',
+                    \ len(a:make_info.active_jobs),
+                    \ string(map(copy(a:make_info.active_jobs), 'v:val.as_string()'))),
+                    \ a:make_info.options)
         return
     endif
 
-    " Assert: there should be no queued actions for jobs or makes.
-    if s:is_testing
-        let queued = []
-        for [_, v] in g:neomake#action_queue#_s.action_queue
-            if has_key(v[1][0], 'make_id')
-                let jobinfo = v[1][0]
-                if jobinfo.make_id == make_id && v[0] !=# 's:CleanJobinfo'
-                    let queued += ['job '.jobinfo.id]
-                endif
-            else
-                if v[1][0] == a:make_info
-                    let queued += ['make '.make_id]
-                endif
+    " Queue cleanup in case of queued actions, e.g. NeomakeJobFinished hook.
+    let queued = []
+    for [_, v] in g:neomake#action_queue#_s.action_queue
+        if has_key(v[1][0], 'make_id')
+            let jobinfo = v[1][0]
+            if jobinfo.make_id == make_id
+                let queued += ['job '.jobinfo.id]
             endif
-        endfor
-        if !empty(queued)
-            throw 'action queue is not empty: '.string(queued)
+        else
+            if v[1][0] == a:make_info
+                let queued += ['make '.make_id]
+            endif
         endif
+    endfor
+    if !empty(queued)
+        call neomake#log#debug(printf('Queueing clean_make_info for already queued actions: %s', string(queued)))
+        return neomake#action_queue#add(
+                    \ g:neomake#action_queue#any_event,
+                    \ [s:function('s:clean_make_info'), [a:make_info]])
     endif
 
     if exists('*neomake#statusline#make_finished')
@@ -1493,6 +1497,7 @@ function! s:clean_make_info(make_info, ...) abort
     else
         call s:do_clean_make_info(a:make_info)
     endif
+    return g:neomake#action_queue#processed
 endfunction
 
 function! s:do_clean_make_info(make_info) abort

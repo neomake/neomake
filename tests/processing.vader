@@ -368,16 +368,16 @@ Execute (Sleep in postprocess gets handled correctly):
     AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
     if !has('nvim-0.2.0')
       AssertNeomakeMessage 'exit (delayed): unnamed_maker: 0.', 3, jobinfo
-      AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'jobinfo': '…', 'reset': 0}."
+      AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context:', 2
     endif
 
     AssertNeomakeMessage "stdout: unnamed_maker: ['out-22', ''].", 3, jobinfo
     AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
-    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'jobinfo': '…', 'reset': 0}."
+    AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context:', 2
 
     AssertNeomakeMessage "stdout: unnamed_maker: ['out-333', ''].", 3, jobinfo
     AssertNeomakeMessage 'unnamed_maker: processing 1 lines of output.', 3, jobinfo
-    AssertNeomakeMessage "Calling User autocmd NeomakeCountsChanged with context: {'jobinfo': '…', 'reset': 0}."
+    AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context:', 2
 
     if !has('nvim-0.2.0')
       AssertNeomakeMessage 'Trigger delayed exit.', 3, jobinfo
@@ -676,7 +676,7 @@ Execute (get_list_entries: delayed for location list (but in current context)):
   3wincmd w
   AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
   AssertNeomakeMessage 'Cleaning jobinfo.'
-  AssertNeomakeMessage "Calling User autocmd NeomakeJobFinished with context: {'jobinfo': '…'}.", 2
+  AssertNeomakeMessage '\VCalling User autocmd NeomakeJobFinished with context:', 2
 
   AssertEqual winnr(), 2
   AssertEqual map(getloclist(3), '[v:val.bufnr, v:val.text, v:val.type]'), [
