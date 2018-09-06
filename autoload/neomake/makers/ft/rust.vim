@@ -37,6 +37,8 @@ function! neomake#makers#ft#rust#cargo() abort
     return maker
 endfunction
 
+" NOTE: does not use process_json, since cargo outputs multiple JSON root
+" elements per line.
 function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
     let errors = []
     for line in a:context['output']
@@ -64,6 +66,13 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
         endif
 
         let span = data.spans[0]
+        for candidate_span in data.spans
+            if candidate_span.is_primary
+                let span = candidate_span
+                break
+            endif
+        endfor
+
         let expanded = 0
         let has_expansion = type(span.expansion) == type({})
                     \ && type(span.expansion.span) == type({})
