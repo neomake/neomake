@@ -326,44 +326,64 @@ function! neomake#utils#ExpandArgs(args) abort
     return ret
 endfunction
 
+if has('patch-7.3.1058')
+    function! s:function(name) abort
+        return function(a:name)
+    endfunction
+else
+    " Older Vim does not handle s: function references across files.
+    function! s:function(name) abort
+      return function(substitute(a:name,'^s:',matchstr(expand('<sfile>'), '.*\zs<SNR>\d\+_'),''))
+    endfunction
+endif
+
+function! s:handle_hook(jobinfo, event, context) abort
+    let context_str = string(map(copy(a:context),
+                \ "v:key ==# 'jobinfo' ? v:val.as_string()"
+                \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
+
+    if exists('g:neomake_hook_context')
+        call neomake#log#debug(printf('Queueing User autocmd %s for nested invocation (%s).', a:event, context_str))
+        return neomake#action_queue#add(
+                    \ ['Timer', 'BufEnter', 'WinEnter', 'InsertLeave', 'CursorHold', 'CursorHoldI'],
+                    \ [s:function('s:handle_hook'), [a:jobinfo, a:event, a:context]])
+    endif
+
+    let log_args = [printf('Calling User autocmd %s with context: %s.',
+                \ a:event, context_str)]
+    if !empty(a:jobinfo)
+        let log_args += [a:jobinfo]
+    endif
+    call call('neomake#log#info', log_args)
+
+    unlockvar g:neomake_hook_context
+    let g:neomake_hook_context = a:context
+    lockvar 1 g:neomake_hook_context
+    try
+        if v:version >= 704 || (v:version == 703 && has('patch442'))
+            exec 'doautocmd <nomodeline> User ' . a:event
+        else
+            exec 'doautocmd User ' . a:event
+        endif
+    catch
+        let error = v:exception
+        if error[-1:] !=# '.'
+            let error .= '.'
+        endif
+        call neomake#log#exception(printf(
+                    \ 'Error during User autocmd for %s: %s',
+                    \ a:event, error), a:jobinfo)
+    finally
+        unlet g:neomake_hook_context
+    endtry
+    return g:neomake#action_queue#processed
+endfunction
+
 function! neomake#utils#hook(event, context, ...) abort
     if exists('#User#'.a:event)
         let jobinfo = a:0 ? a:1 : (
                     \ has_key(a:context, 'jobinfo') ? a:context.jobinfo : {})
-
-        let context_str = string(map(copy(a:context),
-                    \ "v:key ==# 'jobinfo' ? '…'"
-                    \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
-        let args = [printf('Calling User autocmd %s with context: %s.',
-                    \ a:event, context_str)]
-        if !empty(jobinfo)
-            let args += [jobinfo]
-        endif
-        call call('neomake#log#info', args)
-
-        if exists('g:neomake_hook_context')
-            throw printf('Neomake internal error: hook invocation must not be nested: %s.', a:event)
-        endif
-        unlockvar g:neomake_hook_context
-        let g:neomake_hook_context = a:context
-        lockvar 1 g:neomake_hook_context
-        try
-            if v:version >= 704 || (v:version == 703 && has('patch442'))
-                exec 'doautocmd <nomodeline> User ' . a:event
-            else
-                exec 'doautocmd User ' . a:event
-            endif
-        catch
-            let error = v:exception
-            if error[-1:] !=# '.'
-                let error .= '.'
-            endif
-            call neomake#log#exception(printf(
-                        \ 'Error during User autocmd for %s: %s',
-                        \ a:event, error), jobinfo)
-        finally
-            unlet g:neomake_hook_context
-        endtry
+        return s:handle_hook(jobinfo, a:event, a:context)
     endif
 endfunction
 

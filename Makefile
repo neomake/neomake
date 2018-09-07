@@ -92,8 +92,7 @@ define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) "$(TEST_VIM)" --version | head -n2))
 	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)"$(TEST_VIM)" \
 	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X $(if $(_REDIR_STDOUT),-s /dev/null,)) \
-	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT); \
-		ret=$$?; echo RET:$$ret; exit $$ret
+	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 endef
 
 # Interactive tests, keep Vader open.
@@ -208,7 +207,7 @@ docker_update_image:
 	  echo "WARN: Dockerfile.tests is not clean. Not updating."; \
 	fi
 	make docker_image
-	make docker_test DOCKER_VIM=neovim-master
+	make docker_test DOCKER_VIM=vim81
 	@echo "Done.  Use 'make docker_push' to push it, and then update .circleci/config.yml."
 
 DOCKER_VIMS:=vim73 vim74-trusty vim74-xenial vim80 vim81 \
@@ -220,7 +219,7 @@ docker_test_all: $(_DOCKER_VIM_TARGETS)
 $(_DOCKER_VIM_TARGETS):
 	$(MAKE) docker_test DOCKER_VIM=$(patsubst docker_test-%,%,$@)
 
-_docker_test: DOCKER_VIM:=vim-master
+_docker_test: DOCKER_VIM:=vim81
 _docker_test: DOCKER_MAKE_TARGET=$(DOCKER_MAKE_TEST_TARGET) \
   TEST_VIM='/vim-build/bin/$(DOCKER_VIM)' \
   VADER_OPTIONS="$(VADER_OPTIONS)" VADER_ARGS="$(VADER_ARGS)" \
