@@ -9,8 +9,10 @@
 #
 #     tail -f /tmp/neomake.log | /path/to/neomake/contrib/highlight-log
 
-# Use 256-color mode for dark grey.
-debug_color='[38;5;8m'
+debug_color="[2m"  # $(tput dim), does not work in urxvt (although in infocmp/terminfo).
+error_color="[33;1m"
+bold="[1m"  # $(tput bold)
+coloroff="[0m"
 
 compact=0
 quiet=0
@@ -33,18 +35,15 @@ if [ "$1" = vader ]; then
     # sed: add coloring to Vader's output:
     # 1. failures (includes pending) in red "(X)"
     # 2. test case header in bold "(2/2)"
-    # 3. Neomake's debug log messages in less intense grey
-    # 4. non-Neomake log lines (e.g. from :Log) in bold/bright yellow.
+    # 3. Neomake's error log messages
+    # 4. Neomake's debug log messages
+    # 5. non-Neomake log lines (e.g. from :Log)
     sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/' \
-      -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+)/[1m\0[0m/' \
-      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0[0m/' \
-      -e '/\[\(verbose\|warning\|error  \|\(\(V\|W\|\E\) +[.[:digit:]]\+\)\)\]/! s/^ \+> .*/[33;1m\0[0m/'
+      -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+)/'"$bold"'\0'"$coloroff"'/' \
+      -e 's/^ \+> \[\(error  \|E +[.[:digit:]]\+\)\]: .*/'"$bold"'\0'"$coloroff"'/' \
+      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0'"$coloroff"'/' \
+      -e '/\[\(verbose\|warning\|error  \|\(\(V\|W\|\E\) +[.[:digit:]]\+\)\)\]/! s/^ \+> .*/'"$error_color"'\0'"$coloroff"'/'
   }
-
-  if [ -n "$CI" ]; then
-    # Travis does not seem to understand 256 color mode; use bright black.
-    debug_color='[30;1m'
-  fi
 
   if ((quiet || compact)); then
     spinner_chars='/-\|'
