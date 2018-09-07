@@ -862,16 +862,21 @@ Execute (Location list should be cleared only after first output):
   lgetexpr 'init'
 
   let s:au_called = 0
+  function! OnNeomakeJobFinished() abort
+    if s:au_called == 0
+      let s:au_called = 1
+      call vader#assert#equal([map(getloclist(0), 'v:val.text'),
+          \   len(g:neomake_test_finished),
+          \   len(g:neomake_test_countschanged)],
+          \ [['init'], 0, 0])
+    endif
+  endfunction
   augroup neomake_tests
-    autocmd User NeomakeJobFinished if s:au_called == 0
-    \ | let s:au_called = 1
-    \ | call vader#assert#equal(getloclist(0)[0].text, 'init')
-    \ | call vader#assert#equal(len(g:neomake_test_finished), 0)
-    \ | call vader#assert#equal(len(g:neomake_test_countschanged), 0)
-    \ | endif
+    autocmd User NeomakeJobFinished call OnNeomakeJobFinished()
   augroup END
 
   let maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
+  let maker_success.serialize = 1
   let maker_sleep = NeomakeTestsCommandMaker('sleep-maker', 'sleep .01; echo slept')
 
   call neomake#Make(1, [maker_success, maker_sleep])
@@ -885,6 +890,7 @@ Execute (Location list should be cleared only after first output):
   AssertEqual s:au_called, 1
   AssertEqual getloclist(0)[0].text, 'slept'
   AssertEqual len(g:neomake_test_countschanged), 1
+  delfunction OnNeomakeJobFinished
 
 Execute (Location list should be cleared after jobs finished):
   call g:NeomakeSetupAutocmdWrappers()
