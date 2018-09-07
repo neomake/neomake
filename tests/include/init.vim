@@ -508,6 +508,10 @@ function! s:After()
     endtry
   endif
 
+  if exists('g:neomake#action_queue#_s.action_queue_timer')
+    call add(errors, printf('action_queue_timer exists: %s', string(g:neomake#action_queue#_s)))
+  endif
+
   if exists('#neomake_tests')
     autocmd! neomake_tests
     augroup! neomake_tests
