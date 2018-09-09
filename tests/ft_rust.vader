@@ -112,6 +112,7 @@ Execute (rust: cargotest detect failures):
   file src/lib.rs
   let cargotest = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargotest',
     \ 'tests/fixtures/rust/cargotest_with_failures')
+  let cargotest.cwd = getcwd()
 
   call neomake#Make(1, [cargotest])
   NeomakeTestsWaitForFinishedJobs
@@ -134,5 +135,6 @@ Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
   new
   exe 'lcd' subdir
   let maker = neomake#makers#ft#rust#cargotest()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
   AssertEqual maker.cwd, tempdir
   bwipe

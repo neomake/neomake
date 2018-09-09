@@ -86,10 +86,13 @@ function! neomake#makers#ft#rust#cargotest() abort
             \ '%G%\ %#%s%\\,,' .
             \ '%Z%\ %#%s%\\,%\\s%f:%l:%c,'
     \ }
-    let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
-    if !empty(cargo_toml)
-        let maker.cwd = fnamemodify(cargo_toml, ':h')
-    endif
+
+    function! maker.InitForJob(jobinfo) abort
+        if !has_key(self, 'cwd')
+            let self.cwd = s:get_cargo_maker_cwd('%:p:h')
+            return self
+        endif
+    endfunction
     return maker
 endfunction
 
