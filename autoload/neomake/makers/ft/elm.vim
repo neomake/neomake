@@ -20,7 +20,7 @@ function! neomake#makers#ft#elm#ElmMakeProcessOutput(context) abort
 
     for line in a:context.output
         if line[0] ==# '['
-            let l:decoded = neomake#utils#JSONdecode(line)
+            let l:decoded = neomake#compat#json_decode(line)
             for item in l:decoded
                 if get(item, 'type', '') ==# 'warning'
                     let l:code = 'W'
