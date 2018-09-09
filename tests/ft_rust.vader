@@ -7,8 +7,7 @@ Execute (cargo skip non json line):
   let cargo.exe = 'printf'
   let cargo.args = ['error: Could not compile `derive_more`.']
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   AssertEqual [], getloclist(0)
   bwipe
@@ -19,8 +18,7 @@ Execute (cargo info message):
   let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
     \ '../tests/fixtures/rust/cargo_info.json')
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   AssertEqual [], getloclist(0)
   bwipe
@@ -31,8 +29,7 @@ Execute (cargo error without span):
   let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
     \ '../tests/fixtures/rust/cargo_error_without_span.json')
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   AssertEqual [], getloclist(0)
   bwipe
@@ -114,12 +111,12 @@ Execute (rust: cargotest detect failures):
     \ 'tests/fixtures/rust/cargotest_with_failures')
   let cargotest.cwd = getcwd()
 
-  call neomake#Make(1, [cargotest])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargotest]
 
-  AssertEqual 11, len(getloclist(0))
-  AssertEqual map(getloclist(0), 'v:val.text')[0],  'failed to resolve. Maybe a missing `extern crate non;`?'
-  AssertEqual map(getloclist(0), 'v:val.text')[4],  'unused import: `non::existent::module`'
+  AssertEqual map(getloclist(0), '[v:val.type, v:val.valid, v:val.text]'), [
+    \ ['E', 1, 'failed to resolve. Maybe a missing `extern crate non;`?'],
+    \ ['W', 1, 'unused import: `non::existent::module`'],
+    \ ]
   bwipe
 
 Execute (rust: cargotest: uses directory with Cargo.toml as cwd):

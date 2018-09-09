@@ -74,17 +74,19 @@ function! neomake#makers#ft#rust#cargotest() abort
             \ '%-G----%s,' .
             \ '%-G%.%#--verbose%s,' .
             \ '%-G%.%#--explain%s,' .
+            \ '%-Gerror: aborting due to previous error,' .
             \ '%-G%\ %#error: aborting due to %\\d%#%\ %#previous errors,' .
             \ '%E%\ %#error[E%n]:\ %m,' .
             \ '%E%\ %#error:\ %m,' .
             \ '%I%\ %#note:\ %m,'.
             \ '%W%\ %#warning:\ %m,' .
             \ '%-Z%\ %#-->\ %f:%l:%c,' .
-            \ '%G%\\d%# %#|\ %m,' .
-            \ '%G\ %#\= %*[^:]:\ %m,'.
+            \ '%-G%\\d%# %#|\ %s,' .
+            \ '%-G%\\d%# %#|,' .
+            \ '%-G\ %#\= %*[^:]:\ %m,'.
             \ '%E%\ %#%m,' .
             \ '%G%\ %#%s%\\,,' .
-            \ '%Z%\ %#%s%\\,%\\s%f:%l:%c,'
+            \ '%Z%\ %#%s%\\,%\\s%f:%l:%c'
     \ }
 
     function! maker.InitForJob(jobinfo) abort
