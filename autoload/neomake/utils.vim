@@ -578,3 +578,28 @@ else
         return len(getbufline(a:bufnr, 1, '$'))
     endfunction
 endif
+
+" Returns: [error, cd_back_cmd]
+function! neomake#utils#temp_cd(dir, ...) abort
+    if a:dir ==# '.'
+        return ['', '']
+    endif
+    if a:0
+        let cur_wd = a:1
+    else
+        let cur_wd = getcwd()
+        if cur_wd ==# a:dir
+            " No need to change directory.
+            return ['', '']
+        endif
+    endif
+    let cd = haslocaldir() ? 'lcd' : (exists(':tcd') == 2 && haslocaldir(-1, 0)) ? 'tcd' : 'cd'
+    try
+        exe cd.' '.fnameescape(a:dir)
+    catch
+        " Tests fail with E344, but in reality it is E472?!
+        " If uncaught, both are shown - let's just catch everything.
+        return [v:exception, '']
+    endtry
+    return ['', cd.' '.fnameescape(cur_wd)]
+endfunction
