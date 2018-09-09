@@ -54,8 +54,12 @@ Execute (cargo: uses primary span):
   bwipe
 
 Execute (rust: cargo: uses directory with Cargo.toml as cwd):
+  new
   let maker = neomake#makers#ft#rust#cargo()
+  Assert !has_key(maker, 'cwd')
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
   AssertEqual maker.cwd, '%:p:h'
+  AssertNeomakeMessage "Failed to get cargo metadata for workspace using 'cargo metadata --no-deps --format-version 1'.", 3
 
   let tempdir = tempname()
   let slash = neomake#utils#Slash()
@@ -64,8 +68,41 @@ Execute (rust: cargo: uses directory with Cargo.toml as cwd):
   let cargo_toml = tempdir . slash . 'Cargo.toml'
   call writefile([], cargo_toml)
 
-  new
   exe 'lcd' subdir
   let maker = neomake#makers#ft#rust#cargo()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
   AssertEqual maker.cwd, tempdir
+  bwipe
+
+Execute (rust: cargo: uses cargo workspace_root as cwd):
+  new
+  call g:NeomakeTestsCreateExe('cargo', [
+  \ 'echo ''{"workspace_root": "/cargo_workspace_root"}'''])
+  let maker = neomake#makers#ft#rust#cargo()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
+  AssertEqual maker.cwd, '/cargo_workspace_root'
+  bwipe
+
+Execute (rust: cargo: handles cd'ing before querying workspace_root metadata):
+  new
+  let tempdir = tempname()
+  call mkdir(tempdir)
+  exe printf('file %s/fake.rs', fnameescape(tempdir))
+
+  call g:NeomakeTestsCreateExe('cargo', [
+  \ printf('[ "$PWD" = "%s" ] && echo ''{"workspace_root": "%s"}''',
+  \ tempdir, tempdir)])
+  let maker = neomake#makers#ft#rust#cargo()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
+  AssertEqual maker.cwd, tempdir
+  bwipe
+
+Execute (rust: cargo: logs error when cd'ing fails):
+  new
+  file /doesnotexist/fake.rs
+
+  let maker = neomake#makers#ft#rust#cargo()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
+  AssertNeomakeMessage '\Vs:get_cargo_workspace_root: failed to cd to buffer directory: Vim(cd):E344: ', 3
+  AssertEqual maker.cwd, '%:p:h'
   bwipe
