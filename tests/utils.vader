@@ -866,3 +866,21 @@ Execute (neomake#utils#get_buf_line_count: unloaded buffer):
   bp
   bwipe
   exe unlisted_bufnr.'bwipe'
+
+Execute (neomake#utils#temp_cd):
+  new
+  let cwd = getcwd()
+  AssertEqual neomake#utils#temp_cd('.'), ['', '']
+  AssertEqual neomake#utils#temp_cd(cwd), ['', '']
+  AssertEqual neomake#utils#temp_cd(cwd, cwd), ['', '']
+
+  let tempdir = tempname()
+  AssertEqual neomake#utils#temp_cd(cwd, tempdir), ['', 'cd '.fnameescape(tempdir)]
+  let [cd_error, cd_back_cmd] = neomake#utils#temp_cd(tempdir, cwd)
+  Assert !empty(cd_error)
+  AssertEqual cd_back_cmd, ''
+
+  call mkdir(tempdir)
+  AssertEqual neomake#utils#temp_cd(cwd, tempdir), ['', 'cd '.fnameescape(tempdir)]
+  AssertEqual neomake#utils#temp_cd(tempdir, cwd), ['', 'cd '.fnameescape(cwd)]
+  bwipe
