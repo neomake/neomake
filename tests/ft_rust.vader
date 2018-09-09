@@ -96,3 +96,13 @@ Execute (rust: cargo: handles cd'ing before querying workspace_root metadata):
   let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
   AssertEqual maker.cwd, tempdir
   bwipe
+
+Execute (rust: cargo: logs error when cd'ing fails):
+  new
+  file /doesnotexist/fake.rs
+
+  let maker = neomake#makers#ft#rust#cargo()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
+  AssertNeomakeMessage '\Vs:get_cargo_workspace_root: failed to cd to buffer directory: Vim(cd):E344: ', 3
+  AssertEqual maker.cwd, '%:p:h'
+  bwipe

@@ -47,6 +47,20 @@ function! s:get_cargo_workspace_root() abort
     return b:_neomake_cargo_workspace
 endfunction
 
+function! s:get_cargo_maker_cwd(default) abort
+    let cargo_workspace_root = s:get_cargo_workspace_root()
+    if !empty(cargo_workspace_root)
+        return cargo_workspace_root
+    endif
+
+    let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
+    if !empty(cargo_toml)
+        return fnamemodify(cargo_toml, ':h')
+    endif
+
+    return a:default
+endfunction
+
 function! neomake#makers#ft#rust#cargo() abort
     let maker_command = get(b:, 'neomake_rust_cargo_command',
                 \ get(g:, 'neomake_rust_cargo_command', ['check']))
@@ -58,17 +72,7 @@ function! neomake#makers#ft#rust#cargo() abort
 
     function! maker.InitForJob(jobinfo) abort
         if !has_key(self, 'cwd')
-            let cargo_workspace_root = s:get_cargo_workspace_root()
-            if !empty(cargo_workspace_root)
-                let self.cwd = cargo_workspace_root
-            else
-                let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
-                if !empty(cargo_toml)
-                    let self.cwd = fnamemodify(cargo_toml, ':h')
-                else
-                    let self.cwd = '%:p:h'
-                endif
-            endif
+            let self.cwd = s:get_cargo_maker_cwd('%:p:h')
             return self
         endif
     endfunction
