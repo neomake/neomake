@@ -46,7 +46,7 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
             continue
         endif
 
-        let decoded = neomake#utils#JSONdecode(line)
+        let decoded = neomake#compat#json_decode(line)
         let data = get(decoded, 'message', -1)
         if type(data) != type({}) || empty(data['spans'])
             continue

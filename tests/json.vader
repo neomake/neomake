@@ -1,11 +1,11 @@
 Include: include/setup.vader
 
-Execute (neomake#utils#JSONdecode):
-  AssertEqual neomake#utils#JSONdecode('{}'), {}
+Execute (neomake#compat#json_decode):
+  AssertEqual neomake#compat#json_decode('{}'), {}
 
   let json = '{"dict":{"children":[],"null":null,"true":true,"false":false}}'
 
-  AssertEqual neomake#utils#JSONdecode(json), {
+  AssertEqual neomake#compat#json_decode(json), {
   \ 'dict': {
   \   'false': g:neomake#compat#json_false,
   \   'true': g:neomake#compat#json_true,
