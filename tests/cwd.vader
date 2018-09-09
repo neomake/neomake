@@ -324,8 +324,23 @@ Execute (process_output: filename with cwd):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'error message'}]
-
   bwipe
+
+Execute (process_output: gets executed in maker cwd):
+  let s:called = 0
+  let s:cwd = tempname()
+  call mkdir(s:cwd)
+
+  let maker = copy(g:error_maker)
+  let maker.cwd = s:cwd
+  function! maker.process_output(context)
+    let s:called = 1
+    AssertEqual getcwd(), s:cwd
+    return []
+  endfunction
+
+  CallNeomake 0, [maker]
+  AssertEqual s:called, 1
 
 Execute (legacy errorformat maker: filename with cwd):
   let tempdir = tempname()
