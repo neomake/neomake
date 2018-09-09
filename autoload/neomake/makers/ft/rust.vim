@@ -21,19 +21,57 @@ function! neomake#makers#ft#rust#rustc() abort
         \ }
 endfunction
 
+function! s:get_cargo_workspace_root() abort
+    if !exists('b:_neomake_cargo_workspace')
+        let cmd = 'cargo metadata --no-deps --format-version 1'
+        let [cd_error, cd_back_cmd] = neomake#utils#temp_cd(expand('%:h'))
+        if !empty(cd_error)
+            call neomake#log#debug(printf(
+                        \ 's:get_cargo_workspace_root: failed to cd to buffer directory: %s.',
+                        \ cd_error))
+        endif
+        let output = system(cmd)
+        if !empty(cd_back_cmd)
+            exe cd_back_cmd
+        endif
+        if v:shell_error
+            call neomake#log#debug(printf(
+                        \ 'Failed to get cargo metadata for workspace using %s.',
+                        \ string(cmd)))
+            let b:_neomake_cargo_workspace = ''
+        else
+            let json = neomake#compat#json_decode(output)
+            let b:_neomake_cargo_workspace = json['workspace_root']
+        endif
+    endif
+    return b:_neomake_cargo_workspace
+endfunction
+
 function! neomake#makers#ft#rust#cargo() abort
     let maker_command = get(b:, 'neomake_rust_cargo_command',
                 \ get(g:, 'neomake_rust_cargo_command', ['check']))
     let maker = {
-        \ 'cwd': '%:p:h',
         \ 'args': maker_command + ['--message-format=json', '--quiet'],
         \ 'append_file': 0,
         \ 'process_output': function('neomake#makers#ft#rust#CargoProcessOutput'),
         \ }
-    let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
-    if !empty(cargo_toml)
-        let maker.cwd = fnamemodify(cargo_toml, ':h')
-    endif
+
+    function! maker.InitForJob(jobinfo) abort
+        if !has_key(self, 'cwd')
+            let cargo_workspace_root = s:get_cargo_workspace_root()
+            if !empty(cargo_workspace_root)
+                let self.cwd = cargo_workspace_root
+            else
+                let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
+                if !empty(cargo_toml)
+                    let self.cwd = fnamemodify(cargo_toml, ':h')
+                else
+                    let self.cwd = '%:p:h'
+                endif
+            endif
+            return self
+        endif
+    endfunction
     return maker
 endfunction
 
