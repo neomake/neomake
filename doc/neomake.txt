@@ -319,8 +319,8 @@ The following variables are available in the `mapexpr`:
  - `neomake_output_source`: either "stderr" or "stdout", depending on
    where the output is coming from. This will be "stdout" always for
    non-async Vim.
- - `neomake_bufname` and `neomake_bufdir`: the buffer's name (|bufname()|) and
-   directory, respectively.
+ - `neomake_bufname` and `neomake_bufdir`: the buffer's absolute path
+   (|bufname()|) and directory, respectively.
 
 The `mapexpr` itself gets evaluated in the context of the affected buffer in
 file mode, and in the context of the buffer that is current when the maker

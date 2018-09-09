@@ -1912,6 +1912,12 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
     call neomake#log#debug(printf(
                 \ '%s: processing %d lines of output.',
                 \ maker.name, len(a:lines)), a:jobinfo)
+    let cd_error = a:jobinfo.cd()
+    if !empty(cd_error)
+        call neomake#log#debug(printf(
+                    \ "Could not change to job's cwd (%s): %s.",
+                    \ a:jobinfo.cd_from_setting, cd_error), a:jobinfo)
+    endif
     try
         if has_key(maker, 'process_json') || has_key(maker, 'process_output')
             if has_key(maker, 'process_json')
@@ -1957,7 +1963,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
 
         " Old-school handling through errorformat.
         if has_key(maker, 'mapexpr')
-            let l:neomake_bufname = bufname(a:jobinfo.bufnr)
+            let l:neomake_bufname = fnamemodify(bufname(a:jobinfo.bufnr), ':p')
             " @vimlint(EVL102, 1, l:neomake_bufdir)
             let l:neomake_bufdir = fnamemodify(neomake_bufname, ':h')
             " @vimlint(EVL102, 1, l:neomake_output_source)
@@ -2011,6 +2017,8 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
                     \ 'Error during output processing for %s: %s.',
                     \ a:jobinfo.maker.name, v:exception), a:jobinfo)
         return
+    finally
+        call a:jobinfo.cd_back()
     endtry
     return g:neomake#action_queue#processed
 endfunction
