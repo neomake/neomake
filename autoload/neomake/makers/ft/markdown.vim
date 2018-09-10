@@ -44,7 +44,7 @@ function! neomake#makers#ft#markdown#ProcessVale(context) abort
             \ 'text': data.Message,
             \ 'lnum': data.Line,
             \ 'col': data.Span[0],
-            \ 'length': data.Span[1] - data.Span[0],
+            \ 'length': data.Span[1] - data.Span[0] + 1,
             \ 'type': toupper(data.Severity[0])
             \ }
         call add(entries, entry)
