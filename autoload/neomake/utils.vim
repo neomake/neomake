@@ -201,7 +201,7 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
 endfunction
 
 function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abort
-    let maker_name = has_key(a:maker, 'name') ? a:maker.name : ''
+    let maker_name = get(a:maker, 'name', '')
     if a:maker_only && empty(maker_name)
         if has_key(a:maker, a:key)
             return get(a:maker, a:key)
@@ -239,6 +239,10 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
         return get(a:maker, a:key)
     endif
 
+    let key = a:key
+    if a:maker_only
+        let key = maker_name.'_'.key
+    endif
     let key = a:maker_only ? maker_name.'_'.a:key : a:key
     " Look for 'neomake_'.key in the buffer and global namespace.
     let bufvar = neomake#compat#getbufvar(a:bufnr, 'neomake_'.key, s:unset)
