@@ -50,28 +50,32 @@ function! s:jobinfo_base.cd(...) abort
             let self.cd_from_setting = dir
         endif
     endif
+
     if dir !=# ''
         if dir[0:1] ==# '%:'
             let dir = neomake#utils#fnamemodify(self.bufnr, dir[1:])
         else
             let dir = expand(dir, 1)
         endif
-        let dir = substitute(fnamemodify(dir, ':p'), '[\/]$', '', '')
+        let dir = fnamemodify(dir, ':p')
+        " NOTE: need to keep trailing backslash with "/" and "X:\" on Windows.
+        if dir !=# '/' && dir[-1:] ==# neomake#utils#Slash() && dir[-2] !=# ':'
+            let dir = dir[:-2]
+        endif
     else
-        let dir = self.cwd
+        let dir = get(self, 'cwd', $HOME)
     endif
-    let self.cwd = substitute(fnamemodify(dir, ':p'), '[\/]$', '', '')
+
     let cur_wd = getcwd()
-    if self.cwd !=# cur_wd
-        let cd = haslocaldir() ? 'lcd' : (exists(':tcd') == 2 && haslocaldir(-1, 0)) ? 'tcd' : 'cd'
-        try
-            exe cd.' '.fnameescape(self.cwd)
-        catch
-            " Tests fail with E344, but in reality it is E472?!
-            " If uncaught, both are shown - let's just catch everything.
-            return v:exception
-        endtry
-        let self.cd_back_cmd = cd.' '.fnameescape(cur_wd)
+    if dir !=# cur_wd
+        let [cd_error, cd_back_cmd] = neomake#utils#temp_cd(dir, cur_wd)
+        if !empty(cd_error)
+            return cd_error
+        endif
+        let self.cwd = dir
+        let self.cd_back_cmd = cd_back_cmd
+    else
+        let self.cwd = cur_wd
     endif
     return ''
 endfunction

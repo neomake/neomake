@@ -15,12 +15,13 @@ Execute (mapexpr: file mode vars):
   let maker = neomake#utils#MakerFromCommand('echo on_stdout')
   new
   edit tests/fixtures/errors.sh
+  let bufname = expand('%:p')
+  let bufdir = fnamemodify(bufname, ':h')
   let maker.mapexpr = "printf('%s (%s): %s', neomake_bufname, neomake_bufdir, v:val)"
-  call neomake#Make(0, [maker])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 0, [maker]
 
   AssertEqual map(getqflist(), 'v:val.text'), [
-    \ 'tests/fixtures/errors.sh (tests/fixtures): on_stdout']
+    \ printf('%s (%s): on_stdout', bufname, bufdir)]
   bwipe
 
 Execute (mapexpr: file mode vars with cd):
@@ -33,15 +34,15 @@ Execute (mapexpr: file mode vars with cd):
     let start_cwd = getcwd()
     let maker.append_file = 0
     call neomake#Make(1, [maker])
-    cd build
+    lcd build
     NeomakeTestsWaitForFinishedJobs
-    cd -
+    lcd -
 
     AssertEqual map(getloclist(0), 'v:val.text'), [
       \ printf('[bufname:%s, bufdir:%s, cwd: %s]: %s',
           \ start_cwd.'/tests/fixtures/errors.sh',
           \ start_cwd.'/tests/fixtures',
-          \ getcwd().'/build',
+          \ start_cwd,
           \ 'on_stdout')]
     bwipe
   endif

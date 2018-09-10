@@ -9,8 +9,10 @@
 #
 #     tail -f /tmp/neomake.log | /path/to/neomake/contrib/highlight-log
 
-# Use 256-color mode for dark grey.
-debug_color='[38;5;8m'
+debug_color="[2m"  # $(tput dim), does not work in urxvt (although in infocmp/terminfo).
+error_color="[33;1m"
+bold="[1m"  # $(tput bold)
+coloroff="[0m"
 
 compact=0
 quiet=0
@@ -26,10 +28,22 @@ while [ $# -ne 0 ]; do
 done
 
 if [ "$1" = vader ]; then
-  if [ -n "$CI" ]; then
-    # Travis does not seem to understand 256 color mode; use bright black.
-    debug_color='[30;1m'
-  fi
+  colorize() {
+    # Only colorize if stdout is connected to a tty (not with :!make).
+    [ -t 1 ] || cat -
+
+    # sed: add coloring to Vader's output:
+    # 1. failures (includes pending) in red "(X)"
+    # 2. test case header in bold "(2/2)"
+    # 3. Neomake's error log messages
+    # 4. Neomake's debug log messages
+    # 5. non-Neomake log lines (e.g. from :Log)
+    sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/' \
+      -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+)/'"$bold"'\0'"$coloroff"'/' \
+      -e 's/^ \+> \[\(error  \|E +[.[:digit:]]\+\)\]: .*/'"$bold"'\0'"$coloroff"'/' \
+      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0'"$coloroff"'/' \
+      -e '/\[\(verbose\|warning\|error  \|\(\(V\|W\|\E\) +[.[:digit:]]\+\)\)\]/! s/^ \+> .*/'"$error_color"'\0'"$coloroff"'/'
+  }
 
   if ((quiet || compact)); then
     spinner_chars='/-\|'
@@ -40,10 +54,24 @@ if [ "$1" = vader ]; then
   if ((compact || quiet)); then
     # Do not display output for successful tests (i.e. the log statements).
     last_start_match=
-    re_non_log_line='^      > \[(debug  |verbose|warning|error  )|((D|V|W|E) +\+[.0-9]+)\]'
+    # Match non-log lines (i.e. keep output from :Log, which should cause
+    # all messages from a case to be visible).
+    # This should also ignore empty lines and lines starting with a character
+    # (e.g. via NVIM_LOG_FILE:=/dev/stderr, and from :echom).
+    re_log_line='^      >'
+    re_ignore_log_line='^      > \[(debug  |verbose|warning|error  )|((D|V|W|E) +\+[.0-9]+)\]'
     filtering=0
     quiet_filtered=
-    while read -r; do
+    finished_reading=0
+    while [ "$finished_reading" = 0 ]; do
+      if ! read -r; then
+        # Clear spinner.
+        printf "\r" >&2
+        if [ -z "$REPLY" ]; then
+          break
+          finished_reading=1
+        fi
+      fi
       if [[ "$REPLY" == *'Vader error:'* ]] || [[ "$REPLY" == 'Error'* ]] || [[ "$REPLY" == 'Traceback'* ]]; then
         printf "\r" >&2
         if [[ -n "$quiet_filtered" ]]; then
@@ -101,15 +129,15 @@ if [ "$1" = vader ]; then
         echo "$REPLY"
         filtering=0
         filtered=
-      elif ! [[ "$REPLY" =~ $re_non_log_line ]]; then
+      elif ! ((filtering)); then
+        echo "$REPLY"
+      elif [[ "$REPLY" =~ $re_log_line && ! "$REPLY" =~ $re_ignore_log_line ]]; then
         if [[ -n "$filtered" ]]; then
           echo "$filtered"
         fi
         echo "$REPLY"
         filtered=
         filtering=0
-      elif ! ((filtering)); then
-        echo "$REPLY"
       elif [[ -n "$filtered" ]]; then
         filtered="$filtered"$'\n'"$REPLY"
       else
@@ -118,16 +146,7 @@ if [ "$1" = vader ]; then
     done
   else
     cat -
-  fi \
-  | sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/' \
-      -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+)/[1m\0[0m/' \
-      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0[0m/' \
-      -e '/\[\(verbose\|warning\|error  \|\(\(V\|W\|\E\) +[.[:digit:]]\+\)\)\]/! s/^ \+> .*/[33;1m\0[0m/'
-  # sed: add coloring to Vader's output:
-  # 1. failures (includes pending) in red "(X)"
-  # 2. test case header in bold "(2/2)"
-  # 3. Neomake's debug log messages in less intense grey
-  # 4. non-Neomake log lines (e.g. from :Log) in bold/bright yellow.
+  fi | colorize
 
 else
   # Output from neomake_logfile.

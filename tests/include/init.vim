@@ -115,7 +115,7 @@ endfunction
 let s:tempname = tempname()
 
 function! g:NeomakeTestsCreateExe(name, ...)
-  let lines = a:0 ? a:1 : []
+  let lines = a:0 ? a:1 : ['#!/bin/sh']
   let path_separator = exists('+shellslash') ? ';' : ':'
   let dir_separator = exists('+shellslash') ? '\' : '/'
   let tmpbindir = s:tempname . dir_separator . 'neomake-vader-tests'
@@ -134,6 +134,7 @@ function! g:NeomakeTestsCreateExe(name, ...)
     call system('/bin/chmod 770 '.shellescape(exe))
     Assert !v:shell_error, 'Got shell_error with chmod: '.v:shell_error
   endif
+  return exe
 endfunction
 
 let s:saved_path = 0
@@ -318,7 +319,14 @@ endfunction
 
 function! NeomakeTestsFakeJobinfo() abort
   let make_id = -42
-  let jobinfo = {'file_mode': 1, 'bufnr': bufnr('%'), 'ft': '', 'make_id': make_id}
+  let jobinfo = copy(g:neomake#jobinfo#base)
+  call extend(jobinfo, {
+        \ 'file_mode': 1,
+        \ 'bufnr': bufnr('%'),
+        \ 'ft': '',
+        \ 'make_id': make_id,
+        \ 'maker': {},
+        \ })
   let make_info = neomake#GetStatus().make_info
   let make_info[make_id] = {
         \ 'options': jobinfo,
@@ -358,18 +366,18 @@ let g:doesnotexist_maker = {'exe': 'doesnotexist'}
 " A maker that generates incrementing errors.
 let g:neomake_test_inc_maker_counter = 0
 let s:shell_argv = split(&shell) + split(&shellcmdflag)
-function! s:IncMakerArgs()
+function! s:IncMakerInitForJobs(jobinfo) dict
   let g:neomake_test_inc_maker_counter += 1
   let cmd = ''
   for i in range(g:neomake_test_inc_maker_counter)
     let cmd .= 'echo b'.g:neomake_test_inc_maker_counter.' '.g:neomake_test_inc_maker_counter.':'.i.': buf: '.shellescape(bufname('%')).'; '
   endfor
-  return s:shell_argv[1:] + [cmd]
+  let self.args = s:shell_argv[1:] + [cmd]
 endfunction
 let g:neomake_test_inc_maker = {
       \ 'name': 'incmaker',
       \ 'exe': s:shell_argv[0],
-      \ 'args': function('s:IncMakerArgs'),
+      \ 'InitForJob': function('s:IncMakerInitForJobs'),
       \ 'errorformat': '%E%f %m',
       \ 'append_file': 0,
       \ }
@@ -387,8 +395,8 @@ endfunction
 
 function! NeomakeTestsGetVimMessages()
   let msgs = split(neomake#utils#redir('messages'), "\n")
-  call NeomakeTestsSetVimMessagesMarker()
   let idx = index(reverse(msgs), s:vim_msgs_marker)
+  call NeomakeTestsSetVimMessagesMarker()
   if idx <= 0
     return []
   endif
@@ -500,6 +508,10 @@ function! s:After()
     endtry
   endif
 
+  if exists('g:neomake#action_queue#_s.action_queue_timer')
+    call add(errors, printf('action_queue_timer exists: %s', string(g:neomake#action_queue#_s)))
+  endif
+
   if exists('#neomake_tests')
     autocmd! neomake_tests
     augroup! neomake_tests
@@ -516,7 +528,9 @@ function! s:After()
         endif
       endfor
       " In case there are two windows with Vader-workbench.
-      only
+      if winnr('$') > 1
+        only
+      endif
     catch
       Log "Error while cleaning windows: ".v:exception.' (in '.v:throwpoint.').'
     endtry

@@ -1,5 +1,31 @@
 " Debug/feedback helpers.
 
+function! neomake#debug#pprint(d, ...) abort
+    return call('s:pprint', [a:d] + a:000)
+endfunction
+
+function! s:pprint(v, ...) abort
+    let indent = a:0 ? a:1 : ''
+    if type(a:v) ==# type({})
+        if empty(a:v)
+            return '{}'
+        endif
+        let r = "{\n"
+        for [k, V] in items(a:v)
+            let r .= indent.'  '.string(k).': '.s:pprint(V, indent . '  ').",\n"
+        endfor
+        let r .= indent.'}'
+        return r
+    elseif type(a:v) ==# type([])
+        if empty(a:v)
+            return '[]'
+        endif
+        let r = '['."\n".join(map(copy(a:v), 'indent."  ".s:pprint(v:val, indent."  ")'), ",\n").",\n".indent.']'
+        return r
+    endif
+    return string(a:v)
+endfunction
+
 function! neomake#debug#validate_maker(maker) abort
     let issues = {'errors': [], 'warnings': []}
 
@@ -30,10 +56,15 @@ function! neomake#debug#validate_maker(maker) abort
         endif
     endfor
 
-    if !executable(a:maker.exe)
-        let t = get(a:maker, 'auto_enabled', 0) ? 'warnings' : 'errors'
-        let issues[t] += [printf("maker's exe (%s) is not executable.", a:maker.exe)]
-    endif
+    try
+        let maker = neomake#core#instantiate_maker(a:maker, {}, 0)
+        if !executable(maker.exe)
+            let t = get(maker, 'auto_enabled', 0) ? 'warnings' : 'errors'
+            let issues[t] += [printf("maker's exe (%s) is not executable.", maker.exe)]
+        endif
+    catch /^Neomake: /
+        let issues.errors += [substitute(v:exception, '^Neomake: ', '', '').'.']
+    endtry
 
     if has_key(a:maker, 'name')
         if a:maker.name !~# g:neomake#core#valid_maker_name_pattern
@@ -48,46 +79,107 @@ function! neomake#debug#validate_maker(maker) abort
 endfunction
 
 " Optional arg: ft
-function! s:get_maker_info(...) abort
+function! s:get_makers_info(...) abort
     let maker_names = call('neomake#GetEnabledMakers', a:000)
     if empty(maker_names)
         return ['None.']
     endif
-    let maker_defaults = neomake#config#get('maker_defaults')
+    let maker_defaults = g:neomake#config#_defaults['maker_defaults']
     let r = []
     for maker_name in maker_names
         let maker = call('neomake#GetMaker', [maker_name] + a:000)
         let r += [' - '.maker.name]
-        for [k, V] in sort(copy(items(maker)))
-            if k !=# 'name' && k !=# 'ft' && k !~# '^_'
-                if !has_key(maker_defaults, k)
-                            \ || type(V) != type(maker_defaults[k])
-                            \ || V !=# maker_defaults[k]
-                    let r += ['   - '.k.': '.string(V)]
-                endif
-            endif
-            unlet V  " vim73
-        endfor
-
-        let issues = neomake#debug#validate_maker(maker)
-        if !empty(issues)
-            for type in sort(copy(keys(issues)))
-                let items = issues[type]
-                if !empty(items)
-                    let r += ['   - '.toupper(type) . ':']
-                    for issue in items
-                        let r += ['     - ' . issue]
-                    endfor
-                endif
-            endfor
-        endif
+        let r += map(s:get_maker_info(maker, maker_defaults), "'  '.v:val")
     endfor
     return r
 endfunction
 
+function! s:get_maker_info(maker, ...) abort
+    let maker_defaults = a:0 ? a:1 : {}
+    let maker = a:maker
+    let r = []
+    for [k, V] in sort(copy(items(maker)))
+        if k !=# 'name' && k !=# 'ft' && k !~# '^_'
+            if !has_key(maker_defaults, k)
+                        \ || type(V) != type(maker_defaults[k])
+                        \ || V !=# maker_defaults[k]
+                let r += [' - '.k.': '.string(V)]
+            endif
+        endif
+        unlet V  " vim73
+    endfor
+
+    let issues = neomake#debug#validate_maker(maker)
+    if !empty(issues)
+        for type in sort(copy(keys(issues)))
+            let items = issues[type]
+            if !empty(items)
+                let r += [' - '.toupper(type) . ':']
+                for issue in items
+                    let r += ['   - ' . issue]
+                endfor
+            endif
+        endfor
+    endif
+
+    if type(maker.exe) == type('') && executable(maker.exe)
+        let version_arg = get(maker, 'version_arg', '--version')
+        let exe = exists('*exepath') ? exepath(maker.exe) : maker.exe
+        let version_output = neomake#compat#systemlist([exe, version_arg])
+        if empty(version_output)
+            let version_output = [printf(
+                        \ 'failed to get version information (%s)',
+                        \ v:shell_error)]
+        endif
+        let r += [printf(' - version information (%s %s): %s',
+                    \ exe,
+                    \ version_arg,
+                    \ join(version_output, "\n     "))]
+    endif
+    return r
+endfunction
+
+function! s:get_fts_with_makers() abort
+    return neomake#compat#uniq(sort(map(split(globpath(escape(&runtimepath, ' '),
+          \ 'autoload/neomake/makers/ft/*.vim'), "\n"),
+          \ 'fnamemodify(v:val, ":t:r")')))
+endfunction
+
+function! neomake#debug#get_maker_info(maker_name) abort
+    let source = ''
+    let maker = neomake#get_maker_by_name(a:maker_name, &filetype)
+    if empty(maker)
+        let maker = neomake#get_maker_by_name(a:maker_name)
+        if empty(maker)
+            let fts = filter(s:get_fts_with_makers(), 'v:val != &filetype')
+            for ft in fts
+                let maker = neomake#get_maker_by_name(a:maker_name, ft)
+                if !empty(maker)
+                    let source = 'filetype '.ft
+                    break
+                endif
+            endfor
+        else
+            let source = 'project maker'
+        endif
+    endif
+    if empty(maker)
+        call neomake#log#error(printf('Maker not found: %s.', a:maker_name))
+        return []
+    endif
+    let maker = neomake#create_maker_object(maker, &filetype)
+    return [maker.name . (empty(source) ? '' : ' ('.source.')')]
+                \ + s:get_maker_info(maker)
+endfunction
+
 function! neomake#debug#display_info(...) abort
     let bang = a:0 ? a:1 : 0
-    let lines = neomake#debug#_get_info_lines()
+    if a:0 > 1
+        let maker_name = a:2
+        let lines = neomake#debug#get_maker_info(maker_name)
+    else
+        let lines = neomake#debug#_get_info_lines()
+    endif
     if bang
         try
             call setreg('+', join(lines, "\n"), 'l')
@@ -119,7 +211,7 @@ function! neomake#debug#_get_info_lines() abort
     let r += ['##### Enabled makers']
     let r += ['']
     let r += ['For the current filetype ("'.ft.'", used with :Neomake):']
-    let r += s:get_maker_info(ft)
+    let r += s:get_makers_info(ft)
     if empty(ft)
         let r += ['NOTE: the current buffer does not have a filetype.']
     else
@@ -128,15 +220,15 @@ function! neomake#debug#_get_info_lines() abort
                     \ .' to configure it (or b:neomake_'.conf_ft.'_enabled_makers).']
     endif
     let r += ['']
+    let r += ['For the project (used with :Neomake!):']
+    let r += s:get_makers_info()
+    let r += ['NOTE: you can define g:neomake_enabled_makers to configure it.']
+    let r += ['']
     let r += ['Default maker settings:']
     for [k, v] in items(neomake#config#get('maker_defaults'))
         let r += [' - '.k.': '.string(v)]
         unlet! v  " Fix variable type mismatch with Vim 7.3.
     endfor
-    let r += ['']
-    let r += ['For the project (used with :Neomake!):']
-    let r += s:get_maker_info()
-    let r += ['NOTE: you can define g:neomake_enabled_makers to configure it.']
     let r += ['']
     let r += ['##### Settings']
     let r += ['']
@@ -144,21 +236,6 @@ function! neomake#debug#_get_info_lines() abort
     let r += ['']
     let r += ['```']
 
-    function! s:pprint(d, ...) abort
-        if type(a:d) != type({})
-            return string(a:d)
-        endif
-        let indent = a:0 ? a:1 : ''
-        if empty(a:d)
-            return '{}'
-        endif
-        let r = "{\n"
-        for [k, v] in items(a:d)
-            let r .= indent.'  ' . string(k).': '.s:pprint(v, indent . '  ').",\n"
-        endfor
-        let r .= indent.'}'
-        return r
-    endfunction
     let r += ['g:neomake: '.(exists('g:neomake') ? s:pprint(g:neomake) : 'unset')]
     let r += ['b:neomake: '.(exists('b:neomake') ? s:pprint(b:neomake) : 'unset')]
     let r += ['```']

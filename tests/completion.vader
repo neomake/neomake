@@ -9,6 +9,7 @@ Execute (neomake#cmd#complete_makers: completes makers for b:):
     \ }
   set filetype=c
   call g:NeomakeTestsCreateExe('lint', [])
+  AssertEqual neomake#GetMaker('checkpatch').name, 'checkpatch'
   Assert index(neomake#cmd#complete_makers('', 'Neomake '), 'lint') != -1, 'lint maker gets completed'
   bwipe
 

@@ -313,27 +313,27 @@ Execute (Goes back to original window after opening list (wincmd in autocmd)):
 
     AssertNotEqual wincount + 1, winnr('$'), 'Location list has not appeared yet'
     Assert exists('#neomake_event_queue#WinEnter'), 'autocmd was setup'
-    AssertNeomakeMessage 'Queueing action: s:AddExprCallback for BufEnter, WinEnter.'
+    AssertNeomakeMessage 'Queuing action AddExprCallback for BufEnter, WinEnter.'
 
     " Go to first window for wincmd-p check.
     1wincmd w
     AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).'
-    AssertNeomakeMessage 'action queue: calling s:AddExprCallback.'
+    AssertNeomakeMessage 'action queue: calling AddExprCallback.'
     AssertNeomakeMessage 'Postponing location list processing.'
-    AssertNeomakeMessage 'Queueing action: s:AddExprCallback for BufEnter, WinEnter.'
-    AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:AddExprCallback.'
-    AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
+    AssertNeomakeMessage 'Queuing action AddExprCallback for BufEnter, WinEnter.'
+    AssertNeomakeMessage "Skipping cleaning of job info because of queued actions: ['AddExprCallback', ['BufEnter', 'WinEnter']].", 3
+    AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.'
     AssertNeomakeMessage 'action queue: processed 0 items.'
     exe winnr.'wincmd w'
     AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
     AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
 
-    AssertNeomakeMessage 'action queue: calling s:AddExprCallback.', 3
+    AssertNeomakeMessage 'action queue: calling AddExprCallback.', 3
     AssertNeomakeMessage 'Processing 1 entries.', 3
     AssertNeomakeMessage 'Handling location list: executing lwindow.', 3, jobinfo
     AssertNeomakeMessage 'action queue: processed 1 items.'
     doautocmd WinEnter
-    AssertNeomakeMessage 'action queue: calling s:CleanJobinfo.', 3, jobinfo
+    AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3, jobinfo
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
     AssertNeomakeMessage 'action queue: processed 1 items.'
 
@@ -523,7 +523,7 @@ Execute (adjusts height of list for second maker):
   CallNeomake 1, [g:error_maker, g:error_maker]
 
   AssertEqual len(getloclist(0)), 2
-  AssertNeomakeMessage 'Resizing existing quickfix window (3, height=2).'
+  AssertNeomakeMessage 'Resizing existing quickfix window: 3resize 2.'
 
   let qf_win = winnr('$')
   AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
@@ -548,8 +548,7 @@ Execute (logs not found window):
 
   AssertEqual len(getloclist(0)), 2
   AssertNeomakeMessage 'Could not find corresponding quickfix window.'
-  AssertNeomakeMessage 'Could not find corresponding quickfix window.'
-
+  AssertEqual 1, len(filter(copy(g:neomake_test_messages), 'v:val[1] == "Could not find corresponding quickfix window."'))
 
   let qf_win = winnr('$')
   AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
@@ -557,3 +556,35 @@ Execute (logs not found window):
 
   lclose
   bwipe
+
+Execute (Handles :lwindow closing the list window):
+  if !has('patch-7.4.379')
+    NeomakeTestsSkip 'Not without 7.4.379'
+  else
+    Save g:neomake_open_list
+    let g:neomake_open_list = 2
+    new
+    let wincount = winnr('$')
+
+    " Create/open location list manually (no need to run a job for it).
+    " (Using a job would also not fix it with 7.4.379 currently)
+    call setloclist(0, [{'bufnr': bufnr('%'), 'lnum': 1, 'col': 1, 'text': 'error'}])
+    lwindow
+    AssertEqual len(getloclist(0)), 1
+    let qf_win = winnr('$')
+    Assert qf_win > wincount, 'Location list was opened'
+
+    " Run a maker with unrecognized/invalid entries only.
+    let maker = {}
+    function! maker.get_list_entries(...)
+      return [{'bufnr': bufnr('%'), 'lnum': 0, 'col': 0}]
+    endfunction
+
+    CallNeomake 1, [maker]
+    AssertEqual len(getloclist(0)), 1
+    let qf_win = winnr('$')
+
+    AssertEqual qf_win, wincount, 'Location list was closed for unrecognized/invalid entries'
+    AssertNeomakeMessage 'list window has been closed (old count: 3, new count: 2).', 3
+    bwipe
+  endif

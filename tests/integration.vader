@@ -183,7 +183,7 @@ Execute (Neomake: handle result for current window):
   if neomake#has_async_support()
     new
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage "Queueing action: s:process_pending_output for BufEnter, WinEnter.", 3
+    AssertNeomakeMessage 'Queuing action process_pending_output for BufEnter, WinEnter.', 3
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 0, "output pending"
     AssertEqual map(getloclist(0), 'v:val.text'), []
@@ -468,7 +468,7 @@ Execute (NeomakeListJobs with job cancellation):
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, job3, {'ignore_order': 1}
     let log_context = {'make_id': job3.make_id, 'bufnr': bufnr('%')}
     AssertNeomakeMessage 'Postponing final location list handling for mode "V".', 3, log_context
-    AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for Timer.', 3, log_context
+    AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for Timer.', 3, log_context
     AssertNeomakeMessage 'Skipping cleaning of make info for queued actions.', 3
 
     doautocmd CursorHold
@@ -862,16 +862,21 @@ Execute (Location list should be cleared only after first output):
   lgetexpr 'init'
 
   let s:au_called = 0
+  function! OnNeomakeJobFinished() abort
+    if s:au_called == 0
+      let s:au_called = 1
+      call vader#assert#equal([map(getloclist(0), 'v:val.text'),
+          \   len(g:neomake_test_finished),
+          \   len(g:neomake_test_countschanged)],
+          \ [['init'], 0, 0])
+    endif
+  endfunction
   augroup neomake_tests
-    autocmd User NeomakeJobFinished if s:au_called == 0
-    \ | let s:au_called = 1
-    \ | call vader#assert#equal(getloclist(0)[0].text, 'init')
-    \ | call vader#assert#equal(len(g:neomake_test_finished), 0)
-    \ | call vader#assert#equal(len(g:neomake_test_countschanged), 0)
-    \ | endif
+    autocmd User NeomakeJobFinished call OnNeomakeJobFinished()
   augroup END
 
   let maker_success = NeomakeTestsCommandMaker('success-maker', 'true')
+  let maker_success.serialize = 1
   let maker_sleep = NeomakeTestsCommandMaker('sleep-maker', 'sleep .01; echo slept')
 
   call neomake#Make(1, [maker_success, maker_sleep])
@@ -885,6 +890,7 @@ Execute (Location list should be cleared only after first output):
   AssertEqual s:au_called, 1
   AssertEqual getloclist(0)[0].text, 'slept'
   AssertEqual len(g:neomake_test_countschanged), 1
+  delfunction OnNeomakeJobFinished
 
 Execute (Location list should be cleared after jobs finished):
   call g:NeomakeSetupAutocmdWrappers()
@@ -969,3 +975,8 @@ Execute (neomake#GetCurrentErrorMsg):
   normal! l
   AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.2 (0)'
   bwipe!
+
+Execute (Neomake! clippy):
+  call g:NeomakeTestsCreateExe('cargo')
+  RunNeomakeProject clippy
+  AssertNeomakeMessage 'Running makers: clippy.', 3

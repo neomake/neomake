@@ -174,10 +174,12 @@ Execute (neomake#CancelMake removes queued actions):
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'Cleaning jobinfo.', 3
     AssertNeomakeMessage 'Postponing final location list handling (in another window).', 3
-    AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for WinEnter.', 3
+    AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for WinEnter.', 3
 
+    let log_context = neomake#GetStatus().make_info[jobinfo.make_id]
+    let log_context.make_id = jobinfo.make_id
     call neomake#CancelAllMakes()
-    AssertNeomakeMessage 'Cancelling make.', 3
+    AssertNeomakeMessage 'Cancelling make.', 3, log_context
     AssertNeomakeMessage 'Removed 1 action queue entries.', 3
     AssertNeomakeMessage 'Skipping final processing for canceled make.'
     call neomake#CancelMake(jobinfo.make_id)
@@ -197,9 +199,9 @@ Execute (neomake#CancelJob empties action queue):
     let job_id = jobinfo.id
     if has('patch-7.4.2299')
       NeomakeTestsWaitForFinishedJobs
-      AssertNeomakeMessage 'Queueing action: s:AddExprCallback for BufEnter, WinEnter.'
-      AssertNeomakeMessage 'Skipping cleaning of job info because of queued actions: s:AddExprCallback.'
-      AssertNeomakeMessage 'Queueing action: s:CleanJobinfo for WinEnter.'
+      AssertNeomakeMessage 'Queuing action AddExprCallback for BufEnter, WinEnter.'
+      AssertNeomakeMessage "Skipping cleaning of job info because of queued actions: ['AddExprCallback', ['BufEnter', 'WinEnter']].", 3
+      AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.'
     endif
     call neomake#CancelJob(job_id)
     if has('patch-7.4.2299')
@@ -240,7 +242,7 @@ Execute (neomake#CancelJob clears action queue for get_list_entries maker):
     endfunction
 
     let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
-    AssertNeomakeMessage 'Queueing action: s:handle_get_list_entries for Timer, WinEnter.'
+    AssertNeomakeMessage 'Queuing action handle_get_list_entries for Timer, WinEnter.'
 
     " CancelJob returns 0, since it is processed directly.
     AssertEqual neomake#CancelJob(jobinfo), 0

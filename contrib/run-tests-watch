@@ -1,8 +1,8 @@
 #!/bin/sh -x
 #
 # Wrapper around inotifywait to run tests on file changes.
-# If a test file changes, only this file is run (first), while whole test suite
-# is run afterwards (and initially).
+# If a test file changes, only this file is run (first), while the whole test
+# suite is run afterwards (and initially).
 #
 # The recommended way to run it is via `make testwatch`, or `make testwatchx`
 # (to exit on first failure).
@@ -15,6 +15,9 @@
 #       VADER_OPTIONS=-x contrib/run-tests-watch
 #   or use the following:
 #       contrib/run-tests-watch 'make %s VADER_OPTIONS=-x'
+#
+#   VADER_ARGS gets used to focus on a specific test file initially, until
+#   another test file gets changed.
 
 watch="autoload plugin tests"
 echo "Watching: $watch"
@@ -33,17 +36,19 @@ title() {
 status_file=$(mktemp)
 handle_cmd_result() {
   if [ "$1" = 0 ]; then
+    last_test_succeeded=1
     title "✔ $2"
     if [ "${2#*${alltestsfile}*}" != "$2" ]; then
       alltests_succeeded=1
     fi
   else
+    last_test_succeeded=0
     title "✘ $2"
     if [ "${2#*${alltestsfile}*}" != "$2" ]; then
       alltests_succeeded=0
     fi
   fi
-  echo "$alltests_succeeded" > "$status_file"
+  echo "$last_test_succeeded $alltests_succeeded" > "$status_file"
 }
 
 # Recursively kill childs - required to get out of a running pdb.
@@ -56,35 +61,48 @@ kill_with_childs() {
   fi
 }
 
-alltestsfile='tests/neomake.vader'
+alltestsfile='tests/all.vader'
 alltests_succeeded=0
 pid=
-output=
+changed_files=
 set -e
-last_changed_testsfile="$alltestsfile"
+last_changed_testsfile="${VADER_ARGS:-$alltestsfile}"
 
 while true; do
-  # reset
   testfiles="$last_changed_testsfile"
-  if [ -n "$output" ]; then
+  if [ -n "$changed_files" ]; then
     # There was a previous run
     echo "================================================================="
-    echo "changed file: $output"
+    echo "changed file: $changed_files"
 
-    read -r alltests_succeeded < "$status_file" || alltests_succeeded=0
+    read -r last_test_succeeded alltests_succeeded < "$status_file" || alltests_succeeded=0
 
-    if [ "${output#tests/}" != "$output" ]; then
-      last_changed_testsfile="$output"
-      testfiles="$output"
-      # Run full tests afterwards (if it has not succeeded before).
-      if [ "$output" != "$alltestsfile" ]; then
-        if [ "$alltests_succeeded" = 0 ]; then
-          testfiles="$testfiles $alltestsfile"
-        fi
+    if [ "${changed_files#tests/}" != "$changed_files" ] \
+        && [ "${changed_files#tests/include/}" = "$changed_files" ]; then
+      # A test file was changed (but not an include file).
+      last_changed_testsfile="$changed_files"
+      testfiles="$last_changed_testsfile"
+
+      # Run full tests afterwards (if not successful before).
+      if [ "$testfiles" != "$alltestsfile" ] && [ "$alltests_succeeded" = 0 ]; then
+        testfiles="$testfiles $alltestsfile"
       fi
-    else
+
+    elif [ "$last_test_succeeded" = 1 ]; then
+      # Run all tests.
       alltests_succeeded=0
       testfiles="$alltestsfile"
+
+      if [ "${VADER_OPTIONS#*-x*}" != "$VADER_OPTIONS" ]; then
+        # Run tests matching the changed file first, e.g. tests/config.vader for
+        # autoload/neomake/config.vim.
+        test_file_for_changed_file="tests/${changed_files#autoload/neomake/}"
+        test_file_for_changed_file="${test_file_for_changed_file%.vim}.vader"
+        declare -p test_file_for_changed_file
+        if [ -f "$test_file_for_changed_file" ]; then
+          testfiles="$test_file_for_changed_file $testfiles"
+        fi
+      fi
     fi
 
     if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
@@ -103,7 +121,7 @@ while true; do
 
   sleep 1
   # shellcheck disable=SC2086
-  output="$(inotifywait -r -e close_write \
+  changed_files="$(inotifywait -q -r -e close_write \
     --exclude '/(__pycache__/|\.)|.*\@neomake_.*' \
     --format '%w%f' $watch)"
 done

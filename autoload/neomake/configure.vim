@@ -95,7 +95,7 @@ function! s:neomake_do_automake(context) abort
         let timer = timer_start(a:context.delay, function('s:automake_delayed_cb'))
         let s:timer_info[timer] = a:context
         if !has_key(a:context, 'pos')
-            let s:timer_info[timer].pos = [getpos('.'), neomake#compat#get_mode()]
+            let s:timer_info[timer].pos = s:get_position_context()
         endif
         let s:timer_by_bufnr[bufnr] = timer
         call s:debug_log(printf('started timer (%dms): %d', a:context.delay, timer),
@@ -125,6 +125,11 @@ function! s:neomake_do_automake(context) abort
         call setbufvar(bufnr, 'neomake_automake_make_ids',
               \ neomake#compat#getbufvar(bufnr, 'neomake_automake_make_ids', []) + make_ids)
     endif
+endfunction
+
+function! s:get_position_context() abort
+    let w = exists('*win_getid') ? win_getid() : winnr()
+    return [w, getpos('.'), neomake#compat#get_mode()]
 endfunction
 
 function! s:automake_delayed_cb(timer) abort
@@ -159,11 +164,12 @@ function! s:automake_delayed_cb(timer) abort
         if has_key(timer_info, 'pos')
             unlet timer_info.pos
         endif
-        let b:_neomake_postponed_automake_context = timer_info
+        let b:_neomake_postponed_automake_context = [0, timer_info]
 
         augroup neomake_automake_retry
           au! * <buffer>
-          autocmd CompleteDone <buffer> call s:do_postponed_automake()
+          autocmd CompleteDone <buffer> call s:do_postponed_automake(1)
+          autocmd InsertLeave <buffer> call s:do_postponed_automake(2)
         augroup END
         return
     endif
@@ -173,16 +179,10 @@ function! s:automake_delayed_cb(timer) abort
     "       BufWritePost/BufWinEnter?!
     " if timer_info.event !=# 'BufWritePost'
     if !empty(timer_info.pos)
-        let mode = neomake#compat#get_mode()
-        let current_context = [getpos('.'), mode]
+        let current_context = s:get_position_context()
         if current_context != timer_info.pos
             call s:debug_log(printf('context/position changed: %s => %s',
                         \ string(timer_info.pos), string(current_context)))
-            " Restart timer.
-            if !empty(timer_info.pos)
-                let timer_info.pos = [getpos('.'), mode]
-            endif
-            call s:neomake_do_automake(timer_info)
             return
         endif
     endif
@@ -193,15 +193,29 @@ function! s:automake_delayed_cb(timer) abort
     call s:neomake_do_automake(context)
 endfunction
 
-function! s:do_postponed_automake() abort
+function! s:do_postponed_automake(step) abort
     if exists('b:_neomake_postponed_automake_context')
-        call s:debug_log('re-starting postponed automake')
         let context = b:_neomake_postponed_automake_context
-        unlet b:_neomake_postponed_automake_context
-        call s:neomake_do_automake(context)
+
+        if context[0] == a:step - 1
+            if a:step == 2
+                call s:debug_log('re-starting postponed automake')
+                let context[1].pos = s:get_position_context()
+                call s:neomake_do_automake(context[1])
+            else
+                let context[0] = a:step
+                return
+            endif
+        else
+            call s:debug_log('postponed automake: unexpected step '.a:step.', cleaning up')
+        endif
+
+        " Cleanup.
         augroup neomake_automake_retry
           autocmd! CompleteDone <buffer>
+          autocmd! InsertLeave <buffer>
         augroup END
+        unlet b:_neomake_postponed_automake_context
     endif
 endfunction
 
@@ -508,6 +522,7 @@ function! neomake#configure#reset_automake() abort
     let s:configured_buffers = {}
     let s:registered_events = []
     call s:stop_timers()
+    call neomake#configure#automake()
 endfunction
 
 function! s:neomake_automake_clean(bufnr) abort
@@ -521,6 +536,30 @@ function! s:neomake_automake_clean(bufnr) abort
     endif
 endfunction
 
+function! neomake#configure#disable_automake() abort
+    call s:debug_log('disabling globally')
+    call s:stop_timers()
+endfunction
+
+function! neomake#configure#disable_automake_for_buffer(bufnr) abort
+    call s:debug_log(printf('disabling buffer %d', a:bufnr))
+    if has_key(s:timer_by_bufnr, a:bufnr)
+        let timer = s:timer_by_bufnr[a:bufnr]
+        call s:stop_timer(timer)
+        call s:debug_log('stopped timer for buffer: '.timer)
+    endif
+    if has_key(s:configured_buffers, a:bufnr)
+        let s:configured_buffers[a:bufnr].disabled = 1
+    endif
+endfunction
+
+function! neomake#configure#enable_automake_for_buffer(bufnr) abort
+    if exists('s:configured_buffers[a:bufnr].disabled')
+        call s:debug_log(printf('Re-enabled buffer %d', a:bufnr))
+        unlet s:configured_buffers[a:bufnr].disabled
+    endif
+endfunction
+
 function! neomake#configure#automake(...) abort
     if !exists('g:neomake')
         let g:neomake = {}
@@ -529,11 +568,19 @@ function! neomake#configure#automake(...) abort
         call call('s:parse_events_from_args', [g:neomake] + a:000)
     endif
 
+    let disabled_globally = get(get(g:, 'neomake', {}), 'disabled', 0)
+    if disabled_globally
+        let s:registered_events = []
+    else
+        let s:registered_events = keys(get(get(g:neomake, 'automake', {}), 'events', {}))
+    endif
     " Keep custom configured buffers.
     call filter(s:configured_buffers, 'v:val.custom')
-    let s:registered_events = keys(get(get(g:neomake, 'automake', {}), 'events', {}))
     for b in keys(s:configured_buffers)
         if empty(s:configured_buffers[b].maker_jobs)
+            continue
+        endif
+        if get(s:configured_buffers[b], 'disabled', 0)
             continue
         endif
         let b_cfg = neomake#config#get('b:automake.events', {})
@@ -548,13 +595,17 @@ function! neomake#configure#automake(...) abort
 
     augroup neomake_automake
         au!
-        autocmd BufWipeout * call s:neomake_automake_clean(expand('<abuf>'))
         for event in s:registered_events
             exe 'autocmd '.event." * call s:neomake_automake('".event."', expand('<abuf>'))"
         endfor
     augroup END
-    augroup neomake_automake_update
-        au!
-        autocmd FileType * call s:maybe_reconfigure_buffer(expand('<abuf>'))
-    augroup END
+    if empty(s:registered_events)
+        augroup! neomake_automake
+    endif
 endfunction
+
+augroup neomake_automake_base
+    au!
+    autocmd BufWipeout * call s:neomake_automake_clean(expand('<abuf>'))
+    autocmd FileType * call s:maybe_reconfigure_buffer(expand('<abuf>'))
+augroup END

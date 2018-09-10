@@ -343,7 +343,7 @@ Execute (same tempfile contents is used for all jobs):
 
     Save g:maker2_tempfile
     let g:maker2_tempfile = tempname()
-    function! maker2.fn(jobinfo)
+    function! maker2.InitForJob(jobinfo)
       let self.tempfile_name = g:maker2_tempfile
     endfunction
 
@@ -638,7 +638,7 @@ Execute (Warns when removal of tempfiles fails):
     let tempfile_name = g:neomake_test_matchlist[1]
     call delete(tempfile_name)
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage printf('Failed to remove temporary file: "%s".', tempfile_name), 1
+    AssertNeomakeMessage printf('Failed to remove temporary file: "%s" (-1).', tempfile_name), 1
     bwipe
   else
     NeomakeTestsSkip 'no async support.'

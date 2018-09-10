@@ -7,8 +7,7 @@ Execute (cargo skip non json line):
   let cargo.exe = 'printf'
   let cargo.args = ['error: Could not compile `derive_more`.']
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   AssertEqual [], getloclist(0)
   bwipe
@@ -19,8 +18,7 @@ Execute (cargo info message):
   let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
     \ '../tests/fixtures/rust/cargo_info.json')
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   AssertEqual [], getloclist(0)
   bwipe
@@ -31,15 +29,97 @@ Execute (cargo error without span):
   let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
     \ '../tests/fixtures/rust/cargo_error_without_span.json')
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   AssertEqual [], getloclist(0)
   bwipe
 
+Execute (cargo: uses primary span):
+  new
+  file build/main.rs
+  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+    \ 'tests/fixtures/rust/cargo_error_primary_span.json')
+  let cargo.cwd = getcwd()
+
+  CallNeomake 1, [cargo]
+
+  AssertEqualQf getloclist(0), [{
+  \ 'lnum': 6, 'bufnr': bufnr('%'), 'col': 5, 'valid': 1, 'vcol': 0, 'nr': 49,
+  \ 'type': 'E', 'pattern': '',
+  \ 'text': 'this function takes 1 parameter but 2 parameters were supplied: expected 1 parameter',
+  \ }]
+  bwipe
+
 Execute (rust: cargo: uses directory with Cargo.toml as cwd):
+  new
   let maker = neomake#makers#ft#rust#cargo()
+  Assert !has_key(maker, 'cwd')
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
   AssertEqual maker.cwd, '%:p:h'
+  AssertNeomakeMessage "Failed to get cargo metadata for workspace using 'cargo metadata --no-deps --format-version 1'.", 3
+
+  let tempdir = tempname()
+  let slash = neomake#utils#Slash()
+  let subdir = tempdir . slash . 'subdir'
+  call mkdir(subdir, 'p')
+  let cargo_toml = tempdir . slash . 'Cargo.toml'
+  call writefile([], cargo_toml)
+
+  exe 'lcd' subdir
+  let maker = neomake#makers#ft#rust#cargo()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
+  AssertEqual maker.cwd, tempdir
+  bwipe
+
+Execute (rust: cargo: uses cargo workspace_root as cwd):
+  new
+  call g:NeomakeTestsCreateExe('cargo', [
+  \ 'echo ''{"workspace_root": "/cargo_workspace_root"}'''])
+  let maker = neomake#makers#ft#rust#cargo()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
+  AssertEqual maker.cwd, '/cargo_workspace_root'
+  bwipe
+
+Execute (rust: cargo: handles cd'ing before querying workspace_root metadata):
+  new
+  let tempdir = tempname()
+  call mkdir(tempdir)
+  exe printf('file %s/fake.rs', fnameescape(tempdir))
+
+  call g:NeomakeTestsCreateExe('cargo', [
+  \ printf('[ "$PWD" = "%s" ] && echo ''{"workspace_root": "%s"}''',
+  \ tempdir, tempdir)])
+  let maker = neomake#makers#ft#rust#cargo()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
+  AssertEqual maker.cwd, tempdir
+  bwipe
+
+Execute (rust: cargo: logs error when cd'ing fails):
+  new
+  file /doesnotexist/fake.rs
+
+  let maker = neomake#makers#ft#rust#cargo()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
+  AssertNeomakeMessage '\Vs:get_cargo_workspace_root: failed to cd to buffer directory: Vim(cd):E344: ', 3
+  AssertEqual maker.cwd, '%:p:h'
+  bwipe
+
+Execute (rust: cargotest detect failures):
+  new
+  file src/lib.rs
+  let cargotest = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargotest',
+    \ 'tests/fixtures/rust/cargotest_with_failures')
+  let cargotest.cwd = getcwd()
+
+  CallNeomake 1, [cargotest]
+
+  AssertEqual 11, len(getloclist(0))
+  AssertEqual map(getloclist(0), 'v:val.text')[0],  'failed to resolve. Maybe a missing `extern crate non;`?'
+  AssertEqual map(getloclist(0), 'v:val.text')[4],  'unused import: `non::existent::module`'
+  bwipe
+
+Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
+  let maker = neomake#makers#ft#rust#cargotest()
 
   let tempdir = tempname()
   let slash = neomake#utils#Slash()
@@ -50,7 +130,8 @@ Execute (rust: cargo: uses directory with Cargo.toml as cwd):
 
   new
   exe 'lcd' subdir
-  let maker = neomake#makers#ft#rust#cargo()
+  let maker = neomake#makers#ft#rust#cargotest()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
   AssertEqual maker.cwd, tempdir
   bwipe
 

@@ -1,12 +1,12 @@
 " Config API.
 
-let s:defaults = {
+let g:neomake#config#_defaults = {
       \ 'maker_defaults': {
       \   'buffer_output': 1,
       \   'output_stream': 'both',
       \   'remove_invalid_entries': 0,
       \ }}
-lockvar s:defaults
+lockvar g:neomake#config#_defaults
 
 let g:neomake#config#undefined = {}
 lockvar! g:neomake#config#undefined
@@ -56,7 +56,7 @@ endfunction
 "    - maker: a maker dict (where maker.name is used from for prefixes, and
 "             as a lookup itself)
 "    - ft: filetype string (use an empty string to ignore it)
-"    - bufnr: buffer number
+"    - bufnr: buffer number (use an empty string to ignore it)
 "    - maker_only: should settings get looked up only in the maker context?
 "                  (i.e. with maker.name prefix in general and in context.maker)
 "    - log_source: additional information to log.
@@ -78,12 +78,16 @@ function! neomake#config#get_with_source(name, ...) abort
             let context.bufnr = bufnr('%')
         endif
         let parts[0] = parts[0][2:-1]
-        let lookups = [['buffer', getbufvar(context.bufnr, 'neomake')],
-                    \ ['maker', get(context, 'maker', {})]]
+        if context.bufnr is# ''
+            let lookups = []
+        else
+            let lookups = [['buffer', getbufvar(context.bufnr, 'neomake')]]
+        endif
+        call add(lookups, ['maker', get(context, 'maker', {})])
     elseif empty(maker_name) && maker_only
         let lookups = [['maker', get(context, 'maker', {})]]
     else
-        let lookups = (has_key(context, 'bufnr')
+        let lookups = (has_key(context, 'bufnr') && context.bufnr isnot# ''
                     \  ? [['buffer', getbufvar(context.bufnr, 'neomake')]]
                     \  : []) + [
                     \ ['tab', get(t:, 'neomake', {})],
@@ -130,8 +134,8 @@ function! neomake#config#get_with_source(name, ...) abort
     " Return default.
     if a:0
       return [a:1, 'default']
-    elseif has_key(s:defaults, a:name)
-      return [copy(s:defaults[a:name]), 'default']
+    elseif has_key(g:neomake#config#_defaults, a:name)
+      return [copy(g:neomake#config#_defaults[a:name]), 'default']
     endif
     return [g:neomake#config#undefined, 'default']
 endfunction

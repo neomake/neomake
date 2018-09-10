@@ -21,6 +21,46 @@ function! neomake#makers#ft#rust#rustc() abort
         \ }
 endfunction
 
+function! s:get_cargo_workspace_root() abort
+    if !exists('b:_neomake_cargo_workspace')
+        let cmd = 'cargo metadata --no-deps --format-version 1'
+        let [cd_error, cd_back_cmd] = neomake#utils#temp_cd(expand('%:h'))
+        if !empty(cd_error)
+            call neomake#log#debug(printf(
+                        \ 's:get_cargo_workspace_root: failed to cd to buffer directory: %s.',
+                        \ cd_error))
+        endif
+        let output = system(cmd)
+        if !empty(cd_back_cmd)
+            exe cd_back_cmd
+        endif
+        if v:shell_error
+            call neomake#log#debug(printf(
+                        \ 'Failed to get cargo metadata for workspace using %s.',
+                        \ string(cmd)))
+            let b:_neomake_cargo_workspace = ''
+        else
+            let json = neomake#compat#json_decode(output)
+            let b:_neomake_cargo_workspace = json['workspace_root']
+        endif
+    endif
+    return b:_neomake_cargo_workspace
+endfunction
+
+function! s:get_cargo_maker_cwd(default) abort
+    let cargo_workspace_root = s:get_cargo_workspace_root()
+    if !empty(cargo_workspace_root)
+        return cargo_workspace_root
+    endif
+
+    let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
+    if !empty(cargo_toml)
+        return fnamemodify(cargo_toml, ':h')
+    endif
+
+    return a:default
+endfunction
+
 function! neomake#makers#ft#rust#cargotest() abort
     let maker = {
         \ 'exe': 'cargo',
@@ -46,10 +86,13 @@ function! neomake#makers#ft#rust#cargotest() abort
             \ '%G%\ %#%s%\\,,' .
             \ '%Z%\ %#%s%\\,%\\s%f:%l:%c,'
     \ }
-    let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
-    if !empty(cargo_toml)
-        let maker.cwd = fnamemodify(cargo_toml, ':h')
-    endif
+
+    function! maker.InitForJob(jobinfo) abort
+        if !has_key(self, 'cwd')
+            let self.cwd = s:get_cargo_maker_cwd('%:p:h')
+            return self
+        endif
+    endfunction
     return maker
 endfunction
 
@@ -57,18 +100,22 @@ function! neomake#makers#ft#rust#cargo() abort
     let maker_command = get(b:, 'neomake_rust_cargo_command',
                 \ get(g:, 'neomake_rust_cargo_command', ['check']))
     let maker = {
-        \ 'cwd': '%:p:h',
         \ 'args': maker_command + ['--message-format=json', '--quiet'],
         \ 'append_file': 0,
         \ 'process_output': function('neomake#makers#ft#rust#CargoProcessOutput'),
         \ }
-    let cargo_toml = neomake#utils#FindGlobFile('Cargo.toml')
-    if !empty(cargo_toml)
-        let maker.cwd = fnamemodify(cargo_toml, ':h')
-    endif
+
+    function! maker.InitForJob(jobinfo) abort
+        if !has_key(self, 'cwd')
+            let self.cwd = s:get_cargo_maker_cwd('%:p:h')
+            return self
+        endif
+    endfunction
     return maker
 endfunction
 
+" NOTE: does not use process_json, since cargo outputs multiple JSON root
+" elements per line.
 function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
     let errors = []
     for line in a:context['output']
@@ -76,7 +123,7 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
             continue
         endif
 
-        let decoded = neomake#utils#JSONdecode(line)
+        let decoded = neomake#compat#json_decode(line)
         let data = get(decoded, 'message', -1)
         if type(data) != type({}) || empty(data['spans'])
             continue
@@ -96,6 +143,13 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
         endif
 
         let span = data.spans[0]
+        for candidate_span in data.spans
+            if candidate_span.is_primary
+                let span = candidate_span
+                break
+            endif
+        endfor
+
         let expanded = 0
         let has_expansion = type(span.expansion) == type({})
                     \ && type(span.expansion.span) == type({})

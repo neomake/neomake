@@ -69,7 +69,7 @@ Execute (tcd is handled properly):
 
       NeomakeTestsWaitForFinishedJobs
       AssertNeomakeMessage 'Postponing final location list handling (in another window).'
-      AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for WinEnter.', 3
+      AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for WinEnter.', 3
 
       exe 'tabnext' tab1
       AssertNeomakeMessage 'Cleaning make info.', 3
@@ -324,8 +324,23 @@ Execute (process_output: filename with cwd):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'error message'}]
-
   bwipe
+
+Execute (process_output: gets executed in maker cwd):
+  let s:called = 0
+  let s:cwd = tempname()
+  call mkdir(s:cwd)
+
+  let maker = copy(g:error_maker)
+  let maker.cwd = s:cwd
+  function! maker.process_output(context)
+    let s:called = 1
+    AssertEqual getcwd(), s:cwd
+    return []
+  endfunction
+
+  CallNeomake 0, [maker]
+  AssertEqual s:called, 1
 
 Execute (legacy errorformat maker: filename with cwd):
   let tempdir = tempname()
@@ -395,8 +410,7 @@ Execute (legacy errorformat maker: filename with cwd (error: removed)):
     AssertEqual 0, delete(tempfile_dir, 'd')
     NeomakeTestsWaitForFinishedJobs
 
-    AssertNeomakeMessage printf("Could not change to job's cwd (%s): %s",
-    \ tempfile_dir,
+    AssertNeomakeMessage printf("Could not change to job's cwd (%%:p:h): %s",
     \ printf("Vim(lcd):E344: Can't find directory \"%s\" in cdpath.", tempfile_dir))
 
     " A new unlisted buffer should have been created.

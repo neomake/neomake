@@ -144,3 +144,15 @@ function! neomake#log#exception(error, ...) abort
     call neomake#log#error(a:error, log_context)
     call neomake#log#debug(printf('(in %s)', v:throwpoint), log_context)
 endfunction
+
+let s:warned = {}
+function! neomake#log#warn_once(msg, key) abort
+    if !has_key(s:warned, a:key)
+        let s:warned[a:key] = 1
+        echohl WarningMsg
+        redraw | echom 'Neomake: ' . a:msg
+        echohl None
+        let v:warningmsg = 'Neomake: '.a:msg
+        call neomake#log#debug('Neomake warning: '.a:msg)
+    endif
+endfunction

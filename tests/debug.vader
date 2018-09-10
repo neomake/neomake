@@ -57,3 +57,49 @@ Execute (neomake#debug#validate_maker: validates maker name):
   \            string(maker.name), string(g:neomake#core#valid_maker_name_pattern))],
   \ 'warnings': [],
   \ }
+
+Execute (neomake#debug#pprint):
+  AssertEqual neomake#debug#pprint(''), "''"
+  AssertEqual neomake#debug#pprint([1, 2, 3]), "[\n  1,\n  2,\n  3,\n]"
+  AssertEqual neomake#debug#pprint([{}]), "[\n  {},\n]"
+  AssertEqual neomake#debug#pprint([{'foo': ['bar', 'baz']}]),
+  \ "[\n  {\n    'foo': [\n      'bar',\n      'baz',\n    ],\n  },\n]"
+  AssertEqual neomake#debug#pprint([[], []]), "[\n  [],\n  [],\n]"
+
+Execute (neomake#debug#validate_maker with exe as function):
+  let maker = neomake#GetMaker('maker_with_nonstring_exe', 'neomake_tests')
+  AssertEqual neomake#debug#validate_maker(maker), {
+  \ 'errors': ['Non-string given for executable of maker maker_with_nonstring_exe: type 2.'],
+  \ 'warnings': []}
+
+Execute (neomake#debug#get_maker_info: version output):
+  new
+  noautocmd set filetype=neomake_tests
+
+  let exe = g:NeomakeTestsCreateExe('echo_maker', ['#!'.&shell, 'echo line 1', 'echo line 2'])
+  let b:neomake_echo_maker_exe = exe
+
+  let info = neomake#debug#get_maker_info('echo_maker')
+  AssertEqual info[-1], printf(
+  \ " - version information (%s --version): line 1\n     line 2",
+  \ exe)
+
+  let exe = g:NeomakeTestsCreateExe('echo_maker', ['#!'.&shell, 'exit 123'])
+  let info = neomake#debug#get_maker_info('echo_maker')
+  AssertEqual info[-1], printf(
+  \ ' - version information (%s --version): failed to get version information (123)',
+  \ exe)
+  bwipe
+
+Execute (neomake#debug#get_maker_info: error with missing maker):
+  let info = neomake#debug#get_maker_info('doesnotexist')
+  AssertEqual info, []
+  AssertNeomakeMessage 'Maker not found: doesnotexist.', 0
+
+Execute (neomake#debug#get_maker_info: displays maker for another filetype):
+  let info = neomake#debug#get_maker_info('python')
+  AssertEqual info[0], 'python (filetype python)'
+
+Execute (neomake#debug#get_maker_info: displays project maker):
+  let info = neomake#debug#get_maker_info('clippy')
+  AssertEqual info[0], 'clippy (project maker)'

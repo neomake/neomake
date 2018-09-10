@@ -106,33 +106,33 @@ Execute (neomake#statusline#get: clears cache with new job (file mode)):
   new
   let bufnr = bufnr('%')
   CallNeomake {'enabled_makers': [g:error_maker]}
-  AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatColorTypeE# E:1 '
+  AssertEqual neomake#statusline#get(bufnr), '%#NeomakeStatColorTypeE# E:1 %#NeomakeStatReset#'
 
   call neomake#Make({'enabled_makers': [g:success_maker]})
   if neomake#has_async_support()
-    AssertEqual neomake#statusline#get(bufnr, {}), '… (success-maker)'
+    AssertEqual neomake#statusline#get(bufnr), '… (success-maker)'
     NeomakeTestsWaitForFinishedJobs
   endif
-  AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatusGood#✓'
+  AssertEqual neomake#statusline#get(bufnr), '%#NeomakeStatusGood#✓'
   bwipe
 
 Execute (neomake#statusline#get: clears cache with new job (project mode)):
   new
   let bufnr = bufnr('%')
   CallNeomake {'file_mode': 0, 'enabled_makers': [g:error_maker]}
-  AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatColorQuickfixTypeE# QE:1 '
+  AssertEqual neomake#statusline#get(bufnr), '%#NeomakeStatColorQuickfixTypeE# QE:1 %#NeomakeStatReset#'
 
   call neomake#Make({'file_mode': 0, 'enabled_makers': [g:true_maker]})
   if neomake#has_async_support()
-    AssertEqual neomake#statusline#get(bufnr, {}), '… (true-maker!)'
+    AssertEqual neomake#statusline#get(bufnr), '… (true-maker!)'
   endif
   call neomake#Make({'file_mode': 0, 'enabled_makers': [g:success_maker]})
   if neomake#has_async_support()
-    AssertEqual neomake#statusline#get(bufnr, {}), '… (true-maker!, success-maker!)'
+    AssertEqual neomake#statusline#get(bufnr), '… (true-maker!, success-maker!)'
     NeomakeTestsWaitForFinishedJobs
   endif
   " Unknown status, only project makers have been run.
-  AssertEqual neomake#statusline#get(bufnr, {}), '?'
+  AssertEqual neomake#statusline#get(bufnr), '?'
   bwipe
 
 Execute (neomake#statusline#get: clears cache with canceled job: keeps '?'):
@@ -140,11 +140,11 @@ Execute (neomake#statusline#get: clears cache with canceled job: keeps '?'):
     new
     let bufnr = bufnr('%')
     call neomake#Make({'file_mode': 0, 'enabled_makers': [g:sleep_maker]})
-    AssertEqual neomake#statusline#get(bufnr, {}), '… (sleep-maker!)'
+    AssertEqual neomake#statusline#get(bufnr), '… (sleep-maker!)'
     NeomakeCancelJobs
-    AssertEqual neomake#statusline#get(bufnr, {}), '… (sleep-maker!)'
+    AssertEqual neomake#statusline#get(bufnr), '… (sleep-maker!)'
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual neomake#statusline#get(bufnr, {}), '?'
+    AssertEqual neomake#statusline#get(bufnr), '?'
     bwipe
   else
     NeomakeTestsSkip 'no async support.'
@@ -153,13 +153,27 @@ Execute (neomake#statusline#get: clears cache with canceled job: keeps '?'):
 Execute (neomake#statusline#get: disabling/enabling: clears cache):
   new
   let bufnr = bufnr('%')
-  AssertEqual neomake#statusline#get(bufnr, {}), '?'
+  AssertEqual neomake#statusline#get(bufnr), '?'
   NeomakeDisableBuffer
-  AssertEqual neomake#statusline#get(bufnr, {}), 'b- ?'
+  AssertEqual neomake#statusline#get(bufnr), 'b- ?'
   AssertNeomakeMessage "Using setting disabled=1 from 'buffer' (statusline#get).", 3, {'bufnr': bufnr}
+
   NeomakeToggleBuffer
-  AssertEqual neomake#statusline#get(bufnr, {}), '?'
+  AssertEqual neomake#statusline#get(bufnr), '?'
+
+  CallNeomake 1, [g:true_maker]
+  AssertEqual neomake#statusline#get(bufnr), '%#NeomakeStatusGood#✓'
+
+  " no-op
   NeomakeEnableBuffer
-  AssertEqual neomake#statusline#get(bufnr, {}), '?'
-  AssertNeomakeMessage "Using setting disabled=0 from 'buffer' (statusline#get).", 3, {'bufnr': bufnr}
+  AssertEqual neomake#statusline#get(bufnr), '%#NeomakeStatusGood#✓'
+  bwipe
+
+Execute (neomake#statusline#get: use_highlights_with_defaults):
+  new
+  let bufnr = bufnr('%')
+  AssertEqual neomake#statusline#get(bufnr, {'use_highlights_with_defaults': 0}), '?'
+  call neomake#Make({'enabled_makers': [g:entry_maker]})
+  AssertEqual neomake#statusline#get(bufnr, {'use_highlights_with_defaults': 0}), '✓'
+  AssertEqual neomake#statusline#get(bufnr, {'use_highlights_with_defaults': 1}), '%#NeomakeStatusGood#✓'
   bwipe

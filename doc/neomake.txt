@@ -199,10 +199,17 @@ Here is a sample maker definition: >
     " Use the maker like this:
     :Neomake! make
 <
-The `exe` and `args` entries can be a function reference (see |Funcref|) or a
-dictionary with an expected entry `fn` (which has to be a function).
-The function will be called with no arguments, and should return the value to
-use.
+                                                   *neomake-makers-InitForJob*
+You can configure a maker dynamically through a `InitForJob` function, which
+gets the jobinfo (|neomake-object-jobinfo|) as its argument.
+
+This can also be configured as setting: >
+    function! CustomExe(jobinfo) abort
+        let self.args = [self.exe] + self.args
+        let self.exe = 'some_custom_wrapper'
+    endfunction
+    call neomake#config#set('ft.python.InitForJob', function('CustomExe'))
+<
 
 `exe` has to be a string, while `args` can be a list or a string.
 If `args` is a list, entries like '%' and '%:p' will be |expand()|ed, and
@@ -312,8 +319,8 @@ The following variables are available in the `mapexpr`:
  - `neomake_output_source`: either "stderr" or "stdout", depending on
    where the output is coming from. This will be "stdout" always for
    non-async Vim.
- - `neomake_bufname` and `neomake_bufdir`: the buffer's name (|bufname()|) and
-   directory, respectively.
+ - `neomake_bufname` and `neomake_bufdir`: the buffer's absolute path
+   (|bufname()|) and directory, respectively.
 
 The `mapexpr` itself gets evaluated in the context of the affected buffer in
 file mode, and in the context of the buffer that is current when the maker
@@ -378,6 +385,9 @@ Your results will appear earlier, but if the |'errorformat'| is meant to parse
 multiline output this will likely cause issues (depending on how the maker
 flushes its output).
 
+To change the default for all makers use: >
+    call neomake#config#set('maker_defaults.buffer_output', 0)
+<
                                        *neomake-makers-remove_invalid_entries*
 Default: 0
 This option filters invalid entries from makers from the location/quickfix
@@ -389,8 +399,10 @@ NOTE: the default for this is 0, because unhandled/unexpected output might be
 useful, e.g. when the program displays some error.
 Makers should handle this properly through |errorformat|, e.g. by using '%-G'
 (see |efm-ignore| and |neomake-faq-errorformat|).
-You can specify the default for this via |g:neomake_remove_invalid_entries|.
 
+To change the default for all makers use: >
+    call neomake#config#set('maker_defaults.remove_invalid_entries, 1)
+<
                                                           *neomake-makers-cwd*
 The working directory of a maker defaults to the current working directory
 of the make run (|getcwd()|).
@@ -410,8 +422,8 @@ Default: 1
 This will pass a temporary file with the buffer's contents to the maker, in
 case the buffer is not readable, modified, or has no filename.
 A maker can specify the temporary file's name through the `tempfile_name`
-property, and you can set it through the experimental `maker.fn` callback (for
-advanced usage).
+property, and you can set it through the |neomake-makers-InitForJob| callback
+(for advanced usage).
 Otherwise it gets generated based on the original filename/filetype, and
 falls back to using |tempname()|.
 
@@ -443,6 +455,12 @@ to look for its config.  Use the jobinfo's `cd` method for this: >
         return 1
     endfunction
 <
+                                                   *neomake-makers-uses_stdin*
+Default: 0
+`uses_stdin = 1` can be used to always use stdin for file arguments,
+regardless of if a temporary file / stdin is required to be used.
+It uses "-" as the default for "tempfile_name".
+
 Global Options                                               *neomake-options*
 
 *g:neomake_<name>_maker*
@@ -704,7 +722,14 @@ which caches the information retrieved from `neomake#statusline#get_status()`.
 
 *neomake#statusline#get()* <bufnr> [options]
 The function requires the buffer number as first argument, and an optional
-dictionary.
+dictionary.  You might want to use |g:actual_curbuf| for bufnr, if calling
+`neomake#status#get()` from a statusline expression, but then highlights are
+not evaluated, and you typically want to use this in a statusline function
+(`'set statusline=%!MyStatusLine()'`) instead.
+
+Returns a string for a 'statusline'.
+
+The optional argument is a dictionary of options (see below).
 
 The following example creates a custom 'statusline' function, where `a:active`
 may reflect if the window is the current one (implementation not provided): >
@@ -727,12 +752,8 @@ A simpler example: >
           \ 'format_quickfix_issues': '%s',
           \ })
 <
-
 You can use the following options:
-  - format_running: used in case there are jobs running.  Use 0 (as a number)
-    to disable this, but fall through to the last known status.
-    Default: `… ({{running_job_names}})`
-
+For location list items:~
   - format_loclist_unknown: format for when the status for location list
     issues is unknown, i.e. Neomake was not run on the current buffer.
     Default: `'?'`
@@ -741,19 +762,27 @@ You can use the following options:
     NeomakeStatusGood highlight group).
   - format_loclist_type_X: format for location list issues of type X
     (E, W, I, …).
-    Default: `' {{type}}:{{count}} '`
+    Default: looks up "format_loclist_type_default" first, and then uses
+    `' {{type}}:{{count}} '`, with an existing highlight group as prefix
+    ("NeomakeStatColorTypeX" or "NeomakeStatColorDefault"), e.g.
+  - format_loclist_type_default: default format for location list issues if
+    "format_loclist_type_X" is not defined.
   - format_loclist_issues: format for wrapping all location list issues.
-    Default: `'%s'` (used with |printf()|).
+    Default: `'%s%%#NeomakeStatReset'` (used with |printf()|).
 
+For quickfix list items:~
   - format_quickfix_ok: format for no quickfix issues.
     Default: `''`
   - format_quickfix_type_X: format for quickfix list issues of type X
     (E, W, I, …).
     Default: `' {{type}}:{{count}} '`
+    Default: looks up "format_quickfix_type_default" first, and then uses
+    `' Q{{type}}:{{count}} '`, with an existing highlight group as prefix
+    ("NeomakeStatColorQuickfixTypeX" or "NeomakeStatColorQuickfixDefault").
   - format_quickfix_issues: format for wrapping all quickfix list issues.
     You can use an empty string to skip displaying quickfix issues, which can
     be useful for non-current windows.
-    Default: `'%s'` (used with |printf()|).
+    Default: `'%s%%#NeomakeStatReset'` (used with |printf()|).
 
   - format_status: used to wrap the whole status.
     This is a |printf()| format string, where `%s` gets replaced with the
@@ -770,12 +799,21 @@ You can use the following options:
     This is a |printf()| format string, where `%s` gets replaced with the
     whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
     Default: not used / `'%s'`
+  - format_running: used in case there are jobs running.  Use 0 (as a number)
+    to disable this, but fall through to the last known status.
+    Default: `… ({{running_job_names}})`
   - format_running_job_file: Wrap the running job name for file-level makers.
     Default: not used / `'%s'`
   - format_running_job_project: Wrap the running job name for project makers.
     Default: `'%s!'`.
   - running_jobs_separator: Separator for formatted running job names.
     Default: `', '`.
+
+Advanced options:
+
+  - use_highlights_with_defaults: include highlight attributes with default
+    options (e.g. "%#NeomakeStatusGood#" with "format_loclist_ok").
+    Default: 1
 
 You can use the following format placeholders:
   - `{{running_job_names}}}`: comma-separated list of running jobs (typically

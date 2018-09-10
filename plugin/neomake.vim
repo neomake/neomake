@@ -19,56 +19,107 @@ command! -bang -nargs=1 -complete=custom,neomake#cmd#complete_jobs
             \ NeomakeCancelJob call neomake#CancelJob(<q-args>, <bang>0)
 command! -bang NeomakeCancelJobs call neomake#CancelJobs(<bang>0)
 
-command! -bang -bar NeomakeInfo call neomake#debug#display_info(<bang>0)
+command! -bang -bar -nargs=? -complete=customlist,neomake#cmd#complete_makers
+            \ NeomakeInfo call neomake#debug#display_info(<bang>0, <f-args>)
 
 " Enable/disable/toggle commands.  {{{
-function! s:toggle(scope) abort
-    let new = !get(get(a:scope, 'neomake', {}), 'disabled', 0)
-    if new
-        call neomake#config#set_dict(a:scope, 'neomake.disabled', new)
-    else
-        call neomake#config#unset_dict(a:scope, 'neomake.disabled')
-    endif
-    call s:display_status()
-    call neomake#statusline#clear_cache()
-endfunction
-function! s:disable(scope, disabled) abort
-    let old = get(get(a:scope, 'neomake', {}), 'disabled', -1)
-    call neomake#config#set_dict(a:scope, 'neomake.disabled', a:disabled)
+function! s:handle_disabled_status(scope, disabled, verbose) abort
     if a:scope is# g:
         if a:disabled
             if exists('#neomake')
                 autocmd! neomake
                 augroup! neomake
             endif
+            call neomake#configure#disable_automake()
         else
             call s:setup_autocmds()
         endif
+    elseif a:scope is# t:
+        let tab = tabpagenr()
+        let buffers = neomake#compat#uniq(sort(tabpagebuflist()))
+        if a:disabled
+            for b in buffers
+                call neomake#configure#disable_automake_for_buffer(b)
+            endfor
+        else
+            for b in buffers
+                call neomake#configure#enable_automake_for_buffer(b)
+            endfor
+        endif
+    elseif a:scope is# b:
+        let bufnr = bufnr('%')
+        if a:disabled
+            call neomake#configure#disable_automake_for_buffer(bufnr)
+        else
+            call neomake#configure#enable_automake_for_buffer(bufnr)
+        endif
     endif
-    if &verbose
-        call s:display_status()
+    call s:display_status()
+    call neomake#configure#automake()
+    call neomake#statusline#clear_cache()
+endfunction
+
+function! s:disable(scope) abort
+    let old = get(get(a:scope, 'neomake', {}), 'disabled', -1)
+    if old ==# 1
+        return
     endif
-    if old != a:disabled
-        call neomake#statusline#clear_cache()
+    call neomake#config#set_dict(a:scope, 'neomake.disabled', 1)
+    call s:handle_disabled_status(a:scope, 1, &verbose)
+endfunction
+
+function! s:enable(scope) abort
+    let old = get(get(a:scope, 'neomake', {}), 'disabled', -1)
+    if old != 1
+        return
+    endif
+    call neomake#config#set_dict(a:scope, 'neomake.disabled', 0)
+    call s:handle_disabled_status(a:scope, 0, &verbose)
+endfunction
+
+function! s:toggle(scope) abort
+    let new = !get(get(a:scope, 'neomake', {}), 'disabled', 0)
+    if new
+        call neomake#config#set_dict(a:scope, 'neomake.disabled', 1)
+        call s:handle_disabled_status(a:scope, 1, 1)
+    else
+        call neomake#config#unset_dict(a:scope, 'neomake.disabled')
+        call s:handle_disabled_status(a:scope, 0, 1)
     endif
 endfunction
+
 function! s:display_status() abort
     let [disabled, source] = neomake#config#get_with_source('disabled', 0)
     let msg = 'Neomake is ' . (disabled ? 'disabled' : 'enabled')
     if source !=# 'default'
         let msg .= ' ('.source.')'
     endif
-    echom msg.'.'
+
+    " Add information from different scopes (if explicitly configured there).
+    for [scope_name, scope] in [['buffer', b:], ['tab', t:], ['global', g:]]
+        if scope_name ==# source
+            continue
+        endif
+        let disabled = get(get(scope, 'neomake', {}), 'disabled', -1)
+        if disabled != -1
+            let msg .= printf(' [%s: %s]', scope_name, disabled ? 'disabled' : 'enabled')
+        endif
+    endfor
+    let msg .= '.'
+
+    echom msg
+    call neomake#log#debug(msg)
 endfunction
+
 command! -bar NeomakeToggle call s:toggle(g:)
 command! -bar NeomakeToggleBuffer call s:toggle(b:)
 command! -bar NeomakeToggleTab call s:toggle(t:)
-command! -bar NeomakeDisable call s:disable(g:, 1)
-command! -bar NeomakeDisableBuffer call s:disable(b:, 1)
-command! -bar NeomakeDisableTab call s:disable(t:, 1)
-command! -bar NeomakeEnable call s:disable(g:, 0)
-command! -bar NeomakeEnableBuffer call s:disable(b:, 0)
-command! -bar NeomakeEnableTab call s:disable(t:, 0)
+command! -bar NeomakeDisable call s:disable(g:)
+command! -bar NeomakeDisableBuffer call s:disable(b:)
+command! -bar NeomakeDisableTab call s:disable(t:)
+command! -bar NeomakeEnable call s:enable(g:)
+command! -bar NeomakeEnableBuffer call s:enable(b:)
+command! -bar NeomakeEnableTab call s:enable(t:)
 
 command! NeomakeStatus call s:display_status()
 " }}}
