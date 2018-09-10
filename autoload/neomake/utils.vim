@@ -156,24 +156,29 @@ endfunction
 " Resolve filetype a:ft into a list of filetypes suitable for config vars
 " (i.e. 'foo.bar' => ['foo_bar', 'foo', 'bar']).
 function! neomake#utils#get_config_fts(ft, ...) abort
-    let r = []
-    let fts = split(a:ft, '\.')
-    for ft in fts
-        call add(r, ft)
-        let super_ft = neomake#utils#GetSupersetOf(ft)
-        while !empty(super_ft)
-            if index(fts, super_ft) == -1
-                call add(r, super_ft)
-            endif
-            let super_ft = neomake#utils#GetSupersetOf(super_ft)
-        endwhile
-    endfor
-    if len(fts) > 1
-        call insert(r, a:ft, 0)
-    endif
     let delim = a:0 ? a:1 : '_'
-    return map(r, 'neomake#utils#get_ft_confname(v:val, delim)')
+    let cache_key = a:ft . delim
+    if !has_key(s:cache_config_fts, cache_key)
+        let r = []
+        let fts = split(a:ft, '\.')
+        for ft in fts
+            call add(r, ft)
+            let super_ft = neomake#utils#GetSupersetOf(ft)
+            while !empty(super_ft)
+                if index(fts, super_ft) == -1
+                    call add(r, super_ft)
+                endif
+                let super_ft = neomake#utils#GetSupersetOf(super_ft)
+            endwhile
+        endfor
+        if len(fts) > 1
+            call insert(r, a:ft, 0)
+        endif
+        let s:cache_config_fts[cache_key] = map(r, 'neomake#utils#get_ft_confname(v:val, delim)')
+    endif
+    return s:cache_config_fts[cache_key]
 endfunction
+let s:cache_config_fts = {}
 
 let s:unset = {}  " Sentinel.
 
