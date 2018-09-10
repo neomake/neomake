@@ -113,9 +113,10 @@ Execute (rust: cargotest detect failures):
 
   CallNeomake 1, [cargotest]
 
-  AssertEqual 11, len(getloclist(0))
-  AssertEqual map(getloclist(0), 'v:val.text')[0],  'failed to resolve. Maybe a missing `extern crate non;`?'
-  AssertEqual map(getloclist(0), 'v:val.text')[4],  'unused import: `non::existent::module`'
+  AssertEqual map(getloclist(0), '[v:val.type, v:val.valid, v:val.text]'), [
+    \ ['E', 1, 'failed to resolve, maybe missing a `extern crate non;`?'],
+    \ ['W', 1, 'unused import: `non::existent::module`'],
+    \ ]
   bwipe
 
 Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
