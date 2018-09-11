@@ -66,6 +66,7 @@ function! neomake#makers#ft#rust#cargotest() abort
         \ 'exe': 'cargo',
         \ 'args': ['test', '%:t:r', '--quiet'],
         \ 'append_file': 0,
+        \ 'postprocess': copy(g:neomake#postprocess#remove_duplicates),
         \ 'errorformat':
             \ '%-G,' .
             \ '%-Gtest %s,' .

@@ -60,3 +60,17 @@ function! neomake#postprocess#compress_whitespace(entry) abort
     let text = substitute(text, '\m\s\+$', '', '')
     let a:entry.text = text
 endfunction
+
+let g:neomake#postprocess#remove_duplicates = {}
+function! g:neomake#postprocess#remove_duplicates.fn(entry) abort
+    if exists('self._seen_entries')
+        if index(self._seen_entries, a:entry) != -1
+            let a:entry.valid = -1
+        else
+            call add(self._seen_entries, a:entry)
+        endif
+    else
+        let self._seen_entries = [a:entry]
+    endif
+endfunction
+lockvar g:neomake#postprocess#remove_duplicates  " Needs to be copied.
