@@ -135,3 +135,33 @@ Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
   let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
   AssertEqual maker.cwd, tempdir
   bwipe
+
+Execute (rust: cargotest detect failures):
+  new
+  file src/lib.rs
+  let cargotest = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargotest',
+    \ 'tests/fixtures/rust/cargotest_with_failures')
+
+  call neomake#Make(1, [cargotest])
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqual 11, len(getloclist(0))
+  AssertEqual map(getloclist(0), 'v:val.text')[0],  'failed to resolve. Maybe a missing `extern crate non;`?'
+  AssertEqual map(getloclist(0), 'v:val.text')[4],  'unused import: `non::existent::module`'
+  bwipe
+
+Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
+  let maker = neomake#makers#ft#rust#cargotest()
+
+  let tempdir = tempname()
+  let slash = neomake#utils#Slash()
+  let subdir = tempdir . slash . 'subdir'
+  call mkdir(subdir, 'p')
+  let cargo_toml = tempdir . slash . 'Cargo.toml'
+  call writefile([], cargo_toml)
+
+  new
+  exe 'lcd' subdir
+  let maker = neomake#makers#ft#rust#cargotest()
+  AssertEqual maker.cwd, tempdir
+  bwipe

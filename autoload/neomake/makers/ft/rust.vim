@@ -17,7 +17,7 @@ function! neomake#makers#ft#rust#rustc() abort
             \ '%G\ %#|\ %#%\\^%\\+ %m,'.
             \ '%I%>help:\ %#%m,'.
             \ '%Z\ %#%m,'.
-            \ '%-G%s',
+            \ '%-G%.%#',
         \ }
 endfunction
 
