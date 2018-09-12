@@ -18,14 +18,13 @@ Execute (Setup: monkeypatch autoload/neomake/highlights.vim):
 Execute (vimlint: length postprocessing):
   let g:neomake_tests_highlight_lengths = {}
   new
-  edit tests/fixtures/vim/func-with-errors.vim
+  noautocmd edit tests/fixtures/vim/func-with-errors.vim
   let maker = neomake#makers#ft#vim#vimlint()
   let maker.exe = 'cat'
   let maker.args = 'tests/fixtures/vim/func-with-errors.vim.output'
   let maker.append_file = 0
 
-  call neomake#Make(1, [maker])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [maker]
 
   let bufnr = bufnr('%')
   AssertEqualQf getloclist(0), [{
@@ -51,7 +50,6 @@ Execute (vimlint: length postprocessing):
     \ }]
 
   AssertEqual {string(bufnr): [[2, 11], [5, 3]]}, g:neomake_tests_highlight_lengths
-
   bwipe
 
 Execute (vint: highlights syntax error for command):
