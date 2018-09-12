@@ -326,15 +326,15 @@ Execute (Goes back to original window after opening list (wincmd in autocmd)):
     AssertNeomakeMessage 'action queue: processed 0 items.'
     exe winnr.'wincmd w'
     AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
-    AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
+    AssertEqual wincount, winnr('$'), 'Location list has not appeared yet'
 
     AssertNeomakeMessage 'action queue: calling AddExprCallback.', 3
     AssertNeomakeMessage 'Processing 1 entries.', 3
-    AssertNeomakeMessage 'Handling location list: executing lwindow.', 3, jobinfo
     AssertNeomakeMessage 'action queue: processed 1 items.'
     doautocmd WinEnter
     AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3, jobinfo
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
+    AssertNeomakeMessage 'Handling list display: executing lwindow 1.'
     AssertNeomakeMessage 'action queue: processed 1 items.'
 
     wincmd p
@@ -359,7 +359,7 @@ Execute (open_list=1 with job: just opens location window):
   AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
 
   Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was not setup'
-  AssertNeomakeMessage 'Handling location list: executing lwindow.'
+  AssertNeomakeMessage 'Handling list display: executing lwindow 1.'
   AssertEqual winheight(winnr()), 1
 
   AssertEqual winnr(), winnr('$'), 'In location window.'
@@ -464,15 +464,18 @@ Execute (location list gets created with entries from first job, closed only aft
   new
   let wincount = winnr('$')
 
+  let maker2 = NeomakeTestsCommandMaker('maker2', 'sleep .05; echo maker2')
+  let maker2.errorformat = '%E%m'
+
   let b:neomake_serialize = 1
-  call neomake#Make(1, [g:error_maker, g:true_maker])
+  call neomake#Make(1, [g:error_maker, maker2])
   if neomake#has_async_support()
     NeomakeTestsWaitForNextFinishedJob
     AssertEqual map(getloclist(0), '[v:val.text, v:val.type, v:val.valid]'), [['error', 'E', 1]]
-    AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
+    AssertEqual wincount, winnr('$'), 'Location list has not appeared yet'
     NeomakeTestsWaitForFinishedJobs
   endif
-  AssertEqual map(getloclist(0), '[v:val.text, v:val.type, v:val.valid]'), [['error', 'E', 1]]
+  AssertEqual map(getloclist(0), '[v:val.text, v:val.type, v:val.valid]'), [['error', 'E', 1], ['maker2', 'E', 1]]
   AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
 
   let flagfile = tempname()
@@ -487,7 +490,7 @@ Execute (location list gets created with entries from first job, closed only aft
   if neomake#has_async_support()
     NeomakeTestsWaitForNextFinishedJob
     AssertEqual wincount + 1, winnr('$'), 'Location list was not closed'
-    AssertEqual map(getloclist(0), '[v:val.text, v:val.type, v:val.valid]'), [['error', 'E', 1]]
+    AssertEqual map(getloclist(0), '[v:val.text, v:val.type, v:val.valid]'), [['error', 'E', 1], ['maker2', 'E', 1]]
     call writefile([], flagfile)
     NeomakeTestsWaitForFinishedJobs
   endif
@@ -513,7 +516,7 @@ Execute (empty location list is handled with :lopen):
   AssertEqual map(getloclist(0), 'v:val.text'), []
   bwipe
 
-Execute (adjusts height of list for second maker):
+Execute (uses height of list for second maker):
   Save g:neomake_open_list
   let g:neomake_open_list = 2
   new
@@ -523,11 +526,84 @@ Execute (adjusts height of list for second maker):
   CallNeomake 1, [g:error_maker, g:error_maker]
 
   AssertEqual len(getloclist(0)), 2
+  AssertNeomakeMessage 'Handling list display: executing lwindow 2.'
+
+  let qf_win = winnr('$')
+  AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
+  AssertEqual winheight(qf_win), 2
+
+  lclose
+  bwipe
+
+Execute (adjusts height of list for second long-running maker):
+  Save g:neomake_open_list, g:neomake_open_list_first_delay
+  let g:neomake_open_list = 2
+  let g:neomake_open_list_first_delay = 5
+  new
+  let wincount = winnr('$')
+
+  let maker2 = NeomakeTestsCommandMaker('maker2', 'sleep .1; echo error')
+  let maker2.errorformat = '%E%m'
+
+  let b:neomake_serialize = 1
+  CallNeomake 1, [g:error_maker, maker2]
+
+  AssertEqual len(getloclist(0)), 2
+  if neomake#has_async_support()
+    AssertNeomakeMessage 'Resizing existing quickfix window: 3resize 2.'
+  endif
+
+  let qf_win = winnr('$')
+  AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
+  AssertEqual winheight(qf_win), 2
+
+  lclose
+  bwipe
+
+Execute (adjusts height of list for second maker with a delay of 0):
+  Save g:neomake_open_list, g:neomake_open_list_first_delay
+  let g:neomake_open_list = 2
+  let g:neomake_open_list_first_delay = 0
+  new
+  let wincount = winnr('$')
+
+  let maker2 = NeomakeTestsCommandMaker('maker2', 'sleep .1; echo error')
+  let maker2.errorformat = '%E%m'
+
+  let b:neomake_serialize = 1
+  CallNeomake 1, [g:error_maker, maker2]
+
+  AssertEqual len(getloclist(0)), 2
   AssertNeomakeMessage 'Resizing existing quickfix window: 3resize 2.'
 
   let qf_win = winnr('$')
   AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
   AssertEqual winheight(qf_win), 2
+
+  lclose
+  bwipe
+
+Execute (adjusting height of list for second maker can be disabled):
+  Save g:neomake_open_list, g:neomake_open_list_first_delay, g:neomake_open_list_resize_existing
+  let g:neomake_open_list = 2
+  let g:neomake_open_list_first_delay = 0
+  let g:neomake_open_list_resize_existing = 0
+  new
+  let wincount = winnr('$')
+
+  let maker2 = NeomakeTestsCommandMaker('maker2', 'sleep .1; echo error')
+  let maker2.errorformat = '%E%m'
+
+  let b:neomake_serialize = 1
+  CallNeomake 1, [g:error_maker, maker2]
+
+  AssertEqual len(getloclist(0)), 2
+
+  let qf_win = winnr('$')
+  AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
+  AssertEqual winheight(qf_win), 1
+
+  AssertNeomakeMessage 'Handling list display: executing lwindow 2.', 3
 
   lclose
   bwipe
@@ -547,8 +623,7 @@ Execute (logs not found window):
   CallNeomake 1, [g:error_maker, g:error_maker]
 
   AssertEqual len(getloclist(0)), 2
-  AssertNeomakeMessage 'Could not find corresponding quickfix window.'
-  AssertEqual 1, len(filter(copy(g:neomake_test_messages), 'v:val[1] == "Could not find corresponding quickfix window."'))
+  AssertEqual 0, len(filter(copy(g:neomake_test_messages), 'v:val[1] == "Could not find corresponding quickfix window."'))
 
   let qf_win = winnr('$')
   AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
@@ -588,3 +663,41 @@ Execute (Handles :lwindow closing the list window):
     AssertNeomakeMessage 'list window has been closed (old count: 3, new count: 2).', 3
     bwipe
   endif
+
+Execute (neomake#_handle_list_display can be used to open list only with errors):
+  function! s:OnNeomakeJobFinished(...) abort
+    let jobinfo = g:neomake_hook_context.jobinfo
+    let file_mode = jobinfo.file_mode
+    let list = file_mode ? getloclist(0) : getqflist()
+
+    function! s:list_has_errors(list)
+      for e in a:list
+        if get(e, 'type', 'E') ==? 'E'
+          return 1
+        endif
+      endfor
+      return 0
+    endfunction
+
+    if s:list_has_errors(list)
+      call neomake#_handle_list_display(jobinfo, min([10, len(list)]))
+    endif
+  endfunction
+
+  augroup neomake_tests
+    autocmd User NeomakeJobFinished nested call s:OnNeomakeJobFinished()
+  augroup END
+
+  Save g:neomake_open_list
+  let g:neomake_open_list = 0
+
+  new
+  let wincount = winnr('$')
+
+  CallNeomake 1, [g:error_maker]
+
+  AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
+  AssertEqual len(getloclist(0)), 1
+
+  lclose
+  bwipe
