@@ -640,6 +640,9 @@ Execute (neomake#utils#fnamemodify handles fugitive buffer):
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname, ':p:h')
   bwipe
   bwipe autoload/neomake/debug.vim
+  if exists('*VimFtpluginUndo')
+    delfunction VimFtpluginUndo
+  endif
 
 Execute (neomake#utils#fnamemodify handles empty bufname):
   new

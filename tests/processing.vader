@@ -835,7 +835,9 @@ Execute (action queue handles E48 in process_output):
   AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfo
 
 Execute (job finishes while in tabline function):
-  if NeomakeAsyncTestsSetup()
+  if !neomake#has_async_support() || !has('patch-v8.1.0342')
+    NeomakeTestsSkip 'only for async without patch v8.1.0342.'
+  else
     Save &tabline, g:neomake_test_flagfile
 
     let g:neomake_test_flagfile = tempname()
