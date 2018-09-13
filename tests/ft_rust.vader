@@ -7,8 +7,7 @@ Execute (cargo skip non json line):
   let cargo.exe = 'printf'
   let cargo.args = ['error: Could not compile `derive_more`.']
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   AssertEqual [], getloclist(0)
   bwipe
@@ -19,8 +18,7 @@ Execute (cargo info message):
   let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
     \ '../tests/fixtures/rust/cargo_info.json')
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   AssertEqual [], getloclist(0)
   bwipe
@@ -31,8 +29,7 @@ Execute (cargo error without span):
   let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
     \ '../tests/fixtures/rust/cargo_error_without_span.json')
 
-  call neomake#Make(1, [cargo])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [cargo]
 
   AssertEqual [], getloclist(0)
   bwipe
@@ -105,4 +102,36 @@ Execute (rust: cargo: logs error when cd'ing fails):
   let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
   AssertNeomakeMessage '\Vs:get_cargo_workspace_root: failed to cd to buffer directory: Vim(cd):E344: ', 3
   AssertEqual maker.cwd, '%:p:h'
+  bwipe
+
+Execute (rust: cargotest detect failures):
+  new
+  file src/lib.rs
+  let cargotest = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargotest',
+    \ 'tests/fixtures/rust/cargotest_with_failures')
+  let cargotest.cwd = getcwd()
+
+  CallNeomake 1, [cargotest]
+
+  AssertEqual map(getloclist(0), '[v:val.type, v:val.valid, v:val.text]'), [
+    \ ['E', 1, 'failed to resolve. Maybe a missing `extern crate non;`?'],
+    \ ['W', 1, 'unused import: `non::existent::module`'],
+    \ ]
+  bwipe
+
+Execute (rust: cargotest: uses directory with Cargo.toml as cwd):
+  let maker = neomake#makers#ft#rust#cargotest()
+
+  let tempdir = tempname()
+  let slash = neomake#utils#Slash()
+  let subdir = tempdir . slash . 'subdir'
+  call mkdir(subdir, 'p')
+  let cargo_toml = tempdir . slash . 'Cargo.toml'
+  call writefile([], cargo_toml)
+
+  new
+  exe 'lcd' subdir
+  let maker = neomake#makers#ft#rust#cargotest()
+  let maker = maker.InitForJob(NeomakeTestsFakeJobinfo())
+  AssertEqual maker.cwd, tempdir
   bwipe
