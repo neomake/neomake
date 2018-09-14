@@ -425,3 +425,21 @@ Execute (neomake#postprocess#compress_whitespace):
   AssertEqual s:F("foo\r\nbar "), 'foo bar'
   AssertEqual s:F("foo\n bar "), 'foo bar'
   AssertEqual s:F("foo\n bar \r\n"), 'foo bar'
+
+Execute (neomake#postprocess#remove_duplicates):
+  let maker = {'postprocess': copy(g:neomake#postprocess#remove_duplicates)}
+
+  let entries = [
+  \ {'bufnr': 1, 'lnum': 1, 'text': 'one'},
+  \ {'bufnr': 1, 'lnum': 2, 'text': 'two'},
+  \ {'bufnr': 1, 'lnum': 1, 'text': 'one'},
+  \ ]
+
+  call maker.postprocess.fn(entries[0])
+  AssertEqual maker.postprocess._seen_entries, [entries[0]]
+  call maker.postprocess.fn(entries[1])
+  AssertEqual maker.postprocess._seen_entries, entries[0:1]
+  call maker.postprocess.fn(entries[2])
+  AssertEqual maker.postprocess._seen_entries, entries[0:1]
+
+  AssertEqual entries[2].valid, -1

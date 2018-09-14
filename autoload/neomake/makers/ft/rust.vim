@@ -17,7 +17,7 @@ function! neomake#makers#ft#rust#rustc() abort
             \ '%G\ %#|\ %#%\\^%\\+ %m,'.
             \ '%I%>help:\ %#%m,'.
             \ '%Z\ %#%m,'.
-            \ '%-G%s',
+            \ '%-G%.%#',
         \ }
 endfunction
 
@@ -59,6 +59,45 @@ function! s:get_cargo_maker_cwd(default) abort
     endif
 
     return a:default
+endfunction
+
+function! neomake#makers#ft#rust#cargotest() abort
+    " NOTE: duplicates are removed due to https://github.com/rust-lang/cargo/issues/5128.
+    let maker = {
+        \ 'exe': 'cargo',
+        \ 'args': ['test', '%:t:r', '--quiet'],
+        \ 'append_file': 0,
+        \ 'postprocess': copy(g:neomake#postprocess#remove_duplicates),
+        \ 'errorformat':
+            \ '%-G,' .
+            \ '%-Gtest %s,' .
+            \ '%-Grunning %\\d%# test%s,' .
+            \ '%-Gfailures:%s,' .
+            \ '%-G----%s,' .
+            \ '%-G%.%#--verbose%s,' .
+            \ '%-G%.%#--explain%s,' .
+            \ '%-Gerror: aborting due to previous error,' .
+            \ '%-G%\ %#error: aborting due to %\\d%#%\ %#previous errors,' .
+            \ '%E%\ %#error[E%n]:\ %m,' .
+            \ '%E%\ %#error:\ %m,' .
+            \ '%I%\ %#note:\ %m,'.
+            \ '%W%\ %#warning:\ %m,' .
+            \ '%-Z%\ %#-->\ %f:%l:%c,' .
+            \ '%-G%\\d%# %#|\ %s,' .
+            \ '%-G%\\d%# %#|,' .
+            \ '%-G\ %#\= %*[^:]:\ %m,'.
+            \ '%E%\ %#%m,' .
+            \ '%G%\ %#%s%\\,,' .
+            \ '%Z%\ %#%s%\\,%\\s%f:%l:%c'
+    \ }
+
+    function! maker.InitForJob(jobinfo) abort
+        if !has_key(self, 'cwd')
+            let self.cwd = s:get_cargo_maker_cwd('%:p:h')
+            return self
+        endif
+    endfunction
+    return maker
 endfunction
 
 function! neomake#makers#ft#rust#cargo() abort
