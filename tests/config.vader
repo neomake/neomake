@@ -202,3 +202,90 @@ Execute (neomake#config#get handles non-dicts on the way):
   AssertEqual neomake#config#get('foo.bar', 'default'), 'baz'
   AssertEqual neomake#config#get('foo.bar.baz', 'default'), 'default'
   bwipe
+
+Execute (old-style config is used for maker defaults):
+  let maker = {'name': 'mymaker', 'args': ['default']}
+
+  new
+  let b:neomake = {'some': 'config'}
+  AssertEqual neomake#GetMaker(maker).args, ['default']
+  let b:neomake_mymaker_args = ['args1']
+  AssertEqual neomake#GetMaker(maker).args, ['args1']
+
+  noautocmd set filetype=myft
+  AssertEqual neomake#GetMaker(maker).args, ['args1']
+  let b:neomake_myft_mymaker_args = ['args2']
+  AssertEqual neomake#GetMaker(maker).args, ['args2']
+
+  " New-style config overrides it.
+  call neomake#config#set('b:mymaker.args', ['new-style'])
+  AssertEqual neomake#GetMaker(maker).args, ['new-style']
+
+  bwipe
+
+Execute (neomake#config#get does not allow to extend undefined default return value):
+  let d = neomake#config#get('undefined')
+  AssertEqual d, g:neomake#config#undefined
+  AssertThrows call extend(neomake#config#get('undefined'), {'foo': 'bar'})
+  AssertEqual g:vader_exception, 'Vim(call):E741: Value is locked: extend() argument'
+
+Execute (neomake#config#get should not set g:neomake):
+  Save g:neomake
+  unlet! g:neomake
+  call neomake#config#get('foo')
+  Assert !exists('g:neomake')
+
+Execute (neomake#config#get has default for "maker_defaults"):
+  let maker_defaults = neomake#config#get('maker_defaults')
+  AssertEqual sort(keys(maker_defaults)), [
+  \ 'buffer_output', 'output_stream', 'remove_invalid_entries']
+
+  call extend(maker_defaults, {'additional': 'value'})
+  let maker_defaults = neomake#config#get('maker_defaults')
+  AssertEqual sort(keys(maker_defaults)), [
+  \ 'buffer_output', 'output_stream', 'remove_invalid_entries']
+
+Execute (neomake#config#get returns a reference):
+  new
+  let d = neomake#config#get('b:foo', {})
+  let d.foo = 'bar'
+  Assert !exists('b:neomake')
+
+  call neomake#config#set('b:foo', {'k': 'orig'})
+  let d = neomake#config#get('b:foo')
+  AssertEqual d, {'k': 'orig'}
+  let d.k = 'changed'
+  AssertEqual neomake#config#get('b:foo'), {'k': 'changed'}
+  bwipe
+
+Execute (neomake#config#get returns a copy for defaults):
+  new
+  let d = neomake#config#get('b:foo', {})
+  let d.foo = 'bar'
+  Assert !exists('b:neomake')
+
+  call neomake#config#set('b:foo', {'k': 'orig'})
+  let d = neomake#config#get('b:foo')
+  AssertEqual d, {'k': 'orig'}
+  let d.k = 'changed'
+  AssertEqual neomake#config#get('b:foo'), {'k': 'changed'}
+  bwipe
+
+Execute (neomake#config#get can ignore buffer):
+  new
+  call neomake#config#set('b:foo', 42)
+
+  AssertEqual neomake#config#get('foo'), 42
+  AssertEqual neomake#config#get('b:foo'), 42
+
+  new
+  " 0 refers to the alternate buffer for the current window.
+  AssertEqual neomake#config#get('foo', 'default', {'bufnr': 0}), 42
+  AssertEqual neomake#config#get('b:foo', 'default', {'bufnr': 0}), 42
+
+  " '' ignores buffer.
+  AssertEqual neomake#config#get('foo', 'default', {'bufnr': ''}), 'default'
+  AssertEqual neomake#config#get('b:foo', 'default', {'bufnr': ''}), 'default'
+
+  bwipe
+  bwipe

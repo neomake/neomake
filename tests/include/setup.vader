@@ -1,9 +1,24 @@
 " Setup and helpers for all tests.
 
 Before:
+  let g:neomake_test_messages = []
+  let g:neomake_test_errors = []
+  let g:_neomake_test_asserted_messages = []
+  let g:neomake_test_log_all_messages = 1
+  let g:neomake_test_messages_last_idx = -1
+  let g:neomake_test_buffers_before = filter(range(1, bufnr('$')), 'bufexists(v:val)')
+
+  call setloclist(0, [])
+  call setqflist([])
+
   " One-time setup.
   if exists(':NeomakeTestsWaitForFinishedJobs') != 2
-    let g:neomake_test_buffers_before = filter(range(1, bufnr('$')), 'bufexists(v:val)')
+    if !exists('g:loaded_neomake')
+      " When running a .vader file manually, without Neomake being loaded.
+      let plugin_dir = fnamemodify(g:vader_file, ':p:h:h')
+      let &runtimepath .= ','.plugin_dir
+      exe 'source' plugin_dir.'/plugin/neomake.vim'
+    endif
 
     exe 'source' finddir('include', fnamemodify(g:vader_file, ':p:h').';').'/init.vim'
 
@@ -16,10 +31,7 @@ Before:
     " Save list of already defined (and whitelisted functions).
     " This gets used to check that no new global functions are left over
     " on teardown.
-    redir => output_func
-      silent function /\C^[A-Z]
-    redir END
-    let g:neomake_test_funcs_before = map(split(output_func, '\n'),
+    let g:neomake_test_funcs_before = map(split(neomake#utils#redir('function /\C^[A-Z]'), '\n'),
         \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
 
     call extend(g:neomake_test_funcs_before, [
@@ -29,14 +41,6 @@ Before:
         \ 'GetShIndent',
         \ ])
   endif
-
-  let g:neomake_test_messages = []
-  let g:_neomake_test_asserted_messages = []
-  let g:neomake_test_log_all_messages = 1
-  let g:neomake_test_messages_last_idx = -1
-
-  call setloclist(0, [])
-  call setqflist([])
 
 After:
   NeomakeTestsGlobalAfter

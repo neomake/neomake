@@ -28,7 +28,7 @@ function! neomake#makers#ft#purescript#PSProcessOutput(context) abort
         if line[0] !=# '{'
             continue
         endif
-        let l:decoded = neomake#utils#JSONdecode(line)
+        let l:decoded = neomake#compat#json_decode(line)
         for [key, values] in items(l:decoded)
             let l:code = key ==# 'warnings' ? 'W' : 'E'
             for item in values

@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 " Yet to be determined
-let s:rustup_has_nightly = -1
+let s:rustup_has_nightly = get(g:, 'neomake_clippy_rustup_has_nightly', -1)
 
 function! neomake#makers#clippy#clippy() abort
     " When rustup and a nightly toolchain is installed, that is used.
@@ -12,7 +12,7 @@ function! neomake#makers#clippy#clippy() abort
             let s:rustup_has_nightly = 0
             call system('rustc --version | grep -q "\-nightly"')
             if v:shell_error
-                call neomake#utils#QuietMessage('Clippy requires a nightly rust installation.')
+                call neomake#log#warning('Clippy requires a nightly rust installation.')
             endif
         else
             call system('rustup show | grep -q "^nightly-"')

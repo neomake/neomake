@@ -1,0 +1,16 @@
+" vim: ts=4 sw=4 et
+
+function! neomake#makers#ft#r#EnabledMakers() abort
+    return ['lintr']
+endfunction
+
+function! neomake#makers#ft#r#lintr() abort
+    return {
+        \ 'exe': 'R',
+        \ 'args': ['-e lintr::lint("%:p")'],
+        \ 'errorformat':
+        \   '%W%f:%l:%c: style: %m,' .
+        \   '%W%f:%l:%c: warning: %m,' .
+        \   '%E%f:%l:%c: error: %m,'
+        \ }
+endfunction

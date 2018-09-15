@@ -40,13 +40,19 @@ If you want to run Neomake automatically (in file mode), you can configure it
 in your `vimrc` by using `neomake#configure#automake`, e.g. by picking one of:
 
 ```vim
-" When writing a buffer.
+" When writing a buffer (no delay).
 call neomake#configure#automake('w')
-" When writing a buffer, and on normal mode changes (after 750ms).
+" When writing a buffer (no delay), and on normal mode changes (after 750ms).
 call neomake#configure#automake('nw', 750)
-" When reading a buffer (after 1s), and when writing.
+" When reading a buffer (after 1s), and when writing (no delay).
 call neomake#configure#automake('rw', 1000)
+" Full config: when writing or reading a buffer, and on changes in insert and
+" normal mode (after 1s; no delay when writing).
+call neomake#configure#automake('nrwi', 500)
 ```
+
+(Any function calls like these need to come after indicating the end of plugins
+to your plugin manager, e.g. after `call plug#end()` with vim-plug.)
 
 ### Advanced setup
 
@@ -66,7 +72,9 @@ endif
 ```
 
 See `:help neomake-automake` (in [doc/neomake.txt](doc/neomake.txt)) for more
-information, e.g. how to configure it based on certain autocommands explicitly.
+information, e.g. how to configure it based on certain autocommands explicitly,
+and for details about which events get used for the different string-based
+modes.
 
 ## Usage
 
@@ -120,9 +128,12 @@ We are using [Vader](https://github.com/junegunn/vader.vim) for our tests.
 
 ### Logging
 
-`let g:neomake_logfile = '/tmp/neomake.log'` enables the debug logging file.
-You can use e.g. `tail -f /tmp/neomake.log` to follow it in a new terminal
-window.
+Set `let g:neomake_logfile = '/tmp/neomake.log'` (dynamically or in your vimrc)
+to  enable debug logging to the given file.
+From Neomake's source tree you can then run `make tail_log`, which will color
+the output and pipe it into `less`, which folds long lines by default and will
+follow the output (like `tail -f`).
+You can use Ctrl-C to interrupt for scrolling etc, and then F to follow again.
 
 ### Running tests
 
@@ -149,9 +160,9 @@ The image for this gets pulled from Docker Hub via
 NOTE: the Docker image used for tests does not include (different versions)
 of Neovim at the moment.
 
-#### Run all tests for Vim 8.0.0069
+#### Run all tests for Vim 8.0.586
 
-    make docker_test DOCKER_VIM=vim8069
+    make docker_test DOCKER_VIM=vim-8.0.586
 
 #### Run all tests against all Vims in the Docker image
 

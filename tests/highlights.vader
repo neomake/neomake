@@ -93,9 +93,9 @@ Execute (Highlights get (re-)defined on ColorScheme event):
     let colorscheme = 'default'
     let had_colorscheme = 0
   endif
-  let orig = neomake#utils#redir('hi NeomakeErrorDefault')
+  let orig = neomake#utils#redir('hi NeomakeError')
   exe 'colorscheme' colorscheme
-  let new = neomake#utils#redir('hi NeomakeErrorDefault')
+  let new = neomake#utils#redir('hi NeomakeError')
   if had_colorscheme
     AssertEqual orig, new
   else

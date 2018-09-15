@@ -119,8 +119,7 @@ function! s:AddToClasspath(classpath, path) abort
     return (a:classpath !=# '') ? a:classpath . s:ClassSep() . a:path : a:path
 endfunction
 
-" @vimlint(EVL103, 1, a:classpathFile)
-function! s:ReadClassPathFile(classpathFile) abort
+function! s:ReadClassPathFile(_classpathFile) abort
     let cp = ''
     let file = g:neomake_java_checker_home. s:psep. 'java'. s:psep.  'classpath.py'
     if has('python3')
@@ -134,7 +133,6 @@ function! s:ReadClassPathFile(classpathFile) abort
     endif
     return cp
 endfunction
-" @vimlint(EVL103, 0)
 
 function! neomake#makers#ft#java#EnabledMakers() abort
     let makers = []
@@ -195,7 +193,8 @@ function! neomake#makers#ft#java#javac() abort
                 \ '%W%f:%l: warning: %m,'.
                 \ '%E%f:%l: %m,'.
                 \ '%Z%p^,'.
-                \ '%-G%.%#'
+                \ '%-G%.%#',
+                \ 'version_arg': '-version'
                 \ }
 endfunction
 
@@ -204,7 +203,12 @@ function! neomake#makers#ft#java#checkstyle() abort
                 \ 'args': ['-c', g:neomake_java_checkstyle_xml],
                 \ 'exe': g:neomake_java_checkstyle_executable,
                 \ 'errorformat':
-                \ '[%t%*[^]]] %f:%l:%c: %m [%s]'
+                \ '%-GStarting audit...,'.
+                \ '%-GAudit done.,'.
+                \ '%-GPicked up _JAVA_OPTIONS:%.%#,'.
+                \ '[%t%*[^]]] %f:%l:%c: %m [%s],'.
+                \ '[%t%*[^]]] %f:%l: %m [%s]',
+                \ 'version_arg': '-v'
                 \ }
 endfunction
 

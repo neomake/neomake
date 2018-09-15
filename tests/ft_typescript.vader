@@ -6,10 +6,11 @@ Execute (typescript: tslint):
   new
   file t.ts
 
+  " tslint adds newlines before/after.
   lgetexpr
-  \ "ERROR: t.ts[7, 15]: Missing semicolon"
+  \ "\nERROR: t.ts[7, 15]: Missing semicolon\n"
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 7,
   \ 'bufnr': bufnr('%'),
   \ 'col': 15,
@@ -31,7 +32,7 @@ Execute (typescript: tsc):
   lgetexpr
   \ "t.ts(13,7): error TS2322: Type '0' is not assignable to type 'string'."
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 13,
   \ 'bufnr': bufnr('%'),
   \ 'col': 7,

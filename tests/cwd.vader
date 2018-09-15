@@ -69,7 +69,7 @@ Execute (tcd is handled properly):
 
       NeomakeTestsWaitForFinishedJobs
       AssertNeomakeMessage 'Postponing final location list handling (in another window).'
-      AssertNeomakeMessage 'Queueing action: s:handle_locqf_list_for_finished_jobs for WinEnter.', 3
+      AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for WinEnter.', 3
 
       exe 'tabnext' tab1
       AssertNeomakeMessage 'Cleaning make info.', 3
@@ -96,6 +96,7 @@ Execute (tempfile with pwd):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
+  AssertNeomakeMessage 'pwd: processing 2 lines of output.', 3
   AssertNeomakeMessage '\v^Removing temporary file: "(.*)".$'
   let tempfile_name = g:neomake_test_matchlist[1]
 
@@ -104,53 +105,57 @@ Execute (tempfile with pwd):
 
 Execute (cwd handles fugitive buffer):
   NeomakeTestsLoadPlugin 'vim-fugitive'
-  let maker = NeomakeTestsCommandMaker('pwd', 'pwd; printf')
+  let maker = NeomakeTestsCommandMaker('pwd', 'pwd; ls')
   let maker.cwd = '%:p:h'
   let maker.errorformat = '%m'
   let maker.append_file = 1
   new
   edit autoload/neomake/debug.vim
   let expected_cwd = fnamemodify(bufname('%'), ':p:h')
+  let orig_abs_bufname = expand('%:p')
   Gedit
-  Assert bufname('%') =~# '^fugitive://', bufname('%')
+  Assert bufname('%') =~# '^fugitive://', 'Unexpected bufname: '.bufname('%')
 
   let b:neomake_tempfile_enabled = 1
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertNeomakeMessage '\v^Removing temporary file: "(.*)".'
+  AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
   let tempfile_name = g:neomake_test_matchlist[1]
+  " Temporary file gets created in maker's cwd, and displays full name.
+  AssertEqual fnamemodify(tempfile_name, ':h'), fnamemodify(orig_abs_bufname, ':h')
+
+  AssertNeomakeMessage printf('cwd: %s/autoload/neomake (changed).', getcwd()), 3
+  AssertNeomakeMessage printf('Removing temporary file: "%s".', fnamemodify(tempfile_name, ':p'))
 
   AssertEqual map(getloclist(0), 'v:val.text'), [
-  \ expected_cwd, tempfile_name]
+  \ expected_cwd, fnamemodify(tempfile_name, ':t')]
   bwipe
   bwipe autoload/neomake/debug.vim
+  if exists('*VimFtpluginUndo')
+    delfunction VimFtpluginUndo
+  endif
 
 Execute (cwd gets expanded correctly: relative and in another buffer):
   if NeomakeAsyncTestsSetup()
-    let maker = NeomakeTestsCommandMaker('pwd', 'pwd; printf')
+    let maker = NeomakeTestsCommandMaker('pwd', 'pwd; ls')
     let maker.cwd = '%:.:h'
     let maker.errorformat = '%m'
     let maker.append_file = 1
     new
     edit tests/fixtures/errors.py
     let b:neomake_serialize = 1
-    let bufname = expand('%:p')
-    let expected_cwd = fnamemodify(bufname, ':p:h')
+    let expected_cwd = expand('%:p:h')
 
     let jobinfo = neomake#Make(1, [g:sleep_maker, maker])[0]
     new
-    let old_cwd = getcwd()
-    try
-      cd build
-      NeomakeTestsWaitForFinishedJobs
-      bwipe
 
-      AssertEqual map(getloclist(0), 'v:val.text'), [
-      \ 'slept', expected_cwd, bufname]
-    finally
-      exe 'cd' old_cwd
-    endtry
+    lcd build
+    NeomakeTestsWaitForFinishedJobs
+    bwipe
+
+    AssertEqual map(getloclist(0), 'v:val.text'), [
+    \ 'slept', expected_cwd, 'errors.py']
     bwipe
   endif
 
@@ -194,7 +199,7 @@ Execute (get_list_entries: filename with cwd (non-existing file)):
   " uses unlisted buffer if file does not exist
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': bufnr + 1,
   \ 'col': 42,
@@ -221,7 +226,7 @@ Execute (get_list_entries: filename with cwd (non-existing file)):
     let expected_bufnr = unlisted_bufnr + 1
     let bwipe_buffers += [expected_bufnr]
   endif
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': expected_bufnr,
   \ 'col': 42,
@@ -267,7 +272,7 @@ Execute (get_list_entries: filename with cwd):
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Updating entry bufnr: 0 => '.bufnr.'.'
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': bufnr('%'),
   \ 'col': 42,
@@ -309,7 +314,7 @@ Execute (process_output: filename with cwd):
 
   AssertNeomakeMessage 'Updating entry bufnr: 0 => '.bufnr.'.'
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': bufnr('%'),
   \ 'col': 42,
@@ -319,8 +324,23 @@ Execute (process_output: filename with cwd):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'error message'}]
-
   bwipe
+
+Execute (process_output: gets executed in maker cwd):
+  let s:called = 0
+  let s:cwd = tempname()
+  call mkdir(s:cwd)
+
+  let maker = copy(g:error_maker)
+  let maker.cwd = s:cwd
+  function! maker.process_output(context)
+    let s:called = 1
+    AssertEqual getcwd(), s:cwd
+    return []
+  endfunction
+
+  CallNeomake 0, [maker]
+  AssertEqual s:called, 1
 
 Execute (legacy errorformat maker: filename with cwd):
   let tempdir = tempname()
@@ -344,7 +364,7 @@ Execute (legacy errorformat maker: filename with cwd):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertEqual getloclist(0), [{
+  AssertEqualQf getloclist(0), [{
   \ 'lnum': 23,
   \ 'bufnr': bufnr('%'),
   \ 'col': 42,
@@ -390,8 +410,7 @@ Execute (legacy errorformat maker: filename with cwd (error: removed)):
     AssertEqual 0, delete(tempfile_dir, 'd')
     NeomakeTestsWaitForFinishedJobs
 
-    AssertNeomakeMessage printf("Could not change to job's cwd (%s): %s",
-    \ tempfile_dir,
+    AssertNeomakeMessage printf("Could not change to job's cwd (%%:p:h): %s",
     \ printf("Vim(lcd):E344: Can't find directory \"%s\" in cdpath.", tempfile_dir))
 
     " A new unlisted buffer should have been created.
@@ -411,7 +430,7 @@ Execute (legacy errorformat maker: filename with cwd (error: removed)):
   endif
 
   " Filtering out 'shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory'
-  AssertEqual filter(getloclist(0), "v:val.text !~# '^shell-init'"), [{
+  AssertEqualQf filter(getloclist(0), "v:val.text !~# '^shell-init'"), [{
   \ 'lnum': 23,
   \ 'bufnr': expected_bufnr,
   \ 'col': 42,
@@ -452,7 +471,7 @@ Execute (legacy errorformat maker: filename with cwd (error: maker rmdir)):
   AssertNotEqual bufnr('%'), unlisted_bufnr
 
   " Filtering out 'shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory'
-  AssertEqual filter(getloclist(0), "v:val.text !~# '^shell-init'"), [{
+  AssertEqualQf filter(getloclist(0), "v:val.text !~# '^shell-init'"), [{
   \ 'lnum': 23,
   \ 'bufnr': unlisted_bufnr,
   \ 'col': 42,
@@ -465,3 +484,42 @@ Execute (legacy errorformat maker: filename with cwd (error: maker rmdir)):
 
   bwipe
   exe 'bwipe' unlisted_bufnr
+
+Execute (cwd):
+  new
+  file tests/fixtures/a\ filename\ with\ spaces
+  let maker = {
+      \ 'name': 'custom_maker',
+      \ 'exe': 'ls',
+      \ 'cwd': '%:p:h',
+      \ }
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage printf('cwd: %s/tests/fixtures (changed).', getcwd()), 3
+  AssertEqual map(getloclist(0), 'v:val.text'), ['a filename with spaces']
+  bwipe
+
+Execute (cwd (tempfile)):
+  new
+  file tests/fixtures/doesnotexist
+  let bufname = bufname('%')
+  let maker = {
+      \ 'name': 'custom_maker',
+      \ 'exe': 'ls',
+      \ 'cwd': '%:p:h',
+      \ }
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
+  let tempfile_name = g:neomake_test_matchlist[1]
+
+  " Temporary file gets created in maker's cwd, and displays full name.
+  let tempfile_abs = fnamemodify(bufname, ':p')
+  AssertEqual fnamemodify(tempfile_name, ':h'), fnamemodify(tempfile_abs, ':h')
+  AssertNeomakeMessage printf('cwd: %s/tests/fixtures (changed).', getcwd()), 3
+  AssertEqual map(getloclist(0), 'v:val.text'), [fnamemodify(tempfile_name, ':t')]
+
+  AssertNeomakeMessage printf('Removing temporary file: "%s/tests/fixtures/%s".',
+  \ getcwd(), fnamemodify(tempfile_name, ':t'))
+  Assert !filereadable(printf('tests/fixtures/%s', tempfile_name))
+  bwipe

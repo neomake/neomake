@@ -1,10 +1,10 @@
 " vim: ts=4 sw=4 et
 
-function! neomake#makers#ft#mlint#EnabledMakers() abort
+function! neomake#makers#ft#matlab#EnabledMakers() abort
     return ['mlint']
 endfunction
 
-function! neomake#makers#ft#mlint#mlint() abort
+function! neomake#makers#ft#matlab#mlint() abort
     return {
         \ 'args': ['-id'],
         \ 'mapexpr': "neomake_bufname.':'.v:val",

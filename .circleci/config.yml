@@ -2,7 +2,7 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:16@sha256:19b0f3f5f9859903e80b5314f57bbfc2d74dbd8300f3b6ed535a627ae80f14cb
+    - image: neomake/vims-for-tests:31@sha256:294a53aedaf7dbeef19699a0b3bb63afb77be21812921dfd7a033e3d8ff84be8
   working_directory: ~/repo
   steps:
     - checkout
@@ -13,34 +13,27 @@ common: &common
           set -x
           coverage report -m --skip-covered
           coverage xml
-          codecov -X search gcov pycov -f coverage.xml --required \
-            --name "$CIRCLE_JOB" --flags ${CIRCLE_JOB%%-*} ${CIRCLE_JOB//-/}
+          # -Z: exit with 1 in case of failures.
+          codecov -Z -X search -X gcov -X pycov -f coverage.xml \
+            -n "$CIRCLE_JOB" -F ${CIRCLE_JOB%%-*},${CIRCLE_JOB//[-.]/}
           set +x
 jobs:
-  nvim-master:
+  nvim-031:
     <<: *common
     environment:
-      TEST_VIM=/vim-build/bin/neovim-master
+      TEST_VIM=/vim-build/bin/neovim-v0.3.1
   nvim-017:
     <<: *common
     environment:
       TEST_VIM=/vim-build/bin/neovim-v0.1.7
-  nvim-020:
+  vim-81:
     <<: *common
     environment:
-      TEST_VIM=/vim-build/bin/neovim-v0.2.0
-  nvim-021:
+      TEST_VIM=/vim-build/bin/vim81
+  vim-80:
     <<: *common
     environment:
-      TEST_VIM=/vim-build/bin/neovim-v0.2.1
-  vim-master:
-    <<: *common
-    environment:
-      TEST_VIM=/vim-build/bin/vim-master
-  vim-8069:
-    <<: *common
-    environment:
-      TEST_VIM=/vim-build/bin/vim8069
+      TEST_VIM=/vim-build/bin/vim80
   vim-74-xenial:
     <<: *common
     environment:
@@ -56,6 +49,8 @@ jobs:
 
   checkqa:
     <<: *common
+    environment:
+      VIMHELPLINT_VIM=/vim-build/bin/vim81
     steps:
       - checkout
       - run: make --keep-going check check_docker check_lint_diff
@@ -64,12 +59,10 @@ workflows:
   version: 2
   test:
     jobs:
-      - nvim-021
-      - nvim-020
-      - nvim-master
+      - nvim-031
       - nvim-017
-      - vim-8069
-      - vim-master
+      - vim-81
+      - vim-80
       - vim-74-xenial
       - vim-74-trusty
       - vim-73

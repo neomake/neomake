@@ -2,22 +2,32 @@ Include: include/setup.vader
 
 Execute (Setup):
   function! NeomakeTestsAssertAutomakeAutocommands(events) abort
-    let expected = ['neomake_automake  BufWipeout:     *         call s:neomake_automake_clean(expand(''<abuf>''))']
+    let expected = []
     for e in a:events
       call add(expected, 'neomake_automake  '.e.':     *         call s:neomake_automake('''.e.''', expand(''<abuf>''))')
     endfor
 
-    redir => redir_output
-    silent au neomake_automake
-    redir END
-    let output = split(redir_output, "\n")[1:-1]
-    let sort_output = []
-    for i in range(1, len(output), 2)
-      let sort_output += [output[i-1].': '.output[i]]
-    endfor
+    if exists('#neomake_automake')
+      redir => redir_output
+      silent au neomake_automake
+      redir END
+      let output = split(redir_output, "\n")[1:-1]
+      let sort_output = []
+      for i in range(1, len(output), 2)
+        let sort_output += [output[i-1].': '.output[i]]
+      endfor
+    else
+      let sort_output = []
+    endif
     AssertEqual join(sort(expected), "\n"), join(sort(sort_output), "\n")
   endfunction
   call add(g:neomake_test_funcs_before, 'NeomakeTestsAssertAutomakeAutocommands')
+
+Execute (augroup neomake_automake does not exist by default):
+  Save g:neomake
+  Assert !exists('#neomake_automake')
+  call neomake#configure#automake()
+  Assert !exists('#neomake_automake')
 
 Execute (short setup: 'n'):
   Save g:neomake
@@ -144,14 +154,14 @@ Execute (Automake supports custom buffer config):
 
   " Changing buffer config resets tick.
   call neomake#configure#automake_for_buffer({'BufWinEnter': {'delay': 0}}, 0, [g:entry_maker])
+  AssertNeomakeMessage 'automake: resetting tick because of config changes.', 3
   doautocmd BufWinEnter
-  AssertNeomakeMessage 'unnamed_maker: getting entries via get_list_entries.'
+  AssertNeomakeMessage 'entry_maker: getting entries via get_list_entries.'
 
   " Changing buffer options resets tick.
   call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 0}}, 0, [g:entry_maker])
   doautocmd CursorHold
-  AssertNeomakeMessage 'unnamed_maker: getting entries via get_list_entries.'
-
+  AssertNeomakeMessage 'entry_maker: getting entries via get_list_entries.'
   bwipe
 
 Execute (Automake config via dict):
@@ -214,15 +224,19 @@ Execute (Automake):
   AssertNeomakeMessage 'Maker not found (for filetype neomake_tests): nonexisting.', 3
   AssertNeomakeMessage 'Exe (maker_without_exe) of auto-configured maker maker_without_exe is not executable, skipping.'
   AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (no enabled makers).', 3
+  AssertNeomakeMessage 'automake: setting tick for new buffer.', 3
+  AssertNeomakeMessage 'automake: no enabled makers.', 3
 
   " TODO: better to have automake.ft.neomake_tests.enabled_makers ?!
   call neomake#config#set('ft.neomake_tests.automake.enabled_makers', ['true'])
   doautocmd FileType
-  AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (true (global)).'
+  AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (true (global)).', 3
+  AssertNeomakeMessage 'automake: resetting tick because of registration changes.', 3
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 0
 
   doautocmd InsertLeave
+  NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'automake: tick changed (new).', 3, {'bufnr': bufnr}
   if has('timers')
     NeomakeTestsWaitForNextFinishedJob
@@ -235,7 +249,7 @@ Execute (Automake):
   AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (true (global)).', 3
   doautocmd InsertLeave
   if has('timers')
-    sleep 20m
+    NeomakeTestsWaitForMessage 'automake: buffer was not changed.', 3
   endif
   AssertEqual len(g:neomake_test_jobfinished), 1
 
@@ -245,7 +259,11 @@ Execute (Automake):
 
   " Should not run without changes to the buffer.
   exe 'doautocmd' event
-  sleep 50m
+  if has('patch-8.0.1494') && !has('patch-8.0.1633')
+    exe 'doautocmd' event
+  endif
+  NeomakeTestsWaitForMessage 'automake: handling event '.event.'.', 3
+  AssertNeomakeMessage 'automake: buffer was not changed.'
   AssertEqual len(g:neomake_test_jobfinished), 2
 
   " Should run with changes to the buffer.
@@ -257,15 +275,22 @@ Execute (Automake):
   norm oline4
   if has('timers')
     AssertEqual len(g:neomake_test_jobfinished), 3
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+).', 3, {'bufnr': bufnr}
+    let timer = g:neomake_test_matchlist[1]
     exe 'doautocmd' event
     AssertEqual len(g:neomake_test_jobfinished), 3
+    AssertNeomakeMessage 'automake: stopped existing timer: '.timer.'.', 3, {'bufnr': bufnr}
     NeomakeTestsWaitForNextFinishedJob
+    AssertNeomakeMessage 'automake: started timer (10ms): '.(timer+1).'.', 3, {'bufnr': bufnr}
   endif
 
   AssertEqual len(g:neomake_test_jobfinished), 4
 
   new
   exe 'doautocmd' event
+  if has('patch-8.0.1494') && !has('patch-8.0.1633')
+    exe 'doautocmd' event
+  endif
   AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
   AssertNeomakeMessage 'automake: no enabled makers.'
 
@@ -303,7 +328,7 @@ Execute (Automake: skips non-default buftypes):
   Save g:neomake
 
   call neomake#configure#automake('n', 10)
-  if !exists('##TextChanged')
+  if !exists('##TextChanged') || !has('timers')
     AssertNeomakeMessage 'automake: using CursorHold instead of TextChanged.', 3
     let event = 'CursorHold'
   else
@@ -318,12 +343,11 @@ Execute (Automake: skips non-default buftypes):
 
   call g:NeomakeSetupAutocmdWrappers()
 
-  if exists('##TextChanged')
-    doautocmd TextChanged
-    sleep 50m
-  else
-    doautocmd CursorHold
+  exe 'doautocmd '.event
+  if has('patch-8.0.1494') && !has('patch-8.0.1633')
+    exe 'doautocmd' event
   endif
+  NeomakeTestsWaitForMessage 'automake: ignoring '.event.' for buftype=nofile.', 3
   AssertEqual len(g:neomake_test_jobfinished), 0
   bwipe!
 
@@ -333,7 +357,7 @@ Execute (neomake#configure#automake_for_buffer does not set up autocommands for 
   call neomake#configure#automake_for_buffer('n', 10)
   AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
   AssertNeomakeMessage 'automake: registered events: .', 3
-  call NeomakeTestsAssertAutomakeAutocommands([])
+  Assert !exists('#neomake_automake')
   bwipe
 
 Execute (neomake#configure#automake_for_buffer sets up autocommands with makers):
@@ -439,6 +463,54 @@ Execute (neomake#configure#automake_for_buffer can configure makers (list)):
   AssertNeomakeMessage 'automake: registered events: FileChangedShellPost, FileType, BufWinEnter.', 3
   bwipe
 
+Execute (neomake#configure#automake_for_buffer can configure makers (buffer var)):
+  new
+  set filetype=myft
+  let b:neomake_myft_my_maker_maker = {'name': 'my_maker', 'exe': 'true'}
+  call neomake#configure#automake_for_buffer('n', 300, ['my_maker'])
+  AssertNeomakeMessage 'automake: configured buffer for ft=myft (my_maker (options)).', 3
+
+  let b:neomake_myft_my_other_maker_maker = {'name': 'my_other_maker', 'exe': 'true'}
+  call neomake#configure#automake_for_buffer('n', 300, {'makers': ['my_other_maker']})
+  AssertNeomakeMessage 'automake: configured buffer for ft=myft (my_other_maker (options)).', 3
+  bwipe
+
+Execute (neomake#configure#automake_for_buffer can configure other buffers):
+  let maker = {'name': 'my_maker', 'exe': 'true'}
+  new
+  let bufnr = bufnr('%')
+  call neomake#configure#automake_for_buffer('n', 300, {'makers': [maker], 'bufnr': bufnr})
+  AssertNeomakeMessage 'automake: configured buffer for ft= (my_maker (options)).', 3, {'bufnr': bufnr}
+
+  " Configuration for another buffer.
+  let my_other_maker = {'name': 'my_other_maker', 'exe': 'true'}
+  new
+  call neomake#configure#automake_for_buffer('n', 300, {'makers': [my_other_maker], 'bufnr': bufnr})
+  Assert !exists('b:neomake')
+  bwipe
+  AssertNeomakeMessage 'automake: configured buffer for ft= (my_other_maker (options)).', 3, {'bufnr': bufnr}
+  bwipe
+
+Execute (neomake#configure#automake_for_buffer re-uses configured makers):
+  Save g:neomake
+  new
+  call neomake#configure#automake_for_buffer({'InsertLeave': {'delay': 0}}, 0, [g:entry_maker])
+  AssertNeomakeMessage 'automake: configured buffer for ft= (entry_maker (options)).', 3
+  AssertNeomakeMessage 'automake: resetting tick because of config changes.', 3
+  doautocmd InsertLeave
+  AssertNeomakeMessage 'entry_maker: getting entries via get_list_entries.', 2
+
+  call neomake#configure#automake_for_buffer({'InsertLeave': {'delay': 0}}, 0, [g:true_maker])
+  AssertNeomakeMessage 'automake: resetting tick because of registration changes.', 3
+  doautocmd InsertLeave
+  AssertNeomakeMessage 'Running makers: true-maker.', 3
+  NeomakeTestsWaitForFinishedJobs
+
+  let len_before = len(g:neomake_test_messages)
+  doautocmd FileType
+  AssertEqual len_before, len(g:neomake_test_messages), 'Nothing happened.'
+  bwipe
+
 Execute (Automake handles unchanged buffer):
   " XXX: run for all?!
   if !has('timers')
@@ -451,6 +523,9 @@ Execute (Automake handles unchanged buffer):
     let g:neomake_test_enabledmakers = [g:sleep_maker]
     set filetype=neomake_tests
     doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+      doautocmd TextChanged
+    endif
     let make_id = neomake#GetStatus().last_make_id
     NeomakeTestsWaitForMessage '\vautomake: callback for timer \d+'
     doautocmd TextChanged
@@ -514,8 +589,7 @@ Execute (BufWritePost does not run for unchanged buffer (delayed)):
     set filetype=neomake_tests
     exe 'w' tempname()
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
-    sleep 10m
-    NeomakeTestsWaitForFinishedJobs
+    NeomakeTestsWaitForNextFinishedJob
     AssertEqual len(g:neomake_test_jobfinished), 1
 
     w
@@ -525,8 +599,7 @@ Execute (BufWritePost does not run for unchanged buffer (delayed)):
 
     normal! ifoo
     w
-    sleep 10m
-    NeomakeTestsWaitForFinishedJobs
+    NeomakeTestsWaitForNextFinishedJob
     AssertEqual len(g:neomake_test_jobfinished), 2
 
     w
@@ -537,7 +610,6 @@ Execute (BufWritePost does not run for unchanged buffer (delayed)):
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_jobfinished), 2
     AssertNeomakeMessage 'automake: buffer was not changed.'
-
     bwipe
   endif
 
@@ -552,19 +624,20 @@ Execute (Automake stops previous jobs):
 
     set filetype=neomake_tests
     doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+      doautocmd TextChanged
+    endif
     NeomakeTestsWaitForMessage '\vautomake: callback for timer \d+'
     let first_make_id = neomake#GetStatus().last_make_id
     AssertEqual [first_make_id], b:neomake_automake_make_ids
 
     normal! ifoo
     doautocmd TextChanged
-    NeomakeTestsWaitForMessage '\vautomake: callback for timer \d+'
+    NeomakeTestsWaitForMessage '\vautomake: started jobs: \[\d+\].'
+    AssertNeomakeMessage '\vautomake: stopping previous make runs: '.first_make_id
+    AssertNeomakeMessage '\vautomake: callback for timer \d+'
     let second_make_id = neomake#GetStatus().last_make_id
-
     Assert index(b:neomake_automake_make_ids, second_make_id) > -1, 'Second make is registered'
-    AssertNeomakeMessage '\vautomake: stopping previous make runs: (\d+)'
-    let make_id = g:neomake_test_matchlist[1]
-    AssertEqual make_id + 1, second_make_id
     NeomakeTestsWaitForFinishedJobs
     bwipe!
   endif
@@ -596,7 +669,7 @@ Execute (Automake for normal mode handles ciw):
   AssertEqual len(g:neomake_test_jobfinished), 1
   bwipe!
 
-Execute (Automake restarts if context changed):
+Execute (Automake stops if context changed (CursorHold)):
   if !has('timers')
     NeomakeTestsSkip 'only with timers feature'
   else
@@ -608,10 +681,86 @@ Execute (Automake restarts if context changed):
     doautocmd CursorHold
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
     norm! ^
-    sleep 10m
-    AssertNeomakeMessage "automake: context/position changed: [[0, 1, 11, 0], 'n'] => [[0, 1, 1, 0], 'n'].", 3
+    NeomakeTestsWaitForMessage '\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''n''] => [\d\+, [0, 1, 1, 0], ''n''].', 3
+    bwipe!
+  endif
+
+Execute (Automake restarts if popup menu is visible):
+  if !has('timers')
+    NeomakeTestsSkip 'only with timers feature'
+  else
+    new
+    file file_sleep_efm
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call append(0, ['word1', 'word2'])
+
+    function s:close_pum(...)
+      call feedkeys("\<c-e>\<esc>")
+    endfunction
+
+    call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 5}})
+    doautocmd CursorHold
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
+    let base_timer = g:neomake_test_matchlist[1]
+
+    " Trigger popup menu.
+    call timer_start(100, 's:close_pum')
+    call feedkeys("oword\<C-p>", 'x!')
+
+    AssertNeomakeMessage 'automake: callback for timer '.base_timer.' (via CursorHold).'
+    AssertNeomakeMessage 'automake: postponing automake during completion.', 3
+    AssertNeomakeMessage 'automake: re-starting postponed automake.'
+    AssertNeomakeMessage 'automake: tick changed (new).'
+    " +2 since we use timer_start above.
+    AssertNeomakeMessage 'automake: started timer (5ms): '.(base_timer + 2).'.'
+    NeomakeTestsWaitForMessage 'automake: callback for timer '.(base_timer + 2).' (via CursorHold).'
+    AssertNeomakeMessage 'automake: neomake_do_automake: CursorHold.'
+    AssertNeomakeMessage 'automake: tick changed (new).'
+    AssertNeomakeMessage '\vautomake: Updating tick: \d+.'
+    AssertNeomakeMessage 'automake: enabled makers: true-maker.'
+
     NeomakeTestsWaitForFinishedJobs
+
+    bwipe!
+  endif
+
+Execute (Automake cleans up buffer context when restarting after popup menu fails):
+  if !has('timers')
+    NeomakeTestsSkip 'only with timers feature'
+  else
+    new
+    file file_sleep_efm
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call append(0, ['word1', 'word2'])
+
+    function! s:close_pum(...)
+      call feedkeys("\<c-e>\<esc>")
+    endfunction
+
+    call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 5}})
+    doautocmd CursorHold
+    AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
+    let base_timer = g:neomake_test_matchlist[1]
+
+    " Trigger popup menu.
+    call timer_start(100, 's:close_pum')
+    noautocmd call feedkeys("oword\<C-p>", 'x!')
+
+    AssertNeomakeMessage 'automake: callback for timer '.base_timer.' (via CursorHold).'
+    AssertNeomakeMessage 'automake: postponing automake during completion.', 3
+
+    Assert exists('#neomake_automake_retry#InsertLeave#<buffer='.bufnr('%').'>')
+    Assert exists('#neomake_automake_retry#CompleteDone#<buffer='.bufnr('%').'>')
+    Assert exists('b:_neomake_postponed_automake_context')
+    doautocmd InsertLeave
+    Assert !exists('#neomake_automake_retry#InsertLeave#<buffer='.bufnr('%').'>')
+    Assert !exists('#neomake_automake_retry#CompleteDone#<buffer='.bufnr('%').'>')
+    Assert !exists('b:_neomake_postponed_automake_context')
+
+    AssertNeomakeMessage 'automake: postponed automake: unexpected step 2, cleaning up.', 3
+
     bwipe!
   endif
 
@@ -627,9 +776,7 @@ Execute (Timer callback ignores wiped buffer):
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
     let timer = g:neomake_test_matchlist[1]
     bwipe
-    sleep 10m
-    AssertNeomakeMessage 'automake: automake: cleaning timer for wiped buffer: '.timer.'.'
-    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'automake: stopped timer for wiped buffer: '.timer.'.'
   endif
 
 Execute (Timer callback ignores wiped buffer with noautocmd):
@@ -644,21 +791,25 @@ Execute (Timer callback ignores wiped buffer with noautocmd):
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
     let timer = g:neomake_test_matchlist[1]
     noautocmd bwipe
-    sleep 10m
-    AssertNeomakeMessage 'automake: buffer does not exist anymore for timer '.timer.'.'
+    NeomakeTestsWaitForMessage 'automake: buffer does not exist anymore for timer '.timer.'.'
   endif
 
 Execute (Toggling disables automaking):
   Save g:neomake
   new
+  let bufnr = bufnr('%')
+  let log_context = {'bufnr': bufnr}
   set filetype=neomake_tests
   let b:neomake_enabled_makers = [g:true_maker]
   NeomakeToggleBuffer
+  AssertNeomakeMessage 'automake: disabling buffer '.bufnr.'.', 3, log_context
+  AssertNeomakeMessage 'Neomake is disabled (buffer).', 3
+  AssertNeomakeMessage 'automake: registered events: .', 3, log_context
   call neomake#configure#automake({'InsertLeave': {'delay': 0}})
+  AssertNeomakeMessage 'automake: registered events: InsertLeave.', 3, log_context
   doautocmd InsertLeave
-  AssertNeomakeMessage 'automake: registered events: InsertLeave.'
-  AssertNeomakeMessage 'automake: automake for event InsertLeave.'
-  AssertNeomakeMessage 'automake: disabled (buffer).'
+  NeomakeTestsWaitForMessage "Using setting disabled=1 from 'buffer'.", 3, log_context
+  AssertNeomakeMessage 'automake: disabled (buffer).', 3, log_context
   bwipe
 
 Execute (Handles timeout in another buffer):
@@ -670,47 +821,20 @@ Execute (Handles timeout in another buffer):
     call neomake#configure#automake({
     \ 'TextChanged': {'delay': 10}})
     doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+      doautocmd TextChanged
+    endif
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
-    let timer = g:neomake_test_matchlist[1]
     let timer = g:neomake_test_matchlist[1]
     new
     let bufnr2 = bufnr('%')
-    sleep 20m
-    AssertNeomakeMessage printf('automake: callback for timer %d (via TextChanged).', timer)
+    NeomakeTestsWaitForMessage printf('automake: callback for timer %d (via TextChanged).', timer)
     AssertNeomakeMessage printf('automake: buffer changed: %d => %d.', bufnr1, bufnr2)
     bwipe
-    sleep 20m
+    NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_finished), 0
     bwipe!
   endif
-
-Execute (neomake#configure#automake_for_buffer can configure makers (buffer var)):
-  new
-  set filetype=myft
-  let b:neomake_myft_my_maker_maker = {'name': 'my_maker', 'exe': 'true'}
-  call neomake#configure#automake_for_buffer('n', 300, ['my_maker'])
-  AssertNeomakeMessage 'automake: configured buffer for ft=myft (my_maker (options)).', 3
-
-  let b:neomake_myft_my_other_maker_maker = {'name': 'my_other_maker', 'exe': 'true'}
-  call neomake#configure#automake_for_buffer('n', 300, {'makers': ['my_other_maker']})
-  AssertNeomakeMessage 'automake: configured buffer for ft=myft (my_other_maker (options)).', 3
-  bwipe
-
-Execute (neomake#configure#automake_for_buffer can configure other buffers):
-  let maker = {'name': 'my_maker', 'exe': 'true'}
-  new
-  let bufnr = bufnr('%')
-  call neomake#configure#automake_for_buffer('n', 300, {'makers': [maker], 'bufnr': bufnr})
-  AssertNeomakeMessage 'automake: configured buffer for ft= (my_maker (options)).', 3, {'bufnr': bufnr}
-
-  " Configuration for another buffer.
-  let my_other_maker = {'name': 'my_other_maker', 'exe': 'true'}
-  new
-  call neomake#configure#automake_for_buffer('n', 300, {'makers': [my_other_maker], 'bufnr': bufnr})
-  Assert !exists('b:neomake')
-  bwipe
-  AssertNeomakeMessage 'automake: configured buffer for ft= (my_other_maker (options)).', 3, {'bufnr': bufnr}
-  bwipe
 
 Execute (Error with non-existing configured maker):
   new
@@ -754,7 +878,7 @@ Execute (Automake pre-creates maker_job instances):
   new
   let s:call_count = 0
   let maker = {'exe': 'true', 'cwd': '%:h'}
-  function maker.fn(...)
+  function maker.InitForJob(...)
     let s:call_count += 1
   endfunction
   let b:neomake_enabled_makers = [maker]
@@ -775,7 +899,146 @@ Execute (Automake pre-creates maker_job instances):
   let tmpdir = tempname()
   exe 'file '.tmpdir.'/file'
   normal! ifoo
-  AssertNeomakeMessage "\\v^unnamed_maker: could not change to maker's cwd \\(".tmpdir."\\): .*"
+
+  let dir = fnamemodify(bufname('%'), ':h')
+  AssertNeomakeMessage printf(
+  \ '\v^unnamed_maker: could not change to maker''s cwd \(\%%:h\): .*%s',
+  \ escape(dir, '\'))
   NeomakeTestsWaitForFinishedJobs
 
   bwipe!
+
+Execute (neomake#configure#reset_automake stops timers):
+  if !has('timers')
+    NeomakeTestsSkip 'Only with timers feature'
+  else
+    Save g:neomake
+
+    new
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call neomake#configure#automake({'TextChanged': {'delay': 10}})
+    doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+      doautocmd TextChanged
+    endif
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    let timer = g:neomake_test_matchlist[1]
+    call neomake#configure#reset_automake()
+    AssertNeomakeMessage 'automake: stopping timers: '.timer.'.'
+    bwipe
+  endif
+
+Execute (Ignores first TextChanged event (Vim issue #2742)):
+  Save g:neomake
+  if !has('patch-8.0.1494') || has('patch-8.0.1633')
+    NeomakeTestsSkip 'Only with affected patches (Vim issue #2742)'
+  else
+    call neomake#configure#automake('n')
+    new
+    doautocmd TextChanged
+    AssertNeomakeMessage 'automake: Ignoring first TextChanged.'
+    doautocmd TextChanged
+    AssertNeomakeMessage 'automake: handling event TextChanged.'
+    bwipe
+  endif
+
+Execute (NeomakeDisableBuffer stops timers):
+  if !has('timers')
+    NeomakeTestsSkip 'Only with timers feature'
+  else
+    Save g:neomake
+
+    new
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call neomake#configure#automake({'TextChanged': {'delay': 10}})
+    doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+      AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
+      doautocmd TextChanged
+    endif
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    let timer = g:neomake_test_matchlist[1]
+    NeomakeDisableBuffer
+    AssertNeomakeMessage 'automake: stopped timer for buffer: '.timer.'.', 3, {'bufnr': bufnr('%')}
+
+    " Re-enabling it kept config.
+    NeomakeToggleBuffer
+    doautocmd TextChanged
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    bwipe
+  endif
+
+Execute (NeomakeDisable stops timers and keeps custom config):
+  if !has('timers')
+    NeomakeTestsSkip 'Only with timers feature'
+  else
+    Save g:neomake
+
+    new
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call neomake#configure#automake_for_buffer({'InsertLeave': {'delay': 10}})
+    AssertNeomakeMessage 'automake: registered events: InsertLeave.', 3
+
+    doautocmd InsertLeave
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)', 3
+    let timer = g:neomake_test_matchlist[1]
+    NeomakeDisable
+    AssertNeomakeMessage 'automake: disabling globally.', 3
+    AssertNeomakeMessage 'automake: stopping timers: '.timer.'.'
+
+    " Re-enabling it kept config.
+    NeomakeEnable
+    let bufnr = bufnr('%')
+    AssertNeomakeMessage 'Neomake is enabled (global).'
+    AssertNeomakeMessage "Using setting automake.events={'InsertLeave': {'delay': 10}} from 'buffer'."
+    AssertNeomakeMessage 'automake: registered events: InsertLeave.'
+    doautocmd InsertLeave
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    bwipe
+  endif
+
+Execute (NeomakeDisableTab stops timers):
+  if !has('timers')
+    NeomakeTestsSkip 'Only with timers feature'
+  else
+    Save g:neomake
+
+    new
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call neomake#configure#automake({'TextChanged': {'delay': 10}})
+    doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+      AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
+      doautocmd TextChanged
+    endif
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    let timer_buffer = g:neomake_test_matchlist[1]
+
+    tabnew
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call neomake#configure#automake({'TextChanged': {'delay': 10}})
+    doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+      AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
+      doautocmd TextChanged
+    endif
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    let timer = g:neomake_test_matchlist[1]
+    NeomakeDisableTab
+    AssertNeomakeMessage 'automake: stopped timer for buffer: '.timer.'.', 3, {'bufnr': bufnr('%')}
+    bwipe
+
+    NeomakeDisableBuffer
+    AssertNeomakeMessage 'automake: stopped timer for buffer: '.timer_buffer.'.', 3, {'bufnr': bufnr('%')}
+
+    " Re-enabling it kept config.
+    NeomakeToggleBuffer
+    doautocmd TextChanged
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    bwipe
+  endif

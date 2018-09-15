@@ -60,13 +60,15 @@ Execute (LoclistCounts for wiped buffer should clean s:loclist_counts):
   AssertEqual '', getbufvar(g:neomake_test_countschanged[0].bufnr, 'test')
 
 Execute (neomake#statusline#get_status):
+  call neomake#statusline#ResetCounts()
+  new
   let bufnr = bufnr('')
   AssertEqual neomake#statusline#get_status(bufnr, {}), '?'
 
   AssertEqual neomake#statusline#get_status(bufnr, {'format_loclist_unknown': '{{running_job_names}}'}), ''
   " {{running_jobs}} is only available with 'format_running' (internally).
   AssertEqual neomake#statusline#get_status(bufnr, {'format_loclist_unknown': '{{running_jobs}}'}), '{{running_jobs}}'
-  AssertNeomakeMessage 'Unknown statusline format: {{running_jobs}}.', 0
+  AssertNeomakeMessage "Error when formatting '{{running_jobs}}': Unknown statusline format: {{running_jobs}}.", 0
 
   call neomake#Make({'enabled_makers': [g:sleep_maker]})
   if neomake#has_async_support()
@@ -80,7 +82,7 @@ Execute (neomake#statusline#get_status):
     Assert neomake#statusline#get_status(bufnr, {'format_running': '{{running_jobs}}'}) =~# '\m^{''', '{{running_jobs}} is replaced in format_running'
 
     call neomake#statusline#get_status(bufnr(''), {'format_running': 'Neomake: {{does_not_exist}}'})
-    AssertNeomakeMessage 'Unknown statusline format: {{does_not_exist}}.', 0
+    AssertNeomakeMessage "Error when formatting 'Neomake: {{does_not_exist}}': Unknown statusline format: {{does_not_exist}}.", 0
     NeomakeTestsWaitForFinishedJobs
   else
     AssertEqual neomake#statusline#get_status(bufnr, {'format_running': '...'}), '%#NeomakeStatusGood#✓'
@@ -89,10 +91,89 @@ Execute (neomake#statusline#get_status):
   endif
 
   call neomake#statusline#get_status(bufnr(''), {'format_loclist_ok': 'Neomake: {{does_not_exist}}'})
-  AssertNeomakeMessage 'Unknown statusline format: {{does_not_exist}}.', 0
+  AssertNeomakeMessage "Error when formatting 'Neomake: {{does_not_exist}}': Unknown statusline format: {{does_not_exist}}.", 0
+  call neomake#statusline#get_status(bufnr(''), {'format_loclist_ok': '{{foo}} {{bar}}'})
+  AssertNeomakeMessage "Errors when formatting '{{foo}} {{bar}}': Unknown statusline format: {{foo}}., Unknown statusline format: {{bar}}.", 0
 
   AssertEqual neomake#statusline#get_status(bufnr, {}), '%#NeomakeStatusGood#✓'
   AssertEqual neomake#statusline#get(bufnr, {}), '%#NeomakeStatusGood#✓'
   call neomake#statusline#ResetCountsForBuf(bufnr)
   AssertEqual neomake#statusline#get_status(bufnr, {}), '?'
   AssertEqual neomake#statusline#get(bufnr, {}), '?'
+  bwipe
+
+Execute (neomake#statusline#get: clears cache with new job (file mode)):
+  new
+  let bufnr = bufnr('%')
+  CallNeomake {'enabled_makers': [g:error_maker]}
+  AssertEqual neomake#statusline#get(bufnr), '%#NeomakeStatColorTypeE# E:1 %#NeomakeStatReset#'
+
+  call neomake#Make({'enabled_makers': [g:success_maker]})
+  if neomake#has_async_support()
+    AssertEqual neomake#statusline#get(bufnr), '… (success-maker)'
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertEqual neomake#statusline#get(bufnr), '%#NeomakeStatusGood#✓'
+  bwipe
+
+Execute (neomake#statusline#get: clears cache with new job (project mode)):
+  new
+  let bufnr = bufnr('%')
+  CallNeomake {'file_mode': 0, 'enabled_makers': [g:error_maker]}
+  AssertEqual neomake#statusline#get(bufnr), '%#NeomakeStatColorQuickfixTypeE# QE:1 %#NeomakeStatReset#'
+
+  call neomake#Make({'file_mode': 0, 'enabled_makers': [g:true_maker]})
+  if neomake#has_async_support()
+    AssertEqual neomake#statusline#get(bufnr), '… (true-maker!)'
+  endif
+  call neomake#Make({'file_mode': 0, 'enabled_makers': [g:success_maker]})
+  if neomake#has_async_support()
+    AssertEqual neomake#statusline#get(bufnr), '… (true-maker!, success-maker!)'
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  " Unknown status, only project makers have been run.
+  AssertEqual neomake#statusline#get(bufnr), '?'
+  bwipe
+
+Execute (neomake#statusline#get: clears cache with canceled job: keeps '?'):
+  if neomake#has_async_support()
+    new
+    let bufnr = bufnr('%')
+    call neomake#Make({'file_mode': 0, 'enabled_makers': [g:sleep_maker]})
+    AssertEqual neomake#statusline#get(bufnr), '… (sleep-maker!)'
+    NeomakeCancelJobs
+    AssertEqual neomake#statusline#get(bufnr), '… (sleep-maker!)'
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual neomake#statusline#get(bufnr), '?'
+    bwipe
+  else
+    NeomakeTestsSkip 'no async support.'
+  endif
+
+Execute (neomake#statusline#get: disabling/enabling: clears cache):
+  new
+  let bufnr = bufnr('%')
+  AssertEqual neomake#statusline#get(bufnr), '?'
+  NeomakeDisableBuffer
+  AssertEqual neomake#statusline#get(bufnr), 'b- ?'
+  AssertNeomakeMessage "Using setting disabled=1 from 'buffer' (statusline#get).", 3, {'bufnr': bufnr}
+
+  NeomakeToggleBuffer
+  AssertEqual neomake#statusline#get(bufnr), '?'
+
+  CallNeomake 1, [g:true_maker]
+  AssertEqual neomake#statusline#get(bufnr), '%#NeomakeStatusGood#✓'
+
+  " no-op
+  NeomakeEnableBuffer
+  AssertEqual neomake#statusline#get(bufnr), '%#NeomakeStatusGood#✓'
+  bwipe
+
+Execute (neomake#statusline#get: use_highlights_with_defaults):
+  new
+  let bufnr = bufnr('%')
+  AssertEqual neomake#statusline#get(bufnr, {'use_highlights_with_defaults': 0}), '?'
+  call neomake#Make({'enabled_makers': [g:entry_maker]})
+  AssertEqual neomake#statusline#get(bufnr, {'use_highlights_with_defaults': 0}), '✓'
+  AssertEqual neomake#statusline#get(bufnr, {'use_highlights_with_defaults': 1}), '%#NeomakeStatusGood#✓'
+  bwipe

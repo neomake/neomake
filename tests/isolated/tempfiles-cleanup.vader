@@ -33,3 +33,8 @@ Execute (Ensure that temporary files are not being left around):
   Assert !filereadable(tmpfile)
   bwipe
   bwipe
+
+  " Restore if not profiling.
+  if !v:profiling
+    runtime autoload/neomake.vim
+  endif

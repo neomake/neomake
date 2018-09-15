@@ -1,31 +1,5 @@
 Include: include/setup.vader
 
-Execute (neomake#utils#LogMessage writes to logfile always):
-  Save g:neomake_verbose, g:neomake_logfile
-  let neomake_verbose = 0
-  let g:neomake_logfile = tempname()
-  call neomake#utils#LogMessage(1, 'msg1.')
-  call neomake#utils#LogMessage(1, 'msg2.')
-  if has('patch-7.4.503')
-    let logfile_msg = readfile(g:neomake_logfile)[1]
-  else
-    let logfile_msg = readfile(g:neomake_logfile)[0]
-  endif
-  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \[W      \] msg2.$', 'unexpected msg: '.logfile_msg
-
-  call neomake#utils#LogMessage(1, 'msg3.')
-  sleep 10m
-  call neomake#utils#LogMessage(1, 'msg4.')
-  let logfile_msg = readfile(g:neomake_logfile)[-1]
-  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \[W \+0.0\d\] msg4.$', 'Message does not match: '.logfile_msg
-
-Execute (neomake#utils#LogMessage unsets logfile in case of errors):
-  Save g:neomake_logfile
-  let g:neomake_logfile = '/does/not/exist'
-  call neomake#utils#LogMessage(1, 'msg1.')
-  AssertNeomakeMessage '\vError when trying to write to logfile /does/not/exist: Vim\(call\):E.*.  Unsetting g:neomake_logfile.', 0
-  Assert !exists('g:neomake_logfile'), 'g:neomake_logfile has been unset.'
-
 Execute (NeomakeTestsCreateExe creates exe):
   Assert !executable('boobar'), 'boobar is not executable'
   call g:NeomakeTestsCreateExe('boobar', [])
@@ -36,21 +10,6 @@ Execute (NeomakeTestsCreateExe overrides existing exe):
   Assert executable('true'), 'true is now executable'
   call g:NeomakeTestsCreateExe('true', [])
   AssertNotEqual system('which true'), true
-
-Execute (neomake#utils#CompressWhitespace):
-  function! s:F(text)
-    let entry = {'text': a:text}
-    call neomake#utils#CompressWhitespace(entry)
-    return entry.text
-  endfunction
-  AssertEqual s:F('foo'), 'foo'
-  AssertEqual s:F(' foo'), 'foo'
-  AssertEqual s:F('foo '), 'foo'
-  AssertEqual s:F('foo bar '), 'foo bar'
-  AssertEqual s:F("foo\nbar "), 'foo bar'
-  AssertEqual s:F("foo\r\nbar "), 'foo bar'
-  AssertEqual s:F("foo\n bar "), 'foo bar'
-  AssertEqual s:F("foo\n bar \r\n"), 'foo bar'
 
 Execute (neomake#utils#GetSetting serialize):
   Save g:maker
@@ -263,6 +222,27 @@ Execute (neomake#utils#GetSetting does not create a partial for dict funcs):
   AssertEqual type(Func), type(function('tr'))
   AssertEqual Func, get(maker, 'func')
 
+Execute (neomake#utils#GetSetting (old-style) can ignore buffer):
+  new
+  let bufnr = bufnr('%')
+  noautocmd set filetype=neomake_tests
+  let b:neomake_foo = 42
+  let b:neomake_neomake_tests_foo = 43
+
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', '', bufnr), 42
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', &ft, bufnr), 43
+
+  " 0 is the alternate buffer for the current window.
+  new
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', '', 0), 42
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', 'neomake_tests', 0), 43
+
+  " Empty string ignores the buffer.
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', '', ''), 'default'
+  AssertEqual neomake#utils#GetSetting('foo', {}, 'default', 'neomake_tests', ''), 'default'
+  bwipe
+  bwipe
+
 Execute(neomake#utils#redir):
   command! NeomakeTestCommand echo 1 | echo 2
   command! NeomakeTestErrorCommand echoerr 'error'
@@ -276,6 +256,22 @@ Execute(neomake#utils#redir):
   endif
   AssertEqual neomake#utils#redir(['NeomakeTestCommand', 'echon 3']), "\n1\n23"
   AssertThrows neomake#utils#redir(['NeomakeTestCommand', 'echoerr 3'])
+
+Execute(neomake#utils#redir: recursive use without execute()):
+  if exists('*execute') && has('nvim-0.2.0')
+    AssertEqual neomake#utils#redir('echon neomake#utils#redir("echon 1")'), '1'
+  else
+    AssertThrows call neomake#utils#redir('echon neomake#utils#redir("echon 1")')
+    AssertEqual g:vader_exception, 'Neomake: neomake#utils#redir: called with outer :redir (error: Vim(redir):E121: Undefined variable: neomake_redir).'
+
+    try
+      redir => outer_output
+      AssertThrows call neomake#utils#redir('echon neomake#utils#redir("echon 1")')
+      AssertEqual g:vader_exception, 'Neomake: neomake#utils#redir: called with outer :redir (error: Vim(redir):E121: Undefined variable: outer_output).'
+    finally
+      redir END
+    endtry
+  endif
 
 Execute (neomake#utils#ExpandArgs):
   Save $HOME
@@ -294,6 +290,7 @@ Execute (neomake#utils#ExpandArgs):
   \ '%z',
   \ '\%',
   \ '%%',
+  \ '%%NEOMAKE_FILE%%',
   \ '%:r.o',
   \ '%:r%',
   \ '%:r% %',
@@ -304,17 +301,24 @@ Execute (neomake#utils#ExpandArgs):
   \ 'C:\\%:r\\',
   \ '~',
   \ '\~',
+  \ 't/~=+.view.vim',
+  \ '~/foo',
+  \ '~/',
+  \ '~foo',
+  \ '%:.',
+  \ '%:,',
   \ ]
   let expected_args = [
   \ 'file1.ext',
   \ '.',
   \ 'file1',
-  \ 'file1',
+  \ 'file1t',
   \ '--foo=.',
   \ '%s',
   \ '%z',
   \ '\%',
   \ '%',
+  \ '%NEOMAKE_FILE%',
   \ 'file1.o',
   \ 'file1file1.ext',
   \ 'file1file1.ext file1.ext',
@@ -325,26 +329,41 @@ Execute (neomake#utils#ExpandArgs):
   \ 'C:\\file1\\',
   \ '/home/sweet',
   \ '\~',
+  \ 't/~=+.view.vim',
+  \ '/home/sweet/foo',
+  \ '/home/sweet/',
+  \ '~foo',
+  \ 'file1.ext',
+  \ 'file1.ext:,',
   \ ]
 
-  call neomake#utils#ExpandArgs(args)
-  AssertEqual expected_args, args
+  AssertEqual expected_args, neomake#utils#ExpandArgs(args)
   AssertEqual isk, &iskeyword
   bwipe
 
+Execute (neomake#utils#ExpandArgs: :S):
+  if !has('patch-7.4.191')
+    NeomakeTestsSkip 'Only with 7.4.191+'
+  else
+    new
+    file file1.ext
+    AssertEqual neomake#utils#ExpandArgs(['%:S']), ["'file1.ext'"]
+    bwipe
+  endif
+
 Execute (neomake#utils#diff_dict):
-  AssertEqual neomake#utils#diff_dict({}, {}), [{}, {}, {}]
+  AssertEqual neomake#utils#diff_dict({}, {}), {}
   AssertEqual neomake#utils#diff_dict({'a': 1}, {'a': 2}),
-    \ [{'a': [1, 2]}, {}, {}]
+    \ {'changed': {'a': [1, 2]}}
   AssertEqual neomake#utils#diff_dict({'a': 1}, {'b': 2}),
-    \ [{}, {'a': 1}, {'b': 2}]
+    \ {'removed': {'a': 1}, 'added': {'b': 2}}
   AssertEqual neomake#utils#diff_dict({'a': 1}, {'a': 1, 'b': 2}),
-    \ [{}, {}, {'b': 2}]
+    \ {'added': {'b': 2}}
 
   AssertEqual neomake#utils#diff_dict({'a': '1'}, {'a': 1}),
-    \ [{'a': ['1', 1]}, {}, {}]
+    \ {'changed': {'a': ['1', 1]}}
   AssertEqual neomake#utils#diff_dict({'a': []}, {'a': {}}),
-    \ [{'a': [[], {}]}, {}, {}]
+    \ {'changed': {'a': [[], {}]}}
 
 Execute (neomake#utils#wstrpart):
   AssertEqual neomake#utils#wstrpart('123', 0, 0), ''
@@ -389,8 +408,7 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   else
     let expected_argv = "/bin/bash -o pipefail -c 'echo 1'"
   endif
-  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
-  AssertEqual bound_maker._get_argv(jobinfo), expected_argv
+  AssertEqual maker._get_argv(jobinfo), expected_argv
 
   let &shell = '/bin/bash'
   let &shellcmdflag = '-o pipefail -c'
@@ -400,60 +418,117 @@ Execute (neomake#utils#MakerFromCommand splits shell/shellcmdflag):
   else
     let expected_argv = "/bin/bash -o pipefail -c 'echo 2'"
   endif
-  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
-  AssertEqual bound_maker._get_argv(jobinfo), expected_argv
+  AssertEqual maker._get_argv(jobinfo), expected_argv
+
+Execute (neomake#utils#MakerFromCommand copies args):
+  new
+  exe 'file file_with_escaped_\%:p'
+  let maker = neomake#utils#MakerFromCommand('echo "%" 1')
+  let maker.tempfile_name = 'tempfile'
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let bound_maker = neomake#GetMaker(maker)
+  let argv = bound_maker._get_argv(jobinfo)
+  let shell_argv = split(&shell) + split(&shellcmdflag)
+  if type(argv) == type([])
+    AssertEqual argv, shell_argv + ['echo "file_with_escaped_%:p" 1 tempfile']
+  else
+    AssertEqual argv, join(shell_argv)." 'echo \"file_with_escaped_%:p\" 1 tempfile'"
+  endif
+  let again_argv = bound_maker._get_argv(jobinfo)
+  AssertEqual argv, again_argv
+  bwipe
 
 Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
-  let maker = neomake#utils#MakerFromCommand('echo "%" 1')
+  let maker = neomake#utils#MakerFromCommand('printf "%s\n" "%" 1')
 
   new
   edit tests/fixtures/a\ filename\ with\ spaces
 
-  let jobinfo = {'file_mode': 0, 'bufnr': bufnr('%')}
-  let shell_argv = split(&shell) + split(&shellcmdflag)
-  AssertEqual maker.fn(jobinfo), {
-  \ 'args': shell_argv[1:] + ['echo "%" 1'], 'exe': shell_argv[0], 'remove_invalid_entries': 0, '_exe_wrapped_in_shell': 'echo'}
-
-  let fname = expand('%:p')
   let jobinfo = NeomakeTestsFakeJobinfo()
+  let shell_argv = split(&shell) + split(&shellcmdflag)
+  AssertEqual maker, {
+  \ '__command_is_string': 1,
+  \ '_get_argv': get(maker, '_get_argv'),
+  \ '_get_fname_for_args': get(maker, '_get_fname_for_args'),
+  \ 'args': shell_argv[1:] + ['printf "%s\n" "%" 1'],
+  \ 'exe': shell_argv[0],
+  \ 'remove_invalid_entries': 0}
+
+  let fname = bufname('%')
   let jobinfo.maker = maker
-  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
-  AssertEqual bound_maker.args, shell_argv[1:] + ['echo "%" 1 '.fname]
-  AssertEqual bound_maker.append_file, 0
+  let bound_maker = neomake#GetMaker(maker)
+  AssertEqual bound_maker.args, shell_argv[1:] + ['printf "%s\n" "%" 1']
   AssertEqual bound_maker.exe, shell_argv[0]
   AssertEqual bound_maker.remove_invalid_entries, 0
 
   call bound_maker._bind_args()
-  AssertEqual bound_maker.args, shell_argv[1:] + ['echo "'.bufname('%').'" 1 '.fname]
+  AssertEqual bound_maker.args, shell_argv[1:] + ['printf "%s\n" "%" 1']
 
-  CallNeomake 0, [maker]
-  AssertEqual getqflist()[0].text, 'tests/fixtures/a filename with spaces 1'
+  let argv = bound_maker._get_argv(jobinfo)
+  if type(argv) == type([])
+    AssertEqual argv, shell_argv + ['printf "%s\n" "'.fname.'" 1 ''tests/fixtures/a filename with spaces''']
+  else
+    AssertEqual argv, join(shell_argv).' ''printf "%s\n" "tests/fixtures/a filename with spaces" 1 ''\''''tests/fixtures/a filename with spaces''\'''''''
+  endif
+  " self.args is not changed.
+  AssertEqual bound_maker.args, shell_argv[1:] + ['printf "%s\n" "%" 1']
+
+  CallNeomake 1, [maker]
+  AssertEqual map(getloclist(0), 'v:val.text'), [
+  \ 'tests/fixtures/a filename with spaces',
+  \ '1',
+  \ 'tests/fixtures/a filename with spaces']
   bwipe
 
 Execute (neomake#utils#MakerFromCommand appends args for file_mode (list)):
   let maker = neomake#utils#MakerFromCommand(['echo', '%', '1'])
-  let jobinfo = {'file_mode': 0, 'bufnr': 0}
+  let jobinfo = {'file_mode': 0, 'bufnr': bufnr('%'), 'ft': ''}
 
-  AssertEqual maker.fn(jobinfo), {
-  \ 'args': ['%', '1'], 'exe': 'echo', 'remove_invalid_entries': 0, '_exe_wrapped_in_shell': ''}
+  AssertEqual maker, {
+  \ '__command_is_string': 0,
+  \ '_get_argv': get(maker, '_get_argv'),
+  \ '_get_fname_for_args': get(maker, '_get_fname_for_args'),
+  \ 'args': ['%', '1'],
+  \ 'exe': 'echo',
+  \ 'remove_invalid_entries': 0}
 
   new
   edit tests/fixtures/a\ filename\ with\ spaces
-  let fname = expand('%:p')
+  let fname = bufname('%')
   let jobinfo = NeomakeTestsFakeJobinfo()
   let jobinfo.maker = maker
-  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
-  AssertEqual bound_maker.args, ['%', '1', fname]
-  AssertEqual bound_maker.append_file, 0
+  let bound_maker = neomake#GetMaker(maker)
+  AssertEqual bound_maker.args, ['%', '1']
   AssertEqual bound_maker.exe, 'echo'
   AssertEqual bound_maker.remove_invalid_entries, 0
 
-  call bound_maker._bind_args()
-  AssertEqual bound_maker.args, [bufname('%'), '1', fname]
+  let argv = bound_maker._get_argv(jobinfo)
+  if type(argv) == type([])
+    AssertEqual argv, ['echo', fname, '1', fname]
+  else
+    AssertEqual argv, printf("echo '%s' 1 '%s'", fname, 'tests/fixtures/a filename with spaces')
+  endif
+  AssertEqual bound_maker.args, ['%', '1']
 
   CallNeomake 0, [maker]
   AssertEqual getqflist()[0].text, 'tests/fixtures/a filename with spaces 1'
   bwipe
+
+Execute (neomake#utils#MakerFromCommand calls _get_fname_for_buffer once):
+  let maker = neomake#utils#MakerFromCommand(['echo', '%', '1'])
+  let maker.tempfile_enabled = 1
+  let maker.append_file = 1
+  let maker.uses_filename = 1
+  new
+  file bufname
+  setlocal modified
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage '\v^Using tempfile for modified buffer: "(.*)".$'
+  let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual len(filter(copy(g:neomake_test_messages), "v:val[1] =~ '^Using tempfile '")), 1
+  AssertEqual map(getloclist(0), 'v:val.text'), [
+  \ printf('bufname 1 %s', fnamemodify(tempfile_name, ':.'))]
+  bwipe!
 
 Execute (neomake#utils#Stringify):
   AssertEqual neomake#utils#Stringify(1), 1
@@ -523,19 +598,21 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   let b:neomake_tempfile_enabled = 1
   let jobinfo = NeomakeTestsFakeJobinfo()
 
-  let bound_maker = neomake#GetMaker(maker).fn(jobinfo)
+  let bound_maker = neomake#GetMaker(maker)
   let make_info = values(neomake#GetStatus().make_info)[0]
-  let temp_file = make_info.tempfiles[0]
+  Assert !has_key(make_info, 'tempfiles')
   let shell_argv = split(&shell) + split(&shellcmdflag)
-  AssertEqual bound_maker.args, shell_argv[1:] + ['echo '.temp_file]
-  AssertEqual bound_maker.append_file, 0
+  AssertEqual bound_maker.args, shell_argv[1:] + ['echo']
   AssertEqual bound_maker.exe, shell_argv[0]
   AssertEqual bound_maker.remove_invalid_entries, 0
+
+  call bound_maker._get_argv(jobinfo)
+  let temp_file = fnamemodify(make_info.tempfiles[0], ':.')
   AssertNotEqual temp_file, fnameescape(temp_file)
 
   doautocmd VimLeave
   Assert empty(glob(temp_file)), 'Temporary file was removed.'
-  AssertNeomakeMessage printf('Removing temporary file: "%s".', temp_file)
+  AssertNeomakeMessage printf('Removing temporary file: "%s".', make_info.tempfiles[0])
   bwipe!
 
 Execute (neomake#utils#get_config_fts):
@@ -563,6 +640,9 @@ Execute (neomake#utils#fnamemodify handles fugitive buffer):
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname, ':p:h')
   bwipe
   bwipe autoload/neomake/debug.vim
+  if exists('*VimFtpluginUndo')
+    delfunction VimFtpluginUndo
+  endif
 
 Execute (neomake#utils#fnamemodify handles empty bufname):
   new
@@ -616,6 +696,7 @@ Execute (neomake#utils#shellescape):
   AssertEqual neomake#utils#shellescape('foo_bar'), 'foo_bar'
   AssertEqual neomake#utils#shellescape('foo bar'), "'foo bar'"
   AssertEqual neomake#utils#shellescape('foo bar "baz"'), "'foo bar \"baz\"'"
+  AssertEqual neomake#utils#shellescape('--foo=bar'), '--foo=bar'
 
   Save &shell
   let &shell = 'cmd.exe'
@@ -754,10 +835,59 @@ Execute (NeomakeTestsGetVimMessages):
   echom 3
   AssertEqual NeomakeTestsGetVimMessages(), ['2', '3']
 
-Execute (neomake#utils#DebugMessage throws with missing make_options in tests):
-  AssertThrows call neomake#utils#DebugMessage('msg1')
-  AssertEqual g:vader_exception, 'Log msg does not end with punctuation: "msg1".'
+Execute (neomake#utils#get_buf_line_count):
+  new
+  let bufnr = bufnr('%')
+  AssertEqual neomake#utils#get_buf_line_count(bufnr), 1
 
-  " Non-existing make_id should not make it verbose.
-  AssertThrows call neomake#utils#DebugMessage('msg1', {'make_id': -42})
-  AssertEqual g:vader_exception, 'Vim(return):E716: Key not present in Dictionary: -42'
+  norm! 7o
+  AssertEqual line('$'), 8
+  AssertEqual neomake#utils#get_buf_line_count(bufnr), 8
+
+  new
+  AssertEqual neomake#utils#get_buf_line_count(bufnr), 8
+
+  let non_existing_buffer = bufnr+100
+  Assert !bufexists(non_existing_buffer)
+  AssertEqual neomake#utils#get_buf_line_count(non_existing_buffer), 0
+
+  bwipe
+  bwipe!
+
+Execute (neomake#utils#get_buf_line_count: unloaded buffer):
+  new
+
+  " Create an unlisted buffer.
+  call setloclist(0, [{'filename': 'unlisted_buffer'}])
+  let unlisted_bufnr = bufnr('^unlisted_buffer')
+  Assert !buflisted(unlisted_bufnr)
+
+  AssertEqual neomake#utils#get_buf_line_count(unlisted_bufnr), 0
+  exe 'b '.unlisted_bufnr
+  AssertEqual neomake#utils#get_buf_line_count(unlisted_bufnr), 1
+
+  bp
+  bwipe
+  exe unlisted_bufnr.'bwipe'
+
+Execute (neomake#utils#temp_cd):
+  let cwd = getcwd()
+  try
+    AssertEqual neomake#utils#temp_cd('.'), ['', '']
+    AssertEqual neomake#utils#temp_cd(cwd), ['', '']
+
+    " If cur_wd gets passed in the caller is responsible if cd'ing should not get done.
+    AssertEqual neomake#utils#temp_cd(cwd, cwd), ['', 'cd '.fnameescape(cwd)]
+
+    let tempdir = tempname()
+    AssertEqual neomake#utils#temp_cd(cwd, tempdir), ['', 'cd '.fnameescape(tempdir)]
+    let [cd_error, cd_back_cmd] = neomake#utils#temp_cd(tempdir, cwd)
+    Assert !empty(cd_error)
+    AssertEqual cd_back_cmd, ''
+
+    call mkdir(tempdir)
+    AssertEqual neomake#utils#temp_cd(cwd, tempdir), ['', 'cd '.fnameescape(tempdir)]
+    AssertEqual neomake#utils#temp_cd(tempdir, cwd), ['', 'cd '.fnameescape(cwd)]
+  finally
+    exe 'cd '.fnameescape(cwd)
+  endtry

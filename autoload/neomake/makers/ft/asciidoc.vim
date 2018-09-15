@@ -3,7 +3,8 @@ function! neomake#makers#ft#asciidoc#SupersetOf() abort
 endfunction
 
 function! neomake#makers#ft#asciidoc#EnabledMakers() abort
-    return ['asciidoc'] + neomake#makers#ft#text#EnabledMakers()
+    let makers = executable('asciidoctor') ? ['asciidoctor'] : ['asciidoc']
+    return makers + neomake#makers#ft#text#EnabledMakers()
 endfunction
 
 function! neomake#makers#ft#asciidoc#asciidoc() abort
@@ -16,7 +17,8 @@ function! neomake#makers#ft#asciidoc#asciidoc() abort
         \   '%W%\w%\+: %tARNING: %f: line %l: %m,' .
         \   '%W%\w%\+: %tARNING: %f: %m,' .
         \   '%W%\w%\+: DEPRECATED: %f: line %l: %m,' .
-        \   '%W%\w%\+: DEPRECATED: %f: %m'
+        \   '%W%\w%\+: DEPRECATED: %f: %m',
+        \ 'args': ['-o', g:neomake#compat#dev_null],
         \ }
 endfunction
 

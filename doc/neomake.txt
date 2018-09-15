@@ -1,4 +1,4 @@
-*Neomake* - asynchronous make for Vim version 7.4+ and Neovim
+*neomake.txt* - asynchronous make for Vim version 7.4+ and Neovim
 
         ███╗   ██╗███████╗ ██████╗ ███╗   ███╗ █████╗ ██╗  ██╗███████╗
         ████╗  ██║██╔════╝██╔═══██╗████╗ ████║██╔══██╗██║ ██╔╝██╔════╝
@@ -7,15 +7,15 @@
         ██║ ╚████║███████╗╚██████╔╝██║ ╚═╝ ██║██║  ██║██║  ██╗███████╗
         ╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
 
-       Run make tasks (such as linters and build tools) asynchronously
+       Run make tasks (such as linters and build tools) asynchronously.
 
 ==============================================================================
-CONTENTS                                                    *neomake-contents*
+CONTENTS                                                             *neomake*
 
     1. Introduction ............................... |neomake-introduction|
     2. Commands ....................................... |neomake-commands|
     3. Configuration ............................. |neomake-configuration|
-    3.1. Automake
+    3.1. Automake ..................................... |neomake-automake|
     4. Functions ..................................... |neomake-functions|
     5. Autocommands/Hooks ............................. |neomake-autocmds|
     6. Frequently Asked Questions (FAQ) .................... |neomake-faq|
@@ -26,8 +26,9 @@ CONTENTS                                                    *neomake-contents*
 Neomake leverages Neovim's or Vim's |job-control| feature where available to
 run programs like syntax checkers asynchronously. Where job control is not
 available, it resorts to a synchronous |system()| call, making it possible to
-run this plugin in both Vim and Neovim. This plugin is heavily inspired by
-fantastic Vim plugins such as syntastic and dispatch.
+run this plugin in both older Vims and Neovim.
+This plugin is heavily inspired by Vim plugins such as Syntastic and
+dispatch.
 
 ==============================================================================
 2. Commands                                                 *neomake-commands*
@@ -77,25 +78,25 @@ fantastic Vim plugins such as syntastic and dispatch.
 2.1. Toggle commands                                          *neomake-toggle*
 
 The following commands enable, disable or toggle Neomake globally, per tab or
-per buffer by changing the `disabled` setting, which is checked when Neomake
-is called via autocommands. Calling |:Neomake| manually will not use this
-setting.
-In verbose mode (e.g. when called with |:verbose|) the new status gets
-displayed.
+per buffer by changing the `disabled` setting, which gets checked when Neomake
+gets called via autocommands, e.g. with |neomake-automake| or custom
+autocommands. You can still call e.g. |:Neomake| manually, and it will run.
+In verbose mode (e.g. when called with |:verbose| (`:verb Neomake`)) the new
+status gets displayed.
 
-*:NeomakeToggle* toggles Neomake globally.
-*:NeomakeToggleBuffer* toggles Neomake for the current buffer.
-*:NeomakeToggleTab* toggles Neomake for the current tab.
+*:NeomakeToggle*        toggles Neomake globally.
+*:NeomakeToggleBuffer*  toggles Neomake for the current buffer.
+*:NeomakeToggleTab*     toggles Neomake for the current tab.
                                                              *neomake-disable*
-*:NeomakeDisable* disables Neomake globally.
+*:NeomakeDisable*       disables Neomake globally.
 *:NeomakeDisableBuffer* disables Neomake for the current buffer.
-*:NeomakeDisableTab* disables Neomake for the current tab.
+*:NeomakeDisableTab*    disables Neomake for the current tab.
                                                               *neomake-enable*
-*:NeomakeEnable* enables Neomake globally.
-*:NeomakeEnableBuffer* enables Neomake for the current buffer.
-*:NeomakeEnableTab* enables Neomake for the current tab.
+*:NeomakeEnable*        enables Neomake globally.
+*:NeomakeEnableBuffer*  enables Neomake for the current buffer.
+*:NeomakeEnableTab*     enables Neomake for the current tab.
 
-*:NeomakeStatus* displays the current status.
+*:NeomakeStatus*        displays the current status.
 
 ==============================================================================
 3. Configuration                                       *neomake-configuration*
@@ -198,10 +199,17 @@ Here is a sample maker definition: >
     " Use the maker like this:
     :Neomake! make
 <
-The `exe` and `args` entries can be a function reference (see |Funcref|) or a
-dictionary with an expected entry `fn` (which has to be a function).
-The function will be called with no arguments, and should return the value to
-use.
+                                                   *neomake-makers-InitForJob*
+You can configure a maker dynamically through a `InitForJob` function, which
+gets the jobinfo (|neomake-object-jobinfo|) as its argument.
+
+This can also be configured as setting: >
+    function! CustomExe(jobinfo) abort
+        let self.args = [self.exe] + self.args
+        let self.exe = 'some_custom_wrapper'
+    endfunction
+    call neomake#config#set('ft.python.InitForJob', function('CustomExe'))
+<
 
 `exe` has to be a string, while `args` can be a list or a string.
 If `args` is a list, entries like '%' and '%:p' will be |expand()|ed, and
@@ -270,6 +278,32 @@ are required.  `bufnr` defaults to the jobs's buffer.
 Using this method skips the processing based on `errorformat` (including
 `mapexpr` and `postprocess`).
 
+See |neomake-makers-process_json| below for handling JSON output.
+
+                                                 *neomake-makers-process_json*
+A maker's `process_json` function gets a |dict| with parsed JSON directly,
+handling the JSON parsing and any errors before.
+
+The function gets called with a `context` dictionary, containing the following
+entries:
+ - `json`: a dictionary with the parsed JSON
+ - `source`: the source of the output (`stderr`, `stdout`)
+ - `jobinfo`: the jobinfo object, see |neomake-object-jobinfo|
+It should return a list of entries (dictionaries), where `text` and `lnum`
+are required.  `bufnr` defaults to the jobs's buffer.
+
+Using this method skips the processing based on `errorformat` (including
+`mapexpr` and `postprocess`).
+
+                                                *neomake-makers-filter_output*
+A maker's `filter_output` function can filter any output before it gets
+processed further.
+
+The function gets called with two arguments: the list of lines (to be modified
+in place) and a context dictionary with the following entries:
+ - `source`: the source of the output (`stderr`, `stdout`)
+ - `jobinfo`: the jobinfo object, see |neomake-object-jobinfo|
+
                                                       *neomake-makers-mapexpr*
 You can define two optional properties on a maker object to process its
 output: `mapexpr` is applied to the maker's output before any processing, and
@@ -285,8 +319,8 @@ The following variables are available in the `mapexpr`:
  - `neomake_output_source`: either "stderr" or "stdout", depending on
    where the output is coming from. This will be "stdout" always for
    non-async Vim.
- - `neomake_bufname` and `neomake_bufdir`: the buffer's name (|bufname()|) and
-   directory, respectively.
+ - `neomake_bufname` and `neomake_bufdir`: the buffer's absolute path
+   (|bufname()|) and directory, respectively.
 
 The `mapexpr` itself gets evaluated in the context of the affected buffer in
 file mode, and in the context of the buffer that is current when the maker
@@ -296,9 +330,10 @@ The following `mapexpr` could be used to prefix the output type: >
     "printf('[%s] %s', neomake_output_source, v:val)"
 <
                                                   *neomake-makers-postprocess*
-The `postprocess` property is a function that gets called for each entry in
-the location or quickfix list. It allows to change entries there or remove
-them by setting the `valid` entry to `-1`.
+The `postprocess` property is a function (or list of functions) that get(s)
+called for each entry in the location or quickfix list.
+It allows to change entries there or remove them by setting the `valid` entry
+to `-1`.
 
 Example: make all entries a warning where `nr` is in the range of 100-199: >
     function PostprocessLintMaker(entry)
@@ -320,11 +355,11 @@ Example: remove some entry for a specific maker (using |expr-lambda|): >
         \ : entry}
 <
 
-The default is to use `neomake#utils#CompressWhitespace` here, which fixes
-whitespace issues (important with multiline error messages).
-
-This can also be used to set the `length` property of an entry, which is used
-to highlight entries in the text (|neomake-highlight|).
+Builtin postprocessors are `neomake#postprocess#compress_whitespace`, which
+fixes whitespace issues (which is useful with multiline error messages),
+and `neomake#postprocess#generic_length`, which adds a length property (used
+for highlights |neomake-highlight|) for entries, when the message refers to an
+identifier at the entry's column.
 See `neomake#makers#ft#text#PostprocessWritegood` for an example.
 
 Entries can be selectively removed in post-processing by setting its "valid"
@@ -350,6 +385,9 @@ Your results will appear earlier, but if the |'errorformat'| is meant to parse
 multiline output this will likely cause issues (depending on how the maker
 flushes its output).
 
+To change the default for all makers use: >
+    call neomake#config#set('maker_defaults.buffer_output', 0)
+<
                                        *neomake-makers-remove_invalid_entries*
 Default: 0
 This option filters invalid entries from makers from the location/quickfix
@@ -361,8 +399,10 @@ NOTE: the default for this is 0, because unhandled/unexpected output might be
 useful, e.g. when the program displays some error.
 Makers should handle this properly through |errorformat|, e.g. by using '%-G'
 (see |efm-ignore| and |neomake-faq-errorformat|).
-You can specify the default for this via |g:neomake_remove_invalid_entries|.
 
+To change the default for all makers use: >
+    call neomake#config#set('maker_defaults.remove_invalid_entries, 1)
+<
                                                           *neomake-makers-cwd*
 The working directory of a maker defaults to the current working directory
 of the make run (|getcwd()|).
@@ -382,8 +422,8 @@ Default: 1
 This will pass a temporary file with the buffer's contents to the maker, in
 case the buffer is not readable, modified, or has no filename.
 A maker can specify the temporary file's name through the `tempfile_name`
-property, and you can set it through the experimental `maker.fn` callback (for
-advanced usage).
+property, and you can set it through the |neomake-makers-InitForJob| callback
+(for advanced usage).
 Otherwise it gets generated based on the original filename/filetype, and
 falls back to using |tempname()|.
 
@@ -406,6 +446,20 @@ current jobinfo as its argument, and should return 1 or 0.
 This function can change `self.args`, which is useful to append options like
 e.g. "['--stdin-display-name', '%:p']".
 You can also change `self.tempfile_name` therein.
+It can be useful to change the current working directory for the maker here,
+e.g. when it does not use its `--stdin-display-name` (or similar) option
+to look for its config.  Use the jobinfo's `cd` method for this: >
+    function! maker.supports_stdin(jobinfo) abort
+        let self.args += ['--stdin-display-name', '%:.']
+        call a:jobinfo.cd('%:h')
+        return 1
+    endfunction
+<
+                                                   *neomake-makers-uses_stdin*
+Default: 0
+`uses_stdin = 1` can be used to always use stdin for file arguments,
+regardless of if a temporary file / stdin is required to be used.
+It uses "-" as the default for "tempfile_name".
 
 Global Options                                               *neomake-options*
 
@@ -576,21 +630,20 @@ This setting enables highlighting of lines for items from the location and
 quickfix list. This overrides |g:neomake_highlight_columns|, since it
 highlights the whole line already. Defaults to 0.
 
-The following highlighting groups are used. They default to fg/bg colors from
-common highlighting groups, similar to |neomake-signs|, but
-underlined/undercurled (GUI).
- - NeomakeError
- - NeomakeWarning
- - NeomakeInfo
- - NeomakeMessage
+The following highlighting groups are used:
+ - NeomakeError: links to "SpellBad" (|hl-SpellBad|)
+ - NeomakeWarning: links to "SpellCap" (|hl-SpellCap|)
+ - NeomakeInfo: links to "NeomakeWarning"
+ - NeomakeMessage: links to "NeomakeWarning"
 
 You can define them yourself: >
 
     augroup my_neomake_highlights
         au!
         autocmd ColorScheme *
-          \ hi link NeomakeError SpellBad |
-          \ hi link NeomakeWarning SpellCap
+          \ highlight NeomakeError … |
+          \ highlight NeomakeWarning …
+          guisp=White
     augroup END
 >
 
@@ -669,7 +722,14 @@ which caches the information retrieved from `neomake#statusline#get_status()`.
 
 *neomake#statusline#get()* <bufnr> [options]
 The function requires the buffer number as first argument, and an optional
-dictionary.
+dictionary.  You might want to use |g:actual_curbuf| for bufnr, if calling
+`neomake#status#get()` from a statusline expression, but then highlights are
+not evaluated, and you typically want to use this in a statusline function
+(`'set statusline=%!MyStatusLine()'`) instead.
+
+Returns a string for a 'statusline'.
+
+The optional argument is a dictionary of options (see below).
 
 The following example creates a custom 'statusline' function, where `a:active`
 may reflect if the window is the current one (implementation not provided): >
@@ -693,10 +753,7 @@ A simpler example: >
           \ })
 <
 You can use the following options:
-  - format_running: used in case there are jobs running.  Use 0 (as a number)
-    to disable this, but fall through to the last known status.
-    Default: `… ({{running_job_names}})`
-
+For location list items:~
   - format_loclist_unknown: format for when the status for location list
     issues is unknown, i.e. Neomake was not run on the current buffer.
     Default: `'?'`
@@ -705,28 +762,66 @@ You can use the following options:
     NeomakeStatusGood highlight group).
   - format_loclist_type_X: format for location list issues of type X
     (E, W, I, …).
-    Default: `' {{type}}:{{count}} '`
+    Default: looks up "format_loclist_type_default" first, and then uses
+    `' {{type}}:{{count}} '`, with an existing highlight group as prefix
+    ("NeomakeStatColorTypeX" or "NeomakeStatColorDefault"), e.g.
+  - format_loclist_type_default: default format for location list issues if
+    "format_loclist_type_X" is not defined.
   - format_loclist_issues: format for wrapping all location list issues.
-    Default: `'%s'` (used with |printf()|).
+    Default: `'%s%%#NeomakeStatReset'` (used with |printf()|).
 
+For quickfix list items:~
   - format_quickfix_ok: format for no quickfix issues.
     Default: `''`
   - format_quickfix_type_X: format for quickfix list issues of type X
     (E, W, I, …).
     Default: `' {{type}}:{{count}} '`
+    Default: looks up "format_quickfix_type_default" first, and then uses
+    `' Q{{type}}:{{count}} '`, with an existing highlight group as prefix
+    ("NeomakeStatColorQuickfixTypeX" or "NeomakeStatColorQuickfixDefault").
   - format_quickfix_issues: format for wrapping all quickfix list issues.
     You can use an empty string to skip displaying quickfix issues, which can
     be useful for non-current windows.
-    Default: `'%s'` (used with |printf()|).
+    Default: `'%s%%#NeomakeStatReset'` (used with |printf()|).
 
-  - format_status: used to wrap the whole status (if Neomake is not enabled).
+  - format_status: used to wrap the whole status.
     This is a |printf()| format string, where `%s` gets replaced with the
     whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
     Default: not used / `'%s'`
+  - format_status_disabled: used to wrap the whole status when disabled.
+    This is a |printf()| format string, where `%s` gets replaced with the
+    whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
+    Default: `'{{disabled_info}} %s'`
+  - format_disabled_info: The `disabled_info` placeholder from the
+    "format_status_disabled" argument. There `disabled_scope` placeholder is
+    available here. Default: `'{{disabled_scope}}-'`
+  - format_status_enabled: used to wrap the whole status when enabled.
+    This is a |printf()| format string, where `%s` gets replaced with the
+    whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
+    Default: not used / `'%s'`
+  - format_running: used in case there are jobs running.  Use 0 (as a number)
+    to disable this, but fall through to the last known status.
+    Default: `… ({{running_job_names}})`
+  - format_running_job_file: Wrap the running job name for file-level makers.
+    Default: not used / `'%s'`
+  - format_running_job_project: Wrap the running job name for project makers.
+    Default: `'%s!'`.
+  - running_jobs_separator: Separator for formatted running job names.
+    Default: `', '`.
+
+Advanced options:
+
+  - use_highlights_with_defaults: include highlight attributes with default
+    options (e.g. "%#NeomakeStatusGood#" with "format_loclist_ok").
+    Default: 1
 
 You can use the following format placeholders:
   - `{{running_job_names}}}`: comma-separated list of running jobs (typically
-    their maker names)
+    their maker names).
+    This gets built using `format_running_job_file`,
+    `format_running_job_project`, and `running_jobs_separator`.
+  - `{{disabled_scope}}`: When manually overriden, the scope of the disabling.
+    One of "b", "t", "g".
 
 *neomake#statusline#LoclistStatus*
 *neomake#statusline#QflistStatus*
@@ -759,7 +854,7 @@ With all these events a dictionary `g:neomake_hook_context` is available,
 with key/value pairs depending on the autocommand/hook.
 
 Example: display a message for every maker that exits non-zero: >
-    function! OnNeomakeJobFinished() abort
+    function! MyOnNeomakeJobFinished() abort
       let context = g:neomake_hook_context
       if context.jobinfo.exit_code != 0
         echom printf('The job for maker %s exited non-zero: %s',
@@ -871,7 +966,8 @@ Here are some tips to develop the 'errorformat' setting for makers:
 2. Set the errorformat, e.g. `:let &efm = '%E%f:%l:%c\,%n: %m,%Z%m`.
    See |errorformat| for documentation of the format itself.
 3. Load the buffer into the quickfix list: `:cgetbuffer`.
-4. Use `:echo getqflist()` to display the raw data.
+4. Use |:copen| to open the quickfix window, and/or `:echo getqflist()` to
+   display the raw data.
 5. Pay attention to the "`valid`" property of entries.
 
 vim: ft=help tw=78 isk+=<,>,\:,-,'

@@ -3,7 +3,7 @@ function! neomake#makers#ft#idris#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#idris#Postprocess(entry) abort
-    call neomake#utils#CompressWhitespace(a:entry)
+    call neomake#postprocess#compress_whitespace(a:entry)
     " Extract length from the beginning of the entry ('-4:When checking left hand side of xor:').
     if a:entry.text =~# '\v^\d+:'
         let end = 0 + a:entry.text  " cast to int

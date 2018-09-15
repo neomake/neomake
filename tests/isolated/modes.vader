@@ -28,4 +28,9 @@ Execute (Output is not processed in operator-pending mode (Vim)):
     call neomake#signs#ResetProject()
     call neomake#signs#CleanAllOldSigns('project')
     bwipe
+
+    " Restore if not profiling.
+    if !v:profiling
+      runtime autoload/neomake/compat.vim
+    endif
   endif

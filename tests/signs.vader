@@ -1,6 +1,9 @@
 Include: include/setup.vader
 
 Execute (neomake#signs#RedefineErrorSign):
+  Save g:neomake_verbose
+  let g:neomake_verbose = 3
+
   new
   file file1
   let bufnr = bufnr('%')
@@ -16,10 +19,7 @@ Execute (neomake#signs#RedefineErrorSign):
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Placing sign: sign place 5000 line=2 name=neomake_file_warn buffer='.bufnr('%').'.'
 
-  AssertNeomakeMessage printf("Could not place signs for 1 entries without line number: %s.",
-  \ string([{'lnum': 0, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
-  \          'nr': -1, 'type': 'E', 'maker_name': 'custom_maker', 'pattern': '',
-  \          'text': 'error without line'}]))
+  AssertNeomakeMessage '\vCould not place signs for 1 entries without line number: \[.*\].', 3
 
   " Test #736.
   call neomake#signs#RedefineErrorSign({'text': 'X', 'texthl': 'ErrorMsg'})
@@ -417,3 +417,28 @@ Execute (CleanOldSigns removes unplaced sign from s:placed_signs):
   AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3
   AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.bufnr.'.'
   bwipe!
+
+Execute (neomake#signs#PlaceSigns handles lowercase and fallback entry type):
+  new
+  let bufnr = bufnr('%')
+  call neomake#signs#PlaceSigns(bufnr, [
+  \ {'type': 'w', 'bufnr': bufnr, 'lnum': 1},
+  \ {'type': 'i', 'bufnr': bufnr, 'lnum': 2},
+  \ {'type': 'm', 'bufnr': bufnr, 'lnum': 3},
+  \ {'type': 'e', 'bufnr': bufnr, 'lnum': 4},
+  \ {'type': 'x', 'bufnr': bufnr, 'lnum': 5},
+  \ ], 'file')
+
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_warn buffer='.bufnr.'.'
+  AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_info buffer='.bufnr.'.'
+  AssertNeomakeMessage 'Placing sign: sign place 5002 line=3 name=neomake_file_msg buffer='.bufnr.'.'
+  AssertNeomakeMessage 'Placing sign: sign place 5003 line=4 name=neomake_file_err buffer='.bufnr.'.'
+  AssertNeomakeMessage 'Placing sign: sign place 5004 line=5 name=neomake_file_err buffer='.bufnr.'.'
+  AssertEqual neomake#signs#by_lnum(bufnr), {
+  \ '1': [5000, 'neomake_file_warn'],
+  \ '2': [5001, 'neomake_file_info'],
+  \ '3': [5002, 'neomake_file_msg'],
+  \ '4': [5003, 'neomake_file_err'],
+  \ '5': [5004, 'neomake_file_err'],
+  \ }
+  bwipe

@@ -113,7 +113,7 @@ function! neomake#makers#ft#haskell#HlintEntryProcess(entry) abort
     let a:entry.text = substitute(a:entry.text, '\v(Found:)\s*\n', ' | \1', 'g')
     let a:entry.text = substitute(a:entry.text, '\v(Why not:)\s*\n', ' | \1', 'g')
     let a:entry.text = substitute(a:entry.text, '^No hints$', '', 'g')
-    call neomake#utils#CompressWhitespace(a:entry)
+    call neomake#postprocess#compress_whitespace(a:entry)
 endfunction
 
 function! neomake#makers#ft#haskell#hlint() abort
@@ -142,18 +142,11 @@ function! neomake#makers#ft#haskell#liquid() abort
       \ })
 endfunction
 
-" @vimlint(EVL103, 1, a.job_id)
-" @vimlint(EVL103, 1, a.event)
-" @vimlint(EVL101, 1, l.self)
-" vint: -ProhibitUsingUndeclaredVariable
-function! s:CheckStackMakerAsync(job_id, data, event) dict abort
+function! s:CheckStackMakerAsync(_job_id, data, _event) dict abort
     if a:data == 0
         call add(s:makers, substitute(self.command, '-', '', 'g'))
     endif
 endfunction
-" vint: +ProhibitUsingUndeclaredVariable
-" @vimlint(EVL101, 0)
-" @vimlint(EVL103, 0)
 
 function! s:TryStack(maker) abort
     if executable('stack')

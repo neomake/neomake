@@ -1,0 +1,81 @@
+Include: ../include/setup.vader
+
+Execute (Setup: simulate non-testing):
+  Save g:neomake_verbose
+  " Unset g:neomake_test_messages for s:is_testing in autoload/neomake/log.vim.
+  unlet g:neomake_test_messages
+  unlet! g:neomake_verbose
+  call NeomakeTestsSetVimMessagesMarker()
+  runtime autoload/neomake/log.vim
+  runtime autoload/neomake.vim
+  let g:neomake_test_messages = []
+
+Execute (neomake#log#error uses echohl):
+  Save g:neomake_verbose
+  let g:neomake_verbose = 1
+  call neomake#log#error('some error with context.', {})
+  call neomake#log#error('some error without context.')
+  AssertEqual NeomakeTestsGetVimMessages(), [
+  \ 'Neomake: some error with context.',
+  \ 'Neomake: some error without context.',
+  \ ]
+
+  let g:neomake_verbose = 3
+  call neomake#log#warning('some warning with context.', {})
+  call neomake#log#warning('some warning without context.')
+  AssertEqual NeomakeTestsGetVimMessages(), [
+  \ 'Neomake: [-.-:-:1] some warning with context.',
+  \ 'Neomake: some warning without context.',
+  \ ]
+
+Execute (neomake#log#debug handles missing make_options):
+  let s:log_calls = []
+  function! neomake#log#warning(...)
+    let s:log_calls += [a:000]
+  endfunction
+
+  call neomake#log#debug('msg1')
+  AssertEqual NeomakeTestsGetVimMessages(), []
+
+  " Non-existing make_id should not make it verbose.
+  call neomake#log#debug('msg1', {'make_id': -42})
+  AssertEqual s:log_calls, [['warning: missing make_info key: -42.']]
+  AssertEqual NeomakeTestsGetVimMessages(), []
+
+  let g:neomake_verbose = 3
+  let s:log_calls = []
+  call neomake#log#debug('msg1', {'make_id': -42})
+  AssertEqual s:log_calls, [['warning: missing make_info key: -42.']]
+  let msgs = NeomakeTestsGetVimMessages()
+  AssertEqual len(msgs), 1
+  Assert msgs[0] =~# '\VNeomake\.\*: [-42.-:-:1] msg1', 'msg matches ('.msgs[0].')'
+
+  " Produces no message with level 0.
+  let g:neomake_verbose = 0
+  let s:log_calls = []
+  call neomake#log#debug('msg1', {'make_id': -42})
+  AssertEqual s:log_calls, [['warning: missing make_info key: -42.']]
+  AssertEqual NeomakeTestsGetVimMessages(), []
+
+Execute (neomake#log#debug_obj does not call neomake#utils#Stringify if not necessary):
+  Save g:neomake_verbose
+  unlet! g:neomake_verbose
+
+  let s:calls = []
+  function! neomake#utils#Stringify(...)
+    let s:calls += [a:000]
+  endfunction
+
+  call neomake#log#debug_obj('msg', 'obj')
+  AssertEqual s:calls, []
+
+  let g:neomake_verbose = 3
+  call neomake#log#debug_obj('msg', 'obj')
+  AssertEqual s:calls, [['obj']]
+
+  " Restore if not profiling.
+  if !v:profiling
+    runtime autoload/neomake/utils.vim
+    runtime autoload/neomake/log.vim
+    runtime autoload/neomake.vim
+  endif

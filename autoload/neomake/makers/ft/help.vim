@@ -19,10 +19,13 @@ function! neomake#makers#ft#help#EnabledMakers() abort
 endfunction
 
 function! neomake#makers#ft#help#vimhelplint() abort
+    " NOTE: does not support/uses arg from wrapper script (i.e. no support for
+    "       tempfiles).  It will use the arg only to expand/glob `*.txt`
+    "       (which does not include the hidden tempfile).
     return {
         \ 'exe': s:vimhelplint_exe,
         \ 'errorformat': '%f:%l:%c:%trror:%n:%m,%f:%l:%c:%tarning:%n:%m',
-        \ 'postprocess': function('neomake#postprocess#GenericLengthPostprocess'),
+        \ 'postprocess': function('neomake#postprocess#generic_length'),
         \ 'output_stream': 'stdout',
         \ }
 endfunction
