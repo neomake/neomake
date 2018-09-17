@@ -357,7 +357,7 @@ function! neomake#makers#ft#python#pylama() abort
 endfunction
 
 function! neomake#makers#ft#python#python() abort
-    let maker = {
+    return {
         \ 'args': [s:compile_script],
         \ 'errorformat': '%E%f:%l:%c: %m',
         \ 'serialize': 1,
@@ -365,17 +365,6 @@ function! neomake#makers#ft#python#python() abort
         \ 'output_stream': 'stdout',
         \ 'short_name': 'py',
         \ }
-    function! maker.InitForJob(jobinfo) abort
-        let bufnr = get(a:jobinfo, 'bufnr', '')
-        if bufnr isnot# ''
-            let exe_args = neomake#utils#get_exe_args_from_shebang(bufnr)
-            if !empty(exe_args)
-                let self.exe = exe_args[0]
-                let self.args = exe_args[1:] + self.args
-            endif
-        endif
-    endfunction
-    return maker
 endfunction
 
 function! neomake#makers#ft#python#frosted() abort

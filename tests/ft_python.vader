@@ -335,12 +335,14 @@ Execute (python: mypy: handles --py2):
   let maker = neomake#makers#ft#python#mypy()
   AssertEqual maker.args, base_args
 
-Execute (python: uses shebang from buffer for exe/args):
+Execute (python: can use shebang from buffer for exe/args):
   new
   noautocmd setfiletype python
   call setline(1, ['#!/usr/bin/env python'])
 
   let jobinfo = NeomakeTestsFakeJobinfo()
+
+  call neomake#config#set('b:python.InitForJob', function('neomake#utils#set_argv_from_shebang'))
 
   let maker = neomake#core#instantiate_maker(neomake#GetMaker('python'), jobinfo, 0)
   AssertEqual maker.exe, '/usr/bin/env'

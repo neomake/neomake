@@ -625,3 +625,20 @@ function! neomake#utils#get_exe_args_from_shebang(...) abort
     endif
     return []
 endfunction
+
+" Helper (dict) function to set exe/args for a maker, based on the job
+" buffer's shebang.
+" Can be uses as a setting, e.g.:
+" call neomake#config#set('b:python.InitForJob', function('neomake#utils#set_argv_from_shebang'))
+function! neomake#utils#set_argv_from_shebang(jobinfo) dict abort
+    let bufnr = get(a:jobinfo, 'bufnr', '')
+    if bufnr isnot# ''
+        let exe_args = neomake#utils#get_exe_args_from_shebang(bufnr)
+        if !empty(exe_args)
+            call neomake#log#debug(printf('python: using %s for shebang.',
+                        \ string(exe_args)))
+            let self.exe = exe_args[0]
+            let self.args = exe_args[1:] + self.args
+        endif
+    endif
+endfunction
