@@ -22,16 +22,29 @@ endfunction
 
 let neomake#makers#ft#python#project_root_files = ['setup.cfg', 'tox.ini']
 
+let s:python_version_cache = {}
 function! neomake#makers#ft#python#DetectPythonVersion() abort
-    let output = neomake#compat#systemlist('python -V 2>&1')
-    if v:shell_error
-        call neomake#log#debug(printf(
-                    \ 'Failed to detect Python version: %s.',
-                    \ join(output)))
-        let s:python_version = [-1, -1, -1]
+    let shebang_exe_args = neomake#utils#get_exe_args_from_shebang(bufnr('%'))
+    if empty(shebang_exe_args)
+        let cmd = 'python'
     else
-        let s:python_version = split(split(output[0])[1], '\.')
+        let cmd = join(shebang_exe_args)
     endif
+
+    let cache_key = cmd.$PATH
+    if !has_key(s:python_version_cache, cache_key)
+        let output = neomake#compat#systemlist(printf('%s -V 2>&1', cmd))
+        if v:shell_error
+            call neomake#log#debug(printf(
+                        \ 'Failed to detect Python version: %s.',
+                        \ join(output)))
+            let python_version = [-1, -1, -1]
+        else
+            let python_version = split(split(output[0])[1], '\.')
+        endif
+        let s:python_version_cache[cache_key] = python_version
+    endif
+    return s:python_version_cache[cache_key]
 endfunction
 
 let s:ignore_python_warnings = [
@@ -390,10 +403,7 @@ function! neomake#makers#ft#python#mypy() abort
     let l:args = ['--check-untyped-defs', '--ignore-missing-imports']
 
     " Append '--py2' to args with Python 2 for Python 2 mode.
-    if !exists('s:python_version')
-        call neomake#makers#ft#python#DetectPythonVersion()
-    endif
-    if s:python_version[0] ==# '2'
+    if neomake#makers#ft#python#DetectPythonVersion()[0] ==# '2'
         call add(l:args, '--py2')
     endif
 

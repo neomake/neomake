@@ -322,7 +322,14 @@ Execute (python: mypy: handles --py2):
   let maker = neomake#makers#ft#python#mypy()
   AssertEqual maker.args, base_args + ['--py2']
 
-  " Does not append --py2 with Python 3.
+  " Caches previous result.
+  call g:NeomakeTestsCreateExe('python', ['#!/bin/sh', 'echo Python 3.6.4'])
+  call neomake#makers#ft#python#DetectPythonVersion()
+  let maker = neomake#makers#ft#python#mypy()
+  AssertEqual maker.args, base_args + ['--py2']
+
+  " Changing PATH invalidates cache, and then does not append --py2 with Python 3.
+  let $PATH .= (exists('+shellslash') ? ';' : ':') . 'foo'
   call g:NeomakeTestsCreateExe('python', ['#!/bin/sh', 'echo Python 3.6.4'])
   call neomake#makers#ft#python#DetectPythonVersion()
   let maker = neomake#makers#ft#python#mypy()
