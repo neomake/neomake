@@ -613,8 +613,12 @@ function! neomake#utils#temp_cd(dir, ...) abort
     return ['', cd.' '.fnameescape(cur_wd)]
 endfunction
 
-function! neomake#utils#get_exe_args_from_shebang(bufnr) abort
-    let line1 = get(getbufline(a:bufnr, 1), 0)
+" Get a list with executable and args for a buffer.
+" a:0: bufnr, defaults to current.
+" Returns an empty list if not shebang was found.
+function! neomake#utils#get_exe_args_from_shebang(...) abort
+    let bufnr = a:0 ? +a:1 : bufnr('%')
+    let line1 = get(getbufline(bufnr, 1), 0)
     if line1[0:1] ==# '#!'
         let shebang = substitute(line1[2:], '\v^\s+|\s+$', '', '')
         return split(shebang)
