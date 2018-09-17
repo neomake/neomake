@@ -974,7 +974,7 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
         let cmd = 'lwindow'
     else
         call neomake#log#debug('Handling quickfix list: executing cwindow.', a:jobinfo)
-        let cmd = 'cwindow'
+        let cmd = 'botright cwindow'
     endif
     if open_val == 2
         let make_id = a:jobinfo.make_id
