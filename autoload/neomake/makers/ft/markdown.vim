@@ -27,7 +27,6 @@ endfunction
 let s:alex_supports_stdin = {}
 function! neomake#makers#ft#markdown#alex() abort
     let maker = {
-        \ 'supports_stdin': 1,
         \ 'errorformat':
         \   '%P%f,'
         \   .'%-Q,'
@@ -50,11 +49,13 @@ function! neomake#makers#ft#markdown#alex() abort
             call neomake#log#debug('alex: stdin support: '.support.'.')
         endif
         if support
-          let self.args += ['--stdin']
-          let self.tempfile_name = ''
+            let self.args += ['--stdin']
+            let self.tempfile_name = ''
         endif
         return support
     endfunction
+
+    return maker
 endfunction
 
 function! neomake#makers#ft#markdown#ProcessVale(context) abort
