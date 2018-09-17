@@ -25,7 +25,7 @@ let neomake#makers#ft#python#project_root_files = ['setup.cfg', 'tox.ini']
 function! neomake#makers#ft#python#DetectPythonVersion() abort
     let output = neomake#compat#systemlist('python -V 2>&1')
     if v:shell_error
-        call neomake#log#error(printf(
+        call neomake#log#debug(printf(
                     \ 'Failed to detect Python version: %s.',
                     \ join(output)))
         let s:python_version = [-1, -1, -1]

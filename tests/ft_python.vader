@@ -314,7 +314,7 @@ Execute (python: mypy: handles --py2):
   call neomake#makers#ft#python#DetectPythonVersion()
   let maker = neomake#makers#ft#python#mypy()
   AssertEqual maker.args, base_args
-  AssertNeomakeMessage '\v^Failed to detect Python version: .*', 0
+  AssertNeomakeMessage '\v^Failed to detect Python version: .*', 3
 
   " Appends --py2 with Python 2.
   call g:NeomakeTestsCreateExe('python', ['#!/bin/sh', 'echo Python 2.7.14'])
