@@ -1492,7 +1492,7 @@ function! s:clean_make_info(make_info, ...) abort
             call neomake#log#debug('Skipping final processing for canceled make.', a:make_info)
             call s:do_clean_make_info(a:make_info)
         else
-            call s:handle_locqf_list_for_finished_jobs(a:make_info)
+            return s:handle_locqf_list_for_finished_jobs(a:make_info)
         endif
     else
         call s:do_clean_make_info(a:make_info)
