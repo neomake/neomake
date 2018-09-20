@@ -242,8 +242,8 @@ endfunction
 
 function! neomake#CancelJobs(bang) abort
     call neomake#log#debug(printf('Cancelling %d jobs.', len(s:jobs)))
-    for job_id in keys(s:jobs)
-        call neomake#CancelJob(job_id, a:bang)
+    for job in neomake#GetJobs()
+        call neomake#CancelJob(job.id, a:bang)
     endfor
 endfunction
 
