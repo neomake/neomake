@@ -671,7 +671,7 @@ Execute (Makers: get_list_entries with sandbox exception):
 
   let jobinfo.maker.should_throw = 0
   if has('timers')
-    AssertNeomakeMessage 'Retrying Timer event in 10ms.', 3
+    AssertNeomakeMessage '\V\^Retrying Timer event in 10ms', 3
   else
     AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
     doautocmd CursorHold
@@ -708,13 +708,13 @@ Execute (pcall aborts after 3 attempts per job):
   AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[0]
   AssertNeomakeMessage '\m^(in function .*)$', 3
   if has('timers')
-    AssertNeomakeMessage 'Retrying Timer event in 10ms.', 3, jobs[0]
+    AssertNeomakeMessage '\V\^Retrying Timer event in 10ms', 3, jobs[0]
   else
     AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).', 3, jobs[0]
   endif
   AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[1]
   if has('timers')
-    AssertNeomakeMessage 'Retrying Timer event in 10ms.', 3, jobs[1]
+    AssertNeomakeMessage '\V\^Retrying Timer event in 10ms', 3, jobs[1]
     NeomakeTestsWaitForNextMessage
   else
     AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).', 3, jobs[1]
@@ -723,8 +723,8 @@ Execute (pcall aborts after 3 attempts per job):
 
   AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[0]
   if has('timers')
-    NeomakeTestsWaitForMessage 'Retrying Timer event in 20ms.', 3, jobs[0]
-    NeomakeTestsWaitForMessage 'Retrying Timer event in 20ms.', 3, jobs[1]
+    NeomakeTestsWaitForMessage '\V\^Retrying Timer event in 20ms', 3, jobs[0]
+    NeomakeTestsWaitForMessage '\V\^Retrying Timer event in 20ms', 3, jobs[1]
   else
     AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
     AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
@@ -733,7 +733,7 @@ Execute (pcall aborts after 3 attempts per job):
 
   AssertNeomakeMessage '\mError during pcall: Vim(bprevious):E48: Not allowed in sandbox:', 3, jobs[0]
   if has('timers')
-    NeomakeTestsWaitForMessage 'Retrying Timer event in 30ms.', 3
+    NeomakeTestsWaitForMessage '\V\^Retrying Timer event in 30ms', 3
   else
     AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
     doautocmd CursorHold

@@ -705,24 +705,28 @@ Execute (Automake restarts if popup menu is visible):
     let base_timer = g:neomake_test_matchlist[1]
 
     " Trigger popup menu.
-    call timer_start(100, 's:close_pum')
-    call feedkeys("oword\<C-p>", 'x!')
+    let timer = timer_start(100, 's:close_pum')
+    try
+      call feedkeys("oword\<C-p>", 'x!')
 
-    AssertNeomakeMessage 'automake: callback for timer '.base_timer.' (via CursorHold).'
-    AssertNeomakeMessage 'automake: postponing automake during completion.', 3
-    AssertNeomakeMessage 'automake: re-starting postponed automake.'
-    AssertNeomakeMessage 'automake: tick changed (new).'
-    " +2 since we use timer_start above.
-    AssertNeomakeMessage 'automake: started timer (5ms): '.(base_timer + 2).'.'
-    NeomakeTestsWaitForMessage 'automake: callback for timer '.(base_timer + 2).' (via CursorHold).'
-    AssertNeomakeMessage 'automake: neomake_do_automake: CursorHold.'
-    AssertNeomakeMessage 'automake: tick changed (new).'
-    AssertNeomakeMessage '\vautomake: Updating tick: \d+.'
-    AssertNeomakeMessage 'automake: enabled makers: true-maker.'
+      NeomakeTestsWaitForMessage 'automake: callback for timer '.base_timer.' (via CursorHold).'
+      AssertNeomakeMessage 'automake: postponing automake during completion.', 3
+      AssertNeomakeMessage 'automake: re-starting postponed automake.'
+      AssertNeomakeMessage 'automake: tick changed (new).'
+      " +2 since we use timer_start above.
+      AssertNeomakeMessage 'automake: started timer (5ms): '.(base_timer + 2).'.'
+      NeomakeTestsWaitForMessage 'automake: callback for timer '.(base_timer + 2).' (via CursorHold).'
+      AssertNeomakeMessage 'automake: neomake_do_automake: CursorHold.'
+      AssertNeomakeMessage 'automake: tick changed (new).'
+      AssertNeomakeMessage '\vautomake: Updating tick: \d+.'
+      AssertNeomakeMessage 'automake: enabled makers: true-maker.'
 
-    NeomakeTestsWaitForFinishedJobs
+      NeomakeTestsWaitForFinishedJobs
 
-    bwipe!
+      bwipe!
+    finally
+      call timer_stop(timer)
+    endtry
   endif
 
 Execute (Automake cleans up buffer context when restarting after popup menu fails):

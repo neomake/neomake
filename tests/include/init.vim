@@ -587,6 +587,12 @@ function! s:After()
     let v:warningmsg = ''
   endif
 
+  if exists('g:neomake#action_queue#_s.action_queue_timer')
+    Log printf('TODO/NOTE: stopping action_queue_timer: %s.',
+          \ g:neomake#action_queue#_s.action_queue_timer)
+    call timer_stop(g:neomake#action_queue#_s.action_queue_timer)
+  endif
+
   if !empty(errors)
     if get(g:, 'vader_case_ok', 1)
       call map(errors, "printf('%d. %s', v:key+1, v:val)")
