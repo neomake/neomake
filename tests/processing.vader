@@ -138,7 +138,7 @@ Execute (Location list is only cleared in normal/insert mode on success):
     AssertEqual len(g:neomake_test_finished), 0
     doautocmd WinEnter
     AssertEqual len(g:neomake_test_finished), 0
-    AssertNeomakeMessage 'Retrying Timer event in 10ms.'
+    AssertNeomakeMessage '\V\^Retrying Timer event in 10ms'
     sleep 10m
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 1
@@ -183,7 +183,7 @@ Execute (Location list is not cleared in operator-pending mode (Vim)):
     AssertEqual len(g:neomake_test_finished), 0
     doautocmd WinEnter
     AssertEqual len(g:neomake_test_finished), 0
-    AssertNeomakeMessage 'Retrying Timer event in 10ms.'
+    AssertNeomakeMessage '\V\^Retrying Timer event in 10ms'
     sleep 10m
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 1
@@ -805,7 +805,7 @@ Execute (action queue handles E48 in process_output):
   AssertNeomakeMessage 'Error during pcall: Vim(bprevious):E48: Not allowed in sandbox:   sandbox bprevious.', 3
   AssertNeomakeMessage 'Queuing action ProcessJobOutput for Timer, WinEnter.'
   if has('timers')
-    AssertNeomakeMessage 'Retrying Timer event in 10ms.'
+    AssertNeomakeMessage '\V\^Retrying Timer event in 10ms'
   else
     AssertNeomakeMessage 'Retrying Timer event on CursorHold(I).'
   endif
