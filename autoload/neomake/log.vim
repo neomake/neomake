@@ -42,7 +42,7 @@ function! s:log(level, msg, ...) abort
                     \ get(context, 'make_id', '-'),
                     \ get(context, 'id', '-'),
                     \ get(context, 'bufnr', get(context, 'file_mode', 0) ? '?' : '-'),
-                    \ winnr(),
+                    \ get(context, 'winnr', winnr()),
                     \ a:msg)
     else
         let msg = a:msg

@@ -352,7 +352,8 @@ function! s:handle_hook(jobinfo, event, context) abort
                 \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
 
     if exists('g:neomake_hook_context')
-        call neomake#log#debug(printf('Queueing User autocmd %s for nested invocation (%s).', a:event, context_str))
+        call neomake#log#debug(printf('Queueing User autocmd %s for nested invocation (%s).', a:event, context_str),
+                    \ a:jobinfo)
         return neomake#action_queue#add(
                     \ ['Timer', 'BufEnter', 'WinEnter', 'InsertLeave', 'CursorHold', 'CursorHoldI'],
                     \ [s:function('s:handle_hook'), [a:jobinfo, a:event, a:context]])
