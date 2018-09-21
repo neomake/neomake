@@ -508,6 +508,7 @@ Execute (Neomake with windo):
     AssertEqual getloclist(2), []
     let ll_3 = getloclist(3)[0].text
     1wincmd w
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).', 3
     let ll_1 = getloclist(1)[0].text
     2wincmd w
     let ll_2 = getloclist(2)[0].text

@@ -821,9 +821,7 @@ Execute (action queue handles E48 in process_output):
   AssertNeomakeMessage 'action queue: calling ProcessJobOutput.', 3
   AssertNeomakeMessage 'Postponing location list processing.', 3
   AssertNeomakeMessage 'Queuing action ProcessJobOutput for BufEnter, WinEnter.', 3
-  AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3
-  AssertNeomakeMessage "Skipping cleaning of job info because of queued actions: ['ProcessJobOutput', ['BufEnter', 'WinEnter']].", 3
-  AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.', 3
+  AssertNeomakeMessage 'action queue: re-queueing CleanJobinfo for not processed job_id.', 3
   AssertNeomakeMessage 'action queue: processed 0 items.', 3
   AssertNeomakeMessage 'action queue: processing for BufEnter (1 items, winnr: 1).', 3
 

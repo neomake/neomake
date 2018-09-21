@@ -36,6 +36,7 @@ Execute (hook handling gets queued for global g:neomake_hook_context):
   " reported.
   if neomake#has_async_support()
     AssertNeomakeMessage 's:process_action_queue: decrementing timer tries for non-Timer event.', 3
+    AssertNeomakeMessage 'action queue: re-queueing clean_make_info for not processed make_id.', 3
   endif
 
 Execute (hook handling gets queued for global g:neomake_hook_context (with postprocessing)):
@@ -70,6 +71,10 @@ Execute (hook handling gets queued for global g:neomake_hook_context (with postp
   Assert !exists('g:neomake_hook_context'), 'Hook context was cleaned.'
   AssertEqual len(g:neomake_test_jobfinished), 2
   AssertEqual len(s:finished_called), 2
+
+  if neomake#has_async_support()
+    AssertNeomakeMessage 'action queue: re-queueing clean_make_info for not processed make_id.', 3
+  endif
 
 Execute (Nested neomake#utils#hook must not be nested (directly)):
   function! s:nested_hook_cb(c)
