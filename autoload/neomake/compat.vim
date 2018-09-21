@@ -278,9 +278,9 @@ if exists('*win_getid')
         elseif winnr() != pw
             let aw = win_id2win(aw_id)
             if aw
-                exec aw . 'wincmd w'
+                noautocmd exec aw . 'wincmd w'
             endif
-            exec pw . 'wincmd w'
+            noautocmd exec pw . 'wincmd w'
         endif
     endfunction
 else
@@ -297,9 +297,9 @@ else
                   \ pw, winnr('$')))
         elseif winnr() != pw
             if aw
-                exec aw . 'wincmd w'
+                noautocmd exec aw . 'wincmd w'
             endif
-            exec pw . 'wincmd w'
+            noautocmd exec pw . 'wincmd w'
         endif
     endfunction
 endif
