@@ -6,7 +6,7 @@ common: &common
   working_directory: ~/repo
   steps:
     - checkout
-    - run: make --keep-going testcoverage TEST_VIM=$TEST_VIM
+    - run: make --keep-going testcoverage TEST_VIM=$TEST_VIM _SED_HIGHLIGHT_ERRORS='| contrib/highlight-log vader'
     - run:
         name: Upload coverage results
         command: |
