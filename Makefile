@@ -223,6 +223,7 @@ _docker_test: DOCKER_VIM:=vim81
 _docker_test: DOCKER_MAKE_TARGET=$(DOCKER_MAKE_TEST_TARGET) \
   TEST_VIM='/vim-build/bin/$(DOCKER_VIM)' \
   VADER_OPTIONS="$(VADER_OPTIONS)" VADER_ARGS="$(VADER_ARGS)" \
+	_REDIR_STDOUT="$(_REDIR_STDOUT)" \
 	$(DOCKER_MAKE_TEST_ARGS)
 _docker_test: docker_make
 docker_test: DOCKER_MAKE_TEST_TARGET:=test
