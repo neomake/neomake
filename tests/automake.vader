@@ -705,11 +705,11 @@ Execute (Automake restarts if popup menu is visible):
     let base_timer = g:neomake_test_matchlist[1]
 
     " Trigger popup menu.
-    let timer = timer_start(100, 's:close_pum')
+    let timer = timer_start(10, 's:close_pum')
     try
       call feedkeys("oword\<C-p>", 'x!')
 
-      NeomakeTestsWaitForMessage 'automake: callback for timer '.base_timer.' (via CursorHold).'
+      AssertNeomakeMessage 'automake: callback for timer '.base_timer.' (via CursorHold).'
       AssertNeomakeMessage 'automake: postponing automake during completion.', 3
       AssertNeomakeMessage 'automake: re-starting postponed automake.'
       AssertNeomakeMessage 'automake: tick changed (new).'
