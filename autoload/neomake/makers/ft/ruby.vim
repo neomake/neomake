@@ -116,9 +116,11 @@ endfunction
 
 function! neomake#makers#ft#ruby#try_bundler(jobinfo) abort dict
     let l:gemfile = s:get_gemfile()
-    if len(l:gemfile) > 0 && !empty(filter(readfile(l:gemfile),
-                \ { _i, line -> line =~# '\v\s*gem\s+[''"]' . escape(self.exe, '\') }))
-        return neomake#makers#ft#ruby#use_bundler(a:jobinfo)
+    if len(l:gemfile) > 0
+        let l:matcher = escape('v:val =~# "\v\s*gem\s+\S+' . self.exe . '"', '\')
+        if !empty(filter(readfile(l:gemfile), l:matcher))
+            call call('neomake#makers#ft#ruby#use_bundler', [a:jobinfo], self)
+        endif
     endif
 endfunction
 
