@@ -88,3 +88,41 @@ function! neomake#makers#ft#ruby#flog() abort
         \   '%-G%.%#: flog/method average,'
         \ }
 endfunction
+
+let g:neomake#makers#ft#ruby#project_root_files = ['Gemfile', 'Rakefile']
+
+function! s:get_gemfile() abort
+    let l:gemfile = neomake#config#get('ruby.gemfile')
+    if l:gemfile isnot# g:neomake#config#undefined
+        return l:gemfile
+    endif
+
+    let l:project_root = neomake#utils#get_project_root()
+    if empty(l:project_root)
+        let l:gemfile = findfile('Gemfile', '.;~')
+    else
+        let l:gemfile = l:project_root . neomake#utils#Slash() . 'Gemfile'
+        if !filereadable(l:gemfile)
+            let l:gemfile = ''
+        endif
+    endif
+
+    call neomake#log#debug(
+                \ printf('ruby: setting b:neomake.ruby.gemfile=%s', string(l:gemfile)),
+                \ { 'bufnr': bufnr('%') })
+    call neomake#config#set('b:ruby.gemfile', l:gemfile)
+    return l:gemfile
+endfunction
+
+function! neomake#makers#ft#ruby#try_bundler(jobinfo) abort dict
+    let l:gemfile = s:get_gemfile()
+    if len(l:gemfile) > 0 && !empty(filter(readfile(l:gemfile),
+                \ { _i, line -> line =~# '\v\s*gem\s+[''"]' . escape(self.exe, '\') }))
+        return neomake#makers#ft#ruby#use_bundler(a:jobinfo)
+    endif
+endfunction
+
+function! neomake#makers#ft#ruby#use_bundler(jobinfo) abort dict
+    let self.args = ['exec', self.exe] + self.args
+    let self.exe = 'bundle'
+endfunction
