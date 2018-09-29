@@ -603,17 +603,19 @@ Execute (Expands % in cwd according to actual file):
   AssertEqual map(getloclist(0), 'v:val.text'), [tmpdir]
   bwipe!
 
-Execute (Expands % in args according to actual file (list)):
+Execute (Expands % in args according to actual file, and replaces %t with tempfile (list)):
   let tmpdir = tempname()
   call mkdir(tmpdir, 'p', 0550)
   new
   exe 'file '.tmpdir.'/file'
   let b:neomake_tempfile_enabled = 1
   norm! iline1
-  let maker = {'exe': 'printf', 'args': ['%s', '%:h'], 'uses_filename': 1, 'append_file': 0}
+  let maker = {'exe': 'printf', 'args': ['%s\n', '%:h', '%t'], 'uses_filename': 1, 'append_file': 0}
   CallNeomake 1, [maker]
   AssertNeomakeMessage 'Using temporary directory for non-writable parent directory.', 3
-  AssertEqual map(getloclist(0), 'v:val.text'), [tmpdir]
+  AssertNeomakeMessage '\v^Using tempfile for modified buffer: "(.*)"', 3
+  let tempfile_name = g:neomake_test_matchlist[1]
+  AssertEqual map(getloclist(0), 'v:val.text'), [tmpdir, tempfile_name]
   bwipe!
 
 Execute (Does not expand % in args as string):

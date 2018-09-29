@@ -41,7 +41,6 @@ endfunction
 function! neomake#makers#ft#objc#clangcheck() abort
     return {
         \ 'exe': 'clang-check',
-        \ 'args': ['%:p'],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
             \ '%f:%l:%c: %trror: %m,' .

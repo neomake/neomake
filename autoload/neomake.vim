@@ -710,7 +710,7 @@ function! s:command_maker_base._get_argv(jobinfo) abort dict
     let filename = self._get_fname_for_args(a:jobinfo)
     let args_is_list = type(self.args) == type([])
     if args_is_list
-        let args = neomake#utils#ExpandArgs(self.args)
+        let args = neomake#utils#ExpandArgs(self.args, a:jobinfo)
         if !empty(filename)
             call add(args, filename)
         endif

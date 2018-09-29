@@ -337,7 +337,8 @@ Execute (neomake#utils#ExpandArgs):
   \ 'file1.ext:,',
   \ ]
 
-  AssertEqual expected_args, neomake#utils#ExpandArgs(args)
+  let jobinfo = {'bufnr': bufnr('%')}
+  AssertEqual expected_args, neomake#utils#ExpandArgs(args, jobinfo)
   AssertEqual isk, &iskeyword
   bwipe
 
@@ -347,9 +348,24 @@ Execute (neomake#utils#ExpandArgs: :S):
   else
     new
     file file1.ext
-    AssertEqual neomake#utils#ExpandArgs(['%:S']), ["'file1.ext'"]
+    let jobinfo = {'bufnr': bufnr('%')}
+    AssertEqual neomake#utils#ExpandArgs(['%:S'], jobinfo), ["'file1.ext'"]
     bwipe
   endif
+
+Execute (neomake#utils#ExpandArgs: %t for temporary file):
+  new
+  let jobinfo = {'bufnr': bufnr('%')}
+  AssertEqual neomake#utils#ExpandArgs(['%t'], jobinfo), ['']
+
+  file fname.ext
+  AssertEqual neomake#utils#ExpandArgs(['%t'], jobinfo), [fnamemodify('fname.ext', ':p')]
+
+  let jobinfo.tempfile = '/some/temp.file'
+  AssertEqual neomake#utils#ExpandArgs(['%t'], jobinfo), ['/some/temp.file']
+  " Does not get fnamemodified.
+  AssertEqual neomake#utils#ExpandArgs(['%t:h'], jobinfo), ['/some/temp.file:h']
+  bwipe
 
 Execute (neomake#utils#diff_dict):
   AssertEqual neomake#utils#diff_dict({}, {}), {}

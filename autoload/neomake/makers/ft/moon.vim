@@ -4,7 +4,7 @@ endfunction
 
 function! neomake#makers#ft#moon#moonc() abort
     return {
-        \ 'args': ['-l', '%:p'],
+        \ 'args': ['-l'],
         \ 'errorformat':
             \ '%-G,' .
             \ '%-G>%#,' .

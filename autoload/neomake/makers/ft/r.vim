@@ -7,7 +7,8 @@ endfunction
 function! neomake#makers#ft#r#lintr() abort
     return {
         \ 'exe': 'R',
-        \ 'args': ['-e lintr::lint("%:p")'],
+        \ 'args': ['-e lintr::lint("%t")'],
+        \ 'append_file': 0,
         \ 'errorformat':
         \   '%W%f:%l:%c: style: %m,' .
         \   '%W%f:%l:%c: warning: %m,' .
