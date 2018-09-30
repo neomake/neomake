@@ -278,10 +278,9 @@ Execute (_get_fname_for_buffer handles modified buffer with disabled tempfiles):
     call maker._get_fname_for_buffer(jobinfo)
   catch
     let caught = 1
-    AssertEqual v:exception, 'Neomake: skip_job'
+    AssertEqual v:exception, 'Neomake: skip_job: buffer is modified, but temporary files are disabled.'
   endtry
   AssertEqual caught, 1
-  AssertNeomakeMessage 'buffer is modified, but temporary files are disabled, skipping job.', 3
   bwipe!
 
 Execute (_get_fname_for_buffer does not add trailing newline):
@@ -664,5 +663,5 @@ Execute (Filemode maker with tempfile_enabled=0 gets not run on modified buffer)
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
 
-  AssertNeomakeMessage 'buffer is modified, but temporary files are disabled, skipping job.', 3
+  AssertNeomakeMessage 'Skipping job: buffer is modified, but temporary files are disabled.', 3
   bwipe!
