@@ -78,7 +78,7 @@ Execute (neomake#compat#get_mode):
 
   if has('nvim')
     let nvim_exe = '/proc/'.getpid().'/exe'
-    let nvim = jobstart([nvim_exe, '-u', 'tests/vim/vimrc', '--embed'], {'rpc': v:true})
+    let nvim = jobstart([nvim_exe, '-u', 'tests/vim/vimrc', '--headless', '--embed'], {'rpc': v:true})
     call rpcrequest(nvim, 'nvim_call_function', 'feedkeys', ['d', '!'])
     call rpcrequest(nvim, 'nvim_eval', 'assert_equal(neomake#compat#get_mode(), "no")')
     let rpc_errors = rpcrequest(nvim, 'nvim_eval', 'v:errors')
