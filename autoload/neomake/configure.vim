@@ -452,7 +452,7 @@ function! s:neomake_automake(event, bufnr) abort
         return
     endif
 
-    if a:event ==# 'TextChanged' && has('patch-8.0.1494') && !has('patch-8.0.1633')
+    if a:event ==# 'TextChanged' && !has('nvim-0.3.2') && has('patch-8.0.1494') && !has('patch-8.0.1633')
       " TextChanged gets triggered in this case when loading a buffer (Vim
       " issue #2742).
       if !getbufvar(bufnr, '_neomake_seen_TextChanged', 0)
