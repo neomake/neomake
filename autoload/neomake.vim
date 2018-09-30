@@ -604,8 +604,9 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         elseif getbufvar(bufnr, '&modified')
             let temp_file = self._get_tempfilename(a:jobinfo)
             if !get(a:jobinfo, 'uses_stdin', 0) && empty(temp_file)
-                call neomake#log#debug('warning: buffer is modified. You might want to enable tempfiles.',
+                call neomake#log#debug('buffer is modified, but temporary files are disabled, skipping job.',
                             \ a:jobinfo)
+                throw 'Neomake: skip_job'
             endif
             let used_for = 'modified'
         elseif !filereadable(bufname)
@@ -2488,6 +2489,8 @@ function! s:handle_next_job(prev_jobinfo) abort
         endif
         try
             let jobinfo = s:MakeJob(make_id, options)
+        catch /^Neomake: skip_job/
+            continue
         catch /^Neomake: /
             let log_context = {'make_id': make_id}
             let error = substitute(v:exception, '^Neomake: ', '', '')

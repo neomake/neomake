@@ -273,9 +273,15 @@ Execute (_get_fname_for_buffer handles modified buffer with disabled tempfiles):
   set modified
   let maker = neomake#GetMaker({})
   let jobinfo = NeomakeTestsFakeJobinfo()
-  let fname = maker._get_fname_for_buffer(jobinfo)
-  AssertEqual fname, bufname
-  AssertNeomakeMessage 'warning: buffer is modified. You might want to enable tempfiles.'
+  let caught = 0
+  try
+    call maker._get_fname_for_buffer(jobinfo)
+  catch
+    let caught = 1
+    AssertEqual v:exception, 'Neomake: skip_job'
+  endtry
+  AssertEqual caught, 1
+  AssertNeomakeMessage 'buffer is modified, but temporary files are disabled, skipping job.', 3
   bwipe!
 
 Execute (_get_fname_for_buffer does not add trailing newline):
@@ -645,3 +651,18 @@ Execute (Warns when removal of tempfiles fails):
   else
     NeomakeTestsSkip 'no async support.'
   endif
+
+Execute (Filemode maker with tempfile_enabled=0 gets not run on modified buffer):
+  call g:NeomakeSetupAutocmdWrappers()
+
+  new
+  file fname
+  set modified
+  let maker1 = {'name': 'maker1', 'exe': 'true', 'tempfile_enabled': 0}
+  let maker2 = {'name': 'maker2', 'exe': 'true'}
+  CallNeomake 1, [maker1, maker2]
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_jobfinished), 1
+
+  AssertNeomakeMessage 'buffer is modified, but temporary files are disabled, skipping job.', 3
+  bwipe!
