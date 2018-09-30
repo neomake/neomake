@@ -9,6 +9,7 @@ function! neomake#makers#ft#bib#bibtex() abort
                 \ 'exe': 'bibtex',
                 \ 'args': ['-terse', '%:r'],
                 \ 'append_file': 0,
+                \ 'uses_filename': 0,
                 \ 'errorformat': '%E%m---line %l of file %f',
                 \ 'cwd': '%:p:h'
                 \ }
