@@ -83,7 +83,7 @@ let s:maker_from_command = extend(copy(g:neomake#core#command_maker_base), {
             \ })
 function! s:maker_from_command._get_argv(jobinfo) abort dict
     let fname = self._get_fname_for_args(a:jobinfo)
-    let args = neomake#utils#ExpandArgs(self.args)
+    let args = neomake#utils#ExpandArgs(self.args, a:jobinfo)
     if !empty(fname)
         if self.__command_is_string
             let fname = neomake#utils#shellescape(fname)
@@ -320,13 +320,23 @@ function! neomake#utils#redir(cmd) abort
     return neomake_redir
 endfunction
 
-function! neomake#utils#ExpandArgs(args) abort
+function! neomake#utils#ExpandArgs(args, jobinfo) abort
+    if has_key(a:jobinfo, 'tempfile')
+        let fname = a:jobinfo.tempfile
+    else
+        let fname = bufname('%')
+        if !empty(fname)
+            let fname = fnamemodify(fname, ':p')
+        endif
+    endif
+    let ret = map(copy(a:args), "substitute(v:val, '%t', fname, 'g')")
+
     " Expand % in args similar to when using :!
     " \% is ignored
     " \\% is expanded to \\file.ext
     " %% becomes %
     " % must be followed with an expansion keyword
-    let ret = map(copy(a:args),
+    let ret = map(ret,
                 \ 'substitute(v:val, '
                 \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtreS8.~]\)\+\|\ze\w\@!\)\)'', '
                 \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '

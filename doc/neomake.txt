@@ -235,28 +235,20 @@ name: >
 <
                                                            *neomake-args-file*
 When running a maker on a file with |:Neomake|, you may want to control where
-in the `args` list the file's path will appear. To do this, insert '%:p' in
-the `args` list:  >
+in the `args` list the file's path will appear. To do this, insert '%t' in
+the `args` list and use `append_file=0`:  >
     let g:neomake_c_lint_maker = {
         \ 'exe': 'lint',
-        \ 'args': ['%:p', '--option', 'x'],
+        \ 'args': ['%t', '--option', 'x'],
+        \ 'append_file': 0,
         \ 'errorformat': '%f:%l:%c: %m',
         \ }
 <
 This will cause "lint /path/to/file.c --option x" to be run instead of
 "lint --option x /path/to/file.c".
 
-The file path can be excluded from the argument list entirely by setting the
-'append_file' argument to 0. >
-    let g:neomake_c_lint_maker = {
-        \ 'exe': 'lint',
-        \ 'args': ['--option', 'x'],
-        \ 'append_file': 0,
-        \ 'errorformat': '%f:%l:%c: %m',
-        \ }
-<
-This can be useful for makers that are filetype dependent but are typically
-run on an whole project rather than a specific file.
+`%t` gets replaced with the absolute path to the file (handling any temporary
+file).
 
                                                    *neomake-makers-processing*
 A job maker's output gets processed in two ways:

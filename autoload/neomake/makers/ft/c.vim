@@ -30,7 +30,6 @@ endfunction
 function! neomake#makers#ft#c#clangcheck() abort
     return {
         \ 'exe': 'clang-check',
-        \ 'args': ['%:p'],
         \ 'errorformat':
             \ '%-G%f:%s:,' .
             \ '%f:%l:%c: %trror: %m,' .
@@ -72,7 +71,6 @@ endfunction
 function! neomake#makers#ft#c#clangtidy() abort
     return {
         \ 'exe': 'clang-tidy',
-        \ 'args': ['%:p'],
         \ 'errorformat':
             \ '%E%f:%l:%c: fatal error: %m,' .
             \ '%E%f:%l:%c: error: %m,' .

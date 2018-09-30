@@ -74,7 +74,7 @@ endfunction
 function! neomake#makers#ft#javascript#rjsx() abort
     return {
         \ 'exe': 'emacs',
-        \ 'args': ['%','--quick','--batch','--eval='
+        \ 'args': ['%t','--quick','--batch','--eval='
         \ .'(progn(setq package-load-list ''((js2-mode t)(rjsx-mode t)))(package-initialize)(require ''rjsx-mode)'
         \ .'  (setq js2-include-node-externs t js2-include-rhino-externs t js2-include-browser-externs t js2-strict-missing-semi-warning nil)'
         \ .'  (rjsx-mode)(js2-reparse)(js2-display-error-list)'
