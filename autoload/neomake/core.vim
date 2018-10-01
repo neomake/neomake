@@ -24,7 +24,6 @@ function! neomake#core#instantiate_maker(maker, options, check_exe) abort
         endif
     endif
     if !empty(Init)
-        " TODO: Allow to throw and/or return 0 to abort/skip?!
         let returned_maker = call(Init, [options], maker)
         if returned_maker isnot# 0
             " This conditional assignment allows to both return a copy
@@ -65,6 +64,11 @@ function! s:bind_makers_for_job(options, makers) abort
         let options = copy(a:options)
         try
             let maker = neomake#core#instantiate_maker(maker, options, 1)
+        catch /^Neomake: skip_job: /
+            let msg = substitute(v:exception, '^Neomake: skip_job: ', '', '')
+            call neomake#log#debug(printf('%s: skipping job: %s.',
+                        \ maker.name, msg), options)
+            continue
         catch /^Neomake: /
             let error = substitute(v:exception, '^Neomake: ', '', '').'.'
             call neomake#log#error(error, options)

@@ -901,3 +901,25 @@ Execute (Maker can override output handler via opts for jobstart/job_start):
     AssertEqual getqflist(), []
     AssertEqual s:output, ['line1', 'line2']
   endif
+
+Execute (Job can be skipped via InitForJob):
+  call g:NeomakeSetupAutocmdWrappers()
+  new
+  let maker = {}
+  function! maker.InitForJob(...) abort
+    throw 'Neomake: skip_job: some reason'
+  endfunction
+  CallNeomake 1, [maker]
+  AssertEqual len(g:neomake_test_finished), 0
+  AssertEqual len(g:neomake_test_jobfinished), 0
+  AssertNeomakeMessage 'unnamed_maker: skipping job: some reason.', 3
+
+  " Next job gets executed after skipping through InitForJob.
+  let maker2 = {}
+  CallNeomake 1, [maker, g:entry_maker]
+
+  AssertNeomakeMessage 'unnamed_maker: skipping job: some reason.', 3
+  AssertNeomakeMessage 'entry_maker: getting entries via get_list_entries.', 2
+  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  bwipe!
