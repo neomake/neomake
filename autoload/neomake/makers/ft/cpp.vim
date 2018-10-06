@@ -29,12 +29,9 @@ function! neomake#makers#ft#cpp#clangcheck() abort
 endfunction
 
 function! neomake#makers#ft#cpp#cppcheck() abort
-    return {
-        \ 'args': '--quiet --language=c++ --enable=warning',
-        \ 'errorformat':
-            \ '[%f:%l]: (%trror) %m,' .
-            \ '[%f:%l]: (%tarning) %m',
-        \ }
+    let maker = neomake#makers#ft#c#cppcheck()
+    let maker.args[0] = '--language=c++'
+    return maker
 endfunction
 
 function! neomake#makers#ft#cpp#cpplint() abort

@@ -92,10 +92,19 @@ function! neomake#makers#ft#c#checkpatch() abort
 endfunction
 
 function! neomake#makers#ft#c#cppcheck() abort
+    " Uses --force to avoid:
+    " nofile:0:0:information:Too many #ifdef configurations - cppcheck only checks 12 configurations.
+    " NOTE: '--language=c' should be the first args, it gets replaced in
+    "       neomake#makers#ft#cpp#cppcheck.
     return {
-        \ 'args': '--quiet --language=c --enable=warning',
+        \ 'args': ['--language=c', '--quiet', '--enable=warning', '--force',
+        \          '--template="{file}:{line}:{column}:{severity}:{message}"'],
         \ 'errorformat':
-            \ '[%f:%l]: (%trror) %m,' .
-            \ '[%f:%l]: (%tarning) %m',
+            \ 'nofile:0:0:%trror:%m,' .
+            \ '%f:%l:%c:%trror:%m,' .
+            \ 'nofile:0:0:%tarning:%m,'.
+            \ '%f:%l:%c:%tarning:%m,'.
+            \ 'nofile:0:0:%tnformation:%m,'.
+            \ '%f:%l:%c:%tnformation:%m',
         \ }
 endfunction
