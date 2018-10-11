@@ -23,6 +23,12 @@ Execute (Setup):
   endfunction
   call add(g:neomake_test_funcs_before, 'NeomakeTestsAssertAutomakeAutocommands')
 
+  function! s:handle_second_TextChanged()
+    if has('patch-8.0.1494') && !has('patch-8.0.1633') && !has('nvim-0.3.2')
+      doautocmd TextChanged
+    endif
+  endfunction
+
 Execute (augroup neomake_automake does not exist by default):
   Save g:neomake
   Assert !exists('#neomake_automake')
@@ -259,8 +265,8 @@ Execute (Automake):
 
   " Should not run without changes to the buffer.
   exe 'doautocmd' event
-  if has('patch-8.0.1494') && !has('patch-8.0.1633')
-    exe 'doautocmd' event
+  if event ==# 'TextChanged'
+    call s:handle_second_TextChanged()
   endif
   NeomakeTestsWaitForMessage 'automake: handling event '.event.'.', 3
   AssertNeomakeMessage 'automake: buffer was not changed.'
@@ -288,8 +294,8 @@ Execute (Automake):
 
   new
   exe 'doautocmd' event
-  if has('patch-8.0.1494') && !has('patch-8.0.1633')
-    exe 'doautocmd' event
+  if event ==# 'TextChanged'
+    call s:handle_second_TextChanged()
   endif
   AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
   AssertNeomakeMessage 'automake: no enabled makers.'
@@ -344,8 +350,8 @@ Execute (Automake: skips non-default buftypes):
   call g:NeomakeSetupAutocmdWrappers()
 
   exe 'doautocmd '.event
-  if has('patch-8.0.1494') && !has('patch-8.0.1633')
-    exe 'doautocmd' event
+  if event ==# 'TextChanged'
+    call s:handle_second_TextChanged()
   endif
   NeomakeTestsWaitForMessage 'automake: ignoring '.event.' for buftype=nofile.', 3
   AssertEqual len(g:neomake_test_jobfinished), 0
@@ -523,9 +529,7 @@ Execute (Automake handles unchanged buffer):
     let g:neomake_test_enabledmakers = [g:sleep_maker]
     set filetype=neomake_tests
     doautocmd TextChanged
-    if has('patch-8.0.1494') && !has('patch-8.0.1633')
-      doautocmd TextChanged
-    endif
+    call s:handle_second_TextChanged()
     let make_id = neomake#GetStatus().last_make_id
     NeomakeTestsWaitForMessage '\vautomake: callback for timer \d+'
     doautocmd TextChanged
@@ -624,9 +628,7 @@ Execute (Automake stops previous jobs):
 
     set filetype=neomake_tests
     doautocmd TextChanged
-    if has('patch-8.0.1494') && !has('patch-8.0.1633')
-      doautocmd TextChanged
-    endif
+    call s:handle_second_TextChanged()
     NeomakeTestsWaitForMessage '\vautomake: callback for timer \d+'
     let first_make_id = neomake#GetStatus().last_make_id
     AssertEqual [first_make_id], b:neomake_automake_make_ids
@@ -825,9 +827,7 @@ Execute (Handles timeout in another buffer):
     call neomake#configure#automake({
     \ 'TextChanged': {'delay': 10}})
     doautocmd TextChanged
-    if has('patch-8.0.1494') && !has('patch-8.0.1633')
-      doautocmd TextChanged
-    endif
+    call s:handle_second_TextChanged()
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
     let timer = g:neomake_test_matchlist[1]
     new
@@ -923,9 +923,7 @@ Execute (neomake#configure#reset_automake stops timers):
     let b:neomake_enabled_makers = [g:true_maker]
     call neomake#configure#automake({'TextChanged': {'delay': 10}})
     doautocmd TextChanged
-    if has('patch-8.0.1494') && !has('patch-8.0.1633')
-      doautocmd TextChanged
-    endif
+    call s:handle_second_TextChanged()
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
     let timer = g:neomake_test_matchlist[1]
     call neomake#configure#reset_automake()
@@ -935,7 +933,7 @@ Execute (neomake#configure#reset_automake stops timers):
 
 Execute (Ignores first TextChanged event (Vim issue #2742)):
   Save g:neomake
-  if !has('patch-8.0.1494') || has('patch-8.0.1633')
+  if !has('patch-8.0.1494') || has('patch-8.0.1633') || has('nvim-0.3.2')
     NeomakeTestsSkip 'Only with affected patches (Vim issue #2742)'
   else
     call neomake#configure#automake('n')
@@ -958,7 +956,7 @@ Execute (NeomakeDisableBuffer stops timers):
     let b:neomake_enabled_makers = [g:true_maker]
     call neomake#configure#automake({'TextChanged': {'delay': 10}})
     doautocmd TextChanged
-    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+    if has('patch-8.0.1494') && !has('patch-8.0.1633') && !has('nvim-0.3.2')
       AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
       doautocmd TextChanged
     endif
@@ -1015,7 +1013,7 @@ Execute (NeomakeDisableTab stops timers):
     let b:neomake_enabled_makers = [g:true_maker]
     call neomake#configure#automake({'TextChanged': {'delay': 10}})
     doautocmd TextChanged
-    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+    if has('patch-8.0.1494') && !has('patch-8.0.1633') && !has('nvim-0.3.2')
       AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
       doautocmd TextChanged
     endif
@@ -1027,7 +1025,7 @@ Execute (NeomakeDisableTab stops timers):
     let b:neomake_enabled_makers = [g:true_maker]
     call neomake#configure#automake({'TextChanged': {'delay': 10}})
     doautocmd TextChanged
-    if has('patch-8.0.1494') && !has('patch-8.0.1633')
+    if has('patch-8.0.1494') && !has('patch-8.0.1633') && !has('nvim-0.3.2')
       AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
       doautocmd TextChanged
     endif
