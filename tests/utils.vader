@@ -243,6 +243,26 @@ Execute (neomake#utils#GetSetting (old-style) can ignore buffer):
   bwipe
   bwipe
 
+Execute (neomake#utils#GetSetting prefers g: over maker):
+  let maker = {'name': 'mymaker', 'uses_stdin': 1}
+  new
+  let bufnr = bufnr('%')
+
+  let g:neomake_dockerfile_mymaker_uses_stdin = 0
+
+  " Old-style.
+  AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 0
+
+  " With existing new-style.
+  Save g:neomake
+  let g:neomake = {}
+  AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 0
+
+  " Prefers new-style global setting.
+  call neomake#config#set('ft.dockerfile.mymaker.uses_stdin', 2)
+  AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 2
+  bwipe
+
 Execute(neomake#utils#redir):
   command! NeomakeTestCommand echo 1 | echo 2
   command! NeomakeTestErrorCommand echoerr 'error'

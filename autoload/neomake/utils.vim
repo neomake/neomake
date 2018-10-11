@@ -191,7 +191,18 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
     " Check new-style config.
     if exists('g:neomake') || !empty(getbufvar(a:bufnr, 'neomake'))
         let context = {'ft': a:ft, 'maker': a:maker, 'bufnr': a:bufnr, 'maker_only': maker_only}
-        let Ret = neomake#config#get(a:key, g:neomake#config#undefined, context)
+        let [Ret, source] = neomake#config#get_with_source(a:key, g:neomake#config#undefined, context)
+        " Check old-style setting when source is the maker.
+        if source ==# 'maker' && !maker_only
+            let tmpmaker = {}
+            if has_key(a:maker, 'name')
+                let tmpmaker.name = a:maker.name
+            endif
+            let RetOld = s:get_oldstyle_setting(a:key, tmpmaker, s:unset, a:ft, a:bufnr, maker_only)
+            if RetOld isnot# s:unset
+                return RetOld
+            endif
+        endif
         if Ret isnot g:neomake#config#undefined
             return Ret
         endif
