@@ -19,7 +19,7 @@ if !exists('g:neomake_erlang_erlc_target_dir')
     let g:neomake_erlang_erlc_target_dir = tempname()
 endif
 
-function! neomake#makers#ft#erlang#GlobPaths() abort
+function! neomake#makers#ft#erlang#ProjectDir() abort
     " Find project root directory.
     let rebar_config = neomake#utils#FindGlobFile('rebar.config')
     if !empty(rebar_config)
@@ -29,6 +29,11 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
         let root = getcwd()
     endif
     let root = fnamemodify(root, ':p')
+    return root
+endfunction
+
+function! neomake#makers#ft#erlang#GlobPaths() abort
+    let root = neomake#makers#ft#erlang#ProjectDir()
     let build_dir = root . '_build'
     let ebins = []
     if isdirectory(build_dir)
