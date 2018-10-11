@@ -1,6 +1,6 @@
 
 function! neomake#makers#ft#erlang#EnabledMakers() abort
-    return ['erlc']
+    return ['erlc', 'gradualizer']
 endfunction
 
 function! neomake#makers#ft#erlang#erlc() abort
@@ -11,6 +11,23 @@ function! neomake#makers#ft#erlang#erlc() abort
         \ }
     function! maker.InitForJob(_jobinfo) abort
         let self.args = neomake#makers#ft#erlang#GlobPaths()
+    endfunction
+    return maker
+endfunction
+
+function! neomake#makers#ft#erlang#gradualizer() abort
+    let maker = {
+        \ 'exe': '/Users/erszcz/work/josefs/gradualizer/gradualizer.sh',
+        \ 'errorformat':
+            \ '%E%l:%f: %m'
+        \ }
+    function! maker.InitForJob(jobinfo) abort
+        let ebins = neomake#makers#ft#erlang#EbinDirs()
+        let self.args = []
+        for ebin in ebins
+            let self.args += [ '-pa', ebin]
+        endfor
+        let self.args += [expand('%')]
     endfunction
     return maker
 endfunction
@@ -42,6 +59,39 @@ function! neomake#makers#ft#erlang#TargetDir() abort
                        \ get(g:, 'neomake_erlang_erlc_target_dir'))
     endif
     return target_dir
+endfunction
+
+function! neomake#makers#ft#erlang#EbinDirs() abort
+    let root = neomake#makers#ft#erlang#ProjectDir()
+    let build_dir = root . '_build'
+    let ebins = []
+    if isdirectory(root . 'ebin')
+        let ebins += [root . 'ebin']
+    endif
+    if isdirectory(build_dir)
+        " Pick the rebar3 profile to use
+        let default_profile = expand('%') =~# '_SUITE.erl$' ?  'test' : 'default'
+        let profile = get(b:, 'neomake_erlang_erlc_rebar3_profile', default_profile)
+        let ebins += neomake#compat#glob_list(build_dir . '/' . profile . '/lib/*/ebin')
+    endif
+    " If <root>/_build doesn't exist it might be a rebar2/erlang.mk project
+    if isdirectory(root . 'deps')
+        let ebins += neomake#compat#glob_list(root . 'deps/*/ebin')
+    endif
+    " Set g:neomake_erlang_erlc_extra_deps in a project-local .vimrc, e.g.:
+    "   let g:neomake_erlang_erlc_extra_deps = ['deps.local']
+    " Or just b:neomake_erlang_erlc_extra_deps in a specific buffer.
+    let extra_deps_dirs = get(b:, 'neomake_erlang_erlc_extra_deps',
+                        \ get(g:, 'neomake_erlang_erlc_extra_deps'))
+    if !empty(extra_deps_dirs)
+        for extra_deps in extra_deps_dirs
+            if extra_deps[-1] !=# '/'
+                let extra_deps .= '/'
+            endif
+            let ebins += neomake#compat#glob_list(extra_deps . '*/ebin')
+        endfor
+    endif
+    return ebins
 endfunction
 
 function! neomake#makers#ft#erlang#GlobPaths() abort
