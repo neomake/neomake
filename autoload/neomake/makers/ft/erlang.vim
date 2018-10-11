@@ -32,6 +32,18 @@ function! neomake#makers#ft#erlang#ProjectDir() abort
     return root
 endfunction
 
+function! neomake#makers#ft#erlang#TargetDir() abort
+    let root = neomake#makers#ft#erlang#ProjectDir()
+    let build_dir = root . '_build'
+    if isdirectory(build_dir)
+        let target_dir = build_dir . '/neomake'
+    else
+        let target_dir = get(b:, 'neomake_erlang_erlc_target_dir',
+                       \ get(g:, 'neomake_erlang_erlc_target_dir'))
+    endif
+    return target_dir
+endfunction
+
 function! neomake#makers#ft#erlang#GlobPaths() abort
     let root = neomake#makers#ft#erlang#ProjectDir()
     let build_dir = root . '_build'
@@ -41,10 +53,6 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
         let default_profile = expand('%') =~# '_SUITE.erl$' ?  'test' : 'default'
         let profile = get(b:, 'neomake_erlang_erlc_rebar3_profile', default_profile)
         let ebins += neomake#compat#glob_list(build_dir . '/' . profile . '/lib/*/ebin')
-        let target_dir = build_dir . '/neomake'
-    else
-        let target_dir = get(b:, 'neomake_erlang_erlc_target_dir',
-                       \ get(g:, 'neomake_erlang_erlc_target_dir'))
     endif
     " If <root>/_build doesn't exist it might be a rebar2/erlang.mk project
     if isdirectory(root . 'deps')
@@ -68,6 +76,7 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
         let args += [ '-pa', ebin,
                     \ '-I', substitute(ebin, 'ebin$', 'include', '') ]
     endfor
+    let target_dir = neomake#makers#ft#erlang#TargetDir()
     if !isdirectory(target_dir)
         call mkdir(target_dir, 'p')
     endif
