@@ -92,33 +92,33 @@ endfunction
 let g:neomake#makers#ft#ruby#project_root_files = ['Gemfile', 'Rakefile']
 
 function! s:get_gemfile() abort
-    let l:gemfile = neomake#config#get('ruby.gemfile')
-    if l:gemfile isnot# g:neomake#config#undefined
-        return l:gemfile
+    let gemfile = neomake#config#get('ruby.gemfile')
+    if gemfile isnot# g:neomake#config#undefined
+        return gemfile
     endif
 
-    let l:project_root = neomake#utils#get_project_root()
-    if empty(l:project_root)
-        let l:gemfile = findfile('Gemfile', '.;~')
+    let project_root = neomake#utils#get_project_root()
+    if empty(project_root)
+        let gemfile = findfile('Gemfile', '.;~')
     else
-        let l:gemfile = l:project_root . neomake#utils#Slash() . 'Gemfile'
-        if !filereadable(l:gemfile)
-            let l:gemfile = ''
+        let gemfile = project_root . neomake#utils#Slash() . 'Gemfile'
+        if !filereadable(gemfile)
+            let gemfile = ''
         endif
     endif
 
     call neomake#log#debug(
-                \ printf('ruby: setting b:neomake.ruby.gemfile=%s', string(l:gemfile)),
+                \ printf('ruby: setting b:neomake.ruby.gemfile=%s', string(gemfile)),
                 \ { 'bufnr': bufnr('%') })
-    call neomake#config#set('b:ruby.gemfile', l:gemfile)
-    return l:gemfile
+    call neomake#config#set('b:ruby.gemfile', gemfile)
+    return gemfile
 endfunction
 
 function! neomake#makers#ft#ruby#try_bundler(jobinfo) abort dict
-    let l:gemfile = s:get_gemfile()
-    if len(l:gemfile) > 0
-        let l:matcher = escape('v:val =~# "\v\s*gem\s+\S+' . self.exe . '"', '\')
-        if !empty(filter(readfile(l:gemfile), l:matcher))
+    let gemfile = s:get_gemfile()
+    if !empty(gemfile)
+        let matcher = escape('v:val =~# "\v\s*gem\s+\S+' . self.exe . '"', '\')
+        if !empty(filter(readfile(gemfile), matcher))
             call call('neomake#makers#ft#ruby#use_bundler', [a:jobinfo], self)
         endif
     endif
