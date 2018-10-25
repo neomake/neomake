@@ -1,4 +1,3 @@
-
 function! neomake#makers#ft#erlang#EnabledMakers() abort
     return ['erlc', 'gradualizer']
 endfunction
@@ -22,7 +21,8 @@ function! neomake#makers#ft#erlang#gradualizer() abort
             \ '%E%l:%f: %m'
         \ }
     function! maker.InitForJob(jobinfo) abort
-        let ebins = neomake#makers#ft#erlang#EbinDirs()
+        let dir = neomake#makers#ft#erlang#ProjectDir()
+        let ebins = neomake#makers#ft#erlang#EbinDirs(dir)
         let self.args = []
         for ebin in ebins
             let self.args += [ '-pa', ebin]
@@ -49,9 +49,8 @@ function! neomake#makers#ft#erlang#ProjectDir() abort
     return root
 endfunction
 
-function! neomake#makers#ft#erlang#TargetDir() abort
-    let root = neomake#makers#ft#erlang#ProjectDir()
-    let build_dir = root . '_build'
+function! neomake#makers#ft#erlang#TargetDir(root) abort
+    let build_dir = a:root . '_build'
     if isdirectory(build_dir)
         let target_dir = build_dir . '/neomake'
     else
@@ -61,8 +60,8 @@ function! neomake#makers#ft#erlang#TargetDir() abort
     return target_dir
 endfunction
 
-function! neomake#makers#ft#erlang#EbinDirs() abort
-    let root = neomake#makers#ft#erlang#ProjectDir()
+function! neomake#makers#ft#erlang#EbinDirs(root) abort
+    let root = a:root
     let build_dir = root . '_build'
     let ebins = []
     if isdirectory(root . 'ebin')
@@ -92,6 +91,14 @@ function! neomake#makers#ft#erlang#EbinDirs() abort
         endfor
     endif
     return ebins
+endfunction
+
+function! neomake#makers#ft#erlang#EbinsToIncludes(ebins) abort
+    let includes = []
+    for ebin in a:ebins
+        let includes += [substitute(ebin, 'ebin$', 'include', '')]
+    endfor
+    return includes
 endfunction
 
 function! neomake#makers#ft#erlang#GlobPaths() abort
@@ -126,7 +133,7 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
         let args += [ '-pa', ebin,
                     \ '-I', substitute(ebin, 'ebin$', 'include', '') ]
     endfor
-    let target_dir = neomake#makers#ft#erlang#TargetDir()
+    let target_dir = neomake#makers#ft#erlang#TargetDir(root)
     if !isdirectory(target_dir)
         call mkdir(target_dir, 'p')
     endif
