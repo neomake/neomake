@@ -1,5 +1,5 @@
 function! neomake#makers#ft#erlang#EnabledMakers() abort
-    return ['erlc', 'gradualizer']
+    return ['erlc']
 endfunction
 
 function! neomake#makers#ft#erlang#erlc() abort
@@ -18,7 +18,6 @@ endfunction
 
 function! neomake#makers#ft#erlang#gradualizer() abort
     let maker = {
-        \ 'exe': '/Users/erszcz/work/josefs/gradualizer/gradualizer.sh',
         \ 'errorformat':
             \ '%E%l:%f: %m'
         \ }
