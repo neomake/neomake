@@ -4,7 +4,7 @@ Execute (erlang#erlc: common settings):
   new
   file src/myapp.erl
 
-  let args = neomake#makers#ft#erlang#GlobPaths()
+  let args = neomake#makers#ft#erlang#ErlcArgs(getcwd(), [])
   AssertEqual args[:-2], ['-pa', 'ebin', '-I', 'include', '-I', 'src', '-o']
   let output_dir = args[-1]
   Assert isdirectory(output_dir)
@@ -21,7 +21,7 @@ Execute (erlang#erlc: output to _build/neomake if _build is present):
     new
     file src/myapp.erl
 
-    let args = neomake#makers#ft#erlang#GlobPaths()
+    let args = neomake#makers#ft#erlang#ErlcArgs(getcwd(), [])
     let output_dir = args[-1]
     Assert output_dir =~# '/_build/neomake$'
     Assert isdirectory(output_dir)
