@@ -23,11 +23,7 @@ function! neomake#makers#ft#erlang#gradualizer() abort
     function! maker.InitForJob(jobinfo) abort
         let dir = neomake#makers#ft#erlang#ProjectDir()
         let ebins = neomake#makers#ft#erlang#EbinDirs(dir)
-        let self.args = []
-        for ebin in ebins
-            let self.args += [ '-pa', ebin]
-        endfor
-        let self.args += [expand('%')]
+        let self.args = neomake#makers#ft#erlang#GradualizerArgs(ebins)
     endfunction
     return maker
 endfunction
@@ -138,6 +134,15 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
         call mkdir(target_dir, 'p')
     endif
     let args += ['-o', target_dir]
+    return args
+endfunction
+
+function! neomake#makers#ft#erlang#GradualizerArgs(ebins) abort
+    let args = []
+    for ebin in a:ebins
+        let args += [ '-pa', ebin]
+    endfor
+    let args += [expand('%')]
     return args
 endfunction
 " vim: ts=4 sw=4 et
