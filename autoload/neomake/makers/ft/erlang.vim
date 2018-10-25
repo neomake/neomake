@@ -18,6 +18,7 @@ endfunction
 
 function! neomake#makers#ft#erlang#gradualizer() abort
     let maker = {
+        \ 'exe': 'gradualizer.sh',
         \ 'errorformat':
             \ '%E%l:%f: %m'
         \ }
