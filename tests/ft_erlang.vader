@@ -33,7 +33,7 @@ Execute (erlang#erlc: output to _build/neomake if _build is present):
 Execute (erlang#EbinDirs: rebar3 default profile - no rebar.config):
   let old_cwd = getcwd()
   try
-    let root = tempname() . '/'
+    let root = tempname()
     call mkdir(root, 'p')
     execute 'cd ' . root
 
@@ -42,7 +42,7 @@ Execute (erlang#EbinDirs: rebar3 default profile - no rebar.config):
     file src/myapp.erl
 
     let ebins = neomake#makers#ft#erlang#EbinDirs(root)
-    AssertEqual [root . '_build/default/lib/dep1/ebin'], ebins
+    AssertEqual [root . '/_build/default/lib/dep1/ebin'], ebins
     bwipe
   finally
     execute 'cd ' . old_cwd
@@ -52,7 +52,7 @@ Execute (erlang#EbinDirs: rebar3 default profile - no rebar.config):
 Execute (erlang#EbinDirs: rebar3 default profile):
   let old_cwd = getcwd()
   try
-    let root = tempname() . '/'
+    let root = tempname()
     call mkdir(root, 'p')
     execute 'cd ' . root
 
@@ -63,7 +63,7 @@ Execute (erlang#EbinDirs: rebar3 default profile):
     file src/myapp.erl
 
     let ebins = neomake#makers#ft#erlang#EbinDirs(root)
-    AssertEqual [root . '_build/default/lib/dep1/ebin'], ebins
+    AssertEqual [root . '/_build/default/lib/dep1/ebin'], ebins
     bwipe
   finally
     execute 'cd ' . old_cwd
@@ -72,7 +72,7 @@ Execute (erlang#EbinDirs: rebar3 default profile):
 Execute (erlang#EbinDirs: rebar3 test profile):
   let old_cwd = getcwd()
   try
-    let root = tempname() . '/'
+    let root = tempname()
     call mkdir(root, 'p')
     execute 'cd ' . root
 
@@ -81,7 +81,7 @@ Execute (erlang#EbinDirs: rebar3 test profile):
     file test/myapp_SUITE.erl
 
     let ebins = neomake#makers#ft#erlang#EbinDirs(root)
-    AssertEqual [root . '_build/test/lib/dep1/ebin'], ebins
+    AssertEqual [root . '/_build/test/lib/dep1/ebin'], ebins
     bwipe
   finally
     execute 'cd ' . old_cwd
@@ -90,7 +90,7 @@ Execute (erlang#EbinDirs: rebar3 test profile):
 Execute (erlang#EbinDirs: rebar2/erlang.mk deps/ present):
   let old_cwd = getcwd()
   try
-    let root = tempname() . '/'
+    let root = tempname()
     call mkdir(root, 'p')
     execute 'cd ' . root
 
@@ -99,7 +99,7 @@ Execute (erlang#EbinDirs: rebar2/erlang.mk deps/ present):
     file src/myapp.erl
 
     let ebins = neomake#makers#ft#erlang#EbinDirs(root)
-    AssertEqual [root . 'deps/dep1/ebin'], ebins
+    AssertEqual [root . '/deps/dep1/ebin'], ebins
     bwipe
   finally
     execute 'cd ' . old_cwd
@@ -108,7 +108,7 @@ Execute (erlang#EbinDirs: rebar2/erlang.mk deps/ present):
 Execute (erlang#EbinDirs: buffer local extra deps):
   let old_cwd = getcwd()
   try
-    let root = tempname() . '/'
+    let root = tempname()
     call mkdir(root, 'p')
     execute 'cd ' . root
 
@@ -127,7 +127,7 @@ Execute (erlang#EbinDirs: buffer local extra deps):
 Execute (erlang#EbinDirs: buffer local profile override):
   let old_cwd = getcwd()
   try
-    let root = tempname() . '/'
+    let root = tempname()
     call mkdir(root, 'p')
     execute 'cd ' . root
 
@@ -137,7 +137,7 @@ Execute (erlang#EbinDirs: buffer local profile override):
     let b:neomake_erlang_erlc_rebar3_profile = 'test'
 
     let ebins = neomake#makers#ft#erlang#EbinDirs(root)
-    AssertEqual [root . '_build/test/lib/dep1/ebin'], ebins
+    AssertEqual [root . '/_build/test/lib/dep1/ebin'], ebins
     bwipe
   finally
     execute 'cd ' . old_cwd
@@ -146,7 +146,7 @@ Execute (erlang#EbinDirs: buffer local profile override):
 Execute (erlang#EbinsToIncludes):
   let old_cwd = getcwd()
   try
-    let root = tempname() . '/'
+    let root = tempname()
     call mkdir(root, 'p')
     execute 'cd ' . root
     new
@@ -158,8 +158,8 @@ Execute (erlang#EbinsToIncludes):
 
     let ebins = neomake#makers#ft#erlang#EbinDirs(root)
     let includes = neomake#makers#ft#erlang#EbinsToIncludes(ebins)
-    AssertEqual includes, [ root . 'include',
-                          \ root . '_build/default/lib/dep1/include']
+    AssertEqual [ root . '/include',
+                \ root . '/_build/default/lib/dep1/include'], includes
     bwipe
   finally
     execute 'cd ' . old_cwd

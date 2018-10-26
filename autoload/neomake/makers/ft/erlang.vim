@@ -60,7 +60,7 @@ function! neomake#makers#ft#erlang#TargetDir(root) abort
 endfunction
 
 function! neomake#makers#ft#erlang#EbinDirs(root) abort
-    let root = a:root
+    let root = fnamemodify(a:root, ':p')
     let build_dir = root . '_build'
     let ebins = []
     if isdirectory(root . 'ebin')
@@ -101,7 +101,7 @@ function! neomake#makers#ft#erlang#EbinsToIncludes(ebins) abort
 endfunction
 
 function! neomake#makers#ft#erlang#ErlcArgs(root, ebins) abort
-    let root = a:root
+    let root = fnamemodify(a:root, ':p')
     let ebins = a:ebins
     let includes = neomake#makers#ft#erlang#EbinsToIncludes(ebins)
     let args = ['-pa', 'ebin', '-I', 'include', '-I', 'src']
