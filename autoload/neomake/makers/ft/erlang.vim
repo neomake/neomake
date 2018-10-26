@@ -16,9 +16,13 @@ function! neomake#makers#ft#erlang#erlc() abort
     return maker
 endfunction
 
+if !exists('g:neomake_erlang_gradualizer_sh')
+    let g:neomake_erlang_gradualizer_sh = expand('<sfile>:p:h') . '/erlang/gradualizer.sh'
+endif
+
 function! neomake#makers#ft#erlang#gradualizer() abort
     let maker = {
-        \ 'exe': 'gradualizer.sh',
+        \ 'exe': neomake#makers#ft#erlang#GradualizerSh(),
         \ 'errorformat':
             \ '%E%l:%f: %m'
         \ }
@@ -126,5 +130,9 @@ function! neomake#makers#ft#erlang#GradualizerArgs(ebins) abort
     endfor
     let args += [expand('%')]
     return args
+endfunction
+
+function! neomake#makers#ft#erlang#GradualizerSh() abort
+    return get(g:, 'neomake_erlang_gradualizer_sh', 'gradualizer.sh')
 endfunction
 " vim: ts=4 sw=4 et
