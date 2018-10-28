@@ -78,10 +78,25 @@ check_errors() {
     message="$2"
 
     for directory in "${directories[@]}"; do
+        # Ensure that errors from grep are not ignored, i.e. busybox's grep
+        # does not have "--with-filename".
+        set +e
+        output="$(grep --with-filename -n "$regex" "$directory"/**/*.vim 2>&1)"
+        ret=$?
+        set -e
+        if (( ret > 1 )); then
+          echo "$output"
+          RETURN_CODE=2
+          continue
+        fi
+        if [[ -z "$output" ]]; then
+            continue
+        fi
+
         while IFS= read -r match; do
             RETURN_CODE=1
             echo "$match $message"
-        done < <(grep --with-filename -n "$regex" "$directory"/**/*.vim \
+        done < <(echo "$output" \
             | grep -o '^[^:]\+:[0-9]\+' \
             | sed 's:^\./::')
     done
