@@ -619,8 +619,10 @@ quickfix list. Defaults to 1.
 
 *g:neomake_highlight_lines*
 This setting enables highlighting of lines for items from the location and
-quickfix list. This overrides |g:neomake_highlight_columns|, since it
-highlights the whole line already. Defaults to 0.
+quickfix list. Defaults to 0.
+
+If both |g:neomake_highlight_columns| and |g:neomake_highlight_lines| are
+enabled, items with column information are highlighted using the column.
 
 The following highlighting groups are used:
  - NeomakeError: links to "SpellBad" (|hl-SpellBad|)
