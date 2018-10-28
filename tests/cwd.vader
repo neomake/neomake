@@ -170,9 +170,6 @@ Execute (cwd per maker and serialize via dict):
   \ 'enabled_makers': [maker1, maker2],
   \ 'serialize': 1})
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage '\m^stdout: maker1'
-  AssertNeomakeMessage '\m^stdout: maker2'
-
   AssertEqual map(getqflist(), 'v:val.text'), [maker1.cwd, maker2.cwd]
 
 Execute (get_list_entries: filename with cwd (non-existing file)):

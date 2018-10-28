@@ -130,13 +130,13 @@ Execute (neomake#CancelJob with trapped TERM):
     let jobinfo = neomake#GetJob(job_id)
 
     " Ensure the script is running.
-    NeomakeTestsWaitForMessage '\vstdout: .*: \[''Started: (\d+)''', 3, jobinfo
+    NeomakeTestsWaitForMessage '\voutput on stdout: \[''Started: (\d+)''', 3, jobinfo
     let pid = g:neomake_test_matchlist[1]
 
     AssertEqual neomake#CancelJob(job_id), 1
     AssertNeomakeMessage '\v^Stopping job: .+\.$', 3, jobinfo
 
-    NeomakeTestsWaitForMessage '\Mstdout: \.\*''not stopping on SIGTERM''', 3, jobinfo
+    NeomakeTestsWaitForMessage '\Moutput on stdout: \.\*''not stopping on SIGTERM''', 3, jobinfo
     AssertNeomakeMessage 'Ignoring output (job was canceled).', 3, jobinfo
     NeomakeTestsWaitForMessage 'exit: job was canceled.', 3, jobinfo, {'timeout': 5000}
     if !has('nvim')
