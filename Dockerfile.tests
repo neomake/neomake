@@ -17,10 +17,10 @@ RUN install_vim -tag v7.3.429 -name vim73 --with-features=huge -build \
                 -tag neovim:v0.3.1 -py3 -build \
   && rm -rf /vim-build/vim/vim/*/share/vim/*/tutor
 
-ENV NEOMAKE_DOCKERFILE_UPDATE=2018-08-01
+ENV NEOMAKE_DOCKERFILE_UPDATE=2018-10-28
 
-# Install bash and make for running tests.
-RUN apk --no-cache add bash make
+# Install tools for running tests (busybox's grep does not have --line-number).
+RUN apk --no-cache add bash grep make
 
 # Install dep plugins (test runner and those used during tests).
 # Keeps git and installs ssh for CircleCI's checkout (and diffing for changed

@@ -178,7 +178,7 @@ vimhelplint: | $(if $(VIMHELPLINT_DIR),,build/vimhelplint)
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=31
+DOCKER_TAG:=32
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
@@ -324,7 +324,8 @@ check:
 	  (( ret+=4 )); \
 	fi; \
 	echo '== Checking tests'; \
-	output="$$(grep --line-number --color AssertThrows -A1 tests/*.vader \
+	output="$$(grep --line-number --color AssertThrows -A1 tests/*.vader)"; \
+	output="$(echo "$$output" \
 		| grep -E '^[^[:space:]]+- ' \
 		| grep -v g:vader_exception | sed -e s/-/:/ -e s/-// || true)"; \
 	if [[ -n "$$output" ]]; then \
