@@ -2065,7 +2065,9 @@ function! s:ProcessPendingOutput(jobinfo, lines, source) abort
     if get(a:jobinfo, 'pending_output', 0)
         call neomake#log#debug('Processed pending output.', a:jobinfo)
         let a:jobinfo.pending_output = 0
-        call s:CleanJobinfo(a:jobinfo)
+        if has_key(a:jobinfo, 'exit_code')
+            call s:CleanJobinfo(a:jobinfo)
+        endif
     endif
     return 1
 endfunction
