@@ -16,7 +16,7 @@ Execute (go: go):
   CallNeomake 1, [maker]
 
   AssertNeomakeMessage printf('cwd: %s/build (changed).', getcwd())
-  AssertNeomakeMessage 'unnamed_maker: processing 3 lines of output.'
+  AssertNeomakeMessage 'processing 3 lines of output.'
   AssertNeomakeMessage 'Processing 1 entries.'
   AssertEqualQf getloclist(0), [
   \ {'lnum': 24, 'bufnr': bufnr('%'), 'col': 2, 'valid': 1, 'vcol': 0,
