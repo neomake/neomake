@@ -69,18 +69,19 @@ function! neomake#highlights#AddHighlight(entry, type) abort
         call s:InitBufHighlights(a:type, a:entry.bufnr)
     endif
     let l:hi = get(s:highlight_types, toupper(a:entry.type), 'NeomakeError')
-    if get(g:, 'neomake_highlight_lines', 0)
-        if s:nvim_api
-            call nvim_buf_add_highlight(a:entry.bufnr, s:highlights[a:type][a:entry.bufnr], l:hi, a:entry.lnum - 1, 0, -1)
-        else
-            call add(s:highlights[a:type][a:entry.bufnr][l:hi], a:entry.lnum)
-        endif
-    elseif a:entry.col > 0
+
+    if a:entry.col > 0 && get(g:, 'neomake_highlight_columns', 1)
         let l:length = get(a:entry, 'length', 1)
         if s:nvim_api
             call nvim_buf_add_highlight(a:entry.bufnr, s:highlights[a:type][a:entry.bufnr], l:hi, a:entry.lnum - 1, a:entry.col - 1, a:entry.col + l:length - 1)
         else
             call add(s:highlights[a:type][a:entry.bufnr][l:hi], [a:entry.lnum, a:entry.col, l:length])
+        endif
+    elseif get(g:, 'neomake_highlight_lines', 0)
+        if s:nvim_api
+            call nvim_buf_add_highlight(a:entry.bufnr, s:highlights[a:type][a:entry.bufnr], l:hi, a:entry.lnum - 1, 0, -1)
+        else
+            call add(s:highlights[a:type][a:entry.bufnr][l:hi], a:entry.lnum)
         endif
     endif
 endfunction
