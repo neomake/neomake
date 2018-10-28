@@ -5,7 +5,7 @@ Execute (jobinfo.get_pid):
     let maker = NeomakeTestsCommandMaker('echo-pid-and-sleep', 'echo $$; sleep 10')
     let maker.buffer_output = 0
     let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
-    NeomakeTestsWaitForMessage '\v^stdout: echo-pid-and-sleep: \[''(\d+)'', ''''\].'
+    NeomakeTestsWaitForMessage '\v^output on stdout: \[''(\d+)'', ''''\].'
     let pid = +g:neomake_test_matchlist[1]
     AssertEqual jobinfo.get_pid(), pid
 

@@ -998,10 +998,12 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
                     endfor
                     if found
                         let cmd = printf('%dresize %d', found, height)
-                        call neomake#log#debug(printf(
-                                    \ 'Resizing existing quickfix window: %s.',
-                                    \ cmd), a:jobinfo)
-                        exe cmd
+                        if winheight(found) != height
+                            call neomake#log#debug(printf(
+                                        \ 'Resizing existing quickfix window: %s.',
+                                        \ cmd), a:jobinfo)
+                            exe cmd
+                        endif
                     else
                         call neomake#log#debug(
                                     \ 'Could not find corresponding quickfix window.',
@@ -2157,7 +2159,8 @@ function! s:vim_output_handler(channel, output, event_type) abort
     let channel_id = ch_info(a:channel)['id']
     let jobinfo = get(s:jobs, get(s:map_job_ids, channel_id, -1), {})
     if empty(jobinfo)
-        call neomake#log#debug(printf("output [%s]: job '%s' not found.", a:event_type, a:channel))
+        call neomake#log#debug(printf("warn: job '%s' not found for output on %s.",
+                    \ a:channel, a:event_type))
         return
     endif
     let data = split(a:output, '\r\?\n', 1)
@@ -2403,8 +2406,8 @@ endfunction
 
 function! s:output_handler(jobinfo, data, event_type, trim_CR) abort
     let jobinfo = a:jobinfo
-    call neomake#log#debug(printf('%s: %s: %s.',
-                \ a:event_type, jobinfo.maker.name, string(a:data)), jobinfo)
+    call neomake#log#debug(printf('output on %s: %s.',
+                \ a:event_type, string(a:data)), jobinfo)
     let data = copy(a:data)
     if a:trim_CR && !empty(a:data)
         call map(data, "substitute(v:val, '\\r$', '', '')")
