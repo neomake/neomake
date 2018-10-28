@@ -184,6 +184,7 @@ Execute (Neomake: handle result for current window):
     new
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'Queuing action process_pending_output for BufEnter, WinEnter.', 3
+    AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.', 3
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 0, "output pending"
     AssertEqual map(getloclist(0), 'v:val.text'), []

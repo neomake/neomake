@@ -36,7 +36,7 @@ Execute (hook handling gets queued for global g:neomake_hook_context):
   " reported.
   if neomake#has_async_support()
     AssertNeomakeMessage 's:process_action_queue: decrementing timer tries for non-Timer event.', 3
-    AssertNeomakeMessage 'action queue: re-queueing clean_make_info for not processed make_id.', 3
+    AssertNeomakeMessage 'action queue: skipping clean_make_info for not processed make_id.', 3
   endif
 
 Execute (hook handling gets queued for global g:neomake_hook_context (with postprocessing)):
@@ -73,7 +73,7 @@ Execute (hook handling gets queued for global g:neomake_hook_context (with postp
   AssertEqual len(s:finished_called), 2
 
   if neomake#has_async_support()
-    AssertNeomakeMessage 'action queue: re-queueing clean_make_info for not processed make_id.', 3
+    AssertNeomakeMessage 'action queue: skipping clean_make_info for not processed make_id.', 3
   endif
 
 Execute (Nested neomake#utils#hook must not be nested (directly)):
@@ -126,7 +126,7 @@ Execute (Does not nest hooks / User autocommands):
     function! s:OnNeomakeJobFinished() abort
       let jobinfo = g:neomake_hook_context.jobinfo
       if jobinfo.maker.name == 'maker1'
-        NeomakeTestsWaitForMessage '\v^Queueing User autocmd NeomakeCountsChanged for nested invocation ', 3
+        NeomakeTestsWaitForMessage '\v^Queuing User autocmd NeomakeCountsChanged for nested invocation ', 3
         AssertNeomakeMessage 'Queuing action handle_hook for Timer, BufEnter, WinEnter, InsertLeave, CursorHold, CursorHoldI.', 3
         AssertNeomakeMessage '\V\^Retrying Timer event in 10ms', 3
       endif
