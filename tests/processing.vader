@@ -417,7 +417,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
     AssertEqual map(getloclist(0), 'v:val.text'),
     \ ['1:0: buf: b1']
 
-    lolder
+    silent lolder
     AssertEqual map(getloclist(0), 'v:val.text'),
     \ ['2:0: buf: b1', '2:1: buf: b1']
     AssertEqual len(g:neomake_test_finished), 2
@@ -455,7 +455,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
     AssertEqual map(getqflist(), 'v:val.text'),
     \ ['1:0: buf: b1']
 
-    colder
+    silent colder
     AssertEqual map(getqflist(), 'v:val.text'),
     \ ['2:0: buf: b1', '2:1: buf: b1']
 
@@ -474,7 +474,7 @@ Execute (Second make finishes before first (qflist)):
 
   if neomake#has_async_support()
     AssertEqual map(getqflist(), 'v:val.text'), ['1']
-    colder
+    silent colder
   endif
   AssertEqual map(getqflist(), 'v:val.text'), ['2']
 
@@ -487,7 +487,7 @@ Execute (Second make finishes before first (loclist)):
 
   if neomake#has_async_support()
     AssertEqual map(getloclist(0), 'v:val.text'), ['1']
-    lolder
+    silent lolder
   endif
   AssertEqual map(getloclist(0), 'v:val.text'), ['2']
 
