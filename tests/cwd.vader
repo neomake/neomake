@@ -96,7 +96,7 @@ Execute (tempfile with pwd):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertNeomakeMessage 'pwd: processing 2 lines of output.', 3
+  AssertNeomakeMessage 'processing 2 lines of output.', 3
   AssertNeomakeMessage '\v^Removing temporary file: "(.*)".$'
   let tempfile_name = g:neomake_test_matchlist[1]
 
@@ -157,6 +157,7 @@ Execute (cwd gets expanded correctly: relative and in another buffer):
     AssertEqual map(getloclist(0), 'v:val.text'), [
     \ 'slept', expected_cwd, 'errors.py']
     bwipe
+    AssertNeomakeMessage 'Skipped pending job output for another buffer.', 3
   endif
 
 Execute (cwd per maker and serialize via dict):

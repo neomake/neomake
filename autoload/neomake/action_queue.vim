@@ -26,7 +26,7 @@ endfunction
 " It will call a:data[0], with a:data[1] as args (where the first should be
 " a jobinfo object).  The callback should return 1 if it was successful,
 " with 0 it will be re-queued.
-" When called recursively (queueing the same event/data again, it will be
+" When called recursively (queuing the same event/data again, it will be
 " re-queued also).
 function! neomake#action_queue#add(events, data) abort
     let job_or_make_info = a:data[1][0]
@@ -97,6 +97,19 @@ function! neomake#action_queue#clean(job_or_make_info) abort
     endif
 endfunction
 
+" Remove given action for a jobinfo or make_info object.
+function! neomake#action_queue#remove(job_or_make_info, action) abort
+    let len_before = len(s:action_queue)
+    call filter(s:action_queue, 'v:val[1][1][0] != a:job_or_make_info || v:val[1][0] != a:action')
+    let removed = len_before - len(s:action_queue)
+    if removed
+        call s:clean_action_queue_events()
+        call neomake#log#debug(printf(
+                    \ 'Removed %d action queue entries for %s.',
+                    \ removed, s:actionname(a:action)), a:job_or_make_info)
+    endif
+endfunction
+
 function! s:process_action_queue_timer_cb(...) abort
     call neomake#log#debug(printf(
                 \ 'action queue: callback for Timer queue (%d).', s:action_queue_timer))
@@ -120,12 +133,11 @@ function! s:process_action_queue(event) abort
     let processed = []
     let removed = 0
     let stop_processing = {'make_id': [], 'job_id': []}
-    for [i, data] in q_for_this_event
+    for [idx_q_for_this_event, data] in q_for_this_event
         let job_or_make_info = data[1][0]
-        let current_event = remove(queue, i - removed)
+        let current_event = remove(queue, idx_q_for_this_event - removed)
         let removed += 1
 
-        let skip = 0
         let make_id_job_id = {}  " make_id/job_id relevant to re-queue following.
         if has_key(job_or_make_info, 'make_id')
             let log_context = job_or_make_info
@@ -141,9 +153,12 @@ function! s:process_action_queue(event) abort
         else
             let log_context = {}
         endif
+
+        " Skip/re-queue entries for same make/job.
+        let skip = 0
         for [prop_name, prop_value] in items(make_id_job_id)
             if index(stop_processing[prop_name], prop_value) != -1
-                call neomake#log#debug(printf('action queue: re-queueing %s for not processed %s.',
+                call neomake#log#debug(printf('action queue: skipping %s for not processed %s.',
                             \ s:actionname(data[0]), prop_name), log_context)
                 call add(queue, current_event)
                 let skip = 1
@@ -156,6 +171,7 @@ function! s:process_action_queue(event) abort
 
         call neomake#log#debug(printf('action queue: calling %s.',
                     \ s:actionname(data[0])), log_context)
+        let queue_before_call = copy(queue)
         try
             " Call the queued action.  On failure they should have requeued
             " themselves already.
@@ -181,6 +197,22 @@ function! s:process_action_queue(event) abort
                 call neomake#log#debug('s:process_action_queue: decrementing timer tries for non-Timer event.', job_or_make_info)
                 let job_or_make_info.action_queue_timer_tries.count -= 1
             endif
+
+            " Requeue any entries for the same job.
+            let i = 0
+            for q in queue_before_call
+                for [prop_name, prop_value] in items(make_id_job_id)
+                    " Assert current_event != q
+                    if get(q[1][1][0], prop_name) == prop_value
+                        call neomake#log#debug(printf('action queue: re-queuing %s for not processed %s.',
+                                    \ s:actionname(q[1][0]), prop_name), log_context)
+                        call add(queue, remove(queue, i))
+                        let i -= 1
+                        break
+                    endif
+                endfor
+                let i += 1
+            endfor
             for [prop_name, prop_value] in items(make_id_job_id)
                 call add(stop_processing[prop_name], prop_value)
             endfor

@@ -20,8 +20,6 @@ endif
 
 " Errors by [maker_type][bufnr][lnum]
 let s:current_errors = {'project': {}, 'file': {}}
-" List of pending outputs by job ID.
-let s:pending_outputs = {}
 
 if !has('nvim')
     let s:kill_vim_timers = {}
@@ -289,7 +287,7 @@ function! s:MakeJob(make_id, options) abort
     "                        1 for non-async)
     "  - serialize_abort_on_error (default: 0)
     "  - exit_callback (string/function, default: 0)
-    let jobinfo = extend(copy(g:neomake#jobinfo#base), extend({
+    let jobinfo = extend(deepcopy(g:neomake#jobinfo#base), extend({
         \ 'id': job_id,
         \ 'name': empty(get(a:options.maker, 'name', '')) ? 'neomake_'.job_id : a:options.maker.name,
         \ 'maker': a:options.maker,
@@ -1384,10 +1382,10 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
 endfunction
 
 function! s:CleanJobinfo(jobinfo, ...) abort
-    if get(a:jobinfo, 'pending_output', 0) && !get(a:jobinfo, 'canceled', 0)
+    if !empty(a:jobinfo.pending_output) && !get(a:jobinfo, 'canceled', 0)
         call neomake#log#debug(
                     \ 'Output left to be processed, not cleaning job yet.', a:jobinfo)
-        return
+        return g:neomake#action_queue#not_processed
     endif
 
     let queued_actions = neomake#action_queue#get_queued_actions(a:jobinfo)
@@ -1402,17 +1400,13 @@ function! s:CleanJobinfo(jobinfo, ...) abort
     let a:jobinfo.finished = 1
 
     if !has_key(s:make_info, a:jobinfo.make_id)
-        return
+        return g:neomake#action_queue#processed
     endif
     let make_info = s:make_info[a:jobinfo.make_id]
 
     if has_key(s:jobs, get(a:jobinfo, 'id', -1))
         call remove(s:jobs, a:jobinfo.id)
         call filter(s:map_job_ids, 'v:val != a:jobinfo.id')
-
-        if has_key(s:pending_outputs, a:jobinfo.id)
-            unlet s:pending_outputs[a:jobinfo.id]
-        endif
     endif
 
     if exists('s:kill_vim_timers')
@@ -1436,8 +1430,8 @@ function! s:CleanJobinfo(jobinfo, ...) abort
     " Trigger cleanup (and autocommands) if all jobs have finished.
     if empty(make_info.active_jobs) && empty(make_info.jobs_queue)
         call s:clean_make_info(make_info)
-        return g:neomake#action_queue#processed
     endif
+    return g:neomake#action_queue#processed
 endfunction
 
 function! s:clean_make_info(make_info, ...) abort
@@ -1467,7 +1461,7 @@ function! s:clean_make_info(make_info, ...) abort
         endif
     endfor
     if !empty(queued)
-        call neomake#log#debug(printf('Queueing clean_make_info for already queued actions: %s', string(queued)))
+        call neomake#log#debug(printf('Queuing clean_make_info for already queued actions: %s', string(queued)))
         return neomake#action_queue#add(
                     \ g:neomake#action_queue#any_event,
                     \ [s:function('s:clean_make_info'), [a:make_info]])
@@ -1910,9 +1904,8 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
 
     let maker = a:jobinfo.maker
     let file_mode = a:jobinfo.file_mode
-    call neomake#log#debug(printf(
-                \ '%s: processing %d lines of output.',
-                \ maker.name, len(a:lines)), a:jobinfo)
+    call neomake#log#debug(printf('processing %d lines of output.',
+                \ len(a:lines)), a:jobinfo)
     let cd_error = a:jobinfo.cd()
     if !empty(cd_error)
         call neomake#log#debug(printf(
@@ -2036,8 +2029,12 @@ function! s:process_pending_output(jobinfo, lines, source, ...) abort
             let retry_events = ['BufEnter', 'WinEnter']
         endif
     endif
-    let a:jobinfo.pending_output = 1
-    return neomake#action_queue#add(retry_events, [s:function('s:process_pending_output'), [a:jobinfo, a:lines, a:source, retry_events]])
+    call add(a:jobinfo.pending_output, [a:lines, a:source])
+    if index(neomake#action_queue#get_queued_actions(a:jobinfo),
+                \ ['process_pending_output', retry_events]) == -1
+        return neomake#action_queue#add(retry_events, [s:function('s:process_pending_output'), [a:jobinfo, [], a:source, retry_events]])
+    endif
+    return g:neomake#action_queue#not_processed
 endfunction
 
 function! s:ProcessPendingOutput(jobinfo, lines, source) abort
@@ -2062,23 +2059,34 @@ function! s:ProcessPendingOutput(jobinfo, lines, source) abort
         endif
     endif
 
+    " Process any pending output first.
+    if !empty(a:jobinfo.pending_output)
+        let outputs = {'stdout': [], 'stderr': []}
+        for [lines, source] in a:jobinfo.pending_output
+            call extend(outputs[source], lines)
+        endfor
+        for [source, lines] in items(outputs)
+            if !empty(lines)
+                call s:ProcessJobOutput(a:jobinfo, lines, source)
+            endif
+        endfor
+        call neomake#log#debug(printf(
+                    \ 'Processed %d pending outputs.', len(a:jobinfo.pending_output)),
+                    \ a:jobinfo)
+        call neomake#action_queue#remove(a:jobinfo, s:function('s:process_pending_output'))
+    endif
+
     call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
-    if get(a:jobinfo, 'pending_output', 0)
-        call neomake#log#debug('Processed pending output.', a:jobinfo)
-        let a:jobinfo.pending_output = 0
-        call s:CleanJobinfo(a:jobinfo)
+
+    " Clean job if it had exited already.
+    if !empty(a:jobinfo.pending_output)
+        let a:jobinfo.pending_output = []
+        if has_key(a:jobinfo, 'exit_code')
+            " XXX: add test (tested manually)
+            call s:CleanJobinfo(a:jobinfo)
+        endif
     endif
     return 1
-endfunction
-
-function! s:add_pending_output(jobinfo, source, lines) abort
-    if !exists('s:pending_outputs[a:jobinfo.id]')
-        let s:pending_outputs[a:jobinfo.id] = {}
-    endif
-    if !exists('s:pending_outputs[a:jobinfo.id][a:source]')
-        let s:pending_outputs[a:jobinfo.id][a:source] = []
-    endif
-    call extend(s:pending_outputs[a:jobinfo.id][a:source], a:lines)
 endfunction
 
 " Get tabnr and winnr for a given make ID.
@@ -2377,7 +2385,7 @@ endfunction
 function! s:output_handler_queued(jobinfo, data, event_type, trim_CR) abort
     let jobinfo = a:jobinfo
     if exists('jobinfo._output_while_in_handler')
-        call neomake#log#debug(printf('Queueing: %s: %s: %s.',
+        call neomake#log#debug(printf('Queuing: %s: %s: %s.',
                     \ a:event_type, jobinfo.maker.name, string(a:data)), jobinfo)
         let jobinfo._output_while_in_handler += [[jobinfo, a:data, a:event_type, a:trim_CR]]
         return

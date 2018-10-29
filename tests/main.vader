@@ -7,6 +7,7 @@
 ~ Features
 Include (:NeomakeInfo): cmd_neomakeinfo.vader
 Include (Automaking): automake.vader
+Include (Action queue): action_queue.vader
 Include (Cancellation): cancellation.vader
 Include (Compat): compat.vader
 Include (Completion): completion.vader

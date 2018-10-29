@@ -128,7 +128,7 @@ Execute (Maker can specify temporary file to use via fn):
   call maker._get_argv(jobinfo)
   AssertEqual maker.args, []
   AssertEqual maker.tempfile_name, g:neomake_test_tempfile
-  AssertNeomakeMessage '\m^Using tempfile for modified buffer: "'.g:neomake_test_tempfile.'"', 3, {'jobinfo': jobinfo, 'make_id': jobinfo.make_id, 'bufnr': bufnr}
+  AssertNeomakeMessage '\m^Using tempfile for modified buffer: "'.g:neomake_test_tempfile.'"', 3, jobinfo
   Assert filereadable(g:neomake_test_tempfile), 'tempfile has been created'
   let make_info = values(neomake#GetStatus().make_info)[0]
   AssertEqual make_info.tempfiles, [maker.tempfile_name]

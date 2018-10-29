@@ -184,6 +184,7 @@ Execute (Neomake: handle result for current window):
     new
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'Queuing action process_pending_output for BufEnter, WinEnter.', 3
+    AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.', 3
     AssertEqual len(g:neomake_test_countschanged), 0
     AssertEqual len(g:neomake_test_finished), 0, "output pending"
     AssertEqual map(getloclist(0), 'v:val.text'), []
@@ -473,7 +474,7 @@ Execute (NeomakeListJobs with job cancellation):
 
     doautocmd CursorHold
     AssertNeomakeMessage 'action queue: processing for CursorHold (1 items, winnr: 1).', 3
-    AssertNeomakeMessage 'cmd maker 2: processing 1 lines of output.', 3
+    AssertNeomakeMessage 'processing 1 lines of output.', 3
     AssertNeomakeMessage 'action queue: processed 1 items.', 3
 
     sleep 10m
@@ -728,7 +729,7 @@ Execute (Neomake: entry.valid < 0 and configured entry type):
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'custom_maker: processing 4 lines of output.'
+  AssertNeomakeMessage 'processing 4 lines of output.'
   AssertNeomakeMessage "\\vRemoving invalid entry: invalid \\(\\{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': -1, .*\\}\\)."
   AssertNeomakeMessage 'Processing 3 entries.'
 

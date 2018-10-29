@@ -1,0 +1,119 @@
+Include: include/setup.vader
+
+Execute (action queue: order on WinEnter):
+  function! F1(...)
+    return neomake#action_queue#add(['Timer', 'WinEnter'], [function('F1'),
+                \ a:000])
+  endfunction
+  function! F2(...)
+    return neomake#action_queue#add(['WinEnter'], [function('F2'),
+                \ a:000])
+  endfunction
+  let jobinfo = NeomakeTestsFakeJobinfo()
+
+  call neomake#action_queue#add(['Timer', 'WinEnter'], [function('F1'), [jobinfo]])
+  call neomake#action_queue#add(['WinEnter'], [function('F2'), [jobinfo]])
+
+  doautocmd WinEnter
+
+  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).', 3
+  AssertNeomakeMessage 'action queue: calling F1.', 3
+
+  call neomake#action_queue#clean(jobinfo)
+  delfunction F1
+  delfunction F2
+
+Execute (action queue: order on WinEnter with Timer):
+  let s:calls = [0, 0]
+  function! F1(...)
+    let s:calls[0] += 1
+    " NOTE: copies a:000 to work around https://github.com/neovim/neovim/issues/9169.
+    return neomake#action_queue#add(['Timer', 'WinEnter'], [function('F1'),
+                \ copy(a:000)])
+  endfunction
+  function! F2(...)
+    let s:calls[1] += 1
+    " NOTE: copies a:000 to work around https://github.com/neovim/neovim/issues/9169.
+    return neomake#action_queue#add(['WinEnter'], [function('F2'),
+                \ copy(a:000)])
+  endfunction
+  let jobinfo = NeomakeTestsFakeJobinfo()
+
+  call neomake#action_queue#add(['Timer', 'WinEnter'], [function('F1'), [jobinfo]])
+  call neomake#action_queue#add(['WinEnter'], [function('F2'), [jobinfo]])
+
+  if has('timers')
+    AssertNeomakeMessage '\V\^Retrying Timer event in 10ms'
+    sleep 10m
+  else
+    doautocmd CursorHold
+  endif
+  AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 1).'
+  AssertNeomakeMessage 'Queuing action F1 for Timer, WinEnter.'
+  AssertNeomakeMessage 'action queue: re-queuing F2 for not processed make_id.', 3
+
+  doautocmd WinEnter
+
+  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).', 3
+  AssertNeomakeMessage 'action queue: calling F1.', 3
+  AssertNeomakeMessage 'action queue: re-queuing F2 for not processed make_id.', 3
+
+  call neomake#action_queue#clean(jobinfo)
+
+  delfunction F1
+  delfunction F2
+  AssertEqual s:calls, [2, 0]
+
+Execute (action queue: re-queued with different events):
+  let s:calls = [0, 0]
+  function! F1(...)
+    let s:calls[0] += 1
+    if s:calls[0] == 2
+        return g:neomake#action_queue#processed
+    endif
+    " NOTE: copies a:000 to work around https://github.com/neovim/neovim/issues/9169.
+    return neomake#action_queue#add(['BufEnter', 'WinEnter'], [function('F1'),
+                \ copy(a:000)])
+  endfunction
+  function! F2(...)
+    let s:calls[1] += 1
+    if s:calls[1] == 2
+        return g:neomake#action_queue#processed
+    endif
+    " NOTE: copies a:000 to work around https://github.com/neovim/neovim/issues/9169.
+    return neomake#action_queue#add(['WinEnter'], [function('F2'),
+                \ copy(a:000)])
+  endfunction
+
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  call neomake#action_queue#add(['Timer', 'WinEnter'], [function('F1'), [jobinfo]])
+  call neomake#action_queue#add(['WinEnter'], [function('F2'), [jobinfo]])
+
+  if has('timers')
+    AssertNeomakeMessage '\V\^Retrying Timer event in 10ms'
+    sleep 10m
+  else
+    doautocmd CursorHold
+  endif
+  AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 1).'
+  AssertNeomakeMessage 'Queuing action F1 for BufEnter, WinEnter.'
+  AssertNeomakeMessage 'action queue: re-queuing F2 for not processed make_id.', 3
+
+  AssertEqual s:calls, [1, 0]
+  doautocmd WinEnter
+  AssertEqual s:calls, [2, 1]
+
+  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).', 3
+  AssertNeomakeMessage 'action queue: calling F1.', 3
+  AssertNeomakeMessage 'action queue: calling F2.', 3
+  AssertNeomakeMessage 'Queuing action F2 for WinEnter.', 3
+
+  AssertEqual s:calls, [2, 1]
+  AssertEqual len(g:neomake#action_queue#_s.action_queue), 1
+
+  doautocmd WinEnter
+  AssertEqual len(g:neomake#action_queue#_s.action_queue), 0
+
+  delfunction F1
+  delfunction F2
+  AssertEqual s:calls, [2, 2]
