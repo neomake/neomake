@@ -317,10 +317,14 @@ function! NeomakeTestsCommandMaker(name, cmd)
   \ 'append_file': 0})
 endfunction
 
+let s:jobinfo_count = 0
+
 function! NeomakeTestsFakeJobinfo() abort
+  let s:jobinfo_count += 1
   let make_id = -42
   let jobinfo = copy(g:neomake#jobinfo#base)
   call extend(jobinfo, {
+        \ 'id': s:jobinfo_count,
         \ 'file_mode': 1,
         \ 'bufnr': bufnr('%'),
         \ 'ft': '',
