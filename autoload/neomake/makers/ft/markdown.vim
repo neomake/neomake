@@ -5,7 +5,7 @@ endfunction
 function! neomake#makers#ft#markdown#EnabledMakers() abort
     let makers = executable('mdl') ? ['mdl'] : ['markdownlint']
     if executable('vale') | let makers += ['vale'] | endif
-    return makers + ['writegood'] + neomake#makers#ft#text#EnabledMakers()
+    return makers + neomake#makers#ft#text#EnabledMakers()
 endfunction
 
 function! neomake#makers#ft#markdown#mdl() abort
