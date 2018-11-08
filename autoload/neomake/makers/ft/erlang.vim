@@ -75,6 +75,9 @@ function! neomake#makers#ft#erlang#EbinDirs(root) abort
         let default_profile = expand('%') =~# '_SUITE.erl$' ?  'test' : 'default'
         let profile = get(b:, 'neomake_erlang_erlc_rebar3_profile', default_profile)
         let ebins += neomake#compat#glob_list(build_dir . '/' . profile . '/lib/*/ebin')
+        if profile ==# 'test'
+            let ebins += neomake#compat#glob_list(build_dir . '/' . profile . '/lib/*/test')
+        endif
     endif
     " If <root>/_build doesn't exist it might be a rebar2/erlang.mk project
     if isdirectory(root . 'deps')
@@ -99,7 +102,9 @@ endfunction
 function! neomake#makers#ft#erlang#EbinsToIncludes(ebins) abort
     let includes = []
     for ebin in a:ebins
-        let includes += [substitute(ebin, 'ebin$', 'include', '')]
+        if ebin =~# 'ebin$'
+            let includes += [substitute(ebin, 'ebin$', 'include', '')]
+        end
     endfor
     return includes
 endfunction
