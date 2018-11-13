@@ -173,7 +173,7 @@ Execute (neomake#statusline#get: use_highlights_with_defaults):
   new
   let bufnr = bufnr('%')
   AssertEqual neomake#statusline#get(bufnr, {'use_highlights_with_defaults': 0}), '?'
-  call neomake#Make({'enabled_makers': [g:entry_maker]})
+  CallNeomake 1, [g:success_entry_maker]
   AssertEqual neomake#statusline#get(bufnr, {'use_highlights_with_defaults': 0}), '✓'
   AssertEqual neomake#statusline#get(bufnr, {'use_highlights_with_defaults': 1}), '%#NeomakeStatusGood#✓'
   bwipe

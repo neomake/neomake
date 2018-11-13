@@ -361,9 +361,13 @@ let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
 let g:success_maker.errorformat = '%-Gsuccess'
 let g:true_maker = NeomakeTestsCommandMaker('true-maker', 'true')
 let g:entry_maker = {'name': 'entry_maker'}
-function! g:entry_maker.get_list_entries(...) abort
+function! g:entry_maker.get_list_entries(jobinfo) abort
   return get(g:, 'neomake_test_getlistentries', [
-  \   {'text': 'error', 'lnum': 1, 'type': 'E'}])
+  \   {'text': 'error', 'lnum': 1, 'type': 'E', 'bufnr': bufnr('%')}])
+endfunction
+let g:success_entry_maker = {}
+function! g:success_entry_maker.get_list_entries(jobinfo) abort
+  return []
 endfunction
 let g:doesnotexist_maker = {'exe': 'doesnotexist'}
 
