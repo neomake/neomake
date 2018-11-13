@@ -1689,26 +1689,30 @@ function! s:clean_for_new_make(make_info) abort
     if get(a:make_info, 'cleaned_for_make', 0)
         return
     endif
-    let file_mode = a:make_info.options.file_mode
     " XXX: needs to handle buffers for list entries?!
     " See "get_list_entries: minimal example (from doc)" in
     " tests/makers.vader.
-    if file_mode
-        let bufnr = a:make_info.options.bufnr
+    call neomake#_clean_errors(a:make_info.options)
+    let a:make_info.cleaned_for_make = 1
+endfunction
+
+" a:context: dictionary with keys:
+"  - file_mode
+"  - bufnr (required for file_mode)
+"  - make_id (used for logging)
+function! neomake#_clean_errors(context) abort
+    if a:context.file_mode
+        let bufnr = a:context.bufnr
         if has_key(s:current_errors['file'], bufnr)
             unlet s:current_errors['file'][bufnr]
         endif
         call neomake#highlights#ResetFile(bufnr)
-        call neomake#log#debug('File-level errors cleaned.',
-                    \ {'make_id': a:make_info.options.make_id, 'bufnr': bufnr})
+        call neomake#log#debug('File-level errors cleaned.', a:context)
     else
-        " TODO: test
-        for buf in keys(s:current_errors.project)
-            unlet s:current_errors['project'][buf]
-            call neomake#highlights#ResetProject(+buf)
-        endfor
+        let s:current_errors['project'] = {}
+        call neomake#highlights#ResetProject()
+        call neomake#log#debug('Project-level errors cleaned.', a:context)
     endif
-    let a:make_info.cleaned_for_make = 1
 endfunction
 
 " Change to a job's cwd, if any.

@@ -12,6 +12,7 @@ Include (Cancellation): cancellation.vader
 Include (Compat): compat.vader
 Include (Completion): completion.vader
 Include (Config): config.vader
+Include (Clean command): clean.vader
 Include (Current working dir): cwd.vader
 Include (Custom Quickfix): customqf.vader
 Include (Debug/Checks/Feedback): debug.vader

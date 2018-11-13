@@ -68,3 +68,38 @@ endfunction
 function! neomake#cmd#complete_jobs(...) abort
     return join(map(neomake#GetJobs(), "v:val.id.': '.v:val.maker.name"), "\n")
 endfunction
+
+function! s:is_neomake_list(list) abort
+    if empty(a:list)
+        return 0
+    endif
+    return a:list[0].text =~# ' nmcfg:{.\{-}}$'
+endfunction
+
+function! neomake#cmd#clean(file_mode) abort
+    let buf = bufnr('%')
+    call neomake#_clean_errors({
+          \ 'file_mode': a:file_mode,
+          \ 'bufnr': buf,
+          \ })
+    if a:file_mode
+        if s:is_neomake_list(getloclist(0))
+            call setloclist(0, [], 'r')
+            if get(g:, 'neomake_open_list', 0)
+                lclose
+            endif
+        endif
+        call neomake#signs#ResetFile(buf)
+        call neomake#statusline#ResetCountsForBuf(buf)
+    else
+        if s:is_neomake_list(getqflist())
+            call setqflist([], 'r')
+            if get(g:, 'neomake_open_list', 0)
+                cclose
+            endif
+        endif
+        call neomake#signs#ResetProject()
+        call neomake#statusline#ResetCountsForProject()
+    endif
+    call neomake#EchoCurrentError(1)
+endfunction

@@ -966,7 +966,6 @@ Execute (neomake#GetCurrentErrorMsg):
     \ ]
   endfunction
   CallNeomake 1, [maker]
-  NeomakeTestsWaitForFinishedJobs
 
   AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 1.1 (E)'
   normal! o
@@ -976,6 +975,17 @@ Execute (neomake#GetCurrentErrorMsg):
   normal! A12
   normal! l
   AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.2 (0)'
+
+  " Successful maker clears error(s) in file mode.
+  CallNeomake 1, [g:true_maker]
+  AssertEqual neomake#GetCurrentErrorMsg(), ''
+
+  " Successful maker clears error(s) in project mode.
+  CallNeomake 0, [maker]
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.2 (0)'
+
+  CallNeomake 0, [g:true_maker]
+  AssertEqual neomake#GetCurrentErrorMsg(), ''
   bwipe!
 
 Execute (Neomake! clippy):
