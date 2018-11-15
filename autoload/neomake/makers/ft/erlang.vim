@@ -16,15 +16,11 @@ function! neomake#makers#ft#erlang#erlc() abort
     return maker
 endfunction
 
-if !exists('g:neomake_erlang_gradualizer_sh')
-    let g:neomake_erlang_gradualizer_sh = expand('<sfile>:p:h') . '/erlang/gradualizer.sh'
-endif
-
 function! neomake#makers#ft#erlang#gradualizer() abort
     let maker = {
-        \ 'exe': neomake#makers#ft#erlang#GradualizerSh(),
+        \ 'exe': get(g:, 'neomake_erlang_gradualizer', 'gradualizer'),
         \ 'errorformat':
-            \ '%E%l:%f: %m'
+            \ '%E%f: %\%%(%.%# on line %l%.%#%\)%\@=%m'
         \ }
     function! maker.InitForJob(_jobinfo) abort
         let dir = neomake#makers#ft#erlang#ProjectDir()
@@ -133,11 +129,6 @@ function! neomake#makers#ft#erlang#GradualizerArgs(ebins) abort
     for ebin in a:ebins
         let args += [ '-pa', ebin]
     endfor
-    let args += [expand('%')]
     return args
-endfunction
-
-function! neomake#makers#ft#erlang#GradualizerSh() abort
-    return get(g:, 'neomake_erlang_gradualizer_sh', 'gradualizer.sh')
 endfunction
 " vim: ts=4 sw=4 et
