@@ -391,11 +391,7 @@ function! s:handle_hook(jobinfo, event, context) abort
     let g:neomake_hook_context = a:context
     lockvar 1 g:neomake_hook_context
     try
-        if v:version >= 704 || (v:version == 703 && has('patch442'))
-            exec 'doautocmd <nomodeline> User ' . a:event
-        else
-            exec 'doautocmd User ' . a:event
-        endif
+        call neomake#compat#doautocmd('User '.a:event)
     catch
         let error = v:exception
         if error[-1:] !=# '.'

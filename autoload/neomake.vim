@@ -1204,15 +1204,42 @@ function! s:Make(options) abort
     return jobinfos
 endfunction
 
-function! s:AddExprCallback(jobinfo, prev_list) abort
+function! s:AddExprCallback(jobinfo, lines) abort
     if s:need_to_postpone_loclist(a:jobinfo)
         return neomake#action_queue#add(['BufEnter', 'WinEnter'], [s:function('s:AddExprCallback'),
-                    \ [a:jobinfo, a:prev_list] + a:000])
+                    \ [a:jobinfo, a:lines] + a:000])
     endif
+
     let maker = a:jobinfo.maker
     let file_mode = a:jobinfo.file_mode
+
+    " Create location/quickfix list and add lines to it.
+    let cd_error = a:jobinfo.cd()
+    if !empty(cd_error)
+        call neomake#log#debug(printf(
+                    \ "Could not change to job's cwd (%s): %s.",
+                    \ a:jobinfo.cd_from_setting, cd_error), a:jobinfo)
+    endif
+
+    let prev_list = s:create_locqf_list(a:jobinfo)
+
+    let olderrformat = &errorformat
+    let &errorformat = maker.errorformat
+    try
+        if file_mode
+            noautocmd laddexpr a:lines
+            let a:jobinfo._delayed_qf_autocmd = 'laddexpr'
+        else
+            noautocmd caddexpr a:lines
+            let a:jobinfo._delayed_qf_autocmd = 'caddexpr'
+        endif
+    finally
+        let &errorformat = olderrformat
+        call a:jobinfo.cd_back()
+    endtry
+
     let list = file_mode ? getloclist(0) : getqflist()
-    let prev_index = len(a:prev_list)
+    let prev_index = len(prev_list)
     let index = prev_index-1
     let Postprocess = neomake#utils#GetSetting('postprocess', maker, [], a:jobinfo.ft, a:jobinfo.bufnr)
     if type(Postprocess) != type([])
@@ -1378,7 +1405,7 @@ function! s:AddExprCallback(jobinfo, prev_list) abort
         call neomake#log#debug(printf('WARN: seen entries with bufnr different from jobinfo.bufnr (%d): %s, current bufnr: %d.', a:jobinfo.bufnr, string(different_bufnrs), bufnr('%')))
     endif
 
-    return s:ProcessEntries(a:jobinfo, entries, a:prev_list)
+    return s:ProcessEntries(a:jobinfo, entries, prev_list)
 endfunction
 
 function! s:CleanJobinfo(jobinfo, ...) abort
@@ -1886,6 +1913,11 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         call neomake#utils#hook('NeomakeCountsChanged', {'reset': 0, 'jobinfo': a:jobinfo})
     endif
 
+    if has_key(a:jobinfo, '_delayed_qf_autocmd')
+        call neomake#compat#doautocmd('QuickfixCmdPost '.a:jobinfo._delayed_qf_autocmd)
+        unlet a:jobinfo._delayed_qf_autocmd
+    endif
+
     if !empty(new_list)
         call s:HandleLoclistQflistDisplay(a:jobinfo, new_list)
     endif
@@ -1965,44 +1997,7 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
             call map(a:lines, maker.mapexpr)
         endif
 
-        let cd_error = a:jobinfo.cd()
-        if !empty(cd_error)
-            call neomake#log#debug(printf(
-                        \ "Could not change to job's cwd (%s): %s.",
-                        \ a:jobinfo.cd_from_setting, cd_error), a:jobinfo)
-        endif
-
-        let prev_list = s:create_locqf_list(a:jobinfo)
-
-        if exists('g:loaded_qf')
-            let vimqf_var = file_mode ? 'qf_auto_open_loclist' : 'qf_auto_open_quickfix'
-            let vimqf_val = get(g:, vimqf_var, s:unset_dict)
-            if vimqf_val isnot# 0
-                let restore_vimqf = [vimqf_var, vimqf_val]
-                let g:[vimqf_var] = 0
-            endif
-        endif
-        let olderrformat = &errorformat
-        let &errorformat = maker.errorformat
-        try
-            if file_mode
-                laddexpr a:lines
-            else
-                caddexpr a:lines
-            endif
-        finally
-            let &errorformat = olderrformat
-            call a:jobinfo.cd_back()
-            if exists('restore_vimqf')
-                if restore_vimqf[1] is# s:unset_dict
-                    unlet g:[restore_vimqf[0]]
-                else
-                    let g:[restore_vimqf[0]] = restore_vimqf[1]
-                endif
-            endif
-        endtry
-
-        call s:AddExprCallback(a:jobinfo, prev_list)
+        call s:AddExprCallback(a:jobinfo, a:lines)
     catch /^\%(Vim\%((\a\+)\)\=:\%(E48\|E523\)\)\@!/  " everything, but E48/E523 (sandbox / not allowed here)
         if v:exception ==# 'NeomakeTestsException'
             throw v:exception

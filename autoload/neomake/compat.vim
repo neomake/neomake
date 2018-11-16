@@ -303,3 +303,13 @@ else
         endif
     endfunction
 endif
+
+if v:version >= 704 || (v:version == 703 && has('patch442'))
+    function! neomake#compat#doautocmd(event) abort
+        exec 'doautocmd <nomodeline> ' . a:event
+    endfunction
+else
+    function! neomake#compat#doautocmd(event) abort
+        exec 'doautocmd ' . a:event
+    endfunction
+endif

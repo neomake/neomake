@@ -442,3 +442,45 @@ Execute (neomake#signs#PlaceSigns handles lowercase and fallback entry type):
   \ '5': [5004, 'neomake_file_err'],
   \ }
   bwipe
+
+Execute (Signs should be placed with QuickfixCmdPost already (loclist)):
+  new
+
+  let s:calls = []
+  function OnQuickfixCmdPost()
+    call add(s:calls, neomake#signs#by_lnum(bufnr('%')))
+  endfunction
+
+  augroup neomake_tests
+    autocmd QuickfixCmdPost laddexpr call OnQuickfixCmdPost()
+  augroup END
+
+  CallNeomake 1, [g:error_maker]
+
+  let signs = neomake#signs#by_lnum(bufnr('%'))
+  AssertEqual signs, {'1': [5000, 'neomake_file_err']}
+
+  AssertEqual s:calls, [signs]
+  bwipe
+  delfunction OnQuickfixCmdPost
+
+Execute (Signs should be placed with QuickfixCmdPost already (qflist)):
+  new
+
+  let s:calls = []
+  function OnQuickfixCmdPost()
+    call add(s:calls, neomake#signs#by_lnum(bufnr('%')))
+  endfunction
+
+  augroup neomake_tests
+    autocmd QuickfixCmdPost caddexpr call OnQuickfixCmdPost()
+  augroup END
+
+  CallNeomake 0, [g:error_maker]
+
+  let signs = neomake#signs#by_lnum(bufnr('%'))
+  AssertEqual signs, {'1': [5000, 'neomake_project_err']}
+
+  AssertEqual s:calls, [signs]
+  bwipe
+  delfunction OnQuickfixCmdPost

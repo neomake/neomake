@@ -172,128 +172,31 @@ Execute (open_list=2 handling with get_list_entries maker and valid entries):
   bwipe
 
 Execute (Stays in location window with :lwindow in QuickFixCmdPost (like vim-qf)):
-  if !has('patch-7.4.2299')
-    NeomakeTestsSkip 'Only for 7.4.2299 (vim-qf issue)'
-  else
-    Save g:neomake_open_list
-    let g:neomake_open_list = 2
-    new
-    let winnr = winnr()
-    let wincount = winnr('$')
+  Save g:neomake_open_list
+  let g:neomake_open_list = 2
+  new
+  let winnr = winnr()
+  let wincount = winnr('$')
 
-    augroup neomake_tests
-      " Simulates vim-qf, opening the list on errors automatically.
-      " Should be fixed in vim-qf (https://github.com/romainl/vim-qf/pull/48).
-      " Using `:noautocmd` with Neomake's laddexpr is not really an option.
-      autocmd QuickFixCmdPost laddexpr lwindow
-    augroup END
+  augroup neomake_tests
+    " Simulates vim-qf, opening the list on errors automatically.
+    " Should be fixed in vim-qf (https://github.com/romainl/vim-qf/pull/48).
+    autocmd QuickFixCmdPost laddexpr lwindow
+  augroup END
 
-    call neomake#Make(1, [g:error_maker])
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
+  call neomake#Make(1, [g:error_maker])
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
 
-    AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
-    " Not what you expect when being unaware of the autocmd, but it is like that.
-    AssertNotEqual winnr, winnr()
-    exe winnr.'wincmd w'
-    lclose
-    bwipe
-  endif
+  AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
+  " Not what you expect when being unaware of the autocmd, but it is like that.
+  AssertNotEqual winnr, winnr()
+  exe winnr.'wincmd w'
+  lclose
+  bwipe
 
-Execute (Goes back to original window with vim-qf):
-  if !has('patch-7.4.2299')
-    NeomakeTestsSkip 'Only for 7.4.2299 (vim-qf issue)'
-  else
-    Save g:neomake_open_list
-    let g:neomake_open_list = 2
-
-    Save g:loaded_qf, g:qf_auto_open_quickfix, g:qf_auto_open_loclist
-    " Simulate vim-qf being used.
-    let g:loaded_qf = 1
-
-    new
-    let winnr = winnr()
-    let wincount = winnr('$')
-
-    augroup neomake_tests
-      autocmd QuickFixCmdPost laddexpr AssertEqual g:qf_auto_open_loclist, 0
-      autocmd QuickFixCmdPost caddexpr AssertEqual g:qf_auto_open_quickfix, 0
-    augroup END
-
-    " Location list.
-    call neomake#Make(1, [g:error_maker])
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
-
-    AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
-    AssertEqual winnr, winnr()
-    exe winnr.'wincmd w'
-    lclose
-    AssertEqual wincount, winnr('$')
-    Assert !exists('g:qf_auto_open_loclist')
-
-    " Quickfix list.
-    call neomake#Make(0, [g:error_maker])
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
-    Assert !exists('g:qf_auto_open_quickfix')
-
-    AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
-    AssertEqual winnr, winnr()
-    exe winnr.'wincmd w'
-    cclose
-    bwipe
-  endif
-
-Execute (Goes back to original window with vim-qf (0-setting)):
-  if !has('patch-7.4.2299')
-    NeomakeTestsSkip 'Only for 7.4.2299 (vim-qf issue)'
-  else
-    Save g:neomake_open_list
-    let g:neomake_open_list = 2
-
-    Save g:loaded_qf, g:qf_auto_open_quickfix, g:qf_auto_open_loclist
-    " Simulate vim-qf being used.
-    let g:loaded_qf = 1
-    let g:qf_auto_open_loclist = 0
-    let g:qf_auto_open_quickfix = 0
-
-    new
-    let winnr = winnr()
-    let wincount = winnr('$')
-
-    augroup neomake_tests
-      autocmd QuickFixCmdPost laddexpr AssertEqual g:qf_auto_open_loclist, 0
-      autocmd QuickFixCmdPost caddexpr AssertEqual g:qf_auto_open_quickfix, 0
-    augroup END
-
-    " Location list.
-    call neomake#Make(1, [g:error_maker])
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
-
-    AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
-    AssertEqual winnr, winnr()
-    exe winnr.'wincmd w'
-    lclose
-    AssertEqual wincount, winnr('$')
-
-    " Quickfix list.
-    call neomake#Make(0, [g:error_maker])
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
-
-    AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
-    AssertEqual winnr, winnr()
-    exe winnr.'wincmd w'
-    cclose
-    bwipe
-  endif
-
-Execute (Goes back to original window after opening list (wincmd in autocmd)):
-  if !has('patch-7.4.2299')
-    NeomakeTestsSkip 'Only for 7.4.2299'
-  else
+Execute (Goes back to original window after opening list (wincmd in postprocess)):
+  if NeomakeAsyncTestsSetup()
     Save g:neomake_open_list
     let g:neomake_open_list = 2
     new
@@ -301,19 +204,159 @@ Execute (Goes back to original window after opening list (wincmd in autocmd)):
     let winnr = winnr()
     let wincount = winnr('$')
 
+    let maker = copy(g:error_maker)
+    function! maker.postprocess(...)
+      2wincmd w
+    endfunction
+
+    let s:called = 0
     augroup neomake_tests
-      autocmd QuickFixCmdPost laddexpr 2wincmd w
+      autocmd QuickFixCmdPost * let s:called = 1 | AssertEqual len(g:neomake_test_jobfinished), 0
     augroup END
 
-    let jobinfo = neomake#Make({'enabled_makers': [g:error_maker]})[0]
+    let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
     NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'processing 1 lines of output.'
+    AssertNeomakeMessage 'Creating location list.'
     AssertNeomakeMessage 'Postponing location list processing.', 3, jobinfo
+    AssertNeomakeMessage 'Queuing action ProcessEntries for BufEnter, WinEnter.', 3
     AssertEqual map(getloclist(winnr), '[v:val.text, v:val.type]'), [['error', 'E']]
+    AssertEqual s:called, 0
     AssertEqual 2, winnr()
 
     AssertNotEqual wincount + 1, winnr('$'), 'Location list has not appeared yet'
     Assert exists('#neomake_event_queue#WinEnter'), 'autocmd was setup'
-    AssertNeomakeMessage 'Queuing action AddExprCallback for BufEnter, WinEnter.'
+
+    " Go to first window for wincmd-p check.
+    1wincmd w
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).'
+    AssertNeomakeMessage 'action queue: calling ProcessEntries.'
+    AssertNeomakeMessage 'Postponing location list processing.'
+    AssertNeomakeMessage 'Queuing action ProcessEntries for BufEnter, WinEnter.'
+    AssertNeomakeMessage 'action queue: skipping CleanJobinfo for not processed job_id.', 3
+    AssertNeomakeMessage 'action queue: processed 0 items.'
+    exe winnr.'wincmd w'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
+    AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
+
+    AssertNeomakeMessage 'action queue: calling ProcessEntries.', 3
+    AssertNeomakeMessage 'Processing 1 entries.', 3
+    AssertNeomakeMessage 'Handling location list: executing lwindow.', 3, jobinfo
+    AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3, jobinfo
+    AssertNeomakeMessage 'action queue: processed 2 items.'
+
+    Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
+
+    wincmd p
+    AssertEqual 1, winnr()
+    3wincmd w
+    lclose
+    bwipe
+    bwipe
+  endif
+
+Execute (Goes back to original window after opening list (wincmd in process_output)):
+  " Like above, but calls QuickfixCmdPost only after job has finished.
+  if NeomakeAsyncTestsSetup()
+    Save g:neomake_open_list
+    let g:neomake_open_list = 2
+    new
+    new
+    let winnr = winnr()
+    let wincount = winnr('$')
+
+    let maker = copy(g:error_maker)
+    function! maker.process_output(...)
+      2wincmd w
+      return [{'text': 'error', 'type': 'E', 'lnum': 1, 'bufnr': bufnr('%')}]
+    endfunction
+
+    let s:called = 0
+    augroup neomake_tests
+      autocmd QuickFixCmdPost * let s:called = 1 | AssertEqual len(g:neomake_test_jobfinished), 1
+    augroup END
+
+    let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'processing 1 lines of output.'
+    AssertNeomakeMessage 'Postponing location list processing.', 3, jobinfo
+    AssertNeomakeMessage 'Queuing action ProcessEntries for BufEnter, WinEnter.', 3
+    AssertEqual getloclist(winnr), []
+    AssertEqual s:called, 0
+    AssertEqual 2, winnr()
+
+    AssertNotEqual wincount + 1, winnr('$'), 'Location list has not appeared yet'
+    Assert exists('#neomake_event_queue#WinEnter'), 'autocmd was setup'
+
+    " Go to first window for wincmd-p check.
+    1wincmd w
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).'
+    AssertNeomakeMessage 'action queue: calling ProcessEntries.'
+    AssertNeomakeMessage 'Postponing location list processing.'
+    AssertNeomakeMessage 'Queuing action ProcessEntries for BufEnter, WinEnter.'
+    AssertNeomakeMessage 'action queue: skipping CleanJobinfo for not processed job_id.', 3
+    AssertNeomakeMessage 'action queue: processed 0 items.'
+    exe winnr.'wincmd w'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
+    AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
+    AssertEqual map(getloclist(winnr), '[v:val.text, v:val.type]'), [['error', 'E']]
+
+    AssertNeomakeMessage 'action queue: calling ProcessEntries.', 3
+    AssertNeomakeMessage 'Processing 1 entries.', 3
+    AssertNeomakeMessage 'Creating location list.'
+    AssertNeomakeMessage 'Handling location list: executing lwindow.', 3, jobinfo
+    AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3, jobinfo
+    AssertNeomakeMessage 'action queue: processed 2 items.'
+
+    Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
+
+    wincmd p
+    AssertEqual 1, winnr()
+    3wincmd w
+    lclose
+    bwipe
+    bwipe
+  endif
+
+Execute (Goes back to original window after opening list (mapexpr)):
+  " Like above, but calls QuickfixCmdPost only after job has finished.
+  if NeomakeAsyncTestsSetup()
+    try
+      call map([], function('tr'))
+    catch
+      NeomakeTestsSkip 'Cannot use funcref with map'
+      return
+    endtry
+
+    Save g:neomake_open_list
+    let g:neomake_open_list = 2
+    new
+    new
+    let winnr = winnr()
+    let wincount = winnr('$')
+
+    let maker = copy(g:error_maker)
+    function! maker.mapexpr(k, v)
+      2wincmd w
+      return a:v
+    endfunction
+
+    let s:called = 0
+    augroup neomake_tests
+      autocmd QuickFixCmdPost * let s:called = 1 | AssertEqual len(g:neomake_test_jobfinished), 0
+    augroup END
+
+    let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'processing 1 lines of output.'
+    AssertNeomakeMessage 'Postponing location list processing.', 3, jobinfo
+    AssertNeomakeMessage 'Queuing action AddExprCallback for BufEnter, WinEnter.', 3
+    AssertEqual getloclist(winnr), []
+    AssertEqual s:called, 0
+    AssertEqual 2, winnr()
+
+    AssertNotEqual wincount + 1, winnr('$'), 'Location list has not appeared yet'
+    Assert exists('#neomake_event_queue#WinEnter'), 'autocmd was setup'
 
     " Go to first window for wincmd-p check.
     1wincmd w
@@ -326,8 +369,10 @@ Execute (Goes back to original window after opening list (wincmd in autocmd)):
     exe winnr.'wincmd w'
     AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
     AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
+    AssertEqual map(getloclist(winnr), '[v:val.text, v:val.type]'), [['error', 'E']]
 
     AssertNeomakeMessage 'action queue: calling AddExprCallback.', 3
+    AssertNeomakeMessage 'Creating location list.'
     AssertNeomakeMessage 'Processing 1 entries.', 3
     AssertNeomakeMessage 'Handling location list: executing lwindow.', 3, jobinfo
     AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3, jobinfo

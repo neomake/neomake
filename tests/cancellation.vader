@@ -190,27 +190,21 @@ Execute (neomake#CancelMake removes queued actions):
 
 Execute (neomake#CancelJob empties action queue):
   if NeomakeAsyncTestsSetup()
-    augroup neomake_tests
-      autocmd QuickFixCmdPost laddexpr wincmd p
-    augroup END
-
     new
-    let jobinfo = neomake#Make({'enabled_makers': [g:sleep_maker]})[0]
-    let job_id = jobinfo.id
-    if has('patch-7.4.2299')
-      NeomakeTestsWaitForFinishedJobs
-      AssertNeomakeMessage 'Queuing action AddExprCallback for BufEnter, WinEnter.'
-      AssertNeomakeMessage "Skipping cleaning of job info because of queued actions: ['AddExprCallback', ['BufEnter', 'WinEnter']].", 3
-      AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.'
-    endif
-    call neomake#CancelJob(job_id)
-    if has('patch-7.4.2299')
-      AssertNeomakeMessage 'Removed 2 action queue entries.', 3
-      AssertNeomakeMessage 'Removing already finished job.', 3, jobinfo
+    let maker = copy(g:entry_maker)
+    function! maker.get_list_entries(...)
       wincmd p
-    else
-      NeomakeTestsWaitForFinishedJobs
-    endif
+      return []
+    endfunction
+    let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
+    let job_id = jobinfo.id
+    NeomakeTestsWaitForMessage 'Queuing action ProcessEntries for BufEnter, WinEnter.'
+    AssertNeomakeMessage "Skipping cleaning of job info because of queued actions: ['ProcessEntries', ['BufEnter', 'WinEnter']].", 3
+    AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.'
+    call neomake#CancelJob(job_id)
+    AssertNeomakeMessage 'Removed 2 action queue entries.', 3
+    AssertNeomakeMessage 'Removing already finished job.', 3, jobinfo
+    wincmd p
     AssertNeomakeMessage 'Cleaning make info.', 3
     bwipe
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd does not exist'
