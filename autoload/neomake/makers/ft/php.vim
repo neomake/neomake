@@ -36,8 +36,16 @@ function! neomake#makers#ft#php#phpcs() abort
 endfunction
 
 function! neomake#makers#ft#php#phpmd() abort
+    let l:args = ['%t', 'text']
+
+    if exists('g:neomake_php_phpmd_args_standard')
+        call add(l:args, expand(g:neomake_php_phpmd_args_standard))
+    else
+        call add(l:args, 'codesize,design,unusedcode,naming')
+    endif
+
     return {
-        \ 'args': ['%t', 'text', 'codesize,design,unusedcode,naming'],
+        \ 'args': args,
         \ 'append_file': 0,
         \ 'errorformat': '%W%f:%l%\s%\s%#%m'
         \ }
