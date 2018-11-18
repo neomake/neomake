@@ -1259,7 +1259,9 @@ function! s:Make(options) abort
     " Cancel any already running jobs for the makers from these jobs.
     if !empty(s:jobs)
         " @vimlint(EVL102, 1, l:job)
-        for _ in jobs
+        " vint: -ProhibitUnusedVariable
+        for job in jobs
+            " vint: +ProhibitUnusedVariable
             let running_already = values(filter(copy(s:jobs),
                         \ 'v:val.maker == job.maker'
                         \ .' && v:val.bufnr == job.bufnr'
