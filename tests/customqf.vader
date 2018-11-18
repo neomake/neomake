@@ -372,12 +372,17 @@ Execute (custom qf gets disabled with manual setloclist()):
         \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
         \}])
     lopen
+    let ll_bufnr = bufnr('%')
     AssertEqual getline(1), 'b 1:- Text with marker'
     doautocmd CursorMoved
+
+    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.ll_bufnr.'.'
 
     Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are existing matches.'
     call setloclist(0, [{'text': 'something custom'}])
     AssertNeomakeMessage 'Resetting custom qf for non-Neomake change.', 3
+    AssertNeomakeMessage 'Cleaning old signs in buffer '.ll_bufnr.': {5000: neomake_file_err}.'
+    AssertNeomakeMessage 'Unplacing sign: sign unplace 5000 buffer='.ll_bufnr.'.'
     Assert empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are no existing matches.'
 
     call setloclist(0, [{

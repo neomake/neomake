@@ -69,8 +69,10 @@ Execute (Signs are not re-used / wiped across modes):
   AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.bufnr.'.'
   AssertNeomakeMessage 'Placing sign: sign place 5001 line=1 name=neomake_project_warn buffer='.bufnr.'.'
   call neomake#signs#ResetProject()
+  AssertNeomakeMessage 'Cleaning old signs in buffer '.bufnr.': {5001: neomake_project_warn}.'
+  AssertNeomakeMessage 'Unplacing sign: sign unplace 5001 buffer='.bufnr.'.'
   call neomake#signs#CleanAllOldSigns('project')
-  AssertNeomakeMessage 'Removing signs: {file: {}, project: {'.bufnr.': {5001: neomake_project_warn}}}.'
+  AssertNeomakeMessage 'Removing signs: {file: {}, project: {}}.'
 
   AssertEqual neomake#signs#by_lnum(bufnr), {'1': [5000, 'neomake_file_err']}
   call neomake#signs#RedefineSign('neomake_file_warn', {})

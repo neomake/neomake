@@ -101,6 +101,7 @@ function! s:clean_qf_annotations() abort
     if exists('b:_neomake_cursor_match_id')
         silent! call matchdelete(b:_neomake_cursor_match_id)
     endif
+    call neomake#signs#ResetFile(bufnr('%'))
 endfunction
 
 
@@ -108,7 +109,6 @@ function! neomake#quickfix#FormatQuickfix() abort
     let buf = bufnr('%')
     if !s:is_enabled || &filetype !=# 'qf'
         if exists('b:neomake_qf')
-            call neomake#signs#Clean(buf, 'file')
             if exists('b:_neomake_qf_orig_lines')
                 call s:set_qf_lines(b:_neomake_qf_orig_lines)
                 unlet b:_neomake_qf_orig_lines
