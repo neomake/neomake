@@ -1227,11 +1227,13 @@ function! s:AddExprCallback(jobinfo, lines) abort
     let &errorformat = maker.errorformat
     try
         if file_mode
-            noautocmd laddexpr a:lines
-            let a:jobinfo._delayed_qf_autocmd = 'laddexpr'
+            let cmd = 'laddexpr'
         else
-            noautocmd caddexpr a:lines
-            let a:jobinfo._delayed_qf_autocmd = 'caddexpr'
+            let cmd = 'caddexpr'
+        endif
+        exe 'noautocmd '.cmd.' a:lines'
+        if exists('#QuickfixCmdPost')
+            let a:jobinfo._delayed_qf_autocmd = 'QuickfixCmdPost '.cmd
         endif
     finally
         let &errorformat = olderrformat
@@ -1914,7 +1916,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     endif
 
     if has_key(a:jobinfo, '_delayed_qf_autocmd')
-        call neomake#compat#doautocmd('QuickfixCmdPost '.a:jobinfo._delayed_qf_autocmd)
+        call neomake#compat#doautocmd(a:jobinfo._delayed_qf_autocmd)
         unlet a:jobinfo._delayed_qf_autocmd
     endif
 
