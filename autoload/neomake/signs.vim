@@ -13,22 +13,23 @@ let s:last_placed_signs = {'project': {}, 'file': {}}
 exe 'sign define neomake_invisible'
 
 " Reset signs placed by a :Neomake! call
-" (resetting signs means the current signs will be deleted on the next call to ResetProject)
 function! neomake#signs#ResetProject() abort
     for buf in keys(s:placed_signs.project)
-        call neomake#signs#CleanOldSigns(buf, 'project')
         call neomake#signs#Reset(buf, 'project')
+        call neomake#signs#CleanOldSigns(buf, 'project')
     endfor
 endfunction
 
 " Reset signs placed by a :Neomake call in a buffer
 function! neomake#signs#ResetFile(bufnr) abort
-    call neomake#signs#CleanOldSigns(a:bufnr, 'file')
     call neomake#signs#Reset(a:bufnr, 'file')
+    call neomake#signs#CleanOldSigns(a:bufnr, 'file')
 endfunction
 
 function! neomake#signs#Reset(bufnr, type) abort
     if has_key(s:placed_signs[a:type], a:bufnr)
+        " Clean any lingering, already retired signs.
+        call neomake#signs#CleanOldSigns(a:bufnr, a:type)
         let s:last_placed_signs[a:type][a:bufnr] = s:placed_signs[a:type][a:bufnr]
         unlet s:placed_signs[a:type][a:bufnr]
     endif
