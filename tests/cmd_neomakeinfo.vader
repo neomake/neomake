@@ -136,7 +136,6 @@ Execute (NeomakeInfo! copies to clipboard):
     let idx = i
   endfor
 
-  let messages_lines = split(neomake#utils#redir('messages'), "\n")
   AssertEqual NeomakeTestsGetVimMessages(), [
   \ 'Copied Neomake info to clipboard ("+).']
 
