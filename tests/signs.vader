@@ -97,7 +97,6 @@ Execute (Signs are not wiped when buffer gets wiped with removed augroup):
 
   AssertEqual neomake#signs#by_lnum(buf), {}
   call neomake#signs#ResetFile(buf)
-  call neomake#signs#CleanOldSigns(buf, 'file')
   AssertNeomakeMessage 'Skipped cleaning of old signs in non-existing buffer '.buf.': {5000: neomake_file_err}.', 3
 
 Execute (neomake#signs#by_lnum):

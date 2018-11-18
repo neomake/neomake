@@ -263,7 +263,6 @@ function! neomake#quickfix#FormatQuickfix() abort
         let &breakindentopt = 'shift:'.(b:neomake_start_col + 1)
     endif
 
-    call neomake#signs#CleanOldSigns(buf, 'file')
     call neomake#signs#Reset(buf, 'file')
     call neomake#signs#PlaceSigns(buf, signs, 'file')
 
