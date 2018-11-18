@@ -85,18 +85,14 @@ function! neomake#cmd#clean(file_mode) abort
     if a:file_mode
         if s:is_neomake_list(getloclist(0))
             call setloclist(0, [], 'r')
-            if get(g:, 'neomake_open_list', 0)
-                lclose
-            endif
+            lclose
         endif
         call neomake#signs#ResetFile(buf)
         call neomake#statusline#ResetCountsForBuf(buf)
     else
         if s:is_neomake_list(getqflist())
             call setqflist([], 'r')
-            if get(g:, 'neomake_open_list', 0)
-                cclose
-            endif
+            cclose
         endif
         call neomake#signs#ResetProject()
         call neomake#statusline#ResetCountsForProject()
