@@ -150,7 +150,7 @@ Execute (cargo error message):
   let g:neomake_tests_highlight_lengths = {}
   new
   file build/lib.rs
-  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+  let cargo = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargo(),
     \ '../tests/fixtures/rust/cargo_error.json')
 
   call neomake#Make(1, [cargo])
@@ -198,7 +198,7 @@ Execute (cargo warning message):
   let g:neomake_tests_highlight_lengths = {}
   new
   file build/add_assign_like.rs
-  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+  let cargo = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargo(),
     \ '../tests/fixtures/rust/cargo_warning.json')
 
   call neomake#Make(1, [cargo])
@@ -225,7 +225,7 @@ Execute (cargo warning for file that is not open):
   file build/some_other_file.rs
 
   " Uses build/add_assign_like.rs.
-  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+  let cargo = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargo(),
     \ '../tests/fixtures/rust/cargo_warning.json')
 
   call neomake#Make(1, [cargo])
@@ -253,7 +253,7 @@ Execute (cargo error message children):
   let g:neomake_tests_highlight_lengths = {}
   new
   file tests/from.rs
-  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+  let cargo = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargo(),
     \ '../tests/fixtures/rust/cargo_error_children.json')
 
   call neomake#Make(1, [cargo])

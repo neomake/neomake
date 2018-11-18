@@ -26,7 +26,7 @@ Execute (stylelint):
   call writefile([], bufname1)
   call writefile([], bufname2)
 
-  let maker = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#css#stylelint', [
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#css#stylelint(), [
     \ bufname1,
     \ '  6:5   ✖  Expected indentation of 1 tab     indentation           ',
     \ '  7:9   ✖  Expected indentation of 2 tabs    indentation           ',
@@ -61,7 +61,7 @@ Execute (stylelint):
   exe buf2 'bwipe'
 
 Execute (stylelint: error with no config):
-  let maker = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#css#stylelint', [
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#css#stylelint(), [
     \ 'Error: No configuration provided for /path/to/foo.css',
     \ '    at module.exports (/usr/lib/node_modules/stylelint/lib/utils/configurationError.js:8:28)',
     \ '    at stylelint._fullExplorer.load.then.then.config (/usr/lib/node_modules/stylelint/lib/getConfigForFile.js:46:15)',

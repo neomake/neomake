@@ -411,7 +411,7 @@ function! NeomakeTestsGetVimMessages()
   return reverse(msgs[0 : idx-1])
 endfunction
 
-function! NeomakeTestsGetMakerWithOutput(func, lines_or_file) abort
+function! NeomakeTestsGetMakerWithOutput(base_maker, lines_or_file) abort
   if type(a:lines_or_file) == type([])
     let output_file = tempname()
     call writefile(a:lines_or_file, output_file)
@@ -419,11 +419,11 @@ function! NeomakeTestsGetMakerWithOutput(func, lines_or_file) abort
     let output_file = a:lines_or_file
   endif
 
-  let maker = call(a:func, [])
+  let maker = copy(a:base_maker)
   let maker.exe = 'cat'
   let maker.args = [output_file]
   let maker.append_file = 0
-  let maker.name = printf('%s-mocked', substitute(a:func, '^.*#', '', ''))
+  let maker.name = printf('%s-mocked', get(a:base_maker, 'name', 'unnamed_maker'))
   return maker
 endfunction
 

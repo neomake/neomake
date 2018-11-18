@@ -24,7 +24,7 @@ Execute (markdown: vale):
       \   '}',
       \   '',
       \ ]
-  let vale_maker = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#markdown#vale', mock)
+  let vale_maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#markdown#vale(), mock)
   CallNeomake 1, [vale_maker]
   AssertEqualQf getloclist(0), [
       \   {

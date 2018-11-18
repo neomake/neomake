@@ -15,7 +15,7 @@ Execute (cargo skip non json line):
 Execute (cargo info message):
   new
   file build/lib.rs
-  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+  let cargo = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargo(),
     \ '../tests/fixtures/rust/cargo_info.json')
 
   CallNeomake 1, [cargo]
@@ -26,7 +26,7 @@ Execute (cargo info message):
 Execute (cargo error without span):
   new
   file build/lib.rs
-  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+  let cargo = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargo(),
     \ '../tests/fixtures/rust/cargo_error_without_span.json')
 
   CallNeomake 1, [cargo]
@@ -37,7 +37,7 @@ Execute (cargo error without span):
 Execute (cargo: uses primary span):
   new
   file build/main.rs
-  let cargo = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargo',
+  let cargo = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargo(),
     \ 'tests/fixtures/rust/cargo_error_primary_span.json')
   let cargo.cwd = getcwd()
 
@@ -107,7 +107,7 @@ Execute (rust: cargo: logs error when cd'ing fails):
 Execute (rust: cargotest detect failures):
   new
   file src/lib.rs
-  let cargotest = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#rust#cargotest',
+  let cargotest = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rust#cargotest(),
     \ 'tests/fixtures/rust/cargotest_with_failures')
   let cargotest.cwd = getcwd()
 

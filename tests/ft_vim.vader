@@ -7,7 +7,7 @@ Execute (Vint: generic postprocessing for highlights):
   norm! oecho unused_var
   norm! osome unexpected_token
 
-  let vint_maker = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#vim#vint', [
+  let vint_maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#vim#vint(), [
   \ "file1.vim:1:6:warning:Undefined variable: l:undefined_var (ProhibitUsingUndeclaredVariable)",
   \ "file1.vim:2:6:warning:Unused variable: unused_var (ProhibitUnusedVariable)",
   \ "file1.vim:3:6:error:unexpected token: unexpected_token (SyntaxError)",
