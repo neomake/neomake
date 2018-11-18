@@ -68,14 +68,14 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Check qs
+          name: Checks
           command: |
             set -x
             python -m ensurepip --user
             PATH=$HOME/.local/bin:$PATH
             pip3 install --user -U 'vim-vint>=0.4a1'
             vint --version
-            make --keep-going check check_docker check_lint_diff
+            make --keep-going check check_docker check_lint_diff vint
             set +x
 
 workflows:
