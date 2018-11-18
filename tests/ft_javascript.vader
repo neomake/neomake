@@ -75,7 +75,7 @@ Execute (javascript: standard: errorformat):
 
 Execute (javascript: flow: no errors):
   new
-  let flow_maker = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#javascript#flow', [
+  let flow_maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#javascript#flow(), [
     \ 'No errors!',
     \ ])
   CallNeomake 1, [flow_maker]
@@ -85,7 +85,7 @@ Execute (javascript: flow: no errors):
 Execute (javascript: flow: no trailing newline):
   new
   file index.js
-  let flow_maker = NeomakeTestsGetMakerWithOutput('neomake#makers#ft#javascript#flow', [
+  let flow_maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#javascript#flow(), [
     \ 'File "index.js", line 9, characters 10-11',
     \ 'Error: Cannot call `list` because a callable signature is missing in exports [1].',
     \ '',
