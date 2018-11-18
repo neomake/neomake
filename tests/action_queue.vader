@@ -91,11 +91,10 @@ Execute (action queue: re-queued with different events):
 
   if has('timers')
     AssertNeomakeMessage '\V\^Retrying Timer event in 10ms'
-    sleep 10m
   else
     doautocmd CursorHold
   endif
-  AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 1).'
+  NeomakeTestsWaitForMessage 'action queue: processing for Timer (1 items, winnr: 1).'
   AssertNeomakeMessage 'Queuing action F1 for BufEnter, WinEnter.'
   AssertNeomakeMessage 'action queue: re-queuing F2 for not processed make_id.', 3
 
