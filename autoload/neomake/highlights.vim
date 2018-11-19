@@ -51,11 +51,18 @@ else
         endif
     endfunction
 endif
+
 function! neomake#highlights#ResetFile(buf) abort
     call s:reset('file', a:buf)
 endfunction
-function! neomake#highlights#ResetProject(buf) abort
-    call s:reset('project', a:buf)
+function! neomake#highlights#ResetProject(...) abort
+    if a:0  " deprecated a:buf
+        call neomake#log#warn_once('neomake#highlights#ResetProject does not use a:buf anymore.',
+                    \ 'deprecated-highlight-resetproject')
+    endif
+    for buf in keys(s:highlights['project'])
+        call s:reset('project', +buf)
+    endfor
 endfunction
 
 function! neomake#highlights#AddHighlight(entry, type) abort

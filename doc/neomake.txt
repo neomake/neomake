@@ -74,6 +74,12 @@ dispatch.
 :NeomakeCancelJobs
                         Terminate all jobs.
 
+                                                               *:NeomakeClean*
+                                                              *:NeomakeClean!*
+:NeomakeClean[!]
+                        Clean signs, highlights etc. for file-mode, or
+                        project-mode (with bang).
+
 ==============================================================================
 2.1. Toggle commands                                          *neomake-toggle*
 

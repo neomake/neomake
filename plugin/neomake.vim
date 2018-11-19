@@ -22,6 +22,8 @@ command! -bang NeomakeCancelJobs call neomake#CancelJobs(<bang>0)
 command! -bang -bar -nargs=? -complete=customlist,neomake#cmd#complete_makers
             \ NeomakeInfo call neomake#debug#display_info(<bang>0, <f-args>)
 
+command! -bang -bar NeomakeClean call neomake#cmd#clean(<bang>1)
+
 " Enable/disable/toggle commands.  {{{
 function! s:handle_disabled_status(scope, disabled, verbose) abort
     if a:scope is# g:
