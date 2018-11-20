@@ -2003,7 +2003,9 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
             call map(a:lines, maker.mapexpr)
         endif
 
-        call s:AddExprCallback(a:jobinfo, a:lines)
+        if !empty(a:lines)
+            call s:AddExprCallback(a:jobinfo, a:lines)
+        endif
     catch /^\%(Vim\%((\a\+)\)\=:\%(E48\|E523\)\)\@!/  " everything, but E48/E523 (sandbox / not allowed here)
         if v:exception ==# 'NeomakeTestsException'
             throw v:exception
