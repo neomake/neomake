@@ -42,7 +42,7 @@ Execute (neomake#Make in file mode with no filetype and no makers):
   Assert len(g:neomake_test_messages), 1
 
 Execute (neomake#Make in project mode with no filetype and no makers):
-  Save makeprg
+  Save &makeprg
   let &makeprg = 'sh -c "sleep 0.1"'
   let job_ids = neomake#Make(0, [])
   AssertEqual len(job_ids), 1
