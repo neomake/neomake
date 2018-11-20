@@ -1745,6 +1745,9 @@ let s:needs_to_replace_qf_for_lwindow = has('patch-7.4.379')
 " @vimlint(EVL108, 0)
 
 function! s:ProcessEntries(jobinfo, entries, ...) abort
+    if empty(a:entries)
+        return
+    endif
     if s:need_to_postpone_loclist(a:jobinfo)
         return neomake#action_queue#add(['BufEnter', 'WinEnter'], [s:function('s:ProcessEntries'),
                     \ [a:jobinfo, a:entries] + a:000])
