@@ -551,7 +551,7 @@ Execute (empty location list is handled with :lopen):
   let maker = {'exe': 'printf', 'args': ['%s\n', 'filtered_line'], 'errorformat': '%-G%.%#'}
   CallNeomake 1, [maker]
   AssertNeomakeMessage 'processing 2 lines of output.', 3
-  AssertNeomakeMessage 'Processing 0 entries.', 3
+  AssertNeomakeMessageAbsent 'Processing 0 entries.', 3
 
   AssertEqual map(getloclist(0), 'v:val.text'), []
 

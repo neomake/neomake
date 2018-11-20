@@ -1745,6 +1745,9 @@ let s:needs_to_replace_qf_for_lwindow = has('patch-7.4.379')
 " @vimlint(EVL108, 0)
 
 function! s:ProcessEntries(jobinfo, entries, ...) abort
+    if empty(a:entries)
+        return
+    endif
     if s:need_to_postpone_loclist(a:jobinfo)
         return neomake#action_queue#add(['BufEnter', 'WinEnter'], [s:function('s:ProcessEntries'),
                     \ [a:jobinfo, a:entries] + a:000])
@@ -2003,7 +2006,9 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
             call map(a:lines, maker.mapexpr)
         endif
 
-        call s:AddExprCallback(a:jobinfo, a:lines)
+        if !empty(a:lines)
+            call s:AddExprCallback(a:jobinfo, a:lines)
+        endif
     catch /^\%(Vim\%((\a\+)\)\=:\%(E48\|E523\)\)\@!/  " everything, but E48/E523 (sandbox / not allowed here)
         if v:exception ==# 'NeomakeTestsException'
             throw v:exception

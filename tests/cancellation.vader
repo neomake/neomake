@@ -194,7 +194,7 @@ Execute (neomake#CancelJob empties action queue):
     let maker = copy(g:entry_maker)
     function! maker.get_list_entries(...)
       wincmd p
-      return []
+      return [{'text': 'entry_text', 'lnum': 1}]
     endfunction
     let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
     let job_id = jobinfo.id
