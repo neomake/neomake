@@ -79,7 +79,7 @@ function! neomake#makers#ft#text#languagetool() abort
         " \ 'supports_stdin': 1,
     return {
         \ 'exe': s:languagetool_script,
-        \ 'fn': function('s:fn_languagetool'),
+        \ 'InitForJob': function('s:fn_languagetool'),
         \ 'append_file': 1,
         \ 'process_output': function('neomake#makers#ft#text#GetEntriesForOutput_Languagetool'),
         \ }
