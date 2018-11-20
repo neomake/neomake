@@ -314,7 +314,7 @@ Execute (python: mypy: handles --py2):
   call neomake#makers#ft#python#DetectPythonVersion()
   let maker = neomake#makers#ft#python#mypy()
   AssertEqual maker.args, base_args
-  AssertNeomakeMessage '\v^Failed to detect Python version: .*', 0
+  AssertNeomakeMessage '\v^Failed to detect Python version: .*', 3
 
   " Appends --py2 with Python 2.
   call g:NeomakeTestsCreateExe('python', ['#!/bin/sh', 'echo Python 2.7.14'])
@@ -322,8 +322,52 @@ Execute (python: mypy: handles --py2):
   let maker = neomake#makers#ft#python#mypy()
   AssertEqual maker.args, base_args + ['--py2']
 
-  " Does not append --py2 with Python 3.
+  " Caches previous result.
+  call g:NeomakeTestsCreateExe('python', ['#!/bin/sh', 'echo Python 3.6.4'])
+  call neomake#makers#ft#python#DetectPythonVersion()
+  let maker = neomake#makers#ft#python#mypy()
+  AssertEqual maker.args, base_args + ['--py2']
+
+  " Changing PATH invalidates cache, and then does not append --py2 with Python 3.
+  let $PATH .= (exists('+shellslash') ? ';' : ':') . 'foo'
   call g:NeomakeTestsCreateExe('python', ['#!/bin/sh', 'echo Python 3.6.4'])
   call neomake#makers#ft#python#DetectPythonVersion()
   let maker = neomake#makers#ft#python#mypy()
   AssertEqual maker.args, base_args
+
+Execute (python: can use shebang from buffer for exe/args):
+  new
+  noautocmd setfiletype python
+  call setline(1, ['#!/usr/bin/env python'])
+
+  let jobinfo = NeomakeTestsFakeJobinfo()
+
+  call neomake#config#set('b:python.InitForJob', function('neomake#utils#set_argv_from_shebang'))
+
+  let maker = neomake#core#instantiate_maker(neomake#GetMaker('python'), jobinfo, 0)
+  AssertEqual maker.exe, '/usr/bin/env'
+  AssertEqual maker.args[0], 'python'
+  Assert maker.args[1] =~# '\vcompile\.py$'
+
+  " Uses jobinfo.bufnr (from previous buffer).
+  new
+  noautocmd setfiletype python
+  let maker = neomake#core#instantiate_maker(neomake#GetMaker('python'), jobinfo, 0)
+  AssertEqual maker.exe, '/usr/bin/env'
+  AssertEqual maker.args[0], 'python'
+  Assert maker.args[1] =~# '\vcompile\.py$'
+
+  " Uses jobinfo.bufnr (current buffer).
+  let jobinfo.bufnr = bufnr('%')
+  let maker = neomake#core#instantiate_maker(neomake#GetMaker('python'), jobinfo, 0)
+  AssertEqual maker.exe, 'python'
+  Assert maker.args[0] =~# '\vcompile\.py$'
+
+  " Handles missing jobinfo.bufnr.
+  let jobinfo = {}
+  let maker = neomake#core#instantiate_maker(neomake#GetMaker('python'), jobinfo, 0)
+  AssertEqual maker.exe, 'python'
+  Assert maker.args[0] =~# '\vcompile\.py$'
+
+  bwipe!
+  bwipe!
