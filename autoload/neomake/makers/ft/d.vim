@@ -14,25 +14,25 @@ endfunction
 function! s:findDubRoot() abort
     "Look upwards for a dub.json or dub.sdl to find the root
     "I did it like this because it's the only cross platform way I know of
-    let l:tmp_file = findfile('dub.json', '.;')
-    if empty(l:tmp_file)
-        let l:tmp_file = findfile('dub.sdl', '.;')
+    let tmp_file = findfile('dub.json', '.;')
+    if empty(tmp_file)
+        let tmp_file = findfile('dub.sdl', '.;')
     endif
-    return l:tmp_file
+    return tmp_file
 endfunction
 
 function! s:UpdateDub() abort
     "Add dub directories
     let s:dubImports = []
-    let l:tmp_file = s:findDubRoot()
-    if executable('dub') && !empty(l:tmp_file)
-        let l:tmp_dir = fnamemodify(l:tmp_file,':p:h')
-        let l:dubCmd = 'dub describe --data=import-paths --annotate '
+    let tmp_file = s:findDubRoot()
+    if executable('dub') && !empty(tmp_file)
+        let tmp_dir = fnamemodify(tmp_file,':p:h')
+        let dubCmd = 'dub describe --data=import-paths --annotate '
                     \ .'--skip-registry=all --vquiet --data-list --root='
-        let l:output = system(l:dubCmd . tmp_dir)
-        if(v:shell_error == 0 && !empty(l:output))
+        let output = system(dubCmd . tmp_dir)
+        if(v:shell_error == 0 && !empty(output))
             " Is \n portable?
-            let s:dubImports = split(l:output, '\n')
+            let s:dubImports = split(output, '\n')
             call map(s:dubImports, "'-I' . v:val")
         endif
     endif
@@ -43,9 +43,9 @@ endfunction
 function! s:DmdStyleMaker(args) abort
     "Updating dub paths each make might be slow?
     call s:UpdateDub()
-    let l:args = ['-w', '-wi', '-c', '-o-', '-vcolumns'] + a:args + s:dubImports
+    let args = ['-w', '-wi', '-c', '-o-', '-vcolumns'] + a:args + s:dubImports
     return {
-        \ 'args': l:args,
+        \ 'args': args,
         \ 'errorformat':
         \     '%f(%l\,%c): %trror: %m,' .
         \     '%f(%l): %trror: %m,' .
@@ -57,25 +57,25 @@ function! s:DmdStyleMaker(args) abort
 endfunction
 
 function! neomake#makers#ft#d#dmd() abort
-    let l:args = []
+    let args = []
     if exists('g:neomake_d_dmd_args_conf')
-        call add(l:args, '-conf=' . expand(g:neomake_d_dmd_args_conf))
+        call add(args, '-conf=' . expand(g:neomake_d_dmd_args_conf))
     endif
-    return s:DmdStyleMaker(l:args)
+    return s:DmdStyleMaker(args)
 endfunction
 
 function! neomake#makers#ft#d#ldmd() abort
-    let l:args = []
+    let args = []
     if exists('g:neomake_d_ldmd_args_conf')
-        call add(l:args, '-conf=' . expand(g:neomake_d_ldmd_args_conf))
+        call add(args, '-conf=' . expand(g:neomake_d_ldmd_args_conf))
     endif
-    return s:DmdStyleMaker(l:args)
+    return s:DmdStyleMaker(args)
 endfunction
 
 function! neomake#makers#ft#d#gdmd() abort
-    let l:args = ['-c', '-o-', '-fsyntax-only', s:UpdateDub()]
+    let args = ['-c', '-o-', '-fsyntax-only', s:UpdateDub()]
     return {
-        \ 'args': l:args,
+        \ 'args': args,
         \ 'errorformat':
             \ '%-G%f:%s:,' .
             \ '%-G%f:%l: %#error: %#(Each undeclared identifier is reported only%.%#,' .

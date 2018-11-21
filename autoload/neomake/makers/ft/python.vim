@@ -169,21 +169,21 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
         " errors.
         let token = matchstr(a:entry.text, token_pattern)
         if !empty(token)
-            let l:view = winsaveview()
+            let view = winsaveview()
             call cursor(a:entry.lnum, a:entry.col)
             " The number of lines to give up searching afterwards
-            let l:search_lines = 5
+            let search_lines = 5
 
             if searchpos('\<from\>', 'cnW', a:entry.lnum)[1] == a:entry.col
                 " for 'from xxx.yyy import zzz' the token looks like
                 " xxx.yyy.zzz, but only the zzz part should be highlighted. So
                 " this discards the module part
-                let l:token = split(l:token, '\.')[-1]
+                let token = split(token, '\.')[-1]
 
                 " Also the search should be started at the import keyword.
                 " Otherwise for 'from os import os' the first os will be
                 " found. This moves the cursor there.
-                call search('\<import\>', 'cW', a:entry.lnum + l:search_lines)
+                call search('\<import\>', 'cW', a:entry.lnum + search_lines)
             endif
 
             " Search for the first occurrence of the token and highlight in
@@ -194,18 +194,18 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
             " matches all seperators such as spaces and newlines with
             " backslashes until it knows for sure the previous real character
             " was not a dot.
-            let l:ident_pos = searchpos('\(\.\(\_s\|\\\)*\)\@<!\<' .
-                        \ l:token . '\>\(\(\_s\|\\\)*\.\)\@!',
+            let ident_pos = searchpos('\(\.\(\_s\|\\\)*\)\@<!\<' .
+                        \ token . '\>\(\(\_s\|\\\)*\.\)\@!',
                         \ 'cnW',
-                        \ a:entry.lnum + l:search_lines)
-            if l:ident_pos[1] > 0
-                let a:entry.lnum = l:ident_pos[0]
-                let a:entry.col = l:ident_pos[1]
+                        \ a:entry.lnum + search_lines)
+            if ident_pos[1] > 0
+                let a:entry.lnum = ident_pos[0]
+                let a:entry.col = ident_pos[1]
             endif
 
-            call winrestview(l:view)
+            call winrestview(view)
 
-            let a:entry.length = strlen(l:token)
+            let a:entry.length = strlen(token)
         endif
     else
         call neomake#postprocess#generic_length_with_pattern(a:entry, token_pattern)
@@ -376,18 +376,18 @@ endfunction
 " --fast-parser: adds experimental support for async/await syntax
 " --silent-imports: replaced by --ignore-missing-imports
 function! neomake#makers#ft#python#mypy() abort
-    let l:args = ['--check-untyped-defs', '--ignore-missing-imports']
+    let args = ['--check-untyped-defs', '--ignore-missing-imports']
 
     " Append '--py2' to args with Python 2 for Python 2 mode.
     if !exists('s:python_version')
         call neomake#makers#ft#python#DetectPythonVersion()
     endif
     if s:python_version[0] ==# '2'
-        call add(l:args, '--py2')
+        call add(args, '--py2')
     endif
 
     return {
-        \ 'args': l:args,
+        \ 'args': args,
         \ 'errorformat':
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .

@@ -23,41 +23,41 @@ function! neomake#makers#ft#purescript#pulp() abort
 endfunction
 
 function! neomake#makers#ft#purescript#PSProcessOutput(context) abort
-    let l:errors = []
+    let errors = []
     for line in a:context.output
         if line[0] !=# '{'
             continue
         endif
-        let l:decoded = neomake#compat#json_decode(line)
-        for [key, values] in items(l:decoded)
-            let l:code = key ==# 'warnings' ? 'W' : 'E'
+        let decoded = neomake#compat#json_decode(line)
+        for [key, values] in items(decoded)
+            let code = key ==# 'warnings' ? 'W' : 'E'
             for item in values
-                let l:compiler_error = item['errorCode']
-                let l:message = item['message']
-                let l:position = item['position']
-                let l:filename = item['filename']
-                if  l:position is g:neomake#compat#json_null
-                    let l:row = 1
-                    let l:col = 1
-                    let l:end_col = 1
-                    let l:length = 1
+                let compiler_error = item['errorCode']
+                let message = item['message']
+                let position = item['position']
+                let filename = item['filename']
+                if  position is g:neomake#compat#json_null
+                    let row = 1
+                    let col = 1
+                    let end_col = 1
+                    let length = 1
                 else
-                    let l:row = l:position['startLine']
-                    let l:col = l:position['startColumn']
-                    let l:end_col = l:position['endColumn']
-                    let l:length = l:end_col - l:col
+                    let row = position['startLine']
+                    let col = position['startColumn']
+                    let end_col = position['endColumn']
+                    let length = end_col - col
                 endif
 
-                call add(l:errors, {
-                            \ 'text': l:compiler_error . ' : ' . l:message,
-                            \ 'type': l:code,
-                            \ 'lnum': l:row,
-                            \ 'col': l:col,
-                            \ 'length': l:length,
-                            \ 'filename': l:filename,
+                call add(errors, {
+                            \ 'text': compiler_error . ' : ' . message,
+                            \ 'type': code,
+                            \ 'lnum': row,
+                            \ 'col': col,
+                            \ 'length': length,
+                            \ 'filename': filename,
                             \ })
             endfor
         endfor
     endfor
-    return l:errors
+    return errors
 endfunction

@@ -13,41 +13,41 @@ function! neomake#makers#ft#elm#elmMake() abort
 endfunction
 
 function! neomake#makers#ft#elm#ElmMakeProcessOutput(context) abort
-    let l:errors = []
+    let errors = []
     " output will be a List, containing either:
     " 1) A success message
     " 2) A string holding a JSON array for both warnings and errors
 
     for line in a:context.output
         if line[0] ==# '['
-            let l:decoded = neomake#compat#json_decode(line)
-            for item in l:decoded
+            let decoded = neomake#compat#json_decode(line)
+            for item in decoded
                 if get(item, 'type', '') ==# 'warning'
-                    let l:code = 'W'
+                    let code = 'W'
                 else
-                    let l:code = 'E'
+                    let code = 'E'
                 endif
 
-                let l:compiler_error = item['tag']
-                let l:message = item['overview']
-                let l:filename = item['file']
-                let l:region_start = item['region']['start']
-                let l:region_end = item['region']['end']
-                let l:row = l:region_start['line']
-                let l:col = l:region_start['column']
-                let l:length = l:region_end['column'] - l:region_start['column']
+                let compiler_error = item['tag']
+                let message = item['overview']
+                let filename = item['file']
+                let region_start = item['region']['start']
+                let region_end = item['region']['end']
+                let row = region_start['line']
+                let col = region_start['column']
+                let length = region_end['column'] - region_start['column']
 
-                let l:error = {
-                            \ 'text': l:compiler_error . ' : ' . l:message,
-                            \ 'type': l:code,
-                            \ 'lnum': l:row,
-                            \ 'col': l:col,
-                            \ 'length': l:length,
-                            \ 'filename': l:filename,
+                let error = {
+                            \ 'text': compiler_error . ' : ' . message,
+                            \ 'type': code,
+                            \ 'lnum': row,
+                            \ 'col': col,
+                            \ 'length': length,
+                            \ 'filename': filename,
                             \ }
-                call add(l:errors, l:error)
+                call add(errors, error)
             endfor
         endif
     endfor
-    return l:errors
+    return errors
 endfunction
