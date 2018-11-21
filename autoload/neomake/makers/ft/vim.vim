@@ -7,15 +7,15 @@ endfunction
 let s:vint_supports_stdin = {}
 
 function! neomake#makers#ft#vim#vint() abort
-    let l:args = ['--style-problem', '--no-color',
+    let args = ['--style-problem', '--no-color',
         \ '-f', '{file_path}:{line_number}:{column_number}:{severity}:{description} ({policy_name})']
 
     if has('nvim')
-        call add(l:args, '--enable-neovim')
+        call add(args, '--enable-neovim')
     endif
 
     let maker = {
-        \ 'args': l:args,
+        \ 'args': args,
         \ 'errorformat': '%I%f:%l:%c:style_problem:%m,'
         \   .'%f:%l:%c:%t%*[^:]:E%n: %m,'
         \   .'%f:%l:%c:%t%*[^:]:%m',

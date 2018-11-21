@@ -1998,11 +1998,11 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
 
         " Old-school handling through errorformat.
         if has_key(maker, 'mapexpr')
-            let l:neomake_bufname = fnamemodify(bufname(a:jobinfo.bufnr), ':p')
+            let neomake_bufname = fnamemodify(bufname(a:jobinfo.bufnr), ':p')
             " @vimlint(EVL102, 1, l:neomake_bufdir)
-            let l:neomake_bufdir = fnamemodify(neomake_bufname, ':h')
+            let neomake_bufdir = fnamemodify(neomake_bufname, ':h')
             " @vimlint(EVL102, 1, l:neomake_output_source)
-            let l:neomake_output_source = a:source
+            let neomake_output_source = a:source
             call map(a:lines, maker.mapexpr)
         endif
 
@@ -2341,17 +2341,17 @@ function! s:exit_handler(jobinfo, data) abort
     endfor
 
     if !get(jobinfo, 'failed_to_start')
-        let l:ExitCallback = neomake#utils#GetSetting('exit_callback',
+        let ExitCallback = neomake#utils#GetSetting('exit_callback',
                     \ extend(copy(jobinfo), maker), 0, jobinfo.ft, jobinfo.bufnr)
-        if l:ExitCallback isnot# 0
+        if ExitCallback isnot# 0
             let callback_dict = { 'status': jobinfo.exit_code,
                                 \ 'name': maker.name,
                                 \ 'has_next': !empty(s:make_info[jobinfo.make_id].jobs_queue) }
             try
-                if type(l:ExitCallback) == type('')
-                    let l:ExitCallback = function(l:ExitCallback)
+                if type(ExitCallback) == type('')
+                    let ExitCallback = function(ExitCallback)
                 endif
-                call call(l:ExitCallback, [callback_dict], jobinfo)
+                call call(ExitCallback, [callback_dict], jobinfo)
             catch
                 call neomake#log#error(printf(
                             \ 'Error during exit_callback: %s.', v:exception),

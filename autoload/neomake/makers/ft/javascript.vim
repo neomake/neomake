@@ -98,10 +98,10 @@ function! neomake#makers#ft#javascript#flow() abort
 endfunction
 
 function! neomake#makers#ft#javascript#FlowProcess(entry) abort
-    let l:lines = split(a:entry.text, '\n')
-    if !empty(l:lines)
-        let a:entry.text = join(l:lines[1:])
-        let a:entry.length = l:lines[0] - a:entry.col + 1
+    let lines = split(a:entry.text, '\n')
+    if !empty(lines)
+        let a:entry.text = join(lines[1:])
+        let a:entry.length = lines[0] - a:entry.col + 1
     endif
 endfunction
 
