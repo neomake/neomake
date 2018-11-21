@@ -1,5 +1,4 @@
 let s:slash = neomake#utils#Slash()
-let s:languagetool_script = expand('<sfile>:p:h', 1).s:slash.'text'.s:slash.'languagetool.py'
 
 function! s:getVar(varname, default) abort
     "TODO: Use neomake#utils#GetSetting
@@ -40,7 +39,11 @@ let s:languagetool_fallback_language = 'auto'
 " See http://wiki.languagetool.org/public-http-api for a public instance. Use:
 "   :let g:neomake_text_languagetool_server = 'https://languagetool.org/api'
 let s:languagetool_fallback_server = 'http://localhost:8081'
-function! s:fn_languagetool(_jobinfo) abort dict
+
+let s:languagetool_maker = {}
+let s:languagetool_maker.exe = expand('<sfile>:p:h', 1).s:slash.'text'.s:slash.'languagetool.py'
+let s:languagetool_maker.append_file = 1
+function! s:languagetool_maker.InitForJob(_jobinfo) abort
     let l:args = []
     " Mandatory arguments
     let l:server = s:getVar('neomake_text_languagetool_server', s:languagetool_fallback_server)
@@ -61,7 +64,7 @@ function! s:fn_languagetool(_jobinfo) abort dict
     let self.args = l:args
 endfunction
 
-function! neomake#makers#ft#text#GetEntriesForOutput_Languagetool(context) abort
+function! s:languagetool_maker.process_output(context) abort
     let output = neomake#utils#JSONdecode(join(a:context.output, ''))
     call neomake#log#debug_obj('output', output)
     let entries = []
@@ -77,12 +80,7 @@ endfunction
 
 function! neomake#makers#ft#text#languagetool() abort
         " \ 'supports_stdin': 1,
-    return {
-        \ 'exe': s:languagetool_script,
-        \ 'InitForJob': function('s:fn_languagetool'),
-        \ 'append_file': 1,
-        \ 'process_output': function('neomake#makers#ft#text#GetEntriesForOutput_Languagetool'),
-        \ }
+    return copy(s:languagetool_maker)
 endfunction
 
 " vim: ts=4 sw=4 et
