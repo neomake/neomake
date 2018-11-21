@@ -462,6 +462,10 @@ function! s:After()
   if exists('#neomake_automake')
     au! neomake_automake
   endif
+  if exists('#neomake_tests')
+    autocmd! neomake_tests
+    augroup! neomake_tests
+  endif
 
   Restore
   unlet! g:expected  " for old Vim with Vader, that does not wrap tests in a function.
@@ -498,8 +502,8 @@ function! s:After()
     unlet make_info[-42]
   endif
   if !empty(make_info)
-    call add(errors, 'make_info is not empty: '.string(make_info))
     try
+      call add(errors, 'make_info is not empty: '.string(neomake#utils#fix_self_ref(make_info)))
       call neomake#CancelAllMakes(1)
     catch
       call add(errors, v:exception)

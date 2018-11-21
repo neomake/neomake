@@ -66,6 +66,7 @@ if [ "$1" = vader ]; then
     filtering=0
     quiet_filtered=
     finished_reading=0
+    stopped_filtering=0
     while [ "$finished_reading" = 0 ]; do
       if ! read -r; then
         # Clear spinner.
@@ -83,6 +84,10 @@ if [ "$1" = vader ]; then
         fi
         printf "[31m[1m%s[0m\n" "$REPLY"
         quiet_started=1
+        continue
+      fi
+      if (( stopped_filtering )); then
+        echo "$REPLY"
         continue
       fi
       # quiet/compact: suppress output until "Starting Vader:".
@@ -132,6 +137,7 @@ if [ "$1" = vader ]; then
         echo "$REPLY"
         filtering=0
         filtered=
+        stopped_filtering=1
       elif ! ((filtering)); then
         echo "$REPLY"
       elif [[ "$REPLY" =~ $re_log_line && ! "$REPLY" =~ $re_ignore_log_line ]]; then
