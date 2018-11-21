@@ -503,7 +503,7 @@ function! s:After()
   endif
   if !empty(make_info)
     try
-      call add(errors, 'make_info is not empty: '.string(make_info))
+      call add(errors, 'make_info is not empty: '.string(neomake#utils#fix_self_ref(make_info)))
       call neomake#CancelAllMakes(1)
     catch
       call add(errors, v:exception)
