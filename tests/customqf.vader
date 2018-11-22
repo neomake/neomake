@@ -488,3 +488,31 @@ Execute (Enables customqf on VimEnter):
   finally
     call neomake#quickfix#disable()
   endtry
+
+Execute (Does not use quickfix list with empty location list):
+  call neomake#quickfix#enable(1)
+  try
+    call setqflist([{
+        \ 'text': 'Line 1 nmcfg:{"name": "python", "short": "Alph"}',
+        \ 'lnum': 1,
+        \ }])
+    lopen
+
+    if has('patch-7.4.2200')
+      Assert !exists('b:neomake_qf')
+      AssertEqual b:current_syntax, 'qf'
+    else
+      " XXX: needs list refactoring to fix this properly.
+      Assert exists('b:neomake_qf')
+      AssertEqual b:current_syntax, 'neomake_qf'
+    endif
+
+    lclose
+
+    copen
+    Assert exists('b:neomake_qf')
+    AssertEqual b:current_syntax, 'neomake_qf'
+    cclose
+  finally
+    call neomake#quickfix#disable()
+  endtry

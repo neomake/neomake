@@ -124,11 +124,20 @@ function! neomake#quickfix#FormatQuickfix() abort
     endif
 
     let src_buf = 0
-    let loclist = 1
-    let qflist = getloclist(0)
-    if empty(qflist)
-        let loclist = 0
-        let qflist = getqflist()
+    if has('patch-7.4.2215')
+        let is_loclist = getwininfo(win_getid())[0].loclist
+        if is_loclist
+            let qflist = getloclist(0)
+        else
+            let qflist = getqflist()
+        endif
+    else
+        let is_loclist = 1
+        let qflist = getloclist(0)
+        if empty(qflist)
+            let is_loclist = 0
+            let qflist = getqflist()
+        endif
     endif
 
     if empty(qflist) || qflist[0].text !~# ' nmcfg:{.\{-}}$'
@@ -139,7 +148,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         return
     endif
 
-    if loclist
+    if is_loclist
         let b:neomake_qf = 'file'
         let src_buf = qflist[0].bufnr
     else
@@ -295,7 +304,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         autocmd CursorMoved <buffer> call s:cursor_moved()
     augroup END
 
-    if loclist
+    if is_loclist
         let bufname = bufname(src_buf)
         if empty(bufname)
             let bufname = 'buf:'.src_buf
