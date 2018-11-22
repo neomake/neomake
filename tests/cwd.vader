@@ -266,8 +266,7 @@ Execute (get_list_entries: filename with cwd):
   AssertEqual expand('%:p'), tempdir.'/project/sub/file_in_subdir_2'
   Assert filereadable('project/sub/file_in_subdir_2'), 'file is readable'
 
-  call neomake#Make(1, [maker])
-  NeomakeTestsWaitForFinishedJobs
+  CallNeomake 1, [maker]
   AssertNeomakeMessage 'Updating entry bufnr: 0 => '.bufnr.'.'
 
   AssertEqualQf getloclist(0), [{

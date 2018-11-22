@@ -74,7 +74,7 @@ Execute (Goes back to original window after opening list):
   new
   let winnr = winnr()
   let wincount = winnr('$')
-  call neomake#Make(1, [g:error_maker])
+  CallNeomake 1, [g:error_maker]
   NeomakeTestsWaitForFinishedJobs
 
   AssertEqual winnr, winnr()
@@ -107,6 +107,7 @@ Execute (open_list=2 handling with get_list_entries maker and invalid entries):
   \ ['error2', 'E', 0]]
 
   AssertEqual winnr, winnr()
+
   if has('patch-7.4.379')
     AssertEqual wincount, winnr('$'), 'Location list did not appear for invalid entries'
   else
@@ -138,6 +139,7 @@ Execute (open_list=2 handling with get_list_entries maker and invalid entries (q
   \ ['error2', 'E', 0]]
 
   AssertEqual winnr, winnr()
+
   if has('patch-7.4.379')
     AssertEqual wincount, winnr('$'), 'Quickfix list did not appear for invalid entries'
   else
@@ -188,8 +190,13 @@ Execute (Stays in location window with :lwindow in QuickFixCmdPost (like vim-qf)
   AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'), [['error', 'E']]
 
   AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
-  " Not what you expect when being unaware of the autocmd, but it is like that.
-  AssertNotEqual winnr, winnr()
+
+  if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+    AssertEqual winnr, winnr()
+  else
+    " Not what you expect when being unaware of the autocmd, but it is like that.
+    AssertNotEqual winnr, winnr()
+  endif
   exe winnr.'wincmd w'
   lclose
   bwipe
@@ -245,7 +252,11 @@ Execute (Goes back to original window after opening list (wincmd in postprocess)
     AssertNeomakeMessage 'action queue: processed 2 items.'
 
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
-    AssertEqual s:called, 1
+    if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+      AssertEqual s:called, 0
+    else
+      AssertEqual s:called, 1
+    endif
 
     wincmd p
     AssertEqual 1, winnr()
@@ -380,7 +391,11 @@ Execute (Goes back to original window after opening list (mapexpr)):
     AssertNeomakeMessage 'action queue: processed 2 items.'
 
     Assert !exists('#neomake_event_queue#WinEnter'), 'autocmd was deleted'
-    AssertEqual s:called, 1
+    if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+      AssertEqual s:called, 0
+    else
+      AssertEqual s:called, 1
+    endif
 
     wincmd p
     AssertEqual 1, winnr()
@@ -654,7 +669,11 @@ Execute (Quiet with no QuickfixCmdPost autocommands):
   CallNeomake 1, [g:error_maker]
   Assert len(getloclist(0))
   AssertEqual NeomakeTestsGetVimMessages(), []
-  AssertEqual s:called, 1
+  if has('patch-8.0.1040')
+    AssertEqual s:called, 0
+  else
+    AssertEqual s:called, 1
+  endif
   bwipe
 
 Execute (open_list and list_height can be buffer settings):
@@ -682,4 +701,18 @@ Execute (open_list and list_height can be buffer settings):
 
   AssertEqual winheight(wincount + 1), 2
   lclose
+  bwipe
+
+Execute (postprocess: removing all entries):
+  new
+  AssertEqual getloclist(0), []
+  let maker = copy(g:error_maker)
+  function! maker.postprocess(entry) abort
+    let a:entry.valid = -1
+  endfunction
+
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'processing 1 lines of output.'
+  AssertNeomakeMessage '\v^Removing invalid entry: error .*'
+  AssertEqual getloclist(0), []
   bwipe

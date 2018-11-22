@@ -458,7 +458,11 @@ Execute (Signs should be placed with QuickfixCmdPost already (loclist)):
   let signs = neomake#signs#by_lnum(bufnr('%'))
   AssertEqual signs, {'1': [5000, 'neomake_file_err']}
 
-  AssertEqual s:calls, [signs]
+  if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+    AssertEqual s:calls, []
+  else
+    AssertEqual s:calls, [signs]
+  endif
   bwipe
   delfunction OnQuickfixCmdPost
 
@@ -479,6 +483,10 @@ Execute (Signs should be placed with QuickfixCmdPost already (qflist)):
   let signs = neomake#signs#by_lnum(bufnr('%'))
   AssertEqual signs, {'1': [5000, 'neomake_project_err']}
 
-  AssertEqual s:calls, [signs]
+  if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+    AssertEqual s:calls, []
+  else
+    AssertEqual s:calls, [signs]
+  endif
   bwipe
   delfunction OnQuickfixCmdPost

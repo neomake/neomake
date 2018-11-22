@@ -26,6 +26,7 @@ Include (Hooks get queued): hooks-queue.vader
 Include (Integration tests): integration.vader
 Include (Jobinfo): jobinfo.vader
 Include (JSON): json.vader
+Include (List): list.vader
 Include (Lists): lists.vader
 Include (List entries): list-entries.vader
 Include (Logging): log.vader
