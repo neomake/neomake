@@ -2552,7 +2552,6 @@ function! neomake#get_nearest_error() abort
     endif
 
     if len(ln_errors) > 1
-        let ln_errors = copy(ln_errors)
         call sort(ln_errors, function('neomake#utils#sort_by_col'))
     endif
     return ln_errors[0]
