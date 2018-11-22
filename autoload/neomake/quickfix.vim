@@ -89,6 +89,15 @@ function! s:set_qf_lines(lines) abort
 endfunction
 
 function! s:clean_qf_annotations() abort
+    if exists('b:_neomake_qf_orig_lines')
+        call s:set_qf_lines(b:_neomake_qf_orig_lines)
+        unlet b:_neomake_qf_orig_lines
+    endif
+    unlet b:neomake_qf
+    augroup neomake_qf
+        autocmd! * <buffer>
+    augroup END
+
     if exists('b:_neomake_maker_match_id')
         silent! call matchdelete(b:_neomake_maker_match_id)
     endif
@@ -109,14 +118,6 @@ function! neomake#quickfix#FormatQuickfix() abort
     let buf = bufnr('%')
     if !s:is_enabled || &filetype !=# 'qf'
         if exists('b:neomake_qf')
-            if exists('b:_neomake_qf_orig_lines')
-                call s:set_qf_lines(b:_neomake_qf_orig_lines)
-                unlet b:_neomake_qf_orig_lines
-            endif
-            unlet! b:neomake_qf
-            augroup neomake_qf
-                autocmd! * <buffer>
-            augroup END
             call s:clean_qf_annotations()
         endif
         return
@@ -131,9 +132,10 @@ function! neomake#quickfix#FormatQuickfix() abort
     endif
 
     if empty(qflist) || qflist[0].text !~# ' nmcfg:{.\{-}}$'
-        call neomake#log#debug('Resetting custom qf for non-Neomake change.')
-        call s:clean_qf_annotations()
-        set syntax=qf
+        if exists('b:neomake_qf')
+            call neomake#log#debug('Resetting custom qf for non-Neomake change.')
+            call s:clean_qf_annotations()
+        endif
         return
     endif
 

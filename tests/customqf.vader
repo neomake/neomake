@@ -379,9 +379,19 @@ Execute (custom qf gets disabled with manual setloclist()):
     AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.ll_bufnr.'.'
 
     Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are existing matches.'
+    AssertEqual b:current_syntax, 'neomake_qf'
+
+    let s:au_called = []
+    augroup neomake_tests
+      autocmd Syntax * call add(s:au_called, expand('<amatch>'))
+    augroup END
+
     call setloclist(0, [{'text': 'something custom'}])
+    AssertEqual s:au_called, ['qf']
+
     AssertNeomakeMessage 'Resetting custom qf for non-Neomake change.', 3
     AssertNeomakeMessage 'Cleaning 1 old signs in buffer '.ll_bufnr.'.'
+    AssertEqual b:current_syntax, 'qf'
     AssertEqual neomake#signs#by_lnum(ll_bufnr), {}
     Assert empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are no existing matches.'
 
