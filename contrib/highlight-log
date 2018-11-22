@@ -10,7 +10,8 @@
 #     tail -f /tmp/neomake.log | /path/to/neomake/contrib/highlight-log
 
 debug_color="[2m"  # $(tput dim), does not work in urxvt (although in infocmp/terminfo).
-error_color="[33;1m"
+log_color="[33;1m"
+error_color="[31m[1m"
 bold="[1m"  # $(tput bold)
 coloroff="[0m"
 
@@ -38,11 +39,11 @@ if [ "$1" = vader ]; then
     # 3. Neomake's error log messages
     # 4. Neomake's debug log messages
     # 5. non-Neomake log lines (e.g. from :Log)
-    sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/[31m[1m\0[0m/' \
+    sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/'"$error_color"'\0'"$coloroff"'/' \
       -e 's/^\(\([^ ].*\)\? \+\)\(([ [:digit:]]\+\/[[:digit:]]\+)\)/\1'"$bold"'\3'"$coloroff"'/' \
       -e 's/^ \+> \[\(error  \|E +[.[:digit:]]\+\)\]: .*/'"$bold"'\0'"$coloroff"'/' \
       -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0'"$coloroff"'/' \
-      -e '/\[\(verbose\|warning\|error  \|\(\(V\|W\|\E\) +[.[:digit:]]\+\)\)\]/! s/^ \+> .*/'"$error_color"'\0'"$coloroff"'/'
+      -e '/\[\(verbose\|warning\|error  \|debug  \|\(\(V\|W\|E\|D\) +[.[:digit:]]\+\)\)\]/! s/^\(.*\?\)      > .*$/'"$log_color"'\0'"$coloroff"'/'
   }
 
   if ((quiet || compact)); then
