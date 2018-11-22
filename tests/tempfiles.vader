@@ -529,6 +529,7 @@ Execute (unlisted buffers created for tempfiles get wiped):
     let b:neomake_serialize = 1
     call setline(1, maker1.tempfile_name.': '.maker2.tempfile_name)
 
+    call NeomakeTestsSetVimMessagesMarker()
     call neomake#Make(1, [maker1, maker2])
     let make_info = values(neomake#GetStatus().make_info)[0]
     NeomakeTestsWaitForFinishedJobs
@@ -543,11 +544,17 @@ Execute (unlisted buffers created for tempfiles get wiped):
     \ [maker2.tempfile_name, maker1.tempfile_name]
 
     AssertNeomakeMessage printf(
-    \ '\vUsed bufnr from temporary buffer \d+ \(%s\) for 1 entries: 1.',
+    \ '\vUsed bufnr from temporary buffer (\d+) \(%s\) for 1 entries: 1.',
     \ maker1.tempfile_name)
+    let buf1 = g:neomake_test_matchlist[1]
     AssertNeomakeMessage printf(
-    \ '\vUsed bufnr from temporary buffer \d+ \(%s\) for 1 entries: 2.',
+    \ '\vUsed bufnr from temporary buffer (\d+) \(%s\) for 1 entries: 2.',
     \ maker2.tempfile_name)
+    let buf2 = g:neomake_test_matchlist[1]
+
+    AssertNeomakeMessage printf('Wiping out 2 unlisted/remapped buffers: [%d, %d].', buf1, buf2), 3
+    AssertEqual NeomakeTestsGetVimMessages(), []
+
     Assert !bufexists(maker1.tempfile_name)
     Assert !bufexists(maker2.tempfile_name)
     bwipe!

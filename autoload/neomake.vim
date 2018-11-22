@@ -1570,7 +1570,8 @@ function! s:do_clean_make_info(make_info) abort
         call neomake#log#debug(printf('Wiping out %d unlisted/remapped buffers: %s.',
                     \ len(wipe_unlisted_buffers),
                     \ string(wipe_unlisted_buffers)))
-        exe (&report < 2 ? 'silent ' : '').'bwipeout '.join(wipe_unlisted_buffers)
+        " NOTE: needs to be silent with more than a single buffer.
+        exe 'silent bwipeout '.join(wipe_unlisted_buffers)
     endif
 
     let buf_prev_makes = getbufvar(a:make_info.options.bufnr, 'neomake_automake_make_ids')
