@@ -527,11 +527,6 @@ function! s:After()
     call add(errors, printf('action_queue_timer exists: %s', string(g:neomake#action_queue#_s)))
   endif
 
-  if exists('#neomake_tests')
-    autocmd! neomake_tests
-    augroup! neomake_tests
-  endif
-
   if winnr('$') > 1
     let error = 'More than 1 window after tests: '
       \ .string(map(range(1, winnr('$')),
