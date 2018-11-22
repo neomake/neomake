@@ -1761,13 +1761,13 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     call neomake#log#debug(printf(
                 \ 'Processing %d entries.', len(a:entries)), a:jobinfo)
 
+    let maker_name = a:jobinfo.maker.name
     if a:0 > 1
         " Via errorformat processing, where the list has been set already.
         let prev_list = a:1
         let new_list = file_mode ? getloclist(0) : getqflist()
     else
         " Fix entries with get_list_entries/process_output/process_json.
-        let maker_name = a:jobinfo.maker.name
         call map(a:entries, 'extend(v:val, {'
                     \ . "'bufnr': str2nr(get(v:val, 'bufnr', 0)),"
                     \ . "'lnum': str2nr(v:val.lnum),"
@@ -1775,7 +1775,6 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                     \ . "'vcol': str2nr(get(v:val, 'vcol', 0)),"
                     \ . "'type': get(v:val, 'type', 'E'),"
                     \ . "'nr': get(v:val, 'nr', -1),"
-                    \ . "'maker_name': maker_name,"
                     \ . '})')
 
         let cd_error = a:jobinfo.cd()
@@ -1884,6 +1883,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         endif
 
         " Track all errors by buffer and line
+        let entry.maker_name = maker_name
         if !has_key(s:current_errors[maker_type][entry.bufnr], entry.lnum)
             let s:current_errors[maker_type][entry.bufnr][entry.lnum] = [entry]
         else
