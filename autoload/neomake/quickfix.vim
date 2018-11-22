@@ -89,6 +89,15 @@ function! s:set_qf_lines(lines) abort
 endfunction
 
 function! s:clean_qf_annotations() abort
+    if exists('b:_neomake_qf_orig_lines')
+        call s:set_qf_lines(b:_neomake_qf_orig_lines)
+        unlet b:_neomake_qf_orig_lines
+    endif
+    unlet b:neomake_qf
+    augroup neomake_qf
+        autocmd! * <buffer>
+    augroup END
+
     if exists('b:_neomake_maker_match_id')
         silent! call matchdelete(b:_neomake_maker_match_id)
     endif
@@ -109,35 +118,37 @@ function! neomake#quickfix#FormatQuickfix() abort
     let buf = bufnr('%')
     if !s:is_enabled || &filetype !=# 'qf'
         if exists('b:neomake_qf')
-            if exists('b:_neomake_qf_orig_lines')
-                call s:set_qf_lines(b:_neomake_qf_orig_lines)
-                unlet b:_neomake_qf_orig_lines
-            endif
-            unlet! b:neomake_qf
-            augroup neomake_qf
-                autocmd! * <buffer>
-            augroup END
             call s:clean_qf_annotations()
         endif
         return
     endif
 
     let src_buf = 0
-    let loclist = 1
-    let qflist = getloclist(0)
-    if empty(qflist)
-        let loclist = 0
-        let qflist = getqflist()
+    if has('patch-7.4.2215')
+        let is_loclist = getwininfo(win_getid())[0].loclist
+        if is_loclist
+            let qflist = getloclist(0)
+        else
+            let qflist = getqflist()
+        endif
+    else
+        let is_loclist = 1
+        let qflist = getloclist(0)
+        if empty(qflist)
+            let is_loclist = 0
+            let qflist = getqflist()
+        endif
     endif
 
     if empty(qflist) || qflist[0].text !~# ' nmcfg:{.\{-}}$'
-        call neomake#log#debug('Resetting custom qf for non-Neomake change.')
-        call s:clean_qf_annotations()
-        set syntax=qf
+        if exists('b:neomake_qf')
+            call neomake#log#debug('Resetting custom qf for non-Neomake change.')
+            call s:clean_qf_annotations()
+        endif
         return
     endif
 
-    if loclist
+    if is_loclist
         let b:neomake_qf = 'file'
         let src_buf = qflist[0].bufnr
     else
@@ -293,7 +304,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         autocmd CursorMoved <buffer> call s:cursor_moved()
     augroup END
 
-    if loclist
+    if is_loclist
         let bufname = bufname(src_buf)
         if empty(bufname)
             let bufname = 'buf:'.src_buf
