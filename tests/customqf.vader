@@ -223,10 +223,15 @@ Execute (Handles empty entries):
   CallNeomake {'enabled_makers': [maker]}
 
 Execute (Does not change current error via regular command maker):
-  new
-  CallNeomake {'enabled_makers': [g:error_maker]}
-  AssertEqual neomake#GetCurrentErrorMsg(), 'error-maker: error (E)'
-  bwipe
+  call neomake#quickfix#enable(1)
+  try
+    new
+    CallNeomake {'enabled_makers': [g:error_maker]}
+    AssertEqual neomake#GetCurrentErrorMsg(), 'error-maker: error (E)'
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
 
 Execute (Disable custom formatted quickfix buffer):
   call neomake#quickfix#enable(1)
