@@ -36,7 +36,7 @@ RUN apk --no-cache add git \
   && git clone -q --depth=1 https://github.com/syngan/vim-vimlint /tools/vim-vimlint \
   && git clone -q --depth=1 https://github.com/ynkdir/vim-vimlparser /tools/vim-vimlparser \
   && apk del build
-RUN cd /usr/local/bin && ln -s /vim-build/bin/vim-master vim
+RUN test -f /vim-build/bin/vim81 && ln -s /vim-build/bin/vim81 /usr/local/bin/vim
 RUN printf '#!/bin/sh -x\n/tools/vim-vimlint/bin/vimlint.sh -l /tools/vim-vimlint -p /tools/vim-vimlparser "$@"\n' > /usr/local/bin/vimlint
 RUN chmod +x /usr/local/bin/vimlint
 
