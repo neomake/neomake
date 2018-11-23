@@ -253,8 +253,7 @@ docker_check: DOCKER_MAKE_TARGET=check_docker
 docker_check: docker_make
 
 docker_vimhelplint:
-	$(MAKE) docker_make "DOCKER_MAKE_TARGET=vimhelplint \
-	  VIMHELPLINT_VIM=/vim-build/bin/vim81"
+	$(MAKE) docker_make DOCKER_MAKE_TARGET=vimhelplint
 
 _ECHO_DOCKER_VIMS:=ls /vim-build/bin | grep vim | sort
 docker_list_vims:
