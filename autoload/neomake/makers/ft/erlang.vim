@@ -9,7 +9,7 @@ function! neomake#makers#ft#erlang#erlc() abort
             \ '%W%f:%l: Warning: %m,' .
             \ '%E%f:%l: %m'
         \ }
-    function! maker.InitForJob(jobinfo) abort
+    function! maker.InitForJob(_jobinfo) abort
         let self.args = neomake#makers#ft#erlang#GlobPaths()
     endfunction
     return maker

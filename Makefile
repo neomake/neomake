@@ -178,7 +178,7 @@ vimhelplint: | $(if $(VIMHELPLINT_DIR),,build/vimhelplint)
 
 # Run tests in dockerized Vims.
 DOCKER_REPO:=neomake/vims-for-tests
-DOCKER_TAG:=32
+DOCKER_TAG:=33
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
@@ -253,8 +253,7 @@ docker_check: DOCKER_MAKE_TARGET=check_docker
 docker_check: docker_make
 
 docker_vimhelplint:
-	$(MAKE) docker_make "DOCKER_MAKE_TARGET=vimhelplint \
-	  VIMHELPLINT_VIM=/vim-build/bin/vim81"
+	$(MAKE) docker_make DOCKER_MAKE_TARGET=vimhelplint
 
 _ECHO_DOCKER_VIMS:=ls /vim-build/bin | grep vim | sort
 docker_list_vims:
@@ -297,6 +296,14 @@ check_docker:
 	fi; \
 	exit $$ret
 
+# Like CircleCI runs them.
+check_in_docker: DOCKER_MAKE_TARGET=checkqa
+check_in_docker: docker_make
+
+# Run in CircleCI.
+checkqa: MAKEFLAGS+=k
+checkqa: check check_docker check_lint_diff
+
 check:
 	@:; set -e; ret=0; \
 	[ $$TERM = dumb ] && export TERM=xterm; \
@@ -318,7 +325,7 @@ check:
 	  (( ret+=2 )); \
 	fi; \
 	echo '== Checking for absent :Log calls'; \
-	if git --no-pager grep --line-number --color '^(\s*au.*\b)?\s*Log\b' \
+	if git --no-pager grep --line-number --color --perl-regexp '^(\s*au.*\b)?\s*Log\b' \
 	    -- :^tests/include/init.vim :^tests/include/setup.vader; then \
 	  echo_bold "Found Log commands."; \
 	  (( ret+=4 )); \

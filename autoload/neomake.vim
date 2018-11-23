@@ -766,7 +766,6 @@ endfunction
 
 function! neomake#GetMaker(name_or_maker, ...) abort
     let for_ft = a:0 ? a:1 : 0
-    let bufnr = bufnr('%')
     if type(a:name_or_maker) == type({})
         let maker = a:name_or_maker
         if !has_key(maker, 'name')
@@ -1945,7 +1944,6 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
     endif
 
     let maker = a:jobinfo.maker
-    let file_mode = a:jobinfo.file_mode
     call neomake#log#debug(printf('processing %d lines of output.',
                 \ len(a:lines)), a:jobinfo)
     let cd_error = a:jobinfo.cd()

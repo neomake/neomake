@@ -92,7 +92,7 @@ function! neomake#makers#ft#rust#cargotest() abort
             \ '%Z%\ %#%s%\\,%\\s%f:%l:%c'
     \ }
 
-    function! maker.InitForJob(jobinfo) abort
+    function! maker.InitForJob(_jobinfo) abort
         if !has_key(self, 'cwd')
             let self.cwd = s:get_cargo_maker_cwd('%:p:h')
             return self
@@ -110,7 +110,7 @@ function! neomake#makers#ft#rust#cargo() abort
         \ 'process_output': function('neomake#makers#ft#rust#CargoProcessOutput'),
         \ }
 
-    function! maker.InitForJob(jobinfo) abort
+    function! maker.InitForJob(_jobinfo) abort
         if !has_key(self, 'cwd')
             let self.cwd = s:get_cargo_maker_cwd('%:p:h')
             return self
