@@ -51,7 +51,7 @@ jobs:
     <<: *common
     steps:
       - checkout
-      - run: make --keep-going check check_docker check_lint_diff
+      - run: make checkqa
 
 workflows:
   version: 2

@@ -296,6 +296,14 @@ check_docker:
 	fi; \
 	exit $$ret
 
+# Like CircleCI runs them.
+check_in_docker: DOCKER_MAKE_TARGET=checkqa
+check_in_docker: docker_make
+
+# Run in CircleCI.
+checkqa: MAKEFLAGS+=k
+checkqa: check check_docker check_lint_diff
+
 check:
 	@:; set -e; ret=0; \
 	[ $$TERM = dumb ] && export TERM=xterm; \
