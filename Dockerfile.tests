@@ -33,7 +33,8 @@ RUN apk --no-cache add git \
   && git clone -q --depth=1 -b display-source-with-exceptions https://github.com/blueyed/vader.vim $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vader \
   && git clone -q --depth=1 https://github.com/tpope/vim-fugitive $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vim-fugitive \
   && git clone -q --depth=1 https://github.com/machakann/vim-vimhelplint $NEOMAKE_TESTS_DEP_PLUGINS_DIR/vim-vimhelplint \
-  && git clone -q --depth=1 https://github.com/syngan/vim-vimlint /tools/vim-vimlint \
+  && git clone -q --depth=1 -b fixes https://github.com/blueyed/vim-vimlint /tools/vim-vimlint \
+  && git -C /tools/vim-vimlint reset --hard dd5d9961b2fda173b3501495fdacaf533a1798f2 \
   && git clone -q --depth=1 https://github.com/ynkdir/vim-vimlparser /tools/vim-vimlparser \
   && apk del build
 RUN test -f /vim-build/bin/vim81 && ln -s /vim-build/bin/vim81 /usr/local/bin/vim
