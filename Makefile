@@ -325,7 +325,7 @@ check:
 	  (( ret+=2 )); \
 	fi; \
 	echo '== Checking for absent :Log calls'; \
-	if git --no-pager grep --line-number --color '^(\s*au.*\b)?\s*Log\b' \
+	if git --no-pager grep --line-number --color --perl-regexp '^(\s*au.*\b)?\s*Log\b' \
 	    -- :^tests/include/init.vim :^tests/include/setup.vader; then \
 	  echo_bold "Found Log commands."; \
 	  (( ret+=4 )); \
