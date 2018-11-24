@@ -48,11 +48,11 @@ function! s:languagetool_maker.InitForJob(_jobinfo) abort
                 \ get(split(&spelllang, ','), 0,
                 \ s:getVar('neomake_text_languagetool_fallbackLanguage', 'auto') ) )
     " Optional Arguments
-    let motherTongue = s:getVar('neomake_text_languagetool_curl_motherTongue', '')
+    let motherTongue = s:getVar('neomake_text_languagetool_motherTongue', '')
     if !empty(motherTongue)
         let args += ['--motherTongue', motherTongue]
     endif
-    let preferredVariants = s:getVar('neomake_text_languagetool_curl_preferredVariants', '')
+    let preferredVariants = s:getVar('neomake_text_languagetool_preferredVariants', '')
     if !empty(preferredVariants) && language ==# 'auto'
         for var in preferredVariants
             let args += ['--preferredVariants', var]
