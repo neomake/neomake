@@ -2,6 +2,7 @@
 
 [![Build Status](https://circleci.com/gh/neomake/neomake.png?style=shield)](https://circleci.com/gh/neomake/neomake)
 [![codecov](https://codecov.io/gh/neomake/neomake/branch/master/graph/badge.svg)](https://codecov.io/gh/neomake/neomake)
+[![Coveralls](https://coveralls.io/repos/github/neomake/neomake/badge.svg)](https://coveralls.io/github/neomake/neomake)
 
 Neomake is a plugin for [Vim]/[Neovim] to asynchronously run programs.
 

@@ -2,7 +2,7 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:33@sha256:9888067f3be6610a06b74da1a32b62bbe1e21f71a1c083df8e94b7a5f12baf3c
+    - image: neomake/vims-for-tests:34@sha256:ec467e8eea3ed53f2977b2370425d188a9ddcf04efc95891a0b4383e5d342b62
   working_directory: ~/repo
   steps:
     - checkout
@@ -13,6 +13,7 @@ common: &common
           set -x
           coverage report -m --skip-covered
           coverage xml
+          coveralls
           # -Z: exit with 1 in case of failures.
           codecov -Z -X search -X gcov -X pycov -f coverage.xml \
             -n "$CIRCLE_JOB" -F ${CIRCLE_JOB%%-*},${CIRCLE_JOB//[-.]/}
@@ -65,3 +66,7 @@ workflows:
       - vim-74-trusty
       - vim-73
       - checkqa
+
+notify:
+  webhooks:
+    - url: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN
