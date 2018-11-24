@@ -44,10 +44,10 @@ let s:languagetool_maker = {}
 let s:languagetool_maker.exe = expand('<sfile>:p:h', 1).s:slash.'text'.s:slash.'languagetool.py'
 let s:languagetool_maker.append_file = 1
 function! s:languagetool_maker.InitForJob(_jobinfo) abort
-    let l:args = []
+    let args = []
     " Mandatory arguments
-    let l:server = s:getVar('neomake_text_languagetool_server', s:languagetool_fallback_server)
-    let l:language = s:getVar('neomake_text_languagetool_language',
+    let server = s:getVar('neomake_text_languagetool_server', s:languagetool_fallback_server)
+    let language = s:getVar('neomake_text_languagetool_language',
                 \ get(split(&spelllang, ','), 0, s:languagetool_fallback_language) )
     " Optional Arguments
     let motherTongue = s:getVar('neomake_text_languagetool_curl_motherTongue', '')
@@ -55,13 +55,13 @@ function! s:languagetool_maker.InitForJob(_jobinfo) abort
         let args += ['--motherTongue', motherTongue]
     endif
     let preferredVariants = s:getVar('neomake_text_languagetool_curl_preferredVariants', '')
-    if !empty(l:preferredVariants) && l:language ==# 'auto'
-        for var in l:preferredVariants
+    if !empty(preferredVariants) && language ==# 'auto'
+        for var in preferredVariants
             let args += ['--preferredVariants', var]
         endfor
     endif
-    let l:args += [l:server, l:language]
-    let self.args = l:args
+    let args += [server, language]
+    let self.args = args
 endfunction
 
 function! s:languagetool_maker.process_output(context) abort
