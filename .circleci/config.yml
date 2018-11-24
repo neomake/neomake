@@ -60,8 +60,8 @@ jobs:
   notify-coveralls:
     steps:
       - run:
-        - name: notify Coveralls
-        - command: curl "https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN" -d "payload[build_num]=$CIRCLE_WORKFLOW_ID&payload[status]=done"
+          name: notify Coveralls
+          command: curl "https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN" -d "payload[build_num]=$CIRCLE_WORKFLOW_ID&payload[status]=done"
 
 workflows:
   version: 2
