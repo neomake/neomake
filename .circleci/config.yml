@@ -70,6 +70,10 @@ workflows:
     jobs:
       - nvim-031
       - vim-73
+      - notify-coveralls:
+        requires:
+          - nvim-031
+          - vim-73
 
 notify:
   webhooks:
