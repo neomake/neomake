@@ -66,3 +66,7 @@ workflows:
       - vim-74-trusty
       - vim-73
       - checkqa
+
+notify:
+  webhooks:
+    - url: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN
