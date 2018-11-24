@@ -44,11 +44,11 @@ Execute (action queue: order on WinEnter with Timer):
 
   if has('timers')
     AssertNeomakeMessage '\V\^Retrying Timer event in 10ms'
-    sleep 10m
+    NeomakeTestsWaitForMessage 'action queue: processing for Timer (1 items, winnr: 1).'
   else
     doautocmd CursorHold
+    AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 1).'
   endif
-  AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 1).'
   AssertNeomakeMessage 'Queuing action F1 for Timer, WinEnter.'
   AssertNeomakeMessage 'action queue: re-queuing F2 for not processed make_id.', 3
 
