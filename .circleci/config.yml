@@ -85,7 +85,3 @@ workflows:
             - vim-74-xenial
             - vim-74-trusty
             - vim-73
-
-notify:
-  webhooks:
-    - url: https://coveralls.io/webhook?repo_token={{ .Environment.COVERALLS_REPO_TOKEN }}
