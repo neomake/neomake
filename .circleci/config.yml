@@ -77,4 +77,4 @@ workflows:
 
 notify:
   webhooks:
-    - url: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN
+    - url: https://coveralls.io/webhook?repo_token={{ .Environment.COVERALLS_REPO_TOKEN }}
