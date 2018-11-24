@@ -58,6 +58,7 @@ jobs:
       - run: make checkqa
 
   notify-coveralls:
+    <<: *common
     steps:
       - run:
           name: notify Coveralls
