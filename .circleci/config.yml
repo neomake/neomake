@@ -13,7 +13,7 @@ common: &common
           set -x
           coverage report -m --skip-covered
           coverage xml
-          coveralls
+          COVERALLS_PARALLEL=true coveralls
           # -Z: exit with 1 in case of failures.
           codecov -Z -X search -X gcov -X pycov -f coverage.xml \
             -n "$CIRCLE_JOB" -F ${CIRCLE_JOB%%-*},${CIRCLE_JOB//[-.]/}
