@@ -57,6 +57,13 @@ jobs:
       - checkout
       - run: make checkqa
 
+  notify-coveralls:
+    <<: *common
+    steps:
+      - run:
+          name: notify Coveralls
+          command: curl "https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN" -d "payload[build_num]=$CIRCLE_WORKFLOW_ID&payload[status]=done"
+
 workflows:
   version: 2
   test:
@@ -69,6 +76,15 @@ workflows:
       - vim-74-trusty
       - vim-73
       - checkqa
+      - notify-coveralls:
+          requires:
+            - nvim-031
+            - nvim-017
+            - vim-81
+            - vim-80
+            - vim-74-xenial
+            - vim-74-trusty
+            - vim-73
 
 notify:
   webhooks:
