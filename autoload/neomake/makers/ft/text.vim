@@ -45,7 +45,8 @@ function! s:languagetool_maker.InitForJob(_jobinfo) abort
     " Mandatory arguments
     let server = s:getVar('neomake_text_languagetool_server',  'http://localhost:8081')
     let language = s:getVar('neomake_text_languagetool_language',
-                \ get(split(&spelllang, ','), 0, 'auto') )
+                \ get(split(&spelllang, ','), 0,
+                \ s:getVar('neomake_text_languagetool_fallbackLanguage', 'auto') ) )
     " Optional Arguments
     let motherTongue = s:getVar('neomake_text_languagetool_curl_motherTongue', '')
     if !empty(motherTongue)
