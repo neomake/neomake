@@ -13,7 +13,10 @@ common: &common
           set -x
           coverage report -m --skip-covered
           coverage xml
-          coveralls
+
+          # Only TRAVIS_JOB_ID is used by python-coveralls.
+          TRAVIS_JOB_ID=$CIRCLE_WORKFLOW_ID COVERALLS_PARALLEL=true coveralls
+
           # -Z: exit with 1 in case of failures.
           codecov -Z -X search -X gcov -X pycov -f coverage.xml \
             -n "$CIRCLE_JOB" -F ${CIRCLE_JOB%%-*},${CIRCLE_JOB//[-.]/}
@@ -54,6 +57,13 @@ jobs:
       - checkout
       - run: make checkqa
 
+  notify-coveralls:
+    <<: *common
+    steps:
+      - run:
+          name: notify Coveralls
+          command: curl "https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN" -d "payload[build_num]=$CIRCLE_WORKFLOW_ID&payload[status]=done"
+
 workflows:
   version: 2
   test:
@@ -66,7 +76,12 @@ workflows:
       - vim-74-trusty
       - vim-73
       - checkqa
-
-notify:
-  webhooks:
-    - url: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN
+      - notify-coveralls:
+          requires:
+            - nvim-031
+            - nvim-017
+            - vim-81
+            - vim-80
+            - vim-74-xenial
+            - vim-74-trusty
+            - vim-73
