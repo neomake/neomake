@@ -35,20 +35,17 @@ function! neomake#makers#ft#text#writegood() abort
                 \ }
 endfunction
 
-let s:languagetool_fallback_language = 'auto'
 " See http://wiki.languagetool.org/public-http-api for a public instance. Use:
 "   :let g:neomake_text_languagetool_server = 'https://languagetool.org/api'
-let s:languagetool_fallback_server = 'http://localhost:8081'
-
 let s:languagetool_maker = {}
 let s:languagetool_maker.exe = expand('<sfile>:p:h', 1).s:slash.'text'.s:slash.'languagetool.py'
 let s:languagetool_maker.append_file = 1
 function! s:languagetool_maker.InitForJob(_jobinfo) abort
     let args = []
     " Mandatory arguments
-    let server = s:getVar('neomake_text_languagetool_server', s:languagetool_fallback_server)
+    let server = s:getVar('neomake_text_languagetool_server',  'http://localhost:8081')
     let language = s:getVar('neomake_text_languagetool_language',
-                \ get(split(&spelllang, ','), 0, s:languagetool_fallback_language) )
+                \ get(split(&spelllang, ','), 0, 'auto') )
     " Optional Arguments
     let motherTongue = s:getVar('neomake_text_languagetool_curl_motherTongue', '')
     if !empty(motherTongue)
