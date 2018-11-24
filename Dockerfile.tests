@@ -51,5 +51,9 @@ RUN apk --no-cache add curl python3 \
   && chmod +x /usr/bin/codecov \
   && cd /usr/bin && ln -s python3 python
 
+# Codeclimate reporter.
+RUN curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > /usr/local/bin/cc-test-reporter \
+  && chmod +x /usr/local/bin/cc-test-reporter
+
 RUN adduser -D -s /bin/bash neomake
 USER neomake
