@@ -2,25 +2,33 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:34@sha256:ec467e8eea3ed53f2977b2370425d188a9ddcf04efc95891a0b4383e5d342b62
+    - image: neomake/vims-for-tests:35@sha256:3dae6752e9b0e6e0ee4fa29461886c52d7edb0e39fe66d9aa4f172804ee319ef
   working_directory: ~/repo
   steps:
     - checkout
-    - run: make --keep-going testcoverage TEST_VIM=$TEST_VIM
     - run:
-        name: Upload coverage results
+        name: Run tests
+        command: |
+          cc-test-reporter before-build
+          make --keep-going testcoverage TEST_VIM=$TEST_VIM
+    - run:
+        name: Handle coverage
         command: |
           set -x
-          coverage report -m --skip-covered
+          mkdir test-results
+          cp -a .coverage_covimerage test-results/.coverage_covimerage.$CIRCLE_BUILD_NUM
+
+          # Upload to codecov, which handles this per job itself.
           coverage xml
-
-          # Only TRAVIS_JOB_ID is used by python-coveralls.
-          TRAVIS_JOB_ID=$CIRCLE_WORKFLOW_ID COVERALLS_PARALLEL=true coveralls
-
           # -Z: exit with 1 in case of failures.
           codecov -Z -X search -X gcov -X pycov -f coverage.xml \
             -n "$CIRCLE_JOB" -F ${CIRCLE_JOB%%-*},${CIRCLE_JOB//[-.]/}
           set +x
+    - persist_to_workspace:
+        root: .
+        paths:
+          - test-results/
+
 jobs:
   nvim-031:
     <<: *common
@@ -57,12 +65,30 @@ jobs:
       - checkout
       - run: make checkqa
 
-  notify-coveralls:
+  coverage:
     <<: *common
     steps:
+      # TODO: checkout only necessary for covimerage plugin?!
+      #       Writing/using .coveragerc only might be enough.
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
       - run:
-          name: notify Coveralls
-          command: curl "https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN" -d "payload[build_num]=$CIRCLE_WORKFLOW_ID&payload[status]=done"
+          name: Upload global coverage results
+          command: |
+            set -x
+            cp -a /tmp/workspace/test-results/.coverage_covimerage.* .
+
+            coverage combine
+            coverage xml
+
+            # Coveralls.
+            # Only TRAVIS_JOB_ID is used by python-coveralls.
+            env -u COVERALLS_PARALLEL TRAVIS_JOB_ID=$CIRCLE_WORKFLOW_ID coveralls
+
+            # Codeclimate.
+            cc-test-reporter after-build
+            set +x
 
 workflows:
   version: 2
@@ -76,7 +102,7 @@ workflows:
       - vim-74-trusty
       - vim-73
       - checkqa
-      - notify-coveralls:
+      - coverage:
           requires:
             - nvim-031
             - nvim-017
