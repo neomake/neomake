@@ -1,10 +1,5 @@
 let s:slash = neomake#utils#Slash()
 
-function! s:getVar(varname, default) abort
-    "TODO: Use neomake#utils#GetSetting
-    return get(b:, a:varname, get(g:, a:varname, a:default))
-endfunction
-
 function! neomake#makers#ft#text#EnabledMakers() abort
     " No makers enabled by default, since text is used as fallback often.
     return []
@@ -37,27 +32,20 @@ endfunction
 
 " See http://wiki.languagetool.org/public-http-api for a public instance. Use:
 "   :let g:neomake_text_languagetool_server = 'https://languagetool.org/api'
-let s:languagetool_maker = {}
-let s:languagetool_maker.exe = expand('<sfile>:p:h', 1).s:slash.'text'.s:slash.'languagetool.py'
-let s:languagetool_maker.append_file = 1
-function! s:languagetool_maker.InitForJob(_jobinfo) abort
+let s:languagetool_maker = {
+            \   'name': 'languagetool',
+            \   'exe': expand('<sfile>:p:h', 1).s:slash.'text'.s:slash.'languagetool.py',
+            \   'append_file': 1,
+            \ }
+function! s:languagetool_maker.InitForJob(jobinfo) abort
     let args = []
     " Mandatory arguments
-    let server = s:getVar('neomake_text_languagetool_server',  'http://localhost:8081')
-    let language = s:getVar('neomake_text_languagetool_language',
+    let server = neomake#utils#GetSetting('server', s:languagetool_maker, 'http://localhost:8081', a:jobinfo.ft, a:jobinfo.bufnr)
+    let language = neomake#utils#GetSetting('language', s:languagetool_maker,
                 \ get(split(&spelllang, ','), 0,
-                \ s:getVar('neomake_text_languagetool_fallbackLanguage', 'auto') ) )
-    " Optional Arguments
-    let motherTongue = s:getVar('neomake_text_languagetool_motherTongue', '')
-    if !empty(motherTongue)
-        let args += ['--motherTongue', motherTongue]
-    endif
-    let preferredVariants = s:getVar('neomake_text_languagetool_preferredVariants', '')
-    if !empty(preferredVariants) && language ==# 'auto'
-        for var in preferredVariants
-            let args += ['--preferredVariants', var]
-        endfor
-    endif
+                \   neomake#utils#GetSetting('fallbacklanguage', s:languagetool_maker, 'auto', a:jobinfo.ft, a:jobinfo.bufnr)
+                \ ),
+                \ a:jobinfo.ft, a:jobinfo.bufnr)
     let args += [server, language]
     let self.args = args
 endfunction
