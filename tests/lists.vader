@@ -642,6 +642,22 @@ Execute (Quiet with no QuickfixCmdPost autocommands):
 
   CallNeomake 1, [g:error_maker]
   Assert len(getloclist(0))
-
   AssertEqual NeomakeTestsGetVimMessages(), []
+
+  augroup neomake_test
+    au QuickfixCmdPost *vimgrep* let foo = 1
+  augroup END
+  CallNeomake 1, [g:error_maker]
+  Assert len(getloclist(0))
+  AssertEqual NeomakeTestsGetVimMessages(), []
+
+  let s:called = 0
+  augroup neomake_test
+    au QuickfixCmdPost ladd* let s:called = 1
+  augroup END
+  CallNeomake 1, [g:error_maker]
+  Assert len(getloclist(0))
+  AssertEqual NeomakeTestsGetVimMessages(), []
+  AssertEqual s:called, 1
+
   bwipe

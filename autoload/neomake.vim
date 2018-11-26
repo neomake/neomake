@@ -1231,9 +1231,7 @@ function! s:AddExprCallback(jobinfo, lines) abort
             let cmd = 'caddexpr'
         endif
         exe 'noautocmd '.cmd.' a:lines'
-        if exists('#QuickfixCmdPost')
-            let a:jobinfo._delayed_qf_autocmd = 'QuickfixCmdPost '.cmd
-        endif
+        let a:jobinfo._delayed_qf_autocmd = 'QuickfixCmdPost '.cmd
     finally
         let &errorformat = olderrformat
         call a:jobinfo.cd_back()
@@ -1922,8 +1920,10 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         call neomake#utils#hook('NeomakeCountsChanged', {'reset': 0, 'jobinfo': a:jobinfo})
     endif
 
-    if has_key(a:jobinfo, '_delayed_qf_autocmd')
-        call neomake#compat#doautocmd(a:jobinfo._delayed_qf_autocmd)
+    if has_key(a:jobinfo, '_delayed_qf_autocmd') && exists('#QuickfixCmdPost')
+        " NOTE: need to use :silent, since we can only check the event, but
+        " not the pattern - `exists()` for 'laddexpr' will not match '*'.
+        silent call neomake#compat#doautocmd(a:jobinfo._delayed_qf_autocmd)
         unlet a:jobinfo._delayed_qf_autocmd
     endif
 
