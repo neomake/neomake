@@ -29,6 +29,13 @@ while [ $# -ne 0 ]; do
 done
 
 if [ "$1" = vader ]; then
+  # Match non-log lines (i.e. keep output from :Log, which should cause
+  # all messages from a case to be visible).
+  # This should also ignore empty lines and lines starting with a character
+  # (e.g. via NVIM_LOG_FILE:=/dev/stderr, and from :echom).
+  re_log_line='^(.*      )(> .*)$'
+  re_ignore_log_line='^.*      > \[(debug  |verbose|warning|error  )|((D|V|W|E) +\+[.0-9]+)\]'
+
   colorize() {
     # Only colorize if stdout is connected to a tty (not with :!make).
     [ -t 1 ] || cat -
@@ -43,7 +50,7 @@ if [ "$1" = vader ]; then
       -e 's/^\(\([^ ].*\)\? \+\)\(([ [:digit:]]\+\/[[:digit:]]\+)\)/\1'"$bold"'\3'"$coloroff"'/' \
       -e 's/^ \+> \[\(error  \|E +[.[:digit:]]\+\)\]: .*/'"$bold"'\0'"$coloroff"'/' \
       -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0'"$coloroff"'/' \
-      -e '/\[\(verbose\|warning\|error  \|debug  \|\(\(V\|W\|E\|D\) +[.[:digit:]]\+\)\)\]/! s/^\(.*\?\)      > .*$/'"$log_color"'\0'"$coloroff"'/'
+      -E -e '/'"$re_ignore_log_line"'/! s/'"$re_log_line"'/\1'"$log_color"'\2'"$coloroff"'/'
   }
 
   if ((quiet || compact)); then
@@ -55,12 +62,6 @@ if [ "$1" = vader ]; then
   if ((compact || quiet)); then
     # Do not display output for successful tests (i.e. the log statements).
     last_start_match=
-    # Match non-log lines (i.e. keep output from :Log, which should cause
-    # all messages from a case to be visible).
-    # This should also ignore empty lines and lines starting with a character
-    # (e.g. via NVIM_LOG_FILE:=/dev/stderr, and from :echom).
-    re_log_line='^      >'
-    re_ignore_log_line='^      > \[(debug  |verbose|warning|error  )|((D|V|W|E) +\+[.0-9]+)\]'
     # Match Vader header ("( 1/33) [EXECUTE] …"), but also if there is output
     # from Vim, e.g. with ":colder".
     re_vader_header='^([^ ].*)?\ +(\(\ *[0-9]+/[0-9]+\))'
