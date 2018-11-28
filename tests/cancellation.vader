@@ -242,6 +242,7 @@ Execute (neomake#CancelJob clears action queue for get_list_entries maker):
     AssertEqual neomake#CancelJob(jobinfo), 0
     AssertNeomakeMessage 'Cancelling job.', 3, jobinfo
     AssertNeomakeMessage 'Removed 1 action queue entries.', 3
+    AssertNeomakeMessage 'Removing job for get_list_entries.', 3
     AssertNeomakeMessage 'Cleaning jobinfo.', 3
     AssertNeomakeMessage 'Cleaning make info.', 3
   endif

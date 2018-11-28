@@ -192,6 +192,8 @@ function! neomake#CancelJob(job_id, ...) abort
         call neomake#log#debug('Removing already finished job.', jobinfo)
     elseif has_key(jobinfo, 'exit_code')
         call neomake#log#debug('Job exited already.', jobinfo)
+    elseif has_key(jobinfo.maker, 'get_list_entries')
+        call neomake#log#debug('Removing job for get_list_entries.', jobinfo)
     elseif s:async
         let job = has('nvim') ? jobinfo.nvim_job : jobinfo.vim_job
         call neomake#log#debug(printf('Stopping job: %s.', job), jobinfo)
@@ -254,7 +256,9 @@ function! s:handle_get_list_entries(jobinfo, ...) abort
     let maker = jobinfo.maker
     try
         let entries = maker.get_list_entries(jobinfo)
+        let jobinfo.finished = 1
     catch /^\%(Vim\%((\a\+)\)\=:\%(E48\|E523\)\)\@!/  " everything, but E48/E523 (sandbox / not allowed here)
+        let jobinfo.finished = 1
         if v:exception ==# 'NeomakeTestsException'
             throw v:exception
         endif
@@ -263,8 +267,6 @@ function! s:handle_get_list_entries(jobinfo, ...) abort
                     \ jobinfo.maker.name, v:exception), jobinfo)
         call s:CleanJobinfo(jobinfo)
         return g:neomake#action_queue#processed
-    finally
-        let jobinfo.finished = 1
     endtry
 
     if type(entries) != type([])
