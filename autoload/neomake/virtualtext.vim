@@ -27,24 +27,39 @@ function! neomake#virtualtext#show(...) abort
     endif
 
     for entry in entries
-        call neomake#virtualtext#add_entry(entry)
+        let buf_info = getbufvar(entry.bufnr, '_neomake_info', {})
+        let src_id = get(buf_info, 'virtual_text_src_id', 0)
+
+        let used_src_id = neomake#virtualtext#add_entry(entry, src_id)
+
+        " Keep track of added entries, because stacking is not supported.
+        let set_buf_info = 0
+        if !has_key(buf_info, 'virtual_text_entries')
+            let buf_info.virtual_text_entries = []
+        endif
+        if index(buf_info.virtual_text_entries, entry.lnum) == -1
+            " Do not add it, but define it still - could return here also later.
+            call add(buf_info.virtual_text_entries, entry.lnum)
+            let set_buf_info = 1
+        endif
+
+        if src_id ==# 0
+            let buf_info.virtual_text_src_id = used_src_id
+            let set_buf_info = 1
+        endif
+        if set_buf_info
+            call setbufvar(entry.bufnr, '_neomake_info', buf_info)
+        endif
     endfor
 endfunction
 
-function! neomake#virtualtext#add_entry(entry) abort
+function! neomake#virtualtext#add_entry(entry, src_id) abort
     let buf_info = getbufvar(a:entry.bufnr, '_neomake_info', {})
-    let src_id = get(buf_info, 'virtual_text_src_id', 0)
 
     let hi = get(s:highlight_types, toupper(a:entry.type), 'NeomakeVirtualtextMessage')
-
     let prefix = get(g:, 'neomake_annotation_prefix', '❯ ')
     let text = prefix . a:entry.text
-    let used_src_id = nvim_buf_set_virtual_text(a:entry.bufnr, src_id, a:entry.lnum-1, [[text, hi]], {})
-
-    if src_id ==# 0
-        let buf_info.virtual_text_src_id = used_src_id
-        call setbufvar(a:entry.bufnr, '_neomake_info', buf_info)
-    endif
+    let used_src_id = nvim_buf_set_virtual_text(a:entry.bufnr, a:src_id, a:entry.lnum-1, [[text, hi]], {})
     return used_src_id
 endfunction
 
@@ -58,6 +73,8 @@ function! neomake#virtualtext#hide() abort
     let src_id = get(buf_info, 'virtual_text_src_id', 0)
     if src_id !=# 0
         call nvim_buf_clear_highlight(bufnr, src_id, 0, -1)
+        let buf_info.virtual_text_entries = []
+        call setbufvar(bufnr, '_neomake_info', buf_info)
     endif
 endfunction
 
@@ -70,7 +87,13 @@ if exists('*nvim_buf_set_virtual_text')
             endif
             let entry = neomake#get_nearest_error()
             if !empty(entry)
-                let s:cur_virtualtext = [bufnr('%'), neomake#virtualtext#add_entry(entry)]
+                " Only add it when there is none already (stacking is not
+                " supported).  https://github.com/neovim/neovim/issues/9285
+                let buf_info = getbufvar(entry.bufnr, '_neomake_info', {})
+                if index(get(buf_info, 'virtual_text_entries', []), entry.lnum) == -1
+                    let src_id = neomake#virtualtext#add_entry(entry, 0)
+                    let s:cur_virtualtext = [bufnr('%'), src_id]
+                endif
             endif
         endif
     endfunction
@@ -80,11 +103,12 @@ else
 endif
 
 function! neomake#virtualtext#DefineHighlights() abort
+    " NOTE: linking to SpellBad etc is bad (undercurl).
     for [group, link] in items({
-                \ 'NeomakeVirtualtextError': 'NeomakeError',
-                \ 'NeomakeVirtualtextWarning': 'NeomakeWarning',
-                \ 'NeomakeVirtualtextInfo': 'NeomakeWarning',
-                \ 'NeomakeVirtualtextMessage': 'NeomakeWarning'
+                \ 'NeomakeVirtualtextError': 'Error',
+                \ 'NeomakeVirtualtextWarning': 'WarningMsg',
+                \ 'NeomakeVirtualtextInfo': 'NeomakeVirtualtextWarning',
+                \ 'NeomakeVirtualtextMessage': 'NeomakeVirtualtextWarning'
                 \ })
         if !neomake#utils#highlight_is_defined(group)
             exe 'highlight link '.group.' '.link
