@@ -2361,6 +2361,7 @@ endfunction
 
 function! neomake#CursorMoved() abort
     call neomake#EchoCurrentError()
+    call neomake#virtualtext#handle_current_error()
 endfunction
 
 function! s:cursormoved_delayed_cb(...) abort
