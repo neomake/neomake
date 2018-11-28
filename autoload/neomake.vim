@@ -2337,6 +2337,7 @@ function! neomake#GetCurrentErrorMsg() abort
 endfunction
 
 function! neomake#EchoCurrentError(...) abort
+    call neomake#virtualtext#handle_current_error()
     if !get(g:, 'neomake_echo_current_error', 1)
         return
     endif
@@ -2361,7 +2362,6 @@ endfunction
 
 function! neomake#CursorMoved() abort
     call neomake#EchoCurrentError()
-    call neomake#virtualtext#handle_current_error()
 endfunction
 
 function! s:cursormoved_delayed_cb(...) abort
