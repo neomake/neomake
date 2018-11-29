@@ -1002,3 +1002,24 @@ Execute (Output (order) is handled correctly with pending output):
     AssertNeomakeMessage 'processing 4 lines of output.'
   endif
   AssertEqual map(getqflist(), 'v:val.text'), ['1', '2', '3', '4']
+
+Execute (get_list_entries: not finished when being retried):
+  let maker = {}
+  let s:count = 0
+  function maker.get_list_entries(...)
+    let s:count += 1
+    if s:count == 1
+      sandbox bprevious
+    endif
+    return [{'lnum': 2, 'bufnr': bufnr('%'), 'text': 'error'}]
+  endfunction
+  new
+  call neomake#Make(1, [maker])
+  if has('timers')
+    NeomakeTestsWaitForFinishedJobs
+  else
+    doautocmd CursorHoldI
+  endif
+  AssertEqual s:count, 2
+  AssertNeomakeMessage '\vError during pcall:.*'
+  bwipe
