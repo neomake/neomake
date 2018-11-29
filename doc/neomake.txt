@@ -753,13 +753,14 @@ A simpler example: >
           \ })
 <
 You can use the following options:
+
 For location list items:~
   - format_loclist_unknown: format for when the status for location list
     issues is unknown, i.e. Neomake was not run on the current buffer.
     Default: `'?'`
   - format_loclist_ok: format for when there are no location list issues.
-    Default: `'%#NeomakeStatusGood#✓'` (a checkmark using the
-    NeomakeStatusGood highlight group).
+    Default: `'%#NeomakeStatusGood#✓%#NeomakeStatReset#'` (a checkmark using
+    the NeomakeStatusGood highlight group).
   - format_loclist_type_X: format for location list issues of type X
     (E, W, I, …).
     Default: looks up "format_loclist_type_default" first, and then uses
@@ -784,6 +785,7 @@ For quickfix list items:~
     be useful for non-current windows.
     Default: `'%s%%#NeomakeStatReset'` (used with |printf()|).
 
+Status related:~
   - format_status: used to wrap the whole status.
     This is a |printf()| format string, where `%s` gets replaced with the
     whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
@@ -799,6 +801,19 @@ For quickfix list items:~
     This is a |printf()| format string, where `%s` gets replaced with the
     whole status (and any literal/non-printf `%` needs to be escaped as `%%`).
     Default: not used / `'%s'`
+
+General:~
+  - format_lists: used to format the overall location list and quickfix list
+    sections (before format_status).
+    `{{lists_sep}}` is empty ("") with only a single list section,
+    and defaults to " " if both are not empty.
+    Default: `'{{loclist}}{{lists_sep}}{{quickfix}}'`
+
+Running jobs:~
+  If any jobs are currently running in file or project mode, those get
+  displayed by default in the loclist or quickfix section.  The following
+  options control its appearance:
+
   - format_running: used in case there are jobs running.  Use 0 (as a number)
     to disable this, but fall through to the last known status.
     Default: `… ({{running_job_names}})`
@@ -809,7 +824,7 @@ For quickfix list items:~
   - running_jobs_separator: Separator for formatted running job names.
     Default: `', '`.
 
-Advanced options:
+Advanced options:~
 
   - use_highlights_with_defaults: include highlight attributes with default
     options (e.g. "%#NeomakeStatusGood#" with "format_loclist_ok").
