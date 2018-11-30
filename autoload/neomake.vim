@@ -1175,6 +1175,7 @@ function! s:Make(options) abort
             let running_already = values(filter(copy(s:jobs),
                         \ 'v:val.maker == job.maker'
                         \ .' && v:val.bufnr == job.bufnr'
+                        \ .' && v:val.file_mode == job.file_mode'
                         \ ." && !get(v:val, 'canceled')"))
             if !empty(running_already)
                 let jobinfo = running_already[0]

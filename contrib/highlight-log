@@ -13,7 +13,9 @@ debug_color="[2m"  # $(tput dim), does not work in urxvt (although in infocmp/t
 log_color="[33;1m"
 error_color="[31m[1m"
 bold="[1m"  # $(tput bold)
-coloroff="[0m"
+boldoff="[22m"
+coloroff="[39m"
+log_coloroff="$boldoff$coloroff"
 
 compact=0
 quiet=0
@@ -47,10 +49,10 @@ if [ "$1" = vader ]; then
     # 4. Neomake's debug log messages
     # 5. non-Neomake log lines (e.g. from :Log)
     sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/'"$error_color"'\0'"$coloroff"'/' \
-      -e 's/^\(\([^ ].*\)\? \+\)\(([ [:digit:]]\+\/[[:digit:]]\+)\)/\1'"$bold"'\3'"$coloroff"'/' \
-      -e 's/^ \+> \[\(error  \|E +[.[:digit:]]\+\)\]: .*/'"$bold"'\0'"$coloroff"'/' \
+      -e 's/^\(\([^ ].*\)\? \+\)\(([ [:digit:]]\+\/[[:digit:]]\+)\)/\1'"$bold"'\3'"$boldoff"'/' \
+      -e 's/^ \+> \[\(error  \|E +[.[:digit:]]\+\)\]: .*/'"$bold"'\0'"$boldoff"'/' \
       -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0'"$coloroff"'/' \
-      -E -e '/'"$re_ignore_log_line"'/! s/'"$re_log_line"'/\1'"$log_color"'\2'"$coloroff"'/'
+    | sed -E -e '/'"$re_ignore_log_line"'/! s/'"$re_log_line"'/\1'"$log_color"'\2'"$log_coloroff"'/'
   }
 
   if ((quiet || compact)); then
