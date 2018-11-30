@@ -327,6 +327,7 @@ Execute (neomake#utils#ExpandArgs):
   \ '~foo',
   \ '%:.',
   \ '%:,',
+  \ '%<',
   \ ]
   let expected_args = [
   \ 'file1.ext',
@@ -355,6 +356,7 @@ Execute (neomake#utils#ExpandArgs):
   \ '~foo',
   \ 'file1.ext',
   \ 'file1.ext:,',
+  \ 'file1',
   \ ]
 
   let jobinfo = {'bufnr': bufnr('%')}
