@@ -54,8 +54,6 @@ function! neomake#virtualtext#show(...) abort
 endfunction
 
 function! neomake#virtualtext#add_entry(entry, src_id) abort
-    let buf_info = getbufvar(a:entry.bufnr, '_neomake_info', {})
-
     let hi = get(s:highlight_types, toupper(a:entry.type), 'NeomakeVirtualtextMessage')
     let prefix = get(g:, 'neomake_annotation_prefix', '❯ ')
     let text = prefix . a:entry.text
