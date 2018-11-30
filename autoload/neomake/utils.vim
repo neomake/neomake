@@ -349,7 +349,7 @@ function! neomake#utils#ExpandArgs(args, jobinfo) abort
     " % must be followed with an expansion keyword
     let ret = map(ret,
                 \ 'substitute(v:val, '
-                \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|\%(:[phtreS8.~]\)\+\|\ze\w\@!\)\)'', '
+                \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|<\|\%(:[phtreS8.~]\)\+\|\ze\w\@!\)\)'', '
                 \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
                 \ . '''g'')')
     let ret = map(ret, 'substitute(v:val, ''\v^\~\ze%(/|$)'', expand(''~''), ''g'')')
