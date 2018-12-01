@@ -956,11 +956,15 @@ endfunction
 
 let s:ignore_automake_events = 0
 function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
-    let open_val = a:0 ? a:1 : get(g:, 'neomake_open_list', 0)
+    if a:0
+        let open_val = a:1
+    else
+        let open_val = neomake#utils#GetSetting('open_list', a:jobinfo.maker, 0, a:jobinfo.ft, a:jobinfo.bufnr)
+    endif
     if !open_val
         return
     endif
-    let height = get(g:, 'neomake_list_height', 10)
+    let height = neomake#utils#GetSetting('list_height', a:jobinfo.maker, 10, a:jobinfo.ft, a:jobinfo.bufnr)
     if !height
         return
     endif
