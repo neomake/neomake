@@ -256,9 +256,7 @@ function! s:handle_get_list_entries(jobinfo, ...) abort
     let maker = jobinfo.maker
     try
         let entries = maker.get_list_entries(jobinfo)
-        let jobinfo.finished = 1
     catch /^\%(Vim\%((\a\+)\)\=:\%(E48\|E523\)\)\@!/  " everything, but E48/E523 (sandbox / not allowed here)
-        let jobinfo.finished = 1
         if v:exception ==# 'NeomakeTestsException'
             throw v:exception
         endif

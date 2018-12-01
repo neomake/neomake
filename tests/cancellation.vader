@@ -203,7 +203,7 @@ Execute (neomake#CancelJob empties action queue):
     AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.'
     call neomake#CancelJob(job_id)
     AssertNeomakeMessage 'Removed 2 action queue entries.', 3
-    AssertNeomakeMessage 'Removing already finished job.', 3, jobinfo
+    AssertNeomakeMessage 'Removing job for get_list_entries.', 3, jobinfo
     wincmd p
     AssertNeomakeMessage 'Cleaning make info.', 3
     bwipe
