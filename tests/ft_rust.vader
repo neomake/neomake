@@ -8,7 +8,6 @@ Execute (cargo skip non json line):
   let cargo.args = ['error: Could not compile `derive_more`.']
 
   CallNeomake 1, [cargo]
-
   AssertEqual [], getloclist(0)
   bwipe
 
@@ -19,7 +18,6 @@ Execute (cargo info message):
     \ '../tests/fixtures/rust/cargo_info.json')
 
   CallNeomake 1, [cargo]
-
   AssertEqual [], getloclist(0)
   bwipe
 
@@ -30,7 +28,6 @@ Execute (cargo error without span):
     \ '../tests/fixtures/rust/cargo_error_without_span.json')
 
   CallNeomake 1, [cargo]
-
   AssertEqual [], getloclist(0)
   bwipe
 

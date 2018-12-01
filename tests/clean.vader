@@ -33,7 +33,6 @@ Execute (NeomakeClean: file-mode (customqf)):
 
     NeomakeClean
     AssertEqual winnr('$'), win_count, "loclist was closed"
-
     bwipe
   finally
     call neomake#quickfix#disable()
@@ -42,12 +41,9 @@ Execute (NeomakeClean: file-mode (customqf)):
 Execute (NeomakeClean: project-mode):
   Save g:neomake_open_list
   let g:neomake_open_list = 2
-
   new
   CallNeomake 0, [g:entry_maker]
-
   NeomakeClean!
-
   cclose
   bwipe
 
@@ -57,7 +53,6 @@ Execute (NeomakeClean: project-mode (customqf)):
 
   try
     call neomake#quickfix#enable(1)
-
     new
     let win_count = winnr('$')
     CallNeomake 0, [g:entry_maker]
@@ -65,7 +60,6 @@ Execute (NeomakeClean: project-mode (customqf)):
 
     NeomakeClean!
     AssertEqual winnr('$'), win_count, "qflist was closed"
-
     bwipe
   finally
     call neomake#quickfix#disable()

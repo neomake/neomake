@@ -150,6 +150,5 @@ Execute (Does not nest hooks / User autocommands):
     AssertNeomakeMessage '\VCalling User autocmd NeomakeJobFinished with context: ', 2
     AssertNeomakeMessage '\VCalling User autocmd NeomakeFinished with context: ', 2
     AssertNeomakeMessage 'Cleaning make info.'
-
     bwipe
   endif

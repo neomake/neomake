@@ -56,17 +56,13 @@ Execute (rst: sphinx: enabled based on conf.py):
   call writefile([], 'doc'.slash.'conf.py')
   CallNeomake 1, ['sphinx']
   AssertNeomakeMessage 'sphinx: could not find conf.py.', 0
-
   AssertEqual b:neomake.sphinx, {'source_dir': ''}
+
   unlet b:neomake.sphinx
-
   let expected_srcdir = getcwd() . slash . 'doc'
-
   let maker = neomake#GetMaker('sphinx', 'rst')
   AssertEqual maker.args[-2], expected_srcdir
-
   AssertNeomakeMessage printf("sphinx: setting b:neomake.sphinx.source_dir='%s'.", expected_srcdir), 3, {'bufnr': bufnr}
-
   AssertEqual neomake#makers#ft#rst#EnabledMakers(), ['sphinx']
   bwipe
 

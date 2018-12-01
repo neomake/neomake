@@ -149,7 +149,6 @@ Execute (neomake#compat#get_mode with insert mode completion (imap)):
   AssertEqual s:mode, 'i'
   AssertEqual s:in_completion, 0
   AssertEqual getline('.'), 'word'
-
   bwipe!
 
 Execute (neomake#compat#glob_list):

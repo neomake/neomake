@@ -311,5 +311,4 @@ Execute (stdin maker: can always use stdin):
     AssertNeomakeMessage "Starting [string]: cat -.", 2
   endif
   AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line2']
-
   bwipe!

@@ -113,7 +113,6 @@ Execute (neomake#config#get with b: prefix, no default and bufnr context):
   new
   AssertEqual neomake#config#get('b:automake.ignore_filetypes', [],
   \ {'bufnr': bufnr}), ['startify']
-
   bwipe
   bwipe
 
@@ -220,7 +219,6 @@ Execute (old-style config is used for maker defaults):
   " New-style config overrides it.
   call neomake#config#set('b:mymaker.args', ['new-style'])
   AssertEqual neomake#GetMaker(maker).args, ['new-style']
-
   bwipe
 
 Execute (neomake#config#get does not allow to extend undefined default return value):
@@ -286,6 +284,5 @@ Execute (neomake#config#get can ignore buffer):
   " '' ignores buffer.
   AssertEqual neomake#config#get('foo', 'default', {'bufnr': ''}), 'default'
   AssertEqual neomake#config#get('b:foo', 'default', {'bufnr': ''}), 'default'
-
   bwipe
   bwipe

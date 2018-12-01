@@ -19,5 +19,4 @@ Execute (sqlint):
   AssertEqual loclist[1].col, 13
   AssertEqual loclist[1].text, 'syntax warning at or near alterUser'
   AssertEqual loclist[1].type, 'W'
-
   bwipe sql/V1__BaseSchema.sql

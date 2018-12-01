@@ -9,5 +9,4 @@ Execute (default_entry_type is only used for valid/recognized entries):
   AssertEqual map(getqflist(), '[v:val.text, v:val.type]'), [
   \ ['msg', 'W'],
   \ ['info', '']]
-
   bwipe errorfile

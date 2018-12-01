@@ -53,7 +53,6 @@ Execute (Neomake uses temporary file for unsaved buffer):
   else
     AssertEqual len(filter(copy(g:neomake_test_messages), "v:val[1] =~# '^Removing temporary file:'")), 1, 'msg found'
   endif
-
   bwipe!
 
 Execute (Uses temporary file for unreadable buffer):
@@ -261,7 +260,6 @@ Execute (maker._get_argv uses jobinfo for bufnr):
   else
     AssertEqual join(expected), maker._get_argv(jobinfo)
   endif
-
   wincmd p
   bwipe
 
@@ -383,12 +381,9 @@ Execute (same tempfile contents is used for all jobs):
     AssertEqual bound_maker2.tempfile_name, g:maker2_tempfile
     AssertNotEqual make_info.tempfiles[0], bound_maker2.tempfile_name
     AssertEqual g:global_tempfile_contents, g:maker2_tempfile_contents
-
     AssertEqual make_info.tempfiles, [jobinfo1.filename, jobinfo2.filename]
     AssertEqual make_info.tempfiles, [jobinfo1.tempfile, jobinfo2.tempfile]
-
     AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line1']
-
     bwipe!
     au! neomake_test_finished
     augroup neomake_test_finished
@@ -438,12 +433,9 @@ Execute (First maker uses actual file, 2nd modified tempfile):
     AssertEqual bound_maker2.tempfile_name, maker2.tempfile_name
     AssertEqual make_info.tempfiles, [bound_maker2.tempfile_name]
     AssertEqual g:global_tempfile_contents, g:maker2_tempfile_contents
-
     AssertEqual make_info.tempfiles, [jobinfo2.filename]
     AssertEqual make_info.tempfiles, [jobinfo2.tempfile]
-
     AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line1', 'line2']
-
     bwipe!
     au! neomake_test_finished
     augroup neomake_test_finished

@@ -280,7 +280,6 @@ Execute (get_list_entries: filename with cwd):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'error message'}]
-
   bwipe
 
 Execute (process_output: filename with cwd):
@@ -372,7 +371,6 @@ Execute (legacy errorformat maker: filename with cwd):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'error message'}]
-
   bwipe
 
 Execute (legacy errorformat maker: filename with cwd (error: removed)):
@@ -479,7 +477,6 @@ Execute (legacy errorformat maker: filename with cwd (error: maker rmdir)):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'error message'}]
-
   bwipe
   exe 'bwipe' unlisted_bufnr
 
