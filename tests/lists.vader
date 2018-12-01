@@ -659,5 +659,31 @@ Execute (Quiet with no QuickfixCmdPost autocommands):
   Assert len(getloclist(0))
   AssertEqual NeomakeTestsGetVimMessages(), []
   AssertEqual s:called, 1
+  bwipe
 
+Execute (open_list and list_height can be buffer settings):
+  new
+  let b:neomake_open_list = 2
+  let b:neomake_list_height = 2
+
+  let winnr = winnr()
+  let wincount = winnr('$')
+
+  " Maker with three entries.
+  let maker = {}
+  function! maker.get_list_entries(...)
+    return [
+    \ {'lnum': 1, 'bufnr': bufnr('%'), 'type': 'E', 'text': '1'},
+    \ {'lnum': 1},
+    \ {'lnum': 1}]
+  endfunction
+  CallNeomake 1, [maker]
+
+  AssertEqual winnr, winnr()
+  AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
+  AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'),
+  \ [['1', 'E'], ['', 'E'], ['', 'E']]
+
+  AssertEqual winheight(wincount + 1), 2
+  lclose
   bwipe
