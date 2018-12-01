@@ -114,12 +114,7 @@ function! s:process_action_queue_timer_cb(...) abort
     call neomake#log#debug(printf(
                 \ 'action queue: callback for Timer queue (%d).', s:action_queue_timer))
     unlet s:action_queue_timer
-    try
-        call s:process_action_queue('Timer')
-    catch
-        " Catch and log everything here (would not show show up in tests).
-        call neomake#log#exception(v:exception)
-    endtry
+    call s:process_action_queue('Timer')
 endfunction
 
 function! s:process_action_queue(event) abort
@@ -181,8 +176,13 @@ function! s:process_action_queue(event) abort
             " Call the queued action.  On failure they should have requeued
             " themselves already.
             let rv = call(data[0], data[1])
-        catch /^Neomake: /
-            let error = substitute(v:exception, '^Neomake: ', '', '')
+        catch
+            if v:exception =~# '^Neomake: '
+                let error = substitute(v:exception, '^Neomake: ', '', '')
+            else
+                let error = printf('Error during action queue processing: %s.',
+                      \ v:exception)
+            endif
             call neomake#log#exception(error, log_context)
 
             " Cancel job in case its action failed to get re-queued after X
@@ -304,3 +304,4 @@ function! s:clean_action_queue_events() abort
         endif
     endif
 endfunction
+" vim: ts=4 sw=4 et
