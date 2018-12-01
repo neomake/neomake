@@ -60,7 +60,7 @@ function! neomake#core#instantiate_maker(maker, options, check_exe) abort
     endif
 
     if has_key(maker, '_bind_args')
-        call maker._bind_args()
+        call maker._bind_args(options)
         if type(maker.exe) != type('')
             let error = printf('Non-string given for executable of maker %s: type %s',
                         \ maker.name, type(maker.exe))

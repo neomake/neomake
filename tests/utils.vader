@@ -554,7 +554,7 @@ Execute (neomake#utils#MakerFromCommand appends args for file_mode (string)):
   AssertEqual bound_maker.exe, shell_argv[0]
   AssertEqual bound_maker.remove_invalid_entries, 0
 
-  call bound_maker._bind_args()
+  call bound_maker._bind_args({'ft': ''})
   AssertEqual bound_maker.args, shell_argv[1:] + ['printf "%s\n" "%" 1']
 
   let argv = bound_maker._get_argv(jobinfo)

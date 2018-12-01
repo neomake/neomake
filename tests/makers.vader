@@ -1,5 +1,52 @@
 Include: include/setup.vader
 
+Execute (makers: append_args):
+  let base_maker = neomake#create_maker_object({'name': 'append_args'}, '')
+
+  " No args, append list.
+  let maker = extend(copy(base_maker), {'append_args': ['1']})
+  call neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual maker.args, ['1']
+
+  " Args list, append list.
+  let maker = extend(copy(base_maker), {'append_args': ['1'], 'args': ['0']})
+  call neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual maker.args, ['0', '1']
+
+  " No args, append string.
+  let maker = extend(copy(base_maker), {'append_args': '1 2'})
+  call neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual maker.args, ['1 2']
+
+  " Args as empty string, append string.
+  let maker = extend(copy(base_maker), {'append_args': '1 2', 'args': ''})
+  call neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual maker.args, '1 2'
+
+  " Args as string, append string.
+  let maker = extend(copy(base_maker), {'append_args': '1 2', 'args': '0'})
+  call neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual maker.args, '0 1 2'
+
+  " Basic assertions using buffer settings."
+  new
+  set filetype=neomake_tests
+
+  let b:neomake_neomake_tests_append_args_maker = base_maker
+  let maker = neomake#GetMaker('append_args', &ft)
+
+  let m = neomake#core#instantiate_maker(copy(maker), {'ft': &ft}, 0)
+  AssertEqual m.args, []
+
+  let b:neomake_neomake_tests_append_args_append_args = ['1']
+  let m = neomake#core#instantiate_maker(copy(maker), {'ft': &ft}, 0)
+  AssertEqual m.args, ['1']
+
+  let maker = extend(copy(maker), {'args': ['0']})
+  let m = neomake#core#instantiate_maker(maker, {'ft': &ft}, 0)
+  AssertEqual m.args, ['0', '1']
+  bwipe
+
 Execute (neomake#GetMakers):
   AssertEqual neomake#GetMakers('non-existent'), []
   AssertEqual neomake#GetMakers('pug'), ['puglint']
