@@ -149,7 +149,11 @@ Execute (action queue: logs errors (get_list_entries, Timer)):
 
   call neomake#action_queue#add(['Timer', 'WinEnter'], [function('F1'), [jobinfo]])
 
-  NeomakeTestsWaitForMessage 'action queue: processing for Timer (1 items, winnr: 1).', 3
+  if has('timers')
+    NeomakeTestsWaitForMessage 'action queue: processing for Timer (1 items, winnr: 1).', 3
+  else
+    doautocmd CursorHold
+  endif
   AssertNeomakeMessage 'action queue: calling F1.', 3
   AssertNeomakeMessage 'Error during action queue processing: error_in_F1.', 0
   AssertNeomakeMessage '\v^CancelJob: job not found: \d+.', 0
