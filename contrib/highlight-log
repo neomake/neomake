@@ -9,13 +9,15 @@
 #
 #     tail -f /tmp/neomake.log | /path/to/neomake/contrib/highlight-log
 
-debug_color="[2m"  # $(tput dim), does not work in urxvt (although in infocmp/terminfo).
-log_color="[33;1m"
-error_color="[31m[1m"
 bold="[1m"  # $(tput bold)
-boldoff="[22m"
-coloroff="[39m"
-log_coloroff="$boldoff$coloroff"
+bold_off="[22m"
+debug_color="[2m"  # $(tput dim), does not work in urxvt (although in infocmp/terminfo).
+debug_color_off="[22m"
+color_off="[39m"
+log_color="[33;1m"
+log_color_off="$bold_off$color_off"
+error_color="[31;1m"
+error_color_off="$bold_off$color_off"
 
 compact=0
 quiet=0
@@ -48,11 +50,11 @@ if [ "$1" = vader ]; then
     # 3. Neomake's error log messages
     # 4. Neomake's debug log messages
     # 5. non-Neomake log lines (e.g. from :Log)
-    sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/'"$error_color"'\0'"$coloroff"'/' \
-      -e 's/^\(\([^ ].*\)\? \+\)\(([ [:digit:]]\+\/[[:digit:]]\+)\)/\1'"$bold"'\3'"$boldoff"'/' \
-      -e 's/^ \+> \[\(error  \|E +[.[:digit:]]\+\)\]: .*/'"$bold"'\0'"$boldoff"'/' \
-      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0'"$coloroff"'/' \
-    | sed -E -e '/'"$re_ignore_log_line"'/! s/'"$re_log_line"'/\1'"$log_color"'\2'"$log_coloroff"'/'
+    sed -e 's/^ \+([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/'"$error_color"'\0'"$error_color_off"'/' \
+      -e 's/^\(\([^ ].*\)\? \+\)\(([ [:digit:]]\+\/[[:digit:]]\+)\)/\1'"$bold"'\3'"$bold_off"'/' \
+      -e 's/^ \+> \[\(error  \|E +[.[:digit:]]\+\)\]: .*/'"$bold"'\0'"$bold_off"'/' \
+      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0'"$debug_color_off"'/' \
+    | sed -E -e '/'"$re_ignore_log_line"'/! s/'"$re_log_line"'/\1'"$log_color"'\2'"$log_color_off"'/'
   }
 
   if ((quiet || compact)); then
@@ -168,5 +170,5 @@ else
   debug='^[:[:digit:]]\+ \[D .*'
   sed -e "s/$error/[31m[1m\0[0m/" \
       -e "s/$warn/w:[33m\0[0m/" \
-      -e "s/$debug/$debug_color\\0[0m/"
+      -e "s/$debug/$debug_color\\0$debug_color_off/"
 fi
