@@ -114,7 +114,12 @@ function! s:process_action_queue_timer_cb(...) abort
     call neomake#log#debug(printf(
                 \ 'action queue: callback for Timer queue (%d).', s:action_queue_timer))
     unlet s:action_queue_timer
-    call s:process_action_queue('Timer')
+    try
+        call s:process_action_queue('Timer')
+    catch
+        " Catch and log everything here (would not show show up in tests).
+        call neomake#log#exception(v:exception)
+    endtry
 endfunction
 
 function! s:process_action_queue(event) abort
