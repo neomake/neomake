@@ -81,4 +81,9 @@ function! s:jobinfo_base.cd(...) abort
     return ''
 endfunction
 
+function! s:jobinfo_base.get_argv() abort
+    let argv = self.maker._get_argv(self)
+    return neomake#compat#massage_argv(argv)
+endfunction
+
 let g:neomake#jobinfo#base = s:jobinfo_base
