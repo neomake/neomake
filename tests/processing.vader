@@ -659,8 +659,7 @@ Execute (get_list_entries: delayed for location list (but in current context)):
   let bufnr = bufnr('%')
 
   call neomake#Make(1, [g:sleep_maker, maker])
-  NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'unnamed_maker: getting entries via get_list_entries.', 2
+  NeomakeTestsWaitForMessage 'unnamed_maker: getting entries via get_list_entries.', 2
   AssertNeomakeMessage 'Postponing location list processing.', 3
   AssertEqual getloclist(0), []
   AssertEqual winnr(), 2
