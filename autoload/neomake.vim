@@ -1413,6 +1413,10 @@ function! s:AddExprCallback(jobinfo, lines) abort
 endfunction
 
 function! s:CleanJobinfo(jobinfo, ...) abort
+    if get(a:jobinfo, '_in_exit_handler', 0)
+        " Do not clean job yet.
+        return
+    endif
     if !empty(a:jobinfo.pending_output) && !get(a:jobinfo, 'canceled', 0)
         call neomake#log#debug(
                     \ 'Output left to be processed, not cleaning job yet.', a:jobinfo)
@@ -2317,6 +2321,7 @@ function! s:exit_handler(jobinfo, data) abort
         call s:CleanJobinfo(jobinfo)
         return
     endif
+    let jobinfo._in_exit_handler = 1
     let maker = jobinfo.maker
 
     if exists('jobinfo._output_while_in_handler') || exists('jobinfo._nvim_in_handler')
@@ -2389,6 +2394,7 @@ function! s:exit_handler(jobinfo, data) abort
         call neomake#log#error(printf(
                     \ '%s: unexpected output. See :messages for more information.', maker.name), jobinfo)
     endif
+    unlet jobinfo._in_exit_handler
     call s:handle_next_job(jobinfo)
 endfunction
 
