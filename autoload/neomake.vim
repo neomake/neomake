@@ -1413,6 +1413,10 @@ function! s:AddExprCallback(jobinfo, lines) abort
 endfunction
 
 function! s:CleanJobinfo(jobinfo, ...) abort
+    if get(a:jobinfo, '_in_exit_handler', 0)
+        " Do not clean job yet.
+        return
+    endif
     if !empty(a:jobinfo.pending_output) && !get(a:jobinfo, 'canceled', 0)
         call neomake#log#debug(
                     \ 'Output left to be processed, not cleaning job yet.', a:jobinfo)
@@ -2328,67 +2332,72 @@ function! s:exit_handler(jobinfo, data) abort
     call neomake#log#debug(printf('exit: %s: %s.',
                 \ maker.name, string(a:data)), jobinfo)
 
-    " Handle any unfinished lines from stdout/stderr callbacks.
-    for event_type in ['stdout', 'stderr']
-        if has_key(jobinfo, event_type)
-            let lines = jobinfo[event_type]
-            if !empty(lines)
-                if lines[-1] ==# ''
-                    call remove(lines, -1)
-                endif
+    let jobinfo._in_exit_handler = 1
+    try
+        " Handle any unfinished lines from stdout/stderr callbacks.
+        for event_type in ['stdout', 'stderr']
+            if has_key(jobinfo, event_type)
+                let lines = jobinfo[event_type]
                 if !empty(lines)
-                    call s:RegisterJobOutput(jobinfo, lines, event_type)
+                    if lines[-1] ==# ''
+                        call remove(lines, -1)
+                    endif
+                    if !empty(lines)
+                        call s:RegisterJobOutput(jobinfo, lines, event_type)
+                    endif
+                    unlet jobinfo[event_type]
                 endif
-                unlet jobinfo[event_type]
+            endif
+        endfor
+
+        if !get(jobinfo, 'failed_to_start')
+            let ExitCallback = neomake#utils#GetSetting('exit_callback',
+                        \ extend(copy(jobinfo), maker), 0, jobinfo.ft, jobinfo.bufnr)
+            if ExitCallback isnot# 0
+                let callback_dict = { 'status': jobinfo.exit_code,
+                                    \ 'name': maker.name,
+                                    \ 'has_next': !empty(s:make_info[jobinfo.make_id].jobs_queue) }
+                try
+                    if type(ExitCallback) == type('')
+                        let ExitCallback = function(ExitCallback)
+                    endif
+                    call call(ExitCallback, [callback_dict], jobinfo)
+                catch
+                    call neomake#log#error(printf(
+                                \ 'Error during exit_callback: %s.', v:exception),
+                                \ jobinfo)
+                endtry
             endif
         endif
-    endfor
 
-    if !get(jobinfo, 'failed_to_start')
-        let ExitCallback = neomake#utils#GetSetting('exit_callback',
-                    \ extend(copy(jobinfo), maker), 0, jobinfo.ft, jobinfo.bufnr)
-        if ExitCallback isnot# 0
-            let callback_dict = { 'status': jobinfo.exit_code,
-                                \ 'name': maker.name,
-                                \ 'has_next': !empty(s:make_info[jobinfo.make_id].jobs_queue) }
-            try
-                if type(ExitCallback) == type('')
-                    let ExitCallback = function(ExitCallback)
-                endif
-                call call(ExitCallback, [callback_dict], jobinfo)
-            catch
-                call neomake#log#error(printf(
-                            \ 'Error during exit_callback: %s.', v:exception),
-                            \ jobinfo)
-            endtry
+        if s:async
+            if has('nvim') || jobinfo.exit_code != 122
+                call neomake#log#debug(printf(
+                            \ '%s: completed with exit code %d.',
+                            \ maker.name, jobinfo.exit_code), jobinfo)
+            endif
+            let jobinfo.finished = 1
         endif
-    endif
 
-    if s:async
-        if has('nvim') || jobinfo.exit_code != 122
-            call neomake#log#debug(printf(
-                        \ '%s: completed with exit code %d.',
-                        \ maker.name, jobinfo.exit_code), jobinfo)
-        endif
-        let jobinfo.finished = 1
-    endif
+        if has_key(jobinfo, 'unexpected_output')
+            redraw
+            for [source, output] in items(jobinfo.unexpected_output)
+                let msg = printf('%s: unexpected output on %s: ', maker.name, source)
+                call neomake#log#debug(msg . join(output, '\n') . '.', jobinfo)
 
-    if has_key(jobinfo, 'unexpected_output')
-        redraw
-        for [source, output] in items(jobinfo.unexpected_output)
-            let msg = printf('%s: unexpected output on %s: ', maker.name, source)
-            call neomake#log#debug(msg . join(output, '\n') . '.', jobinfo)
-
-            echohl WarningMsg
-            echom printf('Neomake: %s%s', msg, output[0])
-            for line in output[1:-1]
-                echom line
+                echohl WarningMsg
+                echom printf('Neomake: %s%s', msg, output[0])
+                for line in output[1:-1]
+                    echom line
+                endfor
+                echohl None
             endfor
-            echohl None
-        endfor
-        call neomake#log#error(printf(
-                    \ '%s: unexpected output. See :messages for more information.', maker.name), jobinfo)
-    endif
+            call neomake#log#error(printf(
+                        \ '%s: unexpected output. See :messages for more information.', maker.name), jobinfo)
+        endif
+    finally
+        unlet jobinfo._in_exit_handler
+    endtry
     call s:handle_next_job(jobinfo)
 endfunction
 

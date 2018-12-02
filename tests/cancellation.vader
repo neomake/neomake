@@ -246,3 +246,21 @@ Execute (neomake#CancelJob clears action queue for get_list_entries maker):
     AssertNeomakeMessage 'Cleaning jobinfo.', 3
     AssertNeomakeMessage 'Cleaning make info.', 3
   endif
+
+Execute (CleanJobinfo with cancellation while in exit handler):
+  new
+  let maker = copy(g:error_maker)
+  let maker.name = 'mymaker1'
+  function! maker.process_output(...)
+    NeomakeCancelJobs
+    return [{'lnum': 1, 'text': 'still_processed'}]
+  endfunction
+
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Cancelling 1 jobs.', 3
+  AssertNeomakeMessage 'Job exited already.', 3
+
+  " Might be better if this was not processed, but this only tests if
+  " CleanJobinfo is handled/called properly.
+  AssertEqual map(getloclist(0), 'v:val.text'), ['still_processed']
+  bwipe
