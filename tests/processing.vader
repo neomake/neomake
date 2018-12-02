@@ -587,7 +587,7 @@ Execute (Already running job gets restarted in case of exception):
     AssertEqual g:vader_exception, 'NeomakeTestsException'
     AssertNeomakeMessage 'processing 1 lines of output.'
 
-    AssertEqual len(neomake#GetJobs()), 1, 'the job has not been clean because of the exception'
+    AssertEqual len(neomake#GetJobs()), 1, 'The job has not been cleaned because of the exception.'
 
     " Restart, which should work directly.
     call neomake#Make(1, [maker])
