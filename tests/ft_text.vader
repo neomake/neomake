@@ -80,7 +80,6 @@ Execute (writegood: handles wrapped message):
   \  'type': 'W', 'pattern': '', 'text': "\"be\nused\" may be passive voice"},
   \ {'lnum': 2, 'bufnr': bufnr, 'col': 1, 'valid': 1, 'vcol': 0, 'nr': -1,
   \  'type': 'W', 'pattern': '', 'text': 'something else'}]
-
   exe 'bwipe' bufnr
 
 Execute (writegood: handles empty lines):

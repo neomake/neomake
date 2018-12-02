@@ -16,7 +16,6 @@ Execute (Postprocessing updates list):
   CallNeomake 1, [maker]
   let expected_list = map(list, 'extend(v:val, {"text": v:val.text." SUFFIX"})')
   AssertEqual getloclist(0), expected_list
-
   bwipe
 
 Execute (AddExprCallback with changed windows inbetween):
@@ -415,7 +414,6 @@ Execute (open_list=1 with job: just opens location window):
   NeomakeTestsWaitForFinishedJobs
   AssertEqual wincount, winnr('$'), 'Location list has been closed'
   exe winnr 'wincmd w'
-
   bwipe
   bwipe
 
@@ -574,7 +572,6 @@ Execute (adjusts height of list for second maker):
   let qf_win = winnr('$')
   AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
   AssertEqual winheight(qf_win), 2
-
   lclose
   bwipe
 
@@ -599,7 +596,6 @@ Execute (logs not found window):
   let qf_win = winnr('$')
   AssertEqual getwinvar(qf_win, '&filetype'), 'qf'
   AssertEqual winheight(qf_win), 10
-
   lclose
   bwipe
 

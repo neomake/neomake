@@ -8,9 +8,7 @@ Execute (pulp parses success message):
     \ '{"warnings":[],"errors":[]}',
     \ '* Build successful.',
     \ ]
-
   let result = neomake#makers#ft#purescript#pulp().process_output({'output': output})
-
   AssertEqual [], result
   bwipe
 
@@ -23,9 +21,7 @@ Execute (pulp parses error message):
     \ 'Compiling Other',
     \ '* ERROR: Subcommand terminated with exit code 1',
     \ ]
-
   let result = neomake#makers#ft#purescript#pulp().process_output({'output': output})
-
   AssertEqual [{
     \ 'lnum': 4,
     \ 'filename': 'src/Other.purs',
@@ -45,9 +41,7 @@ Execute (pulp parses warning message):
   \ 'Compiling Main',
   \ '* Build successful',
   \ ]
-
   let result = neomake#makers#ft#purescript#pulp().process_output({'output': output})
-
   AssertEqual [{
     \ 'lnum': 3,
     \ 'filename': 'src/Main.purs',

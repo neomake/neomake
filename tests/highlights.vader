@@ -26,7 +26,6 @@ Execute (No error when matches are cleared manually):
       \ [{'group': 'NeomakeError', 'pattern': '\%1l\%1c.\{1}', 'priority': 10, 'id': 5}]
     endif
   endif
-
   bwipe
 
 Execute (neomake#highlights#AddHighlight with off-columns):

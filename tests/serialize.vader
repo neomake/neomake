@@ -132,7 +132,6 @@ Execute (NeomakeSh: serialized with previous buffer overriding global abort):
     wincmd p
     bwipe
     bwipe
-
     AssertNeomakeMessage 'Aborting next makers: success-maker.'
   endif
 
@@ -357,11 +356,8 @@ Execute (Uses correct maker filetypes when started in another buffer):
       bwipe
     endfunction
 
-    call neomake#Make(1, [maker1, maker2])
-    NeomakeTestsWaitForFinishedJobs
-
+    CallNeomake 1, [maker1, maker2]
     AssertEqual g:neomake_test_exit_cb[1], {'status': 0, 'name': 'maker2', 'has_next': 0}
     AssertEqual g:neomake_test_exit_cb[0].ft, 'orig_ft'
-
     bwipe
   endif

@@ -72,7 +72,6 @@ Execute (neomake#cmd#complete_makers: completes all (executable) makers, preferr
   " Neomake with ArgLead completes ft makers only again afterwards.
   AssertEqual neomake#cmd#complete_makers('c', 'Neomake c'), [
   \ 'cargo', 'cargotest']
-
   bwipe
 
 Execute (neomake#cmd#complete_makers: filter by maker.name):
@@ -132,7 +131,6 @@ Execute (neomake#cmd#complete_makers: filter by maker.name):
   \ 'custom',
   \ 'custom2',
   \ ]
-
   bwipe
 
 Execute (neomake#cmd#complete_jobs):

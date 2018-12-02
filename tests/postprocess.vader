@@ -53,7 +53,6 @@ Execute (neomake#postprocess#generic_length):
   call call('neomake#postprocess#generic_length', [new], this)
   AssertEqual new.length, 7
   bwipe!
-
   bwipe!
 
 Execute (Postprocess: called with dict+maker as self for list):
@@ -305,7 +304,6 @@ Execute (neomake#postprocess#generic_length for multiple matches):
     \ 'lnum': 1, 'col': 1, 'bufnr': bufnr('%')}
     call call('neomake#postprocess#generic_length', [entry], {})
     AssertEqual entry.length, len('chairman')
-
     bwipe!
   endif
 

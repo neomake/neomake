@@ -103,5 +103,4 @@ Execute (makers are picked up via SupersetOf for jsx):
   AssertEqual g:vader_exception, 'Neomake: Maker not found (for filetype javascript): jsxhint'
   " Should not use jshint_exe config.
   AssertEqual neomake#GetMaker('jsxhint', 'jsx').exe, 'jsxhint'
-
   bwipe

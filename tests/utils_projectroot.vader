@@ -30,5 +30,4 @@ Execute (neomake#utils#get_project_root):
   AssertEqual neomake#utils#get_project_root(bufnr), ''
   call writefile([], tmpdir. slash . 'Makefile')
   AssertEqual neomake#utils#get_project_root(bufnr), tmpdir
-
   bwipe

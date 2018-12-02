@@ -75,7 +75,6 @@ Execute (vint: highlights syntax error for command):
   \ 'type': 'e',
   \ 'pattern': '',
   \ 'text': ':endfor without :for (SyntaxError)'}]
-
   bwipe!
   AssertEqual {string(bufnr): [[2, 6]]}, g:neomake_tests_highlight_lengths
 
@@ -141,7 +140,6 @@ Execute (get_list_entries: based on example from doc):
   bwipe
   bwipe
   exe 'bwipe '.unlisted_bufnr
-
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
@@ -191,7 +189,6 @@ Execute (cargo error message):
 
   " TODO: should not call it for the same highlight twice?!
   AssertEqual {string(bufnr): [[19, 2], [25, 40], [25, 40]]}, g:neomake_tests_highlight_lengths
-
   bwipe
 
 Execute (cargo warning message):
@@ -215,7 +212,6 @@ Execute (cargo warning message):
     \ 'vcol': 0,
     \ 'pattern': '',
     \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}]
-
   AssertEqual {string(bufnr): [[2, 7]]}, g:neomake_tests_highlight_lengths
   bwipe
 
@@ -244,7 +240,6 @@ Execute (cargo warning for file that is not open):
     \ 'vcol': 0,
     \ 'pattern': '',
     \ 'text': 'unused import: `Variant`, #[warn(unused_imports)] on by default'}]
-
   AssertEqual {string(unlisted_bufnr): [[2, 7]]}, g:neomake_tests_highlight_lengths
   bwipe
   exe 'bwipe' unlisted_bufnr
@@ -270,7 +265,6 @@ Execute (cargo error message children):
     \ 'vcol': 0,
     \ 'pattern': '',
     \ 'text': 'custom derive attribute panicked. message: Only structs and enums can derive From'}]
-
   AssertEqual {string(bufnr): [[11, 4]]}, g:neomake_tests_highlight_lengths
   bwipe
 

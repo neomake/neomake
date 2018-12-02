@@ -107,7 +107,6 @@ Execute (Location list handling is postponed with visible popup menu):
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'action queue: processing for CompleteDone (1 items, winnr: 2).', 3
     AssertNeomakeMessage 'action queue: processed 1 items.', 3
-
     AssertEqual getloclist(0), []
     bwipe!
   endif

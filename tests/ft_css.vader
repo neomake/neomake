@@ -55,7 +55,6 @@ Execute (stylelint):
   \ [0, 0, '/doesnotexist'],
   \ [valid_after_setlist, 0, 'Unexpected unit "px" [unit-whitelist]']
   \ ]
-
   bwipe
   exe buf1 'bwipe'
   exe buf2 'bwipe'
@@ -76,6 +75,5 @@ Execute (stylelint: error with no config):
   \ 'lnum': 0, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
   \ 'nr': -1, 'type': 'E', 'pattern': '',
   \ 'text': 'Error: No configuration provided for /path/to/foo.css'}]
-
   bwipe
   exe bufnr.'bwipe'

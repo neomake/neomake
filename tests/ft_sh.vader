@@ -56,7 +56,6 @@ Execute (sh: shellcheck):
   AssertEqual default_args + ['-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
   set ft=nadda
   AssertEqual default_args + ['-s', 'bash'], neomake#makers#ft#sh#shellcheck().args
-
   bwipe!
   bwipe test.sh test.ksh foo foo.bash
 

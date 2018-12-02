@@ -20,7 +20,6 @@ Execute (typescript: tslint):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'Missing semicolon'}]
-
   bwipe
 
 Execute (typescript: tsc):
@@ -42,5 +41,4 @@ Execute (typescript: tsc):
   \ 'type': 'E',
   \ 'pattern': '',
   \ 'text': 'TS2322: Type ''0'' is not assignable to type ''string''.'}]
-
   bwipe

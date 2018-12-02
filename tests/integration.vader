@@ -230,7 +230,6 @@ Execute (Neomake: handle output for removed window):
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_countschanged), 1
     AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
-
     bwipe #
     exe 'bwipe' bufnr
   endif
@@ -257,12 +256,9 @@ Execute (Neomake: handle wiped buffer):
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfo
     AssertNeomakeMessage 'No buffer found for location list!', 2
     AssertNeomakeMessage 'Cleaning make info.', 3
-
     AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
     AssertNeomakeMessage 'CancelJob: job not found: ' . jobinfo.id . '.', 0
-
     AssertEqual getloclist(0)[0].text, 'init_loclist'
-
     bwipe
   endif
 
@@ -285,7 +281,6 @@ Execute (Neomake: handle wiped buffer without output):
     AssertNeomakeMessage 'No buffer found for location list!', 2, {'make_id': jobinfo.make_id, 'bufnr': jobinfo.bufnr}
     AssertNeomakeMessage 'Cleaning make info.', 3
     AssertEqual getloclist(0)[0].text, 'init_loclist'
-
     bwipe
   endif
 
@@ -315,10 +310,8 @@ Execute (Neomake: handle pending output across windows/buffers):
     bwipe
     AssertEqual len(g:neomake_test_jobfinished), 1
     AssertEqual len(g:neomake_test_finished), 1
-
     AssertEqual neomake#CancelJob(jobinfo.id), 0, "stale job was removed"
     AssertNeomakeMessage 'CancelJob: job not found: ' . jobinfo.id . '.', 0
-
     exe 'bwipe' bufnr
     exe 'bwipe' new_bufnr
   endif
@@ -515,11 +508,9 @@ Execute (Neomake with windo):
     let ll_2 = getloclist(2)[0].text
     Assert ll_3 > ll_2, "Loclist 3 is newer than 2"
     Assert ll_2 > ll_1, "Loclist 2 is newer than 1"
-
     AssertEqual neomake#statusline#LoclistCounts(winbufnr(1)), {'E': 3}
     AssertEqual neomake#statusline#LoclistCounts(winbufnr(2)), {'E': 2}
     AssertEqual neomake#statusline#LoclistCounts(winbufnr(3)), {'E': 1}
-
     tabclose
     bwipe b1
     bwipe b2

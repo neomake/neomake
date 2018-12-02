@@ -327,7 +327,6 @@ Execute (Automake):
 
   AssertNeomakeMessage 'automake: handling event BufWritePost.', 3
   AssertNeomakeMessage 'automake: no enabled makers.', 3
-
   bwipe!
   bwipe!
 
@@ -578,7 +577,6 @@ Execute (BufWritePost does not run for unchanged buffer):
   w
   AssertNeomakeMessage 'automake: buffer was not changed.'
   AssertEqual len(g:neomake_test_jobfinished), 3
-
   bwipe
 
 Execute (BufWritePost does not run for unchanged buffer (delayed)):
@@ -723,9 +721,7 @@ Execute (Automake restarts if popup menu is visible):
       AssertNeomakeMessage 'automake: tick changed (new).'
       AssertNeomakeMessage '\vautomake: Updating tick: \d+.'
       AssertNeomakeMessage 'automake: enabled makers: true-maker.'
-
       NeomakeTestsWaitForFinishedJobs
-
       bwipe!
     finally
       call timer_stop(timer)
@@ -765,9 +761,7 @@ Execute (Automake cleans up buffer context when restarting after popup menu fail
     Assert !exists('#neomake_automake_retry#InsertLeave#<buffer='.bufnr('%').'>')
     Assert !exists('#neomake_automake_retry#CompleteDone#<buffer='.bufnr('%').'>')
     Assert !exists('b:_neomake_postponed_automake_context')
-
     AssertNeomakeMessage 'automake: postponed automake: unexpected step 2, cleaning up.', 3
-
     bwipe!
   endif
 
@@ -910,7 +904,6 @@ Execute (Automake pre-creates maker_job instances):
   \ '\v^unnamed_maker: could not change to maker''s cwd \(\%%:h\): .*%s',
   \ escape(dir, '\'))
   NeomakeTestsWaitForFinishedJobs
-
   bwipe!
 
 Execute (neomake#configure#reset_automake stops timers):
