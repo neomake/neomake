@@ -2331,8 +2331,8 @@ function! s:exit_handler(jobinfo, data) abort
     endif
     call neomake#log#debug(printf('exit: %s: %s.',
                 \ maker.name, string(a:data)), jobinfo)
-    let jobinfo._in_exit_handler = 1
 
+    let jobinfo._in_exit_handler = 1
     try
         " Handle any unfinished lines from stdout/stderr callbacks.
         for event_type in ['stdout', 'stderr']
