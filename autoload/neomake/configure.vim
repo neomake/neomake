@@ -117,7 +117,7 @@ function! s:neomake_do_automake(context) abort
                 \ 'file_mode': 1,
                 \ 'jobs': deepcopy(a:context.maker_jobs),
                 \ 'ft': ft,
-                \ 'automake': 1})
+                \ 'is_automake': 1})
     let started_jobs = filter(copy(jobinfos), "!get(v:val, 'finished', 0)")
     call s:debug_log(printf('started jobs: %s', string(map(copy(started_jobs), 'v:val.id'))))
     if !empty(started_jobs)

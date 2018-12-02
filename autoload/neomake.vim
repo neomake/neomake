@@ -274,7 +274,10 @@ function! s:handle_get_list_entries(jobinfo, ...) abort
     else
         call s:ProcessEntries(jobinfo, entries)
     endif
-    call s:CleanJobinfo(jobinfo)
+    if !get(a:jobinfo, 'finished')
+        " Might have been canceled in s:ProcessEntries already.
+        call s:CleanJobinfo(jobinfo)
+    endif
     return g:neomake#action_queue#processed
 endfunction
 
@@ -1065,7 +1068,7 @@ function! s:get_makeprg_maker() abort
 endfunction
 
 function! s:Make(options) abort
-    let is_automake = !empty(expand('<abuf>'))
+    let is_automake = get(a:options, 'is_automake', !empty(expand('<abuf>')))
     if is_automake
         if s:ignore_automake_events
             call neomake#log#debug(printf(
@@ -1754,6 +1757,17 @@ let s:needs_to_replace_qf_for_lwindow = has('patch-7.4.379')
 function! s:ProcessEntries(jobinfo, entries, ...) abort
     if empty(a:entries)
         return
+    endif
+    let s = s:make_info[a:jobinfo.make_id]
+    if get(s:make_info[a:jobinfo.make_id].options, 'is_automake', 0)
+        let tick = getbufvar(a:jobinfo.bufnr, 'neomake_automake_tick', [])
+        if !empty(tick)
+            if tick != [getbufvar(a:jobinfo.bufnr, 'changedtick'), a:jobinfo.ft]
+                call neomake#log#debug('Buffer was changed, canceling automake.', a:jobinfo)
+                  call neomake#CancelMake(a:jobinfo.make_id)
+                  return g:neomake#action_queue#processed
+            endif
+        endif
     endif
     if s:need_to_postpone_loclist(a:jobinfo)
         return neomake#action_queue#add(['BufEnter', 'WinEnter'], [s:function('s:ProcessEntries'),
