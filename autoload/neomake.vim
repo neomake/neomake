@@ -1758,15 +1758,9 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     if empty(a:entries)
         return
     endif
-    let s = s:make_info[a:jobinfo.make_id]
     if get(s:make_info[a:jobinfo.make_id].options, 'is_automake', 0)
-        let tick = getbufvar(a:jobinfo.bufnr, 'neomake_automake_tick', [])
-        if !empty(tick)
-            if tick != [getbufvar(a:jobinfo.bufnr, 'changedtick'), a:jobinfo.ft]
-                call neomake#log#debug('Buffer was changed, canceling automake.', a:jobinfo)
-                  call neomake#CancelMake(a:jobinfo.make_id)
-                  return g:neomake#action_queue#processed
-            endif
+        if neomake#configure#_cancel_automake(a:jobinfo)
+            return g:neomake#action_queue#processed
         endif
     endif
     if s:need_to_postpone_loclist(a:jobinfo)
