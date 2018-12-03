@@ -610,5 +610,6 @@ function! s:After()
       Log printf('NOTE: %d error(s) in teardown.', len(errors))
     endif
   endif
+  echom ''
 endfunction
 command! NeomakeTestsGlobalAfter call s:After()
