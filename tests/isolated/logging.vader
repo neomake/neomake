@@ -13,6 +13,7 @@ Execute (Setup: simulate non-testing):
 Execute (neomake#log#error uses echohl):
   Save g:neomake_verbose
   let g:neomake_verbose = 1
+  call NeomakeTestsSetVimMessagesMarker()
   call neomake#log#error('some error with context.', {})
   call neomake#log#error('some error without context.')
   AssertEqual NeomakeTestsGetVimMessages(), [
