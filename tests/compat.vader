@@ -174,3 +174,95 @@ Execute (neomake#compat#restore_prev_windows handles removed windows):
   call neomake#compat#restore_prev_windows()
   AssertNeomakeMessage expected_msg, 3
   bwipe
+
+Execute (neomake#compat#buf_get_lines):
+  new
+  let b = bufnr('%')
+  AssertEqual neomake#compat#buf_get_lines(b, 1, 1), []
+  AssertEqual neomake#compat#buf_get_lines(b, 1, 2), ['']
+
+  call setline(1, '1')
+  AssertEqual getline(1, '$'), ['1']
+  AssertEqual neomake#compat#buf_get_lines(b, 1, 2), ['1']
+
+  " end > lines
+  let threw = 0
+  try
+    call neomake#compat#buf_get_lines(b, 1, 3)
+  catch
+    let threw = 1
+    if has('nvim')
+      AssertEqual v:exception, 'neomake#compat#buf_get_lines: Index out of bounds'
+    else
+      AssertEqual v:exception, 'neomake#compat#buf_get_lines: end is higher than number of lines'
+    endif
+  endtry
+  AssertEqual threw, 1
+
+  " start < 1
+  let threw = 0
+  try
+    call neomake#compat#buf_get_lines(b, 0, 1)
+  catch
+    let threw = 1
+    AssertEqual v:exception, 'neomake#compat#buf_get_lines: start is lower than 1'
+  endtry
+  AssertEqual threw, 1
+
+  call setline(2, '2')
+  AssertEqual neomake#compat#buf_get_lines(b, 1, 2), ['1']
+  AssertEqual neomake#compat#buf_get_lines(b, 1, 3), ['1', '2']
+
+  AssertEqual getline(1, '$'), ['1', '2']
+  bwipe!
+
+Execute (neomake#compat#buf_set_lines):
+  new
+  let b = bufnr('%')
+  AssertEqual neomake#compat#buf_set_lines(b, 1, 1, ['1']), ''
+  AssertEqual getline(1, '$'), ['1', '']
+
+  AssertEqual neomake#compat#buf_set_lines(b, 1, 3, ['1', '2']), ''
+  AssertEqual getline(1, '$'), ['1', '2']
+
+  " end > lines
+  let error = neomake#compat#buf_set_lines(b, 1, 4, [])
+  if has('nvim')
+    AssertEqual error, 'neomake#compat#buf_set_lines: Index out of bounds'
+  else
+    AssertEqual error, 'neomake#compat#buf_set_lines: end is higher than number of lines'
+  endif
+
+  " start < 1
+  let error = neomake#compat#buf_set_lines(b, 0, 1, [])
+  AssertEqual error, 'neomake#compat#buf_set_lines: start is lower than 1'
+
+  AssertEqual neomake#compat#buf_set_lines(b, 2, 3, ['2', '3']), ''
+  AssertEqual getline(1, '$'), ['1', '2', '3']
+
+  AssertEqual neomake#compat#buf_set_lines(b, 2, 4, []), ''
+  AssertEqual getline(1, '$'), ['1']
+  bwipe!
+
+Execute (Different buffer with buf_get_lines/buf_set_lines):
+  " Neovim can handle different buffers.
+  new
+  let b = bufnr('%')
+  new
+  if exists('*nvim_buf_get_lines')
+    AssertEqual neomake#compat#buf_set_lines(b, 1, 1, ['1', '2']), ''
+    AssertEqual neomake#compat#buf_get_lines(b, 1, 3), ['1', '2']
+  else
+    let threw = 0
+    try
+      call neomake#compat#buf_get_lines(b, 1, 3)
+    catch
+      let threw = 1
+      AssertEqual v:exception, 'Neomake: neomake#compat#buf_get_lines: used for non-current buffer'
+    endtry
+    Assert threw
+
+    AssertEqual neomake#compat#buf_set_lines(b, 1, 1, ['1', '2']), 'neomake#compat#buf_set_lines: used for non-current buffer'
+  endif
+  bwipe!
+  bwipe!
