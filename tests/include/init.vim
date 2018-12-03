@@ -361,12 +361,12 @@ let g:success_maker = NeomakeTestsCommandMaker('success-maker', 'echo success')
 let g:success_maker.errorformat = '%-Gsuccess'
 let g:true_maker = NeomakeTestsCommandMaker('true-maker', 'true')
 let g:entry_maker = {'name': 'entry_maker'}
-function! g:entry_maker.get_list_entries(jobinfo) abort
+function! g:entry_maker.get_list_entries(_jobinfo) abort
   return get(g:, 'neomake_test_getlistentries', [
   \   {'text': 'error', 'lnum': 1, 'type': 'E', 'bufnr': bufnr('%')}])
 endfunction
 let g:success_entry_maker = {}
-function! g:success_entry_maker.get_list_entries(jobinfo) abort
+function! g:success_entry_maker.get_list_entries(_jobinfo) abort
   return []
 endfunction
 let g:doesnotexist_maker = {'exe': 'doesnotexist'}
@@ -374,7 +374,7 @@ let g:doesnotexist_maker = {'exe': 'doesnotexist'}
 " A maker that generates incrementing errors.
 let g:neomake_test_inc_maker_counter = 0
 let s:shell_argv = split(&shell) + split(&shellcmdflag)
-function! s:IncMakerInitForJobs(jobinfo) dict
+function! s:IncMakerInitForJobs(_jobinfo) dict
   let g:neomake_test_inc_maker_counter += 1
   let cmd = ''
   for i in range(g:neomake_test_inc_maker_counter)
