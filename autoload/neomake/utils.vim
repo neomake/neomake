@@ -630,3 +630,86 @@ function! neomake#utils#temp_cd(dir, ...) abort
     endtry
     return ['', cd.' '.fnameescape(cur_wd)]
 endfunction
+
+if exists('*nvim_buf_get_lines')
+    function! neomake#utils#buf_get_lines(bufnr, start, end) abort
+        if a:start < 1
+            throw 'neomake#utils#buf_get_lines: start is lower than 1'
+        endif
+        try
+            return nvim_buf_get_lines(a:bufnr, a:start-1, a:end-1, 1)
+        catch
+            throw 'neomake#utils#buf_get_lines: '.substitute(v:exception, '\v^[^:]+:', '', '')
+        endtry
+    endfunction
+else
+    function! neomake#utils#buf_get_lines(bufnr, start, end) abort
+        if a:bufnr != bufnr('%')
+            throw 'Neomake: neomake#utils#buf_get_lines: used for non-current buffer'
+        endif
+        if a:start < 1
+            throw 'neomake#utils#buf_get_lines: start is lower than 1'
+        endif
+        if a:end-1 > line('$')
+            throw 'neomake#utils#buf_get_lines: end is higher than number of lines'
+        endif
+        let r = []
+        let i = a:start
+        while i < a:end
+            let r += [getline(i)]
+            let i += 1
+        endwhile
+        return r
+    endfunction
+endif
+
+if exists('*nvim_buf_set_lines')
+    function! neomake#utils#buf_set_lines(bufnr, start, end, replacement) abort
+        if a:start < 1
+            return 'neomake#utils#buf_set_lines: start is lower than 1'
+        endif
+        try
+            call nvim_buf_set_lines(a:bufnr, a:start-1, a:end-1, 1, a:replacement)
+        catch
+            " call neomake#log#error('Fixing entry failed (out of bounds)')
+            return 'neomake#utils#buf_set_lines: '.substitute(v:exception, '\v^[^:]+:', '', '')
+        endtry
+        return ''
+    endfunction
+else
+    function! neomake#utils#buf_set_lines(bufnr, start, end, replacement) abort
+        if a:bufnr != bufnr('%')
+            return 'neomake#utils#buf_set_lines: used for non-current buffer'
+        endif
+
+        if a:start < 1
+            return 'neomake#utils#buf_set_lines: start is lower than 1'
+        endif
+        if a:end > line('$')+1
+            return 'neomake#utils#buf_set_lines: end is higher than number of lines'
+        endif
+
+        if a:start == a:end
+            let lnum = a:start < 0 ? line('$') - a:start : a:start
+            if append(lnum-1, a:replacement) == 1
+                call neomake#log#error(printf('Failed to append line(s): %d (%d).', a:start, lnum), {'bufnr': a:bufnr})
+            endif
+
+        else
+            let range = a:end - a:start
+            if range > len(a:replacement)
+                let end = min([a:end, line('$')])
+                silent execute a:start.','.end.'d_'
+                call setline(a:start, a:replacement)
+            else
+                let i = 0
+                let n = len(a:replacement)
+                while i < n
+                    call setline(a:start + i, a:replacement[i])
+                    let i += 1
+                endwhile
+            endif
+        endif
+        return ''
+    endfunction
+endif
