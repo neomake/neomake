@@ -243,3 +243,26 @@ Execute (neomake#compat#buf_set_lines):
   AssertEqual neomake#compat#buf_set_lines(b, 2, 4, []), ''
   AssertEqual getline(1, '$'), ['1']
   bwipe!
+
+Execute (Different buffer with buf_get_lines/buf_set_lines):
+  " Neovim can handle different buffers.
+  new
+  let b = bufnr('%')
+  new
+  if exists('*nvim_buf_get_lines')
+    AssertEqual neomake#compat#buf_set_lines(b, 1, 1, ['1', '2']), ''
+    AssertEqual neomake#compat#buf_get_lines(b, 1, 3), ['1', '2']
+  else
+    let threw = 0
+    try
+      call neomake#compat#buf_get_lines(b, 1, 3)
+    catch
+      let threw = 1
+      AssertEqual v:exception, 'Neomake: neomake#compat#buf_get_lines: used for non-current buffer'
+    endtry
+    Assert threw
+
+    AssertEqual neomake#compat#buf_set_lines(b, 1, 1, ['1', '2']), 'neomake#compat#buf_set_lines: used for non-current buffer'
+  endif
+  bwipe!
+  bwipe!
