@@ -1354,11 +1354,13 @@ function! s:do_clean_make_info(make_info) abort
 
     " Remove make_id from its window.
     let [t, w] = neomake#core#get_tabwin_for_makeid(make_id)
-    let make_ids = neomake#compat#gettabwinvar(t, w, 'neomake_make_ids', [])
-    let idx = index(make_ids, make_id)
-    if idx != -1
-        call remove(make_ids, idx)
-        call settabwinvar(t, w, 'neomake_make_ids', make_ids)
+    if [t, w] != [-1, -1]
+        let make_ids = neomake#compat#gettabwinvar(t, w, 'neomake_make_ids', [])
+        let idx = index(make_ids, make_id)
+        if idx != -1
+            call remove(make_ids, idx)
+            call settabwinvar(t, w, 'neomake_make_ids', make_ids)
+        endif
     endif
 
     " Clean up temporary files and buffers.
