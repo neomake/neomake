@@ -1535,7 +1535,7 @@ function! s:do_clean_make_info(make_info) abort
     let make_id = a:make_info.options.make_id
 
     " Remove make_id from its window.
-    let [t, w] = s:GetTabWinForMakeId(make_id)
+    let [t, w] = neomake#core#get_tabwin_for_makeid(make_id)
     let make_ids = neomake#compat#gettabwinvar(t, w, 'neomake_make_ids', [])
     let idx = index(make_ids, make_id)
     if idx != -1
@@ -2063,7 +2063,7 @@ function! s:ProcessPendingOutput(jobinfo, lines, source) abort
             if a:jobinfo.bufnr != bufnr('%')
                 call neomake#log#debug('Skipped pending job output for another buffer.', a:jobinfo)
                 return 0
-            elseif s:GetTabWinForMakeId(a:jobinfo.make_id) != [-1, -1]
+            elseif neomake#core#get_tabwin_for_makeid(a:jobinfo.make_id) != [-1, -1]
                 call neomake#log#debug('Skipped pending job output (not in origin window).', a:jobinfo)
                 return 0
             else
@@ -2101,18 +2101,6 @@ function! s:ProcessPendingOutput(jobinfo, lines, source) abort
         endif
     endif
     return 1
-endfunction
-
-" Get tabnr and winnr for a given make ID.
-function! s:GetTabWinForMakeId(make_id) abort
-    for t in [tabpagenr()] + range(1, tabpagenr()-1) + range(tabpagenr()+1, tabpagenr('$'))
-        for w in range(1, tabpagewinnr(t, '$'))
-            if index(neomake#compat#gettabwinvar(t, w, 'neomake_make_ids', []), a:make_id) != -1
-                return [t, w]
-            endif
-        endfor
-    endfor
-    return [-1, -1]
 endfunction
 
 " Do we need to postpone location list processing (creation and :laddexpr)?
