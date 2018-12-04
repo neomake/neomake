@@ -210,6 +210,7 @@ Execute (Neomake: handle output for removed window):
     let bufnr = bufnr('%')
     call neomake#Make(1, [g:sleep_efm_maker])
     let jobinfo = neomake#GetJobs()[0]
+    let make_info = values(neomake#GetStatus().make_info)[0]
     quit
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0,
@@ -226,7 +227,7 @@ Execute (Neomake: handle output for removed window):
     exe 'b' bufnr
     doautocmd BufEnter
     AssertNeomakeMessage "Processing pending output for job's buffer in new window."
-    AssertNeomakeMessage 'Creating location list.', 3, jobinfo
+    AssertNeomakeMessage 'Creating location list.', 3, make_info
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_countschanged), 1
     AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
@@ -854,10 +855,10 @@ Execute (Location list should be cleared only after first output):
   call g:NeomakeSetupAutocmdWrappers()
   lgetexpr 'init'
 
-  let s:au_called = 0
+  let s:au_called = []
   function! OnNeomakeJobFinished() abort
-    if s:au_called == 0
-      let s:au_called = 1
+    if empty(s:au_called)
+      call add(s:au_called, 1)
       call vader#assert#equal([map(getloclist(0), 'v:val.text'),
           \   len(g:neomake_test_finished),
           \   len(g:neomake_test_countschanged)],
@@ -880,7 +881,7 @@ Execute (Location list should be cleared only after first output):
     AssertEqual getloclist(0)[0].text, 'slept'
   endif
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual s:au_called, 1
+  AssertEqual s:au_called, [1]
   AssertEqual getloclist(0)[0].text, 'slept'
   AssertEqual len(g:neomake_test_countschanged), 1
   delfunction OnNeomakeJobFinished

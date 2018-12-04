@@ -819,14 +819,14 @@ Execute (neomake#Make uses current filetype by default):
   new
   set ft=neomake_tests
   let b:neomake_neomake_tests_true_append_file = 0
-  let s:au_called = 0
+  let s:au_called = []
   augroup neomake_tests
     autocmd User NeomakeJobFinished AssertEqual g:neomake_hook_context.jobinfo.ft, 'neomake_tests'
-    autocmd User NeomakeJobFinished let s:au_called = 1
+    autocmd User NeomakeJobFinished call add(s:au_called, 1)
   augroup END
   call neomake#Make({'enabled_makers': ['true']})
   NeomakeTestsWaitForFinishedJobs
-  Assert s:au_called, 'autocommand was called'
+  AssertEqual s:au_called, [1]
   bwipe
 
 Execute (Neomake/Neomake! run ft maker in project mode):

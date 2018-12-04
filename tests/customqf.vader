@@ -220,12 +220,29 @@ Execute (Handles empty entries):
   endfunction
   CallNeomake {'enabled_makers': [maker]}
 
-Execute (Does not change current error via regular command maker):
+Execute (Does not change current error text (command maker)):
   call neomake#quickfix#enable(1)
   try
     new
-    CallNeomake {'enabled_makers': [g:error_maker]}
+    CallNeomake 1, [g:error_maker]
     AssertEqual neomake#GetCurrentErrorMsg(), 'error-maker: error (E)'
+    lopen
+    AssertEqual getline(1), 'erro 1:- error'
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (Does not change current error text (entries maker)):
+  call neomake#quickfix#enable(1)
+  try
+    new
+    CallNeomake 1, [g:entry_maker]
+    AssertEqual neomake#GetCurrentErrorMsg(), 'entry_maker: error (E)'
+    lopen
+    AssertEqual getline(1), 'entr 1:- error'
+    lclose
     bwipe
   finally
     call neomake#quickfix#disable()

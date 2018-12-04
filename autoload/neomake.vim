@@ -1099,6 +1099,7 @@ function! s:Make(options) abort
                 \ 'options': options,
                 \ }
     let make_info = s:make_info[make_id]
+    let make_info.entries_list = neomake#list#ListForMake(make_info)
     if &verbose
         let make_info.verbosity += &verbose
         call neomake#log#debug(printf(
@@ -1214,9 +1215,6 @@ function! s:AddExprCallback(jobinfo, lines) abort
                     \ [a:jobinfo, a:lines] + a:000])
     endif
 
-    let maker = a:jobinfo.maker
-    let file_mode = a:jobinfo.file_mode
-
     " Create location/quickfix list and add lines to it.
     let cd_error = a:jobinfo.cd()
     if !empty(cd_error)
@@ -1225,191 +1223,11 @@ function! s:AddExprCallback(jobinfo, lines) abort
                     \ a:jobinfo.cd_from_setting, cd_error), a:jobinfo)
     endif
 
-    let prev_list = s:create_locqf_list(a:jobinfo)
+    let make_list = s:make_info[a:jobinfo.make_id].entries_list
+    let prev_list = copy(make_list.entries)
 
-    let olderrformat = &errorformat
-    let &errorformat = maker.errorformat
-    try
-        if file_mode
-            let cmd = 'laddexpr'
-        else
-            let cmd = 'caddexpr'
-        endif
-        exe 'noautocmd '.cmd.' a:lines'
-        let a:jobinfo._delayed_qf_autocmd = 'QuickfixCmdPost '.cmd
-    finally
-        let &errorformat = olderrformat
-        call a:jobinfo.cd_back()
-    endtry
-
-    let list = file_mode ? getloclist(0) : getqflist()
-    let prev_index = len(prev_list)
-    let index = prev_index-1
-    let Postprocess = neomake#utils#GetSetting('postprocess', maker, [], a:jobinfo.ft, a:jobinfo.bufnr)
-    if type(Postprocess) != type([])
-        let postprocessors = [Postprocess]
-    else
-        let postprocessors = Postprocess
-    endif
-    let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3 || !empty(get(g:, 'neomake_logfile'))
-    let maker_name = maker.name
-    let make_info = s:make_info[a:jobinfo.make_id]
-    let default_type = 'unset'
-
-    let entries = []
-    let changed_entries = {}
-    let removed_entries = []
-    let different_bufnrs = {}
-    let llen = len(list)
-    let bufnr_from_temp = {}
-    let bufnr_from_stdin = {}
-    let tempfile_bufnrs = has_key(make_info, 'tempfiles') ? map(copy(make_info.tempfiles), 'bufnr(v:val)') : []
-    let uses_stdin = get(a:jobinfo, 'uses_stdin', 0)
-    while index < llen - 1
-        let index += 1
-        let entry = list[index]
-        let entry.maker_name = maker_name
-
-        let before = copy(entry)
-        " Handle unlisted buffers via tempfiles and uses_stdin.
-        if file_mode && entry.bufnr && entry.bufnr != a:jobinfo.bufnr
-                    \ && (!empty(tempfile_bufnrs) || uses_stdin)
-            let map_bufnr = index(tempfile_bufnrs, entry.bufnr)
-            if map_bufnr != -1
-                let entry.bufnr = a:jobinfo.bufnr
-                let map_bufnr = tempfile_bufnrs[map_bufnr]
-                if !has_key(bufnr_from_temp, map_bufnr)
-                    let bufnr_from_temp[map_bufnr] = []
-                endif
-                let bufnr_from_temp[map_bufnr] += [index+1]
-            elseif uses_stdin
-                if !buflisted(entry.bufnr) && bufexists(entry.bufnr)
-                    if !has_key(bufnr_from_stdin, entry.bufnr)
-                        let bufnr_from_stdin[entry.bufnr] = []
-                    endif
-                    let bufnr_from_stdin[entry.bufnr] += [index+1]
-                    let entry.bufnr = a:jobinfo.bufnr
-                endif
-            endif
-        endif
-        if debug && entry.bufnr && entry.bufnr != a:jobinfo.bufnr
-            if !has_key(different_bufnrs, entry.bufnr)
-                let different_bufnrs[entry.bufnr] = 1
-            else
-                let different_bufnrs[entry.bufnr] += 1
-            endif
-        endif
-        if !empty(postprocessors)
-            let g:neomake_postprocess_context = {'jobinfo': a:jobinfo}
-            try
-                for F in postprocessors
-                    if type(F) == type({})
-                        call call(F.fn, [entry], F)
-                    else
-                        call call(F, [entry], maker)
-                    endif
-                    unlet! F  " vim73
-                endfor
-            finally
-                unlet! g:neomake_postprocess_context  " Might be unset already with sleep in postprocess.
-            endtry
-        endif
-        if entry != before
-            let changed_entries[index] = entry
-            if debug
-                call neomake#log#debug(printf(
-                  \ 'Modified list entry %d (postprocess): %s.',
-                  \ index + 1,
-                  \ string(neomake#utils#diff_dict(before, entry))),
-                  \ a:jobinfo)
-            endif
-        endif
-
-        if entry.valid <= 0
-            if entry.valid < 0 || maker.remove_invalid_entries
-                call insert(removed_entries, index)
-                let entry_copy = copy(entry)
-                call neomake#log#debug(printf(
-                            \ 'Removing invalid entry: %s (%s).',
-                            \ remove(entry_copy, 'text'),
-                            \ string(entry_copy)), a:jobinfo)
-                continue
-            endif
-        endif
-
-        if empty(entry.type) && entry.valid
-            if default_type ==# 'unset'
-                let default_type = neomake#utils#GetSetting('default_entry_type', maker, 'W', a:jobinfo.ft, a:jobinfo.bufnr)
-            endif
-            if !empty(default_type)
-                let entry.type = default_type
-                let changed_entries[index] = entry
-            endif
-        endif
-        call add(entries, entry)
-    endwhile
-
-    " Add marker for custom quickfix to the first (new) entry.
-    if neomake#quickfix#is_enabled() && !empty(entries)
-        let config = {
-                    \ 'name': maker_name,
-                    \ 'short': get(a:jobinfo.maker, 'short_name', maker_name[:3]),
-                    \ }
-        let marker_entry = copy(entries[0])
-        let marker_entry.text .= printf(' nmcfg:%s', string(config))
-        let changed_entries[prev_index] = marker_entry
-    endif
-
-    if !empty(changed_entries) || !empty(removed_entries)
-        let list = file_mode ? getloclist(0) : getqflist()
-        if !empty(changed_entries)
-            for k in keys(changed_entries)
-                let list[k] = changed_entries[k]
-            endfor
-        endif
-        if !empty(removed_entries)
-            for k in removed_entries
-                call remove(list, k)
-            endfor
-        endif
-        if file_mode
-            call setloclist(0, list, 'r')
-        else
-            call setqflist(list, 'r')
-        endif
-    endif
-
-    if !empty(bufnr_from_temp) || !empty(bufnr_from_stdin)
-        if !has_key(make_info, '_wipe_unlisted_buffers')
-            let make_info._wipe_unlisted_buffers = []
-        endif
-        let make_info._wipe_unlisted_buffers += keys(bufnr_from_stdin) + keys(bufnr_from_stdin)
-        if !empty(bufnr_from_temp)
-            for [tempbuf, entries_idx] in items(bufnr_from_temp)
-                call neomake#log#debug(printf(
-                            \ 'Used bufnr from temporary buffer %d (%s) for %d entries: %s.',
-                            \ tempbuf,
-                            \ bufname(+tempbuf),
-                            \ len(entries_idx),
-                            \ join(entries_idx, ', ')), a:jobinfo)
-            endfor
-        endif
-        if !empty(bufnr_from_stdin)
-            for [tempbuf, entries_idx] in items(bufnr_from_stdin)
-                call neomake#log#debug(printf(
-                            \ 'Used bufnr from stdin buffer %d (%s) for %d entries: %s.',
-                            \ tempbuf,
-                            \ bufname(+tempbuf),
-                            \ len(entries_idx),
-                            \ join(entries_idx, ', ')), a:jobinfo)
-            endfor
-        endif
-    endif
-    if !empty(different_bufnrs)
-        call neomake#log#debug(printf('WARN: seen entries with bufnr different from jobinfo.bufnr (%d): %s, current bufnr: %d.', a:jobinfo.bufnr, string(different_bufnrs), bufnr('%')))
-    endif
-
-    return s:ProcessEntries(a:jobinfo, entries, prev_list)
+    let added_entries = make_list.add_lines_with_efm(a:lines, a:jobinfo)
+    return s:ProcessEntries(a:jobinfo, added_entries, prev_list)
 endfunction
 
 function! s:CleanJobinfo(jobinfo, ...) abort
@@ -1535,12 +1353,14 @@ function! s:do_clean_make_info(make_info) abort
     let make_id = a:make_info.options.make_id
 
     " Remove make_id from its window.
-    let [t, w] = s:GetTabWinForMakeId(make_id)
-    let make_ids = neomake#compat#gettabwinvar(t, w, 'neomake_make_ids', [])
-    let idx = index(make_ids, make_id)
-    if idx != -1
-        call remove(make_ids, idx)
-        call settabwinvar(t, w, 'neomake_make_ids', make_ids)
+    let [t, w] = neomake#core#get_tabwin_for_makeid(make_id)
+    if [t, w] != [-1, -1]
+        let make_ids = neomake#compat#gettabwinvar(t, w, 'neomake_make_ids', [])
+        let idx = index(make_ids, make_id)
+        if idx != -1
+            call remove(make_ids, idx)
+            call settabwinvar(t, w, 'neomake_make_ids', make_ids)
+        endif
     endif
 
     " Clean up temporary files and buffers.
@@ -1591,7 +1411,7 @@ endfunction
 
 function! s:handle_locqf_list_for_finished_jobs(make_info) abort
     let file_mode = a:make_info.options.file_mode
-    let create_list = !get(a:make_info, 'created_locqf_list', 0)
+    let create_list = a:make_info.entries_list.need_init
 
     let open_val = get(g:, 'neomake_open_list', 0)
     let height = open_val ? get(g:, 'neomake_list_height', 10) : 0
@@ -1672,26 +1492,6 @@ function! neomake#VimLeave() abort
     endfor
 endfunction
 
-" Create a location/quickfix list once per make run.
-" Returns the current list (empty if it was created).
-function! s:create_locqf_list(jobinfo) abort
-    let make_info = s:make_info[a:jobinfo.make_id]
-    if get(make_info, 'created_locqf_list', 0)
-        return a:jobinfo.file_mode ? getloclist(0) : getqflist()
-    endif
-    let make_info.created_locqf_list = 1
-
-    let file_mode = make_info.options.file_mode
-    if file_mode
-        call neomake#log#debug('Creating location list.', a:jobinfo)
-        call setloclist(0, [])
-    else
-        call neomake#log#debug('Creating quickfix list.', a:jobinfo)
-        call setqflist([])
-    endif
-    return []
-endfunction
-
 function! s:clean_for_new_make(make_info) abort
     if get(a:make_info, 'cleaned_for_make', 0)
         return
@@ -1742,15 +1542,6 @@ function! s:pcall(fn, args) abort
     return g:neomake#action_queue#not_processed
 endfunction
 
-" Do we need to replace (instead of append) the location/quickfix list, for
-" :lwindow to not open it with only invalid entries?!
-" Without patch-7.4.379 this does not work though, and a new list needs to
-" be created (which is not done).
-" @vimlint(EVL108, 1)
-let s:needs_to_replace_qf_for_lwindow = has('patch-7.4.379')
-            \ && (!has('patch-7.4.1752') || (has('nvim') && !has('nvim-0.2.0')))
-" @vimlint(EVL108, 0)
-
 function! s:ProcessEntries(jobinfo, entries, ...) abort
     if empty(a:entries)
         return
@@ -1767,11 +1558,13 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     call neomake#log#debug(printf(
                 \ 'Processing %d entries.', len(a:entries)), a:jobinfo)
 
+    let make_info = s:make_info[a:jobinfo.make_id]
+    let make_list = make_info.entries_list
     let maker_name = a:jobinfo.maker.name
     if a:0 > 1
         " Via errorformat processing, where the list has been set already.
         let prev_list = a:1
-        let new_list = file_mode ? getloclist(0) : getqflist()
+        let parsed_entries = a:entries
     else
         " Fix entries with get_list_entries/process_output/process_json.
         call map(a:entries, 'extend(v:val, {'
@@ -1790,51 +1583,17 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                         \ a:jobinfo.cd_from_setting, cd_error), a:jobinfo)
         endif
 
-        let prev_list = s:create_locqf_list(a:jobinfo)
-
+        let prev_list = file_mode ? getloclist(0) : getqflist()
         try
-            let list_entries = a:entries
-            " Add marker for custom quickfix to the first (new) entry.
-            if neomake#quickfix#is_enabled() && !empty(a:entries)
-                let config = {
-                            \ 'name': maker_name,
-                            \ 'short': get(a:jobinfo.maker, 'short_name', maker_name[:3]),
-                            \ }
-                let marker_entry = copy(a:entries[0])
-                let marker_entry.text .= printf(' nmcfg:%s', string(config))
-                let list_entries = [marker_entry] + a:entries[1:]
-            endif
-
-            if file_mode
-                if s:needs_to_replace_qf_for_lwindow
-                    call setloclist(0, prev_list + list_entries, 'r')
-                else
-                    call setloclist(0, list_entries, 'a')
-                endif
-            else
-                if s:needs_to_replace_qf_for_lwindow
-                    call setqflist(prev_list + list_entries, 'r')
-                else
-                    call setqflist(list_entries, 'a')
-                endif
+            let parsed_entries = make_list.add_entries_for_job(a:entries, a:jobinfo)
+            if exists(':Assert') && !empty(a:entries)
+                Assert get(a:entries[0], 'text', '') !~# 'nmcfg:'
             endif
         finally
             call a:jobinfo.cd_back()
         endtry
-        let new_list = file_mode ? getloclist(0) : getqflist()
-        let parsed_entries = new_list[len(prev_list):]
-        let idx = 0
-        for e in parsed_entries
-            if a:entries[idx].bufnr != e.bufnr
-                call neomake#log#debug(printf(
-                            \ 'Updating entry bufnr: %s => %s.',
-                            \ a:entries[idx].bufnr, e.bufnr))
-                let a:entries[idx].bufnr = e.bufnr
-            endif
-            let idx += 1
-        endfor
     endif
-    call s:clean_for_new_make(s:make_info[a:jobinfo.make_id])
+    call s:clean_for_new_make(make_info)
 
     let counts_changed = 0
     let maker_type = file_mode ? 'file' : 'project'
@@ -1847,7 +1606,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     let skipped_without_lnum = []
 
     let idx = -1
-    for entry in a:entries
+    for entry in parsed_entries
         let idx += 1
         if !file_mode
             if neomake#statusline#AddQflistCount(entry)
@@ -1922,6 +1681,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                     \ string(map(skipped_without_lnum, 'a:entries[v:val]'))), a:jobinfo)
     endif
 
+    let new_list = make_list.entries
     if !counts_changed
         let counts_changed = new_list != prev_list
     endif
@@ -2063,7 +1823,7 @@ function! s:ProcessPendingOutput(jobinfo, lines, source) abort
             if a:jobinfo.bufnr != bufnr('%')
                 call neomake#log#debug('Skipped pending job output for another buffer.', a:jobinfo)
                 return 0
-            elseif s:GetTabWinForMakeId(a:jobinfo.make_id) != [-1, -1]
+            elseif neomake#core#get_tabwin_for_makeid(a:jobinfo.make_id) != [-1, -1]
                 call neomake#log#debug('Skipped pending job output (not in origin window).', a:jobinfo)
                 return 0
             else
@@ -2101,18 +1861,6 @@ function! s:ProcessPendingOutput(jobinfo, lines, source) abort
         endif
     endif
     return 1
-endfunction
-
-" Get tabnr and winnr for a given make ID.
-function! s:GetTabWinForMakeId(make_id) abort
-    for t in [tabpagenr()] + range(1, tabpagenr()-1) + range(tabpagenr()+1, tabpagenr('$'))
-        for w in range(1, tabpagewinnr(t, '$'))
-            if index(neomake#compat#gettabwinvar(t, w, 'neomake_make_ids', []), a:make_id) != -1
-                return [t, w]
-            endif
-        endfor
-    endfor
-    return [-1, -1]
 endfunction
 
 " Do we need to postpone location list processing (creation and :laddexpr)?

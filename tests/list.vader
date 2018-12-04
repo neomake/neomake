@@ -1,0 +1,189 @@
+Include: include/setup.vader
+
+Execute (List: basic: loclist):
+  new
+  normal! oline2
+  normal! gg0
+  let maker = {}
+  function! maker.get_list_entries(...)
+    let b = bufnr('%')
+    return [
+    \ {'text': '1', 'lnum': 1, 'bufnr': b},
+    \ {'text': '2', 'lnum': 2, 'col': 3, 'bufnr': b},
+    \ ]
+  endfunction
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Adding 2 list entries.', 3
+
+  AssertEqual getpos('.'), [0, 1, 1, 0]
+  NeomakeNextLoclist
+  AssertEqual getpos('.'), [0, 2, 3, 0]
+  NeomakePrevLoclist
+  AssertEqual getpos('.'), [0, 1, 1, 0]
+  AssertNeomakeMessageAbsent 'Creating new List object.'
+  bwipe!
+
+Execute (List: basic: quickfix):
+  new
+  normal! oline2
+  normal! gg0
+  let maker = {}
+  function! maker.get_list_entries(...)
+    let b = bufnr('%')
+    return [
+    \ {'text': '1', 'lnum': 1, 'bufnr': b},
+    \ {'text': '2', 'lnum': 2, 'col': 3, 'bufnr': b},
+    \ ]
+  endfunction
+  CallNeomake 0, [maker]
+
+  AssertEqual getpos('.'), [0, 1, 1, 0]
+  NeomakeNextQuickfix
+  AssertEqual getpos('.'), [0, 2, 3, 0]
+  NeomakePrevQuickfix
+  AssertEqual getpos('.'), [0, 1, 1, 0]
+  AssertNeomakeMessageAbsent 'Creating new List object.'
+  bwipe!
+
+Execute (Sorting by location):
+  let list = neomake#list#List('loclist')
+  AssertEqual list.sort_by_location(), []
+
+  let input = [
+  \ {'lnum': 1, 'col': 2, 'bufnr': 1, 'type': ''},
+  \ {'lnum': 1, 'col': 5, 'bufnr': 2, 'type': ''},
+  \ {'lnum': 2, 'col': 1, 'bufnr': 1, 'type': ''},
+  \ {'lnum': 3, 'col': 5, 'bufnr': 1, 'type': ''},
+  \ {'lnum': 1, 'col': 2, 'bufnr': 1, 'type': 'E'},
+  \ ]
+  call list.add_entries(input)
+
+  AssertEqual list.sort_by_location(), [
+  \ {'lnum': 1, 'col': 2, 'bufnr': 1, 'type': 'E'},
+  \ {'lnum': 1, 'col': 2, 'bufnr': 1, 'type': ''},
+  \ {'lnum': 2, 'col': 1, 'bufnr': 1, 'type': ''},
+  \ {'lnum': 3, 'col': 5, 'bufnr': 1, 'type': ''},
+  \ {'lnum': 1, 'col': 5, 'bufnr': 2, 'type': ''},
+  \ ]
+  AssertEqual input[-1].lnum, 1, 'does not sort list in-place'
+
+  " Sorts newly added entries.
+  call list.add_entries([
+  \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
+  \ ])
+  AssertEqual list._sorted_entries_by_location, [
+  \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
+  \ {'lnum': 1, 'col': 2, 'bufnr': 1, 'type': 'E'},
+  \ {'lnum': 1, 'col': 2, 'bufnr': 1, 'type': ''},
+  \ {'lnum': 2, 'col': 1, 'bufnr': 1, 'type': ''},
+  \ {'lnum': 3, 'col': 5, 'bufnr': 1, 'type': ''},
+  \ {'lnum': 1, 'col': 5, 'bufnr': 2, 'type': ''},
+  \ ]
+
+Execute (list: error with duplicate nmqfidx (debug=1)):
+  let list = neomake#list#List('loclist')
+  AssertEqual list.debug, 1
+  call list.add_entries([
+  \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
+  \ ])
+  call list.add_entries([
+  \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
+  \ ], 1)
+  AssertNeomakeMessage 'Duplicate qf indexes in list entries: [1, 1].', 0
+
+Execute (list: no error with duplicate nmqfidx (debug=0)):
+  let list = neomake#list#List('loclist')
+  let list.debug = 0
+  call list.add_entries([
+  \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
+  \ ])
+  call list.add_entries([
+  \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
+  \ ], 1)
+
+Execute (quickfix list: gets local and sorts):
+  Save g:_neomake_info
+  unlet g:_neomake_info
+
+  let list = neomake#list#List('quickfix')
+  AssertEqual list.sort_by_location(), []
+
+  call setqflist([
+  \ {'lnum': 1, 'col': 2, 'bufnr': 1},
+  \ {'lnum': 1, 'col': 5, 'bufnr': 1},
+  \ {'lnum': 2, 'col': 1, 'bufnr': 1},
+  \ {'lnum': 3, 'col': 5, 'bufnr': 1},
+  \ {'lnum': 1, 'col': 1, 'bufnr': 1},
+  \ ])
+
+  let list = neomake#list#get_qflist()
+  AssertEqual map(list.sort_by_location(), '[v:val.lnum, v:val.col, v:val.bufnr]'), [
+  \ [1, 1, 1],
+  \ [1, 2, 1],
+  \ [1, 5, 1],
+  \ [2, 1, 1],
+  \ [3, 5, 1],
+  \ ]
+
+Execute (neomake#list#next):
+  new
+  let bufnr = bufnr('%')
+  normal! iline1
+  normal! oline2
+  normal! oline3
+  normal! gg^
+
+  call setloclist(0, [
+  \ {'lnum': 1, 'col': 1, 'bufnr': bufnr, 'text': 'idx1'},
+  \ {'lnum': 1, 'col': 5, 'bufnr': bufnr, 'text': 'idx2'},
+  \ {'lnum': 2, 'col': 1, 'bufnr': bufnr, 'text': 'idx3'},
+  \ {'lnum': 3, 'col': 5, 'bufnr': bufnr, 'text': 'idx4'},
+  \ {'lnum': 1, 'col': 2, 'bufnr': bufnr, 'text': 'idx5'},
+  \ ])
+  AssertEqual map(getloclist(0), '[v:val.lnum, v:val.text]'),
+  \ [[1, 'idx1'], [1, 'idx2'], [2, 'idx3'], [3, 'idx4'], [1, 'idx5']],
+  \ 'Sane lnums'
+
+  Assert !exists('w:_neomake_info.loclist')
+
+  AssertEqual getpos('.'), [0, 1, 1, 0]
+  NeomakeNextLoclist
+  AssertEqual getpos('.'), [0, 1, 2, 0]
+
+  NeomakePrevLoclist
+  AssertEqual getpos('.'), [0, 1, 1, 0]
+  NeomakePrevLoclist
+  AssertNeomakeMessage 'No more previous items.'
+
+  3NeomakeNextLoclist
+  AssertEqual getpos('.'), [0, 2, 1, 0]
+
+  " Goes to last entry, without error message (like with :lnext).
+  99NeomakeNextLoclist
+  AssertEqual getpos('.'), [0, 3, 5, 0]
+
+  " Error message when at last entry already (like with :lnext).
+  99NeomakeNextLoclist
+  AssertEqual getpos('.'), [0, 3, 5, 0]
+  AssertNeomakeMessage 'No more next items.'
+
+  " count=0 gets handles as 1.
+  0NeomakePrevLoclist
+  AssertEqual getpos('.'), [0, 2, 1, 0]
+  0NeomakeNextLoclist
+  AssertEqual getpos('.'), [0, 3, 5, 0]
+  bwipe!
+
+Execute (neomake#list#_diff_new_entries):
+  AssertEqual neomake#list#_diff_new_entries([], []), {}
+  AssertEqual neomake#list#_diff_new_entries([{}], [{'valid': 0}]), {'0': {'changed': {'valid': [1, 0]}}}
+  AssertEqual neomake#list#_diff_new_entries([{}, {}], [{}, {'valid': 0}]), {'1': {'changed': {'valid': [1, 0]}}}
+
+  " Handles different lengths.
+  AssertEqual neomake#list#_diff_new_entries([{}], []), {}
+  AssertEqual neomake#list#_diff_new_entries([], [{}]), {}
+
+  AssertEqual neomake#list#_diff_new_entries([{'length': 1}], [{}]), {}
+
+  AssertEqual neomake#list#_diff_new_entries([{'text': 'error'}], [{'text': 'error', 'valid': 1, 'pattern': ''}]),
+  \ {}

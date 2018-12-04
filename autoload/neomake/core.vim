@@ -102,3 +102,16 @@ endfunction
 function! g:neomake#core#command_maker_base._get_argv(_jobinfo) abort dict
     return neomake#compat#get_argv(self.exe, self.args, type(self.args) == type([]))
 endfunction
+
+" Get tabnr and winnr for a given make ID.
+function! neomake#core#get_tabwin_for_makeid(make_id) abort
+    let curtab = tabpagenr()
+    for t in [curtab] + range(1, curtab-1) + range(curtab+1, tabpagenr('$'))
+        for w in range(1, tabpagewinnr(t, '$'))
+            if index(neomake#compat#gettabwinvar(t, w, 'neomake_make_ids', []), a:make_id) != -1
+                return [t, w]
+            endif
+        endfor
+    endfor
+    return [-1, -1]
+endfunction

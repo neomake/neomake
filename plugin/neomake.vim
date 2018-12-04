@@ -125,6 +125,14 @@ command! -bar NeomakeEnableTab call s:enable(t:)
 command! NeomakeStatus call s:display_status()
 " }}}
 
+" NOTE: experimental, no default mappings.
+" NOTE: uses -addr=lines (default), and therefore negative counts do not work
+"       (see https://github.com/vim/vim/issues/3654).
+command! -bar -count=1 NeomakeNextLoclist call neomake#list#next(<count>, 1)
+command! -bar -count=1 NeomakePrevLoclist call neomake#list#prev(<count>, 1)
+command! -bar -count=1 NeomakeNextQuickfix call neomake#list#next(<count>, 0)
+command! -bar -count=1 NeomakePrevQuickfix call neomake#list#prev(<count>, 0)
+
 function! s:define_highlights() abort
     if g:neomake_place_signs
         call neomake#signs#DefineHighlights()

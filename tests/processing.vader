@@ -1,5 +1,25 @@
 Include: include/setup.vader
 
+" TODO: not really necessary (likely), but provides better/easier test results.
+Execute (get_list_entries: basic end-to-end test):
+  let s:counter = 0
+  let maker = {}
+  function! maker.get_list_entries(...) abort dict
+    let s:counter += 1
+    return [{
+      \ 'lnum': 23,
+      \ 'col': 42,
+      \ 'text': printf('error_msg_%d', s:counter),
+      \ 'type': 'E',
+      \ }]
+  endfunction
+
+  CallNeomake 1, [maker]
+  CallNeomake 1, [maker]
+  AssertEqual map(getloclist(0), 'v:val.text'), ['error_msg_2']
+  lolder
+  AssertEqual map(getloclist(0), 'v:val.text'), ['error_msg_1']
+
 Execute (Output is only processed in normal/insert mode (loclist)):
   if NeomakeAsyncTestsSetup()
     new

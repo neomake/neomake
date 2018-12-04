@@ -540,7 +540,7 @@ Execute (unlisted buffers created for tempfiles get wiped):
     \ maker1.tempfile_name)
     let buf1 = g:neomake_test_matchlist[1]
     AssertNeomakeMessage printf(
-    \ '\vUsed bufnr from temporary buffer (\d+) \(%s\) for 1 entries: 2.',
+    \ '\vUsed bufnr from temporary buffer (\d+) \(%s\) for 1 entries: 1.',
     \ maker2.tempfile_name)
     let buf2 = g:neomake_test_matchlist[1]
 
