@@ -312,3 +312,12 @@ Execute (stdin maker: can always use stdin):
   endif
   AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line2']
   bwipe!
+
+Execute (supports_stdin can be a setting):
+  new
+  let b:neomake_mymaker_supports_stdin = 1
+  let maker = neomake#create_maker_object({'name': 'mymaker'}, 'vim')
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  AssertEqual maker._get_fname_for_buffer(jobinfo), '-'
+  AssertNeomakeMessage 'Using stdin for unnamed buffer (-).', 3
+  bwipe
