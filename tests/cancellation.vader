@@ -260,7 +260,5 @@ Execute (CleanJobinfo with cancellation while in exit handler):
   AssertNeomakeMessage 'Cancelling 1 jobs.', 3
   AssertNeomakeMessage 'Job exited already.', 3
 
-  " Might be better if this was not processed, but this only tests if
-  " CleanJobinfo is handled/called properly.
-  AssertEqual map(getloclist(0), 'v:val.text'), ['still_processed']
+  AssertEqual map(getloclist(0), 'v:val.text'), []
   bwipe

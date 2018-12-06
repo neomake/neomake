@@ -36,6 +36,59 @@ Execute (augroup neomake_automake does not exist by default):
   call neomake#configure#automake()
   Assert !exists('#neomake_automake')
 
+Execute (automake: display of error with O during maker run):
+  if NeomakeAsyncTestsSetup()
+    Save g:neomake g:neomake_test_enabledmakers
+
+    new
+    set filetype=neomake_tests
+    normal! o
+
+    let maker1 = copy(g:error_maker)
+    let maker1.name = 'mymaker1'
+    function! maker1.process_output(...)
+      return [{'lnum': 1, 'text': 'error1'}]
+    endfunction
+
+    let maker2 = copy(g:sleep_maker)
+    let maker2.name = 'mymaker2'
+    function! maker2.process_output(...)
+      normal! O
+      doautocmd TextChangedI
+      return [{'lnum': 1, 'text': 'error2'}]
+    endfunction
+
+    let g:neomake_test_enabledmakers = [maker1, maker2]
+    call neomake#configure#automake({
+    \ 'TextChanged': {'delay': 10}})
+    doautocmd TextChanged
+    call NeomakeTestsHandleSecondTextChanged()
+
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    AssertEqual neomake#GetCurrentErrorMsg(), ''
+
+    NeomakeTestsWaitForMessage 'automake: callback for timer 1 (via TextChanged).', 3
+    let make_id = neomake#GetStatus().last_make_id
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual neomake#GetCurrentErrorMsg(), ''
+
+    AssertNeomakeMessage 'Processing 1 entries.', 3
+    AssertNeomakeMessage 'mymaker1: completed with exit code 1.', 3
+    AssertNeomakeMessage '\V\^Skipping cleaning of make info: 1 active jobs: [''Job \d\+: mymaker2''].', 3
+
+    AssertNeomakeMessage 'exit: mymaker2: 0.', 3
+    AssertNeomakeMessage 'automake: Buffer was changed, cancelling make: '.make_id.'.', 3
+    AssertNeomakeMessage 'Cancelling make.', 3
+    AssertNeomakeMessage 'Cancelling job.', 3
+    AssertNeomakeMessage 'Job exited already.', 3
+    AssertNeomakeMessage '\V\^Skipping cleaning of make info: 1 active jobs: [''Job \d\+: mymaker2 [canceled]''].', 3
+    AssertNeomakeMessage 'mymaker2: completed with exit code 0.', 3
+    AssertNeomakeMessage 'Cleaning jobinfo.', 3
+    AssertNeomakeMessage 'Cleaning make info.', 3
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
+    bwipe!
+  endif
+
 Execute (short setup: 'n'):
   Save g:neomake
   call neomake#configure#automake('n')
