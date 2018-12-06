@@ -67,7 +67,7 @@ Execute (automake: display of error with O during maker run):
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
     AssertEqual neomake#GetCurrentErrorMsg(), ''
 
-    NeomakeTestsWaitForMessage 'automake: callback for timer 1 (via TextChanged).', 3
+    NeomakeTestsWaitForMessage '\Vautomake: callback for timer \d\+ (via TextChanged).', 3
     let make_id = neomake#GetStatus().last_make_id
     NeomakeTestsWaitForFinishedJobs
     AssertEqual neomake#GetCurrentErrorMsg(), ''
