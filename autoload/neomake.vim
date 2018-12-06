@@ -516,11 +516,12 @@ endif
 let s:command_maker_base = copy(g:neomake#core#command_maker_base)
 " Check if a temporary file is used, and set it in s:make_info in case it is.
 function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
-    if has_key(self, 'supports_stdin')
-        if type(self.supports_stdin) == type(function('tr'))
-            let supports_stdin = self.supports_stdin(a:jobinfo)
+    let Supports_stdin = neomake#utils#GetSetting('supports_stdin', self, s:unset_dict, a:jobinfo.ft, a:jobinfo.bufnr)
+    if Supports_stdin isnot s:unset_dict
+        if type(Supports_stdin) == type(function('tr'))
+            let supports_stdin = call(Supports_stdin, [a:jobinfo], self)
         else
-            let supports_stdin = self.supports_stdin
+            let supports_stdin = Supports_stdin
         endif
         if supports_stdin
             let a:jobinfo.uses_stdin = 1
