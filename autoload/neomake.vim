@@ -1547,6 +1547,9 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     if empty(a:entries)
         return
     endif
+    if get(a:jobinfo, 'canceled')
+        return
+    endif
     if s:need_to_postpone_loclist(a:jobinfo)
         return neomake#action_queue#add(['BufEnter', 'WinEnter'], [s:function('s:ProcessEntries'),
                     \ [a:jobinfo, a:entries] + a:000])

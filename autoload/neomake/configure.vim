@@ -69,6 +69,18 @@ function! s:tick_changed(context, update) abort
     return r
 endfunction
 
+function! s:cancel_make_for_changed_buffer(make_id) abort
+    let window_make_ids = get(w:, 'neomake_make_ids', [])
+    if empty(window_make_ids)
+        return
+    endif
+    call s:debug_log(printf('Buffer was changed, cancelling make: %s', string(a:make_id)))
+    call neomake#CancelMake(a:make_id)
+    augroup neomake_automake_abort
+        au! * <buffer>
+    augroup END
+endfunction
+
 function! s:neomake_do_automake(context) abort
     let bufnr = +a:context.bufnr
 
@@ -121,9 +133,19 @@ function! s:neomake_do_automake(context) abort
     let started_jobs = filter(copy(jobinfos), "!get(v:val, 'finished', 0)")
     call s:debug_log(printf('started jobs: %s', string(map(copy(started_jobs), 'v:val.id'))))
     if !empty(started_jobs)
-        let make_ids = map(copy(jobinfos), 'v:val.make_id')
+        let make_id = jobinfos[0].make_id
         call setbufvar(bufnr, 'neomake_automake_make_ids',
-              \ neomake#compat#getbufvar(bufnr, 'neomake_automake_make_ids', []) + make_ids)
+              \ neomake#compat#getbufvar(bufnr, 'neomake_automake_make_ids', []) + [make_id])
+
+        let events = 'TextChangedI'
+        if a:context.event !=# 'TextChanged'
+            let events .= ',TextChanged'
+        endif
+        augroup neomake_automake_abort
+          au! * <buffer>
+          exe printf('autocmd %s <buffer> call s:cancel_make_for_changed_buffer(%s)',
+                \ events, string(make_id))
+        augroup END
     endif
 endfunction
 
@@ -609,3 +631,4 @@ augroup neomake_automake_base
     autocmd BufWipeout * call s:neomake_automake_clean(expand('<abuf>'))
     autocmd FileType * call s:maybe_reconfigure_buffer(expand('<abuf>'))
 augroup END
+" vim: ts=4 sw=4 et
