@@ -28,9 +28,8 @@ function! neomake#virtualtext#show(...) abort
 
     for entry in entries
         let buf_info = getbufvar(entry.bufnr, '_neomake_info', {})
-        let src_id = get(buf_info, 'virtual_text_src_id', 0)
 
-        let used_src_id = neomake#virtualtext#add_entry(entry, src_id)
+        let used_src_id = neomake#virtualtext#add_entry(entry, s:all_ns)
 
         " Keep track of added entries, because stacking is not supported.
         let set_buf_info = 0
@@ -43,10 +42,6 @@ function! neomake#virtualtext#show(...) abort
             let set_buf_info = 1
         endif
 
-        if src_id ==# 0
-            let buf_info.virtual_text_src_id = used_src_id
-            let set_buf_info = 1
-        endif
         if set_buf_info
             call setbufvar(entry.bufnr, '_neomake_info', buf_info)
         endif
@@ -68,16 +63,18 @@ endfunction
 function! neomake#virtualtext#hide() abort
     let bufnr = bufnr('%')
     let buf_info = getbufvar(bufnr, '_neomake_info', {})
-    let src_id = get(buf_info, 'virtual_text_src_id', 0)
-    if src_id !=# 0
-        call nvim_buf_clear_highlight(bufnr, src_id, 0, -1)
+    call nvim_buf_clear_highlight(bufnr, s:all_ns, 0, -1)
+    if !empty(get(buf_info, 'virtual_text_entries', []))
         let buf_info.virtual_text_entries = []
         call setbufvar(bufnr, '_neomake_info', buf_info)
     endif
 endfunction
 
 if exists('*nvim_buf_set_virtual_text')
+    let s:current_ns = nvim_create_namespace('neomake-virtualtext-current')
+    let s:all_ns = nvim_create_namespace('neomake-virtualtext-all')
     let s:cur_virtualtext = []
+
     function! neomake#virtualtext#handle_current_error() abort
         if get(g:, 'neomake_virtualtext_current_error', 1)
             if !empty(s:cur_virtualtext)
@@ -89,7 +86,7 @@ if exists('*nvim_buf_set_virtual_text')
                 " supported).  https://github.com/neovim/neovim/issues/9285
                 let buf_info = getbufvar(entry.bufnr, '_neomake_info', {})
                 if index(get(buf_info, 'virtual_text_entries', []), entry.lnum) == -1
-                    let src_id = neomake#virtualtext#add_entry(entry, 0)
+                    let src_id = neomake#virtualtext#add_entry(entry, s:current_ns)
                     let s:cur_virtualtext = [bufnr('%'), src_id]
                 endif
             endif
@@ -101,7 +98,7 @@ else
 endif
 
 function! neomake#virtualtext#DefineHighlights() abort
-    " NOTE: linking to SpellBad etc is bad (undercurl).
+    " NOTE: linking to SpellBad etc is bad/distracting (with undercurl).
     for [group, link] in items({
                 \ 'NeomakeVirtualtextError': 'Error',
                 \ 'NeomakeVirtualtextWarning': 'WarningMsg',

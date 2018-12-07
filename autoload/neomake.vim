@@ -1336,7 +1336,10 @@ function! s:clean_make_info(make_info, ...) abort
             endif
         endif
         call s:clean_for_new_make(a:make_info)
+
         call neomake#EchoCurrentError(1)
+        call neomake#virtualtext#handle_current_error()
+
         if get(a:make_info, 'canceled', 0)
             call neomake#log#debug('Skipping final processing for canceled make.', a:make_info)
             call s:do_clean_make_info(a:make_info)
@@ -2337,7 +2340,6 @@ function! neomake#GetCurrentErrorMsg() abort
 endfunction
 
 function! neomake#EchoCurrentError(...) abort
-    call neomake#virtualtext#handle_current_error()
     if !get(g:, 'neomake_echo_current_error', 1)
         return
     endif
@@ -2362,6 +2364,7 @@ endfunction
 
 function! neomake#CursorMoved() abort
     call neomake#EchoCurrentError()
+    call neomake#virtualtext#handle_current_error()
 endfunction
 
 function! s:cursormoved_delayed_cb(...) abort
