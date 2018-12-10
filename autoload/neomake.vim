@@ -1336,7 +1336,10 @@ function! s:clean_make_info(make_info, ...) abort
             endif
         endif
         call s:clean_for_new_make(a:make_info)
+
         call neomake#EchoCurrentError(1)
+        call neomake#virtualtext#handle_current_error()
+
         if get(a:make_info, 'canceled', 0)
             call neomake#log#debug('Skipping final processing for canceled make.', a:make_info)
             call s:do_clean_make_info(a:make_info)
@@ -2361,6 +2364,7 @@ endfunction
 
 function! neomake#CursorMoved() abort
     call neomake#EchoCurrentError()
+    call neomake#virtualtext#handle_current_error()
 endfunction
 
 function! s:cursormoved_delayed_cb(...) abort
@@ -2372,7 +2376,8 @@ function! neomake#CursorMovedDelayed() abort
     if exists('s:cursormoved_timer')
         call timer_stop(s:cursormoved_timer)
     endif
-    let s:cursormoved_timer = timer_start(get(g:, 'neomake_cursormoved_delay', 100), function('s:cursormoved_delayed_cb'))
+    let delay = get(g:, 'neomake_cursormoved_delay', 100)
+    let s:cursormoved_timer = timer_start(delay, function('s:cursormoved_delayed_cb'))
     let s:cursormoved_last_pos = getpos('.')
 endfunction
 
