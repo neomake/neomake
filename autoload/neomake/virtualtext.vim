@@ -29,7 +29,7 @@ function! neomake#virtualtext#show(...) abort
     for entry in entries
         let buf_info = getbufvar(entry.bufnr, '_neomake_info', {})
 
-        let used_src_id = neomake#virtualtext#add_entry(entry, s:all_ns)
+        call neomake#virtualtext#add_entry(entry, s:all_ns)
 
         " Keep track of added entries, because stacking is not supported.
         let set_buf_info = 0
