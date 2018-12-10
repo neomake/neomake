@@ -536,7 +536,7 @@ Neomake.  If there are fewer entries it will use that instead.
 Defaults to 10.
 
 *g:neomake_echo_current_error*
-This setting will |echo| the error for the line your cursor is on, if any.
+This setting will |:echo| the error for the line your cursor is on, if any.
 It uses a timer (if |timers| are available), and |CursorHold|/|CursorHoldI|
 otherwise.
 Defaults to 1.
