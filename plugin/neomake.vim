@@ -155,7 +155,7 @@ function! s:setup_autocmds() abort
             " to clear the previously echoed error.
             autocmd VimResized * call timer_start(100, function('neomake#EchoCurrentError'))
         else
-            autocmd CursorMoved * call neomake#CursorMoved()
+            autocmd CursorHold,CursorHoldI * call neomake#CursorMoved()
         endif
         autocmd VimLeave * call neomake#VimLeave()
         autocmd ColorScheme * call s:define_highlights()

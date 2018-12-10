@@ -536,8 +536,21 @@ Neomake.  If there are fewer entries it will use that instead.
 Defaults to 10.
 
 *g:neomake_echo_current_error*
-This setting will echo the error for the line your cursor is on, if any.
+This setting will |echo| the error for the line your cursor is on, if any.
+It uses a timer (if |timers| are available), and |CursorHold|/|CursorHoldI|
+otherwise.
 Defaults to 1.
+
+*g:neomake_virtualtext_current_error*
+Use Neovim's virtualtext API to display error for the current line next
+to the text.  This is experimental, and uses the same mechanism (timer)
+as |g:neomake_echo_current_error|.
+Defaults to 1 (only available on Neovim 0.3.2+).
+
+*g:neomake_cursormoved_delay*
+Delay (in ms) for the timer used to echo the current error with
+|g:neomake_echo_current_error|.
+Defaults to 100.
 
 *g:neomake_serialize*
 Setting this to 1 tells Neomake to run each enabled maker one after the other.

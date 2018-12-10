@@ -76,19 +76,21 @@ if exists('*nvim_buf_set_virtual_text')
     let s:cur_virtualtext = []
 
     function! neomake#virtualtext#handle_current_error() abort
-        if get(g:, 'neomake_virtualtext_current_error', 1)
-            if !empty(s:cur_virtualtext)
-                call nvim_buf_clear_highlight(s:cur_virtualtext[0], s:cur_virtualtext[1], 0, -1)
-            endif
-            let entry = neomake#get_nearest_error()
-            if !empty(entry)
-                " Only add it when there is none already (stacking is not
-                " supported).  https://github.com/neovim/neovim/issues/9285
-                let buf_info = getbufvar(entry.bufnr, '_neomake_info', {})
-                if index(get(buf_info, 'virtual_text_entries', []), entry.lnum) == -1
-                    let src_id = neomake#virtualtext#add_entry(entry, s:current_ns)
-                    let s:cur_virtualtext = [bufnr('%'), src_id]
-                endif
+        if !get(g:, 'neomake_virtualtext_current_error', 1)
+            return
+        endif
+
+        if !empty(s:cur_virtualtext)
+            call nvim_buf_clear_highlight(s:cur_virtualtext[0], s:cur_virtualtext[1], 0, -1)
+        endif
+        let entry = neomake#get_nearest_error()
+        if !empty(entry)
+            " Only add it when there is none already (stacking is not
+            " supported).  https://github.com/neovim/neovim/issues/9285
+            let buf_info = getbufvar(entry.bufnr, '_neomake_info', {})
+            if index(get(buf_info, 'virtual_text_entries', []), entry.lnum) == -1
+                let src_id = neomake#virtualtext#add_entry(entry, s:current_ns)
+                let s:cur_virtualtext = [bufnr('%'), src_id]
             endif
         endif
     endfunction

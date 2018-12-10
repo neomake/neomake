@@ -2376,7 +2376,8 @@ function! neomake#CursorMovedDelayed() abort
     if exists('s:cursormoved_timer')
         call timer_stop(s:cursormoved_timer)
     endif
-    let s:cursormoved_timer = timer_start(get(g:, 'neomake_cursormoved_delay', 100), function('s:cursormoved_delayed_cb'))
+    let delay = get(g:, 'neomake_cursormoved_delay', 100)
+    let s:cursormoved_timer = timer_start(delay, function('s:cursormoved_delayed_cb'))
     let s:cursormoved_last_pos = getpos('.')
 endfunction
 
