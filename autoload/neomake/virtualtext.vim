@@ -50,7 +50,7 @@ endfunction
 
 function! neomake#virtualtext#add_entry(entry, src_id) abort
     let hi = get(s:highlight_types, toupper(a:entry.type), 'NeomakeVirtualtextMessage')
-    let prefix = get(g:, 'neomake_annotation_prefix', '❯ ')
+    let prefix = get(g:, 'neomake_virtualtext_prefix', '❯ ')
     let text = prefix . a:entry.text
     let used_src_id = nvim_buf_set_virtual_text(a:entry.bufnr, a:src_id, a:entry.lnum-1, [[text, hi]], {})
     return used_src_id
