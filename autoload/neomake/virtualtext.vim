@@ -81,10 +81,14 @@ if exists('*nvim_create_namespace')  " Includes nvim_buf_set_virtual_text.
         endif
 
         if !empty(s:cur_virtualtext)
-            call nvim_buf_clear_highlight(s:cur_virtualtext[0], s:cur_virtualtext[1], 0, -1)
+            if bufexists(s:cur_virtualtext[0])
+                call nvim_buf_clear_highlight(s:cur_virtualtext[0], s:cur_virtualtext[1], 0, -1)
+            endif
         endif
         let entry = neomake#get_nearest_error()
-        if !empty(entry)
+        if empty(entry)
+            let s:cur_virtualtext = []
+        else
             " Only add it when there is none already (stacking is not
             " supported).  https://github.com/neovim/neovim/issues/9285
             let buf_info = getbufvar(entry.bufnr, '_neomake_info', {})
