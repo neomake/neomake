@@ -42,7 +42,10 @@ if [ "$1" = vader ]; then
 
   colorize() {
     # Only colorize if stdout is connected to a tty (not with :!make).
-    [ -t 1 ] || cat -
+    if ! [ -t 1 ]; then
+      cat -
+      return
+    fi
 
     # sed: add coloring to Vader's output:
     # 1. failures (includes pending) in red "(X)"
@@ -50,11 +53,11 @@ if [ "$1" = vader ]; then
     # 3. Neomake's error log messages
     # 4. Neomake's debug log messages
     # 5. non-Neomake log lines (e.g. from :Log)
-    sed -e 's/^\(\([^ ].*\)\? \+\)([ [:digit:]]\+\/[[:digit:]]\+) \[[ [:alpha:]]\+\] (X).*/'"$error_color"'\0'"$error_color_off"'/' \
-      -e 's/^\(\([^ ].*\)\? \+\)\(([ [:digit:]]\+\/[[:digit:]]\+)\)/\1'"$bold"'\3'"$bold_off"'/' \
-      -e 's/^ \+> \[\(error  \|E +[.[:digit:]]\+\)\]: .*/'"$bold"'\0'"$bold_off"'/' \
-      -e 's/^ \+> \[\(debug  \|D +[.[:digit:]]\+\)\]: .*/'"$debug_color"'\0'"$debug_color_off"'/' \
-    | sed -E -e '/'"$re_ignore_log_line"'/! s/'"$re_log_line"'/\1'"$log_color"'\2'"$log_color_off"'/'
+    sed -E -e 's/^(([^ ].*)? +)\([ [:digit:]]+\/[[:digit:]]+\) \[[ [:alpha:]]+\] \(X\).*/'"$error_color"'\0'"$error_color_off"'/' \
+      -e 's/^(([^ ].*)? +)(\([ [:digit:]]+\/[[:digit:]]+\))/\1'"$bold"'\3'"$bold_off"'/' \
+      -e 's/^ +> \[(error  |E +[.[:digit:]]+)\]: .*/'"$bold"'\0'"$bold_off"'/' \
+      -e 's/^ +> \[(debug  |D +[.[:digit:]]+)\]: .*/'"$debug_color"'\0'"$debug_color_off"'/' \
+      -e '/'"$re_ignore_log_line"'/! s/'"$re_log_line"'/\1'"$log_color"'\2'"$log_color_off"'/'
   }
 
   if ((quiet || compact)); then
