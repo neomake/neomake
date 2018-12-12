@@ -73,12 +73,7 @@ testvim: | build/vim-test-home $(DEP_PLUGINS)
 # 3. Neomake's debug log messages in less intense grey
 # 4. non-Neomake log lines (e.g. from :Log) in bold/bright yellow.
 _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log --compact vader
-# Need to close stdin to fix spurious 'sed: couldn't write X items to stdout: Resource temporarily unavailable'.
-# NOTE: uses </dev/null instead of <&-, because Vim behaves different then:
-#  - test "Automake restarts if popup menu is visible" hangs (https://github.com/vim/vim/issues/1320)
-#  - running the command from "make testvim" directly (i.e. without "make")
-#    triggers half the screen to be cleared in the end
-_REDIR_STDOUT:=2>&1 >/dev/null </dev/null $(_SED_HIGHLIGHT_ERRORS)
+_REDIR_STDOUT:=2>&1 >/dev/null $(_SED_HIGHLIGHT_ERRORS)
 
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 # Vim hangs with /dev/null on Windows (native Vim via MSYS2).
