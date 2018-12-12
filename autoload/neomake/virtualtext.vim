@@ -70,7 +70,7 @@ function! neomake#virtualtext#hide() abort
     endif
 endfunction
 
-if exists('*nvim_buf_set_virtual_text')
+if exists('*nvim_create_namespace')  " Includes nvim_buf_set_virtual_text.
     let s:current_ns = nvim_create_namespace('neomake-virtualtext-current')
     let s:all_ns = nvim_create_namespace('neomake-virtualtext-all')
     let s:cur_virtualtext = []
