@@ -77,7 +77,7 @@ Execute (automake: display of error with O during maker run):
     AssertNeomakeMessage '\V\^Skipping cleaning of make info: 1 active jobs: [''Job \d\+: mymaker2''].', 3
 
     AssertNeomakeMessage 'exit: mymaker2: 0.', 3
-    AssertNeomakeMessage 'automake: Buffer was changed, cancelling make: '.make_id.'.', 3
+    AssertNeomakeMessage 'automake: Buffer was changed (TextChangedI), cancelling make: '.make_id.'.', 3
     AssertNeomakeMessage 'Cancelling make.', 3
     AssertNeomakeMessage 'Cancelling job.', 3
     AssertNeomakeMessage 'Job exited already.', 3
