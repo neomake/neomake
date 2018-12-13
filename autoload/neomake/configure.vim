@@ -3,8 +3,8 @@
 "
 " Default settings, setup in global config dict.
 let s:default_settings = {
-      \ 'ignore_filetypes': ['startify'],
-      \ }
+            \ 'ignore_filetypes': ['startify'],
+            \ }
 let g:neomake = get(g:, 'neomake', {})
 let g:neomake.automake = get(g:neomake, 'automake', {})
 call extend(g:neomake.automake, s:default_settings, 'keep')
@@ -100,7 +100,7 @@ function! s:neomake_do_automake(context) abort
         if !empty(prev_make_ids)
             call s:debug_log(printf('stopping previous make runs: %s', join(prev_make_ids, ', ')))
             for prev_make_id in prev_make_ids
-              call neomake#CancelMake(prev_make_id)
+                call neomake#CancelMake(prev_make_id)
             endfor
         endif
 
@@ -135,16 +135,16 @@ function! s:neomake_do_automake(context) abort
     if !empty(started_jobs)
         let make_id = jobinfos[0].make_id
         call setbufvar(bufnr, 'neomake_automake_make_ids',
-              \ neomake#compat#getbufvar(bufnr, 'neomake_automake_make_ids', []) + [make_id])
+                    \ neomake#compat#getbufvar(bufnr, 'neomake_automake_make_ids', []) + [make_id])
 
         let events = 'TextChangedI'
         if a:context.event !=# 'TextChanged'
             let events .= ',TextChanged'
         endif
         augroup neomake_automake_abort
-          au! * <buffer>
-          exe printf('autocmd %s <buffer> call s:cancel_make_for_changed_buffer(%s)',
-                \ events, string(make_id))
+            au! * <buffer>
+            exe printf('autocmd %s <buffer> call s:cancel_make_for_changed_buffer(%s)',
+                        \ events, string(make_id))
         augroup END
     endif
 endfunction
@@ -166,12 +166,12 @@ function! s:automake_delayed_cb(timer) abort
     endif
 
     call s:debug_log(printf('callback for timer %d (via %s)', string(a:timer), timer_info.event),
-          \ {'bufnr': timer_info.bufnr})
+                \ {'bufnr': timer_info.bufnr})
 
     let bufnr = bufnr('%')
     if timer_info.bufnr != bufnr
         call s:debug_log(printf('buffer changed: %d => %d',
-              \ timer_info.bufnr, bufnr))
+                    \ timer_info.bufnr, bufnr))
         return
     endif
 
@@ -189,9 +189,9 @@ function! s:automake_delayed_cb(timer) abort
         let b:_neomake_postponed_automake_context = [0, timer_info]
 
         augroup neomake_automake_retry
-          au! * <buffer>
-          autocmd CompleteDone <buffer> call s:do_postponed_automake(1)
-          autocmd InsertLeave <buffer> call s:do_postponed_automake(2)
+            au! * <buffer>
+            autocmd CompleteDone <buffer> call s:do_postponed_automake(1)
+            autocmd InsertLeave <buffer> call s:do_postponed_automake(2)
         augroup END
         return
     endif
@@ -234,8 +234,8 @@ function! s:do_postponed_automake(step) abort
 
         " Cleanup.
         augroup neomake_automake_retry
-          autocmd! CompleteDone <buffer>
-          autocmd! InsertLeave <buffer>
+            autocmd! CompleteDone <buffer>
+            autocmd! InsertLeave <buffer>
         augroup END
         unlet b:_neomake_postponed_automake_context
     endif
@@ -427,8 +427,8 @@ function! s:configure_buffer(bufnr, ...) abort
     endif
 
     if a:0
-      " Setup autocommands etc (when called manually)?!
-      call neomake#configure#automake()
+        " Setup autocommands etc (when called manually)?!
+        call neomake#configure#automake()
     endif
     return config
 endfunction
@@ -475,13 +475,13 @@ function! s:neomake_automake(event, bufnr) abort
     endif
 
     if a:event ==# 'TextChanged' && !has('nvim-0.3.2') && has('patch-8.0.1494') && !has('patch-8.0.1633')
-      " TextChanged gets triggered in this case when loading a buffer (Vim
-      " issue #2742).
-      if !getbufvar(bufnr, '_neomake_seen_TextChanged', 0)
-        call s:debug_log('Ignoring first TextChanged')
-        call setbufvar(bufnr, '_neomake_seen_TextChanged', 1)
-        return
-      endif
+        " TextChanged gets triggered in this case when loading a buffer (Vim
+        " issue #2742).
+        if !getbufvar(bufnr, '_neomake_seen_TextChanged', 0)
+            call s:debug_log('Ignoring first TextChanged')
+            call setbufvar(bufnr, '_neomake_seen_TextChanged', 1)
+            return
+        endif
     endif
     call s:debug_log(printf('handling event %s', a:event), {'bufnr': bufnr})
 
