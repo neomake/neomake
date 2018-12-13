@@ -74,14 +74,14 @@ shopt -s globstar
 directories=("$@")
 
 check_errors() {
-    regex="$1"
-    message="$2"
+    regex="$1"; shift
+    message="$1"; shift
 
     for directory in "${directories[@]}"; do
         # Ensure that errors from grep are not ignored, i.e. busybox's grep
         # does not have "--with-filename".
         set +e
-        output="$(grep --with-filename -n "$regex" "$directory"/**/*.vim 2>&1)"
+        output="$(grep "$@" --with-filename -n "$regex" "$directory"/**/*.vim 2>&1)"
         ret=$?
         set -e
         if (( ret > 1 )); then
@@ -113,8 +113,8 @@ check_errors \
     'Function without abort keyword (See :help except-compat)'
 check_errors ' \+$' 'Trailing whitespace'
 check_errors '^ * end\?i\? *$' 'Write endif, not en, end, or endi'
-check_errors '^  [^ ]' 'Use four spaces, not two spaces'
-check_errors $'\t' 'Use four spaces, not tabs'
+check_errors '^((    )*([^ ]|$)|\s+\\)' 'Use four spaces for indentation' -v -E
+check_errors $'\t' 'Do not use tabs for indentation'
 check_errors '^\s*[^" ].*[^&]l:\w' 'Do not use l: prefix for local variables'
 
 exit $RETURN_CODE
