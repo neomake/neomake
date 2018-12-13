@@ -16,11 +16,13 @@ For bugs please provide steps to reproduce the issue.
 3. Please describe how you run Neomake: manually (how?), via automake config,
    or via some custom autocommand(s) (which?).
 
-You can use a minimal vimrc like the following (in Neomake's source directory),
-and run `(n)vim -u minimal.vimrc` then:
+You can create a minimal vimrc like the following in Neomake's source directory, and use it with `(n)vim -u minimal.init.vim`:
 
 ```
-set runtimepath+=$PWD
+set noloadplugins
+let &runtimepath = expand('<sfile>:p:h') . ',' . &runtimepath
+runtime plugin/neomake.vim
+
 let g:neomake_logfile = '/tmp/neomake.log'
 ```
 
