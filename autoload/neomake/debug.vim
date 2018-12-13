@@ -12,6 +12,7 @@ function! s:pprint(v, ...) abort
         endif
         let r = "{\n"
         for [k, V] in items(a:v)
+            let V = neomake#utils#fix_self_ref(V)
             let r .= indent.'  '.string(k).': '.s:pprint(V, indent . '  ').",\n"
         endfor
         let r .= indent.'}'
