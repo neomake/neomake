@@ -189,3 +189,4 @@ function! neomake#config#unset_dict(dict, name) abort
         unlet c[k]
     endif
 endfunction
+" vim: ts=4 sw=4 et

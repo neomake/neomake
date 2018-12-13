@@ -391,3 +391,4 @@ endf
 
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
+" vim: ts=4 sw=4 et

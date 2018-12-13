@@ -37,3 +37,4 @@ endfunction
 function! neomake#makers#ft#help#writegood() abort
     return neomake#makers#ft#text#writegood()
 endfunction
+" vim: ts=4 sw=4 et

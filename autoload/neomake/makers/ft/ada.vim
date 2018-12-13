@@ -11,3 +11,4 @@ function! neomake#makers#ft#ada#gcc() abort
             \ '%f:%l: %m'
         \ }
 endfunction
+" vim: ts=4 sw=4 et

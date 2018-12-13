@@ -86,3 +86,4 @@ function! neomake#makers#ft#markdown#vale() abort
                 \ 'process_json': function('neomake#makers#ft#markdown#ProcessVale')
                 \ }
 endfunction
+" vim: ts=4 sw=4 et

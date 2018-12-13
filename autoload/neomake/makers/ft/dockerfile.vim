@@ -10,3 +10,4 @@ function! neomake#makers#ft#dockerfile#hadolint() abort
           \ 'errorformat': '%f:%l %m',
           \ }
 endfunction
+" vim: ts=4 sw=4 et

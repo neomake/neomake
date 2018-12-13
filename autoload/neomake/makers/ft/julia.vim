@@ -21,3 +21,4 @@ function! neomake#makers#ft#julia#lint() abort
 \       ']
 \   }
 endfunction
+" vim: ts=4 sw=4 et

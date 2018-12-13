@@ -266,3 +266,4 @@ function! neomake#debug#_get_info_lines() abort
     endif
     return r
 endfunction
+" vim: ts=4 sw=4 et

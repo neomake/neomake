@@ -420,3 +420,4 @@ augroup neomake_statusline
     autocmd ColorScheme * call neomake#statusline#DefineHighlights()
 augroup END
 call neomake#statusline#DefineHighlights()
+" vim: ts=4 sw=4 et

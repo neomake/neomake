@@ -97,7 +97,7 @@ check_errors() {
             RETURN_CODE=1
             echo "$match $message"
         done < <(echo "$output" \
-            | grep -o '^[^:]\+:[0-9]\+' \
+            | grep -o '^[^:]\+\(:[0-9]\+\)\?' \
             | sed 's:^\./::')
     done
 }
@@ -116,5 +116,6 @@ check_errors '^ * end\?i\? *$' 'Write endif, not en, end, or endi'
 check_errors '^((    )*([^ ]|$)|\s+\\)' 'Use four spaces for indentation' -v -E
 check_errors $'\t' 'Do not use tabs for indentation'
 check_errors '^\s*[^" ].*[^&]l:\w' 'Do not use l: prefix for local variables'
+check_errors '^" vim: ts=4 sw=4 et' 'Missing modeline' --files-without-match
 
 exit $RETURN_CODE

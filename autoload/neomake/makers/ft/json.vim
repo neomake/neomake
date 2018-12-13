@@ -35,3 +35,4 @@ function! neomake#makers#ft#json#eslint_d() abort
     let maker.args += ['--plugin', 'json']
     return maker
 endfunction
+" vim: ts=4 sw=4 et

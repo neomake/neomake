@@ -27,3 +27,4 @@ function! neomake#makers#ft#text#writegood() abort
                 \ 'postprocess': function('neomake#makers#ft#text#PostprocessWritegood'),
                 \ }
 endfunction
+" vim: ts=4 sw=4 et

@@ -20,3 +20,4 @@ function! neomake#makers#ft#chef#cookstyle() abort
       \ 'postprocess': function('neomake#makers#ft#ruby#RubocopEntryProcess'),
       \ }
 endfunction
+" vim: ts=4 sw=4 et

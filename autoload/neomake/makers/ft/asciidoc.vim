@@ -25,3 +25,4 @@ endfunction
 function! neomake#makers#ft#asciidoc#asciidoctor() abort
     return neomake#makers#ft#asciidoc#asciidoc()
 endfunction
+" vim: ts=4 sw=4 et

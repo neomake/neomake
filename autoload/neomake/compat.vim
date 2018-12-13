@@ -319,3 +319,4 @@ else
         exec 'doautocmd ' . a:event
     endfunction
 endif
+" vim: ts=4 sw=4 et

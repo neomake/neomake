@@ -166,3 +166,4 @@ endfunction
 function! s:CleanUpSpaceAndBackticks() abort
     return 'substitute(substitute(v:val, " \\{2,\\}", " ", "g"), "`", "''", "g")'
 endfunction
+" vim: ts=4 sw=4 et

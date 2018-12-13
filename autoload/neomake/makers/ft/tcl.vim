@@ -12,3 +12,4 @@ function! neomake#makers#ft#tcl#nagelfar() abort
                 \ '%-GChecking file %f'
                 \ }
 endfunction
+" vim: ts=4 sw=4 et

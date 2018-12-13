@@ -82,3 +82,4 @@ function! s:jobinfo_base.cd(...) abort
 endfunction
 
 let g:neomake#jobinfo#base = s:jobinfo_base
+" vim: ts=4 sw=4 et

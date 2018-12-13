@@ -172,3 +172,4 @@ endif
 call s:setup_autocmds()
 
 " vim: sw=4 et
+" vim: ts=4 sw=4 et

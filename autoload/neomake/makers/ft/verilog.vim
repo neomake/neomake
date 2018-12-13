@@ -13,3 +13,4 @@ function! neomake#makers#ft#verilog#iverilog() abort
                 \ '%f:%l: %m',
                 \ }
 endfunction
+" vim: ts=4 sw=4 et
