@@ -115,3 +115,4 @@ function! neomake#core#get_tabwin_for_makeid(make_id) abort
     endfor
     return [-1, -1]
 endfunction
+" vim: ts=4 sw=4 et

@@ -32,3 +32,4 @@ function! neomake#makers#ft#css#stylelint() abort
 
     return maker
 endfunction
+" vim: ts=4 sw=4 et

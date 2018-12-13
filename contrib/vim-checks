@@ -74,14 +74,14 @@ shopt -s globstar
 directories=("$@")
 
 check_errors() {
-    regex="$1"
-    message="$2"
+    regex="$1"; shift
+    message="$1"; shift
 
     for directory in "${directories[@]}"; do
         # Ensure that errors from grep are not ignored, i.e. busybox's grep
         # does not have "--with-filename".
         set +e
-        output="$(grep --with-filename -n "$regex" "$directory"/**/*.vim 2>&1)"
+        output="$(grep "$@" --with-filename -n "$regex" "$directory"/**/*.vim 2>&1)"
         ret=$?
         set -e
         if (( ret > 1 )); then
@@ -97,7 +97,7 @@ check_errors() {
             RETURN_CODE=1
             echo "$match $message"
         done < <(echo "$output" \
-            | grep -o '^[^:]\+:[0-9]\+' \
+            | grep -o '^[^:]\+\(:[0-9]\+\)\?' \
             | sed 's:^\./::')
     done
 }
@@ -113,8 +113,9 @@ check_errors \
     'Function without abort keyword (See :help except-compat)'
 check_errors ' \+$' 'Trailing whitespace'
 check_errors '^ * end\?i\? *$' 'Write endif, not en, end, or endi'
-check_errors '^  [^ ]' 'Use four spaces, not two spaces'
-check_errors $'\t' 'Use four spaces, not tabs'
+check_errors '^((    )*([^ ]|$)|\s+\\)' 'Use four spaces for indentation' -v -E
+check_errors $'\t' 'Do not use tabs for indentation'
 check_errors '^\s*[^" ].*[^&]l:\w' 'Do not use l: prefix for local variables'
+check_errors '^" vim: ts=4 sw=4 et' 'Missing modeline' --files-without-match
 
 exit $RETURN_CODE

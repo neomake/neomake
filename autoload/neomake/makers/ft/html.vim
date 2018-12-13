@@ -15,3 +15,4 @@ endfunction
 function! neomake#makers#ft#html#EnabledMakers() abort
     return ['tidy', 'htmlhint']
 endfunction
+" vim: ts=4 sw=4 et

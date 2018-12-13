@@ -59,13 +59,13 @@ function! neomake#statusline#ResetCountsForBuf(...) abort
     let bufnr = a:0 ? +a:1 : bufnr('%')
     call s:clear_cache(bufnr)
     if has_key(s:counts, bufnr)
-      let r = s:counts[bufnr] != {}
-      unlet s:counts[bufnr]
-      if r
-          call neomake#utils#hook('NeomakeCountsChanged', {
-                \ 'reset': 1, 'file_mode': 1, 'bufnr': bufnr})
-      endif
-      return r
+        let r = s:counts[bufnr] != {}
+        unlet s:counts[bufnr]
+        if r
+            call neomake#utils#hook('NeomakeCountsChanged', {
+                        \ 'reset': 1, 'file_mode': 1, 'bufnr': bufnr})
+        endif
+        return r
     endif
     return 0
 endfunction
@@ -80,7 +80,7 @@ function! neomake#statusline#ResetCountsForProject(...) abort
     unlet s:counts['project']
     if r
         call neomake#utils#hook('NeomakeCountsChanged', {
-              \ 'reset': 1, 'file_mode': 0, 'bufnr': bufnr})
+                    \ 'reset': 1, 'file_mode': 0, 'bufnr': bufnr})
     endif
     return r
 endfunction
@@ -358,7 +358,7 @@ function! neomake#statusline#get(bufnr, ...) abort
                 " Automake Disabled
                 let format_disabled_info = get(options, 'format_disabled_info', '{{disabled_scope}}-')
                 let disabled_info = s:formatter.format(format_disabled_info,
-                      \ {'disabled_scope': disabled_scope})
+                            \ {'disabled_scope': disabled_scope})
                 " Defaults to showing the disabled information (i.e. scope)
                 let format_disabled = get(options, 'format_status_disabled', '{{disabled_info}} %s')
                 let outer_format = s:formatter.format(format_disabled, {'disabled_info': disabled_info})
@@ -382,23 +382,23 @@ endfunction
 " XXX: TODO: cleanup/doc?!
 function! neomake#statusline#DefineHighlights() abort
     for suffix in ['', 'NC']
-      let hl = 'StatusLine'.suffix
+        let hl = 'StatusLine'.suffix
 
-      " Highlight used for resetting color (used after counts).
-      exe 'hi default link NeomakeStatReset'.suffix.' StatusLine'.suffix
+        " Highlight used for resetting color (used after counts).
+        exe 'hi default link NeomakeStatReset'.suffix.' StatusLine'.suffix
 
-      " Uses "green" for NeomakeStatusGood, but the default with
-      " NeomakeStatusGoodNC (since it might be underlined there, and should
-      " not stand out in general there).
-      exe 'hi default NeomakeStatusGood'.suffix
-            \ . ' ctermfg=' . (suffix ? neomake#utils#GetHighlight(hl, 'fg') : 'green')
-            \ . ' guifg=' . (suffix ? neomake#utils#GetHighlight(hl, 'fg#') : 'green')
-            \ . ' ctermbg='.neomake#utils#GetHighlight(hl, 'bg')
-            \ . ' guifg='.neomake#utils#GetHighlight(hl, 'bg#')
-            \ . (neomake#utils#GetHighlight(hl, 'underline') ? ' cterm=underline' : '')
-            \ . (neomake#utils#GetHighlight(hl, 'underline#') ? ' gui=underline' : '')
-            \ . (neomake#utils#GetHighlight(hl, 'reverse') ? ' cterm=reverse' : '')
-            \ . (neomake#utils#GetHighlight(hl, 'reverse#') ? ' gui=reverse' : '')
+        " Uses "green" for NeomakeStatusGood, but the default with
+        " NeomakeStatusGoodNC (since it might be underlined there, and should
+        " not stand out in general there).
+        exe 'hi default NeomakeStatusGood'.suffix
+                    \ . ' ctermfg=' . (suffix ? neomake#utils#GetHighlight(hl, 'fg') : 'green')
+                    \ . ' guifg=' . (suffix ? neomake#utils#GetHighlight(hl, 'fg#') : 'green')
+                    \ . ' ctermbg='.neomake#utils#GetHighlight(hl, 'bg')
+                    \ . ' guifg='.neomake#utils#GetHighlight(hl, 'bg#')
+                    \ . (neomake#utils#GetHighlight(hl, 'underline') ? ' cterm=underline' : '')
+                    \ . (neomake#utils#GetHighlight(hl, 'underline#') ? ' gui=underline' : '')
+                    \ . (neomake#utils#GetHighlight(hl, 'reverse') ? ' cterm=reverse' : '')
+                    \ . (neomake#utils#GetHighlight(hl, 'reverse#') ? ' gui=reverse' : '')
     endfor
 
     " Default highlight for type counts.
@@ -420,3 +420,4 @@ augroup neomake_statusline
     autocmd ColorScheme * call neomake#statusline#DefineHighlights()
 augroup END
 call neomake#statusline#DefineHighlights()
+" vim: ts=4 sw=4 et

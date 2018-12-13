@@ -69,3 +69,4 @@ function! neomake#makers#ft#erlang#GlobPaths() abort
     let args += ['-o', target_dir]
     return args
 endfunction
+" vim: ts=4 sw=4 et

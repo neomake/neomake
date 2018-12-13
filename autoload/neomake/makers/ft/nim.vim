@@ -13,3 +13,4 @@ function! neomake#makers#ft#nim#nim() abort
                 \   '%E%f(%l\, %c) Error: %m'
                 \ }
 endfunction
+" vim: ts=4 sw=4 et

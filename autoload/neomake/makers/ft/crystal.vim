@@ -22,3 +22,4 @@ function! neomake#makers#ft#crystal#ameba() abort
         \ 'errorformat': '%f:%l:%c: %t: %m'
         \ }
 endfunction
+" vim: ts=4 sw=4 et

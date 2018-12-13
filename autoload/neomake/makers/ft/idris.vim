@@ -22,3 +22,4 @@ function! neomake#makers#ft#idris#idris() abort
         \ 'postprocess': function('neomake#makers#ft#idris#Postprocess'),
         \ }
 endfunction
+" vim: ts=4 sw=4 et

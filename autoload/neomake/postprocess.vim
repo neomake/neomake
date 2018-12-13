@@ -74,3 +74,4 @@ function! g:neomake#postprocess#remove_duplicates.fn(entry) abort
     endif
 endfunction
 lockvar g:neomake#postprocess#remove_duplicates  " Needs to be copied.
+" vim: ts=4 sw=4 et

@@ -8,3 +8,4 @@ function! neomake#makers#ft#applescript#osacompile() abort
         \ 'errorformat': '%f:%l: %trror: %m',
         \ }
 endfunction
+" vim: ts=4 sw=4 et

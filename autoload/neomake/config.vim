@@ -1,11 +1,11 @@
 " Config API.
 
 let g:neomake#config#_defaults = {
-      \ 'maker_defaults': {
-      \   'buffer_output': 1,
-      \   'output_stream': 'both',
-      \   'remove_invalid_entries': 0,
-      \ }}
+            \ 'maker_defaults': {
+            \   'buffer_output': 1,
+            \   'output_stream': 'both',
+            \   'remove_invalid_entries': 0,
+            \ }}
 lockvar g:neomake#config#_defaults
 
 let g:neomake#config#undefined = {}
@@ -23,7 +23,7 @@ function! s:resolve_name(dict, name, init) abort
             let c[p] = {}
         endif
         if type(c[p]) != type({})
-          return [g:neomake#config#undefined, '']
+            return [g:neomake#config#undefined, '']
         endif
         let c = c[p]
     endfor
@@ -133,9 +133,9 @@ function! neomake#config#get_with_source(name, ...) abort
 
     " Return default.
     if a:0
-      return [a:1, 'default']
+        return [a:1, 'default']
     elseif has_key(g:neomake#config#_defaults, a:name)
-      return [copy(g:neomake#config#_defaults[a:name]), 'default']
+        return [copy(g:neomake#config#_defaults[a:name]), 'default']
     endif
     return [g:neomake#config#undefined, 'default']
 endfunction
@@ -189,3 +189,4 @@ function! neomake#config#unset_dict(dict, name) abort
         unlet c[k]
     endif
 endfunction
+" vim: ts=4 sw=4 et

@@ -13,3 +13,4 @@ endfunction
 function! neomake#makers#ft#solidity#solhint() abort
     return neomake#makers#ft#javascript#eslint()
 endfunction
+" vim: ts=4 sw=4 et

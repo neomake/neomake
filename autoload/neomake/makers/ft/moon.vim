@@ -12,3 +12,4 @@ function! neomake#makers#ft#moon#moonc() abort
             \ 'line\ %l:\ %m'
     \ }
 endfunction
+" vim: ts=4 sw=4 et

@@ -99,3 +99,4 @@ function! neomake#cmd#clean(file_mode) abort
     endif
     call neomake#EchoCurrentError(1)
 endfunction
+" vim: ts=4 sw=4 et

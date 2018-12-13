@@ -10,3 +10,4 @@ function! neomake#makers#ft#serpent#serplint() abort
             \ '%f:%l:%c %t%n %m',
         \ }
 endfunction
+" vim: ts=4 sw=4 et

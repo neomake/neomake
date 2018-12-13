@@ -9,3 +9,4 @@ function! neomake#makers#ft#proto#prototool() abort
                 \ 'errorformat': '%f:%l:%c:%m',
                 \ }
 endfunction
+" vim: ts=4 sw=4 et

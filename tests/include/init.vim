@@ -613,3 +613,4 @@ function! s:After()
   echom ''
 endfunction
 command! NeomakeTestsGlobalAfter call s:After()
+" vim: ts=4 sw=4 et

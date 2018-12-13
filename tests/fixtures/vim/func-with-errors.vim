@@ -4,3 +4,4 @@ function! Foo()
   endif
   echom foo . 'bar'
 endfunction
+" vim: ts=4 sw=4 et

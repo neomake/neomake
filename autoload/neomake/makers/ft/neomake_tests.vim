@@ -55,3 +55,4 @@ function! neomake#makers#ft#neomake_tests#process_output_error() abort
     endfunction
     return maker
 endfunction
+" vim: ts=4 sw=4 et

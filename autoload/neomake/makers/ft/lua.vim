@@ -30,3 +30,4 @@ function! neomake#makers#ft#lua#luac() abort
         \ 'errorformat': '%*\f: %#%f:%l: %m',
         \ }
 endfunction
+" vim: ts=4 sw=4 et

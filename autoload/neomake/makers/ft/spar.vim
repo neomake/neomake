@@ -10,3 +10,4 @@ function! neomake#makers#ft#spar#spar() abort
         \ 'nvim_job_opts': {'pty': 1}
         \ }
 endfunction
+" vim: ts=4 sw=4 et

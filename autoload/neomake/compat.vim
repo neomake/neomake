@@ -39,17 +39,17 @@ if exists('*json_decode')
     let neomake#compat#json_null = v:null
 
     if has('nvim')
-      function! neomake#compat#json_decode(json) abort
-          if a:json is# ''
-              " Prevent Neovim from throwing E474: Attempt to decode a blank string.
-              return g:neomake#compat#json_none
-          endif
-          return json_decode(a:json)
-      endfunction
+        function! neomake#compat#json_decode(json) abort
+            if a:json is# ''
+                " Prevent Neovim from throwing E474: Attempt to decode a blank string.
+                return g:neomake#compat#json_none
+            endif
+            return json_decode(a:json)
+        endfunction
     else
-      function! neomake#compat#json_decode(json) abort
-          return json_decode(a:json)
-      endfunction
+        function! neomake#compat#json_decode(json) abort
+            return json_decode(a:json)
+        endfunction
     endif
 else
     let neomake#compat#json_true = 1
@@ -279,8 +279,8 @@ if exists('*win_getid')
         let pw = win_id2win(pw_id)
         if !pw
             call neomake#log#debug(printf(
-                  \ 'Cannot restore previous windows (previous window with ID %d not found).',
-                  \ pw_id))
+                        \ 'Cannot restore previous windows (previous window with ID %d not found).',
+                        \ pw_id))
         elseif winnr() != pw
             let aw = win_id2win(aw_id)
             if aw
@@ -299,8 +299,8 @@ else
         let [aw, pw] = remove(s:prev_windows, 0)
         if pw > winnr('$')
             call neomake#log#debug(printf(
-                  \ 'Cannot restore previous windows (%d > %d).',
-                  \ pw, winnr('$')))
+                        \ 'Cannot restore previous windows (%d > %d).',
+                        \ pw, winnr('$')))
         elseif winnr() != pw
             if aw
                 noautocmd exec aw . 'wincmd w'
@@ -319,3 +319,4 @@ else
         exec 'doautocmd ' . a:event
     endfunction
 endif
+" vim: ts=4 sw=4 et

@@ -10,3 +10,4 @@ function! neomake#makers#ft#sql#sqlint() abort
             \ '%C %m'
         \ }
 endfunction
+" vim: ts=4 sw=4 et

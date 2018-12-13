@@ -26,3 +26,4 @@ function! neomake#makers#ft#puppet#puppet() abort
         \ 'output_stream': 'stderr',
         \ }
 endfunction
+" vim: ts=4 sw=4 et
