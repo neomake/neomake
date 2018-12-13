@@ -15,6 +15,15 @@ For bugs please provide steps to reproduce the issue.
    for following the logfile in a separate terminal.
 3. Please describe how you run Neomake: manually (how?), via automake config,
    or via some custom autocommand(s) (which?).
+
+You can use a minimal vimrc like the following (in Neomake's source directory),
+and run `(n)vim -u minimal.vimrc` then:
+
+```
+set runtimepath+=$PWD
+let g:neomake_logfile = '/tmp/neomake.log'
+```
+
 -->
 
 ### Output from (verbose) NeomakeInfo
