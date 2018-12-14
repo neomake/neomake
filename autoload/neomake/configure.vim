@@ -74,7 +74,6 @@ function! s:restart_make_for_changed_buffer(make_id, event) abort
     if !empty(window_make_ids)
         let [make_id, prev_tick, context] = b:_neomake_restart_automake_context
         if make_id == a:make_id
-            let make_info = neomake#GetMakeOptions(a:make_id)
             call s:debug_log(printf('Buffer was changed (%s), restarting make: %s',
                         \ a:event, string(a:make_id)))
             call neomake#CancelMake(a:make_id)
@@ -86,8 +85,7 @@ function! s:restart_make_for_changed_buffer(make_id, event) abort
 
             return
         endif
-
-        call s:debug_log(printf('restart_make_for_changed_buffer: mismatched make_id: %d != %d', make_id, a:make_id))
+        call neomake#log#warning(printf('automake: restart_make_for_changed_buffer: mismatched make_id, not restarting: %d != %d.', make_id, a:make_id))
     endif
 
     " Cleanup.
