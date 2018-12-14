@@ -1059,9 +1059,11 @@ Execute (automake: display of error with O during maker run):
     let maker2 = copy(g:sleep_maker)
     let maker2.name = 'mymaker2'
     function! maker2.process_output(...)
-      normal! O
-      doautocmd TextChangedI
       let s:error_count += 1
+      if s:error_count < 5
+        normal! O
+        doautocmd TextChangedI
+      endif
       return [{'lnum': 1, 'text': 'error2:'.s:error_count}]
     endfunction
 
@@ -1076,6 +1078,7 @@ Execute (automake: display of error with O during maker run):
 
     NeomakeTestsWaitForMessage '\Vautomake: callback for timer \d\+ (via TextChanged).', 3
     let make_id = neomake#GetStatus().last_make_id
+    Assert exists('#neomake_automake_abort')
     NeomakeTestsWaitForFinishedJobs
     AssertEqual neomake#GetCurrentErrorMsg(), ''
 
@@ -1089,9 +1092,68 @@ Execute (automake: display of error with O during maker run):
     AssertNeomakeMessage 'Cancelling job.', 3
     AssertNeomakeMessage 'Job exited already.', 3
     AssertNeomakeMessage '\V\^Skipping cleaning of make info: 1 active jobs: [''Job \d\+: mymaker2 [canceled]''].', 3
+
+    " Restarts via same context (delayed).
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1:1']
+    Assert exists('#neomake_automake_abort')
+
     AssertNeomakeMessage 'mymaker2: completed with exit code 0.', 3
     AssertNeomakeMessage 'Cleaning jobinfo.', 3
     AssertNeomakeMessage 'Cleaning make info.', 3
-    AssertEqual map(getloclist(0), 'v:val.text'), ['error1:3', 'error2:4']
+
+    NeomakeTestsWaitForMessage 'automake: Buffer was changed (TextChangedI), restarting make: '.(make_id+1).'.', 3
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+    NeomakeTestsWaitForMessage '\Vautomake: callback for timer \d\+ (via TextChanged).', 3
+    NeomakeTestsWaitForFinishedJobs
+
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1:5', 'error2:6']
+
+    " augroup still exists.
+    Assert exists('#neomake_automake_abort')
+    " Gets cleaned up on triggered autocmd without neomake_make_ids.
+    doautocmd TextChangedI
+    Assert !exists('#neomake_automake_abort')
+    bwipe!
+  endif
+
+Execute (automake: restarts (BufWritePost)):
+  if NeomakeAsyncTestsSetup()
+    Save g:neomake g:neomake_test_enabledmakers
+
+    new
+    set filetype=neomake_tests
+
+    let s:error_count = 0
+
+    let maker1 = copy(g:error_maker)
+    let maker1.name = 'mymaker1'
+    function! maker1.process_output(...)
+      let s:error_count += 1
+      if s:error_count == 1
+        doautocmd TextChangedI
+      elseif s:error_count == 2
+        doautocmd TextChanged
+      endif
+      return [{'lnum': 1, 'text': 'error1:'.s:error_count}]
+    endfunction
+
+    let g:neomake_test_enabledmakers = [maker1]
+    call neomake#configure#automake('w')
+    doautocmd BufWritePost
+
+    AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
+    let make_id = neomake#GetStatus().last_make_id
+    NeomakeTestsWaitForFinishedJobs
+    AssertEqual neomake#GetCurrentErrorMsg(), ''
+
+    AssertNeomakeMessage 'automake: Buffer was changed (TextChangedI), restarting make: '.make_id.'.', 3
+    AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
+    AssertNeomakeMessage 'automake: Buffer was changed (TextChanged), restarting make: '.(make_id+1).'.', 3
+    AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
+    AssertNeomakeMessage 'Processing 1 entries.', 3
+    AssertNeomakeMessage 'mymaker1: completed with exit code 1.', 3
+
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1:3']
     bwipe!
   endif
