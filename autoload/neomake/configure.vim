@@ -69,14 +69,16 @@ function! s:tick_changed(context, update) abort
     return r
 endfunction
 
-function! s:cancel_make_for_changed_buffer(make_id, event) abort
+function! s:restart_make_for_changed_buffer(make_id, event) abort
     let window_make_ids = get(w:, 'neomake_make_ids', [])
     if empty(window_make_ids)
         return
     endif
-    call s:debug_log(printf('Buffer was changed (%s), cancelling make: %s',
+    let make_info = neomake#GetMakeOptions(a:make_id)
+    call s:debug_log(printf('Buffer was changed (%s), restarting make: %s',
                 \ a:event, string(a:make_id)))
     call neomake#CancelMake(a:make_id)
+    call neomake#Make(make_info.options)
     augroup neomake_automake_abort
         au! * <buffer>
     augroup END
@@ -145,7 +147,7 @@ function! s:neomake_do_automake(context) abort
         augroup neomake_automake_abort
             au! * <buffer>
             for event in events
-                exe printf('autocmd %s <buffer> call s:cancel_make_for_changed_buffer(%s, %s)',
+                exe printf('autocmd %s <buffer> call s:restart_make_for_changed_buffer(%s, %s)',
                             \ event, string(make_id), string(event))
             endfor
         augroup END
