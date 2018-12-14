@@ -1087,8 +1087,8 @@ function! s:Make(options) abort
                 \ 'file_mode': 1,
                 \ 'bufnr': bufnr('%'),
                 \ 'ft': &filetype,
-                \ 'make_id': make_id,
                 \ }, 'keep')
+    let options.make_id = make_id
     let bufnr = options.bufnr
     let file_mode = options.file_mode
 
