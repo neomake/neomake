@@ -71,23 +71,34 @@ endfunction
 
 function! s:restart_make_for_changed_buffer(make_id, event) abort
     let window_make_ids = get(w:, 'neomake_make_ids', [])
-    if empty(window_make_ids)
-        return
+    if !empty(window_make_ids)
+        let [make_id, prev_tick, context] = b:_neomake_restart_automake_context
+        if make_id == a:make_id
+            call s:debug_log(printf('Buffer was changed (%s), restarting make: %s',
+                        \ a:event, string(a:make_id)))
+            call neomake#CancelMake(a:make_id)
+            call setbufvar(context.bufnr, 'neomake_automake_tick', prev_tick)
+            if has_key(context, '_via_timer_cb')
+                unlet context._via_timer_cb
+            endif
+            call s:neomake_do_automake(context)
+
+            return
+        endif
+        call neomake#log#warning(printf('automake: restart_make_for_changed_buffer: mismatched make_id, not restarting: %d != %d.', make_id, a:make_id))
     endif
-    let make_info = neomake#GetMakeOptions(a:make_id)
-    call s:debug_log(printf('Buffer was changed (%s), restarting make: %s',
-                \ a:event, string(a:make_id)))
-    call neomake#CancelMake(a:make_id)
-    call neomake#Make(make_info.options)
+
+    " Cleanup.
     augroup neomake_automake_abort
         au! * <buffer>
     augroup END
+    augroup! neomake_automake_abort
 endfunction
 
 function! s:neomake_do_automake(context) abort
     let bufnr = +a:context.bufnr
 
-    if a:context.delay
+    if !get(a:context, '_via_timer_cb') && a:context.delay
         if exists('s:timer_by_bufnr[bufnr]')
             let timer = s:timer_by_bufnr[bufnr]
             call s:stop_timer(timer)
@@ -122,6 +133,7 @@ function! s:neomake_do_automake(context) abort
     let event = a:context.event
 
     call s:debug_log('neomake_do_automake: '.event, {'bufnr': bufnr})
+    let prev_tick = getbufvar(bufnr, 'neomake_automake_tick')
     if !s:tick_changed({'event': event, 'bufnr': bufnr, 'ft': ft}, 1)
         call s:debug_log('buffer was not changed', {'bufnr': bufnr})
         return
@@ -140,15 +152,19 @@ function! s:neomake_do_automake(context) abort
         call setbufvar(bufnr, 'neomake_automake_make_ids',
                     \ neomake#compat#getbufvar(bufnr, 'neomake_automake_make_ids', []) + [make_id])
 
-        let events = ['TextChangedI']
-        if a:context.event !=# 'TextChanged'
-            let events += ['TextChanged']
-        endif
+        " Setup buffer autocmd to cancel/restart make for changed buffer.
+        let events = []
+        for event in ['TextChangedI', 'TextChanged']
+            if a:context.event !=# event
+                call add(events, event)
+            endif
+        endfor
+        call setbufvar(bufnr, '_neomake_restart_automake_context', [make_id, prev_tick, a:context])
         augroup neomake_automake_abort
-            au! * <buffer>
+            exe printf('au! * <buffer=%d>', bufnr)
             for event in events
-                exe printf('autocmd %s <buffer> call s:restart_make_for_changed_buffer(%s, %s)',
-                            \ event, string(make_id), string(event))
+                exe printf('autocmd %s <buffer=%d> call s:restart_make_for_changed_buffer(%s, %s)',
+                            \ event, bufnr, string(make_id), string(event))
             endfor
         augroup END
     endif
@@ -216,7 +232,7 @@ function! s:automake_delayed_cb(timer) abort
     " endif
 
     let context = copy(timer_info)
-    let context.delay = 0
+    let context._via_timer_cb = 1
     call s:neomake_do_automake(context)
 endfunction
 
