@@ -74,9 +74,26 @@ function! s:cancel_make_for_changed_buffer(make_id, event) abort
     if empty(window_make_ids)
         return
     endif
-    call s:debug_log(printf('Buffer was changed (%s), cancelling make: %s',
-                \ a:event, string(a:make_id)))
-    call neomake#CancelMake(a:make_id)
+    let make_info = neomake#GetMakeOptions(a:make_id)
+    let cancel_jobs = []
+    for job in make_info.active_jobs
+        if neomake#utils#GetSetting('automake.cancel_on_changed_buffer', job.maker, 1, make_info.options.ft, make_info.options.bufnr)
+            let cancel_jobs += [job]
+        endif
+    endfor
+
+    if empty(cancel_jobs)
+        call s:debug_log(printf('Buffer was changed (%s), but no jobs to cancel',
+                    \ a:event))
+    else
+        call s:debug_log(printf('Buffer was changed (%s), canceling jobs: %s',
+                    \ a:event,
+                    \ join(map(copy(cancel_jobs), 'v:val.as_string()'), ', ')))
+    endif
+
+    for job in cancel_jobs
+        call neomake#CancelJob(job)
+    endfor
     augroup neomake_automake_abort
         au! * <buffer>
     augroup END
@@ -138,17 +155,19 @@ function! s:neomake_do_automake(context) abort
         call setbufvar(bufnr, 'neomake_automake_make_ids',
                     \ neomake#compat#getbufvar(bufnr, 'neomake_automake_make_ids', []) + [make_id])
 
-        let events = ['TextChangedI']
-        if a:context.event !=# 'TextChanged'
-            let events += ['TextChanged']
+        if neomake#config#get('automake.cancel_on_changed_buffer', 1)
+            let events = ['TextChangedI']
+            if a:context.event !=# 'TextChanged'
+                let events += ['TextChanged']
+            endif
+            augroup neomake_automake_abort
+                au! * <buffer>
+                for event in events
+                    exe printf('autocmd %s <buffer> call s:cancel_make_for_changed_buffer(%s, %s)',
+                                \ event, string(make_id), string(event))
+                endfor
+            augroup END
         endif
-        augroup neomake_automake_abort
-            au! * <buffer>
-            for event in events
-                exe printf('autocmd %s <buffer> call s:cancel_make_for_changed_buffer(%s, %s)',
-                            \ event, string(make_id), string(event))
-            endfor
-        augroup END
     endif
 endfunction
 

@@ -77,15 +77,78 @@ Execute (automake: display of error with O during maker run):
     AssertNeomakeMessage '\V\^Skipping cleaning of make info: 1 active jobs: [''Job \d\+: mymaker2''].', 3
 
     AssertNeomakeMessage 'exit: mymaker2: 0.', 3
-    AssertNeomakeMessage 'automake: Buffer was changed (TextChangedI), cancelling make: '.make_id.'.', 3
-    AssertNeomakeMessage 'Cancelling make.', 3
+    AssertNeomakeMessage '\V\^automake: Buffer was changed (TextChangedI), canceling jobs: Job \d\+: mymaker2.'
     AssertNeomakeMessage 'Cancelling job.', 3
     AssertNeomakeMessage 'Job exited already.', 3
-    AssertNeomakeMessage '\V\^Skipping cleaning of make info: 1 active jobs: [''Job \d\+: mymaker2 [canceled]''].', 3
     AssertNeomakeMessage 'mymaker2: completed with exit code 0.', 3
     AssertNeomakeMessage 'Cleaning jobinfo.', 3
     AssertNeomakeMessage 'Cleaning make info.', 3
     AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
+    bwipe!
+  endif
+
+Execute (automake: cancel_on_changed_buffer can be configured):
+  if NeomakeAsyncTestsSetup()
+    Save g:neomake
+    new
+    set filetype=neomake_tests
+
+    let maker1 = copy(g:error_maker)
+    function! maker1.process_output(...)
+      doautocmd TextChangedI
+      return [{'lnum': 1, 'text': 'error1'}]
+    endfunction
+
+    let maker2 = copy(g:error_maker)
+    function! maker2.process_output(...)
+      return [{'lnum': 1, 'text': 'error2'}]
+    endfunction
+
+    let g:neomake_test_enabledmakers = [maker1, maker2]
+    call neomake#configure#automake('w')
+
+    " Maker setting.
+    let maker1.automake = {'cancel_on_changed_buffer': 0}
+    doautocmd BufWritePost
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage "Using setting automake.cancel_on_changed_buffer=0 from 'maker'."
+    AssertNeomakeMessage '\Vautomake: Buffer was changed (TextChangedI), canceling jobs: Job \d\+: error-maker.', 3
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
+
+    let maker2.automake = {'cancel_on_changed_buffer': 0}
+    call neomake#configure#automake('w')  " Reset configured buffers.
+    unlet b:neomake_automake_tick
+    doautocmd BufWritePost
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage "Using setting automake.cancel_on_changed_buffer=0 from 'maker'."
+    AssertNeomakeMessage "Using setting automake.cancel_on_changed_buffer=0 from 'maker'."
+    AssertNeomakeMessage 'automake: Buffer was changed (TextChangedI), but no jobs to cancel.', 3
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1', 'error2']
+
+    " Global setting.
+    unlet maker1.automake
+    unlet maker2.automake
+    call neomake#configure#automake('w')  " Reset configured buffers.
+    call neomake#config#set('automake.cancel_on_changed_buffer', 0)
+    doautocmd BufWritePost
+    Assert !exists('#neomake_automake_abort#TextChangedI')
+
+    AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.'
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage "Using setting automake.cancel_on_changed_buffer=0 from 'global'."
+    AssertNeomakeMessageAbsent '\V\^automake: Buffer was changed'
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1', 'error2']
+
+    " Buffer setting.
+    call setloclist(0, [])
+    unlet b:neomake_automake_tick
+    call neomake#config#set('b:automake.cancel_on_changed_buffer', 1)
+    doautocmd BufWritePost
+    Assert exists('#neomake_automake_abort#TextChangedI')
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage "Using setting automake.cancel_on_changed_buffer=1 from 'buffer'."
+    AssertNeomakeMessage '\Vautomake: Buffer was changed (TextChangedI), canceling jobs: Job \d\+: error-maker, Job \d\+: error-maker.', 3
+    AssertEqual map(getloclist(0), 'v:val.text'), []
     bwipe!
   endif
 
