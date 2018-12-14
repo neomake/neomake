@@ -66,6 +66,11 @@ Execute (neomake#debug#pprint):
   \ "[\n  {\n    'foo': [\n      'bar',\n      'baz',\n    ],\n  },\n]"
   AssertEqual neomake#debug#pprint([[], []]), "[\n  [],\n  [],\n]"
 
+  " Uses neomake#utils#fix_self_ref for dicts.
+  let d = {'foo': 'bar'}
+  let d.self = d
+  Assert neomake#debug#pprint(d) =~# "\\V'self': '<self-ref-1: self>'"
+
 Execute (neomake#debug#validate_maker with exe as function):
   let maker = neomake#GetMaker('maker_with_nonstring_exe', 'neomake_tests')
   AssertEqual neomake#debug#validate_maker(maker), {
