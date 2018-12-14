@@ -13,7 +13,10 @@ function! s:pprint(v, ...) abort
         let r = "{\n"
         for [k, V] in items(a:v)
             let r .= printf("%s  %s: %s,\n",
-                        \ indent, string(k), s:pprint(neomake#utils#fix_self_ref(V), indent . '  '))
+                        \ indent,
+                        \ string(k),
+                        \ s:pprint(neomake#utils#fix_self_ref(V), indent . '  '))
+            unlet V  " old-vim
         endfor
         let r .= indent.'}'
         return r
