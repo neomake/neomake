@@ -89,10 +89,12 @@ function! s:restart_make_for_changed_buffer(make_id, event) abort
     endif
 
     " Cleanup.
-    augroup neomake_automake_abort
-        au! * <buffer>
-    augroup END
-    augroup! neomake_automake_abort
+    if exists('b:_neomake_restart_automake_context')
+        unlet b:_neomake_restart_automake_context
+        augroup neomake_automake_abort
+            au! * <buffer>
+        augroup END
+    endif
 endfunction
 
 function! s:neomake_do_automake(context) abort
