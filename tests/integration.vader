@@ -463,16 +463,14 @@ Execute (NeomakeListJobs with job cancellation):
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, job3, {'ignore_order': 1}
     let log_context = {'make_id': job3.make_id, 'bufnr': bufnr('%')}
     AssertNeomakeMessage 'Postponing final location list handling for mode "V".', 3, log_context
-    AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for Timer.', 3, log_context
+    AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for CursorHold, WinEnter.', 3, log_context
     AssertNeomakeMessage 'Skipping cleaning of make info for queued actions.', 3
 
     doautocmd CursorHold
-    AssertNeomakeMessage 'action queue: processing for CursorHold (1 items, winnr: 1).', 3
+    AssertNeomakeMessage 'action queue: processing for CursorHold (2 items, winnr: 1).', 3
     AssertNeomakeMessage 'processing 1 lines of output.', 3
-    AssertNeomakeMessage 'action queue: processed 1 items.', 3
+    AssertNeomakeMessage 'action queue: processed 2 items.', 3
 
-    sleep 10m
-    AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 1).'
     NeomakeTestsWaitForFinishedJobs
   else
     AssertEqual info, ['This Vim version has no support for jobs.']

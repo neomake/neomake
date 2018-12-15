@@ -1452,7 +1452,7 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
                 call neomake#log#debug(printf(
                             \ 'Postponing final location list handling for mode "%s".', mode),
                             \ a:make_info.options)
-                return neomake#action_queue#add(['Timer'], [s:function('s:handle_locqf_list_for_finished_jobs'),
+                return neomake#action_queue#add(['CursorHold', 'WinEnter'], [s:function('s:handle_locqf_list_for_finished_jobs'),
                             \ [a:make_info] + a:000])
             endif
         endif
