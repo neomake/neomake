@@ -44,7 +44,7 @@ function! neomake#action_queue#add(events, data) abort
 
     for event in a:events
         if event ==# 'Timer'
-            if !exists('jobinfo.action_queue_timer_tries')
+            if !has_key(job_or_make_info, 'action_queue_timer_tries')
                 let job_or_make_info.action_queue_timer_tries = {'count': 1, 'data': a:data[0]}
             else
                 let job_or_make_info.action_queue_timer_tries.count += 1
