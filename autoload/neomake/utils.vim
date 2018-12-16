@@ -563,6 +563,11 @@ function! neomake#utils#highlight_is_defined(group) abort
     return neomake#utils#parse_highlight(a:group) !=# 'cleared'
 endfunction
 
+" Get the root directory of the current project.
+" This is determined by looking for specific files (e.g. `.git` and
+" `Makefile`), and `g:neomake#makers#ft#X#project_root_files` (if defined for
+" filetype "X").
+" a:1 buffer number (defaults to current)
 function! neomake#utils#get_project_root(...) abort
     let bufnr = a:0 ? a:1 : bufnr('%')
     let ft = getbufvar(bufnr, '&filetype')
