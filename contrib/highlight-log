@@ -147,6 +147,10 @@ if [ "$1" = vader ]; then
       elif ! ((filtering)); then
         echo "$REPLY"
       elif [[ "$REPLY" =~ $re_log_line && ! "$REPLY" =~ $re_ignore_log_line ]]; then
+        if [[ "$REPLY" =~ '> SKIP:' ]]; then
+          echo "$REPLY"
+          continue
+        fi
         if [[ -n "$filtered" ]]; then
           echo "$filtered"
         fi
