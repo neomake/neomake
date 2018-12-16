@@ -192,11 +192,10 @@ function! s:AssertNeomakeMessage(msg, ...)
       call filter(context, "index(['id', 'make_id', 'bufnr', 'winnr'], v:key) != -1")
       let l:UNDEF = {}
       for [k, v] in items(info)
-        let expected = get(context, k, l:UNDEF)
-        if expected is l:UNDEF
-          unlet v  " for Vim without patch-7.4.1546
+        if !has_key(context, k)
           continue
         endif
+        let expected = context[k]
         try
           let same = v ==# expected
         catch
