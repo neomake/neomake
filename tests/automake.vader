@@ -697,7 +697,11 @@ Execute (Automake restarts if popup menu is visible):
     call append(0, ['word1', 'word2'])
 
     function s:close_pum(...)
-      call feedkeys("\<c-e>\<esc>")
+      try
+        NeomakeTestsWaitForMessage '\Vautomake: callback for timer \d\+ (via CursorHold).'
+      finally
+        call feedkeys("\<c-e>\<esc>")
+      endtry
     endfunction
 
     call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 5}})
@@ -706,11 +710,10 @@ Execute (Automake restarts if popup menu is visible):
     let base_timer = g:neomake_test_matchlist[1]
 
     " Trigger popup menu.
-    let timer = timer_start(10, 's:close_pum')
+    let timer = timer_start(0, function('s:close_pum'))
     try
       call feedkeys("oword\<C-p>", 'x!')
 
-      AssertNeomakeMessage 'automake: callback for timer '.base_timer.' (via CursorHold).'
       AssertNeomakeMessage 'automake: postponing automake during completion.', 3
       AssertNeomakeMessage 'automake: re-starting postponed automake.'
       AssertNeomakeMessage 'automake: tick changed (new).'
@@ -739,20 +742,22 @@ Execute (Automake cleans up buffer context when restarting after popup menu fail
     call append(0, ['word1', 'word2'])
 
     function! s:close_pum(...)
-      call feedkeys("\<c-e>\<esc>")
+      try
+        NeomakeTestsWaitForMessage '\Vautomake: callback for timer \d\+ (via CursorHold).'
+      finally
+        call feedkeys("\<c-e>\<esc>")
+      endtry
     endfunction
 
     call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 5}})
     doautocmd CursorHold
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
-    let base_timer = g:neomake_test_matchlist[1]
 
     " Trigger popup menu.
-    call timer_start(100, 's:close_pum')
+    call timer_start(0, function('s:close_pum'))
     noautocmd call feedkeys("oword\<C-p>", 'x!')
 
-    AssertNeomakeMessage 'automake: callback for timer '.base_timer.' (via CursorHold).'
-    AssertNeomakeMessage 'automake: postponing automake during completion.', 3
+    AssertNeomakeMessage 'automake: postponing automake during completion.'
 
     Assert exists('#neomake_automake_retry#InsertLeave#<buffer='.bufnr('%').'>')
     Assert exists('#neomake_automake_retry#CompleteDone#<buffer='.bufnr('%').'>')
