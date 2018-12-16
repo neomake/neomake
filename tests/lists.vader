@@ -716,3 +716,53 @@ Execute (postprocess: removing all entries):
   AssertNeomakeMessage '\v^Removing invalid entry: error .*'
   AssertEqual getloclist(0), []
   bwipe
+
+Execute (uses only its own list (loclist)):
+  if !has('patch-8.0.1023')
+    NeomakeTestsSkip 'only with patch-8.0.1023'
+  else
+    new
+    let maker1 = {}
+    function! maker1.get_list_entries(...)
+      lgetexpr 'new_list_1'
+      return [{'lnum': 1, 'bufnr': bufnr('%'), 'type': 'E', 'text': '1'}]
+    endfunction
+    let maker2 = {}
+    function! maker2.get_list_entries(...)
+      lgetexpr 'new_list_2'
+      return [{'lnum': 1, 'bufnr': bufnr('%'), 'type': 'E', 'text': '2'}]
+    endfunction
+    CallNeomake 1, [maker1, maker2]
+
+    AssertEqual map(getloclist(0), 'v:val.text'), ['new_list_2']
+    silent lolder
+    AssertEqual map(getloclist(0), 'v:val.text'), ['1', '2']
+    silent lolder
+    AssertEqual map(getloclist(0), 'v:val.text'), ['new_list_1']
+    bwipe
+  endif
+
+Execute (uses only its own list (qflist)):
+  if !has('patch-8.0.1023')
+    NeomakeTestsSkip 'only with patch-8.0.1023'
+  else
+    new
+    let maker1 = {}
+    function! maker1.get_list_entries(...)
+      cgetexpr 'new_list_1'
+      return [{'lnum': 1, 'bufnr': bufnr('%'), 'type': 'E', 'text': '1'}]
+    endfunction
+    let maker2 = {}
+    function! maker2.get_list_entries(...)
+      cgetexpr 'new_list_2'
+      return [{'lnum': 1, 'bufnr': bufnr('%'), 'type': 'E', 'text': '2'}]
+    endfunction
+    CallNeomake 0, [maker1, maker2]
+
+    AssertEqual map(getqflist(), 'v:val.text'), ['new_list_2']
+    silent colder
+    AssertEqual map(getqflist(), 'v:val.text'), ['1', '2']
+    silent colder
+    AssertEqual map(getqflist(), 'v:val.text'), ['new_list_1']
+    bwipe
+  endif
