@@ -187,3 +187,100 @@ Execute (neomake#list#_diff_new_entries):
 
   AssertEqual neomake#list#_diff_new_entries([{'text': 'error'}], [{'text': 'error', 'valid': 1, 'pattern': ''}]),
   \ {}
+
+Execute (Does not create list unnecessarily):
+  if !has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+    NeomakeTestsSkip 'only with efm parsing'
+  else
+    new
+    lgetexpr 'init'
+    let list = neomake#list#ListForMake({'options': {'file_mode': 1}})
+    let jobinfo = NeomakeTestsFakeJobinfo()
+    let jobinfo.maker.errorformat = '%m'
+    call list.add_lines_with_efm([], jobinfo)
+    AssertEqual map(getloclist(0), 'v:val.text'), ['init']
+    bwipe
+  endif
+
+Execute (error handling):
+  new
+  let list = neomake#list#List('loclist')
+  let threw = 0
+  try
+    call list._get_fn_args('get')
+  catch
+    AssertEqual v:exception, 'cannot handle type=loclist without make_info'
+    let threw = 1
+  endtry
+  AssertEqual threw, 1
+
+  " Invalid location list qfid (loclist).
+  let jobinfo = NeomakeTestsFakeJobinfo()
+
+  let list.make_info = {'options': {'make_id': jobinfo.make_id}}
+
+  let threw = 0
+  try
+    call list._get_fn_args('init', [])
+  catch
+    let threw = 1
+    AssertEqual v:exception, 'Neomake: could not find location list for make_id -42.'
+  endtry
+  if exists('*win_getid')
+    AssertEqual threw, 0
+  else
+    " location list from another tab"
+    tabnew
+    let w:neomake_make_ids = [-42]
+    tabprev
+    let threw = 0
+    try
+      call list._init_qflist()
+    catch
+      let threw = 1
+      AssertEqual v:exception, 'Neomake: trying to use location list from another tab (current=3 != target=4).'
+    endtry
+    AssertEqual threw, 1
+    tabnext
+    bwipe
+
+    new
+    let w:neomake_make_ids = [-42]
+    call list._get_fn_args('init', [])
+    wincmd p
+  endif
+  Assert !has_key(list, 'qfid')
+  call list._init_qflist()
+  call list._get_fn_args('get')
+
+  if has('patch-8.0.1023')
+    let list.qfid = list.qfid + 1
+
+    let threw = 0
+    try
+      call list._get_fn_args('get')
+    catch
+      let threw = 1
+      AssertEqual v:exception, printf('Neomake: qfid %d for location list has become invalid.', list.qfid)
+    endtry
+    AssertEqual threw, 1
+
+    " Invalid location list qfid (qflist).
+    let list.make_info = {'options': {'make_id': jobinfo.make_id}}
+    let list.type = 'quickfix'
+
+    let threw = 0
+    try
+      call list._get_fn_args('get')
+    catch
+      let threw = 1
+      AssertEqual v:exception, printf('Neomake: qfid %d for quickfix list has become invalid.', list.qfid)
+    endtry
+    AssertEqual threw, 1
+  endif
+
+  if !exists('*win_getid')
+    wincmd p
+    bwipe
+  endif
+  bwipe
