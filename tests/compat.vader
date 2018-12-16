@@ -110,7 +110,8 @@ Execute (neomake#compat#get_mode with insert mode completion (feedkeys)):
     endfunction
 
     call timer_start(10, 's:close_pum')
-    call feedkeys("oword\<C-p>", 'x!')
+    " NOTE: silent for Neovim (https://github.com/neovim/neovim/issues/9372).
+    silent call feedkeys("oword\<C-p>", 'x!')
 
     if has('patch-8.0.0283')
       AssertEqual s:mode, 'ic'
@@ -134,7 +135,8 @@ Execute (neomake#compat#get_mode with insert mode completion (imap)):
     return ''
   endfunction
 
-  inoremap <buffer> <F2> <C-r>=s:save_mode()<CR>
+  " NOTE: silent for Neovim (https://github.com/neovim/neovim/issues/9372).
+  inoremap <silent> <buffer> <F2> <C-r>=s:save_mode()<CR>
 
   exe "normal oword\<C-p>\<F2>\<C-e>\<Esc>"
   if has('patch-8.0.0283')
