@@ -194,6 +194,7 @@ function! s:AssertNeomakeMessage(msg, ...)
       for [k, v] in items(info)
         let expected = get(context, k, l:UNDEF)
         if expected is l:UNDEF
+          unlet v  " for Vim without patch-7.4.1546
           continue
         endif
         try
@@ -202,6 +203,7 @@ function! s:AssertNeomakeMessage(msg, ...)
           call add(context_diff, printf(
             \ 'Could not compare context entries (expected: %s, actual: %s): %s',
             \ string(expected), string(v), v:exception))
+          unlet v  " for Vim without patch-7.4.1546
           continue
         endtry
         if !same
