@@ -85,21 +85,59 @@ function! s:base_list.add_entries_for_job(entries, jobinfo) dict abort
     return self._appendlist(a:entries, a:jobinfo)
 endfunction
 
-" Append entries to location/quickfix list.
-function! s:base_list._appendlist(entries, jobinfo) abort
-    call neomake#log#debug(printf('Adding %d list entries.', len(a:entries)))
+function! s:base_list._init_qflist() abort
+    let self.need_init = 0
+    if self.type ==# 'loclist'
+        call neomake#log#debug('Creating location list.', self.make_info.options)
+    else
+        call neomake#log#debug('Creating quickfix list.', self.make_info.options)
+    endif
 
+    let [fn, args] = self._get_fn_args('init', [], ' ')
+    call call(fn, args)
+
+    if has('patch-8.0.1023')
+        if self.type ==# 'loclist'
+            let self.qfid = getloclist(0, {'id': 0}).id
+        else
+            let self.qfid = getqflist({'id': 0}).id
+        endif
+    endif
+endfunction
+
+" action: "get", "set", "init"
+" a:000: optional args (for set/init)
+function! s:base_list._get_fn_args(action, ...) abort
+    if self.type ==# 'loclist'
+        if a:action ==# 'get'
+            let fn = 'getloclist'
+        else
+            let fn = 'setloclist'
+        endif
+    else
+        if a:action ==# 'get'
+            let fn = 'getqflist'
+        else
+            let fn = 'setqflist'
+        endif
+    endif
+
+    let args = []
     let loclist_win = 0
     if self.type ==# 'loclist'
+        if !has_key(self, 'make_info')
+            throw 'cannot handle type=loclist without make_info'
+        endif
+        let make_id = self.make_info.options.make_id
         " NOTE: prefers using 0 for when winid is not supported with
         " setloclist() yet (vim74-xenial).
-        if index(get(w:, 'neomake_make_ids', []), a:jobinfo.make_id) == -1
+        if index(get(w:, 'neomake_make_ids', []), make_id) == -1
             if has_key(self, 'winid')
                 let loclist_win = self.winid
             else
-                let [t, w] = neomake#core#get_tabwin_for_makeid(a:jobinfo.make_id)
+                let [t, w] = neomake#core#get_tabwin_for_makeid(make_id)
                 if [t, w] == [-1, -1]
-                    throw printf('Neomake: could not find location list for make_id %d.', a:jobinfo.make_id)
+                    throw printf('Neomake: could not find location list for make_id %d.', make_id)
                 endif
                 if t != tabpagenr()
                     throw printf('Neomake: trying to use location list from another tab (current=%d != target=%d).', tabpagenr(), t)
@@ -107,36 +145,63 @@ function! s:base_list._appendlist(entries, jobinfo) abort
                 let loclist_win = w
             endif
         endif
+        let args = [loclist_win]
     endif
-
-    let set_entries = a:entries
-    if self.need_init
-        let action = ' '
-        let self.need_init = 0
-
-        if self.type ==# 'loclist'
-            call neomake#log#debug('Creating location list.', self.make_info)
-            if s:needs_to_init_qf_for_lwindow
-                call setloclist(0, [])
-                let action = 'a'
-            endif
+    call extend(args, a:000)
+    if has('patch-8.0.1023')
+        if a:action ==# 'init'
+            call add(args, {})
         else
-            call neomake#log#debug('Creating quickfix list.', self.make_info)
-            if s:needs_to_init_qf_for_lwindow
-                call setqflist([])
-                let action = 'a'
+            call add(args, {'id': self.qfid})
+
+            " Validate.
+            if self.type ==# 'loclist'
+                if !has_key(getloclist(loclist_win, args[-1]), 'id')
+                    throw printf('Neomake: qfid %d for location list has become invalid.', self.qfid)
+                endif
+            else
+                if !has_key(getqflist(args[-1]), 'id')
+                    throw printf('Neomake: qfid %d for quickfix list has become invalid.', self.qfid)
+                endif
             endif
         endif
+        if a:action ==# 'set' || a:action ==# 'init'
+            let args[-1].items = a:1
+        endif
+    endif
+    return [fn, args]
+endfunction
+
+function! s:base_list._set_qflist_entries(entries, action) abort
+    let [fn, args] = self._get_fn_args('set', a:entries, a:action)
+    call call(fn, args)
+endfunction
+
+function! s:base_list._get_qflist_entries() abort
+    let [fn, args] = self._get_fn_args('get')
+    if has('patch-8.0.1023')
+        let args[-1].items = 1
+        return call(fn, args).items
+    endif
+    return call(fn, args)
+endfunction
+
+" Append entries to location/quickfix list.
+function! s:base_list._appendlist(entries, jobinfo) abort
+    call neomake#log#debug(printf('Adding %d list entries.', len(a:entries)), self.make_info.options)
+
+    let set_entries = a:entries
+    let action = 'a'
+    if self.need_init
+        call self._init_qflist()
     else
         if s:needs_to_replace_qf_for_lwindow
             let action = 'r'
             if self.type ==# 'loclist'
-                let set_entries = getloclist(loclist_win) + set_entries
+                let set_entries = self._get_qflist_entries() + set_entries
             else
                 let set_entries = getqflist() + set_entries
             endif
-        else
-            let action = 'a'
         endif
     endif
 
@@ -160,13 +225,8 @@ function! s:base_list._appendlist(entries, jobinfo) abort
     endif
 
     " NOTE: need to fetch (or pre-parse with new patch) to get updated bufnr etc.
-    if self.type ==# 'loclist'
-        call setloclist(loclist_win, set_entries, action)
-        let added = getloclist(loclist_win)[len(self.entries) :]
-    else
-        call setqflist(set_entries, action)
-        let added = getqflist()[len(self.entries) :]
-    endif
+    call self._set_qflist_entries(set_entries, action)
+    let added = self._get_qflist_entries()[len(self.entries) :]
 
     if needs_custom_qf_marker
         " Remove marker that should only be in the quickfix list.
@@ -244,21 +304,20 @@ endfunction
 function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
     let maker = a:jobinfo.maker
     let file_mode = self.type ==# 'loclist'
+
     if s:use_efm_parsing
         let efm = a:jobinfo.maker.errorformat
         let parsed_entries = getqflist({'lines': a:lines, 'efm': efm}).items
+        if empty(parsed_entries)
+            return []
+        endif
+        if self.need_init
+            call self._init_qflist()
+        endif
     else
         if self.need_init
-            let self.need_init = 0
-            if self.type ==# 'loclist'
-                call neomake#log#debug('Creating location list.', self.make_info)
-                call setloclist(0, [])
-            else
-                call neomake#log#debug('Creating quickfix list.', self.make_info)
-                call setqflist([])
-            endif
+            call self._init_qflist()
         endif
-
         let olderrformat = &errorformat
         let &errorformat = maker.errorformat
         try
@@ -276,9 +335,9 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
 
         let new_list = file_mode ? getloclist(0) : getqflist()
         let parsed_entries = new_list[len(self.entries) :]
-    endif
-    if empty(parsed_entries)
-        return []
+        if empty(parsed_entries)
+            return []
+        endif
     endif
 
     let Postprocess = neomake#utils#GetSetting('postprocess', maker, [], a:jobinfo.ft, a:jobinfo.bufnr)
@@ -408,11 +467,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
                     call remove(list, prev_index + k)
                 endfor
             endif
-            if file_mode
-                call setloclist(0, list, 'r')
-            else
-                call setqflist(list, 'r')
-            endif
+            call self._set_qflist_entries(list, 'r')
         endif
     endif
 

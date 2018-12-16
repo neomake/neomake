@@ -187,3 +187,17 @@ Execute (neomake#list#_diff_new_entries):
 
   AssertEqual neomake#list#_diff_new_entries([{'text': 'error'}], [{'text': 'error', 'valid': 1, 'pattern': ''}]),
   \ {}
+
+Execute (Does not create list unnecessarily):
+  if !has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+    NeomakeTestsSkip 'only with efm parsing'
+  else
+    new
+    lgetexpr 'init'
+    let list = neomake#list#ListForMake({'options': {'file_mode': 1}})
+    let jobinfo = NeomakeTestsFakeJobinfo()
+    let jobinfo.maker.errorformat = '%m'
+    call list.add_lines_with_efm([], jobinfo)
+    AssertEqual map(getloclist(0), 'v:val.text'), ['init']
+    bwipe
+  endif
