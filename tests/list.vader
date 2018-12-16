@@ -201,3 +201,46 @@ Execute (Does not create list unnecessarily):
     AssertEqual map(getloclist(0), 'v:val.text'), ['init']
     bwipe
   endif
+
+Execute (error handling):
+  let list = neomake#list#List('loclist')
+  let threw = 0
+  try
+    call list._get_fn_args('get')
+  catch
+    AssertEqual v:exception, 'cannot handle type=loclist without make_info'
+    let threw = 1
+  endtry
+  AssertEqual threw, 1
+
+  " Invalid location list qfid (loclist).
+  let jobinfo = NeomakeTestsFakeJobinfo()
+
+  let list.make_info = {'options': {'make_id': jobinfo.make_id}}
+  call list._get_fn_args('init', [])
+  Assert !has_key(list, 'qfid')
+  call list._init_qflist()
+  call list._get_fn_args('get')
+  let list.qfid = list.qfid + 1
+
+  let threw = 0
+  try
+    call list._get_fn_args('get')
+  catch
+    let threw = 1
+    AssertEqual v:exception, printf('Neomake: qfid %d for location list has become invalid.', list.qfid)
+  endtry
+  AssertEqual threw, 1
+
+  " Invalid location list qfid (qflist).
+  let list.make_info = {'options': {'make_id': jobinfo.make_id}}
+  let list.type = 'quickfix'
+
+  let threw = 0
+  try
+    call list._get_fn_args('get')
+  catch
+    let threw = 1
+    AssertEqual v:exception, printf('Neomake: qfid %d for quickfix list has become invalid.', list.qfid)
+  endtry
+  AssertEqual threw, 1
