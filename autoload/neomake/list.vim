@@ -156,11 +156,11 @@ function! s:base_list._get_fn_args(action, ...) abort
 
             " Validate.
             if self.type ==# 'loclist'
-                if !has_key(getloclist(loclist_win, args[-1]), 'id')
+                if !get(getloclist(loclist_win, args[-1]), 'id')
                     throw printf('Neomake: qfid %d for location list has become invalid.', self.qfid)
                 endif
             else
-                if !has_key(getqflist(args[-1]), 'id')
+                if !get(getqflist(args[-1]), 'id')
                     throw printf('Neomake: qfid %d for quickfix list has become invalid.', self.qfid)
                 endif
             endif
