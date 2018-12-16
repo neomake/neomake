@@ -221,9 +221,10 @@ Execute (Goes back to original window after opening list (wincmd in postprocess)
     augroup END
 
     let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
+    let make_info = values(neomake#GetStatus().make_info)[0]
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'processing 1 lines of output.'
-    AssertNeomakeMessage 'Creating location list.'
+    AssertNeomakeMessage 'Creating location list.', 3, extend(copy(make_info.options), {'winnr': winnr})
     AssertNeomakeMessage 'Postponing location list processing.', 3, jobinfo
     AssertNeomakeMessage 'Queuing action ProcessEntries for BufEnter, WinEnter.', 3
     AssertEqual map(getloclist(winnr), '[v:val.text, v:val.type]'), [['error', 'E']]
