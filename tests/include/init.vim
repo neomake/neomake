@@ -189,21 +189,19 @@ function! s:AssertNeomakeMessage(msg, ...)
     if type(context) == type({})
       let context_diff = []
       " Only compare entries relevant for messages.
-      call filter(context, "index(['id', 'make_id', 'bufnr'], v:key) != -1")
-      let l:UNDEF = {}
+      call filter(context, "index(['id', 'make_id', 'bufnr', 'winnr'], v:key) != -1")
       for [k, v] in items(info)
-        let expected = get(context, k, l:UNDEF)
-        if expected is l:UNDEF
-          call add(context_diff, printf('Missing value for context.%s: '
-              \  ."expected nothing, but got '%s'.", k, string(v)))
+        if !has_key(context, k)
           continue
         endif
+        let expected = context[k]
         try
           let same = v ==# expected
         catch
           call add(context_diff, printf(
             \ 'Could not compare context entries (expected: %s, actual: %s): %s',
             \ string(expected), string(v), v:exception))
+          unlet v  " for Vim without patch-7.4.1546
           continue
         endtry
         if !same

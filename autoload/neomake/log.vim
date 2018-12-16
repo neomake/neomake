@@ -61,7 +61,7 @@ function! s:log(level, msg, ...) abort
         call vader#log(test_msg)
         " Only keep context entries that are relevant for / used in the message.
         let context = a:0
-                    \ ? filter(copy(context), "index(['id', 'make_id', 'bufnr'], v:key) != -1")
+                    \ ? extend(filter(copy(context), "index(['id', 'make_id', 'bufnr', 'winnr'], v:key) != -1"), {'winnr': winnr()}, 'keep')
                     \ : {}
         call add(g:neomake_test_messages, [a:level, a:msg, context])
         if index(['.', '!', ')', ']'], a:msg[-1:-1]) == -1
