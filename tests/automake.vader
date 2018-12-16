@@ -309,8 +309,8 @@ Execute (Automake):
   exe 'doautocmd' event
   let m = len(g:neomake_test_messages)
   AssertEqual g:neomake_test_messages[n : m], [
-  \ [3, 'automake: handling event '.event.'.', {'bufnr': bufnr('%')}],
-  \ [3, 'automake: no enabled makers.', {'bufnr': bufnr('%')}],
+  \ [3, 'automake: handling event '.event.'.', {'bufnr': bufnr('%'), 'winnr': winnr()}],
+  \ [3, 'automake: no enabled makers.', {'bufnr': bufnr('%'), 'winnr': winnr()}],
   \ ]
 
   call neomake#configure#automake('nw')
