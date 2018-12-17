@@ -1073,8 +1073,7 @@ Execute (automake: display of error with O during maker run):
     endfunction
 
     let g:neomake_test_enabledmakers = [maker1, maker2]
-    call neomake#configure#automake({
-    \ 'TextChanged': {'delay': 10}})
+    call neomake#configure#automake({'TextChanged': {'delay': 10}})
     doautocmd TextChanged
     call NeomakeTestsHandleSecondTextChanged()
 
@@ -1085,6 +1084,7 @@ Execute (automake: display of error with O during maker run):
     let make_id = neomake#GetStatus().last_make_id
     Assert exists('#neomake_automake_abort')
     NeomakeTestsWaitForFinishedJobs
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1:1']
     AssertEqual neomake#GetCurrentErrorMsg(), ''
 
     AssertNeomakeMessage 'Processing 1 entries.', 3
@@ -1100,11 +1100,10 @@ Execute (automake: display of error with O during maker run):
 
     " Restarts via same context (delayed).
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
-    AssertEqual map(getloclist(0), 'v:val.text'), ['error1:1']
     Assert !exists('#neomake_automake_abort#TextChanged')
     Assert exists('#neomake_automake_abort#TextChangedI')
 
-    AssertNeomakeMessage 'mymaker2: completed with exit code 0.', 3
+    NeomakeTestsWaitForMessage 'mymaker2: completed with exit code 0.', 3
     AssertNeomakeMessage 'Cleaning jobinfo.', 3
     AssertNeomakeMessage 'Cleaning make info.', 3
 
