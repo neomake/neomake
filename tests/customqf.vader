@@ -109,27 +109,107 @@ Execute (Displays custom formatted quickfix buffer):
     bwipe
   endtry
 
-Execute (Sets quickfix title (location list)):
+Execute (Sets quickfix title (location list, command maker)):
   call neomake#quickfix#enable(1)
   try
     new
     set ft=neomake_tests
     let bufnr = bufnr('%')
-
     file custom_file
-    RunNeomake error_maker true
+
+    let maker1 = copy(g:error_maker)
+    let maker1.short_name = 'errmkr'
+    let maker1.serialize = 1
+    function! maker1.postprocess(entry)
+      if has('patch-7.4.2200')
+        AssertEqual getloclist(0, {'title': 1}).title, 'Neomake[file]: custom_file (error-maker..., true-maker?)'
+      endif
+      let a:entry.bufnr = bufnr('%')
+      let a:entry.lnum = 1
+      return a:entry
+    endfunction
+
+    let maker2 = copy(g:true_maker)
+    function! maker2.postprocess(entry)
+      if has('patch-7.4.2200')
+        AssertEqual getloclist(0, {'title': 1}).title, 'Neomake[file]: custom_file (error-maker)'
+      endif
+      return a:entry
+    endfunction
+
+    CallNeomake 1, [maker1, maker2]
+
+    if has('patch-7.4.2200')
+      AssertEqual getloclist(0, {'title': 1}).title, 'Neomake[file]: custom_file (error-maker(1))'
+    endif
 
     " Location list entry contains marker.
     AssertEqualQf getloclist(0), [
     \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
     \  'type': 'E', 'pattern': '',
-    \  'text': 'error_msg_1 nmcfg:{''short'': ''errmkr'', ''name'': ''error_maker''}'}]
+    \  'text': 'error nmcfg:{''short'': ''errmkr'', ''name'': ''error-maker''}'}]
 
     lopen
-    AssertEqual w:quickfix_title, 'Neomake[file]: custom_file (error_maker)'
+    AssertEqual w:quickfix_title, 'Neomake[file]: custom_file (error-maker(1))'
     normal! G0
     doautocmd CursorMoved
-    AssertEqual expand('<cWORD>'), 'error_msg_1'
+    AssertEqual expand('<cWORD>'), 'error'
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (Sets quickfix title (location list, get_list_entries)):
+  call neomake#quickfix#enable(1)
+  try
+    new
+    set ft=neomake_tests
+    let bufnr = bufnr('%')
+    file custom_file
+
+    let maker1 = copy(g:error_maker)
+    let maker1.short_name = 'errmkr'
+    function maker1.get_list_entries(...)
+      if has('patch-7.4.2200')
+        AssertEqual getloclist(0, {'title': 1}).title, 'neomake_test_init'
+      endif
+      return [{'lnum': 1, 'bufnr': bufnr('%'), 'text': 'error_msg_1'}]
+    endfunction
+
+    let maker2 = {}
+    let maker2.name = 'maker2'
+    function maker2.get_list_entries(...)
+      if has('patch-7.4.2200')
+        AssertEqual getloclist(0, {'title': 1}).title, 'Neomake[file]: custom_file (error-maker..., maker2?)'
+      endif
+      return [{'lnum': 2, 'bufnr': bufnr('%'), 'text': 'error_msg_2'}]
+    endfunction
+
+    CallNeomake 1, [maker1, maker2]
+    if has('patch-7.4.2200')
+      AssertEqual getloclist(0, {'title': 1}).title, 'Neomake[file]: custom_file (error-maker(1), maker2(1))'
+    endif
+
+    " Location list entry contains marker.
+    AssertEqualQf [getloclist(0)[0]], [
+    \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
+    \  'type': 'E', 'pattern': '',
+    \  'text': 'error_msg_1 nmcfg:{''short'': ''errmkr'', ''name'': ''error-maker''}'}]
+
+    lopen
+
+    " patch-7.3.746 changed the behavior, fixed in 7.4.378.
+    if ((v:version >= 704 || (v:version == 703 && has('patch746')))
+        \ && !has('patch-7.4.378'))
+      AssertEqual w:quickfix_title, ':setloclist()'
+    else
+      AssertEqual w:quickfix_title, 'Neomake[file]: custom_file (error-maker(1), maker2(1))'
+    endif
+
+    normal! G0
+    doautocmd CursorMoved
+    AssertEqual expand('<cWORD>'), 'error_msg_2'
     lclose
     bwipe
   finally
@@ -191,7 +271,14 @@ Execute (Handles interleaving maker output and buffer names (quickfix)):
     AssertEqual neomake#GetCurrentErrorMsg(), 'maker1: maker1_1 (E)'
 
     copen
-    AssertEqual w:quickfix_title, 'Neomake[project]: maker1, maker2'
+
+    if has('patch-7.4.2200')
+      " Set according to finished_jobs.
+      AssertEqual w:quickfix_title, 'Neomake[project]: maker2(2), maker1(2)'
+    else
+      " Set via quickfix filetype, according to order of entries.
+      AssertEqual w:quickfix_title, 'Neomake[project]: maker1(2), maker2(2)'
+    endif
 
     doautocmd CursorMoved
     " Empty bufname gets transformed to buf:X.

@@ -8,8 +8,13 @@ Before:
   let g:neomake_test_messages_last_idx = -1
   let g:neomake_test_buffers_before = filter(range(1, bufnr('$')), 'bufexists(v:val)')
 
-  call setloclist(0, [])
-  call setqflist([])
+  if has('patch-7.4.2200')
+    call setloclist(0, [], ' ', {'title': 'neomake_test_init'})
+    call setqflist([], ' ', {'title': 'neomake_test_init'})
+  else
+    call setloclist(0, [])
+    call setqflist([])
+  endif
 
   " One-time setup.
   if exists(':NeomakeTestsWaitForFinishedJobs') != 2

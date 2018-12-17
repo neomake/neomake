@@ -633,6 +633,7 @@ Execute (Handles :lwindow closing the list window):
     Assert qf_win > wincount, 'Location list was opened'
 
     " Run a maker with unrecognized/invalid entries only.
+    " NOTE: this runs it from the location list window.
     let maker = {}
     function! maker.get_list_entries(...)
       return [{'bufnr': bufnr('%'), 'lnum': 0, 'col': 0}]

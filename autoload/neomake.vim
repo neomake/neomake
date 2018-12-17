@@ -1148,11 +1148,11 @@ function! s:Make(options) abort
         call s:clean_make_info(make_info)
         return []
     endif
+    let make_info.jobs = copy(jobs)
 
     let maker_info = join(map(copy(jobs),
                 \ "v:val.maker.name . (get(v:val.maker, 'auto_enabled', 0) ? ' (auto)' : '')"), ', ')
-    call neomake#log#debug(printf(
-                \ 'Running makers: %s.', maker_info), options)
+    call neomake#log#debug(printf('Running makers: %s.', maker_info), options)
 
     let make_info.jobs_queue = jobs
 
@@ -1321,6 +1321,14 @@ function! s:clean_make_info(make_info, ...) abort
                     \ [s:function('s:clean_make_info'), [a:make_info]])
     endif
 
+    " Update list title.
+    " This has to be done currently by itself to reflect running/finished
+    " state properly.
+    let list = a:make_info.entries_list
+    if !list.need_init && list._has_valid_qf()
+        call list.set_title()
+    endif
+
     if exists('*neomake#statusline#make_finished')
         call neomake#statusline#make_finished(a:make_info)
     endif
@@ -1471,11 +1479,9 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
 
     if create_list
         if file_mode
-            call neomake#log#debug('Cleaning location list.', {'make_id': a:make_info.options.make_id})
-            call setloclist(0, [])
+            call a:make_info.entries_list._init_qflist('Cleaning location list.')
         else
-            call neomake#log#debug('Cleaning quickfix list.', {'make_id': a:make_info.options.make_id})
-            call setqflist([])
+            call a:make_info.entries_list._init_qflist('Cleaning quickfix list.')
         endif
     endif
 
@@ -2224,6 +2230,7 @@ function! s:abort_next_makers(make_id) abort
     if !empty(jobs_queue)
         let next_makers = join(map(copy(jobs_queue), 'v:val.maker.name'), ', ')
         call neomake#log#info('Aborting next makers: '.next_makers.'.', {'make_id': a:make_id})
+        let s:make_info[a:make_id].aborted_jobs = copy(s:make_info[a:make_id].jobs_queue)
         let s:make_info[a:make_id].jobs_queue = []
     endif
 endfunction
@@ -2242,6 +2249,7 @@ function! s:handle_next_job(prev_jobinfo) abort
             "       maybe re-introduce a wrapper for `executable()` to handle it.
             "       Ref: https://github.com/neomake/neomake/issues/1699
             if neomake#utils#GetSetting('serialize_abort_on_error', a:prev_jobinfo.maker, 0, a:prev_jobinfo.ft, a:prev_jobinfo.bufnr)
+                let a:prev_jobinfo.aborted = 1
                 call s:abort_next_makers(make_id)
                 call s:CleanJobinfo(a:prev_jobinfo)
                 return {}

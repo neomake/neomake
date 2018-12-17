@@ -327,12 +327,13 @@ function! NeomakeTestsFakeJobinfo() abort
         \ 'bufnr': bufnr('%'),
         \ 'ft': '',
         \ 'make_id': make_id,
-        \ 'maker': {},
+        \ 'maker': {'name': 'fake_jobinfo_name'},
         \ })
   let make_info = neomake#GetStatus().make_info
   let make_info[make_id] = {
         \ 'options': jobinfo,
         \ 'verbosity': get(g:, 'neomake_verbose', 1),
+        \ 'jobs_queue': [jobinfo],
         \ 'active_jobs': [],
         \ 'finished_jobs': []}
   return jobinfo
