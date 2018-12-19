@@ -86,10 +86,11 @@ Execute (list: error with duplicate nmqfidx (debug=1)):
   call list.add_entries([
   \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
   \ ])
+  let list.entries[0].nmqfidx = 2
   call list.add_entries([
   \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
-  \ ], 1)
-  AssertNeomakeMessage 'Duplicate qf indexes in list entries: [1, 1].', 0
+  \ ])
+  AssertNeomakeMessage 'Duplicate qf indexes in list entries: [2, 2].', 0
 
 Execute (list: no error with duplicate nmqfidx (debug=0)):
   let list = neomake#list#List('loclist')
@@ -97,9 +98,10 @@ Execute (list: no error with duplicate nmqfidx (debug=0)):
   call list.add_entries([
   \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
   \ ])
+  let list.entries[0].nmqfidx = 2
   call list.add_entries([
   \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
-  \ ], 1)
+  \ ])
 
 Execute (quickfix list: gets local and sorts):
   Save g:_neomake_info
@@ -202,7 +204,7 @@ Execute (Does not create list unnecessarily):
     bwipe
   endif
 
-Execute (error handling):
+Execute (list: error handling):
   new
   let list = neomake#list#List('loclist')
   let threw = 0
@@ -216,8 +218,7 @@ Execute (error handling):
 
   " Invalid location list qfid (loclist).
   let jobinfo = NeomakeTestsFakeJobinfo()
-
-  let list.make_info = {'options': {'make_id': jobinfo.make_id}}
+  let list.make_info = neomake#GetStatus().make_info[-42]
 
   let threw = 0
   try
@@ -261,12 +262,12 @@ Execute (error handling):
       call list._get_fn_args('get')
     catch
       let threw = 1
-      AssertEqual v:exception, printf('Neomake: qfid %d for location list has become invalid.', list.qfid)
+      let win_id = exists('*win_getid') ? win_getid() : winnr()
+      AssertEqual v:exception, printf('Neomake: qfid %d for location list (%d) has become invalid.', list.qfid, win_id)
     endtry
     AssertEqual threw, 1
 
     " Invalid location list qfid (qflist).
-    let list.make_info = {'options': {'make_id': jobinfo.make_id}}
     let list.type = 'quickfix'
 
     let threw = 0
@@ -283,4 +284,65 @@ Execute (error handling):
     wincmd p
     bwipe
   endif
+  bwipe
+
+Execute (list: add_lines_with_efm uses own list):
+  new
+
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let jobinfo.maker.errorformat = '%m'
+  let make_info = neomake#GetStatus().make_info[-42]
+  let w:neomake_make_ids = [-42]
+
+  let list = neomake#list#ListForMake(make_info)
+  call list.add_lines_with_efm(['error1'], jobinfo)
+
+  AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
+
+  " Create new location list.
+  lgetexpr 'new_list'
+
+  call list.add_lines_with_efm(['error2'], jobinfo)
+
+  if has('patch-8.0.1040')
+    AssertEqual map(getloclist(0), 'v:val.text'), ['new_list']
+    lolder
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1', 'error2']
+  else
+    " TODO: check/fix this via nmcfg marker."
+    AssertEqual map(getloclist(0), 'v:val.text'), ['new_list', 'error2']
+    lolder
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
+  endif
+  bwipe
+
+Execute (list: title):
+  new
+  let job1 = NeomakeTestsFakeJobinfo()
+  let job1.maker.name = 'job1'
+
+  let make_info = neomake#GetStatus().make_info[-42]
+  let w:neomake_make_ids = [-42]
+
+  let list = neomake#list#ListForMake(make_info)
+
+  let prefix = 'Neomake[file]: buf:'.bufnr('%')
+  AssertEqual list._get_title(), prefix.' (job1?)'
+
+  let job2 = NeomakeTestsFakeJobinfo()
+  let job2.maker.name = 'job2'
+  let list.make_info.active_jobs = [job2]
+  AssertEqual list._get_title(), prefix.' (job2..., job1?)'
+
+  " Finished jobs with no entries are not displayed."
+  let job3 = NeomakeTestsFakeJobinfo()
+  let job3.maker.name = 'job3'
+  let list.make_info.finished_jobs = [job3]
+  AssertEqual list._get_title(), prefix.' (job2..., job1?)'
+
+  call list.add_entries_for_job([{'text': 'e2', 'bufnr': bufnr('%')}], job2)
+  AssertEqual list._get_title(), prefix.' (job2...(1), job1?)'
+
+  call list.add_entries_for_job([{'text': 'e3', 'bufnr': bufnr('%')}], job3)
+  AssertEqual list._get_title(), prefix.' (job3(1), job2...(1), job1?)'
   bwipe

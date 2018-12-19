@@ -39,7 +39,10 @@ endfunction
 let s:base_list = {
             \ 'need_init': 1,
             \ 'entries': [],
+            \ 'maker_names': [],
             \ }
+" Info about contained jobs.
+let s:base_list.job_entries = {}
 
 " Do we need to replace (instead of append) the location/quickfix list, for
 " :lwindow to not open it with only invalid entries?!
@@ -59,12 +62,18 @@ function! s:base_list.sort_by_location() dict abort
     return self._sorted_entries_by_location
 endfunction
 
-" a:1: start index of entries in the location/quickfix list.
+" a:1: optional jobinfo
 function! s:base_list.add_entries(entries, ...) dict abort
-    let idx = a:0 ? a:1 : len(self.entries)+1
+    let idx = len(self.entries)
+    if a:0 && !has_key(self.job_entries, a:1.id)
+        let self.job_entries[a:1.id] = []
+    endif
     for entry in a:entries
-        call add(self.entries, extend(copy(entry), {'nmqfidx': idx}))
         let idx += 1
+        call add(self.entries, extend(copy(entry), {'nmqfidx': idx}))
+        if a:0
+            call add(self.job_entries[a:1.id], entry)
+        endif
     endfor
     if self.debug
         let indexes = map(copy(self.entries), 'v:val.nmqfidx')
@@ -85,16 +94,82 @@ function! s:base_list.add_entries_for_job(entries, jobinfo) dict abort
     return self._appendlist(a:entries, a:jobinfo)
 endfunction
 
-function! s:base_list._init_qflist() abort
-    let self.need_init = 0
-    if self.type ==# 'loclist'
-        call neomake#log#debug('Creating location list.', self.make_info.options)
+function! neomake#list#get_title(file_mode, bufnr, maker_info) abort
+    if a:file_mode
+        let bufname = bufname(a:bufnr)
+        if empty(bufname)
+            let bufname = 'buf:'.a:bufnr
+        else
+            let bufname = pathshorten(bufname)
+        endif
+        if empty(a:maker_info)
+            let maker_info = ''
+        else
+            let maker_info = ' ('.a:maker_info.')'
+        endif
+        let title = printf('Neomake[file]: %s%s', bufname, maker_info)
     else
-        call neomake#log#debug('Creating quickfix list.', self.make_info.options)
+        let title = printf('Neomake[project]: %s', a:maker_info)
     endif
+    return title
+endfunction
 
-    let [fn, args] = self._get_fn_args('init', [], ' ')
-    call call(fn, args)
+function! s:base_list._get_title() abort
+    let maker_info = []
+    for job in self.make_info.finished_jobs
+        let info = job.maker.name
+        let add = 0
+        if get(job, 'aborted', 0)
+            let info .= '!'
+            let add = 1
+        endif
+        if has_key(self.job_entries, job.id)
+            let c = len(self.job_entries[job.id])
+            let info .= '('.c.')'
+            let add = 1
+        endif
+        if add
+            call add(maker_info, info)
+        endif
+    endfor
+    for job in self.make_info.active_jobs
+        let info = job.maker.name
+        let info .= '...'
+        if has_key(self.job_entries, job.id)
+            let c = len(self.job_entries[job.id])
+            let info .= '('.c.')'
+        endif
+        call add(maker_info, info)
+    endfor
+    for job in self.make_info.jobs_queue
+        let info = job.maker.name
+        let info .= '?'
+        call add(maker_info, info)
+    endfor
+    for job in get(self.make_info, 'aborted_jobs', [])
+        let info = job.maker.name
+        let info .= '-'
+        call add(maker_info, info)
+    endfor
+    let maker_info_str = join(maker_info, ', ')
+    return neomake#list#get_title(
+                \ self.make_info.options.file_mode,
+                \ self.make_info.options.bufnr,
+                \ maker_info_str)
+endfunction
+
+function! s:base_list._init_qflist(...) abort
+    let self.need_init = 0
+    if a:0
+        let msg = a:1
+    elseif self.type ==# 'loclist'
+        let msg = 'Creating location list.'
+    else
+        let msg = 'Creating quickfix list.'
+    endif
+    call neomake#log#debug(msg, self.make_info.options)
+
+    call self._call_qf_fn('init', [], ' ')
 
     if has('patch-8.0.1023')
         if self.type ==# 'loclist'
@@ -105,8 +180,82 @@ function! s:base_list._init_qflist() abort
     endif
 endfunction
 
-" action: "get", "set", "init"
-" a:000: optional args (for set/init)
+function! s:base_list._call_qf_fn(action, ...) abort
+    let [fn, args] = call(self._get_fn_args, [a:action] + a:000, self)
+    if (a:action ==# 'init' || a:action ==# 'set')  " && self._title_needs_updating
+        " Handle setting title, which gets done initially and when maker
+        " names are updated.  This has to be done in a separate call
+        " without patch-8.0.0657.
+        if has('patch-7.4.2200')
+            let title = self._get_title()
+            if has('patch-8.0.0657')
+                if type(args[-1]) != type({})
+                    call add(args, {'title': title, 'items': args[1]})
+                else
+                    let args[-1].title = title
+                endif
+            else
+                " Update title after actual call.
+                call call(fn, args)
+                let [fn, args] = self._get_fn_args('title', title)
+            endif
+        endif
+    endif
+    return call(fn, args)
+endfunction
+
+function! s:base_list.set_title() abort
+    if has('patch-7.4.2200')
+        let [fn, args] = self._get_fn_args('title', self._get_title())
+        call call(fn, args)
+    endif
+endfunction
+
+function! s:base_list._has_valid_qf() abort
+    if !has('patch-8.0.1023')
+        return -1
+    endif
+
+    if self.type ==# 'loclist'
+        let loclist_win = self._get_loclist_win()
+        if !get(getloclist(loclist_win, {'id': self.qfid}), 'id')
+            return 0
+        endif
+    else
+        if !get(getqflist({'id': self.qfid}), 'id')
+            return 0
+        endif
+    endif
+    return 1
+endfunction
+
+function! s:base_list._get_loclist_win() abort
+    if !has_key(self, 'make_info')
+        throw 'cannot handle type=loclist without make_info'
+    endif
+    let loclist_win = 0
+    let make_id = self.make_info.options.make_id
+    " NOTE: prefers using 0 for when winid is not supported with
+    " setloclist() yet (vim74-xenial).
+    if index(get(w:, 'neomake_make_ids', []), make_id) == -1
+        if has_key(self, 'winid')
+            let loclist_win = self.winid
+        else
+            let [t, w] = neomake#core#get_tabwin_for_makeid(make_id)
+            if [t, w] == [-1, -1]
+                throw printf('Neomake: could not find location list for make_id %d.', make_id)
+            endif
+            if t != tabpagenr()
+                throw printf('Neomake: trying to use location list from another tab (current=%d != target=%d).', tabpagenr(), t)
+            endif
+            let loclist_win = w
+        endif
+    endif
+    return loclist_win
+endfunction
+
+" action: "get", "set", "init", "title"
+" a:000: optional args (for set/init/title)
 function! s:base_list._get_fn_args(action, ...) abort
     if self.type ==# 'loclist'
         if a:action ==# 'get'
@@ -122,59 +271,47 @@ function! s:base_list._get_fn_args(action, ...) abort
         endif
     endif
 
-    let args = []
-    let loclist_win = 0
     if self.type ==# 'loclist'
-        if !has_key(self, 'make_info')
-            throw 'cannot handle type=loclist without make_info'
-        endif
-        let make_id = self.make_info.options.make_id
-        " NOTE: prefers using 0 for when winid is not supported with
-        " setloclist() yet (vim74-xenial).
-        if index(get(w:, 'neomake_make_ids', []), make_id) == -1
-            if has_key(self, 'winid')
-                let loclist_win = self.winid
-            else
-                let [t, w] = neomake#core#get_tabwin_for_makeid(make_id)
-                if [t, w] == [-1, -1]
-                    throw printf('Neomake: could not find location list for make_id %d.', make_id)
-                endif
-                if t != tabpagenr()
-                    throw printf('Neomake: trying to use location list from another tab (current=%d != target=%d).', tabpagenr(), t)
-                endif
-                let loclist_win = w
-            endif
-        endif
-        let args = [loclist_win]
+        let args = [self._get_loclist_win()]
+    else
+        let args = []
     endif
-    call extend(args, a:000)
-    if has('patch-8.0.1023')
-        if a:action ==# 'init'
-            call add(args, {})
-        else
-            call add(args, {'id': self.qfid})
 
-            " Validate.
+    let options = {}
+
+    if a:action !=# 'init'
+        let valid = self._has_valid_qf()
+        if valid == 1
+            let options.id = self.qfid
+        elseif valid == 0
             if self.type ==# 'loclist'
-                if !get(getloclist(loclist_win, args[-1]), 'id')
-                    throw printf('Neomake: qfid %d for location list has become invalid.', self.qfid)
-                endif
+                let loclist_win = self._get_loclist_win()
+                throw printf('Neomake: qfid %d for location list (%d) has become invalid.', self.qfid, loclist_win)
             else
-                if !get(getqflist(args[-1]), 'id')
-                    throw printf('Neomake: qfid %d for quickfix list has become invalid.', self.qfid)
-                endif
+                throw printf('Neomake: qfid %d for quickfix list has become invalid.', self.qfid)
             endif
         endif
-        if a:action ==# 'set' || a:action ==# 'init'
-            let args[-1].items = a:1
+    endif
+
+    if a:action ==# 'title'
+        call extend(args, [[], 'a'])
+        let options.title = a:1
+    else
+        call extend(args, a:000)
+        if has('patch-8.0.0657')
+                    \ && (a:action ==# 'set'
+                    \     || (a:action ==# 'init' && !empty(a:1)))
+            let options.items = a:1
         endif
+    endif
+    if !empty(options)
+        call add(args, options)
     endif
     return [fn, args]
 endfunction
 
 function! s:base_list._set_qflist_entries(entries, action) abort
-    let [fn, args] = self._get_fn_args('set', a:entries, a:action)
-    call call(fn, args)
+    call self._call_qf_fn('set', a:entries, a:action)
 endfunction
 
 function! s:base_list._get_qflist_entries() abort
@@ -195,6 +332,7 @@ function! s:base_list._appendlist(entries, jobinfo) abort
     if self.need_init
         call self._init_qflist()
     else
+        let action = 'a'
         if s:needs_to_replace_qf_for_lwindow
             let action = 'r'
             if self.type ==# 'loclist'
@@ -262,7 +400,7 @@ function! s:base_list._appendlist(entries, jobinfo) abort
         let idx += 1
     endfor
 
-    call self.add_entries(parsed_entries)
+    call self.add_entries(parsed_entries, a:jobinfo)
     return parsed_entries
 endfunction
 
@@ -333,7 +471,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
             call a:jobinfo.cd_back()
         endtry
 
-        let new_list = file_mode ? getloclist(0) : getqflist()
+        let new_list = self._get_qflist_entries()
         let parsed_entries = new_list[len(self.entries) :]
         if empty(parsed_entries)
             return []
@@ -456,7 +594,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
 
         if !empty(changed_entries) || !empty(removed_entries)
             " Need to update/replace current list.
-            let list = file_mode ? getloclist(0) : getqflist()
+            let list = self._get_qflist_entries()
             if !empty(changed_entries)
                 for k in keys(changed_entries)
                     let list[prev_index + k] = changed_entries[k]
@@ -508,7 +646,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
     if s:use_efm_parsing
         call self._appendlist(entries, a:jobinfo)
     else
-        call self.add_entries(entries)
+        call self.add_entries(entries, a:jobinfo)
     endif
     return entries
 endfunction
@@ -516,7 +654,7 @@ endfunction
 " Get the current location or quickfix list.
 function! neomake#list#get() abort
     let winnr = winnr()
-    let win_info = getwinvar(winnr, '_neomake_info', {})
+    let win_info = neomake#compat#getwinvar(winnr, '_neomake_info', {})
     if has_key(win_info, 'loclist')
         return win_info['loclist']
     endif

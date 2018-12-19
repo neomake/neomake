@@ -638,6 +638,8 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
 
   let bound_maker = neomake#GetMaker(maker)
   let make_info = values(neomake#GetStatus().make_info)[0]
+  " For make_info.entries_list to be available.
+  let make_info.entries_list = neomake#list#ListForMake(make_info)
   Assert !has_key(make_info, 'tempfiles')
   let shell_argv = split(&shell) + split(&shellcmdflag)
   AssertEqual bound_maker.args, shell_argv[1:] + ['echo']
