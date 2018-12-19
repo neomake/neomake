@@ -25,7 +25,7 @@ Execute (Ensure that temporary files are not being left around):
     Assert filereadable(tmpfile)
   endif
 
-  doautocmd VimLeave
+  doautocmd neomake VimLeave
   AssertNeomakeMessage 'Calling VimLeave.', 3
   if neomake#has_async_support()
     AssertNeomakeMessage printf('Removing temporary file: "%s".', tmpfile)
