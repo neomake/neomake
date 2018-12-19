@@ -53,7 +53,7 @@ function! neomake#has_async_support() abort
     return s:async
 endfunction
 
-if has('patch-7.3.1058')
+if v:version >= 704 || (v:version == 703 && has('patch1058'))
     function! s:function(name) abort
         return function(a:name)
     endfunction
