@@ -317,8 +317,10 @@ Execute (project mode signs get placed when job finishes):
     endfunction
     CallNeomake {'file_mode': 1, 'enabled_makers': [maker]}
     AssertNeomakeMessage 'Placing sign: sign place 5001 line=1 name=neomake_file_err buffer='.bufnr1.'.'
-    AssertEqual neomake#signs#by_lnum(bufnr1), {
-    \ '1': [5001, 'neomake_file_err']}
+    if has('patch-8.1.0384') || has('netbeans_intg')
+      AssertEqual neomake#signs#by_lnum(bufnr1), {
+      \ '1': [5001, 'neomake_file_err']}
+    endif
     call neomake#signs#ResetFile(bufnr1)
     call neomake#signs#CleanAllOldSigns('file')
     AssertEqual neomake#signs#by_lnum(bufnr1), {

@@ -648,7 +648,7 @@ Execute (neomake#utils#MakerFromCommand uses tempfile):
   let temp_file = fnamemodify(make_info.tempfiles[0], ':.')
   AssertNotEqual temp_file, fnameescape(temp_file)
 
-  doautocmd VimLeave
+  doautocmd neomake VimLeave
   Assert empty(glob(temp_file)), 'Temporary file was removed.'
   AssertNeomakeMessage printf('Removing temporary file: "%s".', make_info.tempfiles[0])
   bwipe!
