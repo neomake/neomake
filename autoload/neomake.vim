@@ -1203,6 +1203,7 @@ function! s:Make(options) abort
         endif
         call add(jobinfos, jobinfo)
         if jobinfo.serialize
+            let make_info.serializing_for_job = jobinfo.id
             " Break and continue through exit handler.
             break
         endif
@@ -2259,6 +2260,15 @@ function! s:handle_next_job(prev_jobinfo) abort
         if !has_key(s:make_info, make_id)
             " Last job was cleaned.
             return {}
+        endif
+
+        let serializing_for_job = get(make_info, 'serializing_for_job')
+        if serializing_for_job
+            if serializing_for_job != a:prev_jobinfo.id
+                call neomake#log#debug(printf('waiting for job %d to finish.', serializing_for_job))
+                return {}
+            endif
+            unlet make_info.serializing_for_job
         endif
     endif
 

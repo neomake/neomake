@@ -361,3 +361,24 @@ Execute (Uses correct maker filetypes when started in another buffer):
     AssertEqual g:neomake_test_exit_cb[0].ft, 'orig_ft'
     bwipe
   endif
+
+Execute (serialize: waits for intermediate job to start):
+  new
+  let maker1 = {'name': 'maker1', 'exe': 'true'}
+  let maker2 = NeomakeTestsCommandMaker('sleep-maker', 'sleep .05; echo slept; exit 1')
+  let maker2.serialize = 1
+  let maker2.serialize_abort_on_error = 1
+  let maker3 = {'name': 'maker3', 'exe': 'true'}
+
+  let jobs = neomake#Make({'enabled_makers': [maker1, maker2, maker3]})
+  NeomakeTestsWaitForFinishedJobs
+
+  if neomake#has_async_support()
+    AssertNeomakeMessage 'waiting for job '.jobs[1].id.' to finish.'
+  endif
+  AssertNeomakeMessage 'Aborting next makers: maker3.'
+
+  let title = neomake#list#get()._get_title()
+  AssertEqual title, 'Neomake[file]: buf:'.bufnr('%').' (sleep-maker!(1), maker3-)'
+  AssertEqual map(getloclist(0), 'v:val.text'), ['slept']
+  bwipe
