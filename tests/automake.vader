@@ -1066,6 +1066,8 @@ Execute (automake: display of error with O during maker run):
     function! maker2.process_output(...)
       let s:error_count += 1
       if s:error_count < 5
+        AssertEqual map(getloclist(0), 'v:val.text'), ['error1:'.(s:error_count-1)]
+        AssertEqual neomake#GetCurrentErrorMsg(), ''
         normal! O
         doautocmd TextChangedI
       endif
@@ -1084,8 +1086,6 @@ Execute (automake: display of error with O during maker run):
     let make_id = neomake#GetStatus().last_make_id
     Assert exists('#neomake_automake_abort')
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual map(getloclist(0), 'v:val.text'), ['error1:1']
-    AssertEqual neomake#GetCurrentErrorMsg(), ''
 
     AssertNeomakeMessage 'Processing 1 entries.', 3
     AssertNeomakeMessage 'mymaker1: completed with exit code 1.', 3
