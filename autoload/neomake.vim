@@ -1100,7 +1100,6 @@ function! s:Make(options) abort
                 \ 'options': options,
                 \ }
     let make_info = s:make_info[make_id]
-    let make_info.entries_list = neomake#list#ListForMake(make_info)
     if &verbose
         let make_info.verbosity += &verbose
         call neomake#log#debug(printf(
@@ -1171,6 +1170,18 @@ function! s:Make(options) abort
     endif
 
     let w:neomake_make_ids = add(get(w:, 'neomake_make_ids', []), make_id)
+
+    " Use passed in entries_list with automake.
+    if has_key(options, 'entries_list')
+        let make_info.entries_list = options.entries_list
+        let make_info.entries_list.make_info = make_info
+        if !make_info.entries_list.need_init
+            call make_info.entries_list.reset_qflist()
+        endif
+        unlet options.entries_list
+    else
+        let make_info.entries_list = neomake#list#ListForMake(make_info)
+    endif
 
     " Cancel any already running jobs for the makers from these jobs.
     if !empty(s:jobs)
@@ -1325,9 +1336,11 @@ function! s:clean_make_info(make_info, ...) abort
     " Update list title.
     " This has to be done currently by itself to reflect running/finished
     " state properly.
-    let list = a:make_info.entries_list
-    if !list.need_init && list._has_valid_qf()
-        call list.set_title()
+    if has_key(a:make_info, 'entries_list')
+        let list = a:make_info.entries_list
+        if !list.need_init && list._has_valid_qf()
+            call list.set_title()
+        endif
     endif
 
     if exists('*neomake#statusline#make_finished')

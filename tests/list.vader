@@ -236,7 +236,7 @@ Execute (list: error handling):
     tabprev
     let threw = 0
     try
-      call list._init_qflist()
+      call list._get_fn_args('get')
     catch
       let threw = 1
       AssertEqual v:exception, 'Neomake: trying to use location list from another tab (current=3 != target=4).'

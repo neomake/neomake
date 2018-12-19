@@ -1196,3 +1196,63 @@ Execute (automake: handles unexpected make_id):
     Assert !exists('b:_neomake_restart_automake_context')
     bwipe!
   endif
+
+Execute (automake: uses single list):
+  new
+  lgetexpr 'init'
+
+  let s:count = 0
+  let maker = {}
+  function! maker.get_list_entries(...)
+    let s:count += 1
+    return [{'text': 'error'.s:count, 'lnum': 1}]
+  endfunction
+
+  call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 0}}, 0, [maker])
+  doautocmd CursorHold
+  AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
+  AssertNeomakeMessage 'Creating location list.', 3
+
+  normal! o
+  doautocmd CursorHold
+  if has('patch-8.0.1023')
+    AssertNeomakeMessage 'Resetting list.', 3
+  else
+    AssertNeomakeMessage 'Creating location list.', 3
+  endif
+  AssertEqual map(getloclist(0), 'v:val.text'), ['error2']
+
+  lolder
+  if has('patch-8.0.1023')
+    AssertEqual map(getloclist(0), 'v:val.text'), ['init']
+
+    lnewer
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error2']
+    lgetexpr 'between'
+    AssertEqual map(getloclist(0), 'v:val.text'), ['between']
+
+    normal! u
+    doautocmd CursorHold
+    AssertNeomakeMessage 'Resetting list.', 3
+    AssertEqual map(getloclist(0), 'v:val.text'), ['between']
+
+    lolder
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error3']
+    lopen
+    AssertEqual w:quickfix_title, 'Neomake[auto]: unnamed_maker(1)'
+    lclose
+
+    lolder
+    AssertEqual map(getloclist(0), 'v:val.text'), ['init']
+
+    for i in range(10)
+      lgetexpr 'new'
+    endfor
+    normal! o
+    doautocmd CursorHold
+    AssertNeomakeMessage 'Cannot re-use list (valid=0).', 3
+    AssertNeomakeMessage 'Creating location list.', 3
+  else
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
+  endif
+  bwipe!

@@ -39,7 +39,6 @@ endfunction
 let s:base_list = {
             \ 'need_init': 1,
             \ 'entries': [],
-            \ 'maker_names': [],
             \ }
 " Info about contained jobs.
 let s:base_list.job_entries = {}
@@ -94,8 +93,8 @@ function! s:base_list.add_entries_for_job(entries, jobinfo) dict abort
     return self._appendlist(a:entries, a:jobinfo)
 endfunction
 
-function! neomake#list#get_title(file_mode, bufnr, maker_info) abort
-    if a:file_mode
+function! neomake#list#get_title(prefix, bufnr, maker_info) abort
+    if a:bufnr
         let bufname = bufname(a:bufnr)
         if empty(bufname)
             let bufname = 'buf:'.a:bufnr
@@ -107,9 +106,9 @@ function! neomake#list#get_title(file_mode, bufnr, maker_info) abort
         else
             let maker_info = ' ('.a:maker_info.')'
         endif
-        let title = printf('Neomake[file]: %s%s', bufname, maker_info)
+        let title = printf('Neomake[%s]: %s%s', a:prefix, bufname, maker_info)
     else
-        let title = printf('Neomake[project]: %s', a:maker_info)
+        let title = printf('Neomake[%s]: %s', a:prefix, a:maker_info)
     endif
     return title
 endfunction
@@ -152,10 +151,17 @@ function! s:base_list._get_title() abort
         call add(maker_info, info)
     endfor
     let maker_info_str = join(maker_info, ', ')
-    return neomake#list#get_title(
-                \ self.make_info.options.file_mode,
-                \ self.make_info.options.bufnr,
-                \ maker_info_str)
+    if has_key(self, 'title_prefix')
+        let prefix = self.title_prefix
+        let bufnr = 0
+    elseif self.make_info.options.file_mode
+        let prefix = 'file'
+        let bufnr = self.make_info.options.bufnr
+    else
+        let prefix = 'project'
+        let bufnr = 0
+    endif
+    return neomake#list#get_title(prefix, bufnr, maker_info_str)
 endfunction
 
 function! s:base_list._init_qflist(...) abort
@@ -177,6 +183,19 @@ function! s:base_list._init_qflist(...) abort
         else
             let self.qfid = getqflist({'id': 0}).id
         endif
+    endif
+endfunction
+
+" Reset list, used with single-instance automake list.
+function! s:base_list.reset_qflist() abort
+    let valid = self._has_valid_qf()
+    if valid == 1
+        call neomake#log#debug('Resetting list.', self.make_info.options)
+        call self._call_qf_fn('reset')
+    else
+        call neomake#log#debug(printf('Cannot re-use list (valid=%d).', valid),
+                    \ self.make_info.options)
+        call self._init_qflist()
     endif
 endfunction
 
@@ -272,7 +291,11 @@ function! s:base_list._get_fn_args(action, ...) abort
     endif
 
     if self.type ==# 'loclist'
-        let args = [self._get_loclist_win()]
+        if a:action ==# 'init'
+            let args = [0]
+        else
+            let args = [self._get_loclist_win()]
+        endif
     else
         let args = []
     endif
@@ -296,12 +319,18 @@ function! s:base_list._get_fn_args(action, ...) abort
     if a:action ==# 'title'
         call extend(args, [[], 'a'])
         let options.title = a:1
+    elseif a:action ==# 'reset'
+        call extend(args, [[], 'r'])
+        if !empty(options)
+            let options.items = []
+        endif
     else
         call extend(args, a:000)
         if has('patch-8.0.0657')
                     \ && (a:action ==# 'set'
                     \     || (a:action ==# 'init' && !empty(a:1)))
             let options.items = a:1
+            let args[-2] = []
         endif
     endif
     if !empty(options)
