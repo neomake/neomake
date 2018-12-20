@@ -317,9 +317,10 @@ function! neomake#quickfix#FormatQuickfix() abort
         endfor
         let maker_info_str = join(maker_info, ', ')
         if is_loclist
-            let w:quickfix_title = neomake#list#get_title('file', src_buf, maker_info_str)
+            let prefix = 'file'
         else
-            let w:quickfix_title = neomake#list#get_title('project', 0, maker_info_str)
+            let prefix = 'project'
         endif
+        let w:quickfix_title = neomake#list#get_title(prefix, src_buf, maker_info_str)
     endif
 endfunction

@@ -98,6 +98,10 @@ function! s:base_list.add_entries_for_job(entries, jobinfo) dict abort
 endfunction
 
 function! neomake#list#get_title(prefix, bufnr, maker_info) abort
+    let prefix = 'Neomake'
+    if !empty(a:prefix)
+        let prefix .= '['.a:prefix.']'
+    endif
     if a:bufnr
         let bufname = bufname(a:bufnr)
         if empty(bufname)
@@ -105,14 +109,18 @@ function! neomake#list#get_title(prefix, bufnr, maker_info) abort
         else
             let bufname = pathshorten(bufname)
         endif
+        let maker_info = bufname
         if empty(a:maker_info)
-            let maker_info = ''
+            let maker_info = bufname
         else
-            let maker_info = ' ('.a:maker_info.')'
+            let maker_info = bufname.' ('.a:maker_info.')'
         endif
-        let title = printf('Neomake[%s]: %s%s', a:prefix, bufname, maker_info)
     else
-        let title = printf('Neomake[%s]: %s', a:prefix, a:maker_info)
+        let maker_info = a:maker_info
+    endif
+    let title = prefix
+    if !empty(maker_info)
+        let title = prefix.': '.maker_info
     endif
     return title
 endfunction
