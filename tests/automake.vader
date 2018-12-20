@@ -1099,8 +1099,8 @@ Execute (automake: display of error with O during maker run):
 
     AssertNeomakeMessage 'exit: mymaker2: 0.', 3
     AssertNeomakeMessage 'automake: Buffer was changed (TextChangedI), restarting make: '.make_id.'.', 3
-    AssertNeomakeMessage 'Cancelling make.', 3
-    AssertNeomakeMessage 'Cancelling job.', 3
+    AssertNeomakeMessage 'Canceling make.', 3
+    AssertNeomakeMessage 'Canceling job.', 3
     AssertNeomakeMessage 'Job exited already.', 3
     AssertNeomakeMessage '\V\^Skipping cleaning of make info: 1 active jobs: [''Job \d\+: mymaker2 [canceled]''].', 3
 
