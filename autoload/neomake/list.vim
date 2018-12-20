@@ -176,18 +176,14 @@ function! s:base_list._get_title() abort
     return neomake#list#get_title(prefix, bufnr, maker_info_str)
 endfunction
 
-function! s:base_list._init_qflist(...) abort
-    if a:0
-        let msg = a:1
-    elseif self.type ==# 'loclist'
+function! s:base_list._init_qflist() abort
+    if self.type ==# 'loclist'
         let msg = 'Creating location list.'
     else
         let msg = 'Creating quickfix list.'
     endif
     call neomake#log#debug(msg, self.make_info.options)
-
     call self._call_qf_fn('set', [], ' ')
-
     let self.need_init = 0
 endfunction
 
@@ -208,6 +204,11 @@ endfunction
 
 function! s:base_list.finish_for_make() abort
     if self.need_init
+        if self.type ==# 'loclist'
+            call neomake#log#debug('Cleaning location list.', self.make_info.options)
+        else
+            call neomake#log#debug('Cleaning quickfix list.', self.make_info.options)
+        endif
         call self._call_qf_fn('set', [], ' ')
     endif
 
@@ -449,12 +450,10 @@ function! s:base_list._appendlist(entries, jobinfo) abort
         let added[0].text = substitute(added[0].text, ' nmcfg:{.\{-}}$', '', '')
     endif
 
-    if self.debug
-    if added != a:entries
+    if self.debug && added != a:entries
         let diff = neomake#list#_diff_new_entries(a:entries, added)
         if !empty(diff)
             for [k, v] in items(diff)
-                " TODO: if debug
                 " TODO: handle valid=1 being added?
                 call neomake#log#debug(printf(
                   \ 'Entry %d differs after adding: %s.',
@@ -463,7 +462,6 @@ function! s:base_list._appendlist(entries, jobinfo) abort
                   \ a:jobinfo)
             endfor
         endif
-    endif
     endif
 
     let parsed_entries = copy(a:entries)
