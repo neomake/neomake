@@ -147,11 +147,12 @@ function! neomake#CancelMake(...) abort
     call neomake#log#debug('Canceling make.', make_info)
     let make_info.canceled = 1
     let jobs = filter(copy(values(s:jobs)), 'v:val.make_id == make_id')
+    call s:abort_next_makers(make_id)
     for job in jobs
         call neomake#CancelJob(job.id, bang)
     endfor
     call neomake#action_queue#clean(make_info)
-    " Ensure that make gets cleaned really, e.g. if there were no jobs yet.
+    " Ensure that make info gets cleaned really, e.g. if there were no jobs yet.
     if has_key(s:make_info, make_id)
         call s:clean_make_info(make_info, bang)
     endif

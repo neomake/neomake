@@ -382,3 +382,20 @@ Execute (serialize: waits for intermediate job to start):
   AssertEqual title, 'Neomake[file]: buf:'.bufnr('%').' (sleep-maker!(1), maker3-)'
   AssertEqual map(getloclist(0), 'v:val.text'), ['slept']
   bwipe
+
+Execute (serialize: canceling aborts following jobs / cleans make info):
+  if NeomakeAsyncTestsSetup()
+    new
+    let maker1 = copy(g:sleep_maker)
+    let maker1.serialize = 1
+    let maker2 = g:true_maker
+
+    call neomake#Make(1, [maker1, maker2])
+
+    NeomakeTestsWaitForMessage 'Running makers: sleep-maker, true-maker.', 3
+    call neomake#CancelMake()
+    AssertNeomakeMessage 'Canceling make.', 3
+    AssertNeomakeMessage 'Aborting next makers: true-maker.'
+    NeomakeTestsWaitForMessage 'Cleaning make info.', 3
+    bwipe
+  endif
