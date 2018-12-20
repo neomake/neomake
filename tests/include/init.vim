@@ -502,11 +502,16 @@ function! s:After()
   endif
   if !empty(make_info)
     try
-      call add(errors, 'make_info is not empty: '.string(neomake#utils#fix_self_ref(make_info)))
+      call add(errors, printf('make_info is not empty (%d): %s',
+                  \ len(make_info),
+                  \ neomake#utils#fix_self_ref(make_info)))
       call neomake#CancelAllMakes(1)
     catch
       call add(errors, v:exception)
     endtry
+    for k in keys(make_info)
+        call remove(make_info, k)
+    endfor
   endif
   let actions = filter(copy(status.action_queue), '!empty(v:val)')
   if !empty(actions)
