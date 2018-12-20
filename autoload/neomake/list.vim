@@ -2,6 +2,7 @@
 " TODO: (optionally?) add entries sorted?  (errors first, grouped by makers (?) etc)
 
 let s:use_efm_parsing = has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+let s:has_support_for_qfid = has('patch-8.0.1023')
 
 function! neomake#list#ListForMake(make_info) abort
     let type = a:make_info.options.file_mode ? 'loclist' : 'quickfix'
@@ -165,7 +166,6 @@ function! s:base_list._get_title() abort
 endfunction
 
 function! s:base_list._init_qflist(...) abort
-    let self.need_init = 0
     if a:0
         let msg = a:1
     elseif self.type ==# 'loclist'
@@ -175,15 +175,9 @@ function! s:base_list._init_qflist(...) abort
     endif
     call neomake#log#debug(msg, self.make_info.options)
 
-    call self._call_qf_fn('init', [], ' ')
+    call self._call_qf_fn('set', [], ' ')
 
-    if has('patch-8.0.1023')
-        if self.type ==# 'loclist'
-            let self.qfid = getloclist(0, {'id': 0}).id
-        else
-            let self.qfid = getqflist({'id': 0}).id
-        endif
-    endif
+    let self.need_init = 0
 endfunction
 
 " Reset list (lazily), used with single-instance automake list.
@@ -202,12 +196,10 @@ function! s:base_list.reset_qflist() abort
 endfunction
 
 function! s:base_list.finish_for_make() abort
-    let need_reset = get(self, 'need_reset')
-    if self.need_init && !need_reset
-        call neomake#log#debug('list: finish: skipping for unused list.',
-                    \ self.make_info.options)
-        return
+    if self.need_init
+        call self._call_qf_fn('set', [], ' ')
     endif
+
     if !self._has_valid_qf()
         call neomake#log#debug('list: finish: list is not valid.',
                     \ self.make_info.options)
@@ -216,14 +208,14 @@ function! s:base_list.finish_for_make() abort
 
     call self.set_title()
 
-    if need_reset
+    if get(self, 'need_reset')
         call self._call_qf_fn('reset')
     endif
 endfunction
 
 function! s:base_list._call_qf_fn(action, ...) abort
     let [fn, args] = call(self._get_fn_args, [a:action] + a:000, self)
-    if (a:action ==# 'init' || a:action ==# 'set')  " && self._title_needs_updating
+    if a:action ==# 'set'
         " Handle setting title, which gets done initially and when maker
         " names are updated.  This has to be done in a separate call
         " without patch-8.0.0657.
@@ -242,7 +234,22 @@ function! s:base_list._call_qf_fn(action, ...) abort
             endif
         endif
     endif
-    return call(fn, args)
+    let r = call(fn, args)
+
+    " Get qfid.
+    if self.need_init
+        if a:action ==# 'set' && s:has_support_for_qfid
+            if self.type ==# 'loclist'
+                let loclist_win = self._get_loclist_win()
+                let self.qfid = getloclist(loclist_win, {'id': 0}).id
+            else
+                let self.qfid = getqflist({'id': 0}).id
+            endif
+        endif
+        let self.need_init = 0
+    endif
+
+    return r
 endfunction
 
 function! s:base_list.set_title() abort
@@ -253,7 +260,7 @@ function! s:base_list.set_title() abort
 endfunction
 
 function! s:base_list._has_valid_qf() abort
-    if !has('patch-8.0.1023')
+    if !s:has_support_for_qfid
         return -1
     endif
 
@@ -313,18 +320,13 @@ function! s:base_list._get_fn_args(action, ...) abort
     endif
 
     if self.type ==# 'loclist'
-        if a:action ==# 'init'
-            let args = [0]
-        else
-            let args = [self._get_loclist_win()]
-        endif
+        let args = [self._get_loclist_win()]
     else
         let args = []
     endif
 
     let options = {}
-
-    if a:action !=# 'init'
+    if !self.need_init
         let valid = self._has_valid_qf()
         if valid == 1
             let options.id = self.qfid
@@ -348,9 +350,7 @@ function! s:base_list._get_fn_args(action, ...) abort
         endif
     else
         call extend(args, a:000)
-        if has('patch-8.0.0657')
-                    \ && (a:action ==# 'set'
-                    \     || (a:action ==# 'init' && !empty(a:1)))
+        if has('patch-8.0.0657') && a:action ==# 'set'
             let options.items = a:1
             let args[-2] = []
         endif
@@ -363,7 +363,20 @@ endfunction
 
 function! s:base_list._set_qflist_entries(entries, action) abort
     let action = a:action
-    if get(self, 'need_reset')
+    if self.need_init
+        if self.type ==# 'loclist'
+            let msg = 'Creating location list for entries.'
+        else
+            let msg = 'Creating quickfix list for entries.'
+        endif
+        call neomake#log#debug(msg, self.make_info.options)
+
+        if s:needs_to_init_qf_for_lwindow
+            call self._call_qf_fn('set', [], ' ')
+        else
+            let action = ' '
+        endif
+    elseif get(self, 'need_reset')
         let action = 'r'
         let self.need_reset = 0
     endif
@@ -372,7 +385,7 @@ endfunction
 
 function! s:base_list._get_qflist_entries() abort
     let [fn, args] = self._get_fn_args('get')
-    if has('patch-8.0.1023')
+    if s:has_support_for_qfid
         let args[-1].items = 1
         return call(fn, args).items
     endif
@@ -385,9 +398,7 @@ function! s:base_list._appendlist(entries, jobinfo) abort
 
     let set_entries = a:entries
     let action = 'a'
-    if self.need_init
-        call self._init_qflist()
-    else
+    if !self.need_init
         let action = 'a'
         if s:needs_to_replace_qf_for_lwindow
             let action = 'r'
@@ -504,9 +515,6 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         let parsed_entries = getqflist({'lines': a:lines, 'efm': efm}).items
         if empty(parsed_entries)
             return []
-        endif
-        if self.need_init
-            call self._init_qflist()
         endif
     else
         if self.need_init
@@ -636,7 +644,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
     endfor
 
     if !s:use_efm_parsing
-        let prev_index = len(self.entries)
+        let new_index = len(self.entries)
         " Add marker for custom quickfix to the first (new) entry.
         if neomake#quickfix#is_enabled()
             let config = {
@@ -645,7 +653,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
                         \ }
             let marker_entry = copy(entries[0])
             let marker_entry.text .= printf(' nmcfg:%s', string(config))
-            let changed_entries[prev_index] = marker_entry
+            let changed_entries[0] = marker_entry
         endif
 
         if !empty(changed_entries) || !empty(removed_entries)
@@ -653,12 +661,12 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
             let list = self._get_qflist_entries()
             if !empty(changed_entries)
                 for k in keys(changed_entries)
-                    let list[prev_index + k] = changed_entries[k]
+                    let list[new_index + k] = changed_entries[k]
                 endfor
             endif
             if !empty(removed_entries)
                 for k in removed_entries
-                    call remove(list, prev_index + k)
+                    call remove(list, new_index + k)
                 endfor
             endif
             call self._set_qflist_entries(list, 'r')
