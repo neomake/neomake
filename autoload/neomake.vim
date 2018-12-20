@@ -1337,10 +1337,7 @@ function! s:clean_make_info(make_info, ...) abort
     " This has to be done currently by itself to reflect running/finished
     " state properly.
     if has_key(a:make_info, 'entries_list')
-        let list = a:make_info.entries_list
-        if !list.need_init && list._has_valid_qf()
-            call list.set_title()
-        endif
+        call a:make_info.entries_list.finish_for_make()
     endif
 
     if exists('*neomake#statusline#make_finished')
