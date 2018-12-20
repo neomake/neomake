@@ -119,7 +119,7 @@ function! s:AddToClasspath(classpath, path) abort
     return (a:classpath !=# '') ? a:classpath . s:ClassSep() . a:path : a:path
 endfunction
 
-function! s:ReadClassPathFile(_classpathFile) abort
+function! s:ReadClassPathFile(classpathFile) abort
     let cp = ''
     let file = g:neomake_java_checker_home. s:psep. 'java'. s:psep.  'classpath.py'
     if has('python3')
