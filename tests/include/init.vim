@@ -480,6 +480,11 @@ function! s:After()
     endfor
     call add(errors, 'There were '.len(jobs).' jobs left: '
     \ .string(map(jobs, "v:val.make_id.'.'.v:val.id")))
+    try
+      NeomakeTestsWaitForRemovedJobs
+    catch
+      call add(errors, printf('Error while waiting for removed jobs: %s', v:exception))
+    endtry
   endif
 
   let unexpected_errors = filter(copy(g:neomake_test_messages),
@@ -522,6 +527,7 @@ function! s:After()
     catch
       call add(errors, v:exception)
     endtry
+
     " Ensure action_queue is empty, which might not happen via canceling
     " (non-existing) makes.
     call remove(status.action_queue, 0, -1)
@@ -607,12 +613,8 @@ function! s:After()
   endif
 
   if !empty(errors)
-    if get(g:, 'vader_case_ok', 1)
-      call map(errors, "printf('%d. %s', v:key+1, v:val)")
-      throw len(errors)." error(s) in teardown:\n".join(errors, "\n")
-    else
-      Log printf('NOTE: %d error(s) in teardown.', len(errors))
-    endif
+    call map(errors, "printf('%d. %s', v:key+1, v:val)")
+    throw len(errors)." error(s) in teardown:\n".join(errors, "\n")
   endif
   echom ''
 endfunction
