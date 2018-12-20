@@ -348,6 +348,11 @@ Execute (list: title):
 
   call list.add_entries_for_job([{'text': 'e3', 'bufnr': bufnr('%')}], job3)
   AssertEqual list._get_title(), prefix.' (job3(1), job2...(1), job1?)'
+
+  AssertEqual neomake#list#get_title('', 0, 'maker_info'), 'Neomake: maker_info'
+  AssertEqual neomake#list#get_title('prefix', 0, 'maker_info'), 'Neomake[prefix]: maker_info'
+  AssertEqual neomake#list#get_title('', 0, ''), 'Neomake'
+  AssertEqual neomake#list#get_title('prefix', 0, ''), 'Neomake[prefix]'
   bwipe
 
 Execute (list: reset):
