@@ -227,7 +227,11 @@ Execute (Neomake: handle output for removed window):
     exe 'b' bufnr
     doautocmd BufEnter
     AssertNeomakeMessage "Processing pending output for job's buffer in new window."
-    AssertNeomakeMessage 'Creating location list.', 3, make_info
+    if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist"
+      AssertNeomakeMessage 'Creating location list for entries.', 3, make_info
+    else
+      AssertNeomakeMessage 'Creating location list.', 3, make_info
+    endif
     AssertEqual len(g:neomake_test_finished), 1
     AssertEqual len(g:neomake_test_countschanged), 1
     AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']

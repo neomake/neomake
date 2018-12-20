@@ -224,7 +224,11 @@ Execute (Goes back to original window after opening list (wincmd in postprocess)
     let make_info = values(neomake#GetStatus().make_info)[0]
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'processing 1 lines of output.'
-    AssertNeomakeMessage 'Creating location list.', 3, extend(copy(make_info.options), {'winnr': winnr})
+    if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+      AssertNeomakeMessage 'Creating location list for entries.', 3, extend(copy(make_info.options), {'winnr': winnr-1})
+    else
+      AssertNeomakeMessage 'Creating location list.', 3, extend(copy(make_info.options), {'winnr': winnr})
+    endif
     AssertNeomakeMessage 'Postponing location list processing.', 3, jobinfo
     AssertNeomakeMessage 'Queuing action ProcessEntries for BufEnter, WinEnter.', 3
     AssertEqual map(getloclist(winnr), '[v:val.text, v:val.type]'), [['error', 'E']]
@@ -315,7 +319,7 @@ Execute (Goes back to original window after opening list (wincmd in process_outp
 
     AssertNeomakeMessage 'action queue: calling ProcessEntries.', 3
     AssertNeomakeMessage 'Processing 1 entries.', 3
-    AssertNeomakeMessage 'Creating location list.'
+    AssertNeomakeMessage 'Creating location list for entries.'
     AssertNeomakeMessage 'Handling location list: executing lwindow.', 3, jobinfo
     AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3, jobinfo
     AssertNeomakeMessage 'action queue: processed 2 items.'
@@ -385,7 +389,11 @@ Execute (Goes back to original window after opening list (mapexpr)):
     AssertEqual map(getloclist(winnr), '[v:val.text, v:val.type]'), [['error', 'E']]
 
     AssertNeomakeMessage 'action queue: calling AddExprCallback.', 3
-    AssertNeomakeMessage 'Creating location list.'
+    if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
+      AssertNeomakeMessage 'Creating location list for entries.'
+    else
+      AssertNeomakeMessage 'Creating location list.'
+    endif
     AssertNeomakeMessage 'Processing 1 entries.', 3
     AssertNeomakeMessage 'Handling location list: executing lwindow.', 3, jobinfo
     AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3, jobinfo

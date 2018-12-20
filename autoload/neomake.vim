@@ -1333,13 +1333,6 @@ function! s:clean_make_info(make_info, ...) abort
                     \ [s:function('s:clean_make_info'), [a:make_info]])
     endif
 
-    " Update list title.
-    " This has to be done currently by itself to reflect running/finished
-    " state properly.
-    if has_key(a:make_info, 'entries_list')
-        call a:make_info.entries_list.finish_for_make()
-    endif
-
     if exists('*neomake#statusline#make_finished')
         call neomake#statusline#make_finished(a:make_info)
     endif
@@ -1474,6 +1467,15 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
                 return neomake#action_queue#add(['CursorHold', 'WinEnter'], [s:function('s:handle_locqf_list_for_finished_jobs'),
                             \ [a:make_info] + a:000])
             endif
+        endif
+    endif
+
+    " Update list title.
+    " This has to be done currently by itself to reflect running/finished
+    " state properly.
+    if create_list || !a:make_info.entries_list.need_init
+        if has_key(a:make_info, 'entries_list')
+            call a:make_info.entries_list.finish_for_make()
         endif
     endif
 

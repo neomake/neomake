@@ -709,8 +709,13 @@ Execute (Pending output gets processed in order of jobs (project first)):
   doautocmd CursorHold
   NeomakeTestsWaitForRemovedJobs
   AssertNeomakeMessage 'Not processing output for mode "V".'
-  AssertNeomakeMessage 'Creating location list.'
-  AssertNeomakeMessage 'Creating quickfix list.'
+  if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist"
+    AssertNeomakeMessage 'Creating location list for entries.'
+    AssertNeomakeMessage 'Creating quickfix list for entries.'
+  else
+    AssertNeomakeMessage 'Creating location list.'
+    AssertNeomakeMessage 'Creating quickfix list.'
+  endif
 
   AssertEqual map(getloclist(0), 'v:val.text'), ['file_maker']
   AssertEqual map(getqflist(), 'v:val.text'), ['project_maker']
@@ -730,8 +735,13 @@ Execute (Pending output gets processed in order of jobs (file mode first)):
   doautocmd CursorHold
   NeomakeTestsWaitForRemovedJobs
   AssertNeomakeMessage 'Not processing output for mode "V".'
-  AssertNeomakeMessage 'Creating location list.'
-  AssertNeomakeMessage 'Creating quickfix list.'
+  if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist"
+    AssertNeomakeMessage 'Creating location list for entries.'
+    AssertNeomakeMessage 'Creating quickfix list for entries.'
+  else
+    AssertNeomakeMessage 'Creating location list.'
+    AssertNeomakeMessage 'Creating quickfix list.'
+  endif
 
   AssertEqual map(getloclist(0), 'v:val.text'), ['file_maker']
   AssertEqual map(getqflist(), 'v:val.text'), ['project_maker']

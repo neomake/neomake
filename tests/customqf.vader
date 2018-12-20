@@ -122,17 +122,30 @@ Execute (Sets quickfix title (location list, command maker)):
     let maker1.serialize = 1
     function! maker1.postprocess(entry)
       if has('patch-7.4.2200')
-        AssertEqual getloclist(0, {'title': 1}).title, 'Neomake[file]: custom_file (error-maker..., true-maker?)'
+        if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist"
+          AssertEqual getloclist(0, {'title': 1}).title,
+          \ 'neomake_test_init'
+        else
+          Assert getloclist(0, {'title': 1}).title
+          \ =~# '\V:\?Neomake[file]: custom_file (error-maker..., maker2?)'
+        endif
       endif
       let a:entry.bufnr = bufnr('%')
       let a:entry.lnum = 1
       return a:entry
     endfunction
 
-    let maker2 = copy(g:true_maker)
+    let maker2 = copy(g:error_maker)
+    let maker2.name = 'maker2'
     function! maker2.postprocess(entry)
       if has('patch-7.4.2200')
-        AssertEqual getloclist(0, {'title': 1}).title, 'Neomake[file]: custom_file (error-maker)'
+        if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist"
+          AssertEqual getloclist(0, {'title': 1}).title,
+          \ 'Neomake[file]: custom_file (error-maker..., maker2?)'
+        else
+          Assert getloclist(0, {'title': 1}).title
+          \ =~# '\V:\?Neomake[file]: custom_file (error-maker..., maker2?)'
+        endif
       endif
       return a:entry
     endfunction
@@ -140,17 +153,17 @@ Execute (Sets quickfix title (location list, command maker)):
     CallNeomake 1, [maker1, maker2]
 
     if has('patch-7.4.2200')
-      AssertEqual getloclist(0, {'title': 1}).title, 'Neomake[file]: custom_file (error-maker(1))'
+      AssertEqual getloclist(0, {'title': 1}).title,
+      \ 'Neomake[file]: custom_file (error-maker(1), maker2(1))'
     endif
 
     " Location list entry contains marker.
-    AssertEqualQf getloclist(0), [
-    \ {'lnum': 1, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1,
-    \  'type': 'E', 'pattern': '',
-    \  'text': 'error nmcfg:{''short'': ''errmkr'', ''name'': ''error-maker''}'}]
+    AssertEqual map(getloclist(0), 'v:val.text'), [
+    \ 'error nmcfg:{''short'': ''errmkr'', ''name'': ''error-maker''}',
+    \ 'error nmcfg:{''short'': ''make'', ''name'': ''maker2''}']
 
     lopen
-    AssertEqual w:quickfix_title, 'Neomake[file]: custom_file (error-maker(1))'
+    AssertEqual w:quickfix_title, 'Neomake[file]: custom_file (error-maker(1), maker2(1))'
     normal! G0
     doautocmd CursorMoved
     AssertEqual expand('<cWORD>'), 'error'

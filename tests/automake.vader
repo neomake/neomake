@@ -1211,14 +1211,14 @@ Execute (automake: uses single list):
   call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 0}}, 0, [maker])
   doautocmd CursorHold
   AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
-  AssertNeomakeMessage 'Creating location list.', 3
+  AssertNeomakeMessage 'Creating location list for entries.', 3
 
   normal! o
   doautocmd CursorHold
   if has('patch-8.0.1023')
     AssertNeomakeMessage 'Resetting list.', 3
   else
-    AssertNeomakeMessage 'Creating location list.', 3
+    AssertNeomakeMessage 'Creating location list for entries.', 3
   endif
   AssertEqual map(getloclist(0), 'v:val.text'), ['error2']
 
@@ -1251,7 +1251,7 @@ Execute (automake: uses single list):
     normal! o
     doautocmd CursorHold
     AssertNeomakeMessage 'Cannot re-use list (valid=0).', 3
-    AssertNeomakeMessage 'Creating location list.', 3
+    AssertNeomakeMessage 'Creating location list for entries.', 3
   else
     AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
   endif

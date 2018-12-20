@@ -207,9 +207,10 @@ Execute (Does not create list unnecessarily):
 Execute (list: error handling):
   new
   let list = neomake#list#List('loclist')
+
   let threw = 0
   try
-    call list._get_fn_args('get')
+    call list._get_loclist_win()
   catch
     AssertEqual v:exception, 'cannot handle type=loclist without make_info'
     let threw = 1
@@ -256,6 +257,8 @@ Execute (list: error handling):
 
   if has('patch-8.0.1023')
     let list.qfid = list.qfid + 1
+
+    Assert !list._has_valid_qf()
 
     let threw = 0
     try
