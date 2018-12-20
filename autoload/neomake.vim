@@ -195,8 +195,13 @@ function! neomake#CancelJob(job_id, ...) abort
     elseif has_key(jobinfo.maker, 'get_list_entries')
         call neomake#log#debug('Removing job for get_list_entries.', jobinfo)
     elseif s:async
-        let job = has('nvim') ? jobinfo.nvim_job : jobinfo.vim_job
-        call neomake#log#debug(printf('Stopping job: %s.', job), jobinfo)
+        if has('nvim')
+            let job = jobinfo.nvim_job
+            call neomake#log#debug(printf('Stopping Neovim job: %s.', job), jobinfo)
+        else
+            let job = jobinfo.vim_job
+            call neomake#log#debug(printf('Stopping Vim job: %s.', job), jobinfo)
+        endif
         if has('nvim')
             try
                 call jobstop(job)
