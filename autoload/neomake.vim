@@ -144,7 +144,7 @@ function! neomake#CancelMake(make_id, ...) abort
     let make_info = s:make_info[a:make_id]
     let make_info.canceled = 1
     let make_info.make_id = a:make_id  " for logging.
-    call neomake#log#debug('Cancelling make.', make_info)
+    call neomake#log#debug('Canceling make.', make_info)
     let bang = a:0 ? a:1 : 0
     let jobs = filter(copy(values(s:jobs)), 'v:val.make_id == a:make_id')
     for job in jobs
@@ -170,7 +170,7 @@ function! neomake#CancelJob(job_id, ...) abort
     let job_id = type(a:job_id) == type({}) ? a:job_id.id : +a:job_id
     let remove_always = a:0 ? a:1 : 0
     let jobinfo = get(s:jobs, job_id, {})
-    call neomake#log#debug('Cancelling job.', jobinfo)
+    call neomake#log#debug('Canceling job.', jobinfo)
 
     call neomake#action_queue#clean(empty(jobinfo) ? {'id': job_id} : jobinfo)
 
@@ -246,7 +246,7 @@ function! s:kill_vimjob_cb(timer) abort
 endfunction
 
 function! neomake#CancelJobs(bang) abort
-    call neomake#log#debug(printf('Cancelling %d jobs.', len(s:jobs)))
+    call neomake#log#debug(printf('Canceling %d jobs.', len(s:jobs)))
     for job in neomake#GetJobs()
         call neomake#CancelJob(job.id, a:bang)
     endfor
@@ -1192,7 +1192,7 @@ function! s:Make(options) abort
             if !empty(running_already)
                 let jobinfo = running_already[0]
                 call neomake#log#info(printf(
-                            \ 'Cancelling already running job (%d.%d) for the same maker.',
+                            \ 'Canceling already running job (%d.%d) for the same maker.',
                             \ jobinfo.make_id, jobinfo.id), {'make_id': make_id})
                 call neomake#CancelJob(jobinfo.id, 1)
             endif

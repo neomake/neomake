@@ -522,7 +522,7 @@ function! s:After()
     catch
       call add(errors, v:exception)
     endtry
-    " Ensure action_queue is empty, which might not happen via cancelling
+    " Ensure action_queue is empty, which might not happen via canceling
     " (non-existing) makes.
     call remove(status.action_queue, 0, -1)
   endif

@@ -172,7 +172,7 @@ Execute (Neomake#Make cancels previous jobs):
     AssertEqual has_key(neomake#GetStatus().make_info, make_id), 0
 
     for jobinfo in first_jobs
-      AssertNeomakeMessage printf('Cancelling already running job (%d.%d) for the same maker.',
+      AssertNeomakeMessage printf('Canceling already running job (%d.%d) for the same maker.',
       \ make_id, jobinfo.id), 2, {'make_id': make_id+1}
       AssertNeomakeMessage '\v^Stopping \w+ job: .+\.$', 3, jobinfo
     endfor
@@ -211,7 +211,7 @@ Execute (Neomake#Make cancels previous jobs (serialized)):
     AssertNeomakeMessage 'Running makers: error-maker, sleep-maker.'
     AssertEqual has_key(neomake#GetStatus().make_info, make_id), 0
 
-    AssertNeomakeMessage printf('Cancelling already running job (%d.%d) for the same maker.',
+    AssertNeomakeMessage printf('Canceling already running job (%d.%d) for the same maker.',
     \ make_id, first_jobs[0].id + 1), 2, {'make_id': make_id+1}
     AssertNeomakeMessage '\v^Stopping \w+ job: .+\.$', 3
 
@@ -246,11 +246,11 @@ Execute (Neomake#Make starts new jobs before waiting for the old to finish):
     AssertNeomakeMessage 'Running makers: sleep.'
     AssertNeomakeMessage '\m^Starting async job:'
     AssertNeomakeMessage 'Running makers: sleep.'
-    AssertNeomakeMessage '\m^Cancelling already running job'
+    AssertNeomakeMessage '\m^Canceling already running job'
     AssertNeomakeMessage '\v^Stopping \w+ job: .+\.$'
     AssertNeomakeMessage '\m^Starting async job:'
     AssertNeomakeMessage 'Running makers: sleep.'
-    AssertNeomakeMessage '\m^Cancelling already running job'
+    AssertNeomakeMessage '\m^Canceling already running job'
     AssertNeomakeMessage '\v^Stopping \w+ job: .+\.$'
     AssertNeomakeMessage '\m^Starting async job:'
     AssertNeomakeMessage '\mexit: job not found:'
@@ -258,7 +258,7 @@ Execute (Neomake#Make starts new jobs before waiting for the old to finish):
     AssertNeomakeMessage 'exit: sleep: 0.', 3, last_jobinfo, {'ignore_order': 1}
 
     let restart_messages = filter(copy(g:neomake_test_messages),
-        \ "v:val[1] =~# '\\vCancelling already running job \\(\\d+\\.\\d+\\) for the same maker.'")
+        \ "v:val[1] =~# '\\vCanceling already running job \\(\\d+\\.\\d+\\) for the same maker.'")
     AssertEqual len(restart_messages), 2, 'Jobs have not been restarted: '.string(restart_messages)
   endif
 
