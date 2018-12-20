@@ -1490,14 +1490,6 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
         endif
     endif
 
-    if create_list
-        if file_mode
-            call a:make_info.entries_list._init_qflist('Cleaning location list.')
-        else
-            call a:make_info.entries_list._init_qflist('Cleaning quickfix list.')
-        endif
-    endif
-
     let hook_context = {
                 \ 'make_id': a:make_info.options.make_id,
                 \ 'options': a:make_info.options,

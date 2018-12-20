@@ -784,3 +784,12 @@ Execute (uses only its own list (qflist)):
     AssertEqual map(getqflist(), 'v:val.text'), ['new_list_1']
   endif
   bwipe
+
+Execute (creates single list for clean maker):
+  new
+  lgetexpr 'init'
+  CallNeomake 1, [g:true_maker]
+  AssertEqual getloclist(0), []
+  silent lolder
+  AssertEqual map(getloclist(0), 'v:val.text'), ['init']
+  bwipe

@@ -208,6 +208,11 @@ endfunction
 
 function! s:base_list.finish_for_make() abort
     if self.need_init
+        if self.type ==# 'loclist'
+            call neomake#log#debug('Cleaning location list.', self.make_info.options)
+        else
+            call neomake#log#debug('Cleaning quickfix list.', self.make_info.options)
+        endif
         call self._call_qf_fn('set', [], ' ')
     endif
 
