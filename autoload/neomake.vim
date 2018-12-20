@@ -195,8 +195,13 @@ function! neomake#CancelJob(job_id, ...) abort
     elseif has_key(jobinfo.maker, 'get_list_entries')
         call neomake#log#debug('Removing job for get_list_entries.', jobinfo)
     elseif s:async
-        let job = has('nvim') ? jobinfo.nvim_job : jobinfo.vim_job
-        call neomake#log#debug(printf('Stopping job: %s.', job), jobinfo)
+        if has('nvim')
+            let job = jobinfo.nvim_job
+            call neomake#log#debug(printf('Stopping Neovim job: %s.', job), jobinfo)
+        else
+            let job = jobinfo.vim_job
+            call neomake#log#debug(printf('Stopping Vim job: %s.', job), jobinfo)
+        endif
         if has('nvim')
             try
                 call jobstop(job)
@@ -654,14 +659,6 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
             call add(make_info.tempfiles, temp_file)
         endif
         let a:jobinfo.tempfile = temp_file
-    endif
-
-    if !has_key(make_info, 'automake_tick')
-        let tick = [getbufvar(a:jobinfo.bufnr, 'changedtick'),
-                    \  a:jobinfo.ft]
-        let make_info.automake_tick = tick
-        call neomake#log#debug('Setting neomake_automake_tick.', a:jobinfo)
-        call setbufvar(a:jobinfo.bufnr, 'neomake_automake_tick', tick)
     endif
 
     let a:jobinfo.filename = bufname
@@ -1201,6 +1198,9 @@ function! s:Make(options) abort
             endif
         endfor
     endif
+
+    " Update automake tick (used to skip unchanged buffers).
+    call neomake#configure#_update_automake_tick(bufnr, options.ft)
 
     " Start all jobs in the queue (until serialized).
     let jobinfos = []
