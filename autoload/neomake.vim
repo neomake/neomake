@@ -136,23 +136,23 @@ function! neomake#ListJobs() abort
     endfor
 endfunction
 
-function! neomake#CancelMake(make_id, ...) abort
-    if !has_key(s:make_info, a:make_id)
-        call neomake#log#error('CancelMake: make not found: '.a:make_id.'.')
+function! neomake#CancelMake(...) abort
+    let make_id = a:0 ? a:1 : s:make_id
+    if !has_key(s:make_info, make_id)
+        call neomake#log#error('CancelMake: make not found: '.make_id.'.')
         return 0
     endif
-    let make_info = s:make_info[a:make_id]
-    let make_info.canceled = 1
-    let make_info.make_id = a:make_id  " for logging.
+    let bang = a:0 > 1 ? a:1 : 0
+    let make_info = s:make_info[make_id]
     call neomake#log#debug('Canceling make.', make_info)
-    let bang = a:0 ? a:1 : 0
-    let jobs = filter(copy(values(s:jobs)), 'v:val.make_id == a:make_id')
+    let make_info.canceled = 1
+    let jobs = filter(copy(values(s:jobs)), 'v:val.make_id == make_id')
     for job in jobs
         call neomake#CancelJob(job.id, bang)
     endfor
     call neomake#action_queue#clean(make_info)
     " Ensure that make gets cleaned really, e.g. if there were no jobs yet.
-    if has_key(s:make_info, a:make_id)
+    if has_key(s:make_info, make_id)
         call s:clean_make_info(make_info, bang)
     endif
     return 1
