@@ -152,7 +152,7 @@ function! neomake#CancelMake(...) abort
         call neomake#CancelJob(job.id, bang)
     endfor
     call neomake#action_queue#clean(make_info)
-    " Ensure that make gets cleaned really, e.g. if there were no jobs yet.
+    " Ensure that make info gets cleaned really, e.g. if there were no jobs yet.
     if has_key(s:make_info, make_id)
         call s:clean_make_info(make_info, bang)
     endif

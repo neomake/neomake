@@ -79,12 +79,13 @@ function! s:restart_make_for_changed_buffer(make_id, event) abort
         if make_id == a:make_id
             call s:debug_log(printf('Buffer was changed (%s), restarting make: %s',
                         \ a:event, string(a:make_id)))
-            call neomake#CancelMake(a:make_id)
-            call setbufvar(context.bufnr, 'neomake_automake_tick', prev_tick)
-            if has_key(context, '_via_timer_cb')
-                unlet context._via_timer_cb
+            if neomake#CancelMake(a:make_id)
+                call setbufvar(context.bufnr, 'neomake_automake_tick', prev_tick)
+                if has_key(context, '_via_timer_cb')
+                    unlet context._via_timer_cb
+                endif
+                call s:neomake_do_automake(context)
             endif
-            call s:neomake_do_automake(context)
 
             return
         endif
