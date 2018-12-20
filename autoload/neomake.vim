@@ -661,14 +661,6 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
         let a:jobinfo.tempfile = temp_file
     endif
 
-    if !has_key(make_info, 'automake_tick')
-        let tick = [getbufvar(a:jobinfo.bufnr, 'changedtick'),
-                    \  a:jobinfo.ft]
-        let make_info.automake_tick = tick
-        call neomake#log#debug('Setting neomake_automake_tick.', a:jobinfo)
-        call setbufvar(a:jobinfo.bufnr, 'neomake_automake_tick', tick)
-    endif
-
     let a:jobinfo.filename = bufname
     return bufname
 endfunction
@@ -1206,6 +1198,9 @@ function! s:Make(options) abort
             endif
         endfor
     endif
+
+    " Update automake tick (used to skip unchanged buffers).
+    call neomake#configure#_update_automake_tick(bufnr, options.ft)
 
     " Start all jobs in the queue (until serialized).
     let jobinfos = []

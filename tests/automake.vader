@@ -550,33 +550,39 @@ Execute (BufWritePost does not run for unchanged buffer):
   new
   let b:neomake_test_enabledmakers = ['true']
   set filetype=neomake_tests
+
+  CallNeomake 1, []
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  Assert !exists('b:neomake_automake_tick')
+
   exe 'w' tempname()
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_jobfinished), 2
+  Assert exists('b:neomake_automake_tick')
 
   w
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual len(g:neomake_test_jobfinished), 1
+  AssertEqual len(g:neomake_test_jobfinished), 2
   AssertNeomakeMessage 'automake: buffer was not changed.'
 
   normal! ifoo
   w
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual len(g:neomake_test_jobfinished), 2
+  AssertEqual len(g:neomake_test_jobfinished), 3
 
   w
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual len(g:neomake_test_jobfinished), 2
+  AssertEqual len(g:neomake_test_jobfinished), 3
   AssertNeomakeMessage 'automake: buffer was not changed.'
 
   normal! oline2
   call neomake#Make(1, [])
   NeomakeTestsWaitForFinishedJobs
-  AssertEqual len(g:neomake_test_jobfinished), 3
+  AssertEqual len(g:neomake_test_jobfinished), 4
 
   w
   AssertNeomakeMessage 'automake: buffer was not changed.'
-  AssertEqual len(g:neomake_test_jobfinished), 3
+  AssertEqual len(g:neomake_test_jobfinished), 4
   bwipe
 
 Execute (BufWritePost does not run for unchanged buffer (delayed)):
@@ -722,8 +728,8 @@ Execute (Automake restarts if popup menu is visible):
       NeomakeTestsWaitForMessage 'automake: callback for timer '.(base_timer + 2).' (via CursorHold).'
       AssertNeomakeMessage 'automake: neomake_do_automake: CursorHold.'
       AssertNeomakeMessage 'automake: tick changed (new).'
-      AssertNeomakeMessage '\vautomake: Updating tick: \d+.'
       AssertNeomakeMessage 'automake: enabled makers: true-maker.'
+      AssertNeomakeMessage '\vautomake: updating tick: \d+.'
       NeomakeTestsWaitForFinishedJobs
       bwipe!
     finally

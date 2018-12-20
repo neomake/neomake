@@ -37,7 +37,7 @@ function! s:debug_log(msg, ...) abort
 endfunction
 
 " Check if buffer's tick (or ft) changed.
-function! s:tick_changed(context, update) abort
+function! s:tick_changed(context) abort
     let bufnr = +a:context.bufnr
     let ft = get(a:context, 'ft', getbufvar(bufnr, '&filetype'))
     let prev_tick = getbufvar(bufnr, 'neomake_automake_tick')
@@ -61,12 +61,15 @@ function! s:tick_changed(context, update) abort
             endif
         endif
     endif
-    if a:update
-        let tick = getbufvar(bufnr, 'changedtick')
-        call s:debug_log('Updating tick: '.tick)
-        call setbufvar(bufnr, 'neomake_automake_tick', [tick, ft])
-    endif
     return r
+endfunction
+
+function! neomake#configure#_update_automake_tick(bufnr, ft) abort
+    if has_key(s:configured_buffers, a:bufnr)
+        let tick = getbufvar(a:bufnr, 'changedtick')
+        call s:debug_log('updating tick: '.tick)
+        call setbufvar(a:bufnr, 'neomake_automake_tick', [tick, a:ft])
+    endif
 endfunction
 
 function! s:restart_make_for_changed_buffer(make_id, event) abort
@@ -106,7 +109,7 @@ function! s:neomake_do_automake(context) abort
             call s:stop_timer(timer)
             call s:debug_log(printf('stopped existing timer: %d', timer), {'bufnr': bufnr})
         endif
-        if !s:tick_changed(a:context, 0)
+        if !s:tick_changed(a:context)
             call s:debug_log('buffer was not changed', {'bufnr': bufnr})
             return
         endif
@@ -136,7 +139,7 @@ function! s:neomake_do_automake(context) abort
 
     call s:debug_log('neomake_do_automake: '.event, {'bufnr': bufnr})
     let prev_tick = getbufvar(bufnr, 'neomake_automake_tick')
-    if !s:tick_changed({'event': event, 'bufnr': bufnr, 'ft': ft}, 1)
+    if !s:tick_changed({'event': event, 'bufnr': bufnr, 'ft': ft})
         call s:debug_log('buffer was not changed', {'bufnr': bufnr})
         return
     endif
