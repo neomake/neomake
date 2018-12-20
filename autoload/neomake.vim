@@ -142,10 +142,10 @@ function! neomake#CancelMake(...) abort
         call neomake#log#error('CancelMake: make not found: '.make_id.'.')
         return 0
     endif
+    let bang = a:0 > 1 ? a:1 : 0
     let make_info = s:make_info[make_id]
     call neomake#log#debug('Canceling make.', make_info)
     let make_info.canceled = 1
-    let bang = a:0 ? a:1 : 0
     let jobs = filter(copy(values(s:jobs)), 'v:val.make_id == make_id')
     for job in jobs
         call neomake#CancelJob(job.id, bang)
