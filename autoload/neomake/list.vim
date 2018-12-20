@@ -186,19 +186,39 @@ function! s:base_list._init_qflist(...) abort
     endif
 endfunction
 
-" Reset list, used with single-instance automake list.
+" Reset list (lazily), used with single-instance automake list.
 function! s:base_list.reset_qflist() abort
     let valid = self._has_valid_qf()
     if valid == 1
         call neomake#log#debug('Resetting list.', self.make_info.options)
-        call self._call_qf_fn('reset')
     else
         call neomake#log#debug(printf('Cannot re-use list (valid=%d).', valid),
                     \ self.make_info.options)
-        call self._init_qflist()
+        let self.need_init = 1
     endif
+    let self.need_reset = 1
     let self.entries = []
     let self.job_entries = {}
+endfunction
+
+function! s:base_list.finish_for_make() abort
+    let need_reset = get(self, 'need_reset')
+    if self.need_init && !need_reset
+        call neomake#log#debug('list: finish: skipping for unused list.',
+                    \ self.make_info.options)
+        return
+    endif
+    if !self._has_valid_qf()
+        call neomake#log#debug('list: finish: list is not valid.',
+                    \ self.make_info.options)
+        return
+    endif
+
+    call self.set_title()
+
+    if need_reset
+        call self._call_qf_fn('reset')
+    endif
 endfunction
 
 function! s:base_list._call_qf_fn(action, ...) abort
@@ -342,7 +362,12 @@ function! s:base_list._get_fn_args(action, ...) abort
 endfunction
 
 function! s:base_list._set_qflist_entries(entries, action) abort
-    call self._call_qf_fn('set', a:entries, a:action)
+    let action = a:action
+    if get(self, 'need_reset')
+        let action = 'r'
+        let self.need_reset = 0
+    endif
+    call self._call_qf_fn('set', a:entries, action)
 endfunction
 
 function! s:base_list._get_qflist_entries() abort
