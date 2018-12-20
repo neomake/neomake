@@ -3,6 +3,21 @@
 
 let s:use_efm_parsing = has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
 let s:has_support_for_qfid = has('patch-8.0.1023')
+let s:can_set_qf_title = has('patch-7.4.2200')
+let s:can_set_qf_items = has('patch-8.0.0657')
+
+
+" Do we need to replace (instead of append) the location/quickfix list, for
+" :lwindow to not open it with only invalid entries?!
+" Without patch-7.4.379 this does not work though, and a new list needs to
+" be created (which is not done).
+" @vimlint(EVL108, 1)
+let s:needs_to_replace_qf_for_lwindow = has('patch-7.4.379')
+            \ && (!has('patch-7.4.1752') || (has('nvim') && !has('nvim-0.2.0')))
+" https://github.com/vim/vim/issues/3633
+" See tests/lists.vader for patch-7.4.379.
+let s:needs_to_init_qf_for_lwindow = 1
+" @vimlint(EVL108, 0)
 
 function! neomake#list#ListForMake(make_info) abort
     let type = a:make_info.options.file_mode ? 'loclist' : 'quickfix'
@@ -43,18 +58,6 @@ let s:base_list = {
             \ }
 " Info about contained jobs.
 let s:base_list.job_entries = {}
-
-" Do we need to replace (instead of append) the location/quickfix list, for
-" :lwindow to not open it with only invalid entries?!
-" Without patch-7.4.379 this does not work though, and a new list needs to
-" be created (which is not done).
-" @vimlint(EVL108, 1)
-let s:needs_to_replace_qf_for_lwindow = has('patch-7.4.379')
-            \ && (!has('patch-7.4.1752') || (has('nvim') && !has('nvim-0.2.0')))
-" https://github.com/vim/vim/issues/3633
-" See tests/lists.vader for patch-7.4.379.
-let s:needs_to_init_qf_for_lwindow = 1
-" @vimlint(EVL108, 0)
 
 function! s:base_list.sort_by_location() dict abort
     let entries = get(self, '_sorted_entries_by_location', copy(self.entries))
@@ -219,9 +222,9 @@ function! s:base_list._call_qf_fn(action, ...) abort
         " Handle setting title, which gets done initially and when maker
         " names are updated.  This has to be done in a separate call
         " without patch-8.0.0657.
-        if has('patch-7.4.2200')
+        if s:can_set_qf_title
             let title = self._get_title()
-            if has('patch-8.0.0657')
+            if s:can_set_qf_items
                 if type(args[-1]) != type({})
                     call add(args, {'title': title, 'items': args[1]})
                 else
@@ -253,7 +256,7 @@ function! s:base_list._call_qf_fn(action, ...) abort
 endfunction
 
 function! s:base_list.set_title() abort
-    if has('patch-7.4.2200')
+    if s:can_set_qf_title
         let [fn, args] = self._get_fn_args('title', self._get_title())
         call call(fn, args)
     endif
@@ -350,7 +353,7 @@ function! s:base_list._get_fn_args(action, ...) abort
         endif
     else
         call extend(args, a:000)
-        if has('patch-8.0.0657') && a:action ==# 'set'
+        if s:can_set_qf_items && a:action ==# 'set'
             let options.items = a:1
             let args[-2] = []
         endif
