@@ -1089,9 +1089,11 @@ Execute (automake: display of error with O during maker run):
     AssertEqual neomake#GetCurrentErrorMsg(), ''
 
     NeomakeTestsWaitForMessage '\Vautomake: callback for timer \d\+ (via TextChanged).', 3
-    let make_id = neomake#GetStatus().last_make_id
+    let make_info = values(neomake#GetStatus().make_info)[0]
+    let make_id = make_info.make_id
     Assert exists('#neomake_automake_abort')
     NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Not cleaning make info yet (1 active jobs, 0 pending jobs)', 3, make_info
 
     AssertNeomakeMessage 'Processing 1 entries.', 3
     AssertNeomakeMessage 'mymaker1: completed with exit code 1.', 3

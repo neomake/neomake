@@ -1297,6 +1297,11 @@ function! s:CleanJobinfo(jobinfo, ...) abort
     " Trigger cleanup (and autocommands) if all jobs have finished.
     if empty(make_info.active_jobs) && empty(make_info.jobs_queue)
         call s:clean_make_info(make_info)
+    else
+        call neomake#log#debug(printf(
+                    \ 'Not cleaning make info yet (%d active jobs, %d pending jobs)',
+                    \ len(make_info.active_jobs), len(make_info.jobs_queue)),
+                    \ make_info.options)
     endif
     return g:neomake#action_queue#processed
 endfunction
