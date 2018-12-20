@@ -197,6 +197,8 @@ function! s:base_list.reset_qflist() abort
                     \ self.make_info.options)
         call self._init_qflist()
     endif
+    let self.entries = []
+    let self.job_entries = {}
 endfunction
 
 function! s:base_list._call_qf_fn(action, ...) abort

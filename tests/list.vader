@@ -346,3 +346,20 @@ Execute (list: title):
   call list.add_entries_for_job([{'text': 'e3', 'bufnr': bufnr('%')}], job3)
   AssertEqual list._get_title(), prefix.' (job3(1), job2...(1), job1?)'
   bwipe
+
+Execute (list: reset):
+  new
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let jobinfo.maker.errorformat = '%m'
+  let make_info = neomake#GetStatus().make_info[-42]
+  let w:neomake_make_ids = [-42]
+
+  let list = neomake#list#ListForMake(make_info)
+  call list._init_qflist()
+  call list.add_entries([
+  \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
+  \ ])
+  call list.reset_qflist()
+  AssertEqual list.entries, []
+  AssertEqual list.job_entries, {}
+  bwipe
