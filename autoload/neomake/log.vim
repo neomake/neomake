@@ -58,7 +58,11 @@ function! s:log(level, msg, ...) abort
             let test_msg = '['.s:level_to_name[a:level].']: '.msg
         endif
 
-        call vader#log(test_msg)
+        if exists('*vader#log')
+            " Might not exist with rpcrequest-based nvim test, or throw errors
+            " if called too early.
+            call vader#log(test_msg)
+        endif
         " Only keep context entries that are relevant for / used in the message.
         let context = a:0
                     \ ? extend(filter(copy(context), "index(['id', 'make_id', 'bufnr', 'winnr'], v:key) != -1"), {'winnr': winnr()}, 'keep')
