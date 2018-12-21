@@ -1624,7 +1624,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     let do_highlight = get(g:, 'neomake_highlight_columns', 1)
                 \ || get(g:, 'neomake_highlight_lines', 0)
     let signs_by_bufnr = {}
-    let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3 || !empty(get(g:, 'neomake_logfile'))
+    let debug = neomake#utils#get_verbosity(a:jobinfo) >= 3 || !empty(get(g:, 'neomake_logfile')) || s:is_testing
     let entries_with_lnum_by_bufnr = {}
     let skipped_without_bufnr = []
     let skipped_without_lnum = []
