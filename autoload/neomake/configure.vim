@@ -152,9 +152,6 @@ function! s:neomake_do_automake(context) abort
                 \ 'jobs': deepcopy(a:context.maker_jobs),
                 \ 'ft': ft,
                 \ 'automake': 1}
-    if has_key(a:context, 'entries_list')
-        let make_options.entries_list = a:context.entries_list
-    endif
     let jobinfos = neomake#Make(make_options)
 
     let started_jobs = filter(copy(jobinfos), "!get(v:val, 'finished', 0)")
@@ -459,12 +456,6 @@ function! s:configure_buffer(bufnr, ...) abort
         call setbufvar(bufnr, 'neomake_automake_tick', [])
     endif
 
-    if has('patch-8.0.1023')
-        let entries_list = neomake#list#List('loclist')
-        let entries_list.title_prefix = 'auto'
-        let s:configured_buffers[bufnr].entries_list = entries_list
-    endif
-
     if a:0
         " Setup autocommands etc (when called manually)?!
         call neomake#configure#automake()
@@ -556,9 +547,6 @@ function! s:neomake_automake(event, bufnr) abort
                 \ 'event': a:event,
                 \ 'maker_jobs': s:configured_buffers[bufnr].maker_jobs,
                 \ }
-    if has_key(s:configured_buffers[bufnr], 'entries_list')
-        let context.entries_list = s:configured_buffers[bufnr].entries_list
-    endif
     if event ==# 'BufWinEnter'
         " Ignore context, so that e.g. with vim-stay restoring the view
         " (cursor position), it will still be triggered.

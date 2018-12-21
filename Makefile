@@ -186,11 +186,12 @@ DOCKER_TAG:=37
 NEOMAKE_DOCKER_IMAGE?=
 DOCKER_IMAGE:=$(if $(NEOMAKE_DOCKER_IMAGE),$(NEOMAKE_DOCKER_IMAGE),$(DOCKER_REPO):$(DOCKER_TAG))
 DOCKER_STREAMS:=-ti
+DOCKER_ARGS:=
 DOCKER=docker run $(DOCKER_STREAMS) --rm \
     -v $(PWD):/testplugin \
     -w /testplugin \
     -e NEOMAKE_TEST_NO_COLORSCHEME \
-    $(DOCKER_IMAGE)
+    $(DOCKER_ARGS) $(DOCKER_IMAGE)
 docker_image:
 	docker build -f Dockerfile.tests -t $(DOCKER_REPO):$(DOCKER_TAG) .
 docker_push:
@@ -246,6 +247,7 @@ docker_testcoverage: _docker_test
 	sed -i 's~/testplugin/~$(CURDIR)/~g' $(COVERAGE_FILE)
 	coverage report -m
 
+docker_run: DOCKER_ARGS:=-e PATH=/vim-build/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 docker_run: $(DEP_PLUGINS)
 docker_run:
 	$(DOCKER) $(if $(DOCKER_RUN),$(DOCKER_RUN),bash)

@@ -1169,16 +1169,12 @@ function! s:Make(options) abort
 
     let w:neomake_make_ids = add(get(w:, 'neomake_make_ids', []), make_id)
 
-    " Use passed in entries_list with automake.
-    if has_key(options, 'entries_list')
-        let make_info.entries_list = options.entries_list
-        let make_info.entries_list.make_info = make_info
-        if !make_info.entries_list.need_init
-            call make_info.entries_list.reset_qflist()
+    let make_info.entries_list = neomake#list#ListForMake(make_info)
+    " Reuse existing location list window with automake.
+    if is_automake && has('patch-7.4.2200')
+        if get(getloclist(0, {'title': 1}), 'title') =~# '\V\^Neomake[auto]'
+            let make_info.entries_list.reset_existing_qflist = 1
         endif
-        unlet options.entries_list
-    else
-        let make_info.entries_list = neomake#list#ListForMake(make_info)
     endif
 
     " Cancel any already running jobs for the makers from these jobs.

@@ -1221,15 +1221,15 @@ Execute (automake: uses single list):
 
   normal! o
   doautocmd CursorHold
-  if has('patch-8.0.1023')
-    AssertNeomakeMessage 'Resetting list.', 3
+  if has('patch-7.4.2200')
+    AssertNeomakeMessage 'Reusing location list for entries.', 3
   else
     AssertNeomakeMessage 'Creating location list for entries.', 3
   endif
   AssertEqual map(getloclist(0), 'v:val.text'), ['error2']
 
   lolder
-  if has('patch-8.0.1023')
+  if has('patch-7.4.2200')
     AssertEqual map(getloclist(0), 'v:val.text'), ['init']
 
     lnewer
@@ -1237,27 +1237,90 @@ Execute (automake: uses single list):
     lgetexpr 'between'
     AssertEqual map(getloclist(0), 'v:val.text'), ['between']
 
+    " Does not re-use non-current list.
     normal! u
     doautocmd CursorHold
-    AssertNeomakeMessage 'Resetting list.', 3
-    AssertEqual map(getloclist(0), 'v:val.text'), ['between']
-
-    lolder
+    AssertNeomakeMessage 'Creating location list for entries.', 3
     AssertEqual map(getloclist(0), 'v:val.text'), ['error3']
     lopen
     AssertEqual w:quickfix_title, 'Neomake[auto]: unnamed_maker(1)'
     lclose
 
     lolder
+    AssertEqual map(getloclist(0), 'v:val.text'), ['between']
+    lopen
+    Assert w:quickfix_title !~# 'Neomake'
+    lclose
+
+    lolder
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error2']
+  else
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
+  endif
+  bwipe!
+
+Execute (automake: uses single list (efm)):
+  new
+  lgetexpr 'init'
+
+  let s:count = 0
+  let maker = copy(g:error_maker)
+  function! maker.postprocess(entry)
+    let s:count += 1
+    let a:entry.text = 'error'.s:count
+  endfunction
+
+  call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 0}}, 0, [maker])
+  doautocmd CursorHold
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
+  if has('patch-8.0.1040')
+    AssertNeomakeMessage 'Creating location list for entries.', 3
+  else
+    AssertNeomakeMessage 'Creating location list.', 3
+  endif
+
+  normal! o
+  doautocmd CursorHold
+  NeomakeTestsWaitForFinishedJobs
+  if has('patch-7.4.2200')
+    AssertNeomakeMessage 'Reusing location list for entries.', 3
+  else
+    AssertNeomakeMessage 'Creating location list.', 3
+  endif
+  AssertEqual map(getloclist(0), 'v:val.text'), ['error2']
+
+  lolder
+  if has('patch-7.4.2200')
     AssertEqual map(getloclist(0), 'v:val.text'), ['init']
 
-    for i in range(10)
-      lgetexpr 'new'
-    endfor
-    normal! o
+    lnewer
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error2']
+    lgetexpr 'between'
+    AssertEqual map(getloclist(0), 'v:val.text'), ['between']
+
+    " Does not re-use non-current list.
+    normal! u
     doautocmd CursorHold
-    AssertNeomakeMessage 'Cannot re-use list (valid=0).', 3
-    AssertNeomakeMessage 'Creating location list for entries.', 3
+    NeomakeTestsWaitForFinishedJobs
+    if has('patch-8.0.1040')
+      AssertNeomakeMessage 'Creating location list for entries.', 3
+    else
+      AssertNeomakeMessage 'Creating location list.', 3
+    endif
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error3']
+    lopen
+    AssertEqual w:quickfix_title, 'Neomake[auto]: error-maker(1)'
+    lclose
+
+    lolder
+    AssertEqual map(getloclist(0), 'v:val.text'), ['between']
+    lopen
+    Assert w:quickfix_title !~# 'Neomake'
+    lclose
+
+    lolder
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error2']
   else
     AssertEqual map(getloclist(0), 'v:val.text'), ['error1']
   endif

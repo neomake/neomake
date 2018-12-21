@@ -142,7 +142,7 @@ if [ "$1" = vader ]; then
           fi
         fi
         last_start_match="${BASH_REMATCH[2]}"
-      elif [[ "$REPLY" == *'Success/Total: '* || "$REPLY" == '  Slowests tests:' ]]; then
+      elif [[ "$REPLY" == *'Success/Total: '* || "$REPLY" == '  Slowest tests:' ]]; then
         echo "$REPLY"
         filtering=0
         filtered=
