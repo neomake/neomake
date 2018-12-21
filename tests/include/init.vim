@@ -613,8 +613,12 @@ function! s:After()
   endif
 
   if !empty(errors)
-    call map(errors, "printf('%d. %s', v:key+1, v:val)")
-    throw len(errors)." error(s) in teardown:\n".join(errors, "\n")
+    if get(g:, 'vader_case_ok', 1)
+      call map(errors, "printf('%d. %s', v:key+1, v:val)")
+      throw len(errors)." error(s) in teardown:\n".join(errors, "\n")
+    else
+      Log printf('NOTE: %d error(s) in teardown.', len(errors))
+    endif
   endif
   echom ''
 endfunction
