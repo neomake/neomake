@@ -6,7 +6,6 @@ let s:has_support_for_qfid = has('patch-8.0.1023')
 let s:can_set_qf_title = has('patch-7.4.2200')
 let s:can_set_qf_items = has('patch-8.0.0657')
 
-
 " Do we need to replace (instead of append) the location/quickfix list, for
 " :lwindow to not open it with only invalid entries?!
 " Without patch-7.4.379 this does not work though, and a new list needs to
@@ -163,8 +162,8 @@ function! s:base_list._get_title() abort
         call add(maker_info, info)
     endfor
     let maker_info_str = join(maker_info, ', ')
-    if has_key(self, 'title_prefix')
-        let prefix = self.title_prefix
+    if get(self.make_info.options, 'automake')
+        let prefix = 'auto'
         let bufnr = 0
     elseif self.make_info.options.file_mode
         let prefix = 'file'
@@ -174,32 +173,6 @@ function! s:base_list._get_title() abort
         let bufnr = 0
     endif
     return neomake#list#get_title(prefix, bufnr, maker_info_str)
-endfunction
-
-function! s:base_list._init_qflist() abort
-    if self.type ==# 'loclist'
-        let msg = 'Creating location list.'
-    else
-        let msg = 'Creating quickfix list.'
-    endif
-    call neomake#log#debug(msg, self.make_info.options)
-    call self._call_qf_fn('set', [], ' ')
-    let self.need_init = 0
-endfunction
-
-" Reset list (lazily), used with single-instance automake list.
-function! s:base_list.reset_qflist() abort
-    let valid = self._has_valid_qf()
-    if valid == 1
-        call neomake#log#debug('Resetting list.', self.make_info.options)
-    else
-        call neomake#log#debug(printf('Cannot re-use list (valid=%d).', valid),
-                    \ self.make_info.options)
-        let self.need_init = 1
-    endif
-    let self.need_reset = 1
-    let self.entries = []
-    let self.job_entries = {}
 endfunction
 
 function! s:base_list.finish_for_make() abort
@@ -219,15 +192,20 @@ function! s:base_list.finish_for_make() abort
     endif
 
     call self.set_title()
-
-    if get(self, 'need_reset')
-        call self._call_qf_fn('reset')
-    endif
 endfunction
 
 function! s:base_list._call_qf_fn(action, ...) abort
     let [fn, args] = call(self._get_fn_args, [a:action] + a:000, self)
     if a:action ==# 'set'
+        if self.need_init && get(self, 'reset_existing_qflist')
+            let args[2] = 'r'  " action
+            if self.type ==# 'loclist'
+                let msg = 'Reusing location list for entries.'
+            else
+                let msg = 'Reusing quickfix list for entries.'
+            endif
+            call neomake#log#debug(msg, self.make_info.options)
+        endif
         " Handle setting title, which gets done initially and when maker
         " names are updated.  This has to be done in a separate call
         " without patch-8.0.0657.
@@ -375,7 +353,7 @@ endfunction
 
 function! s:base_list._set_qflist_entries(entries, action) abort
     let action = a:action
-    if self.need_init
+    if self.need_init && !get(self, 'reset_existing_qflist')
         if self.type ==# 'loclist'
             let msg = 'Creating location list for entries.'
         else
@@ -388,9 +366,6 @@ function! s:base_list._set_qflist_entries(entries, action) abort
         else
             let action = ' '
         endif
-    elseif get(self, 'need_reset')
-        let action = 'r'
-        let self.need_reset = 0
     endif
     call self._call_qf_fn('set', a:entries, action)
 endfunction
@@ -527,7 +502,13 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         endif
     else
         if self.need_init
-            call self._init_qflist()
+            if self.type ==# 'loclist'
+                let msg = 'Creating location list.'
+            else
+                let msg = 'Creating quickfix list.'
+            endif
+            call neomake#log#debug(msg, self.make_info.options)
+            call self._call_qf_fn('set', [], ' ')
         endif
         let olderrformat = &errorformat
         let &errorformat = maker.errorformat

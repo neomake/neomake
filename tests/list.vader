@@ -223,7 +223,7 @@ Execute (list: error handling):
 
   let threw = 0
   try
-    call list._get_fn_args('init', [])
+    call list._get_fn_args('get')
   catch
     let threw = 1
     AssertEqual v:exception, 'Neomake: could not find location list for make_id -42.'
@@ -248,12 +248,11 @@ Execute (list: error handling):
 
     new
     let w:neomake_make_ids = [-42]
-    call list._get_fn_args('init', [])
+    call list._get_fn_args('get')
     wincmd p
   endif
   Assert !has_key(list, 'qfid')
-  call list._init_qflist()
-  call list._get_fn_args('get')
+  call list._call_qf_fn('set', [], ' ')
 
   if has('patch-8.0.1023')
     let list.qfid = list.qfid + 1
@@ -353,21 +352,4 @@ Execute (list: title):
   AssertEqual neomake#list#get_title('prefix', 0, 'maker_info'), 'Neomake[prefix]: maker_info'
   AssertEqual neomake#list#get_title('', 0, ''), 'Neomake'
   AssertEqual neomake#list#get_title('prefix', 0, ''), 'Neomake[prefix]'
-  bwipe
-
-Execute (list: reset):
-  new
-  let jobinfo = NeomakeTestsFakeJobinfo()
-  let jobinfo.maker.errorformat = '%m'
-  let make_info = neomake#GetStatus().make_info[-42]
-  let w:neomake_make_ids = [-42]
-
-  let list = neomake#list#ListForMake(make_info)
-  call list._init_qflist()
-  call list.add_entries([
-  \ {'lnum': 1, 'col': 1, 'bufnr': 1, 'type': 'W'},
-  \ ])
-  call list.reset_qflist()
-  AssertEqual list.entries, []
-  AssertEqual list.job_entries, {}
   bwipe
