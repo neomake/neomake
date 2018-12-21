@@ -1147,7 +1147,6 @@ Execute (automake: restarts (BufWritePost)):
       let s:error_count += 1
       if s:error_count == 1
         doautocmd TextChangedI
-      elseif s:error_count == 2
         doautocmd TextChanged
       endif
       return [{'lnum': 1, 'text': 'error1:'.s:error_count}]
@@ -1160,7 +1159,6 @@ Execute (automake: restarts (BufWritePost)):
     AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
     let make_id = neomake#GetStatus().last_make_id
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual neomake#GetCurrentErrorMsg(), ''
 
     AssertNeomakeMessage 'automake: Buffer was changed (TextChangedI), restarting make: '.make_id.'.', 3
     AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
@@ -1169,7 +1167,7 @@ Execute (automake: restarts (BufWritePost)):
     AssertNeomakeMessage 'Processing 1 entries.', 3
     AssertNeomakeMessage 'mymaker1: completed with exit code 1.', 3
 
-    AssertEqual map(getloclist(0), 'v:val.text'), ['error1:3']
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error1:2']
     bwipe!
   endif
 
