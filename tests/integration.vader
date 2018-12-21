@@ -282,7 +282,7 @@ Execute (Neomake: handle wiped buffer without output):
     AssertEqual len(g:neomake_test_jobfinished), 1
     AssertEqual len(g:neomake_test_finished), 1
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfo
-    AssertNeomakeMessage 'File-level errors cleaned.', 3, make_info.options
+    AssertNeomakeMessage 'File-level errors cleaned.', 3, make_info
     AssertNeomakeMessage 'No buffer found for location list!', 2, {'make_id': jobinfo.make_id, 'bufnr': jobinfo.bufnr}
     AssertNeomakeMessage 'Cleaning make info.', 3
     AssertEqual getloclist(0)[0].text, 'init_loclist'
@@ -442,6 +442,7 @@ Execute (NeomakeListJobs with job cancellation):
 
   let info = split(neomake#utils#redir('NeomakeListJobs'), '\n')
   if neomake#has_async_support()
+    let make_info_3 = neomake#GetStatus().make_info[job3.make_id]
     AssertEqual info, [
     \        'make_id | job_id | name/maker',
     \ printf('%7d | %6d | cmd maker 1', job1.make_id, job1.id),
@@ -465,9 +466,8 @@ Execute (NeomakeListJobs with job cancellation):
     exe "normal! \<Esc>"
     " flaky on vim-master?!
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, job3, {'ignore_order': 1}
-    let log_context = {'make_id': job3.make_id, 'bufnr': bufnr('%')}
-    AssertNeomakeMessage 'Postponing final location list handling for mode "V".', 3, log_context
-    AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for CursorHold, WinEnter.', 3, log_context
+    AssertNeomakeMessage 'Postponing final location list handling for mode "V".', 3, make_info_3
+    AssertNeomakeMessage 'Queuing action handle_locqf_list_for_finished_jobs for CursorHold, WinEnter.', 3, make_info_3
     AssertNeomakeMessage 'Skipping cleaning of make info for queued actions.', 3
 
     doautocmd CursorHold

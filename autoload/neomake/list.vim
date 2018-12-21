@@ -178,16 +178,15 @@ endfunction
 function! s:base_list.finish_for_make() abort
     if self.need_init
         if self.type ==# 'loclist'
-            call neomake#log#debug('Cleaning location list.', self.make_info.options)
+            call neomake#log#debug('Cleaning location list.', self.make_info)
         else
-            call neomake#log#debug('Cleaning quickfix list.', self.make_info.options)
+            call neomake#log#debug('Cleaning quickfix list.', self.make_info)
         endif
         call self._call_qf_fn('set', [], ' ')
     endif
 
     if !self._has_valid_qf()
-        call neomake#log#debug('list: finish: list is not valid.',
-                    \ self.make_info.options)
+        call neomake#log#debug('list: finish: list is not valid.', self.make_info)
         return
     endif
 
@@ -204,7 +203,7 @@ function! s:base_list._call_qf_fn(action, ...) abort
             else
                 let msg = 'Reusing quickfix list for entries.'
             endif
-            call neomake#log#debug(msg, self.make_info.options)
+            call neomake#log#debug(msg, self.make_info)
         endif
         " Handle setting title, which gets done initially and when maker
         " names are updated.  This has to be done in a separate call
@@ -272,7 +271,7 @@ function! s:base_list._get_loclist_win() abort
         throw 'cannot handle type=loclist without make_info'
     endif
     let loclist_win = 0
-    let make_id = self.make_info.options.make_id
+    let make_id = self.make_info.make_id
     " NOTE: prefers using 0 for when winid is not supported with
     " setloclist() yet (vim74-xenial).
     if index(get(w:, 'neomake_make_ids', []), make_id) == -1
@@ -359,7 +358,7 @@ function! s:base_list._set_qflist_entries(entries, action) abort
         else
             let msg = 'Creating quickfix list for entries.'
         endif
-        call neomake#log#debug(msg, self.make_info.options)
+        call neomake#log#debug(msg, self.make_info)
 
         if s:needs_to_init_qf_for_lwindow
             call self._call_qf_fn('set', [], ' ')
@@ -381,7 +380,7 @@ endfunction
 
 " Append entries to location/quickfix list.
 function! s:base_list._appendlist(entries, jobinfo) abort
-    call neomake#log#debug(printf('Adding %d list entries.', len(a:entries)), self.make_info.options)
+    call neomake#log#debug(printf('Adding %d list entries.', len(a:entries)), self.make_info)
 
     let set_entries = a:entries
     let action = 'a'
@@ -507,7 +506,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
             else
                 let msg = 'Creating quickfix list.'
             endif
-            call neomake#log#debug(msg, self.make_info.options)
+            call neomake#log#debug(msg, self.make_info)
             call self._call_qf_fn('set', [], ' ')
         endif
         let olderrformat = &errorformat

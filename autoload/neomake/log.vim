@@ -38,6 +38,12 @@ function! s:log(level, msg, ...) abort
     endif
 
     if a:0
+        if has_key(a:1, 'options')
+            let context = copy(a:1.options)
+            let context.make_id = a:1.make_id
+        else
+            let context = copy(a:1)
+        endif
         let msg = printf('[%s.%s:%s:%d] %s',
                     \ get(context, 'make_id', '-'),
                     \ get(context, 'id', '-'),
