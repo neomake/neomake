@@ -85,11 +85,12 @@ function! s:restart_make_for_changed_buffer(make_id, event) abort
                     unlet context._via_timer_cb
                 endif
                 call s:neomake_do_automake(context)
-            endif
 
-            return
+                return
+            endif
+        else
+            call neomake#log#warning(printf('automake: restart_make_for_changed_buffer: mismatched make_id, not restarting: %d != %d.', make_id, a:make_id))
         endif
-        call neomake#log#warning(printf('automake: restart_make_for_changed_buffer: mismatched make_id, not restarting: %d != %d.', make_id, a:make_id))
     endif
 
     " Cleanup.
