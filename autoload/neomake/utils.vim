@@ -369,8 +369,9 @@ endif
 
 function! s:handle_hook(jobinfo, event, context) abort
     let context_str = string(map(copy(a:context),
-                \ "v:key ==# 'jobinfo' ? v:val.as_string()"
-                \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
+                \ "v:key ==# 'make_info' ? 'make_info #'.get(v:val, 'make_id')"
+                \ .": (v:key ==# 'jobinfo' ? v:val.as_string()"
+                \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val))"))
 
     if exists('g:neomake_hook_context')
         call neomake#log#debug(printf('Queuing User autocmd %s for nested invocation (%s).', a:event, context_str),
