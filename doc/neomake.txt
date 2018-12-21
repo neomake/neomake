@@ -216,7 +216,8 @@ This can also be configured as setting: >
     endfunction
     call neomake#config#set('ft.python.InitForJob', function('CustomExe'))
 <
-
+                                                          *neomake-makers-exe*
+                                                         *neomake-makers-args*
 `exe` has to be a string, while `args` can be a list or a string.
 If `args` is a list, entries like '%' and '%:p' will be |expand()|ed, and
 quoting/escaping is applied automatically.  If you want to handle escaping
