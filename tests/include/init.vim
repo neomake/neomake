@@ -321,13 +321,16 @@ function! NeomakeTestsFakeJobinfo() abort
   let s:jobinfo_count += 1
   let make_id = -42
   let jobinfo = copy(g:neomake#jobinfo#base)
+  let maker = copy(g:neomake#config#_defaults.maker_defaults)
+  let maker.name = 'fake_jobinfo_name'
+
   call extend(jobinfo, {
         \ 'id': s:jobinfo_count,
         \ 'file_mode': 1,
         \ 'bufnr': bufnr('%'),
         \ 'ft': '',
         \ 'make_id': make_id,
-        \ 'maker': {'name': 'fake_jobinfo_name'},
+        \ 'maker': maker,
         \ })
   let make_info = neomake#GetStatus().make_info
   let make_info[make_id] = {
