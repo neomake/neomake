@@ -1507,6 +1507,9 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
                 \ 'finished_jobs': a:make_info.finished_jobs,
                 \ }
     call neomake#utils#hook('NeomakeFinished', hook_context)
+
+    call neomake#configure#_reset_automake_cancelations(a:make_info.options.bufnr)
+
     call s:do_clean_make_info(a:make_info)
     return g:neomake#action_queue#processed
 endfunction

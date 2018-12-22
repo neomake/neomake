@@ -72,6 +72,23 @@ function! neomake#configure#_update_automake_tick(bufnr, ft) abort
     endif
 endfunction
 
+function! neomake#configure#_reset_automake_cancelations(bufnr) abort
+    if has_key(s:configured_buffers, a:bufnr)
+        call setbufvar(a:bufnr, '_neomake_cancelations', [0, 0])
+    endif
+endfunction
+
+function! s:update_cancel_rate(bufnr, via_timer) abort
+    let canceled = getbufvar(a:bufnr, '_neomake_cancelations', [0, 0])
+    if a:via_timer
+        let canceled[0] += 1
+    else
+        let canceled[1] += 1
+    endif
+    call setbufvar(a:bufnr, '_neomake_cancelations', canceled)
+    return canceled
+endfunction
+
 function! s:restart_make_for_changed_buffer(make_id, event) abort
     let window_make_ids = get(w:, 'neomake_make_ids', [])
     if !empty(window_make_ids)
@@ -80,6 +97,7 @@ function! s:restart_make_for_changed_buffer(make_id, event) abort
             call s:debug_log(printf('Buffer was changed (%s), restarting make: %s',
                         \ a:event, string(a:make_id)))
             if neomake#CancelMake(a:make_id)
+                call s:update_cancel_rate(context.bufnr, 0)
                 call setbufvar(context.bufnr, 'neomake_automake_tick', prev_tick)
                 if has_key(context, '_via_timer_cb')
                     unlet context._via_timer_cb
@@ -110,6 +128,7 @@ function! s:neomake_do_automake(context) abort
             let timer = s:timer_by_bufnr[bufnr]
             call s:stop_timer(timer)
             call s:debug_log(printf('stopped existing timer: %d', timer), {'bufnr': bufnr})
+            call s:update_cancel_rate(bufnr, 1)
         endif
         if !s:tick_changed(a:context)
             call s:debug_log('buffer was not changed', {'bufnr': bufnr})
@@ -123,15 +142,30 @@ function! s:neomake_do_automake(context) abort
             for prev_make_id in prev_make_ids
                 call neomake#CancelMake(prev_make_id)
             endfor
+            let canceled = s:update_cancel_rate(bufnr, 0)
+        else
+            let canceled = getbufvar(bufnr, '_neomake_cancelations', [0, 0])
         endif
 
-        let timer = timer_start(a:context.delay, function('s:automake_delayed_cb'))
+        let delay = a:context.delay
+
+        " Increase delay for canceled/restarted timers, and canceled makes.
+        " IDEA: take into account the mean duration of this make run.
+        if canceled[0] || canceled[1]
+            let ft = getbufvar(bufnr, '&filetype')
+            let [mult_timers, mult_makes, max_delay] = neomake#config#get('automake.cancelation_delay', [0.2, 0.5, 3000], {'bufnr': bufnr})
+            let cancel_rate = 1 + (canceled[0]*mult_timers + canceled[1]*mult_makes)
+            let delay = min([max_delay, float2nr(delay * cancel_rate)])
+            call s:debug_log(printf('increasing delay (%d/%d canceled timers/makes, rate=%.2f): %d => %d/%d', canceled[0], canceled[1], cancel_rate, a:context.delay, delay, max_delay))
+        endif
+
+        let timer = timer_start(delay, function('s:automake_delayed_cb'))
         let s:timer_info[timer] = a:context
         if !has_key(a:context, 'pos')
             let s:timer_info[timer].pos = s:get_position_context()
         endif
         let s:timer_by_bufnr[bufnr] = timer
-        call s:debug_log(printf('started timer (%dms): %d', a:context.delay, timer),
+        call s:debug_log(printf('started timer (%dms): %d', delay, timer),
                     \ {'bufnr': a:context.bufnr})
         return
     endif
