@@ -152,7 +152,6 @@ function! s:neomake_do_automake(context) abort
         " Increase delay for canceled/restarted timers, and canceled makes.
         " IDEA: take into account the mean duration of this make run.
         if canceled[0] || canceled[1]
-            let ft = getbufvar(bufnr, '&filetype')
             let [mult_timers, mult_makes, max_delay] = neomake#config#get('automake.cancelation_delay', [0.2, 0.5, 3000], {'bufnr': bufnr})
             let cancel_rate = 1 + (canceled[0]*mult_timers + canceled[1]*mult_makes)
             let delay = min([max_delay, float2nr(delay * cancel_rate)])
