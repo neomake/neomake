@@ -495,7 +495,11 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
 
     if s:use_efm_parsing
         let efm = a:jobinfo.maker.errorformat
-        let parsed_entries = getqflist({'lines': a:lines, 'efm': efm}).items
+        let parsed_entries = get(getqflist({'lines': a:lines, 'efm': efm}), 'items', -1)
+        if parsed_entries is -1
+            call neomake#log#error(printf('Failed to get items via efm-parsing. Invalid errorformat? (%s)', efm), a:jobinfo)
+            let parsed_entries = getqflist({'lines': a:lines, 'efm': &errorformat}).items
+        endif
         if empty(parsed_entries)
             return []
         endif
@@ -510,7 +514,11 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
             call self._call_qf_fn('set', [], ' ')
         endif
         let olderrformat = &errorformat
-        let &errorformat = maker.errorformat
+        try
+            let &errorformat = maker.errorformat
+        catch
+            call neomake#log#error(printf('Failed to set errorformat (%s): %s.', string(maker.errorformat), v:exception), a:jobinfo)
+        endtry
         try
             if file_mode
                 let cmd = 'laddexpr'
