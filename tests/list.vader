@@ -353,3 +353,28 @@ Execute (list: title):
   AssertEqual neomake#list#get_title('', 0, ''), 'Neomake'
   AssertEqual neomake#list#get_title('prefix', 0, ''), 'Neomake[prefix]'
   bwipe
+
+Execute (list: handles invalid errorformat):
+  Save &errorformat
+  new
+
+  " NOTE: needs to be global for lgetexpr.
+  set errorformat=foo:%m:%l
+
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let make_info = neomake#GetStatus().make_info[-42]
+  let w:neomake_make_ids = [-42]
+
+  let list = neomake#list#ListForMake(make_info)
+
+  let jobinfo.maker.errorformat = ['invalid']
+  call list.add_lines_with_efm(['foo:msg:42'], jobinfo)
+  if has('patch-8.0.1040')
+    AssertNeomakeMessage "Failed to get items via efm-parsing. Invalid errorformat? (['invalid'])", 0, jobinfo
+  else
+    AssertNeomakeMessage "\\VFailed to set errorformat (['invalid']): \\.\\*", 0, jobinfo
+  endif
+
+  " Falls back to default errorformat.
+  AssertEqual map(getloclist(0), '[v:val.text, v:val.lnum]'), [['msg', 42]]
+  bwipe
