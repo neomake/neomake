@@ -509,7 +509,7 @@ Execute (custom qf gets disabled with manual setloclist()):
     AssertEqual s:au_called, ['qf']
 
     AssertNeomakeMessage 'Resetting custom qf for non-Neomake change.', 3
-    AssertNeomakeMessage 'Cleaning 1 old signs in buffer '.ll_bufnr.'.'
+    AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': ll_bufnr}
     AssertEqual b:current_syntax, 'qf'
     AssertEqual neomake#signs#by_lnum(ll_bufnr), {}
     Assert empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are no existing matches.'
