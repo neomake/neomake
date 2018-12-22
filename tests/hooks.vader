@@ -14,7 +14,7 @@ Execute (Hook execution gets logged):
 
   AssertNeomakeMessage '\mCalling User autocmd NeomakeFinished with context: {''options'': ', 2
   AssertEqual map(copy(g:neomake_test_finished), 'sort(keys(v:val))'), [
-  \ ['finished_jobs', 'make_id', 'options']]
+  \ ['finished_jobs', 'make_id', 'make_info', 'options']]
 
 Execute (NeomakeJobFinished):
   if NeomakeAsyncTestsSetup()

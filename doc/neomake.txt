@@ -940,6 +940,8 @@ have finished.
 You can use this to e.g. close an empty location or quickfix window.
 Context:
  - `g:neomake_hook_context`: a dictionary with the following keys:
+   - `make_info`: make info, which contains all of the entries from below,
+     plus some more.  (The object itself is not documented yet)
    - `make_id`: the numeric ID of the make run.
    - `options`: a dictionary (related to |neomake-object-jobinfo|):
      - `file_mode`
