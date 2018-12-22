@@ -132,6 +132,10 @@ Execute (Instantiate all default makers):
   " NOTE: not using a list to support older Vim (on Travis).
   let ft_makers = split(call('glob', glob_args[0:-2]), '\n')
 
+  " For vim makers' EnabledMakers to use neomake_checks.
+  new
+  noautocmd edit autoload/neomake/makers/ft/vim.vim
+
   let errors_by_file = {}
   let file_errors = []
   for maker_file in ft_makers
@@ -144,6 +148,12 @@ Execute (Instantiate all default makers):
     let f = 'neomake#makers#ft#'.ft.'#EnabledMakers'
     try
       let enabled_makers = call(f, [])
+    catch /^Vim(let):E119:/
+      try
+        let enabled_makers = call(f, [{'file_mode': 1, 'bufnr': bufnr('%')}])
+      catch
+        call add(file_errors, 'Error when calling '.f.'(options): '.v:exception)
+      endtry
     catch
       call add(file_errors, 'Error when calling '.f.': '.v:exception)
     endtry
@@ -222,6 +232,7 @@ Execute (Instantiate all default makers):
     Assert 0, "Errors when loading makers (per file):".msg
   endif
   AssertEqual exists('*neomake#makers#ft#neomake_tests#EnabledMakers'), 1
+  bwipe
 
 Execute (neomake#GetEnabledMakers without make_id):
   Save g:neomake_myft_enabled_makers
