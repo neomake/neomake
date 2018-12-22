@@ -224,7 +224,7 @@ Execute (Goes back to original window after opening list (wincmd in postprocess)
     let make_info = values(neomake#GetStatus().make_info)[0]
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'processing 1 lines of output.'
-    let log_context = copy(make_info)
+    let log_context = deepcopy(make_info)
     if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
       let log_context.options.winnr = winnr-1
       AssertNeomakeMessage 'Creating location list for entries.', 3, log_context

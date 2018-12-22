@@ -1087,6 +1087,8 @@ function! s:Make(options) abort
                 \ 'bufnr': bufnr('%'),
                 \ 'ft': &filetype,
                 \ }, 'keep')
+    let options.make_id = make_id  " Deprecated.
+    lockvar 1 options
     let bufnr = options.bufnr
     let file_mode = options.file_mode
 
@@ -1114,7 +1116,6 @@ function! s:Make(options) abort
     " Use pre-compiled jobs (used with automake).
     if has_key(options, 'jobs')
         let jobs = map(copy(options.jobs), "extend(v:val, {'make_id': make_id})")
-        unlet options.jobs
     else
         if has_key(options, 'enabled_makers')
             if file_mode
@@ -1122,7 +1123,6 @@ function! s:Make(options) abort
             else
                 let makers = neomake#map_makers(options.enabled_makers, -1, 0)
             endif
-            unlet options.enabled_makers
         else
             let makers = call('neomake#GetEnabledMakers', file_mode ? [options.ft] : [])
             if empty(makers)
