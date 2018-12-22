@@ -168,6 +168,25 @@ battery: >
     call neomake#configure#automake('nrw', 1000)
   endif
 <
+                                              *neomake-automake-dynamic-delay*
+The automake delay gets adjusted dynamically when timers or make runs get
+aborted.  This is meant to support the use case where you are doing multiple
+changes in succession (e.g. |undo|).
+This can be controlled with the experimental `automake.cancelation_delay`
+setting, which has to be a list: >
+  call neomake#configure('automake.cancelation_delay', [0.2, 0.5, 3000])
+>
+The first value gets multiplied with the number of restarted timers (before a
+make was triggered).
+The second value gets multiplied with canceled/restarted make runs.
+The sum of those values plus 1 gets multiplied with the original/configured
+delay.  The third value is used as a maximum.
+With the default settings from above this means that given a default delay of
+500ms, 7 restarted timer, and 1 restarted make run, it would use a delay of
+`(7*0.2 + 1*0.5 + 1) * 500 = 1450`.
+The counts for restarted timers and make runs gets reset once a make run
+finishes.
+
 Makers                                                        *neomake-makers*
 A maker is an object that tells Neomake how to run a job for you.
 
