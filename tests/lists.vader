@@ -224,10 +224,13 @@ Execute (Goes back to original window after opening list (wincmd in postprocess)
     let make_info = values(neomake#GetStatus().make_info)[0]
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'processing 1 lines of output.'
+    let log_context = deepcopy(make_info)
     if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
-      AssertNeomakeMessage 'Creating location list for entries.', 3, extend(copy(make_info.options), {'winnr': winnr-1})
+      let log_context.options.winnr = winnr-1
+      AssertNeomakeMessage 'Creating location list for entries.', 3, log_context
     else
-      AssertNeomakeMessage 'Creating location list.', 3, extend(copy(make_info.options), {'winnr': winnr})
+      let log_context.options.winnr = winnr
+      AssertNeomakeMessage 'Creating location list.', 3, log_context
     endif
     AssertNeomakeMessage 'Postponing location list processing.', 3, jobinfo
     AssertNeomakeMessage 'Queuing action ProcessEntries for BufEnter, WinEnter.', 3

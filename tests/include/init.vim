@@ -331,6 +331,7 @@ function! NeomakeTestsFakeJobinfo() abort
         \ })
   let make_info = neomake#GetStatus().make_info
   let make_info[make_id] = {
+        \ 'make_id': make_id,
         \ 'options': jobinfo,
         \ 'verbosity': get(g:, 'neomake_verbose', 1),
         \ 'jobs_queue': [jobinfo],
