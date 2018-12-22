@@ -89,31 +89,44 @@ function! s:update_cancel_rate(bufnr, via_timer) abort
     return canceled
 endfunction
 
-function! s:restart_make_for_changed_buffer(make_id, event) abort
+function! s:handle_changed_buffer(make_id, event) abort
     let window_make_ids = get(w:, 'neomake_make_ids', [])
     if !empty(window_make_ids)
-        let [make_id, prev_tick, context] = b:_neomake_restart_automake_context
+        let [make_id, prev_tick, context] = b:_neomake_automake_changed_context
         if make_id == a:make_id
-            call s:debug_log(printf('Buffer was changed (%s), restarting make: %s',
-                        \ a:event, string(a:make_id)))
+            if a:event ==# 'TextChangedI'
+                call s:debug_log(printf('buffer was changed (%s), restarting make on InsertLeave', a:event), {'make_id': a:make_id})
+            elseif context.delay
+                call s:debug_log(printf('buffer was changed (%s), restarting timer for original event %s', a:event, context.event), {'make_id': a:make_id})
+            else
+                call s:debug_log(printf('buffer was changed (%s), aborting make', a:event), {'make_id': a:make_id})
+            endif
+
             if neomake#CancelMake(a:make_id)
+                if a:event ==# 'TextChangedI'
+                    let b:_neomake_postponed_automake_context = [1, context]
+                    augroup neomake_automake_retry
+                        au! * <buffer>
+                        autocmd InsertLeave <buffer> call s:do_postponed_automake(2)
+                    augroup END
+                elseif context.delay
+                    if has_key(context, '_via_timer_cb')
+                        unlet context._via_timer_cb
+                    endif
+                    call s:neomake_do_automake(context)
+                endif
                 call s:update_cancel_rate(context.bufnr, 0)
                 call setbufvar(context.bufnr, 'neomake_automake_tick', prev_tick)
-                if has_key(context, '_via_timer_cb')
-                    unlet context._via_timer_cb
-                endif
-                call s:neomake_do_automake(context)
-
                 return
             endif
         else
-            call neomake#log#warning(printf('automake: restart_make_for_changed_buffer: mismatched make_id, not restarting: %d != %d.', make_id, a:make_id))
+            call neomake#log#warning(printf('automake: handle_changed_buffer: mismatched make_id: %d != %d.', make_id, a:make_id))
         endif
     endif
 
     " Cleanup.
-    if exists('b:_neomake_restart_automake_context')
-        unlet b:_neomake_restart_automake_context
+    if exists('b:_neomake_automake_changed_context')
+        unlet b:_neomake_automake_changed_context
         augroup neomake_automake_abort
             au! * <buffer>
         augroup END
@@ -154,7 +167,7 @@ function! s:neomake_do_automake(context) abort
         if canceled[0] || canceled[1]
             let [mult_timers, mult_makes, max_delay] = neomake#config#get('automake.cancelation_delay', [0.2, 0.5, 3000], {'bufnr': bufnr})
             let cancel_rate = 1 + (canceled[0]*mult_timers + canceled[1]*mult_makes)
-            let delay = min([max_delay, float2nr(delay * cancel_rate)])
+            let delay = min([max_delay, float2nr(ceil(delay * cancel_rate))])
             call s:debug_log(printf('increasing delay (%d/%d canceled timers/makes, rate=%.2f): %d => %d/%d', canceled[0], canceled[1], cancel_rate, a:context.delay, delay, max_delay))
         endif
 
@@ -201,11 +214,11 @@ function! s:neomake_do_automake(context) abort
                 call add(events, event)
             endif
         endfor
-        call setbufvar(bufnr, '_neomake_restart_automake_context', [make_id, prev_tick, a:context])
+        call setbufvar(bufnr, '_neomake_automake_changed_context', [make_id, prev_tick, a:context])
         augroup neomake_automake_abort
             exe printf('au! * <buffer=%d>', bufnr)
             for event in events
-                exe printf('autocmd %s <buffer=%d> call s:restart_make_for_changed_buffer(%s, %s)',
+                exe printf('autocmd %s <buffer=%d> call s:handle_changed_buffer(%s, %s)',
                             \ event, bufnr, string(make_id), string(event))
             endfor
         augroup END
