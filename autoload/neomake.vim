@@ -930,14 +930,19 @@ function! neomake#GetEnabledMakers(...) abort
         endif
     else
         let enabled_makers = []
-        let makers = neomake#utils#GetSetting('enabled_makers', {}, s:unset_list, a:1, bufnr('%'))
+        let bufnr = bufnr('%')
+        let makers = neomake#utils#GetSetting('enabled_makers', {}, s:unset_list, a:1, bufnr)
         if makers is# s:unset_list
             let auto_enabled = 1
             for config_ft in neomake#utils#get_config_fts(a:1)
                 call neomake#utils#load_ft_makers(config_ft)
                 let fnname = 'neomake#makers#ft#'.config_ft.'#EnabledMakers'
                 if exists('*'.fnname)
-                    let makers = call(fnname, [])
+                    try
+                        let makers = call(fnname, [])
+                    catch /^Vim(let):E119:/  " Not enough arguments for function
+                        let makers = call(fnname, [{'file_mode': file_mode, 'bufnr': bufnr}])
+                    endtry
                     break
                 endif
             endfor

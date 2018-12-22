@@ -144,6 +144,12 @@ Execute (Instantiate all default makers):
     let f = 'neomake#makers#ft#'.ft.'#EnabledMakers'
     try
       let enabled_makers = call(f, [])
+    catch /^Vim(let):E119:/
+      try
+        let enabled_makers = call(f, [{'file_mode': 1, 'bufnr': bufnr('%')}])
+      catch
+        call add(file_errors, 'Error when calling '.f.'(options): '.v:exception)
+      endtry
     catch
       call add(file_errors, 'Error when calling '.f.': '.v:exception)
     endtry

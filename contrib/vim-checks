@@ -30,15 +30,12 @@ set -eu
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# A flag for automatically fixing some errors.
-FIX_ERRORS=0
 RETURN_CODE=0
 
 function print_help() {
-    echo "Usage: ./custom-checks [--fix] [DIRECTORY]" 1>&2
+    echo "Usage: ./custom-checks FILE|DIRECTORY…" 1>&2
     echo 1>&2
     echo "  -h, --help    Print this help text" 1>&2
-    echo "      --fix     Automatically fix some errors" 1>&2
     exit 1
 }
 
@@ -46,10 +43,6 @@ while [ $# -ne 0 ]; do
     case $1 in
     -h) ;& --help)
         print_help
-    ;;
-    --fix)
-        FIX_ERRORS=1
-        shift
     ;;
     --)
         shift
@@ -71,17 +64,26 @@ fi
 
 shopt -s globstar
 
-directories=("$@")
+args=("$@")
+
+expand_arg() {
+    if [[ -d $arg ]]; then
+        expanded_arg=("$arg"/**/*.vim)
+    else
+        expanded_arg=("$arg")
+    fi
+}
 
 check_errors() {
     regex="$1"; shift
     message="$1"; shift
 
-    for directory in "${directories[@]}"; do
+    for arg in "${args[@]}"; do
+        expand_arg "$arg"
         # Ensure that errors from grep are not ignored, i.e. busybox's grep
         # does not have "--with-filename".
         set +e
-        output="$(grep "$@" --with-filename -n "$regex" "$directory"/**/*.vim 2>&1)"
+        output="$(grep "$@" --with-filename -n "$regex" "${expanded_arg[@]}" 2>&1)"
         ret=$?
         set -e
         if (( ret > 1 )); then
@@ -97,25 +99,25 @@ check_errors() {
             RETURN_CODE=1
             echo "$match $message"
         done < <(echo "$output" \
-            | grep -o '^[^:]\+\(:[0-9]\+\)\?' \
+            | grep -o '^[^:]\+\(:[0-9]\+\)\?:' \
             | sed 's:^\./::')
     done
 }
 
-if (( FIX_ERRORS )); then
-    for directory in "${directories[@]}"; do
-        sed -i "s/^\(function.*)\) *$/\1 abort/" "$directory"/**/*.vim
-    done
-fi
-
 check_errors \
-    '^function.*) *$' \
+    '^\s*function.*) *$' \
     'Function without abort keyword (See :help except-compat)'
 check_errors ' \+$' 'Trailing whitespace'
 check_errors '^ * end\?i\? *$' 'Write endif, not en, end, or endi'
 check_errors '^((    )*([^ ]|$)|\s+\\)' 'Use four spaces for indentation' -v -E
 check_errors $'\t' 'Do not use tabs for indentation'
 check_errors '^\s*[^" ].*[^&]l:\w' 'Do not use l: prefix for local variables'
-check_errors '^" vim: ts=4 sw=4 et' 'Missing modeline' --files-without-match
+for arg in "${args[@]}"; do
+    expand_arg "$arg"
+    grep --files-without-match '^"[ ]vim: ts=4 sw=4 et' "${expanded_arg[@]}" \
+        | while read -r f; do
+            echo "$f:$(( $(wc -l "$f" | cut -f1 -d\ ) + 1)): Missing modeline"
+        done
+done
 
 exit $RETURN_CODE
