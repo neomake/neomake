@@ -118,8 +118,8 @@ function! s:process_action_queue(event) abort
         endif
         let i += 1
     endfor
-    call neomake#log#debug(printf('action queue: processing for %s (%d items, winnr: %d).',
-                \ a:event, len(q_for_this_event), winnr()), {'bufnr': bufnr('%')})
+    call neomake#log#debug(printf('action queue: processing for %s (%d items).',
+                \ a:event, len(q_for_this_event)), {'bufnr': bufnr('%'), 'winnr': winnr()})
 
     let processed = []
     let removed = 0

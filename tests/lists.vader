@@ -243,14 +243,14 @@ Execute (Goes back to original window after opening list (wincmd in postprocess)
 
     " Go to first window for wincmd-p check.
     1wincmd w
-    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 1}
     AssertNeomakeMessage 'action queue: calling ProcessEntries.'
     AssertNeomakeMessage 'Postponing location list processing.'
     AssertNeomakeMessage 'Queuing action ProcessEntries for BufEnter, WinEnter.'
     AssertNeomakeMessage 'action queue: skipping CleanJobinfo for not processed job_id.', 3
     AssertNeomakeMessage 'action queue: processed 0 items.'
     exe winnr.'wincmd w'
-    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 3}
     AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
 
     AssertNeomakeMessage 'action queue: calling ProcessEntries.', 3
@@ -309,14 +309,14 @@ Execute (Goes back to original window after opening list (wincmd in process_outp
 
     " Go to first window for wincmd-p check.
     1wincmd w
-    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 1}
     AssertNeomakeMessage 'action queue: calling ProcessEntries.'
     AssertNeomakeMessage 'Postponing location list processing.'
     AssertNeomakeMessage 'Queuing action ProcessEntries for BufEnter, WinEnter.'
     AssertNeomakeMessage 'action queue: skipping CleanJobinfo for not processed job_id.', 3
     AssertNeomakeMessage 'action queue: processed 0 items.'
     exe winnr.'wincmd w'
-    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 3}
     AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
     AssertEqual map(getloclist(winnr), '[v:val.text, v:val.type]'), [['error', 'E']]
 
@@ -380,14 +380,14 @@ Execute (Goes back to original window after opening list (mapexpr)):
 
     " Go to first window for wincmd-p check.
     1wincmd w
-    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 1}
     AssertNeomakeMessage 'action queue: calling AddExprCallback.'
     AssertNeomakeMessage 'Postponing location list processing.'
     AssertNeomakeMessage 'Queuing action AddExprCallback for BufEnter, WinEnter.'
     AssertNeomakeMessage 'action queue: skipping CleanJobinfo for not processed job_id.', 3
     AssertNeomakeMessage 'action queue: processed 0 items.'
     exe winnr.'wincmd w'
-    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 3}
     AssertEqual wincount + 1, winnr('$'), 'Location list has appeared'
     AssertEqual map(getloclist(winnr), '[v:val.text, v:val.type]'), [['error', 'E']]
 
