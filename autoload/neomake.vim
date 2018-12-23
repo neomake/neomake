@@ -1914,6 +1914,13 @@ function! s:need_to_postpone_output_processing(jobinfo) abort
     let mode = neomake#compat#get_mode()
     if index(['n', 'i'], mode) == -1
         call neomake#log#debug('Not processing output for mode "'.mode.'".', a:jobinfo)
+
+        " mode 't' (terminal): queue for BufEnter/WinEnter only (like with fzf).
+        " This assumes that Neomake is not used in terminal buffers in the
+        " first place.
+        if mode ==# 't'
+            return ['BufEnter', 'WinEnter']
+        endif
         return ['BufEnter', 'WinEnter', 'InsertLeave', 'CursorHold', 'CursorHoldI']
     endif
     if s:has_getcmdwintype && !empty(getcmdwintype())
