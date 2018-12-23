@@ -7,7 +7,6 @@ let s:match_base_priority = 10
 
 " args: a:1: force enabling?  (used in tests and for VimEnter callback)
 function! neomake#quickfix#enable(...) abort
-    call neomake#log#debug('enabling customqf.')
     if has('vim_starting') && !(a:0 && a:1)
         " Delay enabling for our FileType autocommand to happen as late as
         " possible, since placing signs triggers a redraw, and together with
@@ -19,6 +18,7 @@ function! neomake#quickfix#enable(...) abort
         augroup END
         return
     endif
+    call neomake#log#debug('enabling custom quickfix list handling.')
     let s:is_enabled = 1
     augroup neomake_qf
         autocmd!
@@ -31,7 +31,7 @@ endfunction
 
 
 function! neomake#quickfix#disable() abort
-    call neomake#log#debug('disabling customqf.')
+    call neomake#log#debug('disabling custom quickfix list handling.')
     let s:is_enabled = 0
     if &filetype ==# 'qf'
         call neomake#quickfix#FormatQuickfix()
