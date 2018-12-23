@@ -209,17 +209,18 @@ Execute (Neomake: handle output for removed window):
     call neomake#Make(1, [g:sleep_efm_maker])
     let jobinfo = neomake#GetJobs()[0]
     let make_info = values(neomake#GetStatus().make_info)[0]
+    let make_bufnr = bufnr('%')
     quit
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_countschanged), 0,
       \ "counts changed (".len(g:neomake_test_countschanged).")"
     AssertEqual len(g:neomake_test_finished), 0
-    AssertNeomakeMessage 'Skipped pending job output for another buffer.', 3
+    AssertNeomakeMessage 'Skipped pending job output for another buffer (current='.bufnr('%').').', 3, {'bufnr': make_bufnr}
     AssertNeomakeMessage 'Output left to be processed, not cleaning job yet.'
 
     new
     AssertEqual len(g:neomake_test_finished), 0
-    AssertNeomakeMessage 'Skipped pending job output for another buffer.', 3, jobinfo
+    AssertNeomakeMessage 'Skipped pending job output for another buffer (current='.bufnr('%').').', 3, {'bufnr': make_bufnr}
 
     " Opening the buffer in another window should process its output.
     exe 'b' bufnr
@@ -295,6 +296,7 @@ Execute (Neomake: handle pending output across windows/buffers):
     edit tests/fixtures/errors.sh
     let bufnr = bufnr('%')
     Neomake sh
+    let make_bufnr = bufnr('%')
     new
     let jobinfo = neomake#GetJobs()[0]
     NeomakeTestsWaitForFinishedJobs
@@ -303,13 +305,13 @@ Execute (Neomake: handle pending output across windows/buffers):
     " Trigger processing of pending output.
     new
     let new_bufnr = bufnr('%')
-    AssertNeomakeMessage 'Skipped pending job output for another buffer.', 3, jobinfo
+    AssertNeomakeMessage 'Skipped pending job output for another buffer (current='.bufnr('%').').', 3, {'bufnr': make_bufnr}
     AssertEqual len(g:neomake_test_jobfinished), 0
     AssertEqual len(g:neomake_test_finished), 0
     exe 'b' bufnr
     AssertNeomakeMessage 'Skipped pending job output (not in origin window).', 3, jobinfo
     quit
-    AssertNeomakeMessage 'Skipped pending job output for another buffer.', 3, jobinfo
+    AssertNeomakeMessage 'Skipped pending job output for another buffer (current='.bufnr('%').').', 3, {'bufnr': make_bufnr}
     bwipe
     AssertEqual len(g:neomake_test_jobfinished), 1
     AssertEqual len(g:neomake_test_finished), 1
