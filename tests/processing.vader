@@ -95,7 +95,7 @@ Execute (Output is not processed with visible popup menu):
 
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
-    AssertNeomakeMessage 'action queue: processing for CompleteDone (1 items, winnr: 2).'
+    AssertNeomakeMessage 'action queue: processing for CompleteDone (1 items).', 3, {'winnr': 2}
     AssertNeomakeMessage 'processing 3 lines of output.'
     AssertNeomakeMessage 'Processed 1 pending outputs.', 3, jobinfo
     AssertEqual map(getqflist(), 'v:val.text'), ['error message', 'warning', 'error2']
@@ -125,7 +125,7 @@ Execute (Location list handling is postponed with visible popup menu):
     NeomakeTestsWaitForMessage 'tests: closing popupmenu.', 3
 
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'action queue: processing for CompleteDone (1 items, winnr: 2).', 3
+    AssertNeomakeMessage 'action queue: processing for CompleteDone (1 items).', 3, {'winnr': 2}
     AssertNeomakeMessage 'action queue: processed 1 items.', 3
     AssertEqual getloclist(0), []
     bwipe!
@@ -683,7 +683,7 @@ Execute (get_list_entries: delayed for location list (but in current context)):
   \ 'type': 'W', 'pattern': '', 'text': 'slept'}]
 
   3wincmd w
-  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 3).'
+  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 3}
   AssertNeomakeMessage 'Cleaning jobinfo.'
   AssertNeomakeMessage '\VCalling User autocmd NeomakeJobFinished with context:', 2
 
@@ -838,13 +838,13 @@ Execute (action queue handles E48 in process_output):
 
   bwipe
 
-  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).', 3
+  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, 3, {'winnr': 1}
   AssertNeomakeMessage 'action queue: calling ProcessJobOutput.', 3
   AssertNeomakeMessage 'Postponing location list processing.', 3
   AssertNeomakeMessage 'Queuing action ProcessJobOutput for BufEnter, WinEnter.', 3
   AssertNeomakeMessage 'action queue: skipping CleanJobinfo for not processed job_id.', 3
   AssertNeomakeMessage 'action queue: processed 0 items.', 3
-  AssertNeomakeMessage 'action queue: processing for BufEnter (1 items, winnr: 1).', 3
+  AssertNeomakeMessage 'action queue: processing for BufEnter (1 items).', 3, 3, {'winnr': 1}
 
   call neomake#CancelAllMakes()
   AssertNeomakeMessage 'Removed 2 action queue entries.', 3, jobinfo
@@ -883,14 +883,14 @@ Execute (job finishes while in tabline function):
     AssertNeomakeMessage 'Queuing action CleanJobinfo for WinEnter.'
     AssertNeomakeMessage 'tabline_end.', 3
     sleep 20m
-    AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 2).', 3
+    AssertNeomakeMessage 'action queue: processing for Timer (1 items).', 3, {'winnr': 2}
     AssertNeomakeMessage 'action queue: calling process_pending_output.', 3
 
     " Restore here already for vim8090 (E117: Unknown function: s:NeomakeTestTabline)
     Restore &tabline
     doautocmd WinEnter
-    AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 2).', 3
-    AssertNeomakeMessageAbsent 'action queue: processing for Timer (0 items, winnr: 2).', 3
+    AssertNeomakeMessage 'action queue: processing for WinEnter (1 items).', 3, {'winnr': 2}
+    AssertNeomakeMessageAbsent 'action queue: processing for Timer (0 items).', 3, {'winnr': 2}
     AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3
 
     AssertEqual map(getloclist(0), 'v:val.text'), ['finished_in_tabline']

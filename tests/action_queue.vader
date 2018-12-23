@@ -16,7 +16,7 @@ Execute (action queue: order on WinEnter):
 
   doautocmd WinEnter
 
-  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).', 3
+  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 1}
   AssertNeomakeMessage 'action queue: calling F1.', 3
 
   call neomake#action_queue#clean(jobinfo)
@@ -44,17 +44,17 @@ Execute (action queue: order on WinEnter with Timer):
 
   if has('timers')
     AssertNeomakeMessage '\V\^Retrying Timer event in 10ms'
-    NeomakeTestsWaitForMessage 'action queue: processing for Timer (1 items, winnr: 1).'
+    NeomakeTestsWaitForMessage 'action queue: processing for Timer (1 items).', 3, {'winnr': 1}
   else
     doautocmd CursorHold
-    AssertNeomakeMessage 'action queue: processing for Timer (1 items, winnr: 1).'
+    AssertNeomakeMessage 'action queue: processing for Timer (1 items).', 3, {'winnr': 1}
   endif
   AssertNeomakeMessage 'Queuing action F1 for Timer, WinEnter.'
   AssertNeomakeMessage 'action queue: re-queuing F2 for not processed make_id.', 3
 
   doautocmd WinEnter
 
-  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).', 3
+  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 1}
   AssertNeomakeMessage 'action queue: calling F1.', 3
   AssertNeomakeMessage 'action queue: re-queuing F2 for not processed make_id.', 3
 
@@ -94,7 +94,7 @@ Execute (action queue: re-queued with different events):
   else
     doautocmd CursorHold
   endif
-  NeomakeTestsWaitForMessage 'action queue: processing for Timer (1 items, winnr: 1).'
+  NeomakeTestsWaitForMessage 'action queue: processing for Timer (1 items).', 3, {'winnr': 1}
   AssertNeomakeMessage 'Queuing action F1 for BufEnter, WinEnter.'
   AssertNeomakeMessage 'action queue: re-queuing F2 for not processed make_id.', 3
 
@@ -102,7 +102,7 @@ Execute (action queue: re-queued with different events):
   doautocmd WinEnter
   AssertEqual s:calls, [2, 1]
 
-  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).', 3
+  AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 1}
   AssertNeomakeMessage 'action queue: calling F1.', 3
   AssertNeomakeMessage 'action queue: calling F2.', 3
   AssertNeomakeMessage 'Queuing action F2 for WinEnter.', 3
@@ -130,7 +130,7 @@ Execute (action queue: logs errors (get_list_entries, WinEnter)):
 
   doautocmd WinEnter
 
-  AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 1).', 3
+  AssertNeomakeMessage 'action queue: processing for WinEnter (1 items).', 3, {'winnr': 1}
   AssertNeomakeMessage 'action queue: calling F1.', 3
   AssertNeomakeMessage 'Error during action queue processing: error_in_F1.', 0
   AssertNeomakeMessage '\v^CancelJob: job not found: \d+.', 0
@@ -150,7 +150,7 @@ Execute (action queue: logs errors (get_list_entries, Timer)):
   call neomake#action_queue#add(['Timer', 'WinEnter'], [function('F1'), [jobinfo]])
 
   if has('timers')
-    NeomakeTestsWaitForMessage 'action queue: processing for Timer (1 items, winnr: 1).', 3
+    NeomakeTestsWaitForMessage 'action queue: processing for Timer (1 items).', 3, {'winnr': 1}
   else
     doautocmd CursorHold
   endif
@@ -174,7 +174,7 @@ Execute (action queue: logs errors (E48, WinEnter)):
 
   doautocmd WinEnter
 
-  AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 1).', 3
+  AssertNeomakeMessage 'action queue: processing for WinEnter (1 items).', 3, {'winnr': 1}
   AssertNeomakeMessage 'action queue: calling F1.', 3
   AssertNeomakeMessage '\vError during action queue processing: .*E48'
   AssertNeomakeMessage '\v^CancelJob: job not found: \d+.', 0

@@ -187,6 +187,7 @@ function! neomake#CancelJob(job_id, ...) abort
         endif
         return 0
     endif
+    let jobinfo.canceled = 1
 
     let ret = 0
     if get(jobinfo, 'finished')
@@ -228,7 +229,6 @@ function! neomake#CancelJob(job_id, ...) abort
             endif
         endif
     endif
-    let jobinfo.canceled = 1
 
     if ret == 0 || remove_always
         call s:CleanJobinfo(jobinfo)
@@ -1301,11 +1301,6 @@ function! s:CleanJobinfo(jobinfo, ...) abort
     " Trigger cleanup (and autocommands) if all jobs have finished.
     if empty(make_info.active_jobs) && empty(make_info.jobs_queue)
         call s:clean_make_info(make_info)
-    else
-        call neomake#log#debug(printf(
-                    \ 'Not cleaning make info yet (%d active jobs, %d pending jobs)',
-                    \ len(make_info.active_jobs), len(make_info.jobs_queue)),
-                    \ make_info)
     endif
     return g:neomake#action_queue#processed
 endfunction

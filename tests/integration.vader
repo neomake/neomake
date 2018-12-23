@@ -189,7 +189,7 @@ Execute (Neomake: handle result for current window):
     let bufnr = bufnr('%')
     Assert exists('#neomake_event_queue'), 'action queue exists'
     quit
-    AssertNeomakeMessage 'action queue: processing for WinEnter (1 items, winnr: 2).'
+    AssertNeomakeMessage 'action queue: processing for WinEnter (1 items).', 3, {'winnr': 2}
     Assert !exists('#neomake_event_queue'), 'action queue does not exist'
     AssertEqual winnr(), orig_winnr
     AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
@@ -469,7 +469,7 @@ Execute (NeomakeListJobs with job cancellation):
     AssertNeomakeMessage 'Skipping cleaning of make info for queued actions.', 3
 
     doautocmd CursorHold
-    AssertNeomakeMessage 'action queue: processing for CursorHold (2 items, winnr: 1).', 3
+    AssertNeomakeMessage 'action queue: processing for CursorHold (2 items).', 3, {'winnr': 1}
     AssertNeomakeMessage 'processing 1 lines of output.', 3
     AssertNeomakeMessage 'action queue: processed 2 items.', 3
 
@@ -503,7 +503,7 @@ Execute (Neomake with windo):
     AssertEqual getloclist(2), []
     let ll_3 = getloclist(3)[0].text
     1wincmd w
-    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items, winnr: 1).', 3
+    AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 1}
     let ll_1 = getloclist(1)[0].text
     2wincmd w
     let ll_2 = getloclist(2)[0].text
