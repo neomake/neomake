@@ -187,6 +187,7 @@ function! neomake#CancelJob(job_id, ...) abort
         endif
         return 0
     endif
+    let jobinfo.canceled = 1
 
     let ret = 0
     if get(jobinfo, 'finished')
@@ -228,7 +229,6 @@ function! neomake#CancelJob(job_id, ...) abort
             endif
         endif
     endif
-    let jobinfo.canceled = 1
 
     if ret == 0 || remove_always
         call s:CleanJobinfo(jobinfo)
