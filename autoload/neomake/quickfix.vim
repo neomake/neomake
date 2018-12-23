@@ -208,7 +208,10 @@ function! neomake#quickfix#FormatQuickfix() abort
             endif
         endfor
     endif
-    call neomake#quickfix#set_syntax(syntax)
+    if get(b:, '_neomake_cur_syntax', []) != syntax
+        call neomake#quickfix#set_syntax(syntax)
+        let b:_neomake_cur_syntax = syntax
+    endif
 
     if maker_width + lnum_width + col_width > 0
         let b:neomake_start_col = maker_width + lnum_width + col_width + 2
@@ -309,8 +312,9 @@ function! neomake#quickfix#FormatQuickfix() abort
         autocmd CursorMoved <buffer> call s:cursor_moved()
     augroup END
 
+    " Set title.
+    " Fallback without patch-7.4.2200, fix for without 8.0.1831.
     if !has('patch-7.4.2200') || !exists('w:quickfix_title') || w:quickfix_title[0] ==# ':'
-        " Fallback without patch-7.4.2200, fix for without 8.0.1831.
         let maker_info = []
         for [maker, c] in items(makers)
             call add(maker_info, maker.'('.c.')')
