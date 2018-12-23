@@ -150,9 +150,7 @@ Execute (Test Neomake on errors.sh with one maker):
   AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_file_err buffer='.bufnr.'.', 3, {'bufnr': bufnr}
   AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=5.', 3, {'bufnr': bufnr}
 
-  AssertEqual NeomakeTestsGetSigns(), [
-    \ 'Signs for tests/fixtures/errors.sh:',
-    \ 'line=5  id=5000  name=neomake_file_err']
+  AssertEqual neomake#signs#by_lnum(bufnr), {'5': [5000, 'neomake_file_err']}
   bwipe
 
 Execute (Test Neomake on errors.sh with two makers):

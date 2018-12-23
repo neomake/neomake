@@ -393,12 +393,6 @@ let g:neomake_test_inc_maker = {
       \ 'append_file': 0,
       \ }
 
-function! NeomakeTestsGetSigns()
-  let signs = split(neomake#utils#redir('sign place'), '\n')
-  call map(signs, "substitute(substitute(v:val, '\\m^\\s\\+', '', ''), '\\m\\s\\+$', '', '')")
-  return signs[1:-1]
-endfunction
-
 let s:vim_msgs_marker = '== neomake_tests_marker =='
 function! NeomakeTestsSetVimMessagesMarker()
   echom s:vim_msgs_marker
