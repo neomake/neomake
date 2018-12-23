@@ -2,6 +2,7 @@ let s:level_to_name = {0: 'error  ', 1: 'warning', 2: 'verbose', 3: 'debug  '}
 let s:name_to_level = {'error': 0, 'warning': 1, 'verbose': 2, 'debug': 3}
 let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 let s:is_testing = exists('g:neomake_test_messages')
+let s:pid = getpid()
 
 function! s:reltime_lastmsg() abort
     if exists('s:last_msg_ts')
@@ -110,13 +111,13 @@ function! s:log(level, msg, ...) abort
             endif
         endif
 
-        let date = strftime('%H:%M:%S')
+        let time = strftime('%H:%M:%S')
         if !exists('timediff')
             let timediff = s:reltime_lastmsg()
         endif
         try
-            call writefile([printf('%s [%s %s] %s',
-                        \ date, s:short_level_to_name[a:level], timediff, msg)],
+            call writefile([printf('%s[%s] [%s %s] %s',
+                        \ time, s:pid, s:short_level_to_name[a:level], timediff, msg)],
                         \ logfile, s:logfile_writefile_opts)
         catch
             unlet g:neomake_logfile
