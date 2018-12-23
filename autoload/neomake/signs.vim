@@ -51,7 +51,7 @@ function! neomake#signs#by_lnum(bufnr) abort
     endif
 
     let r = {}
-    if exists('*sign_getplaced')
+    if exists('*sign_getplaced')  " patch-8.1.0614
         for sign in sign_getplaced(bufnr)[0].signs
             if has_key(r, sign.lnum)
                 continue
@@ -71,6 +71,8 @@ function! neomake#signs#by_lnum(bufnr) abort
     " línea=12 id=1000001 nombre=neomake_err
     " riga=1 id=1000001, nome=neomake_err
     for line in reverse(signs_output[2:])
+        " XXX: does not really match "name="
+        "      (broken by patch-8.1.0614, but handled above)
         let sign_type = line[strridx(line, '=')+1:]
         if sign_type[0:7] ==# 'neomake_'
             let lnum_idx = stridx(line, '=')
