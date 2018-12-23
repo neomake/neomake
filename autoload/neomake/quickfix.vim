@@ -7,6 +7,7 @@ let s:match_base_priority = 10
 
 " args: a:1: force enabling?  (used in tests and for VimEnter callback)
 function! neomake#quickfix#enable(...) abort
+    call neomake#log#debug('enabling customqf.')
     if has('vim_starting') && !(a:0 && a:1)
         " Delay enabling for our FileType autocommand to happen as late as
         " possible, since placing signs triggers a redraw, and together with
@@ -30,6 +31,7 @@ endfunction
 
 
 function! neomake#quickfix#disable() abort
+    call neomake#log#debug('disabling customqf.')
     let s:is_enabled = 0
     if &filetype ==# 'qf'
         call neomake#quickfix#FormatQuickfix()
@@ -89,6 +91,7 @@ function! s:set_qf_lines(lines) abort
 endfunction
 
 function! s:clean_qf_annotations() abort
+    call neomake#log#debug('cleaning qf annotations.', {'bufnr': bufnr('%')})
     if exists('b:_neomake_qf_orig_lines')
         call s:set_qf_lines(b:_neomake_qf_orig_lines)
         unlet b:_neomake_qf_orig_lines
@@ -208,7 +211,10 @@ function! neomake#quickfix#FormatQuickfix() abort
             endif
         endfor
     endif
-    call neomake#quickfix#set_syntax(syntax)
+    if get(b:, '_neomake_cur_syntax', []) != syntax
+        call neomake#quickfix#set_syntax(syntax)
+        let b:_neomake_cur_syntax = syntax
+    endif
 
     if maker_width + lnum_width + col_width > 0
         let b:neomake_start_col = maker_width + lnum_width + col_width + 2
@@ -309,8 +315,9 @@ function! neomake#quickfix#FormatQuickfix() abort
         autocmd CursorMoved <buffer> call s:cursor_moved()
     augroup END
 
+    " Set title.
+    " Fallback without patch-7.4.2200, fix for without 8.0.1831.
     if !has('patch-7.4.2200') || !exists('w:quickfix_title') || w:quickfix_title[0] ==# ':'
-        " Fallback without patch-7.4.2200, fix for without 8.0.1831.
         let maker_info = []
         for [maker, c] in items(makers)
             call add(maker_info, maker.'('.c.')')
