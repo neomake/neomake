@@ -22,7 +22,7 @@ Execute (Handles unexpected output on stderr from maker):
     let log_lines = readfile(g:neomake_logfile)
     let found = 0
     for line in log_lines
-      if line =~# '\v^\d+:\d+:\d+\[\d+\] \[D .*\] stderr_maker: unexpected output on stderr: failed to run\\nbecause something bad happened.$'
+      if line =~# '\v^\d+:\d+:\d+ \d+ \[D .*\] stderr_maker: unexpected output on stderr: failed to run\\nbecause something bad happened.$'
         let found = 1
         break
       endif

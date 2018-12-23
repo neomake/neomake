@@ -114,7 +114,7 @@ function! s:log(level, msg, ...) abort
             let timediff = s:reltime_lastmsg()
         endif
         try
-            call writefile([printf('%s[%s] [%s %s] %s',
+            call writefile([printf('%s %s [%s %s] %s',
                         \ time, s:pid, s:short_level_to_name[a:level], timediff, msg)],
                         \ logfile, s:logfile_writefile_opts)
         catch
