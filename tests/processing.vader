@@ -1045,3 +1045,28 @@ Execute (get_list_entries: not finished when being retried):
   AssertEqual s:count, 2
   AssertNeomakeMessage '\vError during pcall:.*'
   bwipe
+
+Execute (handles mode 't' (terminal, like fzf)):
+  if !exists(':terminal')
+    NeomakeTestsSkip 'only with :terminal'
+  else
+    new
+    call neomake#Make(1, [g:error_maker])
+    if has('nvim')
+      new
+    endif
+    terminal
+
+    function! s:exit_insert(...)
+      call feedkeys("\<C-\>\<C-n>")
+    endfunction
+    call timer_start(100, 's:exit_insert')
+    call feedkeys('i', 'x!')
+
+    NeomakeTestsWaitForFinishedJobs
+    AssertNeomakeMessage 'Not processing output for mode "t".'
+    AssertNeomakeMessage 'Queuing action process_pending_output for BufEnter, WinEnter.'
+    bwipe!
+    AssertEqual map(getloclist(0), 'v:val.text'), ['error']
+    bwipe
+  endif
