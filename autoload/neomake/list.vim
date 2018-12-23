@@ -13,10 +13,8 @@ let s:can_set_qf_items = has('patch-8.0.0657')
 " @vimlint(EVL108, 1)
 let s:needs_to_replace_qf_for_lwindow = has('patch-7.4.379')
             \ && (!has('patch-7.4.1752') || (has('nvim') && !has('nvim-0.2.0')))
-" https://github.com/vim/vim/issues/3633
-" See tests/lists.vader for patch-7.4.379.
-let s:needs_to_init_qf_for_lwindow = 1
 " @vimlint(EVL108, 0)
+let s:needs_to_init_qf_for_lwindow = !has('patch-8.1.0622')
 
 function! neomake#list#ListForMake(make_info) abort
     let type = a:make_info.options.file_mode ? 'loclist' : 'quickfix'
