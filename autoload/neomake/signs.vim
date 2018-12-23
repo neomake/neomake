@@ -45,9 +45,22 @@ let s:sign_order = {'neomake_file_err': 0, 'neomake_file_warn': 1,
 " If there are multiple entries for a line only the first (visible) entry is
 " returned.
 function! neomake#signs#by_lnum(bufnr) abort
-    if !bufexists(a:bufnr + 0)
+    let bufnr = a:bufnr + 0
+    if !bufexists(bufnr)
         return {}
     endif
+
+    let r = {}
+    if exists('*sign_getplaced')
+        for sign in sign_getplaced(bufnr)[0].signs
+            if has_key(r, sign.lnum)
+                continue
+            endif
+            let r[sign.lnum] = [sign.id, sign.name]
+        endfor
+        return r
+    endif
+
     let signs_output = split(neomake#utils#redir('sign place buffer='.a:bufnr), '\n')
 
     " Originally via ALE.
@@ -57,7 +70,6 @@ function! neomake#signs#by_lnum(bufnr) abort
     " 行=1  識別子=1000001  名前=neomake_err
     " línea=12 id=1000001 nombre=neomake_err
     " riga=1 id=1000001, nome=neomake_err
-    let d = {}
     for line in reverse(signs_output[2:])
         let sign_type = line[strridx(line, '=')+1:]
         if sign_type[0:7] ==# 'neomake_'
@@ -65,11 +77,11 @@ function! neomake#signs#by_lnum(bufnr) abort
             let lnum = line[lnum_idx+1:] + 0
             if lnum
                 let sign_id = line[stridx(line, '=', lnum_idx+1)+1:] + 0
-                let d[lnum] = [sign_id, sign_type]
+                let r[lnum] = [sign_id, sign_type]
             endif
         endif
     endfor
-    return d
+    return r
 endfunction
 
 let s:entry_to_sign_type = {'W': 'warn', 'I': 'info', 'M': 'msg'}
