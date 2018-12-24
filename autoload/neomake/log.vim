@@ -166,4 +166,8 @@ function! neomake#log#warn_once(msg, key) abort
         call neomake#log#debug('Neomake warning: '.a:msg)
     endif
 endfunction
+
+function! neomake#log#reset_warnings() abort
+    let s:warned = {}
+endfunction
 " vim: ts=4 sw=4 et

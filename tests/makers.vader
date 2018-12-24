@@ -431,11 +431,7 @@ Execute (Using maker.fn results in deprecation warning):
   call NeomakeTestsSetVimMessagesMarker()
   CallNeomake 1, [maker]
 
-  let expected_warningmsg = "Please use 'InitForJob' instead of 'fn' for maker unnamed_maker."
-  AssertEqual v:warningmsg, 'Neomake: '.expected_warningmsg
-  let v:warningmsg = ''
-  AssertNeomakeMessage 'Neomake warning: '.expected_warningmsg, 3
-  Assert index(NeomakeTestsGetVimMessages(), 'Neomake: '.expected_warningmsg) != -1
+  AssertNeomakeWarning "Please use 'InitForJob' instead of 'fn' for maker unnamed_maker."
   AssertNeomakeMessage 'Exe (doesnotexist) of maker unnamed_maker is not executable.', 0
 
 Execute (Using maker.args as function results in deprecation warning):
@@ -445,11 +441,7 @@ Execute (Using maker.args as function results in deprecation warning):
   call NeomakeTestsSetVimMessagesMarker()
   CallNeomake 1, [maker]
 
-  let expected_warningmsg = "Please use 'InitForJob' instead of 'args' for maker unnamed_maker."
-  AssertEqual v:warningmsg, 'Neomake: '.expected_warningmsg
-  let v:warningmsg = ''
-  AssertNeomakeMessage 'Neomake warning: '.expected_warningmsg, 3
-  Assert index(NeomakeTestsGetVimMessages(), 'Neomake: '.expected_warningmsg) != -1
+  AssertNeomakeWarning "Please use 'InitForJob' instead of 'args' for maker unnamed_maker."
   AssertNeomakeMessage 'Exe (unnamed_maker) of maker unnamed_maker is not executable.', 0
 
 Execute (Using maker.args.fn as function results in deprecation warning):
@@ -462,11 +454,7 @@ Execute (Using maker.args.fn as function results in deprecation warning):
   call NeomakeTestsSetVimMessagesMarker()
   CallNeomake 1, [maker]
 
-  let expected_warningmsg = "Please use 'InitForJob' instead of 'args.fn' for maker unnamed_maker."
-  AssertEqual v:warningmsg, 'Neomake: '.expected_warningmsg
-  let v:warningmsg = ''
-  AssertNeomakeMessage 'Neomake warning: '.expected_warningmsg, 3
-  Assert index(NeomakeTestsGetVimMessages(), 'Neomake: '.expected_warningmsg) != -1
+  AssertNeomakeWarning "Please use 'InitForJob' instead of 'args.fn' for maker unnamed_maker."
   AssertNeomakeMessage 'Exe (unnamed_maker) of maker unnamed_maker is not executable.', 0
 
 Execute (Set env from maker config):

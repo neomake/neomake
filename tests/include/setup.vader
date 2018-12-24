@@ -7,6 +7,7 @@ Before:
   let g:neomake_test_log_all_messages = 1
   let g:neomake_test_messages_last_idx = -1
   let g:neomake_test_buffers_before = filter(range(1, bufnr('$')), 'bufexists(v:val)')
+  call neomake#log#reset_warnings()
 
   if has('patch-7.4.2200')
     call setloclist(0, [], ' ', {'title': 'neomake_test_init'})

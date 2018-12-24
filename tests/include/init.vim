@@ -247,6 +247,15 @@ function! s:AssertNeomakeMessage(msg, ...)
 endfunction
 command! -nargs=+ AssertNeomakeMessage call s:AssertNeomakeMessage(<args>)
 
+function! s:AssertNeomakeWarning(msg)
+  AssertEqual v:warningmsg, 'Neomake: '.a:msg
+  AssertNeomakeMessage 'Neomake warning: '.a:msg, 3
+  Assert index(NeomakeTestsGetVimMessages(), v:warningmsg) != -1
+  let v:warningmsg = ''
+  call neomake#log#reset_warnings()
+endfunction
+command! -nargs=1 AssertNeomakeWarning call s:AssertNeomakeWarning(<args>)
+
 function! s:AssertEqualQf(actual, expected, ...) abort
   let expected = a:expected
   if has('patch-8.0.1782')
@@ -603,6 +612,7 @@ function! s:After()
   if !empty(v:warningmsg)
     call add(errors, printf('There was a v:warningmsg: %s', v:warningmsg))
     let v:warningmsg = ''
+    call neomake#log#reset_warnings()
   endif
 
   if exists('g:neomake#action_queue#_s.action_queue_timer')
