@@ -848,10 +848,14 @@ Execute (Handles timeout in another buffer):
     new
     let bufnr2 = bufnr('%')
     NeomakeTestsWaitForMessage printf('automake: callback for timer %d (via TextChanged).', timer)
-    AssertNeomakeMessage printf('automake: buffer changed: %d => %d.', bufnr1, bufnr2)
-    bwipe
+    AssertNeomakeMessage printf('automake: buffer changed: %d => %d, queueing make restart for BufEnter,WinEnter.', bufnr1, bufnr2)
+
+    wincmd p
     NeomakeTestsWaitForFinishedJobs
-    AssertEqual len(g:neomake_test_finished), 0
+    wincmd p
+
+    bwipe
+    AssertEqual len(g:neomake_test_finished), 1
     bwipe!
   endif
 
