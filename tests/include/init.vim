@@ -248,7 +248,7 @@ endfunction
 command! -nargs=+ AssertNeomakeMessage call s:AssertNeomakeMessage(<args>)
 
 function! s:AssertNeomakeWarning(msg)
-  AssertEqual v:warningmsg, 'Neomake: '.a:msg
+  call vader#assert#equal(v:warningmsg, 'Neomake: '.a:msg)
   AssertNeomakeMessage 'Neomake warning: '.a:msg, 3
   Assert index(NeomakeTestsGetVimMessages(), v:warningmsg) != -1
   let v:warningmsg = ''
