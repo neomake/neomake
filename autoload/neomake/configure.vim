@@ -253,8 +253,16 @@ function! s:automake_delayed_cb(timer) abort
 
     let bufnr = bufnr('%')
     if timer_info.bufnr != bufnr
-        call s:debug_log(printf('buffer changed: %d => %d',
+        call s:debug_log(printf('buffer changed: %d => %d, queueing make restart for BufEnter,WinEnter',
                     \ timer_info.bufnr, bufnr))
+        let restart_context = copy(timer_info)
+        let restart_context.delay = 0
+        call setbufvar(restart_context.bufnr, '_neomake_postponed_automake_context', [1, restart_context])
+        let b:_neomake_postponed_automake_context = [1, restart_context]
+        augroup neomake_automake_retry
+            exe 'au! * <buffer='.timer_info.bufnr.'>'
+            exe 'autocmd BufEnter,WinEnter <buffer='.restart_context.bufnr.'> call s:do_postponed_automake(2)'
+        augroup END
         return
     endif
 
