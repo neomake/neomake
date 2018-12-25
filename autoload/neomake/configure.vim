@@ -9,8 +9,10 @@ let g:neomake = get(g:, 'neomake', {})
 let g:neomake.automake = get(g:neomake, 'automake', {})
 call extend(g:neomake.automake, s:default_settings, 'keep')
 
-let s:timer_info = {}
-let s:timer_by_bufnr = {}
+if !exists('s:timer_info')
+    let s:timer_info = {}
+    let s:timer_by_bufnr = {}
+endif
 
 let s:default_delay = has('timers') ? 500 : 0
 
