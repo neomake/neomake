@@ -231,9 +231,9 @@ Execute (list: error handling):
   AssertEqual threw, 1
 
   " Uses winid from make_info.
-  let list.make_info.winid = 1234
+  let list.make_info.options.winid = 1234
   AssertEqual list._get_fn_args('get'), ['getloclist', [1234]]
-  unlet list.make_info.winid
+  unlet list.make_info.options.winid
 
   " location list from another tab
   tabnew
@@ -261,7 +261,7 @@ Execute (list: error handling):
 
   if has('patch-8.0.1023')
     let list.qfid = list.qfid + 1
-    let list.make_info.winid = 1234
+    let list.make_info.options.winid = 1234
 
     Assert !list._has_valid_qf()
 
