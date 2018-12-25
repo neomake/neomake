@@ -1821,13 +1821,9 @@ endfunction
 function! s:process_pending_output(jobinfo, lines, source, ...) abort
     let retry_events = s:need_to_postpone_output_processing(a:jobinfo)
     if empty(retry_events)
-        if s:ProcessPendingOutput(a:jobinfo, a:lines, a:source)
+        let retry_events = s:ProcessPendingOutput(a:jobinfo, a:lines, a:source)
+        if empty(retry_events)
             return g:neomake#action_queue#processed
-        endif
-        if a:0
-            let retry_events = a:1
-        else
-            let retry_events = ['BufEnter', 'WinEnter']
         endif
     endif
     call add(a:jobinfo.pending_output, [a:lines, a:source])
@@ -1844,15 +1840,15 @@ function! s:ProcessPendingOutput(jobinfo, lines, source) abort
         if index(window_make_ids, a:jobinfo.make_id) == -1
             if !bufexists(a:jobinfo.bufnr)
                 call neomake#log#info('No buffer found for output!', a:jobinfo)
-                return 1
+                return []
             endif
 
             if a:jobinfo.bufnr != bufnr('%')
-                call neomake#log#debug('Skipped pending job output for another buffer.', a:jobinfo)
-                return 0
+                call neomake#log#debug(printf('Skipped pending job output for another buffer (current=%d).', bufnr('%')), a:jobinfo)
+                return ['BufEnter', 'WinEnter']
             elseif neomake#core#get_tabwin_for_makeid(a:jobinfo.make_id) != [-1, -1]
                 call neomake#log#debug('Skipped pending job output (not in origin window).', a:jobinfo)
-                return 0
+                return ['WinEnter']
             else
                 call neomake#log#debug("Processing pending output for job's buffer in new window.", a:jobinfo)
                 let w:neomake_make_ids = add(get(w:, 'neomake_make_ids', []), a:jobinfo.make_id)
@@ -1887,7 +1883,7 @@ function! s:ProcessPendingOutput(jobinfo, lines, source) abort
             call s:CleanJobinfo(a:jobinfo)
         endif
     endif
-    return 1
+    return []
 endfunction
 
 " Do we need to postpone location list processing (creation and :laddexpr)?
@@ -1914,13 +1910,6 @@ function! s:need_to_postpone_output_processing(jobinfo) abort
     let mode = neomake#compat#get_mode()
     if index(['n', 'i'], mode) == -1
         call neomake#log#debug('Not processing output for mode "'.mode.'".', a:jobinfo)
-
-        " mode 't' (terminal): queue for BufEnter/WinEnter only (like with fzf).
-        " This assumes that Neomake is not used in terminal buffers in the
-        " first place.
-        if mode ==# 't'
-            return ['BufEnter', 'WinEnter']
-        endif
         return ['BufEnter', 'WinEnter', 'InsertLeave', 'CursorHold', 'CursorHoldI']
     endif
     if s:has_getcmdwintype && !empty(getcmdwintype())

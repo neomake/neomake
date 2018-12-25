@@ -149,6 +149,7 @@ Execute (cwd gets expanded correctly: relative and in another buffer):
 
     let jobinfo = neomake#Make(1, [g:sleep_maker, maker])[0]
     new
+    let current_bufnr = bufnr('%')
 
     lcd build
     NeomakeTestsWaitForFinishedJobs
@@ -157,7 +158,7 @@ Execute (cwd gets expanded correctly: relative and in another buffer):
     AssertEqual map(getloclist(0), 'v:val.text'), [
     \ 'slept', expected_cwd, 'errors.py']
     bwipe
-    AssertNeomakeMessage 'Skipped pending job output for another buffer.', 3
+    AssertNeomakeMessage 'Skipped pending job output for another buffer (current='.current_bufnr.').', 3
   endif
 
 Execute (cwd per maker and serialize via dict):
