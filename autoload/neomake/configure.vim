@@ -118,7 +118,6 @@ function! s:handle_changed_buffer(make_id, event) abort
     call s:debug_log(printf('buffer was changed (%s), canceling make', a:event), {'make_id': a:make_id})
     call neomake#CancelMake(a:make_id)
 
-
     if a:event ==# 'TextChangedI'
         call s:debug_log('queueing make restart for InsertLeave', {'make_id': a:make_id})
         let b:_neomake_postponed_automake_context = [1, context]
@@ -325,14 +324,14 @@ function! s:do_postponed_automake(step) abort
         else
             call s:debug_log('postponed automake: unexpected step '.a:step.', cleaning up')
         endif
-
-        " Cleanup.
-        augroup neomake_automake_retry
-            autocmd! CompleteDone <buffer>
-            autocmd! InsertLeave <buffer>
-        augroup END
         unlet b:_neomake_postponed_automake_context
+    else
+        call s:debug_log('missing context information for postponed automake')
     endif
+    " Cleanup.
+    augroup neomake_automake_retry
+        autocmd! * <buffer>
+    augroup END
 endfunction
 
 " Parse/get events dict from args.
