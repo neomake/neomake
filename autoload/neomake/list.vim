@@ -55,6 +55,7 @@ let s:base_list = {
             \ }
 " Info about contained jobs.
 let s:base_list.job_entries = {}
+let s:base_list.maker_info_by_jobid = {}
 
 function! s:base_list.sort_by_location() dict abort
     let entries = get(self, '_sorted_entries_by_location', copy(self.entries))
@@ -67,13 +68,16 @@ function! s:base_list.add_entries(entries, ...) dict abort
     let idx = len(self.entries)
     if a:0 && !has_key(self.job_entries, a:1.id)
         let self.job_entries[a:1.id] = []
+        let self.maker_info_by_jobid[a:1.id] = a:1.maker
     endif
     for entry in a:entries
         let idx += 1
-        call add(self.entries, extend(copy(entry), {'nmqfidx': idx}))
+        let e = extend(copy(entry), {'nmqfidx': idx})
         if a:0
-            call add(self.job_entries[a:1.id], entry)
+            call add(self.job_entries[a:1.id], e)
+            let e.job_id = a:1.id
         endif
+        call add(self.entries, e)
     endfor
     if self.debug
         let indexes = map(copy(self.entries), 'v:val.nmqfidx')
@@ -348,6 +352,41 @@ function! s:base_list._get_fn_args(action, ...) abort
     return [fn, args]
 endfunction
 
+function! s:mark_entry_with_nmcfg(entry, maker_info) abort
+    let maker_name = a:maker_info.name
+    let config = {
+                \ 'name': maker_name,
+                \ 'short': get(a:maker_info, 'short_name', maker_name[:3]),
+                \ }
+    let marker_entry = copy(a:entry)
+    let marker_entry.text .= printf(' nmcfg:%s', string(config))
+    return marker_entry
+endfunction
+
+function! s:base_list._replace_qflist_entries(entries) abort
+    let set_entries = a:entries
+
+    " Handle nmcfg markers when setting all entries without jobinfo.
+    if neomake#quickfix#is_enabled()
+        let set_entries = copy(set_entries)
+        let prev_job_id = 0
+
+        " Handle re-setting all entries.  This is meant to be used later
+        " for replacing the whole list.
+        let i = 0
+        for e in set_entries
+            if e.job_id != prev_job_id
+                let maker_info = self.maker_info_by_jobid[e.job_id]
+                let set_entries[i] = s:mark_entry_with_nmcfg(e, maker_info)
+                let prev_job_id = e.job_id
+            endif
+            let i += 1
+        endfor
+    endif
+
+    call self._set_qflist_entries(set_entries, 'r')
+endfunction
+
 function! s:base_list._set_qflist_entries(entries, action) abort
     let action = a:action
     if self.need_init && !get(self, 'reset_existing_qflist')
@@ -402,15 +441,8 @@ function! s:base_list._appendlist(entries, jobinfo) abort
         else
             let prev_idx = len(self.entries)
         endif
-        let maker_name = a:jobinfo.maker.name
-        let config = {
-                    \ 'name': maker_name,
-                    \ 'short': get(a:jobinfo.maker, 'short_name', maker_name[:3]),
-                    \ }
         let set_entries = copy(set_entries)
-        let marker_entry = copy(set_entries[prev_idx])
-        let marker_entry.text .= printf(' nmcfg:%s', string(config))
-        let set_entries[prev_idx] = marker_entry
+        let set_entries[prev_idx] = s:mark_entry_with_nmcfg(set_entries[prev_idx], a:jobinfo.maker)
     endif
 
     " NOTE: need to fetch (or pre-parse with new patch) to get updated bufnr etc.
@@ -544,7 +576,6 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         let postprocessors = Postprocess
     endif
 
-    let maker_name = maker.name
     let default_type = 'unset'
 
     let entries = []
@@ -642,13 +673,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         let new_index = len(self.entries)
         " Add marker for custom quickfix to the first (new) entry.
         if neomake#quickfix#is_enabled()
-            let config = {
-                        \ 'name': maker_name,
-                        \ 'short': get(a:jobinfo.maker, 'short_name', maker_name[:3]),
-                        \ }
-            let marker_entry = copy(entries[0])
-            let marker_entry.text .= printf(' nmcfg:%s', string(config))
-            let changed_entries[0] = marker_entry
+            let changed_entries[0] = s:mark_entry_with_nmcfg(entries[0], maker)
         endif
 
         if !empty(changed_entries) || !empty(removed_entries)

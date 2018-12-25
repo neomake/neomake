@@ -354,6 +354,50 @@ Execute (list: title):
   AssertEqual neomake#list#get_title('prefix', 0, ''), 'Neomake[prefix]'
   bwipe
 
+Execute (list: handles nmcfg marker):
+  call neomake#quickfix#enable(1)
+  try
+    new
+    let job1 = NeomakeTestsFakeJobinfo()
+    let job1.maker.name = 'job1'
+    let job2 = NeomakeTestsFakeJobinfo()
+    let job2.maker.name = 'job2'
+
+    let make_info = neomake#GetStatus().make_info[-42]
+    let w:neomake_make_ids = [-42]
+
+    let list = neomake#list#ListForMake(make_info)
+
+    call list.add_entries_for_job([{'text': 'e1', 'bufnr': bufnr('%')}], job1)
+    AssertEqual map(getloclist(0), 'v:val.text'), ["e1 nmcfg:{'short': 'job1', 'name': 'job1'}"]
+
+    call list.add_entries_for_job([{'text': 'e2', 'bufnr': bufnr('%')}], job1)
+    " NOTE: could be optimized to not add nmcfg in this case, but difficult
+    " when list needs to be replaced.
+    AssertEqual map(getloclist(0), 'v:val.text'), [
+    \ "e1 nmcfg:{'short': 'job1', 'name': 'job1'}",
+    \ "e2 nmcfg:{'short': 'job1', 'name': 'job1'}",
+    \ ]
+    call list.add_entries_for_job([{'text': 'e3', 'bufnr': bufnr('%')}], job2)
+    AssertEqual map(getloclist(0), 'v:val.text'), [
+    \ "e1 nmcfg:{'short': 'job1', 'name': 'job1'}",
+    \ "e2 nmcfg:{'short': 'job1', 'name': 'job1'}",
+    \ "e3 nmcfg:{'short': 'job2', 'name': 'job2'}",
+    \ ]
+
+    " Setting entries directly manages nmcfg.
+    let before = getloclist(0)
+    call list._replace_qflist_entries(list.entries)
+    AssertEqual map(getloclist(0), 'v:val.text'), [
+    \ "e1 nmcfg:{'short': 'job1', 'name': 'job1'}",
+    \ 'e2',
+    \ "e3 nmcfg:{'short': 'job2', 'name': 'job2'}",
+    \ ]
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
 Execute (list: handles invalid errorformat):
   Save &errorformat
   new
