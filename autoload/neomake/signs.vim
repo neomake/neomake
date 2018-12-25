@@ -110,6 +110,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
 
     let place_new = []
     let log_context = {'bufnr': a:bufnr}
+    let count_reused = 0
     for [lnum, sign_type] in items(entries_by_linenr)
         let existing_sign = get(placed_signs, lnum, [])
         if empty(existing_sign) || existing_sign[1] !~# '^neomake_'.a:type.'_'
@@ -118,9 +119,10 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
         endif
         if existing_sign[1] == sign_type
             let sign_id = existing_sign[0]
-            call neomake#log#debug(printf(
-                        \ 'Reusing sign: id=%d, type=%s, lnum=%d.',
-                        \ sign_id, existing_sign[1], lnum), log_context)
+            let count_reused += 1
+            " call neomake#log#debug(printf(
+            "             \ 'Reusing sign: id=%d, type=%s, lnum=%d.',
+            "             \ sign_id, existing_sign[1], lnum), log_context)
 
             " Keep this sign from being cleaned.
             if exists('s:last_placed_signs[a:type][a:bufnr][sign_id]')
@@ -132,6 +134,9 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
             exe cmd
         endif
     endfor
+    if count_reused
+        call neomake#log#debug(printf('Reused %d signs.', count_reused), log_context)
+    endif
 
     for [lnum, sign_type] in place_new
         if !exists('next_sign_id')

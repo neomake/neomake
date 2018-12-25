@@ -655,11 +655,25 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         if entry != before
             let changed_entries[entry_idx] = entry
             if self.debug
-                call neomake#log#debug(printf(
-                  \ 'Modified list entry %d (postprocess): %s.',
-                  \ entry_idx + 1,
-                  \ substitute(string(neomake#utils#diff_dict(before, entry)), '\n', '\\n', 'g')),
-                  \ a:jobinfo)
+                " Ignore bufnr changes for tempfiles/stdin (logged together
+                " later).
+                let diff = neomake#utils#diff_dict(before, entry)
+                let changed_bufnr = get(get(diff, 'changed', {}), 'bufnr', [])
+                if !empty(changed_bufnr) && (
+                            \ has_key(bufnr_from_temp, changed_bufnr[0])
+                            \ || has_key(bufnr_from_stdin, changed_bufnr[0]))
+                    unlet diff.changed.bufnr
+                    if empty(diff.changed)
+                        unlet diff.changed
+                    endif
+                endif
+                if !empty(diff)
+                    call neomake#log#debug(printf(
+                      \ 'Modified list entry %d (postprocess): %s.',
+                      \ entry_idx + 1,
+                      \ substitute(string(diff), '\n', '\\n', 'g')),
+                      \ a:jobinfo)
+                endif
             endif
         endif
 
@@ -718,22 +732,32 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         let self.make_info._wipe_unlisted_buffers += keys(bufnr_from_stdin) + keys(bufnr_from_stdin)
         if !empty(bufnr_from_temp)
             for [tempbuf, entries_idx] in items(bufnr_from_temp)
+                if len(entries_idx) < 50
+                    let log_entries_idx = join(entries_idx, ', ')
+                else
+                    let log_entries_idx = join(entries_idx[:50], ', ') . '...'
+                endif
                 call neomake#log#debug(printf(
                             \ 'Used bufnr from temporary buffer %d (%s) for %d entries: %s.',
                             \ tempbuf,
                             \ bufname(+tempbuf),
                             \ len(entries_idx),
-                            \ join(entries_idx, ', ')), a:jobinfo)
+                            \ log_entries_idx), a:jobinfo)
             endfor
         endif
         if !empty(bufnr_from_stdin)
             for [tempbuf, entries_idx] in items(bufnr_from_stdin)
+                if len(entries_idx) < 50
+                    let log_entries_idx = join(entries_idx, ', ')
+                else
+                    let log_entries_idx = join(entries_idx[:50], ', ') . '...'
+                endif
                 call neomake#log#debug(printf(
                             \ 'Used bufnr from stdin buffer %d (%s) for %d entries: %s.',
                             \ tempbuf,
                             \ bufname(+tempbuf),
                             \ len(entries_idx),
-                            \ join(entries_idx, ', ')), a:jobinfo)
+                            \ log_entries_idx), a:jobinfo)
             endfor
         endif
     endif

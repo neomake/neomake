@@ -494,7 +494,7 @@ Execute (Temporary buffer is not wiped if opened):
   exe 'bwipe' tempfile_name
   exe 'bwipe' unlisted_bufnr
 
-  AssertNeomakeMessage printf("Modified list entry 1 (postprocess): {'changed': {'bufnr': [%d, %d]}}.", tempfile_bufnr, bufnr)
+  AssertNeomakeMessageAbsent '\VModified list entry'
   AssertNeomakeMessage printf(
   \ 'Used bufnr from temporary buffer %d (%s) for 1 entries: 1.',
   \ tempfile_bufnr, tempfile_name), 3
