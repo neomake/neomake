@@ -352,21 +352,24 @@ function! s:base_list._get_fn_args(action, ...) abort
     return [fn, args]
 endfunction
 
-" a:1: optional jobinfo.  Used internally when adding entries, but will be
-"      omitted when replacing list.
-function! s:base_list._set_qflist_entries(entries, action, ...) abort
+function! s:mark_entry_with_nmcfg(entry, maker_info) abort
+    let maker_name = a:maker_info.name
+    let config = {
+                \ 'name': maker_name,
+                \ 'short': get(a:maker_info, 'short_name', maker_name[:3]),
+                \ }
+    let marker_entry = copy(a:entry)
+    let marker_entry.text .= printf(' nmcfg:%s', string(config))
+    return marker_entry
+endfunction
+
+function! s:base_list._replace_qflist_entries(entries) abort
     let set_entries = a:entries
-    let action = a:action
 
-    " Add marker for custom quickfix to the first (new) entry.
-    if !a:0 && neomake#quickfix#is_enabled()
+    " Handle nmcfg markers when setting all entries without jobinfo.
+    if neomake#quickfix#is_enabled()
         let set_entries = copy(set_entries)
-
-        if action ==# 'a' && len(self.entries)
-            let prev_job_id = self.entries[-1].job_id
-        else
-            let prev_job_id = 0
-        endif
+        let prev_job_id = 0
 
         " Handle re-setting all entries.  This is meant to be used later
         " for replacing the whole list.
@@ -374,20 +377,18 @@ function! s:base_list._set_qflist_entries(entries, action, ...) abort
         for e in set_entries
             if e.job_id != prev_job_id
                 let maker_info = self.maker_info_by_jobid[e.job_id]
-                let maker_name = maker_info.name
-                let config = {
-                            \ 'name': maker_name,
-                            \ 'short': get(maker_info, 'short_name', maker_name[:3]),
-                            \ }
-                let marker_entry = copy(e)
-                let marker_entry.text .= printf(' nmcfg:%s', string(config))
-                let set_entries[i] = marker_entry
+                let set_entries[i] = s:mark_entry_with_nmcfg(e, maker_info)
                 let prev_job_id = e.job_id
             endif
             let i += 1
         endfor
     endif
 
+    call self._set_qflist_entries(set_entries, 'r')
+endfunction
+
+function! s:base_list._set_qflist_entries(entries, action) abort
+    let action = a:action
     if self.need_init && !get(self, 'reset_existing_qflist')
         if self.type ==# 'loclist'
             let msg = 'Creating location list for entries.'
@@ -402,7 +403,7 @@ function! s:base_list._set_qflist_entries(entries, action, ...) abort
             let action = ' '
         endif
     endif
-    call self._call_qf_fn('set', set_entries, action)
+    call self._call_qf_fn('set', a:entries, action)
 endfunction
 
 function! s:base_list._get_qflist_entries() abort
@@ -440,19 +441,12 @@ function! s:base_list._appendlist(entries, jobinfo) abort
         else
             let prev_idx = len(self.entries)
         endif
-        let maker_name = a:jobinfo.maker.name
-        let config = {
-                    \ 'name': maker_name,
-                    \ 'short': get(a:jobinfo.maker, 'short_name', maker_name[:3]),
-                    \ }
         let set_entries = copy(set_entries)
-        let marker_entry = copy(set_entries[prev_idx])
-        let marker_entry.text .= printf(' nmcfg:%s', string(config))
-        let set_entries[prev_idx] = marker_entry
+        let set_entries[prev_idx] = s:mark_entry_with_nmcfg(set_entries[prev_idx], a:jobinfo.maker)
     endif
 
     " NOTE: need to fetch (or pre-parse with new patch) to get updated bufnr etc.
-    call self._set_qflist_entries(set_entries, action, a:jobinfo)
+    call self._set_qflist_entries(set_entries, action)
     let added = self._get_qflist_entries()[len(self.entries) :]
 
     if needs_custom_qf_marker
@@ -679,13 +673,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         let new_index = len(self.entries)
         " Add marker for custom quickfix to the first (new) entry.
         if neomake#quickfix#is_enabled()
-            let config = {
-                        \ 'name': maker.name,
-                        \ 'short': get(a:jobinfo.maker, 'short_name', maker.name[:3]),
-                        \ }
-            let marker_entry = copy(entries[0])
-            let marker_entry.text .= printf(' nmcfg:%s', string(config))
-            let changed_entries[0] = marker_entry
+            let changed_entries[0] = s:mark_entry_with_nmcfg(entries[0], maker)
         endif
 
         if !empty(changed_entries) || !empty(removed_entries)
@@ -701,7 +689,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
                     call remove(list, new_index + k)
                 endfor
             endif
-            call self._set_qflist_entries(list, 'r', a:jobinfo)
+            call self._set_qflist_entries(list, 'r')
         endif
     endif
 
