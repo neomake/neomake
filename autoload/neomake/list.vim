@@ -677,8 +677,18 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
 
     if !s:use_efm_parsing
         let new_index = len(self.entries)
-        let needs_custom_qf_marker = neomake#quickfix#is_enabled()
-        if needs_custom_qf_marker || !empty(changed_entries) || !empty(removed_entries)
+        " Add marker for custom quickfix to the first (new) entry.
+        if neomake#quickfix#is_enabled()
+            let config = {
+                        \ 'name': maker.name,
+                        \ 'short': get(a:jobinfo.maker, 'short_name', maker.name[:3]),
+                        \ }
+            let marker_entry = copy(entries[0])
+            let marker_entry.text .= printf(' nmcfg:%s', string(config))
+            let changed_entries[0] = marker_entry
+        endif
+
+        if !empty(changed_entries) || !empty(removed_entries)
             " Need to update/replace current list.
             let list = self._get_qflist_entries()
             if !empty(changed_entries)
