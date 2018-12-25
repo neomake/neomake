@@ -240,7 +240,7 @@ Execute (Neomake#Make starts new jobs before waiting for the old to finish):
     NeomakeTestsWaitForFinishedJobs
     let end = reltime()
     let duration = reltimefloat(end) - reltimefloat(start)
-    Assert duration < 0.2, printf(
+    Assert duration < 0.3, printf(
     \ 'Jobs have been restarted before being stopped (%.2f).', duration)
 
     AssertNeomakeMessage 'Running makers: sleep.'
