@@ -398,7 +398,9 @@ function! s:base_list._set_qflist_entries(entries, action) abort
         call neomake#log#debug(msg, self.make_info)
 
         if s:needs_to_init_qf_for_lwindow
-            call self._call_qf_fn('set', [], ' ')
+            " Clean list without autocommands (customqf etc) to avoid
+            " flicker.  This is only to work around a Vim bug anyway.
+            noautocmd call self._call_qf_fn('set', [], ' ')
         else
             let action = ' '
         endif
