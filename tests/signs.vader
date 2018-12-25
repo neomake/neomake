@@ -29,7 +29,8 @@ Execute (neomake#signs#RedefineErrorSign):
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_warn, lnum=2.'
+  " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_warn, lnum=2.'
+  AssertNeomakeMessage 'Reused 1 signs.', 3, {'bufnr': bufnr}
   AssertNeomakeMessage 'Cleaning 0 old signs.', 3, {'bufnr': bufnr}
   AssertEqual neomake#signs#by_lnum(bufnr('%')), {'2': [5000, 'neomake_file_warn']}
 
@@ -364,7 +365,8 @@ Execute (neomake#signs#PlaceSigns keeps sign moved by lnum):
 
   call neomake#signs#Reset(bufnr, 'file')
   call s:place_sign(2)
-  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=2.'
+  " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=2.'
+  AssertNeomakeMessage 'Reused 1 signs.', 3, {'bufnr': bufnr}
   call neomake#signs#CleanOldSigns(bufnr, 'file')
   AssertNeomakeMessage 'Cleaning 0 old signs.', 3, {'bufnr': bufnr}
 
@@ -414,7 +416,8 @@ Execute (CleanOldSigns removes unplaced sign from s:placed_signs):
   \ '1': [5000, 'neomake_file_err'],
   \ '2': [5001, 'neomake_file_err'],
   \ }
-  AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3
+  " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3
+  AssertNeomakeMessage 'Reused 1 signs.', 3
   AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.bufnr.'.'
   bwipe!
 
