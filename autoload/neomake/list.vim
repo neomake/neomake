@@ -36,11 +36,6 @@ endfunction
 function! neomake#list#List(type) abort
     let list = deepcopy(s:base_list)
     let list.type = a:type
-    if a:type ==# 'loclist'
-        if exists('*win_getid')
-            let list.winid = win_getid()
-        endif
-    endif
     " Display debug messages about changed entries.
     let list.debug = exists('g:neomake_test_messages')
                 \ || !empty(get(g:, 'neomake_logfile'))
@@ -185,14 +180,21 @@ function! s:base_list.finish_for_make() abort
             call neomake#log#debug('Cleaning quickfix list.', self.make_info)
         endif
         call self._call_qf_fn('set', [], ' ')
+    else
+        " Set title, but only if list window is still valid.
+        if s:has_support_for_qfid
+            let valid = self._has_valid_qf()
+        elseif self.type ==# 'loclist'
+            let valid = self._get_loclist_win(1) != -1
+        else
+            let valid = 1
+        endif
+        if !valid
+            call neomake#log#debug('list: finish: list is not valid anymore.', self.make_info)
+            return
+        endif
+        call self.set_title()
     endif
-
-    if !self._has_valid_qf()
-        call neomake#log#debug('list: finish: list is not valid.', self.make_info)
-        return
-    endif
-
-    call self.set_title()
 endfunction
 
 function! s:base_list._call_qf_fn(action, ...) abort
@@ -250,13 +252,19 @@ function! s:base_list.set_title() abort
     endif
 endfunction
 
+" Check if quickfix list is still valid, which might not be the case anymore
+" if more than 10 new lists have been opened etc.
+" Returns -1 without suffort for quickfix ids.
 function! s:base_list._has_valid_qf() abort
     if !s:has_support_for_qfid
         return -1
     endif
 
     if self.type ==# 'loclist'
-        let loclist_win = self._get_loclist_win()
+        let loclist_win = self._get_loclist_win(1)
+        if loclist_win is -1
+            return 0
+        endif
         if !get(getloclist(loclist_win, {'id': self.qfid}), 'id')
             return 0
         endif
@@ -268,7 +276,9 @@ function! s:base_list._has_valid_qf() abort
     return 1
 endfunction
 
-function! s:base_list._get_loclist_win() abort
+" Get winnr/winid to be used with loclist functions.
+" a:1: return -1 instead of throwing when no window could be found?
+function! s:base_list._get_loclist_win(...) abort
     if !has_key(self, 'make_info')
         throw 'cannot handle type=loclist without make_info'
     endif
@@ -277,14 +287,20 @@ function! s:base_list._get_loclist_win() abort
     " NOTE: prefers using 0 for when winid is not supported with
     " setloclist() yet (vim74-xenial).
     if index(get(w:, 'neomake_make_ids', []), make_id) == -1
-        if has_key(self, 'winid')
-            let loclist_win = self.winid
+        if has_key(self.make_info, 'winid')
+            let loclist_win = self.make_info.winid
         else
             let [t, w] = neomake#core#get_tabwin_for_makeid(make_id)
             if [t, w] == [-1, -1]
+                if a:0 && a:1
+                    return -1
+                endif
                 throw printf('Neomake: could not find location list for make_id %d.', make_id)
             endif
             if t != tabpagenr()
+                if a:0 && a:1
+                    return -1
+                endif
                 throw printf('Neomake: trying to use location list from another tab (current=%d != target=%d).', tabpagenr(), t)
             endif
             let loclist_win = w

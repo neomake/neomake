@@ -228,34 +228,40 @@ Execute (list: error handling):
     let threw = 1
     AssertEqual v:exception, 'Neomake: could not find location list for make_id -42.'
   endtry
-  if exists('*win_getid')
-    AssertEqual threw, 0
-  else
-    " location list from another tab"
-    tabnew
-    let w:neomake_make_ids = [-42]
-    tabprev
-    let threw = 0
-    try
-      call list._get_fn_args('get')
-    catch
-      let threw = 1
-      AssertEqual v:exception, 'Neomake: trying to use location list from another tab (current=3 != target=4).'
-    endtry
-    AssertEqual threw, 1
-    tabnext
-    bwipe
+  AssertEqual threw, 1
 
-    new
-    let w:neomake_make_ids = [-42]
+  " Uses winid from make_info.
+  let list.make_info.winid = 1234
+  AssertEqual list._get_fn_args('get'), ['getloclist', [1234]]
+  unlet list.make_info.winid
+
+  " location list from another tab
+  tabnew
+  let w:neomake_make_ids = [-42]
+  tabprev
+  let threw = 0
+  try
     call list._get_fn_args('get')
-    wincmd p
-  endif
+  catch
+    let threw = 1
+    AssertEqual v:exception, 'Neomake: trying to use location list from another tab (current=3 != target=4).'
+  endtry
+  AssertEqual threw, 1
+  AssertEqual list._get_loclist_win(1), -1
+  tabnext
+  bwipe
+
+  new
+  let w:neomake_make_ids = [-42]
+  call list._get_fn_args('get')
+  wincmd p
+
   Assert !has_key(list, 'qfid')
   call list._call_qf_fn('set', [], ' ')
 
   if has('patch-8.0.1023')
     let list.qfid = list.qfid + 1
+    let list.make_info.winid = 1234
 
     Assert !list._has_valid_qf()
 
@@ -264,8 +270,7 @@ Execute (list: error handling):
       call list._get_fn_args('get')
     catch
       let threw = 1
-      let win_id = exists('*win_getid') ? win_getid() : winnr()
-      AssertEqual v:exception, printf('Neomake: qfid %d for location list (%d) has become invalid.', list.qfid, win_id)
+      AssertEqual v:exception, printf('Neomake: qfid %d for location list (1234) has become invalid.', list.qfid)
     endtry
     AssertEqual threw, 1
 
@@ -281,11 +286,8 @@ Execute (list: error handling):
     endtry
     AssertEqual threw, 1
   endif
-
-  if !exists('*win_getid')
-    wincmd p
-    bwipe
-  endif
+  wincmd p
+  bwipe
   bwipe
 
 Execute (list: add_lines_with_efm uses own list):

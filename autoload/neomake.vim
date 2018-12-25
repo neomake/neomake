@@ -1089,14 +1089,48 @@ function! s:Make(options) abort
     let make_id = s:make_id
     let options = extend(copy(a:options), {
                 \ 'file_mode': 1,
-                \ 'bufnr': bufnr('%'),
                 \ 'ft': &filetype,
                 \ }, 'keep')
     let options.make_id = make_id  " Deprecated.
-    lockvar 1 options
-    let bufnr = options.bufnr
     let file_mode = options.file_mode
 
+    " Require winid/winnr with non-current buffer in file_mode.
+    if has_key(options, 'bufnr')
+        if options.bufnr != bufnr('%')
+            if !has_key(options, 'winid') && !has_key(options, 'winnr')
+                throw 'Neomake: winid or winnr are required for non-current buffer.'
+            endif
+        endif
+        if !bufexists(options.bufnr)
+            throw printf('Neomake: buffer %d does not exist.', options.bufnr)
+        endif
+    else
+        let options.bufnr = bufnr('%')
+    endif
+
+    " Validate winid/winnr (required for location list windows).
+    let file_mode_win = 0
+    if file_mode
+        if has_key(options, 'winid')
+            if win_id2tabwin(options.winid) == [0, 0]
+                throw printf('Neomake: window id %d does not exist.', options.winid)
+            endif
+            let file_mode_win = options.winid
+        elseif has_key(options, 'winnr')
+            if winbufnr(options.winnr) == -1
+                throw printf('Neomake: window %d does not exist.', options.winnr)
+            endif
+            let file_mode_win = options.winnr
+        elseif exists('*win_getid')
+            let options.winid = win_getid()
+        endif
+    elseif has_key(options, 'winid')
+        throw 'Neomake: do not use winid with file_mode=0.'
+    elseif has_key(options, 'winnr')
+        throw 'Neomake: do not use winnr with file_mode=0.'
+    endif
+
+    lockvar 1 options
     let s:make_info[make_id] = {
                 \ 'make_id': make_id,
                 \ 'cwd': getcwd(),
@@ -1106,6 +1140,7 @@ function! s:Make(options) abort
                 \ 'options': options,
                 \ }
     let make_info = s:make_info[make_id]
+    let bufnr = options.bufnr
     if &verbose
         let make_info.verbosity += &verbose
         call neomake#log#debug(printf(
@@ -1175,7 +1210,12 @@ function! s:Make(options) abort
         endif
     endif
 
-    let w:neomake_make_ids = add(get(w:, 'neomake_make_ids', []), make_id)
+    " Store make_id on window (used to find window for location lists (without
+    " winid, but also used to check the current window via w: directly)).
+    if file_mode
+        call setwinvar(file_mode_win, 'neomake_make_ids',
+                    \ neomake#compat#getwinvar(file_mode_win, 'neomake_make_ids', []) + [make_id])
+    endif
 
     let make_info.entries_list = neomake#list#ListForMake(make_info)
     " Reuse existing location list window with automake.
