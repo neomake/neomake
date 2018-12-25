@@ -7,13 +7,34 @@ Execute (Neomake with unknown maker):
   Neomake doesnotexist
   let make_id = neomake#GetStatus().last_make_id
   let bufnr = bufnr('%')
-  AssertEqual g:neomake_test_messages, [
-  \ [3, "Calling Make with options {'ft': '', 'file_mode': 1, 'enabled_makers': ['doesnotexist']}.", {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}],
-  \ [0, 'Maker not found (for empty filetype): doesnotexist.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}],
-  \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}],
-  \ [3, 'Cleaning make info.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}]]
+  let msgs = g:neomake_test_messages
+  AssertEqual len(msgs), 4
+  if exists('*win_getid')
+    AssertEqual msgs[0], [3, "Calling Make with options {'ft': '', 'file_mode': 1, 'winid': ".win_getid().", 'enabled_makers': ['doesnotexist']}.", {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}]
+  else
+    AssertEqual msgs[0], [3, "Calling Make with options {'ft': '', 'file_mode': 1, 'enabled_makers': ['doesnotexist']}.", {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}]
+  endif
+  AssertEqual msgs[1], [0, 'Maker not found (for empty filetype): doesnotexist.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}],
+  AssertEqual msgs[2], [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}],
+  AssertEqual msgs[3], [3, 'Cleaning make info.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}]
   " ACK the error.
   AssertNeomakeMessage 'Maker not found (for empty filetype): doesnotexist.', 0
+
+Execute (Neomake with unknown maker (file_mode=0)):
+  Save g:neomake_verbose
+  let g:neomake_verbose = 3
+
+  Neomake! doesnotexist
+  let make_id = neomake#GetStatus().last_make_id
+  let bufnr = bufnr('%')
+  let msgs = g:neomake_test_messages
+  AssertEqual len(msgs), 4
+  AssertEqual msgs[0], [3, "Calling Make with options {'ft': '', 'file_mode': 0, 'enabled_makers': ['doesnotexist']}.", {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}]
+  AssertEqual msgs[1], [0, 'Maker not found (without filetype): doesnotexist.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}],
+  AssertEqual msgs[2], [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}],
+  AssertEqual msgs[3], [3, 'Cleaning make info.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}]
+  " ACK the error.
+  AssertNeomakeMessage 'Maker not found (without filetype): doesnotexist.', 0
 
 Execute (Neomake with unknown maker for multiple fts):
   Save g:neomake_verbose
@@ -24,8 +45,13 @@ Execute (Neomake with unknown maker for multiple fts):
   Neomake doesnotexist
   let make_id = neomake#GetStatus().last_make_id
   let bufnr = bufnr('%')
-  AssertEqual g:neomake_test_messages, [
-  \ [3, "Calling Make with options {'ft': 'ft1.ft2', 'file_mode': 1, 'enabled_makers': ['doesnotexist']}.", {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}],
+  let msgs = g:neomake_test_messages
+  if exists('*win_getid')
+    AssertEqual msgs[0], [3, "Calling Make with options {'ft': 'ft1.ft2', 'file_mode': 1, 'winid': ".win_getid().", 'enabled_makers': ['doesnotexist']}.", {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}]
+  else
+    AssertEqual msgs[0], [3, "Calling Make with options {'ft': 'ft1.ft2', 'file_mode': 1, 'enabled_makers': ['doesnotexist']}.", {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}]
+  endif
+  AssertEqual msgs[1:], [
   \ [0, 'Maker not found (for filetype ft1.ft2): doesnotexist.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}],
   \ [3, 'Nothing to make: no valid makers.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}],
   \ [3, 'Cleaning make info.', {'make_id': make_id, 'bufnr': bufnr, 'winnr': winnr()}]]

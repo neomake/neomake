@@ -155,3 +155,34 @@ Execute (NeomakeSh handles invalid shell):
     call neomake#Sh('dir ..')
     AssertNeomakeMessage '\v^Could not run cmd.exe -c "dir .." 2>.*: Vim\(let\):E484: .*\.$', 0
   endif
+
+Execute (neomake#Make with non-existing bufnr/winid/winnr):
+  AssertThrows call neomake#Make({'bufnr': 1234, 'file_mode': 1})
+  AssertEqual g:vader_exception, 'Neomake: winid or winnr are required for non-current buffer.'
+
+  AssertThrows call neomake#Make({'bufnr': 1234, 'file_mode': 1, 'winid': 1234, 'enabled_makers': []})
+  AssertEqual g:vader_exception, 'Neomake: buffer 1234 does not exist.'
+
+  AssertThrows call neomake#Make({'bufnr': bufnr('%'), 'file_mode': 1, 'winid': 1234, 'enabled_makers': []})
+  if exists('*win_getid')
+    AssertEqual g:vader_exception, 'Neomake: window id 1234 does not exist.'
+  else
+    AssertEqual g:vader_exception, 'Vim(if):E117: Unknown function: win_id2tabwin'
+  endif
+
+  AssertThrows call neomake#Make({'bufnr': bufnr('%'), 'file_mode': 1, 'winnr': 1234, 'enabled_makers': []})
+  AssertEqual g:vader_exception, 'Neomake: window 1234 does not exist.'
+
+  " winid/winnr with file_mode=0.
+  AssertThrows call neomake#Make({'bufnr': bufnr('%'), 'file_mode': 0, 'winnr': 1234, 'enabled_makers': []})
+  AssertEqual g:vader_exception, 'Neomake: do not use winnr with file_mode=0.'
+
+  AssertThrows call neomake#Make({'bufnr': bufnr('%'), 'file_mode': 0, 'winid': 1234, 'enabled_makers': []})
+  AssertEqual g:vader_exception, 'Neomake: do not use winid with file_mode=0.'
+
+  " Valid.
+  if exists('*win_getid')
+    call neomake#Make({'bufnr': bufnr('%'), 'file_mode': 1, 'winid': win_getid(), 'enabled_makers': []})
+  endif
+  call neomake#Make({'bufnr': bufnr('%'), 'file_mode': 1, 'winnr': winnr(), 'enabled_makers': []})
+  NeomakeCancelJobs!

@@ -333,18 +333,20 @@ function! NeomakeTestsFakeJobinfo() abort
   let maker = copy(g:neomake#config#_defaults.maker_defaults)
   let maker.name = 'fake_jobinfo_name'
 
-  call extend(jobinfo, {
+  let make_options = {
+              \ 'file_mode': 1,
+              \ 'bufnr': bufnr('%'),
+              \ }
+  call extend(jobinfo, extend(copy(make_options), {
         \ 'id': s:jobinfo_count,
-        \ 'file_mode': 1,
-        \ 'bufnr': bufnr('%'),
         \ 'ft': '',
         \ 'make_id': make_id,
         \ 'maker': maker,
-        \ })
+        \ }, 'force'))
   let make_info = neomake#GetStatus().make_info
   let make_info[make_id] = {
         \ 'make_id': make_id,
-        \ 'options': jobinfo,
+        \ 'options': make_options,
         \ 'verbosity': get(g:, 'neomake_verbose', 1),
         \ 'jobs_queue': [jobinfo],
         \ 'active_jobs': [],
