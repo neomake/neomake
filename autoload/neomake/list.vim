@@ -287,8 +287,8 @@ function! s:base_list._get_loclist_win(...) abort
     " NOTE: prefers using 0 for when winid is not supported with
     " setloclist() yet (vim74-xenial).
     if index(get(w:, 'neomake_make_ids', []), make_id) == -1
-        if has_key(self.make_info, 'winid')
-            let loclist_win = self.make_info.winid
+        if has_key(self.make_info.options, 'winid')
+            let loclist_win = self.make_info.options.winid
         else
             let [t, w] = neomake#core#get_tabwin_for_makeid(make_id)
             if [t, w] == [-1, -1]
