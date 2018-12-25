@@ -1489,20 +1489,25 @@ Execute (automake: restart via non-TextChangedI with delay):
 
 Execute (automake: restart via non-TextChangedI without delay):
   if NeomakeAsyncTestsSetup()
-    call neomake#configure#automake({'CursorHold': {'delay': 0}})
+    call neomake#configure#automake({'BufWritePost': {'delay': 0}})
 
     new
     let g:neomake_test_enabledmakers = [g:sleep_maker]
 
     set filetype=neomake_tests
 
-    doautocmd CursorHold
-    AssertNeomakeMessage 'automake: automake for event CursorHold.'
+    doautocmd BufWritePost
+    AssertNeomakeMessage 'automake: automake for event BufWritePost.'
     NeomakeTestsWaitForMessage 'Running makers: sleep-maker (auto).'
 
     doautocmd TextChanged
-    AssertNeomakeMessage 'automake: not restarting without delay for original event (CursorHold).', 3
+    AssertNeomakeMessage 'automake: restarting for original event (BufWritePost) without delay.', 3
+    AssertNeomakeMessage 'Neomake warning: automake was restarted due to TextChanged after BufWritePost. This might indicate a problem with your setup (plugin order).', 3
+    AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
 
     NeomakeTestsWaitForFinishedJobs
     bwipe
+
+    AssertEqual v:warningmsg, 'Neomake: automake was restarted due to TextChanged after BufWritePost. This might indicate a problem with your setup (plugin order).'
+    let v:warningmsg = ''
   endif

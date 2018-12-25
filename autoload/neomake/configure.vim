@@ -135,7 +135,12 @@ function! s:handle_changed_buffer(make_id, event) abort
         endif
         call s:neomake_do_automake(context)
     else
-        call s:debug_log(printf('not restarting without delay for original event (%s)', context.event))
+        call s:debug_log(printf('restarting for original event (%s) without delay', context.event))
+
+        call neomake#log#warn_once(printf('automake was restarted due to %s after %s. This might indicate a problem with your setup (plugin order).', a:event, context.event),
+                    \ printf('automake-restart-%s-%s', a:event, context.event))
+
+        call s:neomake_do_automake(context)
     endif
 endfunction
 
