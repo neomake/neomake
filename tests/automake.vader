@@ -849,22 +849,18 @@ Execute (Handles timeout in another buffer):
     let bufnr2 = bufnr('%')
     NeomakeTestsWaitForMessage printf('automake: callback for timer %d (via TextChanged).', timer)
     AssertNeomakeMessage printf('automake: buffer changed: %d => %d, queueing make restart for BufEnter,WinEnter.', bufnr1, bufnr2)
-    AssertEqual neomake#utils#redir('au neomake_automake_retry * <buffer='.bufnr1.'>'), join([
-    \ '',
-    \ '--- Autocommands ---',
+    AssertEqual split(neomake#utils#redir('au neomake_automake_retry * <buffer='.bufnr1.'>'), "\n")[1:], [
     \ 'neomake_automake_retry  BufEnter',
     \ '    <buffer='.bufnr1.'>',
     \ '              call s:do_postponed_automake(2)',
     \ 'neomake_automake_retry  WinEnter',
     \ '    <buffer='.bufnr1.'>',
     \ '              call s:do_postponed_automake(2)',
-    \ ], "\n")
+    \ ]
 
     wincmd p
-    AssertEqual neomake#utils#redir('au neomake_automake_retry * <buffer='.bufnr1.'>'), join([
-    \ '',
-    \ '--- Autocommands ---',
-    \ ], "\n")
+    AssertEqual split(neomake#utils#redir('au neomake_automake_retry * <buffer='.bufnr1.'>'), "\n")[1:],
+    \ []
     NeomakeTestsWaitForFinishedJobs
     wincmd p
 
@@ -892,10 +888,8 @@ Execute (automake: cleans up autocommands for missing context):
 
     wincmd p
     AssertNeomakeMessage 'automake: missing context information for postponed automake.', 3
-    AssertEqual neomake#utils#redir('au neomake_automake_retry * <buffer='.bufnr1.'>'), join([
-    \ '',
-    \ '--- Autocommands ---',
-    \ ], "\n")
+    AssertEqual split(neomake#utils#redir('au neomake_automake_retry * <buffer>'), "\n")[1:],
+    \ []
     wincmd p
     bwipe
     bwipe
