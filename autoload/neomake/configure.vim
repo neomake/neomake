@@ -293,6 +293,24 @@ function! s:automake_delayed_cb(timer) abort
     if !empty(timer_info.pos)
         let current_context = s:get_position_context()
         if current_context != timer_info.pos
+            if current_context[2] != timer_info.pos[2]
+                " Mode was changed.
+                if current_context[2][0] ==# 'i' && timer_info.event !=# 'TextChangedI'
+                    " Now in insert mode, trigger on InsertLeave.
+                    call s:debug_log(printf('context/position changed: %s => %s, restarting on InsertLeave',
+                                \ string(timer_info.pos), string(current_context)))
+                    let context = copy(timer_info)
+                    let context.delay = 0
+                    unlet context.pos
+                    call s:update_cancel_rate(bufnr, 1)
+                    let b:_neomake_postponed_automake_context = [1, context]
+                    augroup neomake_automake_retry
+                        au! * <buffer>
+                        autocmd InsertLeave <buffer> call s:do_postponed_automake(2)
+                    augroup END
+                    return
+                endif
+            endif
             call s:debug_log(printf('context/position changed: %s => %s, restarting',
                         \ string(timer_info.pos), string(current_context)))
             unlet timer_info.pos

@@ -681,7 +681,7 @@ Execute (Automake for normal mode handles ciw):
   AssertEqual len(g:neomake_test_jobfinished), 1
   bwipe!
 
-Execute (Automake stops if context changed (CursorHold)):
+Execute (Automake restarts if context changed (CursorHold)):
   if !has('timers')
     NeomakeTestsSkip 'only with timers feature'
   else
@@ -699,6 +699,35 @@ Execute (Automake stops if context changed (CursorHold)):
     let timer = g:neomake_test_matchlist[1]
     bwipe!
     AssertNeomakeMessage 'automake: stopped timer for wiped buffer: '.timer.'.'
+  endif
+
+Execute (Automake restarts on InsertLeave if context and mode changed (CursorHold)):
+  if !has('timers')
+    NeomakeTestsSkip 'only with timers feature'
+  else
+    new
+    norm! iword1 word2
+    set filetype=neomake_tests
+    let b:neomake_enabled_makers = [g:true_maker]
+    call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 10}})
+
+    let s:exited = 0
+    function! s:exit_insert(...)
+      let s:exited = 1
+      call feedkeys("\<Esc>")
+    endfunction
+    call timer_start(100, function('s:exit_insert'))
+
+    doautocmd CursorHold
+    call feedkeys('o', 'nx!')
+    AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
+
+    NeomakeTestsWaitForMessage '\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''n''] => [\d\+, [0, 2, 1, 0], ''i''], restarting on InsertLeave.', 3
+    AssertNeomakeMessage 'automake: re-starting postponed automake.'
+    " Does not use delay/timer.
+    AssertNeomakeMessageAbsent '\Vautomake: increasing delay \.\*'
+    AssertNeomakeMessageAbsent '\Vautomake: started timer'
+    bwipe!
   endif
 
 Execute (Automake restarts if popup menu is visible):
