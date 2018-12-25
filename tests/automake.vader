@@ -849,14 +849,57 @@ Execute (Handles timeout in another buffer):
     let bufnr2 = bufnr('%')
     NeomakeTestsWaitForMessage printf('automake: callback for timer %d (via TextChanged).', timer)
     AssertNeomakeMessage printf('automake: buffer changed: %d => %d, queueing make restart for BufEnter,WinEnter.', bufnr1, bufnr2)
+    AssertEqual neomake#utils#redir('au neomake_automake_retry * <buffer='.bufnr1.'>'), join([
+    \ '',
+    \ '--- Autocommands ---',
+    \ 'neomake_automake_retry  BufEnter',
+    \ '    <buffer='.bufnr1.'>',
+    \ '              call s:do_postponed_automake(2)',
+    \ 'neomake_automake_retry  WinEnter',
+    \ '    <buffer='.bufnr1.'>',
+    \ '              call s:do_postponed_automake(2)',
+    \ ], "\n")
 
     wincmd p
+    AssertEqual neomake#utils#redir('au neomake_automake_retry * <buffer='.bufnr1.'>'), join([
+    \ '',
+    \ '--- Autocommands ---',
+    \ ], "\n")
     NeomakeTestsWaitForFinishedJobs
     wincmd p
 
     bwipe
     AssertEqual len(g:neomake_test_finished), 1
     bwipe!
+  endif
+
+Execute (automake: cleans up autocommands for missing context):
+  if NeomakeAsyncTestsSetup()
+    new
+    set filetype=neomake_tests
+    let g:neomake_test_enabledmakers = [g:sleep_maker]
+    call neomake#configure#automake({'TextChanged': {'delay': 10}})
+    doautocmd TextChanged
+    call NeomakeTestsHandleSecondTextChanged()
+
+    new
+    NeomakeTestsWaitForMessage '\Vautomake: callback for timer'
+    AssertNeomakeMessage '\Vautomake: buffer changed:'
+
+    noautocmd wincmd p
+    unlet b:_neomake_postponed_automake_context
+    noautocmd wincmd p
+
+    wincmd p
+    AssertNeomakeMessage 'automake: missing context information for postponed automake.', 3
+    AssertEqual neomake#utils#redir('au neomake_automake_retry * <buffer='.bufnr1.'>'), join([
+    \ '',
+    \ '--- Autocommands ---',
+    \ ], "\n")
+    wincmd p
+    bwipe
+    bwipe
+    AssertEqual len(g:neomake_test_finished), 0
   endif
 
 Execute (Error with non-existing configured maker):
