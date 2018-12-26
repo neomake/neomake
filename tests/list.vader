@@ -256,8 +256,19 @@ Execute (list: error handling):
   let w:neomake_make_ids = [-42]
   AssertEqual list._get_fn_args('get'), [['getloclist', [0]]]
   AssertEqual list.need_init, 1
-  AssertEqual list._get_fn_args('set', [], ' '),
-  \ [['setloclist', [0, [], ' ', {'title': 'Neomake[file]: buf:'.orig_bufnr.' (fake_jobinfo_name?)', 'items': []}]]]
+
+  let fns_args = list._get_fn_args('set', ['item'], ' ')
+  if has('patch-7.4.2200') && has('patch-8.0.0657')
+    AssertEqual fns_args,
+    \ [['setloclist', [0, [], ' ', {'title': 'Neomake[file]: buf:'.orig_bufnr.' (fake_jobinfo_name?)', 'items': ['item']}]]]
+  elseif has('patch-7.4.2200')
+    AssertEqual fns_args,
+    \ [['setloclist', [0, ['item'], ' ', {'title': 'Neomake[file]: buf:'.orig_bufnr.' (fake_jobinfo_name?)'}]]]
+  else
+    AssertEqual fns_args,
+    \ [['setloclist', [0, ['item'], ' ']]]
+  endif
+
   wincmd p
 
   Assert !has_key(list, 'qfid')
