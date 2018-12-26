@@ -771,11 +771,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         let self.make_info._wipe_unlisted_buffers += keys(bufnr_from_stdin) + keys(bufnr_from_stdin)
         if !empty(bufnr_from_temp)
             for [tempbuf, entries_idx] in items(bufnr_from_temp)
-                if len(entries_idx) < 50
-                    let log_entries_idx = join(entries_idx, ', ')
-                else
-                    let log_entries_idx = join(entries_idx[:50], ', ') . '...'
-                endif
+                let log_entries_idx = join(neomake#utils#shorten_list_for_log(entries_idx, 50), ', ')
                 call neomake#log#debug(printf(
                             \ 'Used bufnr from temporary buffer %d (%s) for %d entries: %s.',
                             \ tempbuf,
@@ -786,11 +782,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         endif
         if !empty(bufnr_from_stdin)
             for [tempbuf, entries_idx] in items(bufnr_from_stdin)
-                if len(entries_idx) < 50
-                    let log_entries_idx = join(entries_idx, ', ')
-                else
-                    let log_entries_idx = join(entries_idx[:50], ', ') . '...'
-                endif
+                let log_entries_idx = join(neomake#utils#shorten_list_for_log(entries_idx, 50), ', ')
                 call neomake#log#debug(printf(
                             \ 'Used bufnr from stdin buffer %d (%s) for %d entries: %s.',
                             \ tempbuf,

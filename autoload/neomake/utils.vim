@@ -720,3 +720,10 @@ else
         return ''
     endfunction
 endif
+
+function! neomake#utils#shorten_list_for_log(l, max) abort
+    if len(a:l) > a:max
+        return a:l[:a:max-1] + ['... ('.len(a:l).' total)']
+    endif
+    return a:l
+endfunction
