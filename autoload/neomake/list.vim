@@ -37,9 +37,10 @@ function! neomake#list#List(type) abort
     let list = deepcopy(s:base_list)
     let list.type = a:type
     " Display debug messages about changed entries.
-    let list.debug = exists('g:neomake_test_messages')
+    let list.debug = get(g:, 'neomake_debug_list',
+                \ exists('g:neomake_test_messages')
                 \ || !empty(get(g:, 'neomake_logfile'))
-                \ || neomake#utils#get_verbosity() >= 3
+                \ || neomake#utils#get_verbosity() >= 3)
     return list
 endfunction
 
@@ -205,12 +206,12 @@ function! s:base_list._call_qf_fn(action, ...) abort
         if s:has_support_for_qfid
             let args[-1].items = 1
             if self.debug
-                call neomake#log#debug(printf('list: calling for "get", returning items: %s.', string(fns_args)))
+                call neomake#log#debug(printf('list: call: "get", returning items: %s.', string(fns_args)))
             endif
             return call(fn, args).items
         endif
         if self.debug
-            call neomake#log#debug(printf('list: calling for "get": %s.', string(fns_args)))
+            call neomake#log#debug(printf('list: call: "get": %s.', string(fns_args)))
         endif
         return call(fn, args)
     endif
@@ -218,7 +219,7 @@ function! s:base_list._call_qf_fn(action, ...) abort
     for fns in fns_args
         let [fn, args] = fns
         if self.debug
-            call neomake#log#debug(printf('list: calling for "%s": %s.', a:action, string(fns_args)))
+            call neomake#log#debug(printf('list: call: "%s": %s.', a:action, string(fns_args)))
         endif
         call call(fn, args, self)
     endfor

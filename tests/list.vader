@@ -1,5 +1,29 @@
 Include: include/setup.vader
 
+Execute (list: default for debug):
+  Save g:neomake_test_messages, g:neomake_debug_list, g:neomake_verbose
+
+  unlet! g:neomake_test_messages
+  unlet! g:neomake_debug_list
+  unlet! g:neomake_verbose
+
+  AssertEqual neomake#list#List('loclist').debug, 0
+  let g:neomake_debug_list = 1
+  AssertEqual neomake#list#List('loclist').debug, 1
+
+  let g:neomake_test_messages = []
+  let g:neomake_debug_list = 0
+  AssertEqual neomake#list#List('loclist').debug, 0
+
+  unlet g:neomake_debug_list
+  AssertEqual neomake#list#List('loclist').debug, 1
+
+  unlet g:neomake_test_messages
+  let g:neomake_verbose = 3
+  AssertEqual neomake#list#List('loclist').debug, 1
+
+  Restore
+
 Execute (List: basic: loclist):
   new
   normal! oline2
