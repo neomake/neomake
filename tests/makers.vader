@@ -647,9 +647,15 @@ Execute (Makers: process_json with non-list return value):
   AssertNeomakeMessage "Calling maker's process_json method with 2 JSON entries.", 3
   AssertNeomakeMessage 'The process_json method for maker json-maker did not return a list, but: 0.', 0
 
+  function! maker.process_json(...) abort dict
+    return [0]
+  endfunction
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'The process_json method for maker json-maker did not return a list of dicts, but: [0].', 0
+
   AssertEqual len(g:neomake_test_countschanged), 0
-  AssertEqual len(g:neomake_test_jobfinished), 1
-  AssertEqual len(g:neomake_test_finished), 1
+  AssertEqual len(g:neomake_test_jobfinished), 2
+  AssertEqual len(g:neomake_test_finished), 2
 
 Execute (Makers: get_list_entries with sandbox exception):
   call neomake#statusline#ResetCounts()
