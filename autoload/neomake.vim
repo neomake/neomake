@@ -2056,6 +2056,8 @@ else
     " Neovim: register output from jobs as quick as possible, and trigger
     " processing through a timer.
     " This works around https://github.com/neovim/neovim/issues/5889).
+    " NOTE: a:data is never [''] here (like with other/newer Neovim
+    " handlers)
     let s:nvim_output_handler_queue = []
     function! s:nvim_output_handler(job_id, data, event_type) abort
         let jobinfo = get(s:jobs, get(s:map_job_ids, a:job_id, -1), {})
@@ -2107,6 +2109,10 @@ function! s:nvim_exit_handler_buffered(job_id, data, _event_type) abort
     for stream in ['stdout', 'stderr']
         if has_key(jobinfo.jobstart_opts, stream)
             let data = copy(jobinfo.jobstart_opts[stream])
+            if data == ['']
+                " EOF in Neovim (see :h on_data).
+                continue
+            endif
             call s:output_handler(jobinfo, data, stream, 1)
         endif
     endfor
