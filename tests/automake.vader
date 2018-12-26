@@ -380,7 +380,7 @@ Execute (Automake: skips non-default buftypes):
     call NeomakeTestsHandleSecondTextChanged()
   endif
   AssertNeomakeMessage '\Vautomake: configured buffer for ft=neomake_tests', 3
-  AssertNeomakeMessage 'automake: automake for event TextChanged.'
+  AssertNeomakeMessage 'automake: automake for event '.event.'.'
   bwipe!
 
 Execute (neomake#configure#automake_for_buffer does not set up autocommands for no makers):
