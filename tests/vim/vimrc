@@ -9,6 +9,9 @@ let g:neomake_test_messages = []
 " Shorter timeouts during tests.
 let g:neomake_action_queue_timeouts = {1: 10, 2: 20, 3: 30}
 
+" Remove some overhead by default, tested explicitly.
+let g:neomake_echo_current_error = 0
+
 let s:slash = has('win32') ? '\' : '/'
 
 if exists('$NEOMAKE_TESTS_DEP_PLUGINS_DIR')
