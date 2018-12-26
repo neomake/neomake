@@ -2245,13 +2245,13 @@ function! s:output_handler(jobinfo, data, event_type, trim_CR) abort
     let jobinfo = a:jobinfo
     call neomake#log#debug(printf('output on %s: %s.',
                 \ a:event_type, string(a:data)), jobinfo)
-    let data = copy(a:data)
-    if a:trim_CR && !empty(a:data)
-        call map(data, "substitute(v:val, '\\r$', '', '')")
-    endif
     if get(jobinfo, 'canceled')
         call neomake#log#debug('Ignoring output (job was canceled).', jobinfo)
         return
+    endif
+    let data = copy(a:data)
+    if a:trim_CR && !empty(a:data)
+        call map(data, "substitute(v:val, '\\r$', '', '')")
     endif
     let last_event_type = get(jobinfo, 'event_type', a:event_type)
 
