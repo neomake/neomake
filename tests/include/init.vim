@@ -484,6 +484,7 @@ function! s:After()
   " exit handler, but that is OK.
   let jobs = filter(neomake#GetJobs(), "!get(v:val, 'canceled', 0)")
   if len(jobs)
+    call neomake#log#debug('=== teardown: canceling jobs.')
     for job in jobs
       call neomake#CancelJob(job.id, !neomake#has_async_support())
     endfor

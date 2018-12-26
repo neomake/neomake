@@ -5,7 +5,7 @@ Execute (Resets ignore_automake_events always):
   let g:neomake_open_list = 2
   new
 
-  augroup neomake_test
+  augroup neomake_tests
     autocmd BufWritePost * CallNeomake 1, [g:error_maker]
   augroup END
 

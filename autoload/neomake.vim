@@ -1070,7 +1070,7 @@ function! s:get_makeprg_maker() abort
 endfunction
 
 function! s:Make(options) abort
-    let is_automake = !empty(expand('<abuf>'))
+    let is_automake = get(a:options, 'automake', !empty(expand('<abuf>')))
     if is_automake
         if s:ignore_automake_events
             call neomake#log#debug(printf(
@@ -1218,9 +1218,15 @@ function! s:Make(options) abort
     endif
 
     let make_info.entries_list = neomake#list#ListForMake(make_info)
+
     " Reuse existing location list window with automake.
     if is_automake && has('patch-7.4.2200')
-        if get(getloclist(0, {'title': 1}), 'title') =~# '\V\^Neomake[auto]'
+        if file_mode
+            let title = get(getloclist(0, {'title': 1}), 'title')
+        else
+            let title = get(getqflist({'title': 1}), 'title')
+        endif
+        if title =~# '\V\^Neomake[auto]'
             let make_info.entries_list.reset_existing_qflist = 1
         endif
     endif
