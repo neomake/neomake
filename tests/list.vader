@@ -260,6 +260,8 @@ Execute (list: error handling):
   AssertEqual list._get_fn_args('get'), [['getloclist', [1234]]]
   unlet list.make_info.options.winid
 
+  AssertEqual list._get_loclist_win(1), -1
+
   " location list from another tab
   tabnew
   let w:neomake_make_ids = [-42]
@@ -464,3 +466,45 @@ Execute (list: handles invalid errorformat):
   " Falls back to default errorformat.
   AssertEqual map(getloclist(0), '[v:val.text, v:val.lnum]'), [['msg', 42]]
   bwipe
+
+Execute (list: can reuse location list):
+  " Not really used (automake uses location lists), but can be covered.
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let make_info = neomake#GetStatus().make_info[-42]
+  let make_info.options.file_mode = 1
+  let list = neomake#list#ListForMake(make_info)
+
+  new
+  let w:neomake_make_ids = [-42]
+
+  call list._call_qf_fn('set', [{'text': 'e1', 'lnum': 1, 'bufnr': bufnr('%')}], ' ')
+  AssertEqual map(getloclist(0), 'v:val.text'), ['e1']
+
+  let list = neomake#list#ListForMake(make_info)
+  " let list.need_init = 1
+  let list.reset_existing_qflist = 1
+  call list._call_qf_fn('set', [{'text': 'e2', 'lnum': 1, 'bufnr': bufnr('%')}], ' ')
+  AssertEqual map(getloclist(0), 'v:val.text'), ['e2']
+
+  AssertNeomakeMessage 'Reusing location list for entries.'
+  AssertNeomakeMessage '\V\^list: call: "set": [0, [\.\*], ''r'''
+  bwipe
+
+Execute (list: can reuse quickfix list):
+  " Not really used (automake uses location lists), but can be covered.
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  let make_info = neomake#GetStatus().make_info[-42]
+  let make_info.options.file_mode = 0
+  let list = neomake#list#ListForMake(make_info)
+  AssertEqual list.type, 'quickfix'
+
+  call list._call_qf_fn('set', [{'text': 'e1', 'lnum': 1, 'bufnr': bufnr('%')}], ' ')
+  AssertEqual map(getqflist(), 'v:val.text'), ['e1']
+
+  let list.need_init = 1
+  let list.reset_existing_qflist = 1
+  call list._call_qf_fn('set', [{'text': 'e2', 'lnum': 1, 'bufnr': bufnr('%')}], ' ')
+  AssertEqual map(getqflist(), 'v:val.text'), ['e2']
+
+  AssertNeomakeMessage 'Reusing quickfix list for entries.'
+  AssertNeomakeMessage '\V\^list: call: "set": [[\.\*], ''r'''

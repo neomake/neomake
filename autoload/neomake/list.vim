@@ -226,7 +226,7 @@ function! s:base_list._call_qf_fn(action, ...) abort
                 if self.type ==# 'loclist'
                     let log_args[1] = neomake#utils#shorten_list_for_log(log_args[1], 5)
                 else
-                    let log_args[0] = neomake#utils#shorten_list_for_log(log_args[1], 5)
+                    let log_args[0] = neomake#utils#shorten_list_for_log(log_args[0], 5)
                 endif
                 " Massage options dict.
                 if type(log_args[-1]) == type({})
@@ -376,11 +376,6 @@ function! s:base_list._get_fn_args(action, ...) abort
             call vader#assert#true(s:can_set_qf_title)
         endif
         let options.title = a:1
-    elseif a:action ==# 'reset'
-        call extend(args, [[], 'r'])
-        if !empty(options)
-            let options.items = []
-        endif
     else
         call extend(args, a:000)
         if a:action ==# 'set'
@@ -400,7 +395,11 @@ function! s:base_list._get_fn_args(action, ...) abort
     let r = []
     if a:action ==# 'set'
         if self.need_init && get(self, 'reset_existing_qflist')
-            let args[2] = 'r'  " action
+            if self.type ==# 'loclist'
+                let args[2] = 'r'  " action
+            else
+                let args[1] = 'r'  " action
+            endif
             if self.type ==# 'loclist'
                 let msg = 'Reusing location list for entries.'
             else
