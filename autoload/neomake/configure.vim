@@ -511,6 +511,10 @@ function! s:configure_buffer(bufnr, ...) abort
         let s:configured_buffers[bufnr] = {'custom': a:0 > 0}
     endif
 
+    augroup neomake_automake_clean
+        autocmd BufWipeout <buffer> call s:neomake_automake_clean(expand('<abuf>'))
+    augroup END
+
     " Create jobs.
     let options = a:0 > 1 ? a:2 : {}
     if has_key(options, 'makers')
@@ -746,7 +750,6 @@ endfunction
 
 augroup neomake_automake_base
     au!
-    autocmd BufWipeout * call s:neomake_automake_clean(expand('<abuf>'))
     autocmd FileType * call s:maybe_reconfigure_buffer(expand('<abuf>'))
 augroup END
 " vim: ts=4 sw=4 et
