@@ -2063,6 +2063,10 @@ else
             call neomake#log#debug(printf('output [%s]: job %d not found.', a:event_type, a:job_id))
             return
         endif
+        if a:data == [''] && !exists('jobinfo[a:event_type]')
+            " EOF in Neovim (see :h on_data).
+            return
+        endif
         let args = [jobinfo, copy(a:data), a:event_type, 1]
         call add(s:nvim_output_handler_queue, args)
         if !exists('jobinfo._nvim_in_handler')
@@ -2107,6 +2111,10 @@ function! s:nvim_exit_handler_buffered(job_id, data, _event_type) abort
     for stream in ['stdout', 'stderr']
         if has_key(jobinfo.jobstart_opts, stream)
             let data = copy(jobinfo.jobstart_opts[stream])
+            if data == ['']
+                " EOF in Neovim (see :h on_data).
+                continue
+            endif
             call s:output_handler(jobinfo, data, stream, 1)
         endif
     endfor
