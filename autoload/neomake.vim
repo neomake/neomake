@@ -2500,11 +2500,6 @@ function! neomake#Sh(sh_command, ...) abort
     return neomake#ShCommand(0, a:sh_command, options)
 endfunction
 
-" Deprecated (2017-10-11).
-function! neomake#DisplayInfo(...) abort
-    call call('neomake#debug#display_info', a:000)
-endfunction
-
 function! neomake#map_makers(makers, ft, auto_enabled) abort
     let makers = []
     let errors = []
