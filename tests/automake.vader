@@ -1500,14 +1500,12 @@ Execute (automake: restart via non-TextChangedI without delay):
     AssertNeomakeMessage 'automake: automake for event BufWritePost.'
     NeomakeTestsWaitForMessage 'Running makers: sleep-maker (auto).'
 
+    call NeomakeTestsSetVimMessagesMarker()
     doautocmd TextChanged
     AssertNeomakeMessage 'automake: restarting for original event (BufWritePost) without delay.', 3
-    AssertNeomakeMessage 'Neomake warning: automake was restarted due to TextChanged after BufWritePost. This might indicate a problem with your setup (plugin order).', 3
+    AssertNeomakeWarning 'automake was restarted due to TextChanged after BufWritePost. This might indicate a problem with your setup (plugin order).'
     AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
 
     NeomakeTestsWaitForFinishedJobs
     bwipe
-
-    AssertEqual v:warningmsg, 'Neomake: automake was restarted due to TextChanged after BufWritePost. This might indicate a problem with your setup (plugin order).'
-    let v:warningmsg = ''
   endif
