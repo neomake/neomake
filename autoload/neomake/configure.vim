@@ -294,16 +294,16 @@ function! s:automake_delayed_cb(timer) abort
     endif
 
     " Verify context/position is the same.
-    " TODO: only makes sense for some events, e.g. not for
-    "       BufWritePost/BufWinEnter?!
-    " if timer_info.event !=# 'BufWritePost'
+    " This is meant to give an additional delay after e.g. TextChanged.
+    " Only events with delay are coming here, so this does not affect
+    " BufWritePost etc typically.
     if !empty(timer_info.pos)
         let current_context = s:get_position_context()
         if current_context != timer_info.pos
             if current_context[2] != timer_info.pos[2]
                 " Mode was changed.
                 if current_context[2][0] ==# 'i' && timer_info.event !=# 'TextChangedI'
-                    " Now in insert mode, trigger on InsertLeave.
+                    " Changed to insert mode, trigger on InsertLeave.
                     call s:debug_log(printf('context/position changed: %s => %s, restarting on InsertLeave',
                                 \ string(timer_info.pos), string(current_context)))
                     let context = copy(timer_info)

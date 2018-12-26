@@ -527,6 +527,9 @@ endfunction
 
 function! neomake#utils#fix_self_ref(obj, ...) abort
     if type(a:obj) != type({})
+        if type(a:obj) == type([])
+            return map(copy(a:obj), 'neomake#utils#fix_self_ref(v:val)')
+        endif
         return a:obj
     endif
     let obj = copy(a:obj)
