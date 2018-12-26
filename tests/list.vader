@@ -520,7 +520,7 @@ Execute (list: reused with automake (qflist)):
     " (file_mode=0 should look at quickfix title only)
     call setloclist(0, [], ' ', {'title': 'Neomake[auto]'})
 
-    augroup neomake_test
+    augroup neomake_tests
       au CursorHold * Neomake!
     augroup END
     doautocmd CursorHold
