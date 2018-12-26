@@ -206,6 +206,7 @@ Execute (Does not create list unnecessarily):
 
 Execute (list: error handling):
   new
+  let orig_bufnr = bufnr('%')
   let list = neomake#list#List('loclist')
 
   let threw = 0
@@ -232,7 +233,7 @@ Execute (list: error handling):
 
   " Uses winid from make_info.
   let list.make_info.options.winid = 1234
-  AssertEqual list._get_fn_args('get'), ['getloclist', [1234]]
+  AssertEqual list._get_fn_args('get'), [['getloclist', [1234]]]
   unlet list.make_info.options.winid
 
   " location list from another tab
@@ -253,7 +254,22 @@ Execute (list: error handling):
 
   new
   let w:neomake_make_ids = [-42]
-  call list._get_fn_args('get')
+  AssertEqual list._get_fn_args('get'), [['getloclist', [0]]]
+  AssertEqual list.need_init, 1
+
+  let fns_args = list._get_fn_args('set', ['item'], ' ')
+  let title = 'Neomake[file]: buf:'.orig_bufnr.' (fake_jobinfo_name?)'
+  if has('patch-7.4.2200') && has('patch-8.0.0657')
+    AssertEqual fns_args,
+    \ [['setloclist', [0, [], ' ', {'title': title, 'items': ['item']}]]]
+  elseif has('patch-7.4.2200')
+    AssertEqual fns_args,
+    \ [['setloclist', [0, ['item'], ' ']], ['setloclist', [0, [], 'a', {'title': title}]]]
+  else
+    AssertEqual fns_args,
+    \ [['setloclist', [0, ['item'], ' ']]]
+  endif
+
   wincmd p
 
   Assert !has_key(list, 'qfid')

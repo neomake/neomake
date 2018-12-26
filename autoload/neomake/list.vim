@@ -198,36 +198,30 @@ function! s:base_list.finish_for_make() abort
 endfunction
 
 function! s:base_list._call_qf_fn(action, ...) abort
-    let [fn, args] = call(self._get_fn_args, [a:action] + a:000, self)
-    if a:action ==# 'set'
-        if self.need_init && get(self, 'reset_existing_qflist')
-            let args[2] = 'r'  " action
-            if self.type ==# 'loclist'
-                let msg = 'Reusing location list for entries.'
-            else
-                let msg = 'Reusing quickfix list for entries.'
+    let fns_args = call(self._get_fn_args, [a:action] + a:000, self)
+
+    if a:action ==# 'get'
+        let [fn, args] = fns_args[0]
+        if s:has_support_for_qfid
+            let args[-1].items = 1
+            if self.debug
+                call neomake#log#debug(printf('list: calling for "get", returning items: %s.', string(fns_args)))
             endif
-            call neomake#log#debug(msg, self.make_info)
+            return call(fn, args).items
         endif
-        " Handle setting title, which gets done initially and when maker
-        " names are updated.  This has to be done in a separate call
-        " without patch-8.0.0657.
-        if s:can_set_qf_title
-            let title = self._get_title()
-            if s:can_set_qf_items
-                if type(args[-1]) != type({})
-                    call add(args, {'title': title, 'items': args[1]})
-                else
-                    let args[-1].title = title
-                endif
-            else
-                " Update title after actual call.
-                call call(fn, args)
-                let [fn, args] = self._get_fn_args('title', title)
-            endif
+        if self.debug
+            call neomake#log#debug(printf('list: calling for "get": %s.', string(fns_args)))
         endif
+        return call(fn, args)
     endif
-    let r = call(fn, args)
+
+    for fns in fns_args
+        let [fn, args] = fns
+        if self.debug
+            call neomake#log#debug(printf('list: calling for "%s": %s.', a:action, string(fns_args)))
+        endif
+        call call(fn, args, self)
+    endfor
 
     " Get qfid.
     if self.need_init
@@ -238,17 +232,17 @@ function! s:base_list._call_qf_fn(action, ...) abort
             else
                 let self.qfid = getqflist({'id': 0}).id
             endif
+            if self.debug
+                call neomake#log#debug(printf('list: got qfid (action=%s): %s.', a:action, self.qfid))
+            endif
         endif
         let self.need_init = 0
     endif
-
-    return r
 endfunction
 
 function! s:base_list.set_title() abort
     if s:can_set_qf_title
-        let [fn, args] = self._get_fn_args('title', self._get_title())
-        call call(fn, args)
+        call self._call_qf_fn('title', self._get_title())
     endif
 endfunction
 
@@ -309,6 +303,7 @@ function! s:base_list._get_loclist_win(...) abort
     return loclist_win
 endfunction
 
+" Return a list of commands to be called.
 " action: "get", "set", "init", "title"
 " a:000: optional args (for set/init/title)
 function! s:base_list._get_fn_args(action, ...) abort
@@ -339,7 +334,7 @@ function! s:base_list._get_fn_args(action, ...) abort
             let options.id = self.qfid
         elseif valid == 0
             if self.type ==# 'loclist'
-                let loclist_win = self._get_loclist_win()
+                let loclist_win = args[0]
                 throw printf('Neomake: qfid %d for location list (%d) has become invalid.', self.qfid, loclist_win)
             else
                 throw printf('Neomake: qfid %d for quickfix list has become invalid.', self.qfid)
@@ -349,6 +344,9 @@ function! s:base_list._get_fn_args(action, ...) abort
 
     if a:action ==# 'title'
         call extend(args, [[], 'a'])
+        if exists('*vader#assert#true')
+            call vader#assert#true(s:can_set_qf_title)
+        endif
         let options.title = a:1
     elseif a:action ==# 'reset'
         call extend(args, [[], 'r'])
@@ -357,15 +355,56 @@ function! s:base_list._get_fn_args(action, ...) abort
         endif
     else
         call extend(args, a:000)
-        if s:can_set_qf_items && a:action ==# 'set'
-            let options.items = a:1
-            let args[-2] = []
+        if a:action ==# 'set'
+            if exists(':Assert')
+                Assert len(a:000) == 2
+            endif
+            if s:can_set_qf_items
+                let options.items = a:1
+                let args[-2] = []
+            endif
         endif
     endif
     if !empty(options)
         call add(args, options)
     endif
-    return [fn, args]
+
+    let r = []
+    if a:action ==# 'set'
+        if self.need_init && get(self, 'reset_existing_qflist')
+            let args[2] = 'r'  " action
+            if self.type ==# 'loclist'
+                let msg = 'Reusing location list for entries.'
+            else
+                let msg = 'Reusing quickfix list for entries.'
+            endif
+            call neomake#log#debug(msg, self.make_info)
+        endif
+        " Handle setting title, which gets done initially and when maker
+        " names are updated.  This has to be done in a separate call
+        " without patch-8.0.0657.
+        if s:can_set_qf_title
+            let title = self._get_title()
+            if s:can_set_qf_items
+                if type(args[-1]) != type({})
+                    call add(args, {'title': title, 'items': args[1]})
+                else
+                    let args[-1].title = title
+                endif
+            else
+                " Update title after actual call.
+                call add(r, [fn, args])
+
+                if self.type ==# 'loclist'
+                    let args = [args[0], [], 'a', {'title': title}]
+                else
+                    let args = [[], 'a', {'title': title}]
+                endif
+            endif
+        endif
+    endif
+    call add(r, [fn, args])
+    return r
 endfunction
 
 function! s:mark_entry_with_nmcfg(entry, maker_info) abort
@@ -425,12 +464,7 @@ function! s:base_list._set_qflist_entries(entries, action) abort
 endfunction
 
 function! s:base_list._get_qflist_entries() abort
-    let [fn, args] = self._get_fn_args('get')
-    if s:has_support_for_qfid
-        let args[-1].items = 1
-        return call(fn, args).items
-    endif
-    return call(fn, args)
+    return self._call_qf_fn('get')
 endfunction
 
 " Append entries to location/quickfix list.
