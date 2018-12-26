@@ -2056,15 +2056,13 @@ else
     " Neovim: register output from jobs as quick as possible, and trigger
     " processing through a timer.
     " This works around https://github.com/neovim/neovim/issues/5889).
+    " NOTE: a:data is never [''] here (like with other/newer Neovim
+    " handlers)
     let s:nvim_output_handler_queue = []
     function! s:nvim_output_handler(job_id, data, event_type) abort
         let jobinfo = get(s:jobs, get(s:map_job_ids, a:job_id, -1), {})
         if empty(jobinfo)
             call neomake#log#debug(printf('output [%s]: job %d not found.', a:event_type, a:job_id))
-            return
-        endif
-        if a:data == [''] && !exists('jobinfo[a:event_type]')
-            " EOF in Neovim (see :h on_data).
             return
         endif
         let args = [jobinfo, copy(a:data), a:event_type, 1]
