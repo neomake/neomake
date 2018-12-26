@@ -250,7 +250,7 @@ command! -nargs=+ AssertNeomakeMessage call s:AssertNeomakeMessage(<args>)
 function! s:AssertNeomakeWarning(msg)
   call vader#assert#equal(v:warningmsg, 'Neomake: '.a:msg)
   AssertNeomakeMessage 'Neomake warning: '.a:msg, 3
-  Assert index(NeomakeTestsGetVimMessages(), v:warningmsg) != -1
+  Assert index(NeomakeTestsGetVimMessages(), v:warningmsg) != -1, 'v:warningmsg was not found in messages.  Call NeomakeTestsSetVimMessagesMarker() before.'
   let v:warningmsg = ''
   call neomake#log#reset_warnings()
 endfunction
