@@ -608,12 +608,12 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
             else
                 let cmd = 'caddexpr'
             endif
+            let a:jobinfo._delayed_qf_autocmd = 'QuickfixCmdPost '.cmd
             let cmd = 'noautocmd '.cmd.' a:lines'
             if self.debug
                 call neomake#log#debug(printf('list: exe: %s (with %d lines).', cmd, len(a:lines)), a:jobinfo)
             endif
             exe cmd
-            let a:jobinfo._delayed_qf_autocmd = 'QuickfixCmdPost '.cmd
         finally
             let &errorformat = olderrformat
             call a:jobinfo.cd_back()
