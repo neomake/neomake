@@ -218,9 +218,36 @@ function! s:base_list._call_qf_fn(action, ...) abort
 
     for fns in fns_args
         let [fn, args] = fns
+
         if self.debug
-            call neomake#log#debug(printf('list: call: "%s": %s.', a:action, string(fns_args)))
+            let log_args = copy(args)
+            if a:action ==# 'set'
+                " Only display 5 items.
+                if self.type ==# 'loclist'
+                    let log_args[1] = neomake#utils#shorten_list_for_log(log_args[1], 5)
+                else
+                    let log_args[0] = neomake#utils#shorten_list_for_log(log_args[1], 5)
+                endif
+                " Massage options dict.
+                if type(log_args[-1]) == type({})
+                    let neomake_context = get(get(log_args[-1], 'context', {}), 'neomake', {})
+                    if !empty(neomake_context)
+                        for [k, v] in items(neomake_context)
+                            if k ==# 'make_info'
+                                " Fixes self-ref, and makes it much shorter.
+                                let neomake_context[k] = 'make_id='.v.make_id
+                            endif
+                        endfor
+                    endif
+                    " Only display 5 items.
+                    if has_key(log_args[-1], 'items')
+                        let log_args[-1].items = neomake#utils#shorten_list_for_log(log_args[-1].items, 5)
+                    endif
+                endif
+            endif
+            call neomake#log#debug(printf('list: call: "%s": %s.', a:action, string(log_args)))
         endif
+
         call call(fn, args, self)
     endfor
 
