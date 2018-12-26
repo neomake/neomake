@@ -11,6 +11,20 @@ Execute (Error with no filename):
   AssertNeomakeMessage 'no file name.', 0
   bwipe
 
+Execute (Error with no filename (serialized)):
+  new
+  set ft=neomake_tests
+  let b:neomake_neomake_tests_enabled_makers = ['true', g:entry_maker]
+  let b:neomake_neomake_tests_true_tempfile_enabled = 0
+  let b:neomake_neomake_tests_true_serialize = 1
+  let b:neomake_neomake_tests_true_serialize_abort_on_error = 1
+
+  Neomake
+  let make_id = neomake#GetStatus().last_make_id
+  AssertNeomakeMessage 'no file name.', 0
+  AssertNeomakeMessage 'Aborting next makers: entry_maker.'
+  bwipe
+
 Execute (Error with non-existing filename):
   new
   file doesnotexist

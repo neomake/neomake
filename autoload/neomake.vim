@@ -2515,9 +2515,11 @@ function! neomake#map_makers(makers, ft, auto_enabled) abort
             let m = call('neomake#GetMaker', [maker] + get_args)
         catch /^Neomake: /
             call add(errors, substitute(v:exception, '^Neomake: ', '', '').'.')
+            unlet maker  " vim73/vim-trusty
             continue
         endtry
         call add(makers, m)
+        unlet maker  " vim73/vim-trusty
     endfor
     if !empty(errors)
         let log_context = get(s:make_info, s:make_id, {})
