@@ -198,19 +198,22 @@ function! neomake#debug#display_info(...) abort
     endif
 endfunction
 
+function! s:trim(s) abort
+    return substitute(a:s, '\v^[ \t\r\n]+|[ \t\r\n]+$', '', 'g')
+endfunction
+
 function! neomake#debug#_get_info_lines() abort
     let r = []
     let ft = &filetype
-    if &verbose
-        let r += ['#### Neomake debug information']
-        let r += ['']
-        let r += ['Async support: '.neomake#has_async_support()]
-        let r += ['Current filetype: '.ft]
-        let r += ['Windows: '.neomake#utils#IsRunningWindows()]
-        let r += ['[shell, shellcmdflag, shellslash]:' . string([&shell, &shellcmdflag, &shellslash])]
-    else
-        let r += ['#### Neomake information (use ":verbose NeomakeInfo" for extra output)']
-    endif
+
+    let r += ['#### Neomake debug information']
+    let r += ['']
+    let r += ['Async support: '.neomake#has_async_support()]
+    let r += ['Current filetype: '.ft]
+    let r += ['Windows: '.neomake#utils#IsRunningWindows()]
+    let r += ['[shell, shellcmdflag, shellslash]: '.string([&shell, &shellcmdflag, &shellslash])]
+    let r += [join(map(split(neomake#utils#redir('verb set makeprg?'), '\n'), 's:trim(v:val)'), ', ')]
+
     let r += ['']
     let r += ['##### Enabled makers']
     let r += ['']
@@ -253,21 +256,18 @@ function! neomake#debug#_get_info_lines() abort
     endfor
     let r += ['']
     let r += ['```']
-    let r += split(neomake#utils#redir('verb set makeprg?'), '\n')
-    if &verbose
-        let r += ["\n"]
-        let r += ['#### :version']
-        let r += ['']
-        let r += ['```']
-        let r += split(neomake#utils#redir('version'), '\n')
-        let r += ['```']
-        let r += ['']
-        let r += ['#### :messages']
-        let r += ['']
-        let r += ['```']
-        let r += split(neomake#utils#redir('messages'), '\n')
-        let r += ['```']
-    endif
+    let r += ["\n"]
+    let r += ['#### :version']
+    let r += ['']
+    let r += ['```']
+    let r += split(neomake#utils#redir('version'), '\n')
+    let r += ['```']
+    let r += ['']
+    let r += ['#### :messages']
+    let r += ['']
+    let r += ['```']
+    let r += split(neomake#utils#redir('messages'), '\n')
+    let r += ['```']
     return r
 endfunction
 " vim: ts=4 sw=4 et

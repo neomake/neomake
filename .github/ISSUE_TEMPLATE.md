@@ -28,12 +28,12 @@ let g:neomake_logfile = '/tmp/neomake.log'
 
 -->
 
-### Output from (verbose) NeomakeInfo
+### Output from :NeomakeInfo
 
 <!--
 
-1. Paste the output from `:verbose NeomakeInfo` here.
-   You can use `:verbose NeomakeInfo!` (with a bang at the end) to copy it to
+1. Paste the output from `:NeomakeInfo` here.
+   You can use `:NeomakeInfo!` (with a bang at the end) to copy it to
    your clipboard.
 
 2. If relevant (it is always useful with bug reports) paste the contents of the
