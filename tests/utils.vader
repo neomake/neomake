@@ -807,6 +807,15 @@ Execute (neomake#utils#fix_self_ref with obj.func = obj.func):
   AssertEqual keys(repr), ['args']
   call string(repr)
 
+Execute (neomake#utils#fix_self_ref: handles lists):
+  let maker = {}
+  function maker.args()
+  endfunction
+  let maker.args = maker.args
+  let repr = neomake#utils#fix_self_ref([maker])
+  AssertEqual keys(repr[0]), ['args']
+  call string(repr)
+
 Execute (neomake#utils#write_tempfile):
   Save &endofline, &binary
   let vim_temp = tempname()
