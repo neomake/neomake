@@ -600,12 +600,12 @@ function! s:neomake_automake(event, bufnr) abort
             return
         endif
     endif
-    call s:debug_log(printf('handling event %s', a:event), {'bufnr': bufnr})
 
     " NOTE: Do it later for BufWinEnter again, since &ft might not be defined (startify).
     if s:disabled_for_ft(bufnr, a:event)
         return
     endif
+    call s:debug_log(printf('handling event %s', a:event), {'bufnr': bufnr})
 
     if !has_key(s:configured_buffers, bufnr)
         " register the buffer, and remember that it's automatic.
@@ -700,6 +700,7 @@ function! neomake#configure#enable_automake_for_buffer(bufnr) abort
 endfunction
 
 function! neomake#configure#automake(...) abort
+    call s:debug_log(printf('configuring automake: %s', string(a:000)))
     if !exists('g:neomake')
         let g:neomake = {}
     endif
