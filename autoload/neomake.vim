@@ -1070,7 +1070,7 @@ function! s:get_makeprg_maker() abort
 endfunction
 
 function! s:Make(options) abort
-    let is_automake = !empty(expand('<abuf>'))
+    let is_automake = get(a:options, 'automake', !empty(expand('<abuf>')))
     if is_automake
         if s:ignore_automake_events
             call neomake#log#debug(printf(

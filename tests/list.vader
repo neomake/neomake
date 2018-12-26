@@ -527,6 +527,7 @@ Execute (list: reused with automake (qflist)):
     NeomakeTestsWaitForFinishedJobs
     copen
     " Does not use "auto" by default, even though triggered through autocommand.
+    " (apparently since `expand('<abuf>')` is empty in tests).
     AssertEqual w:quickfix_title, 'Neomake[project]'
 
     " Uses "auto" with options.automake.
