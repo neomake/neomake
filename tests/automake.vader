@@ -151,13 +151,20 @@ Execute (Automake supports custom buffer config):
   doautocmd BufWinEnter
   AssertNeomakeMessage 'automake: automake for event BufWinEnter.'
   AssertEqual len(g:neomake_test_finished), 1
-  AssertNeomakeMessage 'automake: buffer was not changed.', 3
 
-  " Resetting global config does not reset tick?!
+  " Not picked up from buffer var (for performance reasons).
+  AssertNeomakeMessage 'automake: event is not registered.'
+
+  call neomake#configure#reset_automake_for_buffer()
+  doautocmd BufWinEnter
+  AssertNeomakeMessage 'automake: automake for event BufWinEnter.'
+  AssertEqual len(g:neomake_test_finished), 2
+
+  " Resetting global config resets.
   call neomake#configure#automake({'BufWinEnter': {'delay': 0}})
   doautocmd BufWinEnter
-  AssertNeomakeMessage 'automake: buffer was not changed.', 3
-  AssertEqual len(g:neomake_test_finished), 1
+  AssertNeomakeMessage 'automake: automake for event BufWinEnter.'
+  AssertEqual len(g:neomake_test_finished), 3
 
   " Changing buffer config resets tick.
   call neomake#configure#automake_for_buffer({'BufWinEnter': {'delay': 0}}, 0, [g:entry_maker])
@@ -357,8 +364,23 @@ Execute (Automake: skips non-default buftypes):
   if event ==# 'TextChanged'
     call NeomakeTestsHandleSecondTextChanged()
   endif
-  NeomakeTestsWaitForMessage 'automake: ignoring '.event.' for buftype=nofile.', 3
+  NeomakeTestsWaitForMessage 'automake: ignoring buffer with buftype=nofile.', 3
   AssertEqual len(g:neomake_test_jobfinished), 0
+
+  set buftype=
+  if exists('##OptionSet')
+    " OptionSet autocmd needs to be triggered manually in tests.
+    doauto OptionSet buftype
+  else
+    call neomake#configure#reset_automake_for_buffer()
+  endif
+
+  exe 'doautocmd '.event
+  if event ==# 'TextChanged'
+    call NeomakeTestsHandleSecondTextChanged()
+  endif
+  AssertNeomakeMessage '\Vautomake: configured buffer for ft=neomake_tests', 3
+  AssertNeomakeMessage 'automake: automake for event TextChanged.'
   bwipe!
 
 Execute (neomake#configure#automake_for_buffer does not set up autocommands for no makers):
@@ -420,15 +442,12 @@ Execute (neomake#configure#automake_for_buffer sets up BufWritePost with delay):
     \ 'BufWritePost': {}}}, 'automake_delay': 0}
   endif
 
+  " buftype=nofile is not ignored with custom/explicit config.
   let tempname = tempname()
   exe 'w' tempname
-  AssertNeomakeMessage 'automake: ignoring BufWritePost for buftype=nofile.'
-
-  set buftype=
-  set filetype=neomake_tests
-  exe 'w!' tempname
-  NeomakeTestsWaitForFinishedJobs
   bwipe
+  exe 'bwipe' tempname
+  NeomakeCancelJobs!
 
 Execute (neomake#configure#automake_for_buffer skips non-default buftypes):
   tabnew
@@ -932,10 +951,11 @@ Execute (Error with non-existing configured maker):
   NeomakeTestsWaitForFinishedJobs
 
   AssertNeomakeMessage 'automake: registered events: CursorHold.', 3
-  AssertNeomakeMessage 'automake: handling event CursorHold.', 3
   AssertNeomakeMessage "Using setting automake.enabled_makers=['configured_maker'] from 'buffer'.", 3
   AssertNeomakeMessage 'Maker not found (for empty filetype): configured_maker.', 0
   AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
+  AssertNeomakeMessage 'automake: setting tick for new buffer.', 3
+  AssertNeomakeMessage 'automake: handling event CursorHold.', 3
   AssertNeomakeMessage 'automake: no enabled makers.'
   bwipe
 

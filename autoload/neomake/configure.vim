@@ -271,12 +271,6 @@ function! s:automake_delayed_cb(timer) abort
         return
     endif
 
-    " Check disabled ft here for BufWinEnter, since &ft might not be defined
-    " before (startify).
-    if timer_info.event ==# 'BufWinEnter' && s:disabled_for_ft(timer_info.bufnr)
-        return
-    endif
-
     if neomake#compat#in_completion()
         call s:debug_log('postponing automake during completion')
         if has_key(timer_info, 'pos')
@@ -422,7 +416,6 @@ function! s:parse_events_from_args(config, string_or_dict_config, ...) abort
                 if !has_key(events, 'TextChangedI')
                     " Run when leaving insert mode, since only TextChangedI would be triggered
                     " for `ciw` etc.
-                    " let events['InsertLeave'] = {'delay': 0}
                     let events['InsertLeave'] = default_with_delay
                 endif
             else
@@ -487,6 +480,33 @@ function! s:getbufvar(bufnr, name, default) abort
     return get(b_dict, a:name, a:default)
 endfunction
 
+function! s:is_buffer_ignored(bufnr) abort
+    " TODO: blacklist/whitelist.
+    let bufnr = +a:bufnr
+    let buftype = getbufvar(bufnr, '&buftype')
+    if !empty(buftype)
+        call s:debug_log(printf('ignoring buffer with buftype=%s', buftype), {'bufnr': bufnr})
+        return 1
+    endif
+
+    let ft = getbufvar(bufnr, '&filetype')
+    if index(neomake#config#get('automake.ignore_filetypes', []), ft) != -1
+        call s:debug_log(printf('ignoring buffer with filetype=%s', ft), {'bufnr': bufnr})
+        return 1
+    endif
+endfunction
+
+if exists('##OptionSet')
+    function! s:update_buffer_options() abort
+        let bufnr = bufnr('%')
+        call s:maybe_reconfigure_buffer(bufnr)
+    endfunction
+    augroup neomake_automake_update
+        au!
+        au OptionSet buftype call s:update_buffer_options()
+    augroup END
+endif
+
 " a:1: string or dict describing the events
 " a:2: options ('delay', 'makers')
 function! s:configure_buffer(bufnr, ...) abort
@@ -501,19 +521,29 @@ function! s:configure_buffer(bufnr, ...) abort
         endif
         call call('s:parse_events_from_args', args)
         call setbufvar(bufnr, 'neomake', config)
+
+        let implicit_config = {'custom': 1, 'ignore': 0}
+    else
+        let implicit_config = {'custom': 0, 'ignore': s:is_buffer_ignored(bufnr)}
     endif
 
     " Register the buffer, and remember if it is custom.
     if has_key(s:configured_buffers, bufnr)
         let old_registration = copy(get(s:configured_buffers, bufnr, {}))
-        call extend(s:configured_buffers[bufnr], {'custom': a:0 > 0}, 'force')
+        call extend(s:configured_buffers[bufnr], implicit_config, 'force')
     else
-        let s:configured_buffers[bufnr] = {'custom': a:0 > 0}
+        let s:configured_buffers[bufnr] = implicit_config
     endif
 
     augroup neomake_automake_clean
         autocmd BufWipeout <buffer> call s:neomake_automake_clean(expand('<abuf>'))
     augroup END
+
+    if implicit_config.ignore
+        return s:configured_buffers[bufnr]
+    endif
+
+    let s:configured_buffers[bufnr].events_config = neomake#config#get('automake.events', {})
 
     " Create jobs.
     let options = a:0 > 1 ? a:2 : {}
@@ -560,22 +590,6 @@ function! s:maybe_reconfigure_buffer(bufnr) abort
     endif
 endfunction
 
-function! s:disabled_for_ft(bufnr, ...) abort
-    let bufnr = +a:bufnr
-    let ft = getbufvar(bufnr, '&filetype')
-    if index(neomake#config#get('automake.ignore_filetypes', []), ft) != -1
-        if a:0
-            call s:debug_log(printf('%s: skipping setup for filetype=%s', a:1, ft),
-                        \ {'bufnr': bufnr})
-        else
-            call s:debug_log(printf('skipping callback for filetype=%s', ft),
-                        \ {'bufnr': bufnr})
-        endif
-        return 1
-    endif
-    return 0
-endfunction
-
 " Called from autocommands.
 function! s:neomake_automake(event, bufnr) abort
     let disabled = neomake#config#get_with_source('disabled', 0)
@@ -585,13 +599,15 @@ function! s:neomake_automake(event, bufnr) abort
     endif
     let bufnr = +a:bufnr
 
-    " TODO: blacklist/whitelist.
-    " TODO: after/only for configured buffers?!
-    let buftype = getbufvar(bufnr, '&buftype')
-    if !empty(buftype)
-        " TODO: test
-        call s:debug_log(printf('ignoring %s for buftype=%s', a:event, buftype),
-                    \ {'bufnr': bufnr})
+    if has_key(s:configured_buffers, bufnr)
+        let buffer_config = s:configured_buffers[bufnr]
+    else
+        " Register the buffer, and remember that it's automatic.
+        let buffer_config = s:configure_buffer(bufnr)
+    endif
+    if get(buffer_config, 'ignore', 0)
+        " NOTE: might be too verbose.
+        call s:debug_log('buffer is ignored')
         return
     endif
 
@@ -605,23 +621,15 @@ function! s:neomake_automake(event, bufnr) abort
         endif
     endif
 
-    " NOTE: Do it later for BufWinEnter again, since &ft might not be defined (startify).
-    if s:disabled_for_ft(bufnr, a:event)
-        return
-    endif
     call s:debug_log(printf('handling event %s', a:event), {'bufnr': bufnr})
 
-    if !has_key(s:configured_buffers, bufnr)
-        " register the buffer, and remember that it's automatic.
-        call s:configure_buffer(bufnr)
-    endif
     if empty(s:configured_buffers[bufnr].maker_jobs)
         call s:debug_log('no enabled makers', {'bufnr': bufnr})
         return
     endif
 
     call s:debug_log(printf('automake for event %s', a:event), {'bufnr': bufnr})
-    let config = neomake#config#get('automake.events', {})
+    let config = s:configured_buffers[bufnr].events_config
     if !has_key(config, a:event)
         call s:debug_log('event is not registered', {'bufnr': bufnr})
         return
@@ -700,6 +708,13 @@ function! neomake#configure#enable_automake_for_buffer(bufnr) abort
     if exists('s:configured_buffers[a:bufnr].disabled')
         call s:debug_log(printf('Re-enabled buffer %d', a:bufnr))
         unlet s:configured_buffers[a:bufnr].disabled
+    endif
+endfunction
+
+function! neomake#configure#reset_automake_for_buffer(...) abort
+    let bufnr = a:0 ? +a:1 : bufnr('%')
+    if has_key(s:configured_buffers, bufnr)
+        unlet s:configured_buffers[bufnr]
     endif
 endfunction
 
