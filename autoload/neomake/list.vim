@@ -220,8 +220,8 @@ function! s:base_list._call_qf_fn(action, ...) abort
         let [fn, args] = fns
 
         if self.debug
-            let log_args = copy(args)
             if a:action ==# 'set'
+                let log_args = deepcopy(args)
                 " Only display 5 items.
                 if self.type ==# 'loclist'
                     let log_args[1] = neomake#utils#shorten_list_for_log(log_args[1], 5)
@@ -244,8 +244,10 @@ function! s:base_list._call_qf_fn(action, ...) abort
                         let log_args[-1].items = neomake#utils#shorten_list_for_log(log_args[-1].items, 5)
                     endif
                 endif
+                call neomake#log#debug(printf('list: call: set: %s.', string(log_args)))
+            else
+                call neomake#log#debug(printf('list: call: "%s": %s.', a:action, string(args)))
             endif
-            call neomake#log#debug(printf('list: call: "%s": %s.', a:action, string(log_args)))
         endif
 
         call call(fn, args, self)

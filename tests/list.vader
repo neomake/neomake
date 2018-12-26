@@ -487,7 +487,7 @@ Execute (list: can reuse location list):
   AssertEqual map(getloclist(0), 'v:val.text'), ['e2']
 
   AssertNeomakeMessage 'Reusing location list for entries.'
-  AssertNeomakeMessage '\V\^list: call: "set": [0, [\.\*], ''r'''
+  AssertNeomakeMessage '\V\^list: call: set: [0, [\.\*], ''r'''
   bwipe
 
 Execute (list: can reuse quickfix list):
@@ -507,7 +507,7 @@ Execute (list: can reuse quickfix list):
   AssertEqual map(getqflist(), 'v:val.text'), ['e2']
 
   AssertNeomakeMessage 'Reusing quickfix list for entries.'
-  AssertNeomakeMessage '\V\^list: call: "set": [[\.\*], ''r'''
+  AssertNeomakeMessage '\V\^list: call: set: [[\.\*], ''r'''
 
 Execute (list: reused with automake (qflist)):
   if !has('patch-7.4.2200')
