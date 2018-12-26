@@ -534,7 +534,15 @@ Execute (list: reused with automake (qflist)):
     call neomake#Make({'file_mode': 0, 'enabled_makers': [g:true_maker], 'automake': 1})
     NeomakeTestsWaitForFinishedJobs
     copen
-    " Does not use "auto" by default.
     AssertEqual w:quickfix_title, 'Neomake[auto]'
+
+    " Re-uses list with "auto" in qf title.
+    wincmd p
+    call neomake#Make({'file_mode': 0, 'enabled_makers': [g:true_maker], 'automake': 1})
+    NeomakeTestsWaitForFinishedJobs
+    copen
+    Assert w:quickfix_title =~# '\V:\?Neomake[auto]', 'unexpected title: '.w:quickfix_title
+    AssertNeomakeMessage 'Reusing quickfix list for entries.', 3
+
     cclose
   endif
