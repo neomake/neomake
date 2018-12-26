@@ -396,9 +396,9 @@ function! s:base_list._get_fn_args(action, ...) abort
                 call add(r, [fn, args])
 
                 if self.type ==# 'loclist'
-                    let args = [args[0], [], 'a', {'title': a:1}]
+                    let args = [args[0], [], 'a', {'title': title}]
                 else
-                    let args = [[], 'a', {'title': a:1}]
+                    let args = [[], 'a', {'title': title}]
                 endif
             endif
         endif

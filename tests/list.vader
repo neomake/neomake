@@ -258,12 +258,13 @@ Execute (list: error handling):
   AssertEqual list.need_init, 1
 
   let fns_args = list._get_fn_args('set', ['item'], ' ')
+  let title = 'Neomake[file]: buf:'.orig_bufnr.' (fake_jobinfo_name?)'
   if has('patch-7.4.2200') && has('patch-8.0.0657')
     AssertEqual fns_args,
-    \ [['setloclist', [0, [], ' ', {'title': 'Neomake[file]: buf:'.orig_bufnr.' (fake_jobinfo_name?)', 'items': ['item']}]]]
+    \ [['setloclist', [0, [], ' ', {'title': title, 'items': ['item']}]]]
   elseif has('patch-7.4.2200')
     AssertEqual fns_args,
-    \ [['setloclist', [0, ['item'], ' ', {'title': 'Neomake[file]: buf:'.orig_bufnr.' (fake_jobinfo_name?)'}]]]
+    \ [['setloclist', [0, ['item'], ' ']], ['setloclist', [0, [], 'a', {'title': title}]]]
   else
     AssertEqual fns_args,
     \ [['setloclist', [0, ['item'], ' ']]]
