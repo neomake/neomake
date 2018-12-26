@@ -334,7 +334,7 @@ function! s:base_list._get_fn_args(action, ...) abort
             let options.id = self.qfid
         elseif valid == 0
             if self.type ==# 'loclist'
-                let loclist_win = self._get_loclist_win()
+                let loclist_win = args[0]
                 throw printf('Neomake: qfid %d for location list (%d) has become invalid.', self.qfid, loclist_win)
             else
                 throw printf('Neomake: qfid %d for quickfix list has become invalid.', self.qfid)
@@ -344,7 +344,7 @@ function! s:base_list._get_fn_args(action, ...) abort
 
     if a:action ==# 'title'
         call extend(args, [[], 'a'])
-        if exists(':Assert')
+        if exists('*vader#assert#true')
             call vader#assert#true(s:can_set_qf_title)
         endif
         let options.title = a:1
@@ -395,8 +395,11 @@ function! s:base_list._get_fn_args(action, ...) abort
                 " Update title after actual call.
                 call add(r, [fn, args])
 
-                let args = [[], 'a']
-                let options = {'title': a:1}
+                if self.type ==# 'loclist'
+                    let args = [args[0], [], 'a', {'title': a:1}]
+                else
+                    let args = [[], 'a', {'title': a:1}]
+                endif
             endif
         endif
     endif
