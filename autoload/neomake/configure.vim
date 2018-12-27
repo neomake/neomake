@@ -100,7 +100,7 @@ function! s:handle_changed_buffer(make_id, event) abort
 
         if s:need_to_skip_first_textchanged && a:event ==# 'TextChanged'
             if !get(b:, '_neomake_seen_TextChanged', 0)
-                call s:debug_log('Ignoring first TextChanged')
+                call s:debug_log('ignoring first TextChanged')
                 let b:_neomake_seen_TextChanged = 1
                 return
             endif
@@ -624,7 +624,7 @@ function! s:neomake_automake(event, bufnr) abort
 
     if s:need_to_skip_first_textchanged && a:event ==# 'TextChanged'
         if !getbufvar(bufnr, '_neomake_seen_TextChanged', 0)
-            call s:debug_log('Ignoring first TextChanged')
+            call s:debug_log('ignoring first TextChanged')
             call setbufvar(bufnr, '_neomake_seen_TextChanged', 1)
             return
         endif
