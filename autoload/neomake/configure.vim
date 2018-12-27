@@ -1,6 +1,3 @@
-" TODO: slow down timer automatically for several TextChanged events, e.g.
-"       when using undo/u?!
-"
 " Default settings, setup in global config dict.
 let s:default_settings = {
             \ 'ignore_filetypes': ['startify'],
@@ -611,16 +608,6 @@ function! s:neomake_automake(event, bufnr) abort
         return
     endif
 
-    if a:event ==# 'TextChanged' && !has('nvim-0.3.2') && has('patch-8.0.1494') && !has('patch-8.0.1633')
-        " TextChanged gets triggered in this case when loading a buffer (Vim
-        " issue #2742).
-        if !getbufvar(bufnr, '_neomake_seen_TextChanged', 0)
-            call s:debug_log('Ignoring first TextChanged')
-            call setbufvar(bufnr, '_neomake_seen_TextChanged', 1)
-            return
-        endif
-    endif
-
     call s:debug_log(printf('handling event %s', a:event), {'bufnr': bufnr})
 
     if empty(s:configured_buffers[bufnr].maker_jobs)
@@ -766,5 +753,12 @@ endfunction
 augroup neomake_automake_base
     au!
     autocmd FileType * call s:maybe_reconfigure_buffer(expand('<abuf>'))
+
+    if !has('nvim-0.3.2') && has('patch-8.0.1494') && !has('patch-8.0.1633')
+        " TextChanged gets triggered in this case when defined after
+        " loading a buffer (Vim issue #2742).
+        " Install a no-op TextChanged event already.
+        autocmd TextChanged * call execute('')
+    endif
 augroup END
 " vim: ts=4 sw=4 et
