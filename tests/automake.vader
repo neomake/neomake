@@ -1483,6 +1483,7 @@ Execute (automake: restart via non-TextChangedI with delay):
 
     NeomakeTestsWaitForMessage '\Vautomake: started jobs:'
     doautocmd TextChanged
+    call NeomakeTestsHandleSecondTextChanged()
     AssertNeomakeMessage 'automake: buffer was changed (TextChanged), canceling make.'
     AssertNeomakeMessage 'automake: restarting timer for original event CursorHold.', 3
 
@@ -1512,6 +1513,10 @@ Execute (automake: restart via non-TextChangedI without delay):
 
     call NeomakeTestsSetVimMessagesMarker()
     doautocmd TextChanged
+    if has('patch-8.0.1494') && !has('patch-8.0.1633') && !has('nvim-0.3.2')
+      AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
+      doautocmd TextChanged
+    endif
     AssertNeomakeMessage 'automake: restarting for original event (BufWritePost) without delay.', 3
     AssertNeomakeWarning 'automake was restarted due to TextChanged after BufWritePost. This might indicate a problem with your setup (plugin order).'
     AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
