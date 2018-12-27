@@ -10,6 +10,11 @@ Execute (Setup: simulate non-testing):
   runtime autoload/neomake.vim
   let g:neomake_test_messages = []
 
+Execute (neomake#GetMakeOptions works without testing):
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  AssertEqual keys(neomake#GetMakeOptions(jobinfo.make_id)),
+  \ ['options', 'jobs_queue', 'verbosity', 'finished_jobs', 'make_id', 'active_jobs']
+
 Execute (neomake#log#error uses echohl):
   Save g:neomake_verbose
   let g:neomake_verbose = 1
