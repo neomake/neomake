@@ -286,6 +286,9 @@ Execute (list: error handling):
   let fns_args = list._get_fn_args('set', ['item'], ' ')
   let title = 'Neomake[file]: buf:'.orig_bufnr.' (fake_jobinfo_name?)'
   if has('patch-7.4.2200') && has('patch-8.0.0657')
+    let context = remove(fns_args[0][1][3], 'context')
+    AssertEqual keys(context), ['neomake']
+    AssertEqual keys(context.neomake), ['make_info']
     AssertEqual fns_args,
     \ [['setloclist', [0, [], ' ', {'title': title, 'items': ['item']}]]]
   elseif has('patch-7.4.2200')

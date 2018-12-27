@@ -1,10 +1,11 @@
 " Create a List object from a quickfix/location list.
 " TODO: (optionally?) add entries sorted?  (errors first, grouped by makers (?) etc)
 
-let s:use_efm_parsing = has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
-let s:has_support_for_qfid = has('patch-8.0.1023')
 let s:can_set_qf_title = has('patch-7.4.2200')
+let s:can_set_qf_context = has('patch-8.0.0590')
 let s:can_set_qf_items = has('patch-8.0.0657')
+let s:has_support_for_qfid = has('patch-8.0.1023')
+let s:use_efm_parsing = has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
 
 " Do we need to replace (instead of append) the location/quickfix list, for
 " :lwindow to not open it with only invalid entries?!
@@ -409,6 +410,18 @@ function! s:base_list._get_fn_args(action, ...) abort
             endif
             call neomake#log#debug(msg, self.make_info)
         endif
+
+        " Experimental: set make_info into context.
+        " This is used to access make info from the qf window itself.
+        if self.need_init && s:can_set_qf_context
+            let options = args[-1]
+            if type(options) != type({})
+                let options = {}
+                call add(args, options)
+            endif
+            let options.context = {'neomake': {'make_info': self.make_info}}
+        endif
+
         " Handle setting title, which gets done initially and when maker
         " names are updated.  This has to be done in a separate call
         " without patch-8.0.0657.
