@@ -127,12 +127,17 @@ function! s:base_list._get_title() abort
     let maker_info = []
     for job in self.make_info.finished_jobs
         let info = job.maker.name
+        let ok = 1
         if get(job, 'aborted', 0)
             let info .= '!'
-        elseif has_key(self.job_entries, job.id)
+            let ok = 0
+        endif
+        if has_key(self.job_entries, job.id)
             let c = len(self.job_entries[job.id])
             let info .= '('.c.')'
-        else
+            let ok = 0
+        endif
+        if ok
             let info .= '✓'
         endif
         call add(maker_info, info)
@@ -157,7 +162,7 @@ function! s:base_list._get_title() abort
         call add(maker_info, info)
     endfor
     let maker_info_str = join(maker_info, ', ')
-    if self.type == 'loclist'
+    if self.type ==# 'loclist'
         let bufnr = self.make_info.options.bufnr
     else
         let bufnr = 0

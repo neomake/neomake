@@ -379,7 +379,7 @@ Execute (serialize: waits for intermediate job to start):
   AssertNeomakeMessage 'Aborting next makers: maker3.'
 
   let title = neomake#list#get()._get_title()
-  AssertEqual title, 'Neomake[file]: buf:'.bufnr('%').' (sleep-maker!(1), maker3-)'
+  AssertEqual title, 'Neomake[file]: buf:'.bufnr('%').' (maker1✓, sleep-maker!(1), maker3-)'
   AssertEqual map(getloclist(0), 'v:val.text'), ['slept']
   bwipe
 
