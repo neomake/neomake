@@ -414,11 +414,6 @@ function! s:base_list._get_fn_args(action, ...) abort
         " Experimental: set make_info into context.
         " This is used to access make info from the qf window itself.
         if self.need_init && s:can_set_qf_context
-            let options = args[-1]
-            if type(options) != type({})
-                let options = {}
-                call add(args, options)
-            endif
             let options.context = {'neomake': {'make_info': self.make_info}}
         endif
 
