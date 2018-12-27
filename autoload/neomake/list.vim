@@ -157,15 +157,17 @@ function! s:base_list._get_title() abort
         call add(maker_info, info)
     endfor
     let maker_info_str = join(maker_info, ', ')
-    if get(self.make_info.options, 'automake')
-        let prefix = 'auto'
-        let bufnr = self.make_info.options.bufnr
-    elseif self.make_info.options.file_mode
-        let prefix = 'file'
+    if self.type == 'loclist'
         let bufnr = self.make_info.options.bufnr
     else
-        let prefix = 'project'
         let bufnr = 0
+    endif
+    if get(self.make_info.options, 'automake')
+        let prefix = 'auto'
+    elseif self.make_info.options.file_mode
+        let prefix = 'file'
+    else
+        let prefix = 'project'
     endif
     return neomake#list#get_title(prefix, bufnr, maker_info_str)
 endfunction
