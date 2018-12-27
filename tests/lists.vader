@@ -829,3 +829,19 @@ Execute (creates single list for clean maker):
   silent lolder
   AssertEqual map(getloclist(0), 'v:val.text'), ['init']
   bwipe
+
+Execute (use_list: make option):
+  new
+  lgetexpr 'init'
+  CallNeomake {'file_mode': 1, 'use_list': 0, 'enabled_makers': [g:error_maker]}
+  AssertEqual map(getloclist(0), 'v:val.text'), ['init']
+  bwipe
+
+Execute (use_list: enabled via all makers having use_list=0):
+  new
+  let maker = copy(g:error_maker)
+  let maker.use_list = 0
+  lgetexpr 'init'
+  CallNeomake 1, [maker]
+  AssertEqual map(getloclist(0), 'v:val.text'), ['init']
+  bwipe
