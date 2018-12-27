@@ -960,6 +960,7 @@ function! neomake#GetEnabledMakers(...) abort
 endfunction
 
 let s:ignore_automake_events = 0
+" a:1: override "open_list" setting.
 function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
     if a:0
         let open_val = a:1
@@ -1217,17 +1218,33 @@ function! s:Make(options) abort
                     \ neomake#compat#getwinvar(file_mode_win, 'neomake_make_ids', []) + [make_id])
     endif
 
-    let make_info.entries_list = neomake#list#ListForMake(make_info)
-
-    " Reuse existing location list window with automake.
-    if is_automake && has('patch-7.4.2200')
-        if file_mode
-            let title = get(getloclist(0, {'title': 1}), 'title')
-        else
-            let title = get(getqflist({'title': 1}), 'title')
+    let use_list = get(options, 'use_list', 1)
+    if use_list
+        let any_job_uses_list = 0
+        for job in jobs
+            if get(job.maker, 'use_list', 1)
+                let any_job_uses_list = 1
+                break
+            endif
+        endfor
+        if !any_job_uses_list
+            let use_list = 0
         endif
-        if title =~# '\V\^Neomake[auto]'
-            let make_info.entries_list.reset_existing_qflist = 1
+    endif
+
+    if use_list
+        let make_info.entries_list = neomake#list#ListForMake(make_info)
+
+        " Reuse existing location list window with automake.
+        if is_automake && has('patch-7.4.2200')
+            if file_mode
+                let title = get(getloclist(0, {'title': 1}), 'title')
+            else
+                let title = get(getqflist({'title': 1}), 'title')
+            endif
+            if title =~# '\V\^Neomake[auto]'
+                let make_info.entries_list.reset_existing_qflist = 1
+            endif
         endif
     endif
 
@@ -1406,8 +1423,10 @@ function! s:clean_make_info(make_info, ...) abort
         if get(a:make_info, 'canceled', 0)
             call neomake#log#debug('Skipping final processing for canceled make.', a:make_info)
             call s:do_clean_make_info(a:make_info)
-        else
+        elseif has_key(a:make_info, 'entries_list')  " use_list option
             return s:handle_locqf_list_for_finished_jobs(a:make_info)
+        else
+            call s:handle_finished_make(a:make_info)
         endif
     else
         call s:do_clean_make_info(a:make_info)
@@ -1541,6 +1560,12 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
         endif
     endif
 
+    call s:handle_finished_make(a:make_info)
+
+    return g:neomake#action_queue#processed
+endfunction
+
+function! s:handle_finished_make(make_info) abort
     let hook_context = {
                 \ 'make_info': a:make_info,
                 \ 'make_id': a:make_info.make_id,
@@ -1552,7 +1577,6 @@ function! s:handle_locqf_list_for_finished_jobs(make_info) abort
     call neomake#configure#_reset_automake_cancelations(a:make_info.options.bufnr)
 
     call s:do_clean_make_info(a:make_info)
-    return g:neomake#action_queue#processed
 endfunction
 
 function! neomake#VimLeave() abort
@@ -1937,7 +1961,7 @@ function! s:need_to_postpone_loclist(jobinfo) abort
     return 1
 endfunction
 
-" XXX: merge with s:handle_locqf_list_for_finished_jobs.
+" TODO: merge with s:handle_locqf_list_for_finished_jobs.
 let s:has_getcmdwintype = exists('*getcmdwintype')
 function! s:need_to_postpone_output_processing(jobinfo) abort
     " We can only process output (change the location/quickfix list) in
@@ -1973,6 +1997,7 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
         return
     endif
 
+    " Register unexpected output.
     if a:jobinfo.output_stream !=# 'both' && a:jobinfo.output_stream !=# a:source
         if !has_key(a:jobinfo, 'unexpected_output')
             let a:jobinfo.unexpected_output = {}
@@ -1984,7 +2009,11 @@ function! s:RegisterJobOutput(jobinfo, lines, source) abort
         return
     endif
 
-    call s:process_pending_output(a:jobinfo, a:lines, a:source)
+    let make_info = s:make_info[a:jobinfo.make_id]
+    if has_key(make_info, 'entries_list')  " use_list option
+        " Process output for list processing.
+        call s:process_pending_output(a:jobinfo, a:lines, a:source)
+    endif
 endfunction
 
 function! s:vim_output_handler(channel, output, event_type) abort
