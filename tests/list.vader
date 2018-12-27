@@ -387,10 +387,10 @@ Execute (list: title):
   let job3 = NeomakeTestsFakeJobinfo()
   let job3.maker.name = 'job3'
   let list.make_info.finished_jobs = [job3]
-  AssertEqual list._get_title(), prefix.' (job2..., job1?)'
+  AssertEqual list._get_title(), prefix.' (job3✓, job2..., job1?)'
 
   call list.add_entries_for_job([{'text': 'e2', 'bufnr': bufnr('%')}], job2)
-  AssertEqual list._get_title(), prefix.' (job2...(1), job1?)'
+  AssertEqual list._get_title(), prefix.' (job3✓, job2...(1), job1?)'
 
   call list.add_entries_for_job([{'text': 'e3', 'bufnr': bufnr('%')}], job3)
   AssertEqual list._get_title(), prefix.' (job3(1), job2...(1), job1?)'
@@ -531,14 +531,14 @@ Execute (list: reused with automake (qflist)):
     copen
     " Does not use "auto" by default, even though triggered through autocommand.
     " (apparently since `expand('<abuf>')` is empty in tests).
-    AssertEqual w:quickfix_title, 'Neomake[project]'
+    AssertEqual w:quickfix_title, 'Neomake[project]: true-maker✓'
 
     " Uses "auto" with options.automake.
     wincmd p
     call neomake#Make({'file_mode': 0, 'enabled_makers': [g:true_maker], 'automake': 1})
     NeomakeTestsWaitForFinishedJobs
     copen
-    AssertEqual w:quickfix_title, 'Neomake[auto]'
+    AssertEqual w:quickfix_title, 'Neomake[auto]: true-maker✓'
 
     " Re-uses list with "auto" in qf title.
     wincmd p

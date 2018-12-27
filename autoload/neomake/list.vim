@@ -1,3 +1,4 @@
+scriptencoding utf-8
 " Create a List object from a quickfix/location list.
 " TODO: (optionally?) add entries sorted?  (errors first, grouped by makers (?) etc)
 
@@ -127,19 +128,20 @@ function! s:base_list._get_title() abort
     let maker_info = []
     for job in self.make_info.finished_jobs
         let info = job.maker.name
-        let add = 0
+        let ok = 1
         if get(job, 'aborted', 0)
             let info .= '!'
-            let add = 1
+            let ok = 0
         endif
         if has_key(self.job_entries, job.id)
             let c = len(self.job_entries[job.id])
             let info .= '('.c.')'
-            let add = 1
+            let ok = 0
         endif
-        if add
-            call add(maker_info, info)
+        if ok
+            let info .= '✓'
         endif
+        call add(maker_info, info)
     endfor
     for job in self.make_info.active_jobs
         let info = job.maker.name
@@ -161,15 +163,17 @@ function! s:base_list._get_title() abort
         call add(maker_info, info)
     endfor
     let maker_info_str = join(maker_info, ', ')
-    if get(self.make_info.options, 'automake')
-        let prefix = 'auto'
-        let bufnr = 0
-    elseif self.make_info.options.file_mode
-        let prefix = 'file'
+    if self.type ==# 'loclist'
         let bufnr = self.make_info.options.bufnr
     else
-        let prefix = 'project'
         let bufnr = 0
+    endif
+    if get(self.make_info.options, 'automake')
+        let prefix = 'auto'
+    elseif self.make_info.options.file_mode
+        let prefix = 'file'
+    else
+        let prefix = 'project'
     endif
     return neomake#list#get_title(prefix, bufnr, maker_info_str)
 endfunction

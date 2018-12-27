@@ -1329,8 +1329,9 @@ Execute (automake: uses single list):
     doautocmd CursorHold
     AssertNeomakeMessage 'Creating location list for entries.', 3
     AssertEqual map(getloclist(0), 'v:val.text'), ['error3']
+    let bufnr = bufnr('%')
     lopen
-    AssertEqual w:quickfix_title, 'Neomake[auto]: unnamed_maker(1)'
+    AssertEqual w:quickfix_title, 'Neomake[auto]: buf:'.bufnr.' (unnamed_maker(1))'
     lclose
 
     lolder
@@ -1396,8 +1397,9 @@ Execute (automake: uses single list (efm)):
       AssertNeomakeMessage 'Creating location list.', 3
     endif
     AssertEqual map(getloclist(0), 'v:val.text'), ['error3']
+    let bufnr = bufnr('%')
     lopen
-    AssertEqual w:quickfix_title, 'Neomake[auto]: error-maker(1)'
+    AssertEqual w:quickfix_title, 'Neomake[auto]: buf:'.bufnr.' (error-maker(1))'
     lclose
 
     lolder
