@@ -25,6 +25,7 @@ Execute (Setup):
 
   function! NeomakeTestsHandleSecondTextChanged()
     if has('patch-8.0.1494') && !has('patch-8.0.1633') && !has('nvim-0.3.2')
+      AssertNeomakeMessage 'automake: ignoring first TextChanged.', 3
       doautocmd TextChanged
     endif
   endfunction
@@ -306,10 +307,10 @@ Execute (Automake):
 
   new
   exe 'doautocmd' event
+  AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
   if event ==# 'TextChanged'
     call NeomakeTestsHandleSecondTextChanged()
   endif
-  AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
   AssertNeomakeMessage 'automake: no enabled makers.'
 
   let b:neomake_automake_enabled_makers = ['foo']
@@ -361,10 +362,8 @@ Execute (Automake: skips non-default buftypes):
   call g:NeomakeSetupAutocmdWrappers()
 
   exe 'doautocmd '.event
-  if event ==# 'TextChanged'
-    call NeomakeTestsHandleSecondTextChanged()
-  endif
-  NeomakeTestsWaitForMessage 'automake: ignoring buffer with buftype=nofile.', 3
+  AssertNeomakeMessage 'automake: ignoring buffer with buftype=nofile.', 3
+  AssertNeomakeMessage 'automake: buffer is ignored.'
   AssertEqual len(g:neomake_test_jobfinished), 0
 
   set buftype=
@@ -376,10 +375,10 @@ Execute (Automake: skips non-default buftypes):
   endif
 
   exe 'doautocmd '.event
+  AssertNeomakeMessage '\Vautomake: configured buffer for ft=neomake_tests', 3
   if event ==# 'TextChanged'
     call NeomakeTestsHandleSecondTextChanged()
   endif
-  AssertNeomakeMessage '\Vautomake: configured buffer for ft=neomake_tests', 3
   AssertNeomakeMessage 'automake: automake for event '.event.'.'
   bwipe!
 
@@ -1042,7 +1041,7 @@ Execute (Ignores first TextChanged event (Vim issue #2742)):
     call neomake#configure#automake('n')
     new
     doautocmd TextChanged
-    AssertNeomakeMessage 'automake: Ignoring first TextChanged.'
+    AssertNeomakeMessage 'automake: ignoring first TextChanged.'
     doautocmd TextChanged
     AssertNeomakeMessage 'automake: handling event TextChanged.'
     bwipe
@@ -1513,10 +1512,7 @@ Execute (automake: restart via non-TextChangedI without delay):
 
     call NeomakeTestsSetVimMessagesMarker()
     doautocmd TextChanged
-    if has('patch-8.0.1494') && !has('patch-8.0.1633') && !has('nvim-0.3.2')
-      AssertNeomakeMessage 'automake: Ignoring first TextChanged.', 3
-      doautocmd TextChanged
-    endif
+    call NeomakeTestsHandleSecondTextChanged()
     AssertNeomakeMessage 'automake: restarting for original event (BufWritePost) without delay.', 3
     AssertNeomakeWarning 'automake was restarted due to TextChanged after BufWritePost. This might indicate a problem with your setup (plugin order).'
     AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
