@@ -112,7 +112,7 @@ function! neomake#makers#ft#python#PylintEntryProcess(entry) abort
 endfunction
 
 function! neomake#makers#ft#python#flake8() abort
-    let maker = {
+    let flake8_maker = {
         \ 'args': ['--format=default'],
         \ 'errorformat':
             \ '%E%f:%l: could not compile,%-Z%p^,' .
@@ -125,14 +125,34 @@ function! neomake#makers#ft#python#flake8() abort
         \ 'filter_output': function('neomake#makers#ft#python#FilterPythonWarnings'),
         \ }
 
-    function! maker.supports_stdin(jobinfo) abort
+    function! flake8_maker.supports_stdin(jobinfo) abort
         let self.args += ['--stdin-display-name', '%:.']
         call a:jobinfo.cd('%:h')
         return 1
     endfunction
 
-    function! maker.fix_entry(entry, action) abort
-        if a:action ==# 'ignore'
+    function! flake8_maker.fix_entry(entry, action) abort
+        if a:action ==# 'fix'
+            " TODO: keep original code in (Neomake list) entries?!
+            let code = matchstr(a:entry.text, '\v^[^ ]+')
+
+            if code ==# 'E302'  " too few blank lines.
+                let m = matchlist(a:entry.text, '\V\^E302 expected \(\d\+\) blank lines, found \(\d\+\)')
+                let too_few = m[1] - m[2]
+                let new = []
+                for _ in range(too_few)
+                    call add(new, '')
+                endfor
+                return [['setlines', a:entry.lnum-1, a:entry.lnum-1, new]]
+
+            elseif code ==# 'E303'  " too many blank lines
+                " XXX: cannot really say how many should be removed?!
+                let too_many = matchlist(a:entry.text, '\V\^E303 too many blank lines (\(\d\+\))')
+                echo too_many
+                let remove = too_many[1] - 2
+                return [['setlines', a:entry.lnum-remove, a:entry.lnum, []]]
+            endif
+        elseif a:action ==# 'ignore'
             " TODO: provide a method/compat function to get a line's content
             " (using nvim_buf_get_lines with Neovim), so that it could check
             " if there is any "noqa:" already etc.
@@ -143,7 +163,7 @@ function! neomake#makers#ft#python#flake8() abort
         endif
     endfunction
 
-    return maker
+    return flake8_maker
 endfunction
 
 function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
