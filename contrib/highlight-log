@@ -37,8 +37,8 @@ if [ "$1" = vader ]; then
   # all messages from a case to be visible).
   # This should also ignore empty lines and lines starting with a character
   # (e.g. via NVIM_LOG_FILE:=/dev/stderr, and from :echom).
-  re_log_line='^(.*      )(> .*)$'
-  re_ignore_log_line='^.*      > \[(debug  |verbose|warning|error  )|((D|V|W|E) +\+[.0-9]+)\]'
+  re_log_line='^(.*(  )?    )(> .*)$'
+  re_ignore_log_line='^.*(  )?    > \[(debug  |verbose|warning|error  )|((D|V|W|E) +\+[.0-9]+)\]'
 
   colorize() {
     # Only colorize if stdout is connected to a tty (not with :!make).
@@ -57,7 +57,7 @@ if [ "$1" = vader ]; then
       -e 's/^(([^ ].*)? +)(\([ [:digit:]]+\/[[:digit:]]+\))/\1'"$bold"'\3'"$bold_off"'/' \
       -e 's/^ +> \[(error  |E +[.[:digit:]]+)\]: .*/'"$bold"'\0'"$bold_off"'/' \
       -e 's/^ +> \[(debug  |D +[.[:digit:]]+)\]: .*/'"$debug_color"'\0'"$debug_color_off"'/' \
-      -e '/'"$re_ignore_log_line"'/! s/'"$re_log_line"'/\1'"$log_color"'\2'"$log_color_off"'/'
+      -e '/'"$re_ignore_log_line"'/! s/'"$re_log_line"'/\1'"$log_color"'\3'"$log_color_off"'/'
   }
 
   if ((quiet || compact)); then
