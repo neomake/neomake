@@ -671,13 +671,21 @@ Execute (neomake#utils#fnamemodify handles fugitive buffer):
   new
   edit autoload/neomake/debug.vim
   let bufname = bufname('%')
+  let bufname_abs = fnamemodify(bufname, ':p')
+
   Gedit
   AssertNotEqual bufname, bufname('%')
   Assert bufname('%') =~# '^fugitive://'
 
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ''), bufname
-  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), fnamemodify(bufname, ':p')
-  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname, ':p:h')
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), bufname_abs
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname_abs, ':h')
+
+  exe 'lcd '.fnamemodify(tempname(), ':h')
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ''), bufname_abs
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), bufname_abs
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname_abs, ':h')
+
   bwipe
   bwipe autoload/neomake/debug.vim
   if exists('*VimFtpluginUndo')

@@ -517,8 +517,15 @@ endfunction
 function! neomake#utils#fnamemodify(bufnr, modifier) abort
     let bufnr = +a:bufnr
     if !empty(getbufvar(bufnr, 'fugitive_type'))
-        let fug_buffer = fugitive#buffer(bufnr)
-        let path = fnamemodify(fug_buffer.repo().translate(fug_buffer.path()), ':.')
+        if exists('*FugitivePath')
+            let path = FugitivePath(bufname(bufnr))
+        else
+            let fug_buffer = fugitive#buffer(bufnr)
+            let path = fug_buffer.repo().translate(fug_buffer.path())
+        endif
+        if empty(a:modifier)
+            let path = fnamemodify(path, ':.')
+        endif
     else
         let path = bufname(bufnr)
     endif
