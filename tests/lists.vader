@@ -694,7 +694,9 @@ Execute (Handles :cwindow closing the list window):
 
 Execute (Quiet with no QuickfixCmdPost autocommands):
   new
-  Assert !exists('#QuickfixCmdPost')
+  if exists('#QuickfixCmdPost')
+    Assert 0, 'Unexpected automd: '.neomake#utils#redir('au QuickfixCmdPost')
+  endif
   call NeomakeTestsSetVimMessagesMarker()
 
   CallNeomake 1, [g:error_maker]

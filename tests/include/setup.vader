@@ -47,6 +47,8 @@ Before:
         \ 'GetJavascriptIndent',
         \ 'GetShIndent',
         \ ])
+
+    let g:neomake_test_augroups_before = split(substitute(neomake#utils#redir('augroup'), '^[ \n]\+', '', ''), '\s\+')
   endif
 
 After:
