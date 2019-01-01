@@ -17,10 +17,10 @@ RUN install_vim -tag v7.3.429 -name vim73 --with-features=huge -build \
                 -tag neovim:v0.3.1 -py3 -build \
   && rm -rf /vim-build/**/runtime/tutor
 
+ENV NEOMAKE_DOCKERFILE_UPDATE=2019-01-01
+
 RUN install_vim -tag neovim:master -build \
   && rm -rf /vim-build/**/runtime/tutor
-
-ENV NEOMAKE_DOCKERFILE_UPDATE=2018-12-23
 
 # Install tools for running tests (busybox's grep does not have --line-number).
 # openssh for CircleCI to improve Git checkout.
