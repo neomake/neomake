@@ -1,7 +1,6 @@
 Include: include/setup.vader
 
 Execute (neomake#config#get: basic):
-  Save g:neomake
   new
 
   let maker = {'foo': 'maker'}
@@ -54,7 +53,6 @@ Execute (neomake#config#get/set support list for name):
   bwipe
 
 Execute (neomake#config#get with filetypes):
-  Save g:neomake
   new
   set filetype=myft
 
@@ -69,7 +67,6 @@ Execute (neomake#config#get with filetypes):
   bwipe
 
 Execute (neomake#config#get with filetype and maker name):
-  Save g:neomake
   new
   set filetype=myft
 
@@ -117,7 +114,6 @@ Execute (neomake#config#get with b: prefix, no default and bufnr context):
   bwipe
 
 Execute (neomake#config#set):
-  Save g:neomake
   let config = neomake#config#set('foo', 'bar')
   AssertEqual config, {'foo': 'bar'}
   AssertEqual g:neomake, {'foo': 'bar'}
@@ -228,8 +224,6 @@ Execute (neomake#config#get does not allow to extend undefined default return va
   AssertEqual g:vader_exception, 'Vim(call):E741: Value is locked: extend() argument'
 
 Execute (neomake#config#get should not set g:neomake):
-  Save g:neomake
-  unlet! g:neomake
   call neomake#config#get('foo')
   Assert !exists('g:neomake')
 

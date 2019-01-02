@@ -129,8 +129,7 @@ Execute (NeomakeInfo! copies to clipboard):
   \ 'Copied Neomake info to clipboard ("+).']
 
 Execute (NeomakeInfo displays new-style config):
-  Save g:neomake
-  unlet! g:neomake
+  Assert !exists('g:neomake')
   new
 
   let info = neomake#debug#_get_info_lines()
