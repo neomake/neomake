@@ -600,6 +600,18 @@ function! s:After()
     call extend(g:neomake_test_funcs_before, new_funcs)
   endif
 
+  " Remove any new augroups, ignoring "neomake_*".
+  let augroups = split(substitute(neomake#utils#redir('augroup'), '^[ \n]\+', '', ''), '\s\+')
+  let new_augroups = filter(copy(augroups), 'v:val !~# ''^neomake_'' && index(g:neomake_test_augroups_before, v:val) == -1')
+  if !empty(new_augroups)
+      for augroup in new_augroups
+          exe 'augroup '.augroup
+          au!
+          exe 'augroup END'
+          exe 'augroup! '.augroup
+      endfor
+  endif
+
   " Check that no highlights are left.
   let highlights = neomake#highlights#_get()
   if highlights != {'file': {}, 'project': {}}
