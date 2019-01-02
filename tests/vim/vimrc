@@ -31,29 +31,31 @@ endif
 let &runtimepath .= ','.vader_dir
 exe 'source' join([vader_dir, 'plugin', 'vader.vim'], s:slash)
 
-let s:sourced_plugins = []
 function! s:load_plugin_on_demand(name) abort
   Save &runtimepath
+
+  " Restore/unset "loaded" var, to not skip loading on second invocation.
+  let var_name = substitute(a:name, '^vim-', '', '')
+  exe printf('Save g:loaded_%s', var_name)
+
   let dir = s:dep_plugins_base.'/'.a:name
   let &runtimepath .= ','.dir
-  if index(s:sourced_plugins, a:name) == -1
-    let funcs_before = map(split(neomake#utils#redir('function /\C^[A-Z]'), '\n'),
-        \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
 
-    exe 'source '.join([dir, 'plugin', '*.vim'], s:slash)
+  let funcs_before = map(split(neomake#utils#redir('function /\C^[A-Z]'), '\n'),
+      \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
 
-    let funcs_after = map(split(neomake#utils#redir('function /\C^[A-Z]'), '\n'),
-        \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
+  exe 'source '.join([dir, 'plugin', '*.vim'], s:slash)
 
-    " Add new functions defined in the plugin to g:neomake_test_funcs_before,
-    " e.g. FugitiveDetect.
-    for f in funcs_after
-      if index(funcs_before, f) == -1
-        call add(g:neomake_test_funcs_before, f)
-      endif
-    endfor
-    call add(s:sourced_plugins, a:name)
-  endif
+  let funcs_after = map(split(neomake#utils#redir('function /\C^[A-Z]'), '\n'),
+      \ "substitute(v:val, '\\v^function (.*)\\(.*$', '\\1', '')")
+
+  " Add new functions defined in the plugin to g:neomake_test_funcs_before,
+  " e.g. FugitiveDetect.
+  for f in funcs_after
+    if index(funcs_before, f) == -1
+      call add(g:neomake_test_funcs_before, f)
+    endif
+  endfor
 endfunction
 command! -nargs=1 NeomakeTestsLoadPlugin call s:load_plugin_on_demand(<args>)
 
