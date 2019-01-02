@@ -12,14 +12,17 @@ Execute (NeomakeTestsCreateExe overrides existing exe):
   AssertNotEqual system('which true'), true
 
 Execute (neomake#utils#GetSetting serialize):
-  Save g:maker
-  let g:maker = {'name': 'mymaker'}
+  let s:maker = {'name': 'mymaker'}
   function! s:GetSetting()
-    return neomake#utils#GetSetting('serialize', g:maker, 'default',
+    return neomake#utils#GetSetting('serialize', s:maker, 'default',
                                   \ 'myft', bufnr('%'))
   endfunction
 
   new
+  " Do not trigger checking new-style config.
+  Save g:neomake
+  unlet! g:neomake
+
   Save g:neomake_serialize, b:neomake_serialize
   Save g:neomake_mymaker_serialize, b:neomake_mymaker_serialize
   Save g:neomake_myft_mymaker_serialize, b:neomake_myft_mymaker_serialize
@@ -29,7 +32,7 @@ Execute (neomake#utils#GetSetting serialize):
   let g:neomake_serialize = 7
   AssertEqual s:GetSetting(), 7
   " maker-only should return default.
-  AssertEqual neomake#utils#GetSetting('serialize', g:maker, 'default',
+  AssertEqual neomake#utils#GetSetting('serialize', s:maker, 'default',
                                 \ 'myft', bufnr('%'), 1), 'default'
   let g:neomake_serialize = 0
   AssertEqual s:GetSetting(), 0
@@ -43,12 +46,17 @@ Execute (neomake#utils#GetSetting serialize):
   let b:neomake_serialize = 98
   AssertEqual s:GetSetting(), 98
 
-  let g:maker.serialize = 5
+  let s:maker.serialize = 5
   AssertEqual s:GetSetting(), 5
-  let g:maker.serialize = 0
+  let s:maker.serialize = 0
   AssertEqual s:GetSetting(), 0
-  let g:maker.serialize = 97
+  let s:maker.serialize = 97
   AssertEqual s:GetSetting(), 97
+
+  " Falls back correctly to old-style setting with new-style from maker.
+  let g:neomake = {}
+  AssertEqual s:GetSetting(), 97
+  unlet g:neomake
 
   let g:neomake_mymaker_serialize = 4
   AssertEqual s:GetSetting(), 4
@@ -80,9 +88,9 @@ Execute (neomake#utils#GetSetting serialize):
   AssertEqual s:GetSetting(), [1]
 
   " Uses b:neomake_serialize
-  let g:maker = {'name': ''}
+  let s:maker = {'name': ''}
   AssertEqual s:GetSetting(), 98
-  let g:maker = {}
+  let s:maker = {}
   AssertEqual s:GetSetting(), 98
   bwipe
 
@@ -118,6 +126,15 @@ Execute (neomake#utils#GetSetting handles maker-only settings (dict-config)):
   let maker = {'name': 'mymaker', 'exe': 'maker_exe'}
   AssertEqual neomake#config#get('mymaker.exe', 'default', {'ft': 'myft', 'bufnr': bufnr('%'), 'maker': maker}), 'maker_exe'
   bwipe
+
+Execute (neomake#utils#GetSetting uses old-style g: with bufnr ''):
+  Save g:neomake_mysetting
+  let g:neomake_mysetting = 1
+  AssertEqual neomake#utils#GetSetting('mysetting', {}, 'default', 'myft', ''), 1
+  let g:neomake_myft_mysetting = 2
+  AssertEqual neomake#utils#GetSetting('mysetting', {}, 'default', 'myft', ''), 2
+  let g:neomake_myft_mymaker_mysetting = 3
+  AssertEqual neomake#utils#GetSetting('mysetting', {'name': 'mymaker'}, 'default', 'myft', ''), 3
 
 Execute (neomake#utils#GetSetting for multiple fts):
   new
@@ -191,7 +208,11 @@ Execute (neomake#utils#GetSetting with new-style config):
   set ft=neomake_tests
 
   let b:neomake_neomake_tests_foo = 'bar'
-  let maker = {'foo': 'baz'}
+  let maker = {'name': 'mymaker', 'foo': 'from-maker'}
+  AssertEqual neomake#utils#GetSetting(
+  \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), 'from-maker'
+
+  let b:neomake_neomake_tests_mymaker_foo = 'bar'
   AssertEqual neomake#utils#GetSetting(
   \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), 'bar'
 
@@ -256,9 +277,13 @@ Execute (neomake#utils#GetSetting prefers g: over maker):
   let g:neomake = {}
   AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 0
 
+  " Handles maker_only=1, i.e. does not use setting without maker prefix.
+  call neomake#config#set('ft.dockerfile.uses_stdin', 'ignored')
+  AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr, 1), 1
+
   " Prefers new-style global setting.
-  call neomake#config#set('ft.dockerfile.mymaker.uses_stdin', 2)
-  AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 2
+  call neomake#config#set('ft.dockerfile.mymaker.uses_stdin', 3)
+  AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 3
   bwipe
 
 Execute(neomake#utils#redir):

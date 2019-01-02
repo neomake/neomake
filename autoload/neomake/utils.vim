@@ -198,7 +198,7 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
             if has_key(a:maker, 'name')
                 let tmpmaker.name = a:maker.name
             endif
-            let RetOld = s:get_oldstyle_setting(a:key, tmpmaker, s:unset, a:ft, a:bufnr, maker_only)
+            let RetOld = s:get_oldstyle_setting(a:key, tmpmaker, s:unset, a:ft, a:bufnr, 1)
             if RetOld isnot# s:unset
                 return RetOld
             endif
@@ -220,31 +220,28 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
         return a:default
     endif
 
-    if a:bufnr isnot# ''
-        if !empty(a:ft)
-            let fts = neomake#utils#get_config_fts(a:ft) + ['']
-        else
-            let fts = ['']
+    if !empty(a:ft)
+        let fts = neomake#utils#get_config_fts(a:ft) + ['']
+    else
+        let fts = ['']
+    endif
+    for ft in fts
+        let part = join(filter([ft, maker_name], '!empty(v:val)'), '_')
+        if empty(part)
+            break
         endif
-        for ft in fts
-            " Look through the override vars for a filetype maker, like
-            " neomake_scss_sasslint_exe (should be a string), and
-            " neomake_scss_sasslint_args (should be a list).
-            let part = join(filter([ft, maker_name], '!empty(v:val)'), '_')
-            if empty(part)
-                break
-            endif
-            let config_var = 'neomake_'.part.'_'.a:key
-            unlet! Bufcfgvar  " vim73
+        let config_var = 'neomake_'.part.'_'.a:key
+        if a:bufnr isnot# ''
             let Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
             if Bufcfgvar isnot s:unset
                 return copy(Bufcfgvar)
             endif
-            if has_key(g:, config_var)
-                return copy(get(g:, config_var))
-            endif
-        endfor
-    endif
+        endif
+        if has_key(g:, config_var)
+            return copy(get(g:, config_var))
+        endif
+        unlet! Bufcfgvar  " vim73
+    endfor
 
     if has_key(a:maker, a:key)
         return get(a:maker, a:key)
