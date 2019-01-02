@@ -32,13 +32,11 @@ Execute (Setup):
   call add(g:neomake_test_funcs_before, 'NeomakeTestsHandleSecondTextChanged')
 
 Execute (augroup neomake_automake does not exist by default):
-  Save g:neomake
   Assert !exists('#neomake_automake')
   call neomake#configure#automake()
   Assert !exists('#neomake_automake')
 
 Execute (short setup: 'n'):
-  Save g:neomake
   call neomake#configure#automake('n')
   if exists('##TextChanged') && has('timers')
     let event = 'TextChanged'
@@ -50,7 +48,6 @@ Execute (short setup: 'n'):
   Assert exists('#neomake_automake')
 
 Execute (short setup: 'i'):
-  Save g:neomake
   call neomake#configure#automake('i')
   if exists('##TextChangedI') && has('timers')
     let event = 'TextChangedI'
@@ -62,7 +59,6 @@ Execute (short setup: 'i'):
   Assert exists('#neomake_automake'), 1
 
 Execute (short setup: 'w'):
-  Save g:neomake
   call neomake#configure#automake('w')
   call NeomakeTestsAssertAutomakeAutocommands(['BufWritePost'])
   if has('timers')
@@ -72,7 +68,6 @@ Execute (short setup: 'w'):
   endif
 
 Execute (short setup: 'w' with delay):
-  Save g:neomake
   call neomake#configure#automake('w', 100)
   call NeomakeTestsAssertAutomakeAutocommands(['BufWritePost'])
   if has('timers')
@@ -84,12 +79,10 @@ Execute (short setup: 'w' with delay):
   endif
 
 Execute (short setup: 'r'):
-  Save g:neomake
   call neomake#configure#automake('r')
   call NeomakeTestsAssertAutomakeAutocommands(['BufWinEnter', 'FileChangedShellPost', 'FileType'])
 
 Execute (setup: short vs. long):
-  Save g:neomake
   call neomake#configure#automake('w', 500)
   let short_config = copy(g:neomake)
   unlet g:neomake
@@ -126,8 +119,6 @@ Execute (setup: short vs. long):
   AssertEqual short_config, g:neomake
 
 Execute (Automake supports custom buffer config):
-  Save g:neomake
-
   new
   set filetype=neomake_tests
   Save g:neomake_test_enabledmakers
@@ -180,8 +171,6 @@ Execute (Automake supports custom buffer config):
   bwipe
 
 Execute (Automake config via dict):
-  Save g:neomake
-
   call neomake#configure#automake({
   \ 'BufWinEnter': {'delay': 200},
   \ 'TextChanged': {'delay': 200}})
@@ -204,15 +193,11 @@ Execute (Automake config via dict):
   AssertEqual g:neomake, expected
 
 Execute (Error with unsupported events):
-  Save g:neomake
-
   call neomake#configure#automake({
   \ 'EventDoesNotExist': {'delay': 10}})
   AssertNeomakeMessage 'automake: event EventDoesNotExist does not exist.', 0
 
 Execute (Automake):
-  Save g:neomake
-
   call g:NeomakeSetupAutocmdWrappers()
 
   call neomake#configure#automake('n', 10)
@@ -343,8 +328,6 @@ Execute (Automake):
   bwipe!
 
 Execute (Automake: skips non-default buftypes):
-  Save g:neomake
-
   call neomake#configure#automake('n', 10)
   if !exists('##TextChanged') || !has('timers')
     AssertNeomakeMessage 'automake: using CursorHold instead of TextChanged.', 3
@@ -520,7 +503,6 @@ Execute (neomake#configure#automake_for_buffer can configure other buffers):
   bwipe
 
 Execute (neomake#configure#automake_for_buffer re-uses configured makers):
-  Save g:neomake
   new
   call neomake#configure#automake_for_buffer({'InsertLeave': {'delay': 0}}, 0, [g:entry_maker])
   AssertNeomakeMessage 'automake: configured buffer for ft= (entry_maker (options)).', 3
@@ -566,7 +548,6 @@ Execute (Automake handles unchanged buffer):
 Execute (BufWritePost does not run for unchanged buffer):
   call g:NeomakeSetupAutocmdWrappers()
 
-  Save g:neomake
   call neomake#configure#automake('w')
 
   new
@@ -610,7 +591,6 @@ Execute (BufWritePost does not run for unchanged buffer):
 Execute (BufWritePost does not run for unchanged buffer (delayed)):
   call g:NeomakeSetupAutocmdWrappers()
 
-  Save g:neomake
   call neomake#configure#automake({'BufWritePost': {'delay': 5}})
   if !has('timers')
     AssertNeomakeMessage 'automake: timer support is required for automaking, removing event BufWritePost.', 0
@@ -673,7 +653,6 @@ Execute (Automake stops previous jobs):
   endif
 
 Execute (Automake for normal mode handles ciw):
-  Save g:neomake
   call g:NeomakeSetupAutocmdWrappers()
   call neomake#configure#automake('n', 10)
   new
@@ -863,7 +842,6 @@ Execute (Timer callback ignores wiped buffer with noautocmd):
   endif
 
 Execute (Toggling disables automaking):
-  Save g:neomake
   new
   let bufnr = bufnr('%')
   let log_context = {'bufnr': bufnr}
@@ -963,7 +941,6 @@ Execute (No warning with delay=0 if there is no timer support):
     NeomakeTestsSkip 'only without timers feature'
   else
     new
-    Save g:neomake
     call neomake#configure#automake({'BufWritePost': {'delay': 5}})
     AssertNeomakeMessage 'automake: timer support is required for automaking, removing event BufWritePost.', 0
     AssertNeomakeMessage 'automake: registered events: .', 3
@@ -980,8 +957,6 @@ Execute (No warning with delay=0 if there is no timer support):
   endif
 
 Execute (Automake pre-creates maker_job instances):
-  Save g:neomake
-
   new
   let s:call_count = 0
   let maker = {'exe': 'true', 'cwd': '%:h'}
@@ -1018,8 +993,6 @@ Execute (neomake#configure#reset_automake stops timers):
   if !has('timers')
     NeomakeTestsSkip 'Only with timers feature'
   else
-    Save g:neomake
-
     new
     set filetype=neomake_tests
     let b:neomake_enabled_makers = [g:true_maker]
@@ -1034,7 +1007,6 @@ Execute (neomake#configure#reset_automake stops timers):
   endif
 
 Execute (Ignores first TextChanged event (Vim issue #2742)):
-  Save g:neomake
   if !has('patch-8.0.1494') || has('patch-8.0.1633') || has('nvim-0.3.2')
     NeomakeTestsSkip 'Only with affected patches (Vim issue #2742)'
   else
@@ -1051,8 +1023,6 @@ Execute (NeomakeDisableBuffer stops timers):
   if !has('timers')
     NeomakeTestsSkip 'Only with timers feature'
   else
-    Save g:neomake
-
     new
     set filetype=neomake_tests
     let b:neomake_enabled_makers = [g:true_maker]
@@ -1075,8 +1045,6 @@ Execute (NeomakeDisable stops timers and keeps custom config):
   if !has('timers')
     NeomakeTestsSkip 'Only with timers feature'
   else
-    Save g:neomake
-
     new
     set filetype=neomake_tests
     let b:neomake_enabled_makers = [g:true_maker]
@@ -1105,8 +1073,6 @@ Execute (NeomakeDisableTab stops timers):
   if !has('timers')
     NeomakeTestsSkip 'Only with timers feature'
   else
-    Save g:neomake
-
     new
     set filetype=neomake_tests
     let b:neomake_enabled_makers = [g:true_maker]
@@ -1140,7 +1106,7 @@ Execute (NeomakeDisableTab stops timers):
 
 Execute (automake: display of error with O during maker run (TextChanged)):
   if NeomakeAsyncTestsSetup()
-    Save g:neomake g:neomake_test_enabledmakers
+    Save g:neomake_test_enabledmakers
 
     new
     set filetype=neomake_tests
@@ -1260,7 +1226,7 @@ Execute (automake: restarts (BufWritePost)):
 
 Execute (automake: handles unexpected make_id):
   if NeomakeAsyncTestsSetup()
-    Save g:neomake g:neomake_test_enabledmakers
+    Save g:neomake_test_enabledmakers
 
     new
     set filetype=neomake_tests

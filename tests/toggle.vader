@@ -1,7 +1,7 @@
 Include: include/setup.vader
 
 Execute (TODO: Toggle commands):
-  Save g:neomake, &verbose
+  Save &verbose
 
   tabnew
   call NeomakeTestsSetVimMessagesMarker()

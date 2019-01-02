@@ -187,7 +187,6 @@ Execute (neomake#utils#GetSetting without name):
   AssertEqual s:GetSetting('setting'), {'custom': 1}
 
 Execute (neomake#utils#GetSetting with new-style config):
-  Save g:neomake
   new
   set ft=neomake_tests
 
@@ -254,7 +253,6 @@ Execute (neomake#utils#GetSetting prefers g: over maker):
   AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 0
 
   " With existing new-style.
-  Save g:neomake
   let g:neomake = {}
   AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 0
 
