@@ -1,13 +1,5 @@
-function! neomake#makers#ft#vim#EnabledMakers(options) abort
-    let makers = ['vint']
-
-    " Add neomake_checks for Neomake's own files.
-    let bufpath = fnamemodify(bufname(a:options.bufnr), ':p')
-    if bufpath[:len(s:neomake_root)-1] == s:neomake_root
-        call add(makers, 'neomake_checks')
-    endif
-
-    return makers
+function! neomake#makers#ft#vim#EnabledMakers() abort
+    return ['vint']
 endfunction
 
 let s:slash = neomake#utils#Slash()
