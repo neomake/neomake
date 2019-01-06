@@ -17,7 +17,7 @@ Execute (neomake#log#debug writes to logfile always):
   sleep 10m
   call neomake#log#debug('msg4.', {})
   let logfile_msg = readfile(g:neomake_logfile)[-1]
-  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \d+ \[D \+0.0\d\] \[-.-:-:\d+\] msg4.$', 'Message does not match: '.logfile_msg
+  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \d+ \[D \+0.\d\d\] \[-.-:-:\d+\] msg4.$', 'Message does not match: '.logfile_msg
 
 Execute (neomake#log#debug unsets logfile in case of errors):
   Save g:neomake_logfile
