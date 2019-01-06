@@ -1487,7 +1487,6 @@ Execute (automake: restart via non-TextChangedI without delay):
     doautocmd TextChanged
     call NeomakeTestsHandleSecondTextChanged()
     AssertNeomakeMessage 'automake: restarting for original event (BufWritePost) without delay.', 3
-    AssertNeomakeWarning 'automake was restarted due to TextChanged after BufWritePost. This might indicate a problem with your setup (plugin order).'
     AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
 
     NeomakeTestsWaitForFinishedJobs

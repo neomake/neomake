@@ -98,17 +98,17 @@ function! s:handle_changed_buffer(make_id, event) abort
     if exists('b:_neomake_automake_changed_context')
         let [make_id, prev_tick, changedtick, context] = b:_neomake_automake_changed_context
 
-        if changedtick == b:changedtick
-            call s:debug_log(printf('handle_changed_buffer: %s: tick was not changed', a:event))
-            return
-        endif
-
         if s:need_to_skip_first_textchanged && a:event ==# 'TextChanged'
             if !get(b:, '_neomake_seen_TextChanged', 0)
                 call s:debug_log('ignoring first TextChanged')
                 let b:_neomake_seen_TextChanged = 1
                 return
             endif
+        endif
+
+        if changedtick == b:changedtick
+            call s:debug_log(printf('handle_changed_buffer: %s: tick was not changed', a:event))
+            return
         endif
 
         unlet b:_neomake_automake_changed_context
@@ -154,10 +154,6 @@ function! s:handle_changed_buffer(make_id, event) abort
         call s:neomake_do_automake(context)
     else
         call s:debug_log(printf('restarting for original event (%s) without delay', context.event))
-
-        call neomake#log#warn_once(printf('automake was restarted due to %s after %s. This might indicate a problem with your setup (plugin order).', a:event, context.event),
-                    \ printf('automake-restart-%s-%s', a:event, context.event))
-
         call s:neomake_do_automake(context)
     endif
 endfunction
