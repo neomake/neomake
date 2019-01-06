@@ -1175,6 +1175,7 @@ Execute (automake: display of error with O during maker run (TextChanged)):
     " augroup still exists.
     Assert exists('#neomake_automake_abort')
     " Gets cleaned up on triggered autocmd without neomake_make_ids.
+    normal! o
     doautocmd TextChangedI
     Assert exists('#neomake_automake_abort')
     Assert !exists('#neomake_automake_abort#TextChanged')
@@ -1196,6 +1197,7 @@ Execute (automake: restarts (BufWritePost)):
     function! maker1.process_output(...)
       let s:error_count += 1
       if s:error_count == 1
+        normal! o
         doautocmd TextChangedI
         doautocmd TextChanged
       endif
@@ -1233,6 +1235,7 @@ Execute (automake: handles unexpected make_id):
 
     let maker1 = copy(g:error_maker)
     function! maker1.process_output(...)
+      normal! o
       doautocmd TextChangedI
       return [{'lnum': 1, 'text': 'error1'}]
     endfunction
@@ -1449,6 +1452,7 @@ Execute (automake: restart via non-TextChangedI with delay):
     AssertNeomakeMessage 'automake: increasing delay (1/0 canceled timers/makes, rate=1.20): 10 => 12/3000.'
 
     NeomakeTestsWaitForMessage '\Vautomake: started jobs:'
+    normal! o
     doautocmd TextChanged
     call NeomakeTestsHandleSecondTextChanged()
     AssertNeomakeMessage 'automake: buffer was changed (TextChanged), canceling make.'
@@ -1479,6 +1483,7 @@ Execute (automake: restart via non-TextChangedI without delay):
     NeomakeTestsWaitForMessage 'Running makers: sleep-maker (auto).'
 
     call NeomakeTestsSetVimMessagesMarker()
+    normal! o
     doautocmd TextChanged
     call NeomakeTestsHandleSecondTextChanged()
     AssertNeomakeMessage 'automake: restarting for original event (BufWritePost) without delay.', 3
@@ -1486,5 +1491,5 @@ Execute (automake: restart via non-TextChangedI without delay):
     AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
 
     NeomakeTestsWaitForFinishedJobs
-    bwipe
+    bwipe!
   endif
