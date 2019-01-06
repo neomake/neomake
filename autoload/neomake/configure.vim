@@ -96,7 +96,7 @@ endfunction
 function! s:handle_changed_buffer(make_id, event) abort
     " Cleanup always.
     if exists('b:_neomake_automake_changed_context')
-        let [make_id, changedtick, context] = b:_neomake_automake_changed_context
+        let [make_id, prev_tick, changedtick, context] = b:_neomake_automake_changed_context
 
         if changedtick == b:changedtick
             call s:debug_log(printf('handle_changed_buffer: %s: tick was not changed', a:event))
@@ -129,7 +129,7 @@ function! s:handle_changed_buffer(make_id, event) abort
         return
     endif
 
-    call setbufvar(context.bufnr, 'neomake_automake_tick', changedtick)
+    call setbufvar(context.bufnr, 'neomake_automake_tick', prev_tick)
     call filter(b:neomake_automake_make_ids, 'v:val != '.a:make_id)
     call s:update_cancel_rate(context.bufnr, 0)
 
@@ -219,6 +219,7 @@ function! s:neomake_do_automake(context) abort
         call s:debug_log('buffer was not changed', {'bufnr': bufnr})
         return
     endif
+    let prev_tick = getbufvar(bufnr, 'neomake_automake_tick')
 
     call s:debug_log(printf('enabled makers: %s', join(map(copy(a:context.maker_jobs), 'v:val.maker.name'), ', ')))
     let make_options = {
@@ -242,7 +243,7 @@ function! s:neomake_do_automake(context) abort
                 call add(events, event)
             endif
         endfor
-        call setbufvar(bufnr, '_neomake_automake_changed_context', [make_id, getbufvar(bufnr, 'changedtick'), a:context])
+        call setbufvar(bufnr, '_neomake_automake_changed_context', [make_id, prev_tick, getbufvar(bufnr, 'changedtick'), a:context])
         augroup neomake_automake_abort
             exe printf('au! * <buffer=%d>', bufnr)
             for event in events
