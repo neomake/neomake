@@ -689,7 +689,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         let entry_idx += 1
         let before = copy(entry)
         " Handle unlisted buffers via tempfiles and uses_stdin.
-        if file_mode && entry.bufnr && entry.bufnr != a:jobinfo.bufnr
+        if entry.bufnr && entry.bufnr != a:jobinfo.bufnr
                     \ && (!empty(tempfile_bufnrs) || uses_stdin)
             let map_bufnr = index(tempfile_bufnrs, entry.bufnr)
             if map_bufnr != -1
