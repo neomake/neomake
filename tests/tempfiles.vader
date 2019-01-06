@@ -658,3 +658,13 @@ Execute (Filemode maker with tempfile_enabled=0 gets not run on modified buffer)
 
   AssertNeomakeMessage 'Skipping job: buffer is modified, but temporary files are disabled.', 3
   bwipe!
+
+Execute (Massages tempfile buffer with file_mode=0 and append_file=1):
+  new
+  let maker = {'exe': 'echo', 'args': ['error']}
+  let maker.errorformat = '%m %f'
+  let maker.append_file = 1
+  CallNeomake 0, [maker]
+  AssertNeomakeMessage '\VUsing tempfile for unnamed buffer:', 3
+  AssertEqual map(getqflist(), '[v:val.text, v:val.bufnr]'), [['error', bufnr('%')]]
+  bwipe
