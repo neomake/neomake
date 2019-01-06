@@ -1,4 +1,4 @@
-function! neomake#makers#ft#vim#EnabledMakers(options) abort
+function! neomake#makers#ft#vim#EnabledMakers() abort
     return ['vint']
 endfunction
 
