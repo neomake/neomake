@@ -695,7 +695,7 @@ Execute (Automake restarts if context changed (CursorHold)):
     AssertNeomakeMessage '\Vautomake: started timer (12ms): \(\d\+\).'
     let timer = g:neomake_test_matchlist[1]
     bwipe!
-    AssertNeomakeMessage 'automake: stopped timer for wiped buffer: '.timer.'.'
+    AssertNeomakeMessage 'automake: stopped timer for cleaned buffer: '.timer.'.'
   endif
 
 Execute (Automake restarts on InsertLeave if context and mode changed (CursorHold)):
@@ -823,7 +823,7 @@ Execute (Timer callback ignores wiped buffer):
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
     let timer = g:neomake_test_matchlist[1]
     bwipe
-    AssertNeomakeMessage 'automake: stopped timer for wiped buffer: '.timer.'.'
+    AssertNeomakeMessage 'automake: stopped timer for cleaned buffer: '.timer.'.'
   endif
 
 Execute (Timer callback ignores wiped buffer with noautocmd):
@@ -1002,7 +1002,7 @@ Execute (neomake#configure#reset_automake stops timers):
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
     let timer = g:neomake_test_matchlist[1]
     call neomake#configure#reset_automake()
-    AssertNeomakeMessage 'automake: stopping timers: '.timer.'.'
+    AssertNeomakeMessage 'automake: stopped timer for cleaned buffer: '.timer.'.'
     bwipe
   endif
 
@@ -1492,3 +1492,34 @@ Execute (automake: restart via non-TextChangedI without delay):
     NeomakeTestsWaitForFinishedJobs
     bwipe!
   endif
+
+Execute (automake: creates/handles single cleanup autocmd per buffer):
+  new
+  Assert !exists('#neomake_automake_clean#BufWipeout')
+
+  let makers = [g:true_maker]
+
+  call neomake#configure#automake_for_buffer('n', 99, {'makers': makers})
+  let autocmds_before = neomake#utils#redir('au neomake_automake_clean')
+
+  call neomake#configure#automake_for_buffer('n', 99, {'makers': makers})
+  AssertEqual neomake#utils#redir('au neomake_automake_clean'), autocmds_before
+
+  " Trigger buffer setup.
+  doautocmd InsertLeave
+  AssertNeomakeMessage 'automake: configured buffer for ft= (true-maker (options)).'
+  AssertEqual neomake#utils#redir('au neomake_automake_clean'), autocmds_before
+
+  call neomake#configure#reset_automake_for_buffer()
+  Assert !exists('#neomake_automake_clean#BufWipeout')
+  " No-op.
+  call neomake#configure#reset_automake_for_buffer()
+
+  " Trigger buffer setup.
+  doautocmd InsertLeave
+  AssertNeomakeMessage 'automake: configured buffer for ft= (true-maker (options)).'
+  AssertEqual neomake#utils#redir('au neomake_automake_clean'), autocmds_before
+
+  call neomake#configure#reset_automake()
+  Assert !exists('#neomake_automake_clean#BufWipeout')
+  bwipe
