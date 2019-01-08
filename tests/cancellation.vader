@@ -64,6 +64,7 @@ Execute (neomake#CancelJob with invalid job):
     endif
     let ret = neomake#CancelJob(job_id)
     AssertEqual ret, 0, "CancelJob (3) returned ".ret
+    AssertNeomakeMessage 'CancelJob: job not found: '.job_id.'.', 0, {}
   endif
 
 Execute (neomake#CancelJobs! removes canceled jobs):
@@ -111,6 +112,7 @@ Execute (neomake#CancelJob! with invalid job):
 
     AssertEqual neomake#CancelJob(job_id), 0
     AssertNeomakeMessageAbsent '\v^Stopping \w+ job: .+\.$', 3, jobinfo
+    AssertNeomakeMessage 'CancelJob: job not found: '.job_id.'.', 0
 
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessageAbsent 'exit: job not found: '.job_id.'.'
