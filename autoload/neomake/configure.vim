@@ -545,11 +545,11 @@ function! s:configure_buffer(bufnr, ...) abort
         call extend(s:configured_buffers[bufnr], implicit_config, 'force')
     else
         let s:configured_buffers[bufnr] = implicit_config
-    endif
 
-    augroup neomake_automake_clean
-        autocmd BufWipeout <buffer> call s:neomake_automake_clean(expand('<abuf>'))
-    augroup END
+        augroup neomake_automake_clean
+            autocmd BufWipeout <buffer> call s:neomake_automake_clean(expand('<abuf>'))
+        augroup END
+    endif
 
     if implicit_config.ignore
         return s:configured_buffers[bufnr]
@@ -673,14 +673,18 @@ endfunction
 
 function! s:stop_timers() abort
     let timers = keys(s:timer_info)
-    call s:debug_log(printf('stopping timers: %s', join(timers, ', ')))
-    for timer in timers
-        call s:stop_timer(timer)
-    endfor
+    if !empty(timers)
+        call s:debug_log(printf('stopping timers: %s', join(timers, ', ')))
+        for timer in timers
+            call s:stop_timer(timer)
+        endfor
+    endif
 endfunction
 
 function! neomake#configure#reset_automake() abort
-    let s:configured_buffers = {}
+    for bufnr in keys(s:configured_buffers)
+        call s:neomake_automake_clean(bufnr)
+    endfor
     let s:registered_events = []
     call s:stop_timers()
     call neomake#configure#automake()
@@ -690,10 +694,13 @@ function! s:neomake_automake_clean(bufnr) abort
     if has_key(s:timer_by_bufnr, a:bufnr)
         let timer = s:timer_by_bufnr[a:bufnr]
         call s:stop_timer(timer)
-        call s:debug_log('stopped timer for wiped buffer: '.timer)
+        call s:debug_log('stopped timer for cleaned buffer: '.timer)
     endif
     if has_key(s:configured_buffers, a:bufnr)
         unlet s:configured_buffers[a:bufnr]
+        augroup neomake_automake_clean
+            exe printf('au! * <buffer=%d>', a:bufnr)
+        augroup END
     endif
 endfunction
 
@@ -723,9 +730,7 @@ endfunction
 
 function! neomake#configure#reset_automake_for_buffer(...) abort
     let bufnr = a:0 ? +a:1 : bufnr('%')
-    if has_key(s:configured_buffers, bufnr)
-        unlet s:configured_buffers[bufnr]
-    endif
+    call s:neomake_automake_clean(bufnr)
 endfunction
 
 function! neomake#configure#automake(...) abort
