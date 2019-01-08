@@ -1383,7 +1383,7 @@ function! s:clean_make_info(make_info, ...) abort
     " Queue cleanup in case of queued actions, e.g. NeomakeJobFinished hook.
     let queued = []
     for [_, v] in g:neomake#action_queue#_s.action_queue
-        if has_key(v[1][0], 'make_id')
+        if has_key(v[1][0], 'id')
             let jobinfo = v[1][0]
             if jobinfo.make_id == make_id
                 let queued += ['job '.jobinfo.id]

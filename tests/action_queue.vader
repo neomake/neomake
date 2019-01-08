@@ -181,3 +181,23 @@ Execute (action queue: logs errors (E48, WinEnter)):
 
   call neomake#action_queue#clean(jobinfo)
   delfunction F1
+
+Execute (action queue: handles make_info in clean_make_info queue check):
+  new
+  call neomake#Make({'enabled_makers': [g:true_maker]})
+  let make_info = values(neomake#GetStatus().make_info)[0]
+  function F(...)
+    return g:neomake#action_queue#processed
+  endfunction
+  call neomake#action_queue#add(['InsertLeave'], [function('F'), [make_info]])
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage '\VQueuing clean_make_info for already queued actions: [''make \d\+'']', 3
+  AssertNeomakeMessage 'Queuing action clean_make_info for any event.', 3
+  AssertNeomakeMessage 'Skipping cleaning of make info for queued actions.', 3
+
+  doautocmd InsertLeave
+
+  AssertNeomakeMessage 'action queue: calling F.'
+  AssertNeomakeMessage 'action queue: calling clean_make_info.'
+  bwipe
+  delfunction F
