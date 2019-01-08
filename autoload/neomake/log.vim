@@ -78,18 +78,16 @@ function! s:log(level, msg, ...) abort
         endif
     elseif verbosity >= a:level
         redraw
-        if a:level ==# 0
-            echohl ErrorMsg
-        elseif a:level ==# 1
-            echohl WarningMsg
-        endif
         if verbosity > 2
             echom 'Neomake: '.msg
         else
+            if a:level ==# 0
+                echohl ErrorMsg
+            else
+                echohl WarningMsg
+            endif
             " Use message without context for non-debug msgs.
             echom 'Neomake: '.a:msg
-        endif
-        if a:level ==# 0 || a:level ==# 1
             echohl None
         endif
     endif
