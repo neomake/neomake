@@ -1499,14 +1499,14 @@ Execute (automake: creates/handles single cleanup autocmd per buffer):
 
   let makers = [g:true_maker]
 
-  call neomake#configure#automake_for_buffer('nrw', 99, {'makers': makers})
+  call neomake#configure#automake_for_buffer('n', 99, {'makers': makers})
   let autocmds_before = neomake#utils#redir('au neomake_automake_clean')
 
-  call neomake#configure#automake_for_buffer('nrw', 99, {'makers': makers})
+  call neomake#configure#automake_for_buffer('n', 99, {'makers': makers})
   AssertEqual neomake#utils#redir('au neomake_automake_clean'), autocmds_before
 
   " Trigger buffer setup.
-  doautocmd TextChanged
+  doautocmd InsertLeave
   AssertNeomakeMessage 'automake: configured buffer for ft= (true-maker (options)).'
   AssertEqual neomake#utils#redir('au neomake_automake_clean'), autocmds_before
 
@@ -1516,7 +1516,7 @@ Execute (automake: creates/handles single cleanup autocmd per buffer):
   call neomake#configure#reset_automake_for_buffer()
 
   " Trigger buffer setup.
-  doautocmd TextChanged
+  doautocmd InsertLeave
   AssertNeomakeMessage 'automake: configured buffer for ft= (true-maker (options)).'
   AssertEqual neomake#utils#redir('au neomake_automake_clean'), autocmds_before
 
