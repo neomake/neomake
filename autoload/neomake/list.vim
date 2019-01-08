@@ -386,8 +386,8 @@ function! s:base_list._get_fn_args(action, ...) abort
     else
         call extend(args, a:000)
         if a:action ==# 'set'
-            if exists(':Assert')
-                Assert len(a:000) == 2
+            if exists('*vader#assert#equal')
+                call vader#assert#equal(len(a:000), 2)
             endif
             if s:can_set_qf_items
                 let options.items = a:1
@@ -927,9 +927,9 @@ function! s:cmp_listitem_loc(a, b) abort
         return buf_diff
     endif
 
-    if exists(':Assert')
-        Assert a:a.bufnr != -1
-        Assert a:b.bufnr != -1
+    if exists('*vader#assert#not_equal')
+        call vader#assert#not_equal(a:a.bufnr, -1)
+        call vader#assert#not_equal(a:b.bufnr, -1)
     endif
 
     let lnum_diff = a:a.lnum - a:b.lnum
@@ -976,17 +976,17 @@ function! s:goto_nearest(list, offset) abort
 
     if found
         if a:list.type ==# 'loclist'
-            if exists(':AssertEqual')
+            if exists('*vader#assert#equal')
                 " @vimlint(EVL102, 1, l:ll_item)
                 let ll_item = getloclist(0)[found-1]
-                AssertEqual [ll_item.bufnr, ll_item.lnum], [item.bufnr, item.lnum]
+                call vader#assert#equal([ll_item.bufnr, ll_item.lnum], [item.bufnr, item.lnum])
             endif
             execute 'll '.found
         else
-            if exists(':AssertEqual')
+            if exists('*vader#assert#equal')
                 " @vimlint(EVL102, 1, l:cc_item)
                 let cc_item = getqflist()[found-1]
-                AssertEqual [cc_item.bufnr, cc_item.lnum], [item.bufnr, item.lnum]
+                call vader#assert#equal([cc_item.bufnr, cc_item.lnum], [item.bufnr, item.lnum])
             endif
             execute 'cc '.found
         endif
