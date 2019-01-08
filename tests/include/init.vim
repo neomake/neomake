@@ -497,18 +497,26 @@ function! s:After()
     endtry
   endif
 
-  let unexpected_errors = filter(copy(g:neomake_test_messages),
-        \ 'v:val[0] == 0 && index(g:_neomake_test_asserted_messages, v:val) == -1')
-  if !empty(unexpected_errors)
-    call add(errors, 'found unexpected error messages: '.string(unexpected_errors))
-  endif
-
-  let unexpected_warnings = filter(copy(g:neomake_test_messages),
-        \ 'v:val[0] == 1 && v:val[1] !=# "automake: timer support is required for delayed events."'.
-        \ '&& index(g:_neomake_test_asserted_messages, v:val) == -1')
-  if !empty(unexpected_warnings)
-    call add(errors, 'found unexpected warning messages: '.string(unexpected_warnings))
-  endif
+  " Check for unexpected errors/warnings.
+  for [level, name] in [[0, 'error'], [1, 'warning']]
+    let msgs = filter(copy(g:neomake_test_messages),
+          \ 'v:val[0] == level && v:val[1] !=# ''automake: timer support is required for delayed events.''')
+    let asserted_msgs = filter(copy(g:_neomake_test_asserted_messages),
+          \ 'v:val[0] == level')
+    let unexpected = []
+    for msg in msgs
+      let asserted_idx = index(asserted_msgs, msg)
+      if asserted_idx == -1
+        call add(unexpected, msg)
+      else
+        call remove(asserted_msgs, asserted_idx)
+      endif
+    endfor
+    if !empty(unexpected)
+      call add(errors, printf('found %d unexpected %s messages: %s',
+            \ len(unexpected), name, string(unexpected)))
+    endif
+  endfor
 
   let status = neomake#GetStatus()
   let make_info = status.make_info
