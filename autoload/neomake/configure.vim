@@ -479,7 +479,7 @@ function! neomake#configure#automake_for_buffer(string_or_dict_config, ...) abor
             endif
         endif
     endif
-    return call('s:configure_buffer', [bufnr] + [a:string_or_dict_config, options])
+    return call('s:configure_buffer', [bufnr, a:string_or_dict_config, options])
 endfunction
 
 " Workaround for getbufvar not having support for defaults.
