@@ -30,8 +30,13 @@ endfunction
 " re-queued also).
 function! neomake#action_queue#add(events, data) abort
     let job_or_make_info = a:data[1][0]
-    call neomake#log#debug(printf('Queuing action %s for %s.',
-                \ s:actionname(a:data[0]), join(a:events, ', ')), job_or_make_info)
+    if a:events is# g:neomake#action_queue#any_event
+        call neomake#log#debug(printf('Queuing action %s for any event.',
+                    \ s:actionname(a:data[0])), job_or_make_info)
+    else
+        call neomake#log#debug(printf('Queuing action %s for %s.',
+                    \ s:actionname(a:data[0]), join(a:events, ', ')), job_or_make_info)
+    endif
 
     for event in a:events
         if event ==# 'Timer'
