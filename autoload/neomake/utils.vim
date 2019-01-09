@@ -15,7 +15,7 @@ function! neomake#utils#Stringify(obj) abort
         return '['.join(ls, ', ').']'
     elseif type(a:obj) == type({})
         let ls = []
-        for [k, V] in items(a:obj)
+        for [k, V] in items(neomake#utils#fix_self_ref(a:obj))
             if type(V) == type(function('tr'))
                 let fname = substitute(string(V), ', {\zs.*\ze})', '…', '')
                 call add(ls, k.': '.fname)

@@ -847,6 +847,14 @@ Execute (neomake#utils#fix_self_ref: handles lists):
   AssertEqual keys(repr[0]), ['args']
   call string(repr)
 
+Execute (neomake#utils#Stringify: uses neomake#utils#fix_self_ref):
+  let maker = {}
+  function maker.args()
+  endfunction
+  let maker.args = maker.args
+  let repr = neomake#utils#Stringify(maker)
+  Assert repr =~# '\V{args: \.\*}'
+
 Execute (neomake#utils#write_tempfile):
   Save &endofline, &binary
   let vim_temp = tempname()
