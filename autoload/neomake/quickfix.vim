@@ -68,14 +68,6 @@ function! s:cursor_moved() abort
     endif
 endfunction
 
-function! neomake#quickfix#set_syntax(names) abort
-    runtime! syntax/neomake/qf.vim
-    for name in a:names
-        execute 'runtime! syntax/neomake/'.name.'.vim '
-                    \  . 'syntax/neomake/'.name.'/*.vim'
-    endfor
-endfunction
-
 function! s:set_qf_lines(lines) abort
     let ul = &l:undolevels
     setlocal modifiable nonumber undolevels=-1
@@ -207,7 +199,11 @@ function! neomake#quickfix#FormatQuickfix() abort
         endfor
     endif
     if get(b:, '_neomake_cur_syntax', []) != syntax
-        call neomake#quickfix#set_syntax(syntax)
+        runtime! syntax/neomake/qf.vim
+        for name in syntax
+            execute 'runtime! syntax/neomake/'.name.'.vim '
+                        \  . 'syntax/neomake/'.name.'/*.vim'
+        endfor
         let b:_neomake_cur_syntax = syntax
     endif
 
