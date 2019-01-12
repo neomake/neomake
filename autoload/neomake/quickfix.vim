@@ -29,7 +29,6 @@ function! neomake#quickfix#enable(...) abort
     endif
 endfunction
 
-
 function! neomake#quickfix#disable() abort
     call neomake#log#debug('disabling custom quickfix list handling.')
     let s:is_enabled = 0
@@ -42,11 +41,9 @@ function! neomake#quickfix#disable() abort
     endif
 endfunction
 
-
 function! neomake#quickfix#is_enabled() abort
     return s:is_enabled
 endfunction
-
 
 function! s:cursor_moved() abort
     if b:neomake_start_col
@@ -70,7 +67,6 @@ function! s:cursor_moved() abort
         endif
     endif
 endfunction
-
 
 function! neomake#quickfix#set_syntax(names) abort
     runtime! syntax/neomake/qf.vim
@@ -115,7 +111,6 @@ function! s:clean_qf_annotations() abort
     endif
     call neomake#signs#ResetFile(bufnr('%'))
 endfunction
-
 
 function! neomake#quickfix#FormatQuickfix() abort
     let buf = bufnr('%')
