@@ -1050,19 +1050,27 @@ Execute (Different buffer with buf_get_lines/buf_set_lines):
   " Neovim can handle different buffers.
   new
   let b = bufnr('%')
+  call append(0, ['init1', 'init2'])
   new
   if exists('*nvim_buf_get_lines')
     AssertEqual neomake#utils#buf_set_lines(b, 1, 1, ['1', '2']), ''
     AssertEqual neomake#utils#buf_get_lines(b, 1, 3), ['1', '2']
+  elseif exists('*setbufline') && exists('*appendbufline') && exists('*deletebufline')
+    AssertEqual neomake#utils#buf_set_lines(b, 1, 1, ['1', '2']), ''
+    AssertEqual neomake#utils#buf_get_lines(b, 1, 3), ['1', '2']
   else
-    let threw = 0
-    try
-      call neomake#utils#buf_get_lines(b, 1, 3)
-    catch
-      let threw = 1
-      AssertEqual v:exception, 'Neomake: neomake#utils#buf_get_lines: used for non-current buffer'
-    endtry
-    Assert threw
+    if exists('*getbufline')
+      AssertEqual neomake#utils#buf_get_lines(b, 1, 3), ['init1', 'init2']
+    else
+      let threw = 0
+      try
+        call neomake#utils#buf_get_lines(b, 1, 3)
+      catch
+        let threw = 1
+        AssertEqual v:exception, 'Neomake: neomake#utils#buf_get_lines: used for non-current buffer'
+      endtry
+      Assert threw
+    endif
 
     AssertEqual neomake#utils#buf_set_lines(b, 1, 1, ['1', '2']), 'neomake#utils#buf_set_lines: used for non-current buffer'
   endif
