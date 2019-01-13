@@ -516,7 +516,11 @@ function! s:base_list._appendlist(entries, jobinfo) abort
     let action = 'a'
     if !self.need_init
         let action = 'a'
-        if s:needs_to_replace_qf_for_lwindow
+        if s:needs_to_replace_qf_for_lwindow || neomake#quickfix#is_enabled()
+            " Need to replace whole list with customqf to trigger FileType
+            " autocmd (which is not done for action='a').
+            " This should be enhanced to only format new entries instead
+            " later, but needs support for changing non-current buffer lines.
             let action = 'r'
             if self.type ==# 'loclist'
                 let set_entries = self._get_qflist_entries() + set_entries

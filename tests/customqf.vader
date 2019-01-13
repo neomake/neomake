@@ -213,13 +213,8 @@ Execute (Sets quickfix title (location list, get_list_entries)):
 
     lopen
 
-    " patch-7.3.746 changed the behavior, fixed in 7.4.378.
-    if ((v:version >= 704 || (v:version == 703 && has('patch746')))
-        \ && !has('patch-7.4.378'))
-      AssertEqual w:quickfix_title, ':setloclist()'
-    else
-      AssertEqual w:quickfix_title, 'Neomake[file]: custom_file (error-maker(1), maker2(1))'
-    endif
+    " Title is always handled via FileType autocmd.
+    AssertEqual w:quickfix_title, 'Neomake[file]: custom_file (error-maker(1), maker2(1))'
 
     normal! G0
     doautocmd CursorMoved
@@ -633,6 +628,43 @@ Execute (Does not use quickfix list with empty location list):
     Assert exists('b:neomake_qf')
     AssertEqual b:current_syntax, 'neomake_qf'
     cclose
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (Formats quickfix list if opened already):
+  Save g:neomake_open_list
+  let g:neomake_open_list = 2
+
+  call neomake#quickfix#enable(1)
+  try
+    new
+
+    let maker1 = copy(g:error_maker)
+    let maker1.short_name = 'mkr1'
+    let maker1.serialize = 1  " For predictable order.
+
+    let maker2 = copy(g:error_maker)
+    let maker2.name = 'mkr2'
+
+    CallNeomake 1, [maker1, maker2]
+
+    wincmd j
+    AssertEqual getline('.'), 'mkr1 1:- error'
+    doautocmd CursorMoved
+    AssertEqual expand('<cWORD>'), 'error'
+
+    normal! j
+    AssertEqual getline('.'), 'mkr2 1:- error'
+    AssertEqual expand('<cWORD>'), 'error'
+
+    AssertNeomakeMessage 'Handling location list: executing lwindow.', 3
+    AssertNeomakeMessage 'list window has been opened (old count: 2, new count: 3).', 3
+    AssertNeomakeMessage 'Handling location list: executing lwindow.', 3
+    AssertNeomakeMessage 'Resizing existing quickfix window: 3resize 2.', 3
+
+    lclose
+    bwipe
   finally
     call neomake#quickfix#disable()
   endtry
