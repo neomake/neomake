@@ -558,7 +558,7 @@ function! s:After()
   if winnr('$') > 1
     let error = 'More than 1 window after tests: '
       \ .string(map(range(1, winnr('$')),
-      \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
+      \ "[winbufnr(v:val), bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
     try
       for b in neomake#compat#uniq(sort(tabpagebuflist()))
         if bufname(b) !=# '[Vader-workbench]'
