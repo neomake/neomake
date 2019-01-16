@@ -39,11 +39,13 @@ function! neomake#makers#ft#rst#rstlint() abort
     return {
         \ 'exe': 'rst-lint',
         \ 'errorformat':
+            \ '%ESEVERE %f:%l %m,'.
             \ '%EERROR %f:%l %m,'.
             \ '%WWARNING %f:%l %m,'.
             \ '%IINFO %f:%l %m,'.
             \ '%C%m',
         \ 'postprocess': function('neomake#postprocess#compress_whitespace'),
+        \ 'output_stream': 'stdout',
         \ }
 endfunction
 
