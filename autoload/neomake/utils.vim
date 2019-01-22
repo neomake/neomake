@@ -508,6 +508,9 @@ endfunction
 
 function! neomake#utils#write_tempfile(bufnr, temp_file) abort
     call writefile(neomake#utils#get_buffer_lines(a:bufnr), a:temp_file, 'b')
+    if exists('*setfperm')
+        call setfperm(a:temp_file, 'rw-r--r--')
+    endif
 endfunction
 
 " Wrapper around fnamemodify that handles special buffers (e.g. fugitive).
