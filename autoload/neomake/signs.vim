@@ -119,7 +119,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
         endif
 
         let sign_id = existing_sign[0]
-        if sign_id == sign_type
+        if existing_sign[1] == sign_type
             let count_reused += 1
             " call neomake#log#debug(printf(
             "             \ 'Reusing sign: id=%d, type=%s, lnum=%d.',
