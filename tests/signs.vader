@@ -495,3 +495,22 @@ Execute (Signs should be placed with QuickfixCmdPost already (qflist)):
   endif
   bwipe
   delfunction OnQuickfixCmdPost
+
+Execute (neomake#signs#PlaceSigns: prevents re-used signs from being clened):
+  new
+  let bufnr = bufnr('%')
+
+  call neomake#signs#PlaceSigns(bufnr('%'),
+  \ [{'type': 'E', 'bufnr': bufnr('%'), 'lnum': 1}], 'file')
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.bufnr.'.'
+
+  call neomake#signs#Reset(bufnr, 'file')
+
+  call neomake#signs#PlaceSigns(bufnr('%'),
+  \ [{'type': 'W', 'bufnr': bufnr('%'), 'lnum': 1}], 'file')
+  AssertNeomakeMessage 'Upgrading sign for lnum=1: sign place 5000 name=neomake_file_warn buffer='.bufnr.'.'
+
+  call neomake#signs#Reset(bufnr, 'file')
+
+  AssertNeomakeMessage 'Cleaning 0 old signs.', 3
+  bwipe

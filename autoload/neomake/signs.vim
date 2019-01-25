@@ -117,21 +117,23 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
             call add(place_new, [lnum, sign_type])
             continue
         endif
+
+        let sign_id = existing_sign[0]
         if existing_sign[1] == sign_type
-            let sign_id = existing_sign[0]
             let count_reused += 1
             " call neomake#log#debug(printf(
             "             \ 'Reusing sign: id=%d, type=%s, lnum=%d.',
             "             \ sign_id, existing_sign[1], lnum), log_context)
-
-            " Keep this sign from being cleaned.
-            if exists('s:last_placed_signs[a:type][a:bufnr][sign_id]')
-                unlet s:last_placed_signs[a:type][a:bufnr][sign_id]
-            endif
         else
-            let cmd = 'sign place '.existing_sign[0].' name='.sign_type.' buffer='.a:bufnr
+            let cmd = printf('sign place %s name=%s buffer=%d',
+                        \ sign_id, sign_type, a:bufnr)
             call neomake#log#debug('Upgrading sign for lnum='.lnum.': '.cmd.'.', log_context)
             exe cmd
+        endif
+
+        " Keep this sign from being cleaned.
+        if exists('s:last_placed_signs[a:type][a:bufnr][sign_id]')
+            unlet s:last_placed_signs[a:type][a:bufnr][sign_id]
         endif
     endfor
     if count_reused
