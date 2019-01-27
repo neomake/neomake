@@ -138,16 +138,19 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
         endif
 
         let error = {'maker_name': 'cargo'}
-        let code_dict = get(data, 'code', -1)
-        if code_dict is g:neomake#compat#json_null
-            if get(data, 'level', '') ==# 'warning'
-                let error.type = 'W'
-            else
-                let error.type = 'E'
-            endif
+        let code_dict = get(data, 'code', g:neomake#compat#json_null)
+        if get(data, 'level', '') ==# 'warning'
+            let error.type = 'W'
         else
-            let error.type = code_dict['code'][0]
-            let error.nr = code_dict['code'][1:]
+            let error.type = 'E'
+        endif
+        if code_dict isnot g:neomake#compat#json_null
+            if code_dict['code'][0] ==# 'W' || code_dict['code'][0] ==# 'E'
+                " Only the rust compiler uses WXXXX or EXXXX for error codes,
+                " clippy uses clippy::<error-name>
+                let error.type = code_dict['code'][0]
+                let error.nr = code_dict['code'][1:]
+            endif
         endif
 
         let span = data.spans[0]
@@ -190,12 +193,14 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
         endif
 
         for child in children[1:]
-            if !has_key(child, 'message')
+            " Ignore message if it is only help level
+            if get(child, 'level', '') ==# 'help'
                 continue
             endif
 
             let info = deepcopy(error)
             let info.type = 'I'
+            " message is mandatory so it is safe to access it
             let info.text = child.message
             call neomake#postprocess#compress_whitespace(info)
             if has_key(child, 'rendered')
@@ -205,10 +210,10 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
 
             if len(child.spans)
                 let span = child.spans[0]
-                if span.file_name =~# '^<.*>$'
-                            \ && type(span.expansion) == type({})
+                let has_expansion = type(span.expansion) == type({})
                             \ && type(span.expansion.span) == type({})
                             \ && type(span.expansion.def_site_span) == type({})
+                if span.file_name =~# '^<.*>$' && has_expansion
                     call neomake#makers#ft#rust#FillErrorFromSpan(info,
                                 \ span.expansion.span, cwd)
                 else
