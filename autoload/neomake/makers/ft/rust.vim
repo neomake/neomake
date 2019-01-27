@@ -1,3 +1,5 @@
+let s:slash = neomake#utils#Slash()
+
 function! neomake#makers#ft#rust#EnabledMakers() abort
     return ['cargo']
 endfunction
@@ -123,6 +125,7 @@ endfunction
 " elements per line.
 function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
     let errors = []
+    let cwd = a:context.jobinfo.maker.cwd
     for line in a:context['output']
         if line[0] !=# '{'
             continue
@@ -163,9 +166,9 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
         if span.file_name =~# '^<.*>$' && has_expansion
             let expanded = 1
             call neomake#makers#ft#rust#FillErrorFromSpan(error,
-                        \ span.expansion.span)
+                        \ span.expansion.span, cwd)
         else
-            call neomake#makers#ft#rust#FillErrorFromSpan(error, span)
+            call neomake#makers#ft#rust#FillErrorFromSpan(error, span, cwd)
         endif
 
         let error.text = data.message
@@ -182,7 +185,7 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
         if has_expansion && !expanded
             let error = copy(error)
             call neomake#makers#ft#rust#FillErrorFromSpan(error,
-                        \ span.expansion.span)
+                        \ span.expansion.span, cwd)
             call add(errors, error)
         endif
 
@@ -207,9 +210,10 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
                             \ && type(span.expansion.span) == type({})
                             \ && type(span.expansion.def_site_span) == type({})
                     call neomake#makers#ft#rust#FillErrorFromSpan(info,
-                                \ span.expansion.span)
+                                \ span.expansion.span, cwd)
                 else
-                    call neomake#makers#ft#rust#FillErrorFromSpan(info, span)
+                    call neomake#makers#ft#rust#FillErrorFromSpan(info, span,
+                                \ cwd)
                 endif
                 let detail = span.label
                 if type(detail) == type('') && len(detail)
@@ -223,8 +227,8 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
     return errors
 endfunction
 
-function! neomake#makers#ft#rust#FillErrorFromSpan(error, span) abort
-    let a:error.filename = a:span.file_name
+function! neomake#makers#ft#rust#FillErrorFromSpan(error, span, cwd) abort
+    let a:error.filename = expand(a:cwd) . s:slash . a:span.file_name
     let a:error.col = a:span.column_start
     let a:error.lnum = a:span.line_start
     let a:error.length = a:span.byte_end - a:span.byte_start
