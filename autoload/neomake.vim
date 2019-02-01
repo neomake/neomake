@@ -1936,7 +1936,9 @@ function! s:ProcessPendingOutput(jobinfo, lines, source) abort
         call neomake#action_queue#remove(a:jobinfo, s:function('s:process_pending_output'))
     endif
 
-    call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
+    if !empty(a:lines)
+        call s:ProcessJobOutput(a:jobinfo, a:lines, a:source)
+    endif
 
     " Clean job if it had exited already.
     if !empty(a:jobinfo.pending_output)

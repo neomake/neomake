@@ -1094,3 +1094,24 @@ Execute (handles terminal mode, requeues for BufEnter/WinEnter):
     AssertEqual map(getloclist(0), 'v:val.text'), ['error']
     bwipe
   endif
+
+Execute (process_json with action queue / pending outputs):
+  let s:called = 0
+
+  let maker = NeomakeTestsCommandMaker('json-maker', 'echo ''{}''')
+  function! maker.process_json(context) abort dict
+    let s:called += 1
+    AssertEqual a:context.json, {}
+    return []
+  endfunction
+
+  call neomake#Make({'enabled_makers': [maker]})
+  norm! V
+  NeomakeTestsWaitForFinishedJobs
+  AssertNeomakeMessage "output on stdout: ['{}', ''].", 3
+  AssertNeomakeMessage 'Not processing output for mode "V".', 3
+  exe "norm! \<Esc>"
+  doautocmd CursorHold
+  AssertNeomakeMessage "Calling maker's process_json method with 0 JSON entries.", 3
+  AssertNeomakeMessage 'Processed 1 pending outputs.', 3
+  AssertEqual s:called, 1
