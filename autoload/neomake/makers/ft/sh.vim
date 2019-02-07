@@ -5,14 +5,10 @@ function! neomake#makers#ft#sh#EnabledMakers() abort
 endfunction
 
 let s:shellcheck = {
-        \ 'args': ['-fgcc', '-x'],
-        \ 'errorformat':
-            \ '%f:%l:%c: %trror: %m [SC%n],' .
-            \ '%f:%l:%c: %tarning: %m [SC%n],' .
-            \ '%I%f:%l:%c: Note: %m [SC%n]',
+        \ 'args': ['-fjson', '-x'],
         \ 'output_stream': 'stdout',
+        \ 'process_json': function('neomake#makers#ft#sh#ShellcheckProcessJson'),
         \ 'short_name': 'SC',
-        \ 'cwd': '%:h',
         \ }
 
 function! neomake#makers#ft#sh#shellcheck() abort
@@ -38,6 +34,30 @@ function! neomake#makers#ft#sh#shellcheck() abort
         endif
     endif
     return maker
+endfunction
+
+function! neomake#makers#ft#sh#ShellcheckProcessJson(context) abort
+    let errors = []
+    for err in a:context.json
+        if err.level ==# 'info'
+            let type = 'I'
+        elseif err.level ==# 'warning'
+            let type = 'W'
+        else
+            let type = 'E'
+        endif
+
+        call add(errors, {
+            \ 'text': err.message,
+            \ 'lnum': err.line,
+            \ 'col': err.column,
+            \ 'length': err.endColumn - err.column,
+            \ 'filename': err.file,
+            \ 'type': type,
+            \ 'nr': err.code,
+            \ })
+    endfor
+    return errors
 endfunction
 
 function! neomake#makers#ft#sh#checkbashisms() abort
