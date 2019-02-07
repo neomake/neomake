@@ -187,14 +187,14 @@ Execute (NeomakeCountsChanged gets triggered with skipped entries):
   call g:NeomakeSetupAutocmdWrappers()
   new
   edit tests/fixtures/errors.sh
-  let b:neomake_sh_shellcheck_maker = {'exe': 'echo', 'args': 'ignored'}
+  let b:neomake_sh_shellcheck_maker = {'exe': 'echo', 'args': 'skipped_entry: '}
   RunNeomake sh shellcheck
   AssertEqual len(g:neomake_test_countschanged), 2
   AssertEqual len(g:neomake_test_finished), 1
   AssertNeomakeMessage 'Running makers: sh, shellcheck.'
   AssertNeomakeMessage printf(
-  \ "\\vSkipped 1 entries without bufnr: [{'lnum': 0, 'bufnr': 0, .*'text': 'shellcheck -fgcc -x %s'}].",
-  \ expand('%:p')), 3
+  \ '\VSkipped 1 entries without bufnr: [{''lnum'': 0, ''bufnr'': 0, \.\*''text'': ''skipped_entry: %s''}].',
+  \ expand('%')), 3
   bwipe
 
 Execute (Neomake: handle result for current window):
