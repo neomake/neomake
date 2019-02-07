@@ -93,6 +93,22 @@ endfunction
 
 " Add entries for a job (non-efm method).
 function! s:base_list.add_entries_for_job(entries, jobinfo) dict abort
+    let tempfiles = get(self.make_info, 'tempfiles', [])
+    if !empty(tempfiles)
+        let mapped = 0
+        for e in a:entries
+            if has_key(e, 'filename') && get(e, 'bufnr', 0) == 0
+                if index(tempfiles, e.filename) != -1
+                    unlet e.filename
+                    let e.bufnr = a:jobinfo.bufnr
+                    let mapped += 1
+                endif
+            endif
+        endfor
+        if mapped
+            call neomake#log#debug(printf('Mapped %d bufnrs from temporary files.', mapped), a:jobinfo)
+        endif
+    endif
     return self._appendlist(a:entries, a:jobinfo)
 endfunction
 
