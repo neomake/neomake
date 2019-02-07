@@ -669,12 +669,11 @@ Execute (Massages tempfile buffer with file_mode=0 and append_file=1):
   AssertEqual map(getqflist(), '[v:val.text, v:val.bufnr]'), [['error', bufnr('%')]]
   bwipe
 
-Execute (Adjust filename from temporary file):
+Execute (Maps/sets bufnr via filename from temporary file):
   new
   let maker = {'exe': 'echo', 'args': ['']}
 
   function maker.process_output(context)
-    Log a:context
     let tempfile = a:context.output[0][1:]
     return [{'filename': tempfile, 'lnum': 1, 'text': 'err'}]
   endfunction
