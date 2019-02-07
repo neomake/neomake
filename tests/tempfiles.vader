@@ -668,3 +668,20 @@ Execute (Massages tempfile buffer with file_mode=0 and append_file=1):
   AssertNeomakeMessage '\VUsing tempfile for unnamed buffer:', 3
   AssertEqual map(getqflist(), '[v:val.text, v:val.bufnr]'), [['error', bufnr('%')]]
   bwipe
+
+Execute (Maps/sets bufnr via filename from temporary file):
+  new
+  let maker = {'exe': 'echo', 'args': ['']}
+
+  function maker.process_output(context)
+    let tempfile = a:context.output[0][1:]
+    return [{'filename': tempfile, 'lnum': 1, 'text': 'err'}]
+  endfunction
+
+  CallNeomake 1, [maker]
+
+  AssertEqual map(getloclist(0), '[v:val.bufnr, v:val.lnum, v:val.text]'),
+  \ [[bufnr('%'), 1, 'err']]
+
+  AssertNeomakeMessage 'Mapped 1 bufnrs from temporary files.', 3
+  bwipe
