@@ -180,17 +180,15 @@ Execute (Test Neomake on errors.sh with one maker):
   AssertEqual neomake#signs#by_lnum(bufnr), {'5': [5000, 'neomake_file_err']}
   bwipe
 
-Execute (Test Neomake on errors.sh with two makers):
+Execute (NeomakeCountsChanged gets triggered with skipped entries):
   Save g:neomake_verbose
   let g:neomake_verbose = 3
 
   call g:NeomakeSetupAutocmdWrappers()
   new
   edit tests/fixtures/errors.sh
-  call g:NeomakeTestsCreateExe('shellcheck', ['#!/bin/sh', 'echo shellcheck $@'])
+  let b:neomake_sh_shellcheck_maker = {'exe': 'echo', 'args': 'ignored'}
   RunNeomake sh shellcheck
-  " NeomakeCountsChanged gets also triggered with location list changes where
-  " entries are skipped.
   AssertEqual len(g:neomake_test_countschanged), 2
   AssertEqual len(g:neomake_test_finished), 1
   AssertNeomakeMessage 'Running makers: sh, shellcheck.'
