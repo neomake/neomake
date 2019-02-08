@@ -509,7 +509,11 @@ endfunction
 function! neomake#utils#write_tempfile(bufnr, temp_file) abort
     call writefile(neomake#utils#get_buffer_lines(a:bufnr), a:temp_file, 'b')
     if exists('*setfperm')
-        call setfperm(a:temp_file, 'rw-r--r--')
+        let perms = getfperm(bufname(+a:bufnr))
+        if empty(perms)
+            let perms = 'rw-------'
+        endif
+        call setfperm(a:temp_file, perms)
     endif
 endfunction
 
