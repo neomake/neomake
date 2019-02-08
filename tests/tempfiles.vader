@@ -20,7 +20,7 @@ Execute (Neomake uses temporary file for unsaved buffer):
     let make_info = values(neomake#GetStatus().make_info)[0]
     let temp_file = make_info.tempfiles[0]
     AssertEqual fnamemodify(temp_file, ':h:h'), fnamemodify(tempname(), ':h')
-    AssertEqual getfperm(temp_file), 'rw-r--r--'
+    AssertEqual getfperm(temp_file), 'rw-------'
     NeomakeTestsWaitForFinishedJobs
   endif
 
@@ -62,15 +62,67 @@ Execute (Uses temporary file for unreadable buffer):
   let b:neomake_neomake_tests_enabled_makers = ['true']
   let b:neomake_neomake_tests_true_tempfile_enabled = 1
 
+  if exists('*setfperm')
+    let s:validated = 0
+    function! s:validate_tempfile()
+      let s:validated = 1
+      let tempfile = g:neomake_hook_context.jobinfo.tempfile
+      AssertEqual getfperm(tempfile), 'rw-------'
+    endfunction
+    augroup neomake_tests
+      au User NeomakeJobFinished call s:validate_tempfile()
+    augroup END
+  endif
+
   RunNeomake
 
-  let bufnr = bufnr('%')
   AssertNeomakeMessage '\v^Using tempfile for unreadable buffer: "(.*)"', 3
   let tempfile_name = g:neomake_test_matchlist[1]
   AssertEqual fnamemodify(tempfile_name, ':t'), printf(
   \ '.doesnotexist@neomake_%d_%d', getpid(), neomake#GetStatus().last_make_id)
   AssertEqual fnamemodify(tempfile_name, ':h'), getcwd()
+  if exists('*setfperm')
+    AssertEqual s:validated, 1
+  endif
   bwipe
+
+Execute (Uses permissions of original file):
+  if !exists('*setfperm')
+    NeomakeTestsSkip 'no setfperm support.'
+  else
+    new
+    let fname = tempname()
+    call writefile([], fname)
+    call setfperm(fname, '---rw----')
+    exe 'edit '.fname
+
+    silent normal! O
+
+    set ft=neomake_tests
+    let b:neomake_neomake_tests_enabled_makers = ['true']
+    let b:neomake_neomake_tests_true_tempfile_enabled = 1
+
+    let s:validated = 0
+    function! s:validate_tempfile()
+      let tempfile = g:neomake_hook_context.jobinfo.tempfile
+      AssertEqual getfperm(tempfile), '---rw----'
+      let s:validated = 1
+    endfunction
+    augroup neomake_tests
+      au User NeomakeJobFinished call s:validate_tempfile()
+    augroup END
+
+    RunNeomake
+
+    AssertNeomakeMessage '\v^Using tempfile for modified buffer: "(.*)"', 3
+    let tempfile_name = g:neomake_test_matchlist[1]
+    AssertEqual glob(tempfile_name), ''
+    AssertEqual s:validated, 1
+
+    AssertEqual v:warningmsg, 'W10: Warning: Changing a readonly file'
+    let v:warningmsg = ''
+    bwipe!
+  endif
 
 Execute (Only 2nd maker uses temporary file):
   call g:NeomakeSetupAutocmdWrappers()
