@@ -100,7 +100,8 @@ Execute (tempfile with pwd):
   AssertNeomakeMessage '\v^Removing temporary file: "(.*)".$'
   let tempfile_name = g:neomake_test_matchlist[1]
 
-  AssertEqual map(getloclist(0), 'v:val.text'), [getcwd(), tempfile_name]
+  " NOTE: getcwd() resolves symlinks.
+  AssertEqual map(getloclist(0), 'resolve(v:val.text)'), [getcwd(), tempfile_name]
   bwipe
 
 Execute (cwd handles fugitive buffer):
