@@ -7,10 +7,25 @@ Execute (typescript: tslint):
   file t.ts
 
   " tslint adds newlines before/after.
-  lgetexpr
-  \ "\nERROR: t.ts[7, 15]: Missing semicolon\n"
+  let output = [
+    \ '',
+    \ "WARNING: t.ts[1, 1]: Calls to 'console.log' are not allowed.",
+    \ "ERROR: t.ts[7, 15]: Missing semicolon",
+    \ '',
+    \ ]
+  lgetexpr join(output, "\n")
 
   AssertEqualQf getloclist(0), [{
+  \ 'lnum': 1,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 1,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'W',
+  \ 'pattern': '',
+  \ 'text': 'Calls to ''console.log'' are not allowed.'
+  \ }, {
   \ 'lnum': 7,
   \ 'bufnr': bufnr('%'),
   \ 'col': 15,
