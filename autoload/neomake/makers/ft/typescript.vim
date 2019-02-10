@@ -24,11 +24,15 @@ endfunction
 
 function! neomake#makers#ft#typescript#tslint() abort
     let maker = {
-        \ 'errorformat': '%-G,%EERROR: %f[%l\, %c]: %m,%E%f[%l\, %c]: %m',
-        \ }
+                \ 'args': ['-t', 'prose'],
+                \ 'errorformat': '%-G,'
+                \ .'%EERROR: %f[%l\, %c]: %m,'
+                \ .'%WWARNING: %f[%l\, %c]: %m,'
+                \ .'%E%f[%l\, %c]: %m',
+                \ }
     let config = neomake#utils#FindGlobFile('tsconfig.json')
     if !empty(config)
-        let maker.args = ['--project', config]
+        let maker.args += ['--project', config]
         let maker.cwd = fnamemodify(config, ':h')
     endif
     return maker
