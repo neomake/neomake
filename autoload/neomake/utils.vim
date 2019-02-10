@@ -429,8 +429,6 @@ function! neomake#utils#diff_dict(old, new) abort
     for k in keys(a:new)
         if !has_key(a:old, k)
             let diff['added'][k] = a:new[k]
-        elseif index(maybe_changed_keys, k) == -1
-            call add(maybe_changed_keys, k)
         endif
     endfor
 
