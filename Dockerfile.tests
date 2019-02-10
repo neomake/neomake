@@ -24,7 +24,11 @@ RUN install_vim -tag neovim:master -build \
 
 # Install tools for running tests (busybox's grep does not have --line-number).
 # openssh for CircleCI to improve Git checkout.
-RUN apk --no-cache add bash grep make openssh-client
+RUN apk --no-cache add bash curl grep make openssh-client
+
+# Codeclimate reporter.
+RUN curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > /usr/local/bin/cc-test-reporter \
+  && chmod +x /usr/local/bin/cc-test-reporter
 
 # Install dep plugins (test runner and those used during tests).
 # Keeps git and installs ssh for CircleCI's checkout (and diffing for changed
@@ -44,18 +48,14 @@ RUN printf '#!/bin/sh -x\n/tools/vim-vimlint/bin/vimlint.sh -l /tools/vim-vimlin
 RUN chmod +x /usr/local/bin/vimlint
 
 # Install covimerage and vint.
-RUN apk --no-cache add curl python3 \
+RUN apk --no-cache add python3 \
   && pip3 install -U pip \
-  && pip3 install --no-cache-dir python-coveralls covimerage==0.1.2 vim-vint \
+  && pip3 install --no-cache-dir python-coveralls covimerage==0.1.4 vim-vint \
   && rm -rf /usr/include /usr/lib/python*/turtle* /usr/lib/python*/tkinter \
   && pip3 uninstall --yes pip \
   && curl https://codecov.io/bash -o /usr/bin/codecov \
   && chmod +x /usr/bin/codecov \
   && cd /usr/bin && ln -s python3 python
-
-# Codeclimate reporter.
-RUN curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > /usr/local/bin/cc-test-reporter \
-  && chmod +x /usr/local/bin/cc-test-reporter
 
 RUN adduser -D -s /bin/bash neomake
 USER neomake
