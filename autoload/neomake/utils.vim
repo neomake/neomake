@@ -416,27 +416,17 @@ endfunction
 function! neomake#utils#diff_dict(old, new) abort
     let diff = {'removed': {}, 'added': {}, 'changed': {}}
 
-    let maybe_changed_keys = []
-
     for k in keys(a:old)
         if !has_key(a:new, k)
             let diff['removed'][k] = a:old[k]
-        else
-            call add(maybe_changed_keys, k)
+        elseif type(a:old[k]) !=# type(a:new[k]) || a:old[k] !=# a:new[k]
+            let diff['changed'][k] = [a:old[k], a:new[k]]
         endif
     endfor
 
     for k in keys(a:new)
         if !has_key(a:old, k)
             let diff['added'][k] = a:new[k]
-        elseif index(maybe_changed_keys, k) == -1
-            call add(maybe_changed_keys, k)
-        endif
-    endfor
-
-    for k in maybe_changed_keys
-        if type(a:old[k]) !=# type(a:new[k]) || a:old[k] !=# a:new[k]
-            let diff['changed'][k] = [a:old[k], a:new[k]]
         endif
     endfor
 
