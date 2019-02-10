@@ -414,26 +414,34 @@ function! neomake#utils#hook(event, context, ...) abort
 endfunction
 
 function! neomake#utils#diff_dict(old, new) abort
-    let diff = {}
-    let keys = keys(a:old) + keys(a:new)
-    for k in keys
+    let diff = {'removed': {}, 'added': {}, 'changed': {}}
+
+    let maybe_changed_keys = []
+
+    for k in keys(a:old)
         if !has_key(a:new, k)
-            if !has_key(diff, 'removed')
-                let diff['removed'] = {}
-            endif
             let diff['removed'][k] = a:old[k]
-        elseif !has_key(a:old, k)
-            if !has_key(diff, 'added')
-                let diff['added'] = {}
-            endif
+        else
+            call add(maybe_changed_keys, k)
+        endif
+    endfor
+
+    for k in keys(a:new)
+        if !has_key(a:old, k)
             let diff['added'][k] = a:new[k]
-        elseif type(a:old[k]) !=# type(a:new[k]) || a:old[k] !=# a:new[k]
-            if !has_key(diff, 'changed')
-                let diff['changed'] = {}
-            endif
+        elseif index(maybe_changed_keys, k) == -1
+            call add(maybe_changed_keys, k)
+        endif
+    endfor
+
+    for k in maybe_changed_keys
+        if type(a:old[k]) !=# type(a:new[k]) || a:old[k] !=# a:new[k]
             let diff['changed'][k] = [a:old[k], a:new[k]]
         endif
     endfor
+
+    call filter(diff, '!empty(v:val)')
+
     return diff
 endfunction
 

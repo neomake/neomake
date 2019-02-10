@@ -97,5 +97,5 @@ Execute (javascript: flow: no trailing newline):
   \  'text': 'Error: Cannot call `list` because a callable signature is missing in exports [1].'},
   \ ]
   " Replaced newline in log message.
-  AssertNeomakeMessage "\\VModified list entry 1 (postprocess): {'added': {'length': 2}, 'changed': {'text': ['11\\\\nError: Cannot call `list` because a callable signature is missing in exports [1].', 'Error: Cannot call `list` because a callable signature is missing in exports [1].']}}."
+  AssertNeomakeMessage "\\VModified list entry 1 (postprocess): {'changed': {'text': ['11\\\\nError: Cannot call `list` because a callable signature is missing in exports [1].', 'Error: Cannot call `list` because a callable signature is missing in exports [1].']}, 'added': {'length': 2}}."
   bwipe
