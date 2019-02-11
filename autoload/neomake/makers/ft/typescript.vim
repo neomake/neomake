@@ -29,10 +29,8 @@ function! neomake#makers#ft#typescript#tslint() abort
                 \ 'errorformat': '%-G,'
                     \ .'%EERROR: %f:%l:%c - %m,'
                     \ .'%WWARNING: %f:%l:%c - %m,'
-                    \ .'%E%f:%l:%c - %m,'
                     \ .'%EERROR: %f[%l\, %c]: %m,'
-                    \ .'%WWARNING: %f[%l\, %c]: %m,'
-                    \ .'%E%f[%l\, %c]: %m',
+                    \ .'%WWARNING: %f[%l\, %c]: %m',
                 \ }
     let config = neomake#utils#FindGlobFile('tsconfig.json')
     if !empty(config)
