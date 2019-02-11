@@ -23,12 +23,14 @@ function! neomake#makers#ft#typescript#tsc() abort
 endfunction
 
 function! neomake#makers#ft#typescript#tslint() abort
+    " NOTE: output format changed in tslint 5.12.0.
     let maker = {
                 \ 'args': ['-t', 'prose'],
                 \ 'errorformat': '%-G,'
-                \ .'%EERROR: %f[%l\, %c]: %m,'
-                \ .'%WWARNING: %f[%l\, %c]: %m,'
-                \ .'%E%f[%l\, %c]: %m',
+                    \ .'%EERROR: %f:%l:%c - %m,'
+                    \ .'%WWARNING: %f:%l:%c - %m,'
+                    \ .'%EERROR: %f[%l\, %c]: %m,'
+                    \ .'%WWARNING: %f[%l\, %c]: %m',
                 \ }
     let config = neomake#utils#FindGlobFile('tsconfig.json')
     if !empty(config)
