@@ -20,9 +20,11 @@ common: &common
 
           # Upload to codecov, which handles this per job itself.
           coverage xml
+          # Env for codecov.
+          VIM=${CIRCLE_JOB%%-*}
           # -Z: exit with 1 in case of failures.
           codecov -Z -X search -X gcov -X pycov -f coverage.xml \
-            -n "$CIRCLE_JOB" -F ${CIRCLE_JOB%%-*},${CIRCLE_JOB//[-.]/}
+            -n "$CIRCLE_JOB" -e VIM,CIRCLE_JOB
           set +x
     - persist_to_workspace:
         root: .
