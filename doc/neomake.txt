@@ -448,6 +448,21 @@ falls back to using |tempname()|.
 You can configure this per buffer or maker as usual, e.g.: >
         let g:neomake_<ft>_<name>_tempfile_enabled = 0
 <
+                                                 *neomake-makers-tempfile_dir*
+Default: unset
+You can configure the directory to use for temporary files (see
+|neomake-makers-tempfile_enabled|).
+
+The default behavior is to use the same directory as the original file, so
+that any config files (e.g. `setup.cfg` for Python tools) take effect.
+
+You can configure this per buffer or maker as usual, e.g.: >
+        let g:neomake_<ft>_<name>_tempfile_dir = '/tmp/custom'
+<
+The value gets expanded (via `neomake#utils#ExpandArgs`), which allows for
+the following to use the original file's directory structure (`%:p:h`): >
+        let g:neomake_tempfile_dir = '/tmp/custom%:p:h'
+<
                                                 *neomake-makers-output_stream*
 Default: "both" ("stdout", "stderr", "both")
 The `output_stream` setting specifies what stream gets used for output from

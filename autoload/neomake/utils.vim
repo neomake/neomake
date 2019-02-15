@@ -518,7 +518,9 @@ endfunction
 " Wrapper around fnamemodify that handles special buffers (e.g. fugitive).
 function! neomake#utils#fnamemodify(bufnr, modifier) abort
     let bufnr = +a:bufnr
-    if !empty(getbufvar(bufnr, 'fugitive_type'))
+    if empty(getbufvar(bufnr, 'fugitive_type'))
+        let path = bufname(bufnr)
+    else
         if exists('*FugitivePath')
             let path = FugitivePath(bufname(bufnr))
         else
@@ -528,8 +530,6 @@ function! neomake#utils#fnamemodify(bufnr, modifier) abort
         if empty(a:modifier)
             let path = fnamemodify(path, ':.')
         endif
-    else
-        let path = bufname(bufnr)
     endif
     return empty(path) ? '' : fnamemodify(path, a:modifier)
 endfunction
