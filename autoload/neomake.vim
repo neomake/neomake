@@ -554,17 +554,13 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
 
         let dir = neomake#utils#GetSetting('tempfile_dir', self, '', a:jobinfo.ft, a:jobinfo.bufnr)
 
-        let bufname = bufname(a:jobinfo.bufnr)
-
         " Use absolute path internally, which is important for removal.
-        let orig_file = neomake#utils#fnamemodify(a:jobinfo.bufnr, ':p')
+        let orig_fname = neomake#utils#fnamemodify(a:jobinfo.bufnr, ':p')
         if empty(dir)
-            if empty(bufname)
-                let dir = tempname()
-            elseif empty(orig_file)
+            if empty(orig_fname)
                 let dir = tempname()
             else
-                let dir = fnamemodify(orig_file, ':h')
+                let dir = fnamemodify(orig_fname, ':h')
                 if filewritable(dir) != 2
                     let dir = tempname()
                     let s:make_info[make_id].tempfile_dir = dir
@@ -572,14 +568,12 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
                 endif
             endif
 
-            if empty(bufname)
+            if empty(orig_fname)
                 let filename = 'neomaketmp.'.a:jobinfo.ft
-            elseif empty(orig_file)
-                let filename = fnamemodify(bufname, ':t')
             else
-                let filename = fnamemodify(orig_file, ':t')
+                let filename = fnamemodify(orig_fname, ':t')
                             \ .'@neomake_'.s:pid.'_'.make_id
-                let ext = fnamemodify(orig_file, ':e')
+                let ext = fnamemodify(orig_fname, ':e')
                 if !empty(ext)
                     let filename .= '.'.ext
                 endif
@@ -590,10 +584,10 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
             endif
         else
             let dir = neomake#utils#ExpandArgs([dir], a:jobinfo)[0]
-            if empty(bufname)
+            if empty(orig_fname)
                 let filename = 'neomaketmp.'.a:jobinfo.ft
             else
-                let filename = fnamemodify(orig_file, ':t')
+                let filename = fnamemodify(orig_fname, ':t')
             endif
         endif
 
