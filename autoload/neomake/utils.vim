@@ -661,7 +661,7 @@ if exists('*nvim_buf_get_lines')
             throw 'neomake#utils#buf_get_lines: '.substitute(v:exception, '\v^[^:]+:', '', '')
         endtry
     endfunction
-elseif exists('*getbufline')
+else
     function! neomake#utils#buf_get_lines(bufnr, start, end) abort
         if a:start < 1
             throw 'neomake#utils#buf_get_lines: start is lower than 1'
@@ -676,25 +676,6 @@ elseif exists('*getbufline')
         " This function works only for loaded buffers.  For unloaded and
         " non-existing buffers, an empty |List| is returned.
         return getbufline(a:bufnr, a:start, a:end-1)
-    endfunction
-else
-    function! neomake#utils#buf_get_lines(bufnr, start, end) abort
-        if a:bufnr != bufnr('%')
-            throw 'Neomake: neomake#utils#buf_get_lines: used for non-current buffer'
-        endif
-        if a:start < 1
-            throw 'neomake#utils#buf_get_lines: start is lower than 1'
-        endif
-        if a:end-1 > line('$')
-            throw 'neomake#utils#buf_get_lines: end is higher than number of lines'
-        endif
-        let r = []
-        let i = a:start
-        while i < a:end
-            let r += [getline(i)]
-            let i += 1
-        endwhile
-        return r
     endfunction
 endif
 
