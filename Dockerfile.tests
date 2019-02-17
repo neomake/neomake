@@ -1,5 +1,5 @@
 # From https://github.com/tweekmonster/vim-testbed.
-FROM testbed/vim:11@sha256:eb8309ee34ecd3f95c27eefc8720dd6446ff00c026fbb41b172ea2777330af5e
+FROM testbed/vim:12@sha256:a3683963f666986c6c23d631998597ea524fb892ce6847c462cff9cd2311d1be
 
 # Currently tested versions:
 #  - v7.3.429 (Ubuntu Precise, 12.04LTS)
@@ -17,7 +17,7 @@ RUN install_vim -tag v7.3.429 -name vim73 --with-features=huge -build \
                 -tag neovim:v0.3.1 -py3 -build \
   && rm -rf /vim-build/**/runtime/tutor
 
-ENV NEOMAKE_DOCKERFILE_UPDATE=2019-01-01
+ENV NEOMAKE_DOCKERFILE_UPDATE=2019-02-17
 
 RUN install_vim -tag neovim:master -build \
   && rm -rf /vim-build/**/runtime/tutor
