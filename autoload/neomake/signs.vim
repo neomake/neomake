@@ -256,7 +256,13 @@ endfunction
 
 function! neomake#signs#DefineHighlights() abort
     let ctermbg = neomake#utils#GetHighlight('SignColumn', 'bg')
+    if ctermbg ==# 'NONE'
+        let ctermbg =  neomake#utils#GetHighlight('Normal', 'bg')
+    endif
     let guibg = neomake#utils#GetHighlight('SignColumn', 'bg#')
+    if guibg ==# 'NONE'
+        let guibg = neomake#utils#GetHighlight('Normal', 'bg#')
+    endif
     let bg = 'ctermbg='.ctermbg.' guibg='.guibg
 
     for [group, fg_from] in items({
