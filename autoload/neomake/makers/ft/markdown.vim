@@ -20,7 +20,7 @@ function! neomake#makers#ft#markdown#mdl() abort
         if a:entry.text[0:1] ==# 'MD'
             let [code, text] = split(a:entry.text, '\v^MD\d+\zs ')
             let a:entry.nr = str2nr(code[2:])
-            let a:entry.text = text . ' ('.code.')'
+            let a:entry.text = printf('%s (%s)', text, code)
         else
             let a:entry.type = 'I'
         endif
