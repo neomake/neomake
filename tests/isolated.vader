@@ -10,3 +10,4 @@ Include: isolated/tempfiles-cleanup.vader
 Include: isolated/resets-ignore_automake_events.vader
 Include: isolated/completion-handles-throw.vader
 Include: isolated/statusline-highlights.vader
+Include: isolated/sign-highlights.vader
