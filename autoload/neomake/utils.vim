@@ -264,7 +264,8 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
 endfunction
 
 " Get property from highlighting group.
-function! neomake#utils#GetHighlight(group, what) abort
+function! neomake#utils#GetHighlight(group, what, ...) abort
+    let fallback = a:0 ? a:1 : ''
     let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
     let what = a:what
     if reverse
@@ -276,7 +277,12 @@ function! neomake#utils#GetHighlight(group, what) abort
         let val = synIDattr(synIDtrans(hlID(a:group)), what, 'cterm')
     endif
     if empty(val) || val == -1
-        let val = 'NONE'
+        if !empty(fallback)
+            " NOTE: this might still be NONE also for "Normal", with
+            " e.g. `vim -u NONE`.
+            return neomake#utils#GetHighlight(fallback, a:what)
+        endif
+        return 'NONE'
     endif
     return val
 endfunction
