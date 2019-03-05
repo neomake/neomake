@@ -305,7 +305,7 @@ function! g:NeomakeSetupAutocmdWrappers()
   augroup END
 endfunction
 
-command! -nargs=1 NeomakeTestsSkip call vader#log('SKIP: ' . <args>)
+command! -nargs=1 -bar NeomakeTestsSkip call vader#log('SKIP: ' . <args>)
 
 function! NeomakeAsyncTestsSetup()
   if neomake#has_async_support()
