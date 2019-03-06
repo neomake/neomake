@@ -100,3 +100,25 @@ Execute (vint: handles error with version check):
   let maker = neomake#makers#ft#vim#vint()
   let maker.exe = exe
   AssertEqual maker.supports_stdin({}), 0
+
+Execute (vint: can ignore entries):
+  new
+  noautocmd setfiletype vim
+  call neomake#_add_error('file', {
+  \ 'bufnr': bufnr('%'),
+  \ 'lnum': 1,
+  \ 'col': 1,
+  \ 'nr': -1,
+  \ 'type': 'w',
+  \ 'maker_name': 'vint',
+  \ 'text': 'autocmd should execute in an augroup or execute with a group (ProhibitAutocmdWithNoGroup)'})
+
+  call setline(1, 'foo')
+
+  NeomakeApplyIgnore
+  AssertEqual getline(0, '$'), [
+  \ '" vint: -ProhibitAutocmdWithNoGroup',
+  \ 'foo',
+  \ '" vint: +ProhibitAutocmdWithNoGroup',
+  \ ]
+  bwipe!

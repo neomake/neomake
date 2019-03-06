@@ -171,5 +171,9 @@ endif
 
 call s:setup_autocmds()
 
+" WIP: see autoload/neomake/fix.vim
+command! NeomakeApplyFix call neomake#fix#current('fix')
+command! NeomakeApplyIgnore call neomake#fix#current('ignore')
+
 " vim: sw=4 et
 " vim: ts=4 sw=4 et

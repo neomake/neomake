@@ -18,7 +18,8 @@ CONTENTS                                                             *neomake*
     3.1. Automake ..................................... |neomake-automake|
     4. Functions ..................................... |neomake-functions|
     5. Autocommands/Hooks ............................. |neomake-autocmds|
-    6. Frequently Asked Questions (FAQ) .................... |neomake-faq|
+    6. Fixers ........................................... |neomake-fixers|
+    7. Frequently Asked Questions (FAQ) .................... |neomake-faq|
 
 ==============================================================================
 1. Introduction                                         *neomake-introduction*
@@ -1014,9 +1015,30 @@ The `maker` dictionary contains the following keys:
  - `exe`: executable of the maker.
 
 ==============================================================================
-6. Frequently Asked Questions (FAQ)                              *neomake-faq*
+6. Fixers                                                     *neomake-fixers*
 
-6.1 Other plugins overwrite the signs placed by Neomake~
+Makers can provide a callback to either fix (by changing the buffer), or
+ignore an issue (typically by adding an inline comment like
+"# shellcheck disable=SC2034").
+
+For this it has to provide a `fix_entry` function, which takes an entry and an
+action argument, and should return a list of actions to apply.
+
+Currently only the "setlines" action is supported to replace a line range on
+the buffer.
+It and behaves like `nvim_buf_set_lines`, but the index is one-based.
+`end` is exclusive, and negative indexing is not supported.
+
+`["setlines", start, end, lines]`: replaces line range on the buffer
+
+To insert lines at a given index, set both start and end to
+the same index. To delete a range of lines, set replacement to
+an empty array.
+
+==============================================================================
+7. Frequently Asked Questions (FAQ)                              *neomake-faq*
+
+7.1 Other plugins overwrite the signs placed by Neomake~
 
 When using quickfixsigns (https://github.com/tomtom/quickfixsigns_vim/) it
 will also place signs for errors and warnings in the quickfix/location list,
@@ -1026,12 +1048,12 @@ using this option: >
 
     let g:quickfixsigns_protect_sign_rx = '^neomake_'
 <
-6.2 How to configure the makers to be used?~
+7.2 How to configure the makers to be used?~
 
 See |g:neomake_<ft>_enabled_makers| (press `<C-]>` on the link to go there).
 
                                                      *neomake-faq-errorformat*
-6.3 How to develop/debug the errorformat setting?~
+7.3 How to develop/debug the errorformat setting?~
 
 Here are some tips to develop the 'errorformat' setting for makers:
 

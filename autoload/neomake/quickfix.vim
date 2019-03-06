@@ -2,7 +2,7 @@
 scriptencoding utf-8
 
 let s:is_enabled = 0
-
+let s:can_set_qf_context = has('patch-8.0.0590')
 let s:match_base_priority = 10
 
 " args: a:1: force enabling?  (used in tests and for VimEnter callback)
@@ -104,6 +104,67 @@ function! s:clean_qf_annotations() abort
     call neomake#signs#ResetFile(bufnr('%'))
 endfunction
 
+" TODO: scroll window with buffer optionally? (if visible)
+" TODO: mark it fixed already somethow?  (sign, and internally; so that it
+"       would not get ignored multiple times, as in "# noqa  # noqa").
+" a:action: "fix" or "ignore"
+function! s:fix_entry(action) abort
+    let idx = line('.')-1
+
+    if has('patch-8.0.0590')  " 'context' in qflists
+        let is_loclist = getwininfo(win_getid())[0].loclist
+        if is_loclist
+            let context = getloclist(0, {'context': 0}).context
+        else
+            let context = getqflist({'context': 0}).context
+        endif
+        let make_info = context.neomake.make_info
+        let entries_list = make_info.entries_list
+        let entry = copy(entries_list.entries[idx])
+        for job in make_info.finished_jobs
+            if job.id == entry.job_id
+                let entry.maker_name = job.maker.name
+                break
+            endif
+        endfor
+    else
+        let entry = getloclist(0)[idx]
+
+        " Remove nmcfg.
+        let idx = strridx(entry.text, ' nmcfg:{')
+        if idx != -1
+            let entry.text = idx == 0 ? '' : entry.text[:(idx-1)]
+        endif
+
+        let maker_info = {}
+        let maker_info_idx = -1
+        for i in keys(b:_neomake_info)
+            if i <= idx
+                let maker_info_idx = i
+            endif
+        endfor
+        if maker_info_idx == -1
+            call neomake#log#error('Could not find maker info.')
+            return
+        endif
+
+        let maker_info = b:_neomake_info[maker_info_idx]
+
+        let entry.maker_name = maker_info.name
+    endif
+
+    if neomake#fix#entry(a:action, entry) && exists('make_info')
+        " TODO: optional?! - might be annoying with several fixes.
+        " Use a timer?
+        if a:action ==# 'fix'
+            call neomake#log#debug('Running make for fixed entry.')
+        else
+            call neomake#log#debug('Running make for ignored entry.')
+        endif
+        call neomake#Make(make_info.options)
+    endif
+endfunction
+
 function! neomake#quickfix#FormatQuickfix() abort
     let buf = bufnr('%')
     if !s:is_enabled || &filetype !=# 'qf'
@@ -154,6 +215,11 @@ function! neomake#quickfix#FormatQuickfix() abort
     let nmcfg = {}
     let makers = {}
 
+    if !s:can_set_qf_context
+        " Store evaluated maker info with list entries.
+        let b:_neomake_info = {}
+    endif
+
     for item in qflist
         " Look for marker at end of entry.
         if item.text[-1:] ==# '}'
@@ -162,6 +228,9 @@ function! neomake#quickfix#FormatQuickfix() abort
                 let config = item.text[idx+7:]
                 try
                     let nmcfg = eval(config)
+                    if !s:can_set_qf_context
+                        let b:_neomake_info[i] = nmcfg
+                    endif
                     if !has_key(makers, nmcfg.name)
                         let makers[nmcfg.name] = 0
                     endif
@@ -206,6 +275,9 @@ function! neomake#quickfix#FormatQuickfix() abort
         endfor
         let b:_neomake_cur_syntax = syntax
     endif
+
+    nnoremap <buffer> F :call <SID>fix_entry('fix')<CR>
+    nnoremap <buffer> I :call <SID>fix_entry('ignore')<CR>
 
     if maker_width + lnum_width + col_width > 0
         let b:neomake_start_col = maker_width + lnum_width + col_width + 2
