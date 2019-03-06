@@ -556,12 +556,12 @@ Execute (BufWritePost does not run for unchanged buffer):
 
   CallNeomake 1, []
   AssertEqual len(g:neomake_test_jobfinished), 1
-  Assert !exists('b:neomake_automake_tick')
+  Assert !exists('b:_neomake_automake_tick')
 
   exe 'w' tempname()
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 2
-  Assert exists('b:neomake_automake_tick')
+  Assert exists('b:_neomake_automake_tick')
 
   w
   NeomakeTestsWaitForFinishedJobs
@@ -637,7 +637,7 @@ Execute (Automake stops previous jobs):
     call NeomakeTestsHandleSecondTextChanged()
     NeomakeTestsWaitForMessage '\vautomake: callback for timer \d+'
     let first_make_id = neomake#GetStatus().last_make_id
-    AssertEqual [first_make_id], b:neomake_automake_make_ids
+    AssertEqual [first_make_id], b:_neomake_automake_make_ids
 
     normal! ifoo
     doautocmd TextChanged
@@ -647,7 +647,7 @@ Execute (Automake stops previous jobs):
     AssertNeomakeMessage '\Vautomake: started timer (15ms):'
     NeomakeTestsWaitForMessage '\vautomake: callback for timer \d+'
     let second_make_id = neomake#GetStatus().last_make_id
-    Assert index(b:neomake_automake_make_ids, second_make_id) > -1, 'Second make is registered'
+    Assert index(b:_neomake_automake_make_ids, second_make_id) > -1, 'Second make is registered'
     NeomakeTestsWaitForFinishedJobs
     bwipe!
   endif

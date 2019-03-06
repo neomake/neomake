@@ -44,7 +44,7 @@ endfunction
 function! s:tick_changed(context) abort
     let bufnr = +a:context.bufnr
     let ft = get(a:context, 'ft', getbufvar(bufnr, '&filetype'))
-    let prev_tick = getbufvar(bufnr, 'neomake_automake_tick')
+    let prev_tick = getbufvar(bufnr, '_neomake_automake_tick')
     let r = 1
     if empty(prev_tick)
         call s:debug_log('tick changed (new)')
@@ -60,7 +60,7 @@ function! s:tick_changed(context) abort
             let adjusted_prev_tick = [prev_tick[0]+1, prev_tick[1]]
             if adjusted_prev_tick == cur_tick
                 let r = 0
-                call setbufvar(bufnr, 'neomake_automake_tick', adjusted_prev_tick)
+                call setbufvar(bufnr, '_neomake_automake_tick', adjusted_prev_tick)
                 call s:debug_log('tick is unchanged with BufWritePost adjustment')
             endif
         endif
@@ -72,7 +72,7 @@ function! neomake#configure#_update_automake_tick(bufnr, ft) abort
     if has_key(s:configured_buffers, a:bufnr)
         let tick = getbufvar(a:bufnr, 'changedtick')
         call s:debug_log('updating tick: '.tick)
-        call setbufvar(a:bufnr, 'neomake_automake_tick', [tick, a:ft])
+        call setbufvar(a:bufnr, '_neomake_automake_tick', [tick, a:ft])
     endif
 endfunction
 
@@ -129,8 +129,8 @@ function! s:handle_changed_buffer(make_id, event) abort
         return
     endif
 
-    call setbufvar(context.bufnr, 'neomake_automake_tick', prev_tick)
-    call filter(b:neomake_automake_make_ids, 'v:val != '.a:make_id)
+    call setbufvar(context.bufnr, '_neomake_automake_tick', prev_tick)
+    call filter(b:_neomake_automake_make_ids, 'v:val != '.a:make_id)
     call s:update_cancel_rate(context.bufnr, 0)
 
     call s:debug_log(printf('buffer was changed (%s), canceling make', a:event), {'make_id': a:make_id})
@@ -174,7 +174,7 @@ function! s:neomake_do_automake(context) abort
         endif
 
         " Cancel any already running automake runs.
-        let prev_make_ids = getbufvar(bufnr, 'neomake_automake_make_ids')
+        let prev_make_ids = getbufvar(bufnr, '_neomake_automake_make_ids')
         if !empty(prev_make_ids)
             call s:debug_log(printf('stopping previous make runs: %s', join(prev_make_ids, ', ')))
             for prev_make_id in prev_make_ids
@@ -215,7 +215,7 @@ function! s:neomake_do_automake(context) abort
         call s:debug_log('buffer was not changed', {'bufnr': bufnr})
         return
     endif
-    let prev_tick = getbufvar(bufnr, 'neomake_automake_tick')
+    let prev_tick = getbufvar(bufnr, '_neomake_automake_tick')
 
     call s:debug_log(printf('enabled makers: %s', join(map(copy(a:context.maker_jobs), 'v:val.maker.name'), ', ')))
     let make_options = {
@@ -229,8 +229,8 @@ function! s:neomake_do_automake(context) abort
     call s:debug_log(printf('started jobs: %s', string(map(copy(started_jobs), 'v:val.id'))))
     if !empty(started_jobs)
         let make_id = jobinfos[0].make_id
-        call setbufvar(bufnr, 'neomake_automake_make_ids',
-                    \ neomake#compat#getbufvar(bufnr, 'neomake_automake_make_ids', []) + [make_id])
+        call setbufvar(bufnr, '_neomake_automake_make_ids',
+                    \ neomake#compat#getbufvar(bufnr, '_neomake_automake_make_ids', []) + [make_id])
 
         " Setup buffer autocmd to cancel/restart make for changed buffer.
         let events = []
@@ -578,15 +578,15 @@ function! s:configure_buffer(bufnr, ...) abort
                 \ ft, empty(jobs) ? 'no enabled makers' : join(map(copy(jobs), 'v:val.maker.name'), ', ').' ('.source.')'), {'bufnr': bufnr})
     if old_config != config
         call s:debug_log('resetting tick because of config changes')
-        call setbufvar(bufnr, 'neomake_automake_tick', [])
+        call setbufvar(bufnr, '_neomake_automake_tick', [])
     elseif exists('old_registration')
         if old_registration != s:configured_buffers[bufnr]
             call s:debug_log('resetting tick because of registration changes')
-            call setbufvar(bufnr, 'neomake_automake_tick', [])
+            call setbufvar(bufnr, '_neomake_automake_tick', [])
         endif
     else
         call s:debug_log('setting tick for new buffer')
-        call setbufvar(bufnr, 'neomake_automake_tick', [])
+        call setbufvar(bufnr, '_neomake_automake_tick', [])
     endif
 
     if a:0
