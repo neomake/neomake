@@ -71,6 +71,8 @@ function! s:jobinfo_base.cd(...) abort
     if dir !=# cur_wd
         let [cd_error, cd_back_cmd] = neomake#utils#temp_cd(dir, cur_wd)
         if !empty(cd_error)
+            call neomake#log#debug(printf('jobinfo.cd(): error when trying to change cwd to %s: %s.',
+                        \ dir, cd_error))
             return cd_error
         endif
         let self.cwd = dir

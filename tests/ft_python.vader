@@ -207,14 +207,44 @@ Execute (python: flake8):
 
 Execute (python: flake8: supports_stdin):
   new
-  let fname = ''
   noautocmd setfiletype python
 
   let b:neomake = {'flake8': {'exe': 'echo', 'errorformat': '%m'}}
   CallNeomake 1, ['flake8']
-  AssertNeomakeMessage "\\vStarting .{-}: echo --format\\=default --stdin-display-name '' -.", 2
+  AssertNeomakeMessage '\vStarting .{-}: echo --format\=default --stdin-display-name '''' -.', 2
   AssertEqual getloclist(0)[0].text,
   \ '-1 --format=default --stdin-display-name  -'
+  bwipe
+
+Execute (python: flake8: supports_stdin: changes cwd (non-existing)):
+  new
+  let tempdir = tempname()
+  let fname = tempdir.neomake#utils#Slash().'fname'
+  exe 'file' fname
+  noautocmd setfiletype python
+
+  let b:neomake = {'flake8': {'exe': 'echo', 'errorformat': '%m'}}
+  CallNeomake 1, ['flake8']
+  AssertNeomakeMessage printf('\Vjobinfo.cd(): error when trying to change cwd to %s:', tempdir)
+  AssertNeomakeMessage printf('\vStarting .{-}: echo --format\=default --stdin-display-name %s -.', fname), 2
+  AssertNeomakeMessage printf('cwd: %s.', getcwd())
+  AssertEqual getloclist(0)[0].text,
+  \ printf('-1 --format=default --stdin-display-name %s -', fname)
+  bwipe
+
+Execute (python: flake8: supports_stdin: changes cwd (existing)):
+  new
+  let fname = tempname()
+  let tempdir = fnamemodify(fname, ':h')
+  exe 'file' fname
+  noautocmd setfiletype python
+
+  let b:neomake = {'flake8': {'exe': 'echo', 'errorformat': '%m'}}
+  CallNeomake 1, ['flake8']
+  AssertNeomakeMessage printf('\vStarting .{-}: echo --format\=default --stdin-display-name %s -.', fname), 2
+  AssertNeomakeMessage printf('cwd: %s (changed).', tempdir)
+  AssertEqual getloclist(0)[0].text,
+  \ printf('-1 --format=default --stdin-display-name %s -', fname)
   bwipe
 
 Execute (python: pylint):
