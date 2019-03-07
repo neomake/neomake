@@ -130,8 +130,8 @@ function! neomake#makers#ft#python#flake8() abort
 
         let bufpath = bufname(a:jobinfo.bufnr)
         if !empty(bufpath)
-            let bufdir = fnamemodify(bufpath, ':h')
-            if stridx(getcwd(), bufdir) != 0
+            let bufdir = fnamemodify(bufpath, ':p:h')
+            if stridx(bufdir, getcwd()) != 0
                 " The buffer is not below the current dir, so let's cd for lookup
                 " of config files etc.
                 " This avoids running into issues with flake8's per-file-ignores,
