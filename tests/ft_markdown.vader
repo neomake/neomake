@@ -62,15 +62,5 @@ Execute (markdown: mdl):
     \ 'type': 'W',
     \ 'pattern': '',
     \ 'text': 'Inline HTML (MD033)',
-    \ }, {
-    \ 'lnum': 0,
-    \ 'bufnr': 0,
-    \ 'col': 0,
-    \ 'valid': 0,
-    \ 'vcol': 0,
-    \ 'nr': -1,
-    \ 'type': 'I',
-    \ 'pattern': '',
-    \ 'text': 'A detailed description of the rules is available at https://github.com/markdownlint/markdownlint/blob/master/docs/RULES.md',
     \ }]
   bwipe
