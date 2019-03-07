@@ -1,7 +1,9 @@
 function! neomake#makers#ft#html#tidy() abort
+    " NOTE: could also have info items, but those are skipped with -e/-q, e.g.
+    " 'line 7 column 1 - Info: value for attribute "id" missing quote marks'.
     return {
                 \ 'args': ['-e', '-q', '--gnu-emacs', 'true'],
-                \ 'errorformat': '%A%f:%l:%c: Warning: %m',
+                \ 'errorformat': '%W%f:%l:%c: Warning: %m',
                 \ }
 endfunction
 
