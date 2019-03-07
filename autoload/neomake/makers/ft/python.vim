@@ -126,8 +126,20 @@ function! neomake#makers#ft#python#flake8() abort
         \ }
 
     function! maker.supports_stdin(jobinfo) abort
-        let self.args += ['--stdin-display-name', '%:.']
-        call a:jobinfo.cd('%:h')
+        let self.args += ['--stdin-display-name', '%:p']
+
+        let bufpath = bufname(a:jobinfo.bufnr)
+        if !empty(bufpath)
+            let bufdir = fnamemodify(bufpath, ':h')
+            if stridx(getcwd(), bufdir) != 0
+                " The buffer is not below the current dir, so let's cd for lookup
+                " of config files etc.
+                " This avoids running into issues with flake8's per-file-ignores,
+                " which is handled not relative to the config file currently
+                " (https://gitlab.com/pycqa/flake8/issues/517).
+                call a:jobinfo.cd(bufdir)
+            endif
+        endif
         return 1
     endfunction
     return maker
