@@ -112,6 +112,19 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'text': "F811 redefinition of unused 'os' from line 2"}]
   bwipe!
 
+Execute (python: flake8: format of current error msg):
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#python#flake8(), [
+  \ 'file1.py:1:1: F811 redefinition of unused ''os'' from line 1',
+  \ ])
+  let maker.name = 'flake8'
+  new
+  file file1.py
+  CallNeomake 1, [maker]
+  AssertEqual line('.'), 1
+  AssertEqual neomake#GetCurrentErrorMsg(),
+  \ 'flake8: F811 redefinition of unused ''os'' from line 1 (E)'
+  bwipe
+
 Execute (flake8: postprocess for F821 in continuous f-strings):
   new
   let bufnr = bufnr('%')
