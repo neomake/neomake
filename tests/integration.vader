@@ -497,7 +497,7 @@ Execute (NeomakeListJobs with job cancellation):
 
     doautocmd CursorHold
     AssertNeomakeMessage 'action queue: processing for CursorHold (2 items).', 3, {'winnr': 1}
-    AssertNeomakeMessage 'processing 1 lines of output.', 3
+    AssertNeomakeMessage 'Processing 1 lines of output.', 3
     AssertNeomakeMessage 'action queue: processed 2 items.', 3
 
     NeomakeTestsWaitForFinishedJobs
@@ -748,7 +748,7 @@ Execute (Neomake: entry.valid < 0 and configured entry type):
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
-  AssertNeomakeMessage 'processing 4 lines of output.'
+  AssertNeomakeMessage 'Processing 4 lines of output.'
   AssertNeomakeMessage "\\vRemoving invalid entry: invalid \\(\\{'lnum': 0, 'bufnr': 0, 'col': 0, 'valid': -1, .*\\}\\)."
   AssertNeomakeMessage 'Processing 3 entries.'
 

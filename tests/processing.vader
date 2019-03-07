@@ -44,7 +44,7 @@ Execute (Output is only processed in normal/insert mode (loclist)):
     Assert !exists('#neomake_event_queue#CursorHold'), 'neomake_event_queue is empty'
     AssertEqual len(g:neomake_test_countschanged), 1
     AssertEqual len(g:neomake_test_finished), 1
-    AssertNeomakeMessage 'processing 3 lines of output.'
+    AssertNeomakeMessage 'Processing 3 lines of output.'
     AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
     bwipe
   endif
@@ -63,7 +63,7 @@ Execute (Output is only processed in normal/insert mode (qflist)):
     exe "norm! \<Esc>"
     AssertEqual mode(), 'n'
     doautocmd CursorHold
-    AssertNeomakeMessage 'processing 3 lines of output.'
+    AssertNeomakeMessage 'Processing 3 lines of output.'
     AssertNeomakeMessage 'Processed 1 pending outputs.', 3, jobinfo
     AssertEqual map(getqflist(), 'v:val.text'), ['error message', 'warning', 'error2']
     NeomakeTestsWaitForRemovedJobs
@@ -96,7 +96,7 @@ Execute (Output is not processed with visible popup menu):
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage 'sleep_efm_maker: completed with exit code 0.'
     AssertNeomakeMessage 'action queue: processing for CompleteDone (1 items).', 3, {'winnr': 2}
-    AssertNeomakeMessage 'processing 3 lines of output.'
+    AssertNeomakeMessage 'Processing 3 lines of output.'
     AssertNeomakeMessage 'Processed 1 pending outputs.', 3, jobinfo
     AssertEqual map(getqflist(), 'v:val.text'), ['error message', 'warning', 'error2']
     bwipe!
@@ -254,7 +254,7 @@ Execute (Output is only processed in normal/insert mode (from loclist)):
     doautocmd CursorHold
     AssertEqual getloclist(0), []
     wincmd p
-    AssertNeomakeMessage 'processing 3 lines of output.'
+    AssertNeomakeMessage 'Processing 3 lines of output.'
     AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
 
     " NOTE: needs cache busting above ("bust_cache").
@@ -375,18 +375,18 @@ Execute (Sleep in postprocess gets handled correctly):
 
     let jobinfo = neomake#Make(1, [maker])[0]
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'processing 1 lines of output.', 3, jobinfo
+    AssertNeomakeMessage 'Processing 1 lines of output.', 3, jobinfo
     if !has('nvim-0.2.0')
       AssertNeomakeMessage 'exit (delayed): unnamed_maker: 0.', 3, jobinfo
       AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context:', 2
     endif
 
     AssertNeomakeMessage "output on stdout: ['out-22', ''].", 3, jobinfo
-    AssertNeomakeMessage 'processing 1 lines of output.', 3, jobinfo
+    AssertNeomakeMessage 'Processing 1 lines of output.', 3, jobinfo
     AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context:', 2
 
     AssertNeomakeMessage "output on stdout: ['out-333', ''].", 3, jobinfo
-    AssertNeomakeMessage 'processing 1 lines of output.', 3, jobinfo
+    AssertNeomakeMessage 'Processing 1 lines of output.', 3, jobinfo
     AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context:', 2
 
     if !has('nvim-0.2.0')
@@ -573,7 +573,7 @@ Execute (Exception in process_output gets logged as error):
     let jobinfo = neomake#Make(1, [maker])[0]
 
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'processing 1 lines of output.', 3, jobinfo
+    AssertNeomakeMessage 'Processing 1 lines of output.', 3, jobinfo
     AssertNeomakeMessage 'Error during output processing for unnamed_maker: TEST_ERROR.', 0, jobinfo
   endif
 
@@ -599,7 +599,7 @@ Execute (Already running job gets restarted in case of exception):
 
     AssertThrows NeomakeTestsWaitForFinishedJobs
     AssertEqual g:vader_exception, 'NeomakeTestsException'
-    AssertNeomakeMessage 'processing 1 lines of output.'
+    AssertNeomakeMessage 'Processing 1 lines of output.'
 
     AssertEqual len(neomake#GetJobs()), 1, 'The job has not been cleaned because of the exception.'
 
@@ -769,7 +769,7 @@ Execute (Pending output gets processed in order of jobs (file mode first)):
 "     doautocmd CursorHold
 "     AssertEqual len(g:neomake_test_countschanged), 1
 "     AssertEqual len(g:neomake_test_finished), 1, "b"
-"     AssertNeomakeMessage 'processing 3 lines of output.'
+"     AssertNeomakeMessage 'Processing 3 lines of output.'
 "     AssertEqual map(copy(getloclist(0)), 'v:val.text'), ['error message', 'warning', 'error2']
 "     bwipe
 "   endif
@@ -816,7 +816,7 @@ Execute (action queue handles E48 in process_output):
   AssertEqual len(neomake#GetJobs()), 1, 'There is one job.'
 
   NeomakeTestsWaitForMessage 'exit: unnamed_maker: 0.'
-  AssertNeomakeMessage 'processing 1 lines of output.'
+  AssertNeomakeMessage 'Processing 1 lines of output.'
   AssertNeomakeMessage 'Error during pcall: Vim(bprevious):E48: Not allowed in sandbox:   sandbox bprevious.', 3
   AssertNeomakeMessage 'Queuing action ProcessJobOutput for Timer, WinEnter.'
   if has('timers')
@@ -966,7 +966,7 @@ Execute (neomake#Make ignores calls during autocommands):
   let job1 = neomake#Make({})
   NeomakeTestsWaitForFinishedJobs
 
-  AssertNeomakeMessage 'processing 1 lines of output.', 3
+  AssertNeomakeMessage 'Processing 1 lines of output.', 3
   AssertNeomakeMessage 'Handling location list: executing lwindow.', 3
   AssertNeomakeMessage 'Ignoring Make through autocommand due to s:ignore_automake_events=1.', 3, {'winnr': 3}
 
@@ -1021,7 +1021,7 @@ Execute (Output (order) is handled correctly with pending output):
     AssertNeomakeMessage 'Processing 1 entries.', 3
     NeomakeTestsWaitForFinishedJobs
   else
-    AssertNeomakeMessage 'processing 4 lines of output.'
+    AssertNeomakeMessage 'Processing 4 lines of output.'
   endif
   AssertEqual map(getqflist(), 'v:val.text'), ['1', '2', '3', '4']
 

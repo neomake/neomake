@@ -21,7 +21,7 @@ Execute (Output is not processed in operator-pending mode (Vim)):
     AssertEqual neomake#compat#get_mode(), 'n'
 
     doautocmd CursorHold
-    AssertNeomakeMessage 'processing 3 lines of output.', 3, jobinfo
+    AssertNeomakeMessage 'Processing 3 lines of output.', 3, jobinfo
     AssertNeomakeMessage 'Processed 1 pending outputs.', 3, jobinfo
     AssertEqual map(getqflist(), 'v:val.text'), ['error message', 'warning', 'error2']
     NeomakeTestsWaitForRemovedJobs
