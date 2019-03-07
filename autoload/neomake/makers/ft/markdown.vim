@@ -12,8 +12,7 @@ function! neomake#makers#ft#markdown#mdl() abort
     let maker = {
                 \
                 \ 'errorformat':
-                \   '%W%f:%l: %m,' .
-                \   '%-G',
+                \   '%W%f:%l: %m,%-G%.%#',
                 \ 'output_stream': 'stdout',
                 \ }
     function! maker.postprocess(entry) abort
@@ -21,8 +20,6 @@ function! neomake#makers#ft#markdown#mdl() abort
             let [code, text] = split(a:entry.text, '\v^MD\d+\zs ')
             let a:entry.nr = str2nr(code[2:])
             let a:entry.text = printf('%s (%s)', text, code)
-        else
-            let a:entry.type = 'I'
         endif
         return a:entry
     endfunction
