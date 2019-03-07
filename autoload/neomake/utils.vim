@@ -338,7 +338,7 @@ function! neomake#utils#ExpandArgs(args, jobinfo) abort
     if has_key(a:jobinfo, 'tempfile')
         let fname = a:jobinfo.tempfile
     else
-        let fname = bufname('%')
+        let fname = bufname(a:jobinfo.bufnr)
         if !empty(fname)
             let fname = fnamemodify(fname, ':p')
         endif
@@ -353,7 +353,7 @@ function! neomake#utils#ExpandArgs(args, jobinfo) abort
     let ret = map(ret,
                 \ 'substitute(v:val, '
                 \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|<\|\%(:[phtreS8.~]\)\+\|\ze\w\@!\)\)'', '
-                \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
+                \ . '''\=(submatch(1) == "%%" ? "%" : expand(substitute(submatch(1), "^%", "#'.a:jobinfo.bufnr.'", "")))'', '
                 \ . '''g'')')
     let ret = map(ret, 'substitute(v:val, ''\v^\~\ze%(/|$)'', expand(''~''), ''g'')')
     return ret

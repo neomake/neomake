@@ -85,7 +85,7 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'pattern': '',
   \ 'valid': 1,
   \ 'vcol': 0,
-  \ 'nr': '',
+  \ 'nr': -1,
   \ 'length': 2,
   \ 'type': 'E',
   \ 'text': "F811 redefinition of unused 'os' from line 1"}]
@@ -106,11 +106,24 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'pattern': '',
   \ 'valid': 1,
   \ 'vcol': 0,
-  \ 'nr': '',
+  \ 'nr': -1,
   \ 'length': 2,
   \ 'type': 'E',
   \ 'text': "F811 redefinition of unused 'os' from line 2"}]
   bwipe!
+
+Execute (python: flake8: format of current error msg):
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#python#flake8(), [
+  \ 'file1.py:1:1: F811 redefinition of unused ''os'' from line 1',
+  \ ])
+  let maker.name = 'flake8'
+  new
+  file file1.py
+  CallNeomake 1, [maker]
+  AssertEqual line('.'), 1
+  AssertEqual neomake#GetCurrentErrorMsg(),
+  \ 'flake8: F811 redefinition of unused ''os'' from line 1 (E)'
+  bwipe
 
 Execute (flake8: postprocess for F821 in continuous f-strings):
   new
@@ -201,7 +214,7 @@ Execute (python: flake8):
   let entry = llist[0]
   call neomake#makers#ft#python#Flake8EntryProcess(entry)
   AssertEqualQf [entry], [{'lnum': 90, 'bufnr': bufnr, 'col': 1, 'valid': 1,
-  \ 'vcol': 0, 'nr': '', 'type': 'I', 'pattern': '',
+  \ 'vcol': 0, 'nr': -1, 'type': 'I', 'pattern': '',
   \ 'text': 'I1 isort found an import in the wrong position'}]
   bwipe
 

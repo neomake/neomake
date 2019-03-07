@@ -223,7 +223,7 @@ Execute (Goes back to original window after opening list (wincmd in postprocess)
     let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
     let make_info = values(neomake#GetStatus().make_info)[0]
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'processing 1 lines of output.'
+    AssertNeomakeMessage 'Processing 1 lines of output.'
     let log_context = deepcopy(make_info)
     if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
       let log_context.options.winnr = winnr-1
@@ -297,7 +297,7 @@ Execute (Goes back to original window after opening list (wincmd in process_outp
 
     let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'processing 1 lines of output.'
+    AssertNeomakeMessage 'Processing 1 lines of output.'
     AssertNeomakeMessage 'Postponing location list processing.', 3, jobinfo
     AssertNeomakeMessage 'Queuing action ProcessEntries for BufEnter, WinEnter.', 3
     AssertEqual getloclist(winnr), []
@@ -368,7 +368,7 @@ Execute (Goes back to original window after opening list (mapexpr)):
 
     let jobinfo = neomake#Make({'enabled_makers': [maker]})[0]
     NeomakeTestsWaitForFinishedJobs
-    AssertNeomakeMessage 'processing 1 lines of output.'
+    AssertNeomakeMessage 'Processing 1 lines of output.'
     AssertNeomakeMessage 'Postponing location list processing.', 3, jobinfo
     AssertNeomakeMessage 'Queuing action AddExprCallback for BufEnter, WinEnter.', 3
     AssertEqual getloclist(winnr), []
@@ -575,7 +575,7 @@ Execute (empty location list is handled with :lopen):
   let b:neomake_serialize = 1
   let maker = {'exe': 'printf', 'args': ['%s\n', 'filtered_line'], 'errorformat': '%-G%.%#'}
   CallNeomake 1, [maker]
-  AssertNeomakeMessage 'processing 2 lines of output.', 3
+  AssertNeomakeMessage 'Processing 2 lines of output.', 3
   AssertNeomakeMessageAbsent 'Processing 0 entries.', 3
 
   AssertEqual map(getloclist(0), 'v:val.text'), []
@@ -760,7 +760,7 @@ Execute (postprocess: removing all entries):
   endfunction
 
   CallNeomake 1, [maker]
-  AssertNeomakeMessage 'processing 1 lines of output.'
+  AssertNeomakeMessage 'Processing 1 lines of output.'
   AssertNeomakeMessage '\v^Removing invalid entry: error .*'
   AssertEqual getloclist(0), []
   bwipe

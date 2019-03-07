@@ -321,3 +321,32 @@ Execute (supports_stdin can be a setting):
   AssertEqual maker._get_fname_for_buffer(jobinfo), '-'
   AssertNeomakeMessage 'Using stdin for unnamed buffer (-).', 3
   bwipe
+
+Execute (supports_stdin: adjusted args get expanded correctly):
+  new
+  new
+  let buf1 = bufnr('%')
+  let s:tmpdir = fnamemodify(tempname(), ':h')
+  file testfile
+
+  let maker1 = copy(g:error_maker)
+  let maker1.serialize = 1
+  function maker1.process_output(...)
+    " Change buffer.
+    wincmd p
+    return []
+  endfunction
+
+  let maker2 = {'exe': 'echo'}
+  function maker2.supports_stdin(jobinfo) abort
+    let self.args += ['%:t']
+    return 1
+  endfunction
+
+  call neomake#Make(1, [maker1, maker2])
+  NeomakeTestsWaitForMessage 'Using stdin for unreadable buffer (-).', 3, {'bufnr': buf1}
+  wincmd p
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual map(getloclist(0), 'v:val.text'), ['testfile -']
+  bwipe
+  bwipe

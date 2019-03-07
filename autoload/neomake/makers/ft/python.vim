@@ -258,7 +258,12 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
 
     let a:entry.text = a:entry.type . a:entry.nr . ' ' . a:entry.text
     let a:entry.type = type
-    let a:entry.nr = ''  " Avoid redundancy in the displayed error message.
+    " Reset "nr" to Avoid redundancy with neomake#GetCurrentErrorMsg.
+    " TODO: This is rather bad, since "nr" itself can be useful.
+    "       This should rather use the entry via Neomake's list, and then a
+    "       new property like "current_error_text" could be used.
+    "       Or with the maker being available a callback could be used.
+    let a:entry.nr = -1
 endfunction
 
 function! neomake#makers#ft#python#pyflakes() abort

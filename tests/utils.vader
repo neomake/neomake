@@ -412,6 +412,17 @@ Execute (neomake#utils#ExpandArgs: %t for temporary file):
   AssertEqual neomake#utils#ExpandArgs(['%t:h'], jobinfo), ['/some/temp.file:h']
   bwipe
 
+Execute (neomake#utils#ExpandArgs: from another buffer):
+  new
+  file file1.ext
+  let jobinfo = {'bufnr': bufnr('%')}
+  new
+  AssertEqual neomake#utils#ExpandArgs(['%'], jobinfo), ['file1.ext']
+  AssertEqual neomake#utils#ExpandArgs(['%:e'], jobinfo), ['ext']
+  AssertEqual neomake#utils#ExpandArgs(['foo: %:e'], jobinfo), ['foo: ext']
+  bwipe
+  bwipe
+
 Execute (neomake#utils#diff_dict):
   AssertEqual neomake#utils#diff_dict({}, {}), {}
   AssertEqual neomake#utils#diff_dict({'a': 1}, {'a': 2}),
