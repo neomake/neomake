@@ -62,7 +62,7 @@ Execute (sh: shellcheck):
 Execute (Test Neomake on errors.sh with shellcheck):
   call g:NeomakeSetupAutocmdWrappers()
 
-  " Create shellcheck wrapper, with output from shellcheck 0.4.6.
+  " From shellcheck 0.4.6.
   let shellcheck_output = [
         \ "errors.sh:3:1: warning: a appears unused. Verify it or export it. [SC2034]",
         \ "errors.sh:3:3: note: Expressions don't expand in single quotes, use double quotes for that. [SC2016]",
@@ -70,19 +70,14 @@ Execute (Test Neomake on errors.sh with shellcheck):
         \ "errors.sh:5:4: error: Parsing stopped here. Invalid use of parentheses? [SC1088]",
         \ "errors.sh:5:4: error: Trying to declare parameters? Don't. Use () and refer to params as $1, $2.. [SC1065]",
         \ ]
-  if executable('shellcheck')
-    let real_output = neomake#compat#systemlist('cd tests/fixtures && shellcheck -fgcc -x errors.sh')
-    AssertEqual real_output, shellcheck_output
-  endif
-  let shellcheck_contents = ['#!/bin/sh']
-        \ + map(shellcheck_output, "'printf ''%s\\n'' '.shellescape(v:val).''")
-        \ + ['exit 1']
-  call g:NeomakeTestsCreateExe('shellcheck', shellcheck_contents)
+
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#sh#shellcheck(), shellcheck_output)
+  let maker.name = 'shellcheck'
 
   new
   edit tests/fixtures/errors.sh
   let bufnr = bufnr('%')
-  RunNeomake shellcheck
+  CallNeomake 1, [maker]
   AssertEqual len(g:neomake_test_finished), 1
   AssertNeomakeMessage 'Running makers: shellcheck.'
   AssertEqualQf getloclist(0), [{
@@ -101,7 +96,14 @@ Execute (Test Neomake on errors.sh with shellcheck):
   \ 'lnum': 5, 'bufnr': bufnr, 'col': 4, 'valid': 1, 'vcol': 0, 'nr': 1065,
   \ 'type': 'e', 'pattern': '', 'text': 'Trying to declare parameters? Don''t. Use () and refer to params as $1, $2..',
   \ }]
-  AssertNeomakeMessage 'exit: shellcheck: 1.', 3
+
+  " Compare real output with expected one."
+  " if executable('shellcheck')
+  "   let real_output = neomake#compat#systemlist('cd tests/fixtures && shellcheck -fgcc -x errors.sh')
+  "   if real_output != shellcheck_output
+  "     call neomake#log#error('expected output changed:')
+  "     AssertEqual real_output, shellcheck_output
+  " endif
   bwipe
 
 Execute (shellcheck copies base maker):
