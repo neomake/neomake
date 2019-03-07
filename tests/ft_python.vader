@@ -260,6 +260,26 @@ Execute (python: flake8: supports_stdin: changes cwd (existing)):
   \ printf('-1 --format=default --stdin-display-name %s -', fname)
   bwipe
 
+Execute (python: flake8: supports_stdin: does not change cwd with buffer in subdir):
+  new
+  let cwd = tempname()
+  let fdir = cwd.neomake#utils#Slash().'subdir'
+  call mkdir(fdir, 'p')
+  let fname = fdir.neomake#utils#Slash().'fname'
+  exe 'file' fname
+  exe 'lcd' cwd
+  noautocmd setfiletype python
+
+  let b:neomake = {'flake8': {'exe': 'echo', 'errorformat': '%m'}}
+  CallNeomake 1, ['flake8']
+  AssertNeomakeMessageAbsent '\Verror when trying to change cwd'
+  AssertNeomakeMessage printf('\vStarting .{-}: echo --format\=default --stdin-display-name %s -.',
+  \ fname), 2
+  AssertNeomakeMessage printf('cwd: %s.', cwd)
+  AssertEqual getloclist(0)[0].text,
+  \ printf('-1 --format=default --stdin-display-name %s -', fname)
+  bwipe
+
 Execute (python: pylint):
   let entry = {'type': 'F', 'col': 1}
   call neomake#makers#ft#python#PylintEntryProcess(entry)
