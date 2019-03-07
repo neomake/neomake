@@ -9,8 +9,8 @@ endfunction
 
 function! neomake#makers#ft#html#htmlhint() abort
     return {
-                \ 'args': ['--format', 'unix'],
-                \ 'errorformat': '%f:%l:%c: %m',
+                \ 'args': ['--format', 'unix', '--nocolor'],
+                \ 'errorformat': '%f:%l:%c: %m,%-G,%-G%*\d problems',
                 \ }
 endfunction
 
