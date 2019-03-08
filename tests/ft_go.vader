@@ -32,3 +32,15 @@ Execute (go: gometalinter):
   \ {'lnum': 17, 'bufnr': bufnr('%'), 'col': 0, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': 'w', 'pattern': '', 'text': 'Subprocess launching with variable.,HIGH,HIGH (gas)'},
   \ ]
   bwipe
+
+Execute (go: golangci_lint):
+  new
+  file rain.go
+
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#go#go(), [
+  \ '?   	github.com/cenkalti/rain/rainrpc	[no test files]',
+  \ ])
+  CallNeomake 1, [maker]
+
+  AssertEqual getloclist(0), []
+  bwipe

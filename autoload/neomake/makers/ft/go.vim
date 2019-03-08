@@ -16,6 +16,8 @@ function! neomake#makers#ft#go#go() abort
             \ 'test', '-c',
             \ '-o', g:neomake#compat#dev_null,
         \ ],
+        \ 'output_stream': 'stdout',
+        \ 'filter_output': function('neomake#makers#ft#go#FilterNoTestFiles'),
         \ 'append_file': 0,
         \ 'cwd': '%:h',
         \ 'serialize': 1,
@@ -29,6 +31,12 @@ function! neomake#makers#ft#go#go() abort
         \ 'postprocess': function('neomake#postprocess#compress_whitespace'),
         \ 'version_arg': 'version',
         \ }
+endfunction
+
+function! neomake#makers#ft#go#FilterNoTestFiles(lines, context) abort
+    if a:context.source ==# 'stdout'
+        call filter(a:lines, "v:val !~# '\\[no test files\\]'")
+    endif
 endfunction
 
 function! neomake#makers#ft#go#golint() abort
