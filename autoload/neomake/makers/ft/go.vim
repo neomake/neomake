@@ -2,7 +2,9 @@
 
 function! neomake#makers#ft#go#EnabledMakers() abort
     let makers = ['go']
-    if executable('gometalinter')
+    if executable('golangci-lint')
+        call add(makers, 'golangci_lint')
+    elseif executable('gometalinter')
         call add(makers, 'gometalinter')
     else
         call extend(makers, ['golint', 'govet'])
@@ -16,8 +18,6 @@ function! neomake#makers#ft#go#go() abort
             \ 'test', '-c',
             \ '-o', g:neomake#compat#dev_null,
         \ ],
-        \ 'output_stream': 'stdout',
-        \ 'filter_output': function('neomake#makers#ft#go#FilterNoTestFiles'),
         \ 'append_file': 0,
         \ 'cwd': '%:h',
         \ 'serialize': 1,
@@ -27,16 +27,11 @@ function! neomake#makers#ft#go#go() abort
             \ '%E%f:%l:%c:%m,' .
             \ '%E%f:%l:%m,' .
             \ '%C%\s%\+%m,' .
+            \ '%-G%.%#\\\[no test files],' .
             \ '%-G#%.%#',
         \ 'postprocess': function('neomake#postprocess#compress_whitespace'),
         \ 'version_arg': 'version',
         \ }
-endfunction
-
-function! neomake#makers#ft#go#FilterNoTestFiles(lines, context) abort
-    if a:context.source ==# 'stdout'
-        call filter(a:lines, "v:val !~# '\\[no test files\\]'")
-    endif
 endfunction
 
 function! neomake#makers#ft#go#golint() abort
@@ -73,5 +68,17 @@ function! neomake#makers#ft#go#gometalinter() abort
         \ 'errorformat':
             \ '%f:%l:%c:%t%*[^:]: %m,' .
             \ '%f:%l::%t%*[^:]: %m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#go#golangci_lint() abort
+    return {
+        \ 'exe': 'golangci-lint',
+        \ 'args': ['run', '--out-format=line-number', '--print-issued-lines=false'],
+        \ 'output_stream': 'stdout',
+        \ 'append_file': 0,
+        \ 'cwd': '%:h',
+        \ 'errorformat':
+            \ '%f:%l:%c: %m'
         \ }
 endfunction
