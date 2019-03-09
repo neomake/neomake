@@ -22,7 +22,7 @@ Execute (go: go):
   \  .'/home/user/go/src/bytes (from $GOPATH)'}]
   bwipe
 
-Execute (go: gometalinter):
+Execute (go: go: filters "[no test files]"):
   new
   file git.go
 
