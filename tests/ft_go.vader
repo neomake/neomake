@@ -4,15 +4,11 @@ Execute (go: go):
   new
   file build/proxier.go
 
-  let maker = neomake#makers#ft#go#go()
-  let maker.remove_invalid_entries = 0
-  " to work on an unreadable file.
-  let maker.append_file = 0
-  let maker.exe = 'printf'
-  let maker.args = ['%s\n',
-  \'proxier.go:24:2: cannot find package "bytes" in any of:',
-  \'	/home/user/bin/go1.x/src/bytes (from $GOROOT)',
-  \'	/home/user/go/src/bytes (from $GOPATH)']
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#go#go(), [
+  \ 'proxier.go:24:2: cannot find package "bytes" in any of:',
+  \ '	/home/user/bin/go1.x/src/bytes (from $GOROOT)',
+  \ '	/home/user/go/src/bytes (from $GOPATH)',
+  \ ])
   CallNeomake 1, [maker]
 
   AssertNeomakeMessage printf('cwd: %s/build (changed).', getcwd())
