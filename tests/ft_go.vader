@@ -22,6 +22,18 @@ Execute (go: go):
   \  .'/home/user/go/src/bytes (from $GOPATH)'}]
   bwipe
 
+Execute (go: go: filters "[no test files]"):
+  new
+  file rain.go
+
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#go#go(), [
+  \ '?   	github.com/cenkalti/rain/rainrpc	[no test files]',
+  \ ])
+  CallNeomake 1, [maker]
+
+  AssertEqual getloclist(0), []
+  bwipe
+
 Execute (go: gometalinter):
   new
   file git.go

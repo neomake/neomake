@@ -27,6 +27,7 @@ function! neomake#makers#ft#go#go() abort
             \ '%E%f:%l:%c:%m,' .
             \ '%E%f:%l:%m,' .
             \ '%C%\s%\+%m,' .
+            \ '%-G%.%#\\\[no test files],' .
             \ '%-G#%.%#',
         \ 'postprocess': function('neomake#postprocess#compress_whitespace'),
         \ 'version_arg': 'version',
