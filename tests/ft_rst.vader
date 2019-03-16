@@ -31,33 +31,33 @@ Execute (rst: sphinx: enabled based on conf.py):
 
   AssertEqual neomake#makers#ft#rst#EnabledMakers(), ['rstlint', 'rstcheck']
 
+  new
   call g:NeomakeTestsCreateExe('sphinx-build', [])
   AssertEqual neomake#makers#ft#rst#EnabledMakers(), ['rstlint', 'rstcheck']
+  AssertNeomakeMessage 'sphinx: skipping setting of source_dir for empty bufname.', 3
 
-  new
   let bufnr = bufnr('%')
   noautocmd set filetype=rst
   CallNeomake 1, ['sphinx']
-  AssertNeomakeMessage "sphinx: setting b:neomake.sphinx.source_dir=''.", 3
-  AssertNeomakeMessage 'sphinx: could not find conf.py.', 0
+  AssertNeomakeMessage 'sphinx: skipping setting of source_dir for empty bufname.', 3
+  AssertNeomakeMessage '\Vsphinx: could not find conf.py', 0
+  Assert !exists('b:neomake.sphinx')
 
   let tempdir = tempname()
   let slash = neomake#utils#Slash()
   call mkdir(tempdir.slash.'doc', 'p')
 
   exe 'lcd '.fnameescape(tempdir)
+  file doc/test.rst
+
+  " Uses conf.py from project root also.
   call writefile([], 'conf.py')
   " To please neomake#utils#get_project_root().
   call writefile([], 'Makefile')
-  CallNeomake 1, ['sphinx']
-  AssertNeomakeMessage 'sphinx: could not find conf.py.', 0
+  call neomake#makers#ft#rst#EnabledMakers()
+  AssertNeomakeMessage printf("sphinx: setting b:neomake.sphinx.source_dir='%s'.", getcwd()), 3, {'bufnr': bufnr}
 
-  " Still does not find it (because it was cached).
   call writefile([], 'doc'.slash.'conf.py')
-  CallNeomake 1, ['sphinx']
-  AssertNeomakeMessage 'sphinx: could not find conf.py.', 0
-  AssertEqual b:neomake.sphinx, {'source_dir': ''}
-
   unlet b:neomake.sphinx
   let expected_srcdir = getcwd() . slash . 'doc'
   let maker = neomake#GetMaker('sphinx', 'rst')

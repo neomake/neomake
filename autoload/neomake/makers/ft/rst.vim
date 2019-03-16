@@ -4,8 +4,9 @@ function! neomake#makers#ft#rst#SupersetOf() abort
     return 'text'
 endfunction
 
-" Get source dir for Sphinx (determined by looking for conf.py, typically in
-" docs/ or doc/).  Caches the value in a buffer-local setting.
+" Get Sphinx source dir for the current buffer (determined by looking for
+" conf.py, typically in docs/ or doc/).
+" Caches the value in a buffer-local setting.
 function! s:get_sphinx_srcdir() abort
     let srcdir = neomake#config#get('sphinx.source_dir')
     if srcdir isnot# g:neomake#config#undefined
@@ -14,14 +15,14 @@ function! s:get_sphinx_srcdir() abort
 
     let r = ''
     let project_root = neomake#utils#get_project_root()
-    if !empty(project_root)
-        let slash = neomake#utils#Slash()
-        for d in ['doc', 'docs']
-            if filereadable(d . slash . 'conf.py')
-                let r = fnamemodify(d, ':p:h')
-                break
-            endif
-        endfor
+    let bufname = bufname('%')
+    if empty(bufname)
+        call neomake#log#debug('sphinx: skipping setting of source_dir for empty bufname.', {'bufnr': bufnr('%')})
+        return ''
+    endif
+    let f = findfile('conf.py', printf('%s;%s', fnamemodify(bufname, ':p:h'), project_root))
+    if !empty(f)
+        let r = fnamemodify(f, ':p:h')
     endif
     call neomake#log#debug(printf('sphinx: setting b:neomake.sphinx.source_dir=%s.', string(r)), {'bufnr': bufnr('%')})
     call neomake#config#set('b:sphinx.source_dir', r)
@@ -64,7 +65,7 @@ function! neomake#makers#ft#rst#sphinx() abort
     "  - project mode (after cleanup branch)
     let srcdir = s:get_sphinx_srcdir()
     if empty(srcdir)
-        throw 'Neomake: sphinx: could not find conf.py'
+        throw 'Neomake: sphinx: could not find conf.py (you can configure sphinx.source_dir)'
     endif
     if !exists('s:sphinx_cache')
         let s:sphinx_cache = tempname()
