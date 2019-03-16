@@ -17,11 +17,10 @@ function! s:get_sphinx_srcdir() abort
     let project_root = neomake#utils#get_project_root()
     let bufname = bufname('%')
     if empty(bufname)
-        call neomake#log#debug('sphinx: skipping setting of b:neomake.sphinx.source_dir for empty bufname.', {'bufnr': bufnr('%')})
+        call neomake#log#debug('sphinx: skipping setting of source_dir for empty bufname.', {'bufnr': bufnr('%')})
         return ''
     endif
-    let start = fnamemodify(bufname, ':p:h')
-    let f = findfile('conf.py', printf('%s;%s', start, project_root))
+    let f = findfile('conf.py', printf('%s;%s', fnamemodify(bufname, ':p:h'), project_root))
     if !empty(f)
         let r = fnamemodify(f, ':p:h')
     endif

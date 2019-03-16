@@ -34,12 +34,12 @@ Execute (rst: sphinx: enabled based on conf.py):
   new
   call g:NeomakeTestsCreateExe('sphinx-build', [])
   AssertEqual neomake#makers#ft#rst#EnabledMakers(), ['rstlint', 'rstcheck']
-  AssertNeomakeMessage 'sphinx: skipping setting of b:neomake.sphinx.source_dir for empty bufname.', 3
+  AssertNeomakeMessage 'sphinx: skipping setting of source_dir for empty bufname.', 3
 
   let bufnr = bufnr('%')
   noautocmd set filetype=rst
   CallNeomake 1, ['sphinx']
-  AssertNeomakeMessage 'sphinx: skipping setting of b:neomake.sphinx.source_dir for empty bufname.', 3
+  AssertNeomakeMessage 'sphinx: skipping setting of source_dir for empty bufname.', 3
   AssertNeomakeMessage '\Vsphinx: could not find conf.py', 0
   Assert !exists('b:neomake.sphinx')
 
