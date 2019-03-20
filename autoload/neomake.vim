@@ -973,11 +973,8 @@ endfunction
 let s:ignore_automake_events = 0
 " a:1: override "open_list" setting.
 function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
-    if a:0
-        let open_val = a:1
-    else
-        let open_val = neomake#utils#GetSetting('open_list', a:jobinfo.maker, 0, a:jobinfo.ft, a:jobinfo.bufnr)
-    endif
+    let open_list_default = a:0 ? a:1 : 0
+    let open_val = neomake#utils#GetSetting('open_list', a:jobinfo.maker, open_list_default, a:jobinfo.ft, a:jobinfo.bufnr)
     if !open_val
         return
     endif
