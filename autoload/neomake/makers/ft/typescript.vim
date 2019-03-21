@@ -39,3 +39,7 @@ function! neomake#makers#ft#typescript#tslint() abort
     endif
     return maker
 endfunction
+
+function! neomake#makers#ft#typescript#eslint() abort
+    return neomake#makers#ft#javascript#eslint()
+endfunction
