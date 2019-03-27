@@ -1,31 +1,19 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#swift#EnabledMakers() abort
-    let package = neomake#utils#FindGlobFile('Package.swift')
-    if !empty(package)
+    if !empty(s:get_swiftpm_config())
         return ['swiftpm']
-    else
-        return ['swiftc']
     endif
+    return ['swiftc']
 endfunction
 
-function! neomake#makers#ft#swift#swiftpm() abort
-    return {
-        \ 'exe': 'swift',
-        \ 'args': ['build', '--build-tests'],
-        \ 'append_file': 0,
-        \ 'errorformat':
-            \ '%E%f:%l:%c: error: %m,' .
-            \ '%W%f:%l:%c: warning: %m,' .
-            \ '%Z%\s%#^~%#,' .
-            \ '%-G%.%#',
-        \ }
+function! s:get_swiftpm_config() abort
+    return neomake#utils#FindGlobFile('Package.swift')
 endfunction
 
-function! neomake#makers#ft#swift#swiftpmtest() abort
-    return {
+function! s:get_swiftpm_base_maker() abort
+    let maker = {
         \ 'exe': 'swift',
-        \ 'args': ['test'],
         \ 'append_file': 0,
         \ 'errorformat':
             \ '%E%f:%l:%c: error: %m,' .
@@ -34,6 +22,23 @@ function! neomake#makers#ft#swift#swiftpmtest() abort
             \ '%Z%\s%#^~%#,' .
             \ '%-G%.%#',
         \ }
+    let config = s:get_swiftpm_config()
+    if !empty(config)
+        let maker.cwd = fnamemodify(config, ':h')
+    endif
+    return maker
+endfunction
+
+function! neomake#makers#ft#swift#swiftpm() abort
+    let maker = s:get_swiftpm_base_maker()
+    let maker.args = ['build', '--build-tests']
+    return maker
+endfunction
+
+function! neomake#makers#ft#swift#swiftpmtest() abort
+    let maker = s:get_swiftpm_base_maker()
+    let maker.args = ['test']
+    return maker
 endfunction
 
 function! neomake#makers#ft#swift#swiftc() abort
