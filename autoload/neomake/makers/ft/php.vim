@@ -66,7 +66,7 @@ function! neomake#makers#ft#php#psalm() abort
         \ 'args': [
             \ '--output-format=pylint'
         \ ],
-        \ 'errorformat': '%E%f:%l:%m',
+        \ 'errorformat': '%A%f:%l:%\s[%t%n]%\s%m',
         \ }
     return maker
 endfunction
