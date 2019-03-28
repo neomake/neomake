@@ -69,3 +69,23 @@ Execute (phpstan):
   AssertEqual loclist[0].text, "Function dsdsd not found"
   AssertEqual loclist[0].type, 'E'
   bwipe /app/src/hello.php
+
+Execute (php: psalm):
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#php#psalm(), [
+    \ 'test.php:85: [E0001] MismatchingDocblockParamType: Parameter $questionnaire has wrong type ''App\Services\Service'', should be ''App\Service'' (column 15)',
+    \ 'test.php:179: [W0001] RedundantCondition: Found a redundant condition when evaluating $existingQuestion and trying to reconcile it with a non-falsy assertion (column 44)',
+    \])
+  new
+  noautocmd file test.php
+  let bufnr = bufnr('%')
+  CallNeomake 1, [maker]
+  AssertEqualQf getloclist(0), [
+  \ {'lnum': 85, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
+  \  'nr': 1, 'type': 'E', 'pattern': '',
+  \  'text': 'MismatchingDocblockParamType: Parameter $questionnaire has wrong type ''App\Services\Service'', should be ''App\Service'' (column 15)'
+  \ }, {
+  \  'lnum': 179, 'bufnr': bufnr, 'col': 0, 'valid': 1, 'vcol': 0,
+  \  'nr': 1, 'type': 'W', 'pattern': '',
+  \  'text': 'RedundantCondition: Found a redundant condition when evaluating $existingQuestion and trying to reconcile it with a non-falsy assertion (column 44)',
+  \ }]
+  bwipe
