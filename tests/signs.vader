@@ -24,7 +24,7 @@ Execute (neomake#signs#RedefineErrorSign):
   " Test #736.
   call neomake#signs#RedefineErrorSign({'text': 'X', 'texthl': 'ErrorMsg'})
   let sign = substitute(neomake#utils#redir('sign list neomake_file_err'), '\v^[\n]*', '', '')
-  AssertEqual sign, 'sign neomake_file_err text=X  texthl=ErrorMsg'
+  AssertEqual split(sign), ['sign', 'neomake_file_err', 'text=X', 'texthl=ErrorMsg']
   AssertEqual neomake#signs#by_lnum(bufnr('%')), {'2': [5000, 'neomake_file_warn']}
 
   call neomake#Make(1, [maker])
