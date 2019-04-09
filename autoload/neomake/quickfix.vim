@@ -51,15 +51,16 @@ function! s:cursor_moved() abort
             call cursor(line('.'), b:neomake_start_col + 2)
         endif
 
-        if exists('b:_neomake_cursor_match_id')
-            silent! call matchdelete(b:_neomake_cursor_match_id)
+        if exists('w:_neomake_cursor_match_id')
+            silent! call matchdelete(w:_neomake_cursor_match_id)
         endif
+        echom matchaddpos('ErrorMsg', [[1, 1, 3]], 1000)
         if exists('*matchaddpos')
-            let b:_neomake_cursor_match_id = matchaddpos('neomakeCursorListNr',
+            let w:_neomake_cursor_match_id = matchaddpos('neomakeCursorListNr',
                         \ [[line('.'), (b:neomake_start_col - b:neomake_number_len) + 2, b:neomake_number_len]],
                         \ s:match_base_priority+3)
         else
-            let b:_neomake_cursor_match_id = matchadd('neomakeCursorListNr',
+            let w:_neomake_cursor_match_id = matchadd('neomakeCursorListNr',
                         \  '\%' . line('.') . 'c'
                         \. '\%' . ((b:neomake_start_col - b:neomake_number_len) + 2) . 'c'
                         \. '.\{' . b:neomake_number_len . '}',
@@ -89,17 +90,17 @@ function! s:clean_qf_annotations() abort
         autocmd! * <buffer>
     augroup END
 
-    if exists('b:_neomake_maker_match_id')
-        silent! call matchdelete(b:_neomake_maker_match_id)
+    if exists('w:_neomake_maker_match_id')
+        silent! call matchdelete(w:_neomake_maker_match_id)
     endif
-    if exists('b:_neomake_gutter_match_id')
-        silent! call matchdelete(b:_neomake_gutter_match_id)
+    if exists('w:_neomake_gutter_match_id')
+        silent! call matchdelete(w:_neomake_gutter_match_id)
     endif
-    if exists('b:_neomake_bufname_match_id')
-        silent! call matchdelete(b:_neomake_bufname_match_id)
+    if exists('w:_neomake_bufname_match_id')
+        silent! call matchdelete(w:_neomake_bufname_match_id)
     endif
-    if exists('b:_neomake_cursor_match_id')
-        silent! call matchdelete(b:_neomake_cursor_match_id)
+    if exists('w:_neomake_cursor_match_id')
+        silent! call matchdelete(w:_neomake_cursor_match_id)
     endif
     call neomake#signs#ResetFile(bufnr('%'))
 endfunction
@@ -280,23 +281,23 @@ function! neomake#quickfix#FormatQuickfix() abort
     call neomake#signs#PlaceSigns(buf, signs, 'file')
 
     if b:neomake_start_col
-        if exists('b:_neomake_maker_match_id')
-            silent! call matchdelete(b:_neomake_maker_match_id)
+        if exists('w:_neomake_maker_match_id')
+            silent! call matchdelete(w:_neomake_maker_match_id)
         endif
-        let b:_neomake_maker_match_id = matchadd('neomakeMakerName',
+        let w:_neomake_maker_match_id = matchadd('neomakeMakerName',
                     \ '.*\%<'.(maker_width + 1).'c',
                     \ s:match_base_priority+1)
-        if exists('b:_neomake_gutter_match_id')
-            silent! call matchdelete(b:_neomake_gutter_match_id)
+        if exists('w:_neomake_gutter_match_id')
+            silent! call matchdelete(w:_neomake_gutter_match_id)
         endif
-        let b:_neomake_gutter_match_id = matchadd('neomakeListNr',
+        let w:_neomake_gutter_match_id = matchadd('neomakeListNr',
                     \ '\%>'.(maker_width).'c'
                     \ .'.*\%<'.(b:neomake_start_col + 2).'c',
                     \ s:match_base_priority+2)
-        if exists('b:_neomake_bufname_match_id')
-            silent! call matchdelete(b:_neomake_bufname_match_id)
+        if exists('w:_neomake_bufname_match_id')
+            silent! call matchdelete(w:_neomake_bufname_match_id)
         endif
-        let b:_neomake_bufname_match_id = matchadd('neomakeBufferName',
+        let w:_neomake_bufname_match_id = matchadd('neomakeBufferName',
                     \ '.*\%<'.(maker_width + 1).'c',
                     \ s:match_base_priority+3)
     endif
