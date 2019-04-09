@@ -509,7 +509,8 @@ Execute (custom qf gets disabled with manual setloclist()):
     AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': ll_bufnr}
     AssertEqual b:current_syntax, 'qf'
     AssertEqual neomake#signs#by_lnum(ll_bufnr), {}
-    Assert empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are no existing matches.'
+    let matches = filter(getmatches(), "v:key == 'neomakeMakerName'")
+    Assert empty(matches), printf('Found unexpected matches: %s', string(matches))
 
     call setloclist(0, [{
         \ 'lnum': 1,
@@ -662,6 +663,38 @@ Execute (Formats quickfix list if opened already):
     AssertNeomakeMessage 'list window has been opened (old count: 2, new count: 3).', 3
     AssertNeomakeMessage 'Handling location list: executing lwindow.', 3
     AssertNeomakeMessage 'Resizing existing quickfix window: 3resize 2.', 3
+
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (custom qf with new window / buffer):
+  call neomake#quickfix#enable(1)
+  try
+    new
+    call setloclist(0, [{
+        \ 'lnum': 1,
+        \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
+        \}])
+    lopen
+    Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'Expected matches (1).'
+    AssertEqual b:current_syntax, 'neomake_qf'
+
+    tab split
+    if exists('##WinNew')
+      Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'Expected matches (2).'
+      AssertEqual b:current_syntax, 'neomake_qf'
+    endif
+    doautocmd CursorMoved
+    Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'Expected matches (3).'
+    AssertEqual b:current_syntax, 'neomake_qf'
+
+    enew
+    let matches = filter(getmatches(), "v:key == 'neomakeMakerName'")
+    Assert empty(matches), printf('Found unexpected matches: %s', string(matches))
+    bwipe
 
     lclose
     bwipe
