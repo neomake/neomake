@@ -21,10 +21,8 @@ let g:neomake_java_javac_maven_pom_tags = ['build', 'properties']
 let g:neomake_java_javac_maven_pom_properties = {}
 let s:is_windows = has('win32') || has('win64') || has('win16') || has('dos32') || has('dos16')
 if s:is_windows
-    let s:fsep = ';'
     let s:psep = '\'
 else
-    let s:fsep = ':'
     let s:psep = '/'
 endif
 let g:neomake_java_checker_home = fnamemodify(expand('<sfile>'), ':p:h:gs?\\?/?')
@@ -120,6 +118,7 @@ function! s:AddToClasspath(classpath, path) abort
 endfunction
 
 " @vimlint(EVL103, 1, a:classpathFile)
+" vint: -ProhibitUnusedVariable
 function! s:ReadClassPathFile(classpathFile) abort
     let cp = ''
     let file = g:neomake_java_checker_home. s:psep. 'java'. s:psep.  'classpath.py'
@@ -134,6 +133,7 @@ function! s:ReadClassPathFile(classpathFile) abort
     endif
     return cp
 endfunction
+" vint: +ProhibitUnusedVariable
 " @vimlint(EVL103, 0, a:classpathFile)
 
 function! neomake#makers#ft#java#EnabledMakers() abort

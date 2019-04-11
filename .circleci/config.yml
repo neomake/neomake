@@ -67,52 +67,19 @@ jobs:
     <<: *common
     steps:
       - checkout
-      - run: make checkqa
-
-  coverage:
-    <<: *common
-    steps:
-      # TODO: checkout only necessary for covimerage plugin?!
-      #       Writing/using .coveragerc only might be enough.
-      - checkout
-      - attach_workspace:
-          at: /tmp/workspace
       - run:
-          name: Upload global coverage results
+          name: Checks
           command: |
             set -x
-            cp -a /tmp/workspace/test-results/.coverage_covimerage.* .
-
-            coverage combine
-            coverage xml
-
-            # Coveralls.
-            # Only TRAVIS_JOB_ID is used by python-coveralls.
-            env -u COVERALLS_PARALLEL TRAVIS_JOB_ID=$CIRCLE_WORKFLOW_ID coveralls
-
-            # Codeclimate.
-            cc-test-reporter after-build
+            python -m ensurepip --user
+            PATH=$HOME/.local/bin:$PATH
+            pip3 install --user git+https://github.com/Kuniwak/vint.git@master
+            vint --version
+            make --keep-going check check_docker check_lint_diff vint
             set +x
 
 workflows:
   version: 2
   test:
     jobs:
-      - nvim-031
-      - nvim-017
-      - vim-81
-      - vim-80
-      - vim-74-xenial
-      - vim-74-trusty
-      - vim-73
-      - nvim-master
       - checkqa
-      - coverage:
-          requires:
-            - nvim-031
-            - nvim-017
-            - vim-81
-            - vim-80
-            - vim-74-xenial
-            - vim-74-trusty
-            - vim-73

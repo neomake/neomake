@@ -1259,7 +1259,9 @@ function! s:Make(options) abort
     " Cancel any already running jobs for the makers from these jobs.
     if !empty(s:jobs)
         " @vimlint(EVL102, 1, l:job)
+        " vint: -ProhibitUnusedVariable
         for job in jobs
+            " vint: +ProhibitUnusedVariable
             let running_already = values(filter(copy(s:jobs),
                         \ 'v:val.maker == job.maker'
                         \ .' && v:val.bufnr == job.bufnr'
@@ -1866,9 +1868,11 @@ function! s:ProcessJobOutput(jobinfo, lines, source, ...) abort
         if has_key(maker, 'mapexpr')
             let neomake_bufname = fnamemodify(bufname(a:jobinfo.bufnr), ':p')
             " @vimlint(EVL102, 1, l:neomake_bufdir)
+            " vint: -ProhibitUnusedVariable
             let neomake_bufdir = fnamemodify(neomake_bufname, ':h')
             " @vimlint(EVL102, 1, l:neomake_output_source)
             let neomake_output_source = a:source
+            " vint: +ProhibitUnusedVariable
             call map(a:lines, maker.mapexpr)
         endif
 
