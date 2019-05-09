@@ -105,16 +105,7 @@ endif
 
 function! neomake#virtualtext#DefineHighlights() abort
     " NOTE: linking to SpellBad etc is bad/distracting (with undercurl).
-    for [group, link] in items({
-                \ 'NeomakeVirtualtextError': 'Error',
-                \ 'NeomakeVirtualtextWarning': 'WarningMsg',
-                \ 'NeomakeVirtualtextInfo': 'NeomakeVirtualtextWarning',
-                \ 'NeomakeVirtualtextMessage': 'NeomakeVirtualtextWarning'
-                \ })
-        if !neomake#utils#highlight_is_defined(group)
-            exe 'highlight link '.group.' '.link
-        endif
-    endfor
+    call neomake#utils#define_derived_highlights('NeomakeVirtualtext%s', ['NONE', 'NONE'])
 endfunction
 
 call neomake#virtualtext#DefineHighlights()

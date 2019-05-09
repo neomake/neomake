@@ -258,32 +258,9 @@ function! neomake#signs#DefineHighlights() abort
     " Use background from SignColumn.
     let ctermbg = neomake#utils#GetHighlight('SignColumn', 'bg', 'Normal')
     let guibg = neomake#utils#GetHighlight('SignColumn', 'bg#', 'Normal')
-    let bg = 'ctermbg='.ctermbg.' guibg='.guibg
 
-    for [group, fg_from] in items({
-                \ 'NeomakeErrorSign': ['Error', 'bg'],
-                \ 'NeomakeWarningSign': ['Todo', 'fg'],
-                \ 'NeomakeInfoSign': ['Question', 'fg'],
-                \ 'NeomakeMessageSign': ['ModeMsg', 'fg']
-                \ })
-        let [fg_group, fg_attr] = fg_from
-        " NOTE: fg falls back to "Normal" always, not "SignColumn" inbetween.
-        let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr, 'Normal')
-        let guifg = neomake#utils#GetHighlight(fg_group, fg_attr.'#', 'Normal')
-
-        " Ensure that we're not using SignColumn bg as fg (as with gotham
-        " colorscheme, issue https://github.com/neomake/neomake/pull/659).
-        if ctermfg !=# 'NONE' && ctermfg ==# ctermbg
-            let ctermfg = neomake#utils#GetHighlight(fg_group, neomake#utils#ReverseSynIDattr(fg_attr))
-        endif
-        if guifg !=# 'NONE' && guifg ==# guibg
-            let guifg = neomake#utils#GetHighlight(fg_group, neomake#utils#ReverseSynIDattr(fg_attr).'#')
-        endif
-        exe 'hi '.group.'Default ctermfg='.ctermfg.' guifg='.guifg.' '.bg
-        if !neomake#utils#highlight_is_defined(group)
-            exe 'hi link '.group.' '.group.'Default'
-        endif
-    endfor
+    " Define NeomakeErrorSign, NeomakeWarningSign etc.
+    call neomake#utils#define_derived_highlights('Neomake%sSign', [ctermbg, guibg])
 endfunction
 
 function! neomake#signs#DefineSigns() abort
