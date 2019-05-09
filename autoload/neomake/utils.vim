@@ -293,7 +293,8 @@ function! neomake#utils#define_derived_highlights(group_format, bg) abort
                 \ 'Error': ['Error', 'bg'],
                 \ 'Warning': ['Todo', 'fg'],
                 \ 'Info': ['Question', 'fg'],
-                \ 'Message': ['ModeMsg', 'fg']
+                \ 'Message': ['ModeMsg', 'fg'],
+                \ 'Style': ['ModeMsg', 'fg']
                 \ })
         let group = printf(a:group_format, type)
         call s:define_derived_highlight_group(group, fg_from, a:bg)
