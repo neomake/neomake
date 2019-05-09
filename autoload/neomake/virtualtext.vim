@@ -95,40 +95,11 @@ if exists('*nvim_create_namespace')  " Includes nvim_buf_set_virtual_text.
             if index(get(buf_info, 'virtual_text_entries', []), entry.lnum) == -1
                 let src_id = neomake#virtualtext#add_entry(entry, s:current_ns)
                 let s:cur_virtualtext = [bufnr('%'), src_id]
-
-                let s:cur_tick = b:changedtick
-                augroup neomake_virtualtext_clear
-                    au!
-                    au InsertEnter <buffer> call neomake#virtualtext#handle_current_error('InsertEnter')
-                    au InsertLeave <buffer> call neomake#virtualtext#handle_current_error('InsertLeave')
-                augroup END
-            endif
-        endif
-    endfunction
-
-    " function! s:virtualtext_on_insertenter() abort
-    "     augroup neomake_virtualtext_clear
-    "         au! InsertEnter <buffer>
-    "         " Re-display.. but should wait for new run, if triggered.
-    "         au! InsertLeave <buffer> let s:insertleave = 1
-    "         " au! InsertLeave <buffer> call neomake#virtualtext#handle_current_error()
-    "     augroup END
-    "     call neomake#virtualtext#clear_current_error()
-    " endfunction
-
-    function! neomake#virtualtext#clear_current_error() abort
-        if !empty(s:cur_virtualtext)
-            if bufexists(s:cur_virtualtext[0])
-                call nvim_buf_clear_highlight(s:cur_virtualtext[0], s:cur_virtualtext[1], 0, -1)
             endif
         endif
     endfunction
 else
-    " Setup no-op wrappers for Vim.
-    function! neomake#virtualtext#handle_current_error(...) abort
-    endfunction
-
-    function! neomake#virtualtext#clear_current_error() abort
+    function! neomake#virtualtext#handle_current_error() abort
     endfunction
 endif
 
