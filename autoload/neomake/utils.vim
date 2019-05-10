@@ -35,7 +35,7 @@ endfunction
 function! neomake#utils#truncate_width(string, width) abort
     let pos = a:width
     while 1
-        let s = matchstr(a:string, '.\{,' . (pos-1) . '}', 0, 1)
+        let s = matchstr(a:string, '.\{,'.string(pos-1).'}', 0, 1)
         let w = strwidth(s)
         if w <= a:width
             return s
