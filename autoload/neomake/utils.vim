@@ -32,8 +32,16 @@ function! neomake#utils#Stringify(obj) abort
     endif
 endfunction
 
-function! neomake#utils#wstrpart(mb_string, start, len) abort
-    return matchstr(a:mb_string, '.\{,'.a:len.'}', 0, a:start+1)
+function! neomake#utils#truncate_width(string, width) abort
+    let pos = a:width
+    while 1
+        let s = matchstr(a:string, '.\{,'.(pos-1).'}', 0, 1)
+        let w = strwidth(s)
+        if w <= a:width
+            return s
+        endif
+        let pos -= w - a:width
+    endwhile
 endfunction
 
 " This comes straight out of syntastic.
@@ -50,7 +58,7 @@ function! neomake#utils#WideMessage(msg) abort " {{{2
     "width as the proper amount of characters
     let chunks = split(msg, "\t", 1)
     let msg = join(map(chunks[:-2], "v:val . repeat(' ', &tabstop - strwidth(v:val) % &tabstop)"), '') . chunks[-1]
-    let msg = neomake#utils#wstrpart(msg, 0, &columns - 1)
+    let msg = neomake#utils#truncate_width(msg, &columns-1)
 
     set noruler noshowcmd
     redraw
