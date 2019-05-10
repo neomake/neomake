@@ -34,7 +34,7 @@ endfunction
 
 function! neomake#utils#truncate_width(string, width) abort
     let pos = a:width
-    while 1
+    while pos >= 0
         let s = matchstr(a:string, '.\{,'.pos.'}', 0, 1)
         let w = strwidth(s)
         if w <= a:width
@@ -42,6 +42,7 @@ function! neomake#utils#truncate_width(string, width) abort
         endif
         let pos -= max([(w-a:width)/2, 1])
     endwhile
+    return ''
 endfunction
 
 " This comes straight out of syntastic.
