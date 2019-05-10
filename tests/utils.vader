@@ -437,17 +437,25 @@ Execute (neomake#utils#diff_dict):
   AssertEqual neomake#utils#diff_dict({'a': []}, {'a': {}}),
     \ {'changed': {'a': [[], {}]}}
 
-Execute (neomake#utils#wstrpart):
-  AssertEqual neomake#utils#wstrpart('123', 0, 0), ''
-  AssertEqual neomake#utils#wstrpart('123', 0, 1), '1'
-  AssertEqual neomake#utils#wstrpart('123', 0, 2), '12'
-  AssertEqual neomake#utils#wstrpart('123', 1, 2), '23'
-  AssertEqual neomake#utils#wstrpart('123', 1, 1), '2'
-  AssertEqual neomake#utils#wstrpart('123', 1, 0), ''
+Execute (neomake#utils#truncate_width):
+  AssertEqual neomake#utils#truncate_width('', 0), ''
+  AssertEqual neomake#utils#truncate_width('', -1), ''
 
-  AssertEqual neomake#utils#wstrpart('…', 0, 1), '…'
-  AssertEqual neomake#utils#wstrpart('12…45', 1, 3), '2…4'
-  AssertEqual neomake#utils#wstrpart('…after', 1, 10), 'after'
+  AssertEqual neomake#utils#truncate_width('123', 0), ''
+  AssertEqual neomake#utils#truncate_width('123', 1), '1'
+  AssertEqual neomake#utils#truncate_width('123', 2), '12'
+  AssertEqual neomake#utils#truncate_width('123', 3), '123'
+  AssertEqual neomake#utils#truncate_width('123', 4), '123'
+
+  AssertEqual neomake#utils#truncate_width('长长的。', 1), ''
+  AssertEqual neomake#utils#truncate_width('长长的。', 2), '长'
+  AssertEqual neomake#utils#truncate_width('长长的。', 3), '长'
+  AssertEqual neomake#utils#truncate_width('长长的。', 4), '长长'
+  AssertEqual neomake#utils#truncate_width('长长的。', 10), '长长的。'
+
+  AssertEqual neomake#utils#truncate_width('abc。', 4), 'abc'
+  AssertEqual neomake#utils#truncate_width('abc。', 5), 'abc。'
+  AssertEqual neomake#utils#truncate_width('abc。xyz', 6), 'abc。x'
 
 Execute (neomake#utils#sort_by_col):
   function! s:sort(l)
