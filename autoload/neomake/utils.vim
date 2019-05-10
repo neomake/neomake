@@ -40,7 +40,7 @@ function! neomake#utils#truncate_width(string, width) abort
         if w <= a:width
             return s
         endif
-        let pos -= w - a:width
+        let pos -= max([(w-a:width)/2, 1])
     endwhile
 endfunction
 
