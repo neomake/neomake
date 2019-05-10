@@ -33,9 +33,9 @@ function! neomake#utils#Stringify(obj) abort
 endfunction
 
 function! neomake#utils#truncate_width(string, width) abort
-    let pos = a:width
+    let pos = a:width - 1
     while 1
-        let s = matchstr(a:string, '.\{,'.string(pos-1).'}', 0, 1)
+        let s = matchstr(a:string, '.\{,'.pos.'}', 0, 1)
         let w = strwidth(s)
         if w <= a:width
             return s
