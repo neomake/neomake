@@ -1672,13 +1672,15 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         let parsed_entries = a:entries
     else
         " Fix entries with get_list_entries/process_output/process_json.
+        let default_bufnr = a:jobinfo.bufnr
         call map(a:entries, 'extend(v:val, {'
-                    \ . "'bufnr': str2nr(get(v:val, 'bufnr', 0)),"
+                    \ . "'bufnr': str2nr(get(v:val, 'bufnr', default_bufnr)),"
                     \ . "'lnum': str2nr(v:val.lnum),"
                     \ . "'col': str2nr(get(v:val, 'col', 0)),"
                     \ . "'vcol': str2nr(get(v:val, 'vcol', 0)),"
                     \ . "'type': get(v:val, 'type', 'E'),"
                     \ . "'nr': get(v:val, 'nr', -1),"
+                    \ . "'text': get(v:val, 'text', ''),"
                     \ . '})')
 
         let cd_error = a:jobinfo.cd()
