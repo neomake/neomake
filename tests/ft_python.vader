@@ -51,7 +51,10 @@ Execute (python: pylama: cwd):
   new
   exe 'lcd '.tempdir
   let maker = neomake#makers#ft#python#pylama()
-  Assert !has_key(maker, 'cwd'), 'cwd is not set'
+  if has_key(maker, 'cwd')
+    " Might happen with e.g. an existing /tmp/setup.cwd..
+    call vader#log(printf('NOTE: got cwd already: %s', maker.cwd))
+  endif
 
   call mkdir('pylama/subdir', 'p')
   call writefile([], 'pylama/setup.cfg')

@@ -4,13 +4,19 @@ Execute (neomake#utils#get_project_root):
   AssertEqual neomake#utils#get_project_root(bufnr), fnamemodify(g:vader_file, ':h:h')
 
   let slash = neomake#utils#Slash()
-  let tmpdir = tempname() . slash . 'python-project'
+  let tmpbase = tempname()
+  let tmpdir = tmpbase . slash . 'python-project'
   call mkdir(tmpdir, 'p')
 
   setfiletype python
   exe 'lcd '.tmpdir
 
-  AssertEqual neomake#utils#get_project_root(bufnr), ''
+  let project_root = neomake#utils#get_project_root(bufnr)
+  if project_root ==# fnamemodify(tmpbase, ':h:h')
+    call vader#log('NOTE: got project root already for tmpbase: '.project_root)
+  else
+    AssertEqual project_root, ''
+  endif
 
   call writefile([], tmpdir . slash . 'setup.cfg')
   AssertEqual neomake#utils#get_project_root(bufnr), tmpdir
