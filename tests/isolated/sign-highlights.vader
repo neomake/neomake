@@ -1,7 +1,7 @@
 Include: ../include/setup.vader
 
 Execute (neomake#signs#DefineHighlights: SignColumn bg=NONE):
-  hi clear Error
+  hi clear ErrorMsg
   hi clear Normal
   hi clear LineNr
   highlight LineNr ctermfg=250 guifg=#c2c2c3
@@ -9,7 +9,7 @@ Execute (neomake#signs#DefineHighlights: SignColumn bg=NONE):
   AssertEqual neomake#utils#GetHighlight('SignColumn', 'bg'), 'NONE'
   AssertEqual neomake#utils#GetHighlight('SignColumn', 'bg', 'Normal'), 'NONE'
 
-  " Normal and Error are not defined.
+  " Normal and ErrorMsg are not defined.
   call neomake#signs#DefineHighlights()
   let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
   \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
@@ -17,8 +17,8 @@ Execute (neomake#signs#DefineHighlights: SignColumn bg=NONE):
   \ 'NeomakeErrorSignDefault xxx cleared',
   \ ]
 
-  " Normal is not defined, only fg for Error.
-  highlight Error ctermfg=166 guifg=#e45649
+  " Normal is not defined, only fg for ErrorMsg.
+  highlight ErrorMsg ctermfg=166 guifg=#e45649
 
   call neomake#signs#DefineHighlights()
   let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
@@ -44,7 +44,7 @@ Execute (neomake#signs#DefineHighlights with "NONE" SignColumn, no Normal):
   hi clear Normal
   hi clear SignColumn
   highlight SignColumn ctermfg=250 guifg=#c2c2c3
-  highlight Error cterm=bold ctermfg=166 ctermbg=255 gui=bold guifg=#e45649 guibg=#fafafa
+  highlight ErrorMsg cterm=bold ctermfg=166 ctermbg=255 gui=bold guifg=#e45649 guibg=#fafafa
 
   call neomake#signs#DefineHighlights()
   let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
@@ -60,7 +60,7 @@ Execute (neomake#signs#DefineHighlights: checks same gui bg/fg separately):
   if substitute(neomake#utils#redir('hi Normal'), '^\s+', '', '') !=# 'Normal         xxx ctermbg=1 guibg=#aaaaaa'
     NeomakeTestsSkip 'Setting ctermbg on Normal is buggy'  " nvim 0.1.7
   else
-    hi clear Error
+    hi clear ErrorMsg
     hi clear SignColumn
 
     call neomake#signs#DefineHighlights()
@@ -70,7 +70,7 @@ Execute (neomake#signs#DefineHighlights: checks same gui bg/fg separately):
     \ 'NeomakeErrorSignDefault xxx ctermbg=1 guibg=#aaaaaa',
     \ ]
 
-    highlight Error      ctermbg=1 guibg=#bbbbbb
+    highlight ErrorMsg ctermbg=1 guibg=#bbbbbb
     call neomake#signs#DefineHighlights()
     let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
     \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
@@ -88,7 +88,7 @@ Execute (neomake#signs#DefineHighlights: checks same gui bg/fg separately):
   endif
 
 Execute (neomake#signs#DefineHighlights: all NONE):
-  hi clear Error
+  hi clear ErrorMsg
   hi clear Normal
   hi clear SignColumn
 
