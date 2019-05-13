@@ -258,7 +258,7 @@ command! -nargs=1 AssertNeomakeWarning call s:AssertNeomakeWarning(<args>)
 
 function! s:AssertEqualQf(actual, expected, ...) abort
   let expected = a:expected
-  if has('patch-8.0.1782')
+  if has('patch-8.0.1782') || has('nvim-0.4.0')
     let expected = map(copy(expected), "extend(v:val, {'module': ''})")
   endif
   call call('vader#assert#equal', [a:actual, expected] + a:000)
