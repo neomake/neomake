@@ -17,7 +17,7 @@ RUN install_vim -tag v7.3.429 -name vim73 --with-features=huge -build \
                 -tag neovim:v0.3.1 -py3 -build \
   && rm -rf /vim-build/**/runtime/tutor
 
-ENV NEOMAKE_DOCKERFILE_UPDATE=2019-02-17
+ENV NEOMAKE_DOCKERFILE_UPDATE=2019-05-13
 
 RUN install_vim -tag neovim:master -build \
   && rm -rf /vim-build/**/runtime/tutor
@@ -50,7 +50,7 @@ RUN chmod +x /usr/local/bin/vimlint
 # Install covimerage and vint.
 RUN apk --no-cache add python3 \
   && pip3 install -U pip \
-  && pip3 install --no-cache-dir python-coveralls covimerage==0.1.4 vim-vint \
+  && pip3 install --no-cache-dir python-coveralls covimerage==0.1.5 vim-vint==0.3.21 \
   && rm -rf /usr/include /usr/lib/python*/turtle* /usr/lib/python*/tkinter \
   && pip3 uninstall --yes pip \
   && curl https://codecov.io/bash -o /usr/bin/codecov \
