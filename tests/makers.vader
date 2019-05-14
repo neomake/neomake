@@ -943,7 +943,7 @@ Execute (Makers: compare list entry defaults):
   let list1 = getloclist(0)
   AssertEqualQf list1, [
   \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
-  \  'vcol': 0, 'nr': 0, 'type': '', 'module': '', 'text': ''}]
+  \  'vcol': 0, 'nr': 0, 'type': '', 'text': ''}]
   bwipe
 
   " lgetexpr: => nr=-1 (needs text implicitly)
