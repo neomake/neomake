@@ -1674,12 +1674,12 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         " Fix entries with get_list_entries/process_output/process_json.
         let default_bufnr = a:jobinfo.bufnr
         call map(a:entries, 'extend(v:val, {'
-                    \ . "'bufnr': str2nr(get(v:val, 'bufnr', default_bufnr)),"
-                    \ . "'lnum': str2nr(v:val.lnum),"
+                    \ . "'bufnr': str2nr(get(v:val, 'bufnr', 0)),"
+                    \ . "'lnum': str2nr(get(v:val, 'lnum', 0)),"
                     \ . "'col': str2nr(get(v:val, 'col', 0)),"
                     \ . "'vcol': str2nr(get(v:val, 'vcol', 0)),"
-                    \ . "'type': get(v:val, 'type', 'E'),"
-                    \ . "'nr': get(v:val, 'nr', -1),"
+                    \ . "'type': get(v:val, 'type', ''),"
+                    \ . "'nr': get(v:val, 'nr', has_key(v:val, 'text') ? -1 : 0),"
                     \ . "'text': get(v:val, 'text', ''),"
                     \ . '})')
 
