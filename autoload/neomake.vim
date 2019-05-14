@@ -1673,6 +1673,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
     else
         " Fix entries with get_list_entries/process_output/process_json.
         let default_bufnr = a:jobinfo.bufnr
+        " @vimlint(EVL102, 1, l:default_type)
         let default_type = neomake#utils#GetSetting('default_entry_type', a:jobinfo.maker, 'W', a:jobinfo.ft, a:jobinfo.bufnr)
         call map(a:entries, 'extend(v:val, {'
                     \ . "'bufnr': str2nr(get(v:val, 'bufnr', 0)),"
