@@ -972,7 +972,7 @@ Execute (Highlights should be cleared after successful run):
   let highlights = neomake#highlights#_get()
   Assert !has_key(highlights['file'], bufnr('%')), 'highlight not present'
 
-Execute (neomake#GetCurrentErrorMsg):
+Execute (neomake#GetCurrentErrorMsg (get_list_entries)):
   new
   let maker = {'name': 'my_maker'}
   function maker.get_list_entries(...)
@@ -982,15 +982,19 @@ Execute (neomake#GetCurrentErrorMsg):
     \ {'lnum': 2, 'col': 1, 'text': 'error 2.1', 'bufnr': bufnr, 'nr': 42},
     \ {'lnum': 3, 'col': 1, 'text': 'error 3.1', 'bufnr': bufnr, 'nr': -1, 'type': ''},
     \ {'lnum': 3, 'col': 2, 'text': 'error 3.2', 'bufnr': bufnr, 'nr': 0, 'type': ''},
+    \ {'lnum': 4, 'col': 1, 'text': 'error 4.1', 'bufnr': bufnr, 'type': 'E'},
     \ ]
   endfunction
   CallNeomake 1, [maker]
 
-  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 1.1 (E)'
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 1.1'
   normal! o
-  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 2.1 (E42)'
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 2.1 (42)'
   normal! o
   AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.1'
+  normal! o
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 4.1 (E)'
+  normal! k
   normal! A12
   normal! l
   AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.2 (0)'
@@ -1005,6 +1009,30 @@ Execute (neomake#GetCurrentErrorMsg):
 
   CallNeomake 0, [g:true_maker]
   AssertEqual neomake#GetCurrentErrorMsg(), ''
+  bwipe!
+
+Execute (neomake#GetCurrentErrorMsg (cmd maker)):
+  new
+  noautocmd file fname
+  let cmd_maker = NeomakeTestsGetMakerWithOutput({}, [
+  \ 'fname:1:1:error 1.1',
+  \ 'fname:2:1:NR42:error 2.1',
+  \ 'fname:3:1:E:error 3.1',
+  \ 'fname:3:2:error 3.2',
+  \ ])
+  let cmd_maker.errorformat = '%f:%l:%c:NR%n:%m,%f:%l:%c:%t:%m,%f:%l:%c:%m'
+  let cmd_maker.name = 'my_maker'
+  CallNeomake 1, [cmd_maker]
+
+  Log getloclist(0)
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 1.1 (W)'
+  normal! o
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 2.1 (W42)'
+  normal! o
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.1 (E)'
+  normal! A12
+  normal! l
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.2 (W)'
   bwipe!
 
 Execute (Neomake! clippy):
