@@ -935,3 +935,64 @@ Execute (Job can be skipped via InitForJob):
   AssertEqual len(g:neomake_test_finished), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
   bwipe!
+
+Execute (Makers: compare list entry defaults):
+  " setloclist: => nr=0
+  new
+  call setloclist(0, [{}])
+  let list1 = getloclist(0)
+  AssertEqualQf list1, [
+  \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
+  \  'vcol': 0, 'nr': 0, 'type': '', 'module': '', 'text': ''}]
+  bwipe
+
+  " lgetexpr: => nr=-1 (needs text implicitly)
+  new
+  let &l:efm = '%m'
+  lgetexpr 'hastext'
+  let list2 = getloclist(0)
+  AssertEqualQf list2, [
+  \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
+  \  'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': 'hastext'}]
+  bwipe
+
+  " get_list_entries, without text: => nr=0
+  new
+  let maker = {}
+  function! maker.get_list_entries(...)
+    return [{}]
+  endfunction
+  CallNeomake 1, [maker]
+  let list3 = getloclist(0)
+  AssertEqualQf list3, list1
+  bwipe
+
+  " get_list_entries, with text: => nr=-1
+  new
+  let maker = {}
+  function! maker.get_list_entries(...)
+    return [{'text': 'hastext'}]
+  endfunction
+  CallNeomake 1, [maker]
+  let list4 = getloclist(0)
+  AssertEqualQf list4, list2
+  bwipe
+
+  " cmd maker, without text: => nr=-1
+  " This is not consistent - due to appending?!
+  new
+  let cmd_maker = NeomakeTestsGetMakerWithOutput({}, [''])
+  CallNeomake 1, [cmd_maker]
+  let list5 = getloclist(0)
+  AssertEqualQf list5, [
+  \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
+  \  'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': ''}]
+  bwipe
+
+  " cmd maker, with text: => nr=-1
+  new
+  let cmd_maker = NeomakeTestsGetMakerWithOutput({}, ['hastext'])
+  CallNeomake 1, [cmd_maker]
+  let list6 = getloclist(0)
+  AssertEqualQf list6, list2
+  bwipe
