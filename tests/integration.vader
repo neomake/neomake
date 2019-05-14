@@ -987,9 +987,9 @@ Execute (neomake#GetCurrentErrorMsg (get_list_entries)):
   endfunction
   CallNeomake 1, [maker]
 
-  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 1.1'
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 1.1 (W)'
   normal! o
-  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 2.1 (42)'
+  AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 2.1 (W42)'
   normal! o
   AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 3.1'
   normal! o
@@ -1024,7 +1024,6 @@ Execute (neomake#GetCurrentErrorMsg (cmd maker)):
   let cmd_maker.name = 'my_maker'
   CallNeomake 1, [cmd_maker]
 
-  Log getloclist(0)
   AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 1.1 (W)'
   normal! o
   AssertEqual neomake#GetCurrentErrorMsg(), 'my_maker: error 2.1 (W42)'

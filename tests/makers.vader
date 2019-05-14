@@ -956,7 +956,7 @@ Execute (Makers: compare list entry defaults):
   \  'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': 'hastext'}]
   bwipe
 
-  " get_list_entries, without text: => nr=0
+  " get_list_entries, without text: => nr=0, type=W (default)
   new
   let maker = {}
   function! maker.get_list_entries(...)
@@ -964,10 +964,13 @@ Execute (Makers: compare list entry defaults):
   endfunction
   CallNeomake 1, [maker]
   let list3 = getloclist(0)
-  AssertEqualQf list3, list1
+  " AssertEqualQf list3, list1
+  AssertEqualQf list3, [
+  \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
+  \  'vcol': 0, 'nr': 0, 'type': 'W', 'module': '', 'text': ''}]
   bwipe
 
-  " get_list_entries, with text: => nr=-1
+  " get_list_entries, with text: => nr=-1, type=W (default)
   new
   let maker = {}
   function! maker.get_list_entries(...)
@@ -975,7 +978,10 @@ Execute (Makers: compare list entry defaults):
   endfunction
   CallNeomake 1, [maker]
   let list4 = getloclist(0)
-  AssertEqualQf list4, list2
+  " AssertEqualQf list4, list2
+  AssertEqualQf list4, [
+  \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
+  \  'vcol': 0, 'nr': -1, 'type': 'W', 'module': '', 'text': 'hastext'}]
   bwipe
 
   " cmd maker, without text: => nr=-1

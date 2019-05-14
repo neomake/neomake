@@ -1679,7 +1679,7 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
                     \ . "'lnum': str2nr(get(v:val, 'lnum', 0)),"
                     \ . "'col': str2nr(get(v:val, 'col', 0)),"
                     \ . "'vcol': str2nr(get(v:val, 'vcol', 0)),"
-                    \ . "'type': get(v:val, 'type', ''),"
+                    \ . "'type': get(v:val, 'type', default_type),"
                     \ . "'nr': get(v:val, 'nr', has_key(v:val, 'text') ? -1 : 0),"
                     \ . "'text': get(v:val, 'text', ''),"
                     \ . '})')

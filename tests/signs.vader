@@ -314,7 +314,7 @@ Execute (project mode signs get placed when job finishes):
     " Verify sign handling with a file mode maker on top.
     let maker = {'_bufnr': bufnr1}
     function maker.get_list_entries(...)
-      return [{'bufnr': self._bufnr, 'lnum': 1}]
+      return [{'bufnr': self._bufnr, 'lnum': 1, 'type': 'E'}]
     endfunction
     CallNeomake {'file_mode': 1, 'enabled_makers': [maker]}
     AssertNeomakeMessage 'Placing sign: sign place 5001 line=1 name=neomake_file_err buffer='.bufnr1.'.'
@@ -387,11 +387,11 @@ Execute (CleanOldSigns removes unplaced sign from s:placed_signs):
     let s:call_count += 1
     let bufnr = bufnr('%')
     let entries = [
-      \ {'lnum': 1, 'text': '1', 'bufnr': bufnr},
+      \ {'lnum': 1, 'text': '1', 'bufnr': bufnr, 'type': 'E'},
       \ ]
     if s:call_count != 2
       let entries += [
-        \ {'lnum': 2, 'text': '2', 'bufnr': bufnr},
+        \ {'lnum': 2, 'text': '2', 'bufnr': bufnr, 'type': 'E'},
         \ ]
     endif
     return entries
