@@ -953,7 +953,7 @@ Execute (Makers: compare list entry defaults):
   let list2 = getloclist(0)
   AssertEqualQf list2, [
   \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
-  \  'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': 'hastext'}]
+  \  'vcol': 0, 'nr': -1, 'type': '', 'text': 'hastext'}]
   bwipe
 
   " get_list_entries, without text: => nr=0, type=W (default)
@@ -967,7 +967,7 @@ Execute (Makers: compare list entry defaults):
   " AssertEqualQf list3, list1
   AssertEqualQf list3, [
   \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
-  \  'vcol': 0, 'nr': 0, 'type': 'W', 'module': '', 'text': ''}]
+  \  'vcol': 0, 'nr': 0, 'type': 'W', 'text': ''}]
   bwipe
 
   " get_list_entries, with text: => nr=-1, type=W (default)
@@ -981,7 +981,7 @@ Execute (Makers: compare list entry defaults):
   " AssertEqualQf list4, list2
   AssertEqualQf list4, [
   \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
-  \  'vcol': 0, 'nr': -1, 'type': 'W', 'module': '', 'text': 'hastext'}]
+  \  'vcol': 0, 'nr': -1, 'type': 'W', 'text': 'hastext'}]
   bwipe
 
   " cmd maker, without text: => nr=-1
@@ -992,7 +992,7 @@ Execute (Makers: compare list entry defaults):
   let list5 = getloclist(0)
   AssertEqualQf list5, [
   \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 0,
-  \  'vcol': 0, 'nr': -1, 'type': '', 'module': '', 'text': ''}]
+  \  'vcol': 0, 'nr': -1, 'type': '', 'text': ''}]
   bwipe
 
   " cmd maker, with text: => nr=-1
