@@ -733,12 +733,18 @@ Execute (Automake restarts on InsertLeave if context and mode changed (CursorHol
     call neomake#log#debug("after feedkeys.")
     NeomakeTestsWaitForMessage 'exited.', 3
 
-    AssertNeomakeMessage 'automake: re-starting postponed automake.'
+    if s:exited
+      AssertNeomakeMessage 'automake: re-starting postponed automake.'
+    endif
     " Does not use delay/timer.
     AssertNeomakeMessageAbsent '\Vautomake: increasing delay \.\*'
     AssertNeomakeMessageAbsent '\Vautomake: started timer'
 
-    Assert s:exited != -1, 's:exited: '.s:exited
+    if has('nvim')
+      AssertEqual s:exited, 1
+    else
+      Assert s:exited != -1, 's:exited: '.s:exited
+    endif
     NeomakeCancelJobs!
     bwipe!
   endif
