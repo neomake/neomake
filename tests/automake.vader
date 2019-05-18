@@ -731,7 +731,7 @@ Execute (Automake restarts on InsertLeave if context and mode changed (CursorHol
     call neomake#log#debug("feedkeys.")
     call feedkeys('o', 'nx!')
     call neomake#log#debug("after feedkeys.")
-    NeomakeTestsWaitForMessage 'exiting insert mode.', 3
+    NeomakeTestsWaitForMessage 'exited.', 3
 
     AssertNeomakeMessage 'automake: re-starting postponed automake.'
     " Does not use delay/timer.
