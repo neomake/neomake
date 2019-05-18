@@ -708,14 +708,22 @@ Execute (Automake restarts on InsertLeave if context and mode changed (CursorHol
     let b:neomake_enabled_makers = [g:true_maker]
     call neomake#configure#automake_for_buffer({'CursorHold': {'delay': 10}})
 
-    let s:exited = 0
+    let s:exited = -1
     function! s:exit_insert(...)
-      call neomake#log#debug("exiting insert mode.")
-      let s:exited = 1
-      call feedkeys("\<Esc>")
+      if mode() ==# 'i'
+        NeomakeTestsWaitForMessage '\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''n''] => [\d\+, [0, 2, 1, 0], ''i''], restarting on InsertLeave.', 3
+        let s:exited = 1
+        call neomake#log#debug("exit_insert: <Esc>.")
+        call feedkeys("\<Esc>")
+      else
+        call neomake#log#debug("exit_insert: not in insert mode.")
+        NeomakeTestsWaitForMessage '\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''n''] => [\d\+, [0, 2, 11, 0], ''n''], restarting.', 3
+        let s:exited = 0
+      endif
+      call neomake#log#debug("exited.")
     endfunction
     call neomake#log#debug("starting exit_insert timer.")
-    call timer_start(1000, function('s:exit_insert'))
+    call timer_start(10, function('s:exit_insert'))
 
     doautocmd CursorHold
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
@@ -723,14 +731,14 @@ Execute (Automake restarts on InsertLeave if context and mode changed (CursorHol
     call neomake#log#debug("feedkeys.")
     call feedkeys('o', 'nx!')
     call neomake#log#debug("after feedkeys.")
-    NeomakeTestsWaitForMessage '\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''n''] => [\d\+, [0, 2, 1, 0], ''i''], restarting on InsertLeave.', 3
+    NeomakeTestsWaitForMessage 'exiting insert mode.', 3
 
     AssertNeomakeMessage 'automake: re-starting postponed automake.'
     " Does not use delay/timer.
     AssertNeomakeMessageAbsent '\Vautomake: increasing delay \.\*'
     AssertNeomakeMessageAbsent '\Vautomake: started timer'
 
-    AssertEqual s:exited, 1
+    Assert s:exited != -1, 's:exited: '.s:exited
     NeomakeCancelJobs!
     bwipe!
   endif
