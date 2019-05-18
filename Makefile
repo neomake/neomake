@@ -85,12 +85,13 @@ TEST_VIM_PREFIX+=HOME=$(CURDIR)/build/vim-test-home
 # > Vim: Finished.
 # For Vim `-s /dev/null` is used to skip the 2s delay with warning
 # "Vim: Warning: Output is not to a terminal".
+# (--not-a-term is only supported since vim74-xenial).
 COVERAGE_FILE:=.coverage_covimerage
 _COVIMERAGE=$(if $(filter-out 0,$(NEOMAKE_DO_COVERAGE)),covimerage run --data-file $(COVERAGE_FILE) --append --no-report ,)
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) "$(TEST_VIM)" --version | head -n2))
 	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)"$(TEST_VIM)" \
-	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X $(if $(_REDIR_STDOUT),-s /dev/null,)) \
+	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X $(if $(_REDIR_STDOUT),--not-a-term,)) \
 	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
 endef
 
