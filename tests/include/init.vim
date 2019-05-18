@@ -590,6 +590,18 @@ function! s:After()
   endfor
 
   let new_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val) && index(g:neomake_test_buffers_before, v:val) == -1')
+  if !empty(new_buffers) && has('patch-8.1.0877')
+    " Filter out unlisted qf buffers, which Vim keeps around.
+    let new_new_buffers = []
+    for b in new_buffers
+      if !buflisted(b) && getbufvar(b, '&ft') ==# 'qf'
+        exe 'bwipe!' b
+        continue
+      endif
+      call append(new_new_buffers, b)
+    endfor
+    let new_buffers = new_new_buffers
+  endif
   if !empty(new_buffers)
     let curbuffers = neomake#utils#redir('ls!')
     call add(errors, 'Unexpected/not wiped buffers: '.join(new_buffers, ', ')."\ncurrent buffers:".curbuffers)
@@ -624,6 +636,8 @@ function! s:After()
   let highlights = neomake#highlights#_get()
   if highlights != {'file': {}, 'project': {}}
     call add(errors, printf('Highlights were not reset (use a new buffer): %s', highlights))
+    let highlights.file = {}
+    let highlights.project = {}
   endif
 
   if exists('#neomake_event_queue')
