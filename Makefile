@@ -78,7 +78,9 @@ _SED_HIGHLIGHT_ERRORS:=| contrib/highlight-log --compact vader
 #  - test "Automake restarts if popup menu is visible" hangs (https://github.com/vim/vim/issues/1320)
 #  - running the command from "make testvim" directly (i.e. without "make")
 #    triggers half the screen to be cleared in the end
-_REDIR_STDOUT:=2>&1 >/dev/null </dev/null $(_SED_HIGHLIGHT_ERRORS)
+# Vim requires stdin to be closed for feedkeys to stay in insert mode, at
+# least in Docker on CircleCI.
+_REDIR_STDOUT:=2>&1 >/dev/null </dev/null
 
 # Neovim needs a valid HOME (https://github.com/neovim/neovim/issues/5277).
 # Vim hangs with /dev/null on Windows (native Vim via MSYS2).
@@ -94,9 +96,9 @@ COVERAGE_FILE:=.coverage_covimerage
 _COVIMERAGE=$(if $(filter-out 0,$(NEOMAKE_DO_COVERAGE)),covimerage run --data-file $(COVERAGE_FILE) --append --no-report ,)
 define func-run-vim
 	$(info Using: $(shell $(TEST_VIM_PREFIX) "$(TEST_VIM)" --version | head -n2))
-	$(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)"$(TEST_VIM)" \
+	($(_COVIMERAGE)$(if $(TEST_VIM_PREFIX),env $(TEST_VIM_PREFIX) ,)"$(TEST_VIM)" \
 	  $(if $(IS_NEOVIM),$(if $(_REDIR_STDOUT),--headless,),-X $(if $(_REDIR_STDOUT),-s /dev/null,)) \
-	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)
+	  --noplugin -Nu $(TEST_VIMRC) -i NONE $(VIM_ARGS) $(_REDIR_STDOUT)) $(_SED_HIGHLIGHT_ERRORS)
 endef
 
 # Interactive tests, keep Vader open.
