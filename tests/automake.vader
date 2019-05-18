@@ -710,27 +710,27 @@ Execute (Automake restarts on InsertLeave if context and mode changed (CursorHol
 
     let s:exited = 0
     function! s:exit_insert(...)
+      call neomake#log#debug("exiting insert mode.")
       let s:exited = 1
       call feedkeys("\<Esc>")
     endfunction
-    call timer_start(100, function('s:exit_insert'))
+    call neomake#log#debug("starting exit_insert timer.")
+    call timer_start(1000, function('s:exit_insert'))
 
     doautocmd CursorHold
     AssertNeomakeMessage '\vautomake: started timer \(10ms\): (\d+)'
 
+    call neomake#log#debug("feedkeys.")
     call feedkeys('o', 'nx!')
-    if s:exited == 1
-      AssertNeomakeMessage '\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''n''] => [\d\+, [0, 2, 1, 0], ''i''], restarting on InsertLeave.', 3
-    else
-      " Vim when stdin is not /dev/null, but only on CircleCI?!
-      NeomakeTestsWaitForMessage '\Vautomake: context/position changed: [\d+, [0, 1, 11, 0], ''n''] => [\d+, [0, 2, 11, 0], ''n''], restarting.', 3
-    endif
+    call neomake#log#debug("after feedkeys.")
+    NeomakeTestsWaitForMessage '\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''n''] => [\d\+, [0, 2, 1, 0], ''i''], restarting on InsertLeave.', 3
 
     AssertNeomakeMessage 'automake: re-starting postponed automake.'
     " Does not use delay/timer.
     AssertNeomakeMessageAbsent '\Vautomake: increasing delay \.\*'
     AssertNeomakeMessageAbsent '\Vautomake: started timer'
 
+    AssertEqual s:exited, 1
     NeomakeCancelJobs!
     bwipe!
   endif
