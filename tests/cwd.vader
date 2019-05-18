@@ -45,7 +45,6 @@ Execute (tcd is handled properly):
         call mkdir(d, 'p')
       endif
     endfor
-    let tab = tabpagenr()
     try
       tabnew
       let tab1 = tabpagenr()

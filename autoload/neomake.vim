@@ -1032,8 +1032,8 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
                                 \ &filetype), a:jobinfo)
                 else
                     call neomake#log#debug(printf(
-                                \ 'list window has been opened (old count: %d, new count: %d).',
-                                \ win_count, new_win_count), a:jobinfo)
+                                \ 'list window has been opened (old count: %d, new count: %d, height: %d).',
+                                \ win_count, new_win_count, winheight(0)), a:jobinfo)
                     let w:neomake_window_for_make_id = a:jobinfo.make_id
                 endif
             else
