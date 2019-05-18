@@ -710,9 +710,12 @@ Execute (Automake restarts on InsertLeave if context and mode changed (CursorHol
 
     let s:exited = 0
     function! s:exit_insert(...)
-      NeomakeTestsWaitForMessage '\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''n''] => [\d\+, [0, 2, 1, 0], ''i''], restarting on InsertLeave.', 3
-      let s:exited = 1
-      call feedkeys("\<Esc>")
+      try
+        NeomakeTestsWaitForMessage '\Vautomake: context/position changed: [\d\+, [0, 1, 11, 0], ''n''] => [\d\+, [0, 2, 1, 0], ''i''], restarting on InsertLeave.', 3
+        let s:exited = 1
+      finally
+        call feedkeys("\<Esc>")
+      endtry
     endfunction
     call timer_start(10, function('s:exit_insert'))
 
