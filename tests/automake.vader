@@ -710,10 +710,11 @@ Execute (Automake restarts on InsertLeave if context and mode changed (CursorHol
 
     let s:exited = 0
     function! s:exit_insert(...)
+      call neomake#log#debug("exiting insert mode")
       let s:exited = 1
       call feedkeys("\<Esc>")
     endfunction
-    call timer_start(100, function('s:exit_insert'))
+    call timer_start(500, function('s:exit_insert'))
 
     doautocmd CursorHold
     call feedkeys('o', 'nx!')
