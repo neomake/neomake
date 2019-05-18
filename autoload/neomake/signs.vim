@@ -216,7 +216,7 @@ function! neomake#signs#RedefineErrorSign(...) abort
 endfunction
 
 function! neomake#signs#RedefineWarningSign(...) abort
-    let default_opts = {'text': '⚠', 'texthl': 'NeomakeWarningSign'}
+    let default_opts = {'text': '‼', 'texthl': 'NeomakeWarningSign'}
     let opts = {}
     if a:0
         call extend(opts, a:1)
