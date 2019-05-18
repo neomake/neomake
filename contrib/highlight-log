@@ -19,13 +19,12 @@ log_color_off="$bold_off$color_off"
 error_color="[31;1m"
 error_color_off="$bold_off$color_off"
 
+# compact: display test headers, but not inner output for successful ones.
 compact=0
-quiet=0
 
 while [ $# -ne 0 ]; do
     case $1 in
     --compact) compact=1; shift ;;
-    --quiet) quiet=1; shift ;;
     --)  shift; break ;;
     -?*) echo "Unknown option: $1" 1>&2; exit 64 ;;
     *) break ;;
@@ -60,26 +59,17 @@ if [ "$1" = vader ]; then
       -e '/'"$re_ignore_log_line"'/! s/'"$re_log_line"'/\1'"$log_color"'\3'"$log_color_off"'/'
   }
 
-  if ((quiet || compact)); then
-    spinner_chars='/-\|'
-    spinner_current=0
-  fi
-
-  quiet_started=$(( !(quiet || compact) ))
-  if ((compact || quiet)); then
+  if ((compact)); then
     # Do not display output for successful tests (i.e. the log statements).
     last_start_match=
     # Match Vader header ("( 1/33) [EXECUTE] …"), but also if there is output
     # from Vim, e.g. with ":colder".
     re_vader_header='^([^ ].*)?\ +(\(\ *[0-9]+/[0-9]+\))'
     filtering=0
-    quiet_filtered=
     finished_reading=0
     stopped_filtering=0
     while [ "$finished_reading" = 0 ]; do
       if ! read -r; then
-        # Clear spinner.
-        printf "\r" >&2
         if [ -z "$REPLY" ]; then
           break
           finished_reading=1
@@ -87,34 +77,11 @@ if [ "$1" = vader ]; then
       fi
       if [[ "$REPLY" == *'Vader error:'* ]] || [[ "$REPLY" == 'Error'* ]] || [[ "$REPLY" == 'Traceback'* ]]; then
         printf "\r" >&2
-        if [[ -n "$quiet_filtered" ]]; then
-          echo "$quiet_filtered"
-          quiet_filtered=
-        fi
         printf "[31m[1m%s[0m\n" "$REPLY"
-        quiet_started=1
         continue
       fi
       if (( stopped_filtering )); then
         echo "$REPLY"
-        continue
-      fi
-      # quiet/compact: suppress output until "Starting Vader:".
-      if ! ((quiet_started)); then
-        if [[ "$REPLY" == *'Starting Vader:'* ]]; then
-          printf "\r" >&2
-          echo "$REPLY"
-          quiet_started=1
-          quiet_filtered=
-        else
-          printf "\r%s" ${spinner_chars:spinner_current++:1} >&2
-          ((spinner_current==${#spinner_chars})) && spinner_current=0
-          if [[ -n "$quiet_filtered" ]]; then
-            quiet_filtered="$quiet_filtered"$'\n'"$REPLY"
-          else
-            quiet_filtered="$REPLY"
-          fi
-        fi
         continue
       fi
       if [[ "$REPLY" == *'Starting Vader:'* ]]; then
@@ -134,12 +101,8 @@ if [ "$1" = vader ]; then
         if [[ ${BASH_REMATCH[2]} == "$last_start_match" ]]; then
           filtered="$filtered"$'\n'"$REPLY"
         else
-          if ! ((quiet)); then
-            echo "$REPLY"
-            filtered=
-          else
-            filtered="$REPLY"
-          fi
+          echo "$REPLY"
+          filtered=
         fi
         last_start_match="${BASH_REMATCH[2]}"
       elif [[ "$REPLY" == *'Success/Total: '* || "$REPLY" == '  Slowest tests:' ]]; then
