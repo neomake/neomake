@@ -624,6 +624,8 @@ function! s:After()
   let highlights = neomake#highlights#_get()
   if highlights != {'file': {}, 'project': {}}
     call add(errors, printf('Highlights were not reset (use a new buffer): %s', highlights))
+    let highlights.file = {}
+    let highlights.project = {}
   endif
 
   if exists('#neomake_event_queue')
