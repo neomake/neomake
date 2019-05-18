@@ -23,13 +23,13 @@ else
 endif
 
 if exists('$TESTS_VADER_DIR')
-  let vader_dir = expand($TESTS_VADER_DIR)
+  let s:vader_dir = expand($TESTS_VADER_DIR)
 else
-  let vader_dir = s:dep_plugins_base . s:slash . 'vader'
+  let s:vader_dir = s:dep_plugins_base . s:slash . 'vader'
 endif
 
-let &runtimepath .= ','.vader_dir
-exe 'source' join([vader_dir, 'plugin', 'vader.vim'], s:slash)
+let &runtimepath .= ','.s:vader_dir
+exe 'source' join([s:vader_dir, 'plugin', 'vader.vim'], s:slash)
 
 function! s:load_plugin_on_demand(name) abort
   Save &runtimepath
@@ -59,10 +59,10 @@ function! s:load_plugin_on_demand(name) abort
 endfunction
 command! -nargs=1 NeomakeTestsLoadPlugin call s:load_plugin_on_demand(<args>)
 
-let plugin_dir = expand('<sfile>:p:h:h:h')
-let &runtimepath .= ','.plugin_dir
+let s:plugin_dir = expand('<sfile>:p:h:h:h')
+let &runtimepath .= ','.s:plugin_dir
 
-exe 'source' join([plugin_dir, 'plugin', 'neomake.vim'], s:slash)
+exe 'source' join([s:plugin_dir, 'plugin', 'neomake.vim'], s:slash)
 
 filetype plugin indent on
 
