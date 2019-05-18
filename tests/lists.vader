@@ -745,7 +745,7 @@ Execute (open_list and list_height can be buffer settings):
   AssertEqual winnr, winnr()
   AssertEqual wincount + 1, winnr('$'), 'Location list appeared'
   AssertEqual map(getloclist(0), '[v:val.text, v:val.type]'),
-  \ [['1', 'E'], ['', 'E'], ['', 'E']]
+  \ [['1', 'E'], ['', 'W'], ['', 'W']]
 
   AssertEqual winheight(wincount + 1), 2
   lclose

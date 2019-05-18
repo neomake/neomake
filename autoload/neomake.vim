@@ -1672,13 +1672,16 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
         let parsed_entries = a:entries
     else
         " Fix entries with get_list_entries/process_output/process_json.
+        " @vimlint(EVL102, 1, l:default_type)
+        let default_type = neomake#utils#GetSetting('default_entry_type', a:jobinfo.maker, 'W', a:jobinfo.ft, a:jobinfo.bufnr)
         call map(a:entries, 'extend(v:val, {'
                     \ . "'bufnr': str2nr(get(v:val, 'bufnr', 0)),"
-                    \ . "'lnum': str2nr(v:val.lnum),"
+                    \ . "'lnum': str2nr(get(v:val, 'lnum', 0)),"
                     \ . "'col': str2nr(get(v:val, 'col', 0)),"
                     \ . "'vcol': str2nr(get(v:val, 'vcol', 0)),"
-                    \ . "'type': get(v:val, 'type', 'E'),"
-                    \ . "'nr': get(v:val, 'nr', -1),"
+                    \ . "'type': get(v:val, 'type', default_type),"
+                    \ . "'nr': get(v:val, 'nr', has_key(v:val, 'text') ? -1 : 0),"
+                    \ . "'text': get(v:val, 'text', ''),"
                     \ . '})')
 
         let cd_error = a:jobinfo.cd()
