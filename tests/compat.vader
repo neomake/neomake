@@ -78,7 +78,15 @@ Execute (neomake#compat#get_mode):
 
   if has('nvim')
     let nvim_exe = '/proc/'.getpid().'/exe'
-    let nvim = jobstart([nvim_exe, '-u', 'tests/vim/vimrc', '--headless', '--embed'], {'rpc': v:true})
+    let nvim_cmd = [nvim_exe, '-u', 'tests/vim/vimrc', '--headless']
+    if has('nvim-0.3.0')
+      " Do not use --embed, which might cause it to hang with hit-enter prompt
+      " due to `echom` (while debugging).  Requires Neovim 0.3.0+.
+      let nvim_cmd += ['--cmd', "call stdioopen({'rpc': v:true})"]
+    else
+      let nvim_cmd += ['--embed']
+    endif
+    let nvim = jobstart(nvim_cmd, {'rpc': v:true})
     call rpcrequest(nvim, 'nvim_call_function', 'feedkeys', ['d', '!'])
     call rpcrequest(nvim, 'nvim_eval', 'assert_equal(neomake#compat#get_mode(), "no")')
     let rpc_errors = rpcrequest(nvim, 'nvim_eval', 'v:errors')
