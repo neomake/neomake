@@ -5,16 +5,6 @@ else
     lockvar g:neomake_place_signs
 endif
 
-function! neomake#setup#define_highlights() abort
-    if g:neomake_place_signs
-        call neomake#signs#DefineHighlights()
-    endif
-    if get(g:, 'neomake_highlight_columns', 1)
-                \ || get(g:, 'neomake_highlight_lines', 0)
-        call neomake#highlights#DefineHighlights()
-    endif
-endfunction
-
 function! neomake#setup#setup_autocmds() abort
     augroup neomake
         au!
@@ -30,7 +20,7 @@ function! neomake#setup#setup_autocmds() abort
             autocmd CursorHold,CursorHoldI * call neomake#CursorMoved()
         endif
         autocmd VimLeave * call neomake#VimLeave()
-        autocmd ColorScheme * call neomake#setup#define_highlights()
+        autocmd ColorScheme * call neomake#setup#highlight#define_highlights()
     augroup END
 endfunction
 

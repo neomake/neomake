@@ -270,7 +270,7 @@ function! neomake#signs#DefineHighlights() abort
     let guibg = neomake#utils#GetHighlight('SignColumn', 'bg#', 'Normal')
 
     " Define NeomakeErrorSign, NeomakeWarningSign etc.
-    call neomake#utils#define_derived_highlights('Neomake%sSign', [ctermbg, guibg])
+    call neomake#setup#highlight#define_derived_highlights('Neomake%sSign', [ctermbg, guibg])
 endfunction
 
 function! neomake#signs#DefineSigns() abort
