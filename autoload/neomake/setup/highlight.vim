@@ -3,33 +3,40 @@ let s:defined_fg_hl_groups = 0
 " Setup base highlight groups for foreground attributes.
 function! neomake#setup#highlight#define_fg_highlight_groups() abort
     for [group, fg_from] in items({
-                \ 'NeomakeFgError': 'Error',
-                \ 'NeomakeFgWarning': 'Todo',
-                \ 'NeomakeFgInfo': 'Question',
-                \ 'NeomakeFgMessage': 'ModeMsg'
+                \ 'NeomakeFgError': ['Error', 'ctermfg=1 guifg=Red'],
+                \ 'NeomakeFgWarning': ['Todo', 'ctermfg=3 guifg=Yellow'],
+                \ 'NeomakeFgInfo': ['Question', 'ctermfg=6 guifg=Cyan'],
+                \ 'NeomakeFgMessage': ['ModeMsg', 'ctermfg=4 guifg=Blue'],
                 \ })
-        call s:define_with_accent_color(group, fg_from)
+        let hi = neomake#setup#highlight#get_hi_for_fg(fg_from[0])
+        if empty(hi)
+            let hi = fg_from[1]
+        endif
+        exe printf('hi %s %s', group, hi)
     endfor
 endfunction
 
 " Get accent/relevant color from a highlight group.
 " Uses heuristics to get e.g. the red from "Error", where it might either be
 " via its background or foreground.
-function! s:define_with_accent_color(group, from) abort
-    if synIDattr(synIDtrans(hlID(a:from)), 'bold')
-        " bold: assume that fg is relevant.
-        let use = 'fg'
-    elseif index(['0', '7', '8', '15', 'NONE'], neomake#utils#GetHighlight(a:from, 'fg')) != -1
+function! neomake#setup#highlight#get_hi_for_fg(from) abort
+    if index(['0', '7', '8', '15', 'NONE'], neomake#utils#GetHighlight(a:from, 'fg')) != -1
         " Use bg if fg is black/white.
         let use = 'bg'
     else
         let use = 'fg'
     endif
+    let r = []
     " TODO: keep cterm and gui attributes?
     let ctermfg = neomake#utils#GetHighlight(a:from, use)
+    if ctermfg !=# 'NONE'
+        call add(r, 'ctermfg='.ctermfg)
+    endif
     let guifg = neomake#utils#GetHighlight(a:from, use.'#')
-    " echom printf('hi %s ctermfg=%s guifg=%s', a:group, ctermfg, guifg)
-    exe printf('hi %s ctermfg=%s guifg=%s', a:group, ctermfg, guifg)
+    if guifg !=# 'NONE'
+        call add(r, 'guifg='.guifg)
+    endif
+    return join(r, ' ')
 endfunction
 
 " Helper function to define default highlight for a:group (e.g.

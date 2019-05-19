@@ -14,7 +14,7 @@ Execute (neomake#signs#DefineHighlights: SignColumn bg=NONE):
   let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
   \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
   AssertEqual highlights, [
-  \ 'NeomakeErrorSignDefault xxx cleared',
+  \ 'NeomakeErrorSignDefault xxx ctermfg=1 guifg=Red',
   \ ]
 
   " Normal is not defined, only fg for Error.
@@ -103,7 +103,7 @@ Execute (neomake#signs#DefineHighlights: all NONE):
   let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
   \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
   AssertEqual highlights, [
-  \ 'NeomakeErrorSignDefault xxx cleared',
+  \ 'NeomakeErrorSignDefault xxx ctermfg=1 guifg=Red',
   \ ]
 
 Execute (neomake#utils#GetHighlight: correct mode with reverse):

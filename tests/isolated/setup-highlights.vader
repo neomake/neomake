@@ -1,0 +1,42 @@
+Include: ../include/setup.vader
+
+Execute (neomake#setup#highlight#get_hi_for_fg):
+  " Uses fallback.
+  hi clear Error
+  AssertEqual neomake#setup#highlight#get_hi_for_fg('Error'), ''
+  call neomake#setup#highlight#define_fg_highlight_groups()
+  let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
+  \ 'v:val =~# ''^NeomakeFgError'''))
+  AssertEqual highlights, [
+  \ 'NeomakeFgError xxx ctermfg=1 guifg=Red',
+  \ ]
+
+  " Prefers bg with black background.
+  hi Error ctermfg=0 ctermbg=1 guifg=#000000 guibg=#ff0000
+  AssertEqual neomake#setup#highlight#get_hi_for_fg('Error'), 'ctermfg=1 guifg=#ff0000'
+  call neomake#setup#highlight#define_fg_highlight_groups()
+  let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
+  \ 'v:val =~# ''^NeomakeFgError'''))
+  AssertEqual highlights, [
+  \ 'NeomakeFgError xxx ctermfg=1 guifg=#ff0000',
+  \ ]
+
+  " Prefers bg with black background (with bold fg).
+  hi Error cterm=bold ctermfg=0 ctermbg=1 guifg=#000000 guibg=#ff0000
+  AssertEqual neomake#setup#highlight#get_hi_for_fg('Error'), 'ctermfg=1 guifg=#ff0000'
+  call neomake#setup#highlight#define_fg_highlight_groups()
+  let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
+  \ 'v:val =~# ''^NeomakeFgError'''))
+  AssertEqual highlights, [
+  \ 'NeomakeFgError xxx ctermfg=1 guifg=#ff0000',
+  \ ]
+
+  " Defaults to fg.
+  hi Error ctermfg=9 guifg=#ff0000
+  AssertEqual neomake#setup#highlight#get_hi_for_fg('Error'), 'ctermfg=9 guifg=#ff0000'
+  call neomake#setup#highlight#define_fg_highlight_groups()
+  let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
+  \ 'v:val =~# ''^NeomakeFgError'''))
+  AssertEqual highlights, [
+  \ 'NeomakeFgError xxx ctermfg=9 guifg=#ff0000',
+  \ ]
