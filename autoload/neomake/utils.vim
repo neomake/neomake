@@ -15,7 +15,7 @@ function! neomake#utils#Stringify(obj) abort
         return '['.join(ls, ', ').']'
     elseif type(a:obj) == type({})
         let ls = []
-        for [k, V] in items(neomake#utils#fix_self_ref(a:obj))
+        for [k, l:V] in items(neomake#utils#fix_self_ref(a:obj))
             if type(V) == type(function('tr'))
                 let fname = substitute(string(V), ', {\zs.*\ze})', '…', '')
                 call add(ls, k.': '.fname)
@@ -126,7 +126,7 @@ let s:super_ft_cache = {}
 function! neomake#utils#GetSupersetOf(ft) abort
     if !has_key(s:super_ft_cache, a:ft)
         call neomake#utils#load_ft_makers(a:ft)
-        let SupersetOf = 'neomake#makers#ft#'.a:ft.'#SupersetOf'
+        let l:SupersetOf = 'neomake#makers#ft#'.a:ft.'#SupersetOf'
         if exists('*'.SupersetOf)
             let s:super_ft_cache[a:ft] = call(SupersetOf, [])
         else
@@ -200,14 +200,14 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
     " Check new-style config.
     if exists('g:neomake') || !empty(getbufvar(a:bufnr, 'neomake'))
         let context = {'ft': a:ft, 'maker': a:maker, 'bufnr': a:bufnr, 'maker_only': maker_only}
-        let [Ret, source] = neomake#config#get_with_source(a:key, g:neomake#config#undefined, context)
+        let [l:Ret, source] = neomake#config#get_with_source(a:key, g:neomake#config#undefined, context)
         " Check old-style setting when source is the maker.
         if source ==# 'maker' && !maker_only
             let tmpmaker = {}
             if has_key(a:maker, 'name')
                 let tmpmaker.name = a:maker.name
             endif
-            let RetOld = s:get_oldstyle_setting(a:key, tmpmaker, s:unset, a:ft, a:bufnr, 1)
+            let l:RetOld = s:get_oldstyle_setting(a:key, tmpmaker, s:unset, a:ft, a:bufnr, 1)
             if RetOld isnot# s:unset
                 return RetOld
             endif
@@ -241,7 +241,7 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
         endif
         let config_var = 'neomake_'.part.'_'.a:key
         if a:bufnr isnot# ''
-            let Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
+            let l:Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
             if Bufcfgvar isnot s:unset
                 return copy(Bufcfgvar)
             endif

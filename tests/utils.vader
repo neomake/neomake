@@ -234,11 +234,11 @@ Execute (neomake#utils#GetSetting does not create a partial for dict funcs):
   function maker.func()
   endfunction
 
-  let Func = neomake#utils#GetSetting('func', maker, '', '', '', 1)
+  let l:Func = neomake#utils#GetSetting('func', maker, '', '', '', 1)
   AssertEqual type(Func), type(function('tr'))
   AssertEqual Func, get(maker, 'func')
 
-  let Func = neomake#utils#GetSetting('func', maker, '', '', '', 0)
+  let l:Func = neomake#utils#GetSetting('func', maker, '', '', '', 0)
   AssertEqual type(Func), type(function('tr'))
   AssertEqual Func, get(maker, 'func')
 

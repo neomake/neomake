@@ -686,7 +686,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         endif
     endif
 
-    let Postprocess = neomake#utils#GetSetting('postprocess', maker, [], a:jobinfo.ft, a:jobinfo.bufnr)
+    let l:Postprocess = neomake#utils#GetSetting('postprocess', maker, [], a:jobinfo.ft, a:jobinfo.bufnr)
     if type(Postprocess) != type([])
         let postprocessors = [Postprocess]
     else
@@ -739,7 +739,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         if !empty(postprocessors)
             let g:neomake_postprocess_context = {'jobinfo': a:jobinfo}
             try
-                for F in postprocessors
+                for l:F in postprocessors
                     if type(F) == type({})
                         call call(F.fn, [entry], F)
                     else

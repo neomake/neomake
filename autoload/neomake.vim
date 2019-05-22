@@ -523,7 +523,7 @@ endif
 let s:command_maker_base = copy(g:neomake#core#command_maker_base)
 " Check if a temporary file is used, and set it in s:make_info in case it is.
 function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
-    let Supports_stdin = neomake#utils#GetSetting('supports_stdin', self, s:unset_dict, a:jobinfo.ft, a:jobinfo.bufnr)
+    let l:Supports_stdin = neomake#utils#GetSetting('supports_stdin', self, s:unset_dict, a:jobinfo.ft, a:jobinfo.bufnr)
     if Supports_stdin isnot s:unset_dict
         if type(Supports_stdin) == type(function('tr'))
             let supports_stdin = call(Supports_stdin, [a:jobinfo], self)
@@ -809,7 +809,7 @@ function! neomake#create_maker_object(maker, ft) abort
     let [maker, ft, bufnr] = [a:maker, a:ft, bufnr('%')]
 
     " Create the maker object.
-    let GetEntries = neomake#utils#GetSetting('get_list_entries', maker, -1, ft, bufnr)
+    let l:GetEntries = neomake#utils#GetSetting('get_list_entries', maker, -1, ft, bufnr)
     if GetEntries isnot# -1
         let maker = copy(maker)
         let maker.get_list_entries = GetEntries
@@ -2209,7 +2209,7 @@ function! s:exit_handler(jobinfo, data) abort
         endfor
 
         if !get(jobinfo, 'failed_to_start')
-            let ExitCallback = neomake#utils#GetSetting('exit_callback',
+            let l:ExitCallback = neomake#utils#GetSetting('exit_callback',
                         \ extend(copy(jobinfo), maker), 0, jobinfo.ft, jobinfo.bufnr)
             if ExitCallback isnot# 0
                 let callback_dict = { 'status': jobinfo.exit_code,
@@ -2217,7 +2217,7 @@ function! s:exit_handler(jobinfo, data) abort
                                     \ 'has_next': !empty(s:make_info[jobinfo.make_id].jobs_queue) }
                 try
                     if type(ExitCallback) == type('')
-                        let ExitCallback = function(ExitCallback)
+                        let l:ExitCallback = function(ExitCallback)
                     endif
                     call call(ExitCallback, [callback_dict], jobinfo)
                 catch

@@ -38,12 +38,12 @@ function! neomake#core#instantiate_maker(maker, options, check_exe) abort
     let bufnr = get(options, 'bufnr', '')
 
     " Call InitForJob function in maker object, if any.
-    let Init = neomake#utils#GetSetting('InitForJob', maker, g:neomake#config#undefined, ft, bufnr)
+    let l:Init = neomake#utils#GetSetting('InitForJob', maker, g:neomake#config#undefined, ft, bufnr)
     if empty(Init)
         " Deprecated: should use InitForJob instead.
         if has_key(maker, 'fn')
             unlet Init  " vim73
-            let Init = maker.fn
+            let l:Init = maker.fn
             call neomake#log#warn_once(printf("Please use 'InitForJob' instead of 'fn' for maker %s.", maker.name),
                         \ printf('deprecated-fn-%s', maker.name))
         endif
