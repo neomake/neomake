@@ -313,15 +313,16 @@ endfunction
 " Get property from highlighting group.
 function! neomake#utils#GetHighlight(group, what, ...) abort
     let fallback = a:0 ? a:1 : ''
-    let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
+    let mode = a:what[-1:] ==# '#' ? 'gui' : 'cterm'
+    let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse', mode)
     let what = a:what
     if reverse
         let what = neomake#utils#ReverseSynIDattr(what)
     endif
     if what[-1:] ==# '#'
-        let val = synIDattr(synIDtrans(hlID(a:group)), what, 'gui')
+        let val = synIDattr(synIDtrans(hlID(a:group)), what, mode)
     else
-        let val = synIDattr(synIDtrans(hlID(a:group)), what, 'cterm')
+        let val = synIDattr(synIDtrans(hlID(a:group)), what, mode)
     endif
     if empty(val) || val == -1
         if !empty(fallback)
