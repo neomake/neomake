@@ -176,3 +176,30 @@ Execute (neomake#compat#restore_prev_windows handles removed windows):
   call neomake#compat#restore_prev_windows()
   AssertNeomakeMessage expected_msg, 3
   bwipe
+
+Execute (neomake#compat#restore_prev_windows triggers autocommands):
+  new
+
+  let s:events = []
+  augroup neomake_tests
+    au WinEnter * call add(s:events, ['WinEnter', winnr()])
+    au WinLeave * call add(s:events, ['WinLeave', winnr()])
+  augroup END
+
+  let expected_events = [
+  \ ['WinLeave', 2], ['WinEnter', 3],
+  \ ['WinLeave', 3], ['WinEnter', 2]]
+  new
+  wincmd p
+  AssertEqual s:events, expected_events
+  wincmd p
+  bwipe
+
+  let s:events = []
+  call neomake#compat#save_prev_windows()
+  new
+  call neomake#compat#restore_prev_windows()
+  AssertEqual s:events, expected_events
+  wincmd p
+  bwipe
+  bwipe

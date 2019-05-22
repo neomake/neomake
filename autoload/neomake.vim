@@ -970,7 +970,6 @@ function! neomake#GetEnabledMakers(...) abort
     return enabled_makers
 endfunction
 
-let s:ignore_automake_events = 0
 " a:1: override "open_list" setting.
 function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
     let open_list_default = a:0 ? a:1 : 0
@@ -993,7 +992,7 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
     if open_val == 2
         let make_id = a:jobinfo.make_id
         let make_info = s:make_info[make_id]
-        let s:ignore_automake_events += 1
+        let g:neomake#core#_ignore_autocommands += 1
         try
             call neomake#compat#save_prev_windows()
 
@@ -1044,7 +1043,7 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
             call neomake#compat#restore_prev_windows()
             let make_info._did_lwindow = 1
         finally
-            let s:ignore_automake_events -= 1
+            let g:neomake#core#_ignore_autocommands -= 1
         endtry
     else
         exe cmd height
@@ -1081,9 +1080,9 @@ endfunction
 function! s:Make(options) abort
     let is_automake = get(a:options, 'automake', !empty(expand('<abuf>')))
     if is_automake
-        if s:ignore_automake_events
+        if g:neomake#core#_ignore_autocommands
             call neomake#log#debug(printf(
-                        \ 'Ignoring Make through autocommand due to s:ignore_automake_events=%d.', s:ignore_automake_events), {'winnr': winnr()})
+                        \ 'Ignoring Make through autocommand due to ignore_autocommands=%d.', g:neomake#core#_ignore_autocommands), {'winnr': winnr()})
             return []
         endif
         let disabled = neomake#config#get_with_source('disabled', 0)
