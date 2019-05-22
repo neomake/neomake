@@ -99,3 +99,17 @@ Execute (neomake#signs#DefineHighlights: all NONE):
   AssertEqual highlights, [
   \ 'NeomakeErrorSignDefault xxx cleared',
   \ ]
+
+Execute (neomake#utils#GetHighlight: correct mode with reverse):
+  highlight clear NeomakeTest
+  highlight NeomakeTest ctermfg=0 guifg=black ctermbg=7 guibg=white
+  AssertEqual neomake#utils#GetHighlight('NeomakeTest', 'fg'), '0'
+  AssertEqual neomake#utils#GetHighlight('NeomakeTest', 'fg#'), 'black'
+
+  highlight NeomakeTest cterm=reverse
+  AssertEqual neomake#utils#GetHighlight('NeomakeTest', 'fg'), '7'
+  AssertEqual neomake#utils#GetHighlight('NeomakeTest', 'fg#'), 'black'
+
+  highlight NeomakeTest cterm=NONE gui=reverse
+  AssertEqual neomake#utils#GetHighlight('NeomakeTest', 'fg'), '0'
+  AssertEqual neomake#utils#GetHighlight('NeomakeTest', 'fg#'), 'white'
