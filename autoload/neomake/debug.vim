@@ -11,7 +11,7 @@ function! s:pprint(v, ...) abort
             return '{}'
         endif
         let r = "{\n"
-        for [k, V] in items(a:v)
+        for [k, l:V] in items(a:v)
             let r .= printf("%s  %s: %s,\n",
                         \ indent,
                         \ string(k),
@@ -102,7 +102,7 @@ function! s:get_maker_info(maker, ...) abort
     let maker_defaults = a:0 ? a:1 : {}
     let maker = a:maker
     let r = []
-    for [k, V] in sort(copy(items(maker)))
+    for [k, l:V] in sort(copy(items(maker)))
         if k !=# 'name' && k !=# 'ft' && k !~# '^_'
             if !has_key(maker_defaults, k)
                         \ || type(V) != type(maker_defaults[k])

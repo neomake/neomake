@@ -111,9 +111,9 @@ function! neomake#config#get_with_source(name, ...) abort
             if source ==# 'maker'
                 let maker_prefixes = map(copy(prefixes), '!empty(v:val) && v:val[-1] ==# maker_name ? v:val[:-2] : v:val')
                 let maker_setting_parts = parts[0] == maker_name ? parts[1:] : parts
-                let [prefix, R] = s:get(lookup, maker_setting_parts, maker_prefixes)
+                let [prefix, l:R] = s:get(lookup, maker_setting_parts, maker_prefixes)
             else
-                let [prefix, R] = s:get(lookup, parts, prefixes)
+                let [prefix, l:R] = s:get(lookup, parts, prefixes)
             endif
             if R isnot# g:neomake#config#undefined
                 let log_name = join(map(copy(parts), "substitute(v:val, '\\.', '|', '')"), '.')
