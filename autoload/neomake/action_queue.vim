@@ -117,6 +117,12 @@ function! s:process_action_queue(event) abort
     let queue = s:action_queue
     let q_for_this_event = []
     let i = 0
+    if g:neomake#core#_ignore_autocommands
+        call neomake#log#debug(printf('action queue: skip processing for %s (ignore_autocommands=%d).',
+                    \ a:event, g:neomake#core#_ignore_autocommands),
+                    \ {'bufnr': bufnr('%'), 'winnr': winnr()})
+        return
+    endif
     for [events, v] in queue
         if index(events, a:event) != -1 || events is# g:neomake#action_queue#any_event
             call add(q_for_this_event, [i, v])

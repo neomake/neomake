@@ -205,3 +205,35 @@ Execute (action queue: handles make_info in clean_make_info queue check):
     bwipe
     delfunction F
   endif
+
+Execute (action queue: skips processing during internal autocommands):
+  if NeomakeAsyncTestsSetup()
+    Save g:neomake_open_list
+    let g:neomake_open_list = 2
+
+    new
+
+    let s:calls = []
+    function! F(...)
+      call add(s:calls, a:000)
+      return g:neomake#action_queue#processed
+    endfunction
+    let jobinfo = NeomakeTestsFakeJobinfo()
+    call neomake#action_queue#add(['WinEnter'], [function('F'), [jobinfo]])
+
+    call neomake#Make(1, [g:error_maker])
+    let job = neomake#GetJobs()[-1]
+    NeomakeTestsWaitForFinishedJobs
+
+    AssertNeomakeMessage 'Handling location list: executing lwindow.', 3, job
+    AssertNeomakeMessage 'action queue: skip processing for WinEnter (ignore_autocommands=1).', 3
+    AssertNeomakeMessage 'list window has been opened (old count: 2, new count: 3, height: 1).', 3
+    AssertNeomakeMessage 'action queue: skip processing for WinEnter (ignore_autocommands=1).', 3
+    AssertNeomakeMessage 'action queue: skip processing for WinEnter (ignore_autocommands=1).', 3
+    lclose
+    wincmd p
+    AssertNeomakeMessage '\vaction queue: processing for WinEnter'
+    wincmd p
+    bwipe
+    delfunction F
+  endif

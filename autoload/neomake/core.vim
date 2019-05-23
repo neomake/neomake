@@ -1,5 +1,7 @@
 let g:neomake#core#valid_maker_name_pattern = '\v^\w+$'
 
+let g:neomake#core#_ignore_autocommands = 0
+
 function! neomake#core#create_jobs(options, makers) abort
     let args = [a:options, a:makers]
     let jobs = call('s:bind_makers_for_job', args)
