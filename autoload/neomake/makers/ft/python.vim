@@ -404,7 +404,7 @@ function! neomake#makers#ft#python#mypy() abort
         call add(args, '--py2')
     endif
 
-    return {
+    let maker = {
         \ 'args': args,
         \ 'errorformat':
             \ '%E%f:%l:%c: error: %m,' .
@@ -414,6 +414,14 @@ function! neomake#makers#ft#python#mypy() abort
             \ '%W%f:%l: warning: %m,' .
             \ '%I%f:%l: note: %m',
         \ }
+    function! maker.supports_stdin(jobinfo) abort
+        if !has_key(self, 'tempfile_name')
+            let self.tempfile_name = a:jobinfo.maker._get_default_tempfilename(a:jobinfo)
+        endif
+        let self.args += ['--shadow-file', '%', self.tempfile_name]
+        return 0
+    endfunction
+    return maker
 endfunction
 
 function! neomake#makers#ft#python#py3kwarn() abort
