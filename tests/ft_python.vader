@@ -374,7 +374,11 @@ Execute (neomake#makers#ft#python#FilterPythonWarnings: FutureWarning):
 
 Execute (python: mypy: handles --py2):
   call g:NeomakeTestsSetPATH('')
-  let base_args = ['--check-untyped-defs', '--ignore-missing-imports']
+  let base_args = [
+  \ '--show-column-numbers',
+  \ '--check-untyped-defs',
+  \ '--ignore-missing-imports'
+  \ ]
 
   " Defaults to py3.
   call neomake#makers#ft#python#DetectPythonVersion()

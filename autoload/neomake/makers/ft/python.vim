@@ -394,6 +394,7 @@ endfunction
 " --silent-imports: replaced by --ignore-missing-imports
 function! neomake#makers#ft#python#mypy() abort
     let args = ['--check-untyped-defs', '--ignore-missing-imports']
+    let args += ['--show-column-numbers']
 
     " Append '--py2' to args with Python 2 for Python 2 mode.
     if !exists('s:python_version')
@@ -406,6 +407,9 @@ function! neomake#makers#ft#python#mypy() abort
     return {
         \ 'args': args,
         \ 'errorformat':
+            \ '%E%f:%l:%c: error: %m,' .
+            \ '%W%f:%l:%c: warning: %m,' .
+            \ '%I%f:%l:%c: note: %m,' .
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .
             \ '%I%f:%l: note: %m',
