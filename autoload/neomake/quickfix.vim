@@ -45,11 +45,7 @@ function! neomake#quickfix#is_enabled() abort
     return s:is_enabled
 endfunction
 
-function! s:cursor_moved() abort
-    if !b:neomake_start_col
-        return
-    endif
-
+function! s:highlight_cursor_listnr() abort
     if col('.') <= b:neomake_start_col + 1
         call cursor(line('.'), b:neomake_start_col + 2)
     endif
@@ -67,6 +63,12 @@ function! s:cursor_moved() abort
                     \. '\%' . ((b:neomake_start_col - b:neomake_number_len) + 2) . 'c'
                     \. '.\{' . b:neomake_number_len . '}',
                     \ s:match_base_priority+3)
+    endif
+endfunction
+
+function! s:cursor_moved() abort
+    if b:neomake_start_col
+        call s:highlight_cursor_listnr()
     endif
 endfunction
 
@@ -362,4 +364,6 @@ function! s:add_window_matches(maker_width) abort
     let w:_neomake_bufname_match_id = matchadd('neomakeBufferName',
                 \ '.*\%<'.(a:maker_width + 1).'c',
                 \ s:match_base_priority+3)
+
+    call s:highlight_cursor_listnr()
 endfunction
