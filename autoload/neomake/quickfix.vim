@@ -113,7 +113,6 @@ function! s:clean_matches() abort
 endfunction
 
 function! neomake#quickfix#FormatQuickfix() abort
-    let buf = bufnr('%')
     if !s:is_enabled || &filetype !=# 'qf'
         if exists('b:neomake_qf')
             call s:clean_qf_annotations()
@@ -121,7 +120,6 @@ function! neomake#quickfix#FormatQuickfix() abort
         return
     endif
 
-    let src_buf = 0
     if has('patch-7.4.2215')
         let is_loclist = getwininfo(win_getid())[0].loclist
         if is_loclist
@@ -151,6 +149,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         let src_buf = qflist[0].bufnr
     else
         let b:neomake_qf = 'project'
+        let src_buf = 0
     endif
 
     let lines = []
@@ -245,6 +244,7 @@ function! neomake#quickfix#FormatQuickfix() abort
     endif
 
     let i = 1
+    let buf = bufnr('%')
     let last_bufnr = -1
     for item in qflist
         if item.lnum
