@@ -112,14 +112,7 @@ function! s:clean_matches() abort
     call neomake#signs#ResetFile(bufnr('%'))
 endfunction
 
-function! neomake#quickfix#FormatQuickfix() abort
-    if !s:is_enabled || &filetype !=# 'qf'
-        if exists('b:neomake_qf')
-            call s:clean_qf_annotations()
-        endif
-        return
-    endif
-
+function! neomake#quickfix#_get_list() abort
     if has('patch-7.4.2215')
         let is_loclist = getwininfo(win_getid())[0].loclist
         if is_loclist
@@ -135,6 +128,18 @@ function! neomake#quickfix#FormatQuickfix() abort
             let qflist = getqflist()
         endif
     endif
+    return [is_loclist, qflist]
+endfunction
+
+function! neomake#quickfix#FormatQuickfix() abort
+    if !s:is_enabled || &filetype !=# 'qf'
+        if exists('b:neomake_qf')
+            call s:clean_qf_annotations()
+        endif
+        return
+    endif
+
+    let [is_loclist, qflist] = neomake#quickfix#_get_list()
 
     if empty(qflist) || qflist[0].text !~# ' nmcfg:{.\{-}}$'
         if exists('b:neomake_qf')
