@@ -46,25 +46,27 @@ function! neomake#quickfix#is_enabled() abort
 endfunction
 
 function! s:cursor_moved() abort
-    if b:neomake_start_col
-        if col('.') <= b:neomake_start_col + 1
-            call cursor(line('.'), b:neomake_start_col + 2)
-        endif
+    if !b:neomake_start_col
+        return
+    endif
 
-        if exists('w:_neomake_cursor_match_id')
-            silent! call matchdelete(w:_neomake_cursor_match_id)
-        endif
-        if exists('*matchaddpos')
-            let w:_neomake_cursor_match_id = matchaddpos('neomakeCursorListNr',
-                        \ [[line('.'), (b:neomake_start_col - b:neomake_number_len) + 2, b:neomake_number_len]],
-                        \ s:match_base_priority+3)
-        else
-            let w:_neomake_cursor_match_id = matchadd('neomakeCursorListNr',
-                        \  '\%' . line('.') . 'c'
-                        \. '\%' . ((b:neomake_start_col - b:neomake_number_len) + 2) . 'c'
-                        \. '.\{' . b:neomake_number_len . '}',
-                        \ s:match_base_priority+3)
-        endif
+    if col('.') <= b:neomake_start_col + 1
+        call cursor(line('.'), b:neomake_start_col + 2)
+    endif
+
+    if exists('w:_neomake_cursor_match_id')
+        silent! call matchdelete(w:_neomake_cursor_match_id)
+    endif
+    if exists('*matchaddpos')
+        let w:_neomake_cursor_match_id = matchaddpos('neomakeCursorListNr',
+                    \ [[line('.'), (b:neomake_start_col - b:neomake_number_len) + 2, b:neomake_number_len]],
+                    \ s:match_base_priority+3)
+    else
+        let w:_neomake_cursor_match_id = matchadd('neomakeCursorListNr',
+                    \  '\%' . line('.') . 'c'
+                    \. '\%' . ((b:neomake_start_col - b:neomake_number_len) + 2) . 'c'
+                    \. '.\{' . b:neomake_number_len . '}',
+                    \ s:match_base_priority+3)
     endif
 endfunction
 
