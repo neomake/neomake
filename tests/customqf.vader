@@ -494,7 +494,7 @@ Execute (custom qf gets disabled with manual setloclist()):
 
     AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.ll_bufnr.'.'
 
-    Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are existing matches.'
+    Assert !empty(filter(getmatches(), "v:val.group == 'neomakeMakerName'")), 'There are existing matches.'
     AssertEqual b:current_syntax, 'neomake_qf'
 
     let s:au_called = []
@@ -509,14 +509,14 @@ Execute (custom qf gets disabled with manual setloclist()):
     AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': ll_bufnr}
     AssertEqual b:current_syntax, 'qf'
     AssertEqual neomake#signs#by_lnum(ll_bufnr), {}
-    let matches = filter(getmatches(), "v:key == 'neomakeMakerName'")
+    let matches = filter(getmatches(), "v:val.group == 'neomakeMakerName'")
     Assert empty(matches), printf('Found unexpected matches: %s', string(matches))
 
     call setloclist(0, [{
         \ 'lnum': 1,
         \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
         \}])
-    Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'There are existing matches again.'
+    Assert !empty(filter(getmatches(), "v:val.group == 'neomakeMakerName'")), 'There are existing matches again.'
     lclose
     bwipe
   finally
@@ -679,20 +679,23 @@ Execute (custom qf with new window / buffer):
         \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
         \}])
     lopen
-    Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'Expected matches (1).'
+    Assert !empty(filter(getmatches(), "v:val.group == 'neomakeMakerName'")), 'Expected matches (1).'
     AssertEqual b:current_syntax, 'neomake_qf'
 
     tab split
     if exists('##WinNew')
-      Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'Expected matches (2).'
+      Assert !empty(filter(getmatches(), "v:val.group == 'neomakeMakerName'")), 'Expected matches (2).'
       AssertEqual b:current_syntax, 'neomake_qf'
     endif
     doautocmd CursorMoved
-    Assert !empty(filter(getmatches(), "v:key == 'neomakeMakerName'")), 'Expected matches (3).'
+    if exists('##WinNew')
+      Assert !empty(filter(getmatches(), "v:val.group == 'neomakeMakerName'")), 'Expected matches (3).'
+    endif
+    Assert !empty(filter(getmatches(), "v:val.group == 'neomakeCursorListNr'")), 'Expected matches (3).'
     AssertEqual b:current_syntax, 'neomake_qf'
 
     enew
-    let matches = filter(getmatches(), "v:key == 'neomakeMakerName'")
+    let matches = filter(getmatches(), "v:val.group == 'neomakeMakerName'")
     Assert empty(matches), printf('Found unexpected matches: %s', string(matches))
     bwipe
 
