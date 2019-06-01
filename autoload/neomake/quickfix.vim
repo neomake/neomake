@@ -72,10 +72,6 @@ function! s:highlight_cursor_listnr() abort
     endif
 endfunction
 
-function! s:cursor_moved() abort
-    call s:highlight_cursor_listnr()
-endfunction
-
 function! s:set_qf_lines(lines) abort
     let ul = &l:undolevels
     setlocal modifiable nonumber undolevels=-1
@@ -299,7 +295,7 @@ function! neomake#quickfix#FormatQuickfix() abort
 
     augroup neomake_qf
         autocmd! * <buffer>
-        autocmd CursorMoved <buffer> call s:cursor_moved()
+        autocmd CursorMoved <buffer> call s:highlight_cursor_listnr()
 
         if !empty(current_syntax)  " not with :syntax-off.
             call s:add_window_matches(maker_width)
