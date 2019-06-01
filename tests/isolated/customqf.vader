@@ -1,0 +1,10 @@
+Execute (syntax/qf.vim handles unused customqf):
+  call setloclist(0, [{
+      \ 'lnum': 1,
+      \ 'text': 'E123 error nmcfg:{"name": "python", "short": "py"}',
+      \}])
+  lopen
+  lclose
+
+  " Does not autoload files.
+  Assert !exists('*neomake#quickfix#is_enabled')
