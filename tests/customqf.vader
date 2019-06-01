@@ -12,7 +12,7 @@ Execute (Displays custom formatted quickfix buffer):
         \   'lnum': 1,
         \   'bufnr': bufnr,
         \   'type': 'E',
-        \   'text': 'Line 1 nmcfg:{"name": "python", "short": "Alph"}',
+        \   'text': 'E123 Line 1 nmcfg:{"name": "python", "short": "Alph"}',
         \ },
         \ {
         \   'lnum': 2,
@@ -40,7 +40,7 @@ Execute (Displays custom formatted quickfix buffer):
     Assert hlexists('neomakePythonLint'), 'neomakePythonLint does exists'
 
     AssertEqual getline(1, '$'), [
-      \ 'Alph 1:- Line 1',
+      \ 'Alph 1:- E123 Line 1',
       \ 'Alph 2:5 Line 2',
       \ 'Alph     No line',
       \ 'Alph 4:- Line 4 (warning)',
@@ -49,8 +49,10 @@ Execute (Displays custom formatted quickfix buffer):
     normal! 0
     " :normal! ignores autocmd's here?
     doautocmd CursorMoved
-    AssertEqual expand('<cWORD>'), 'Line'
+    AssertEqual expand('<cWORD>'), 'E123'
     AssertEqual getpos('.')[1:2], [1, 10]
+    " Error code highlighted via syntax.
+    AssertEqual map(synstack(1, 10), 'synIDattr(v:val,"name")'), ['neomakePythonLint']
 
     AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
     AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
@@ -60,13 +62,19 @@ Execute (Displays custom formatted quickfix buffer):
     \ '2': [5001, 'neomake_file_err'],
     \ '4': [5002, 'neomake_file_warn'],
     \ }
+    if exists('*matchaddpos')
+      AssertEqual map(filter(getmatches(), "v:val.group == 'neomakeCursorListNr'"), 'v:val.pos1'), [[1, 6, 4]]
+    else
+      AssertEqual map(filter(getmatches(), "v:val.group == 'neomakeCursorListNr'"), 'v:val.pattern'), ['\%1c\%6c.\{4}']
+    endif
+
     wincmd p
 
     " Test changing the location list while it's open
     call setloclist(0, [{
         \   'lnum': 1,
         \   'bufnr': 1,
-        \   'text': 'Line 1 nmcfg:{"name": "Beta", "short": "Beta"}',
+        \   'text': 'E42 Line 1 nmcfg:{"name": "Beta", "short": "Beta"}',
         \ },
         \ {
         \   'lnum': 2,
@@ -93,14 +101,34 @@ Execute (Displays custom formatted quickfix buffer):
 
     wincmd p
 
-    AssertEqual getline(1, '$'),
-      \ ['Beta 1:- Line 1', 'Beta 2:5 Line 2',
-      \  'Gamm 3:- Line 3', 'Gamm 4:5 Line 4']
+    Assert hlexists('neomakePythonLint'), 'neomakePythonLint does exists'
+    if exists('*matchaddpos')
+      AssertEqual map(filter(getmatches(), "v:val.group == 'neomakeCursorListNr'"), 'v:val.pos1'), [[1, 6, 4]]
+    else
+      AssertEqual map(filter(getmatches(), "v:val.group == 'neomakeCursorListNr'"), 'v:val.pattern'), ['\%1c\%6c.\{4}']
+    endif
+
+    " Does not highlight E42 (no "python" maker/syntax in new list).
+    AssertEqual map(synstack(1, 10), 'synIDattr(v:val,"name")'), []
+
+    AssertEqual getline(1, '$'), [
+    \ 'Beta 1:- E42 Line 1',
+    \ 'Beta 2:5 Line 2',
+    \ 'Gamm 3:- Line 3',
+    \ 'Gamm 4:5 Line 4']
 
     normal! G0
     doautocmd CursorMoved
     AssertEqual expand('<cWORD>'), 'Line'
     AssertEqual getpos('.')[1:2], [4, 10]
+
+    " Highlights E42 (with "python" maker/syntax in new list).
+    call setloclist(0, [{
+        \   'lnum': 1,
+        \   'bufnr': 1,
+        \   'text': 'E42 Line 1 nmcfg:{"name": "python", "short": "Beta"}',
+        \ }])
+    AssertEqual map(synstack(1, 10), 'synIDattr(v:val,"name")'), ['neomakePythonLint']
 
     close
   finally
@@ -507,10 +535,10 @@ Execute (custom qf gets disabled with manual setloclist()):
 
     AssertNeomakeMessage 'Resetting custom qf for non-Neomake change.', 3
     AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': ll_bufnr}
-    AssertEqual b:current_syntax, 'qf'
     AssertEqual neomake#signs#by_lnum(ll_bufnr), {}
     let matches = filter(getmatches(), "v:val.group == 'neomakeMakerName'")
     Assert empty(matches), printf('Found unexpected matches: %s', string(matches))
+    AssertEqual b:current_syntax, 'qf'
 
     call setloclist(0, [{
         \ 'lnum': 1,
@@ -679,7 +707,12 @@ Execute (custom qf with new window / buffer):
         \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
         \}])
     lopen
-    Assert !empty(filter(getmatches(), "v:val.group == 'neomakeMakerName'")), 'Expected matches (1).'
+    AssertEqual map(filter(getmatches(), "v:val.group == 'neomakeMakerName'"), 'v:val.pattern'), ['.*\%<2c']
+    if exists('*matchaddpos')
+      AssertEqual map(filter(getmatches(), "v:val.group == 'neomakeCursorListNr'"), 'v:val.pos1'), [[1, 3, 4]]
+    else
+      AssertEqual map(filter(getmatches(), "v:val.group == 'neomakeCursorListNr'"), 'v:val.pattern'), ['\%1c\%3c.\{4}']
+    endif
     AssertEqual b:current_syntax, 'neomake_qf'
 
     tab split
@@ -703,4 +736,76 @@ Execute (custom qf with new window / buffer):
     bwipe
   finally
     call neomake#quickfix#disable()
+  endtry
+
+Execute (customqf allows for custom syntax):
+  let s:syn_au_called = 0
+  augroup neomake_tests
+    au Syntax * let s:syn_au_called = 1
+    au Syntax * syn match MyError /error/ containedin=ALL
+  augroup END
+
+  call neomake#quickfix#enable(1)
+  try
+    new
+    call setloclist(0, [{
+        \ 'lnum': 1,
+        \ 'text': 'E123 error nmcfg:{"name": "python", "short": "py"}',
+        \}])
+    lopen
+
+    AssertEqual getline('.'), 'py 1:- E123 error'
+    AssertEqual map(synstack(1, 8), 'synIDattr(v:val,"name")'), ['neomakePythonLint']
+
+    " :normal! ignores autocmd's here?
+    doautocmd CursorMoved
+    AssertEqual expand('<cWORD>'), 'E123'
+    normal! w
+    AssertEqual expand('<cWORD>'), 'error'
+    AssertEqual getpos('.')[1:2], [1, 13]
+    AssertEqual map(synstack(1, 13), 'synIDattr(v:val,"name")'), ['MyError']
+    AssertEqual s:syn_au_called, 1
+
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+  endtry
+
+Execute (customqf gets formatted with disabled syntax):
+  let s:syn_au_called = 0
+  augroup neomake_tests
+    au Syntax * let s:syn_au_called = 1
+  augroup END
+
+  call neomake#quickfix#enable(1)
+  syntax off
+  try
+    new
+    let syn_before = neomake#utils#redir('syn')
+    call setloclist(0, [{
+        \ 'lnum': 1,
+        \ 'text': 'E123 error nmcfg:{"name": "python", "short": "py"}',
+        \}])
+    lopen
+
+    AssertEqual getline('.'), 'py 1:- E123 error'
+    AssertEqual map(synstack(1, 8), 'synIDattr(v:val,"name")'), []
+
+    " :normal! ignores autocmd's here?
+    doautocmd CursorMoved
+    AssertEqual expand('<cWORD>'), 'E123'
+    normal! w
+    AssertEqual expand('<cWORD>'), 'error'
+    AssertEqual getpos('.')[1:2], [1, 13]
+    AssertEqual map(synstack(1, 13), 'synIDattr(v:val,"name")'), []
+    AssertEqual s:syn_au_called, 0
+
+    AssertEqual syn_before, neomake#utils#redir('syn')
+
+    lclose
+    bwipe
+  finally
+    call neomake#quickfix#disable()
+    syntax on
   endtry

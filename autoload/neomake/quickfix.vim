@@ -50,6 +50,10 @@ function! s:highlight_cursor_listnr() abort
         call cursor(line('.'), b:neomake_start_col + 2)
     endif
 
+    " Update neomakeCursorListNr, but not with :syntax-off.
+    if empty(get(b:, 'current_syntax', ''))
+        return
+    endif
     if exists('w:_neomake_cursor_match_id')
         silent! call matchdelete(w:_neomake_cursor_match_id)
     endif
@@ -67,9 +71,7 @@ function! s:highlight_cursor_listnr() abort
 endfunction
 
 function! s:cursor_moved() abort
-    if b:neomake_start_col
-        call s:highlight_cursor_listnr()
-    endif
+    call s:highlight_cursor_listnr()
 endfunction
 
 function! s:set_qf_lines(lines) abort
@@ -136,6 +138,11 @@ function! neomake#quickfix#FormatQuickfix() abort
         if exists('b:neomake_qf')
             call s:clean_qf_annotations()
         endif
+        return
+    endif
+
+    let current_syntax = get(b:, 'current_syntax', '')
+    if current_syntax ==# 'neomake_qf'
         return
     endif
 
@@ -210,13 +217,13 @@ function! neomake#quickfix#FormatQuickfix() abort
             endif
         endfor
     endif
-    if get(b:, '_neomake_cur_syntax', []) != syntax
+
+    if !empty(current_syntax)  " not with :syntax-off.
         runtime! syntax/neomake/qf.vim
         for name in syntax
             execute 'runtime! syntax/neomake/'.name.'.vim '
                         \  . 'syntax/neomake/'.name.'/*.vim'
         endfor
-        let b:_neomake_cur_syntax = syntax
     endif
 
     if maker_width + lnum_width + col_width > 0
@@ -292,24 +299,26 @@ function! neomake#quickfix#FormatQuickfix() abort
     call neomake#signs#Reset(buf, 'file')
     call neomake#signs#PlaceSigns(buf, signs, 'file')
 
-    call s:add_window_matches(maker_width)
-
     augroup neomake_qf
         autocmd! * <buffer>
         autocmd CursorMoved <buffer> call s:cursor_moved()
 
-        " Annotate in new window, e.g. with "tab sp".
-        " It keeps the syntax there, so should also have the rest.
-        " This happens on Neovim already through CursorMoved being invoked
-        " always then.
-        if exists('##WinNew')
-            exe 'autocmd WinNew <buffer> call s:add_window_matches('.maker_width.')'
-        endif
+        if !empty(current_syntax)  " not with :syntax-off.
+            call s:add_window_matches(maker_width)
 
-        " Clear matches when opening another buffer in the same window, with
-        " the original window/buffer still being visible (e.g. in another
-        " tab).
-        autocmd BufLeave <buffer> call s:on_bufleave()
+            " Annotate in new window, e.g. with "tab sp".
+            " It keeps the syntax there, so should also have the rest.
+            " This happens on Neovim already through CursorMoved being invoked
+            " always then.
+            if exists('##WinNew')
+                exe 'autocmd WinNew <buffer> call s:add_window_matches('.maker_width.')'
+            endif
+
+            " Clear matches when opening another buffer in the same window, with
+            " the original window/buffer still being visible (e.g. in another
+            " tab).
+            autocmd BufLeave <buffer> call s:on_bufleave()
+        endif
     augroup END
 
     " Set title.
