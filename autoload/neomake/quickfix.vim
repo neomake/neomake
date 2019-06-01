@@ -22,7 +22,9 @@ function! neomake#quickfix#enable(...) abort
     let s:is_enabled = 1
     augroup neomake_qf
         autocmd!
-        autocmd FileType qf call neomake#quickfix#FormatQuickfix()
+        autocmd FileType qf if get(b:, 'current_syntax', '') !=# 'neomake_qf'
+                    \ | call neomake#quickfix#FormatQuickfix()
+                    \ | endif
     augroup END
     if &filetype ==# 'qf'
         call neomake#quickfix#FormatQuickfix()
@@ -141,11 +143,6 @@ function! neomake#quickfix#FormatQuickfix() abort
         return
     endif
 
-    let current_syntax = get(b:, 'current_syntax', '')
-    if current_syntax ==# 'neomake_qf'
-        return
-    endif
-
     let [is_loclist, qflist] = neomake#quickfix#_get_list()
 
     if empty(qflist) || qflist[0].text !~# ' nmcfg:{.\{-}}$'
@@ -218,6 +215,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         endfor
     endif
 
+    let current_syntax = get(b:, 'current_syntax', '')
     if !empty(current_syntax)  " not with :syntax-off.
         runtime! syntax/neomake/qf.vim
         for name in syntax
