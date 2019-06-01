@@ -22,7 +22,9 @@ function! neomake#quickfix#enable(...) abort
     let s:is_enabled = 1
     augroup neomake_qf
         autocmd!
-        autocmd FileType qf call neomake#quickfix#FormatQuickfix()
+        autocmd FileType qf if get(b:, 'current_syntax', '') !=# 'neomake_qf'
+                    \ | call neomake#quickfix#FormatQuickfix()
+                    \ | endif
     augroup END
     if &filetype ==# 'qf'
         call neomake#quickfix#FormatQuickfix()
@@ -45,26 +47,28 @@ function! neomake#quickfix#is_enabled() abort
     return s:is_enabled
 endfunction
 
-function! s:cursor_moved() abort
-    if b:neomake_start_col
-        if col('.') <= b:neomake_start_col + 1
-            call cursor(line('.'), b:neomake_start_col + 2)
-        endif
+function! s:highlight_cursor_listnr() abort
+    if col('.') <= b:neomake_start_col + 1
+        call cursor(line('.'), b:neomake_start_col + 2)
+    endif
 
-        if exists('w:_neomake_cursor_match_id')
-            silent! call matchdelete(w:_neomake_cursor_match_id)
-        endif
-        if exists('*matchaddpos')
-            let w:_neomake_cursor_match_id = matchaddpos('neomakeCursorListNr',
-                        \ [[line('.'), (b:neomake_start_col - b:neomake_number_len) + 2, b:neomake_number_len]],
-                        \ s:match_base_priority+3)
-        else
-            let w:_neomake_cursor_match_id = matchadd('neomakeCursorListNr',
-                        \  '\%' . line('.') . 'c'
-                        \. '\%' . ((b:neomake_start_col - b:neomake_number_len) + 2) . 'c'
-                        \. '.\{' . b:neomake_number_len . '}',
-                        \ s:match_base_priority+3)
-        endif
+    " Update neomakeCursorListNr, but not with :syntax-off.
+    if empty(get(b:, 'current_syntax', ''))
+        return
+    endif
+    if exists('w:_neomake_cursor_match_id')
+        silent! call matchdelete(w:_neomake_cursor_match_id)
+    endif
+    if exists('*matchaddpos')
+        let w:_neomake_cursor_match_id = matchaddpos('neomakeCursorListNr',
+                    \ [[line('.'), (b:neomake_start_col - b:neomake_number_len) + 2, b:neomake_number_len]],
+                    \ s:match_base_priority+3)
+    else
+        let w:_neomake_cursor_match_id = matchadd('neomakeCursorListNr',
+                    \  '\%' . line('.') . 'c'
+                    \. '\%' . ((b:neomake_start_col - b:neomake_number_len) + 2) . 'c'
+                    \. '.\{' . b:neomake_number_len . '}',
+                    \ s:match_base_priority+3)
     endif
 endfunction
 
@@ -108,16 +112,7 @@ function! s:clean_matches() abort
     call neomake#signs#ResetFile(bufnr('%'))
 endfunction
 
-function! neomake#quickfix#FormatQuickfix() abort
-    let buf = bufnr('%')
-    if !s:is_enabled || &filetype !=# 'qf'
-        if exists('b:neomake_qf')
-            call s:clean_qf_annotations()
-        endif
-        return
-    endif
-
-    let src_buf = 0
+function! neomake#quickfix#_get_list() abort
     if has('patch-7.4.2215')
         let is_loclist = getwininfo(win_getid())[0].loclist
         if is_loclist
@@ -133,6 +128,18 @@ function! neomake#quickfix#FormatQuickfix() abort
             let qflist = getqflist()
         endif
     endif
+    return [is_loclist, qflist]
+endfunction
+
+function! neomake#quickfix#FormatQuickfix() abort
+    if !s:is_enabled || &filetype !=# 'qf'
+        if exists('b:neomake_qf')
+            call s:clean_qf_annotations()
+        endif
+        return
+    endif
+
+    let [is_loclist, qflist] = neomake#quickfix#_get_list()
 
     if empty(qflist) || qflist[0].text !~# ' nmcfg:{.\{-}}$'
         if exists('b:neomake_qf')
@@ -147,6 +154,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         let src_buf = qflist[0].bufnr
     else
         let b:neomake_qf = 'project'
+        let src_buf = 0
     endif
 
     let lines = []
@@ -202,13 +210,14 @@ function! neomake#quickfix#FormatQuickfix() abort
             endif
         endfor
     endif
-    if get(b:, '_neomake_cur_syntax', []) != syntax
+
+    let current_syntax = get(b:, 'current_syntax', '')
+    if !empty(current_syntax)  " not with :syntax-off.
         runtime! syntax/neomake/qf.vim
         for name in syntax
             execute 'runtime! syntax/neomake/'.name.'.vim '
                         \  . 'syntax/neomake/'.name.'/*.vim'
         endfor
-        let b:_neomake_cur_syntax = syntax
     endif
 
     if maker_width + lnum_width + col_width > 0
@@ -241,6 +250,7 @@ function! neomake#quickfix#FormatQuickfix() abort
     endif
 
     let i = 1
+    let buf = bufnr('%')
     let last_bufnr = -1
     for item in qflist
         if item.lnum
@@ -283,24 +293,26 @@ function! neomake#quickfix#FormatQuickfix() abort
     call neomake#signs#Reset(buf, 'file')
     call neomake#signs#PlaceSigns(buf, signs, 'file')
 
-    call s:add_window_matches(maker_width)
-
     augroup neomake_qf
         autocmd! * <buffer>
-        autocmd CursorMoved <buffer> call s:cursor_moved()
+        autocmd CursorMoved <buffer> call s:highlight_cursor_listnr()
 
-        " Annotate in new window, e.g. with "tab sp".
-        " It keeps the syntax there, so should also have the rest.
-        " This happens on Neovim already through CursorMoved being invoked
-        " always then.
-        if exists('##WinNew')
-            exe 'autocmd WinNew <buffer> call s:add_window_matches('.maker_width.')'
+        if !empty(current_syntax)  " not with :syntax-off.
+            call s:add_window_matches(maker_width)
+
+            " Annotate in new window, e.g. with "tab sp".
+            " It keeps the syntax there, so should also have the rest.
+            " This happens on Neovim already through CursorMoved being invoked
+            " always then.
+            if exists('##WinNew')
+                exe 'autocmd WinNew <buffer> call s:add_window_matches('.maker_width.')'
+            endif
+
+            " Clear matches when opening another buffer in the same window, with
+            " the original window/buffer still being visible (e.g. in another
+            " tab).
+            autocmd BufLeave <buffer> call s:on_bufleave()
         endif
-
-        " Clear matches when opening another buffer in the same window, with
-        " the original window/buffer still being visible (e.g. in another
-        " tab).
-        autocmd BufLeave <buffer> call s:on_bufleave()
     augroup END
 
     " Set title.
@@ -360,4 +372,6 @@ function! s:add_window_matches(maker_width) abort
     let w:_neomake_bufname_match_id = matchadd('neomakeBufferName',
                 \ '.*\%<'.(a:maker_width + 1).'c',
                 \ s:match_base_priority+3)
+
+    call s:highlight_cursor_listnr()
 endfunction
