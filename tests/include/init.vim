@@ -598,7 +598,7 @@ function! s:After()
         exe 'bwipe!' b
         continue
       endif
-      call append(new_new_buffers, b)
+      call add(new_new_buffers, b)
     endfor
     let new_buffers = new_new_buffers
   endif
