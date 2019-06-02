@@ -634,6 +634,11 @@ function! s:After()
 
   " Check that no highlights are left.
   let highlights = neomake#highlights#_get()
+  " Ignore unlisted qf buffers that Vim keeps around
+  " (having ft='' (likely due to bwipe above)).
+  if has('patch-8.1.0877')
+      call filter(highlights['file'], 'buflisted(v:key)')
+  endif
   if highlights != {'file': {}, 'project': {}}
     call add(errors, printf('Highlights were not reset (use a new buffer): %s', highlights))
     let highlights.file = {}
