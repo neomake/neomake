@@ -21,7 +21,7 @@ ENV NEOMAKE_DOCKERFILE_UPDATE=2019-06-02
 
 # Git master in a separate layer, since the above is meant to be stable.
 RUN install_vim -tag master -build \
-                -tag vim:master -build \
+                -tag neovim:master -build \
   && rm -rf /vim-build/**/runtime/tutor
 
 # Install tools for running tests (busybox's grep does not have --line-number).
