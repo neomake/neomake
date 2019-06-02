@@ -36,8 +36,7 @@ Execute (neomake#signs#RedefineErrorSign):
 
   call neomake#signs#Reset(bufnr, 'file')
   call neomake#signs#CleanAllOldSigns('file')
-  AssertNeomakeMessage 'Removing signs: {file: {'.bufnr.': '
-  \ .'{5000: neomake_file_warn}}, project: {}}.'
+  AssertNeomakeMessage 'Cleaning 1 old signs.', 3
   bwipe
 
 Execute (Placing signs in project mode):
