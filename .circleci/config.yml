@@ -30,7 +30,7 @@ common: &common
           - test-results/
 
 jobs:
-  nvim-031:
+  nvim-037:
     <<: *common
     environment:
       TEST_VIM=/vim-build/bin/neovim-v0.3.7
