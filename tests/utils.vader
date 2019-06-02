@@ -1013,7 +1013,7 @@ Execute (neomake#utils#buf_get_lines):
   catch
     let threw = 1
     if has('nvim')
-      AssertEqual v:exception, 'neomake#utils#buf_get_lines: Index out of bounds'
+      Assert v:exception =~# '\Vneomake#utils#buf_get_lines: \.\*Index out of bounds', v:exception
     else
       AssertEqual v:exception, 'neomake#utils#buf_get_lines: end is higher than number of lines'
     endif
@@ -1049,7 +1049,7 @@ Execute (neomake#utils#buf_set_lines):
   " end > lines
   let error = neomake#utils#buf_set_lines(b, 1, 4, [])
   if has('nvim')
-    AssertEqual error, 'neomake#utils#buf_set_lines: Index out of bounds'
+    Assert error =~# 'neomake#utils#buf_set_lines: .*Index out of bounds', error
   else
     AssertEqual error, 'neomake#utils#buf_set_lines: end is higher than number of lines'
   endif
