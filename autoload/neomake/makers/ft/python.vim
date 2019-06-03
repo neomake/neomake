@@ -435,7 +435,7 @@ function! neomake#makers#ft#python#mypy() abort
     endfunction
     function! maker.supports_stdin(jobinfo) abort
         if !has_key(self, 'tempfile_name')
-            let self.tempfile_name = a:jobinfo.maker._get_default_tempfilename(a:jobinfo)
+            let self.tempfile_name = self._get_default_tempfilename(a:jobinfo)
         endif
         let self.args += ['--shadow-file', '%', self.tempfile_name]
         return 0

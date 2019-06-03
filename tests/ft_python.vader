@@ -399,8 +399,7 @@ Execute (python: mypy: handles --py2):
   AssertEqual maker.args, base_args
 
 Execute (python: mypy):
-  let maker = neomake#makers#ft#python#mypy()
-"   let maker = neomake#GetMaker('mypy', 'python')
+  let maker = neomake#GetMaker('mypy', 'python')
 
   let base_args = [
   \ '--show-column-numbers',
@@ -417,5 +416,17 @@ Execute (python: mypy):
   let options = {'file_mode': 0, 'bufnr': bufnr('%')}
   let bound_maker = neomake#core#instantiate_maker(deepcopy(maker), options, 0)
   AssertEqual bound_maker.args, base_args + ['fake_project_root']
+
+  let b:neomake = {'project_root': ''}
+  let options = {'file_mode': 0, 'bufnr': bufnr('%')}
+  let bound_maker = neomake#core#instantiate_maker(deepcopy(maker), options, 0)
+  AssertEqual bound_maker.args, base_args + ['.']
+
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  AssertEqual bound_maker.supports_stdin(jobinfo), 0
+  let fname = bound_maker._get_fname_for_buffer(jobinfo)
+  AssertNeomakeMessage '\vUsing tempfile for unnamed buffer: "(.*)".', 3
+  let tmpfile = g:neomake_test_matchlist[1]
+  AssertEqual fname, tmpfile
 
   bwipe
