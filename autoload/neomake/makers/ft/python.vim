@@ -390,11 +390,14 @@ function! neomake#makers#ft#python#vulture() abort
         \ }
 endfunction
 
-" --fast-parser: adds experimental support for async/await syntax
-" --silent-imports: replaced by --ignore-missing-imports
 function! neomake#makers#ft#python#mypy() abort
-    let args = ['--check-untyped-defs', '--ignore-missing-imports']
-    let args += ['--show-column-numbers']
+    " NOTE: uses defaults suitable for using it without any config.
+    " ignore_missing_imports cannot be disabled in a config then though
+    let args = [
+                \ '--show-column-numbers',
+                \ '--check-untyped-defs',
+                \ '--ignore-missing-imports',
+                \ ]
 
     " Append '--py2' to args with Python 2 for Python 2 mode.
     if !exists('s:python_version')
