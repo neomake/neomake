@@ -135,9 +135,9 @@ if [ "$1" = vader ]; then
 
 else
   # Output from neomake_logfile.
-  error='^[:[:digit:]]\+ \[E .*'
-  warn='^[:[:digit:]]\+ \[W .*'
-  debug='^[:[:digit:]]\+ \[D .*'
+  error='^[:[:digit:]]\+ [[:digit:]]\+ \[E .*'
+  warn='^[:[:digit:]]\+ [[:digit:]]\+ \[W .*'
+  debug='^[:[:digit:]]\+ [[:digit:]]\+ \[D .*'
   sed -e "s/$error/[31m[1m\0[0m/" \
       -e "s/$warn/w:[33m\0[0m/" \
       -e "s/$debug/$debug_color\\0$debug_color_off/"
