@@ -390,10 +390,14 @@ function! neomake#makers#ft#python#vulture() abort
         \ }
 endfunction
 
-" --fast-parser: adds experimental support for async/await syntax
-" --silent-imports: replaced by --ignore-missing-imports
 function! neomake#makers#ft#python#mypy() abort
-    let args = ['--check-untyped-defs', '--ignore-missing-imports']
+    " NOTE: uses defaults suitable for using it without any config.
+    " ignore_missing_imports cannot be disabled in a config then though
+    let args = [
+                \ '--show-column-numbers',
+                \ '--check-untyped-defs',
+                \ '--ignore-missing-imports',
+                \ ]
 
     " Append '--py2' to args with Python 2 for Python 2 mode.
     if !exists('s:python_version')
@@ -403,13 +407,40 @@ function! neomake#makers#ft#python#mypy() abort
         call add(args, '--py2')
     endif
 
-    return {
+    let maker = {
         \ 'args': args,
         \ 'errorformat':
+            \ '%E%f:%l:%c: error: %m,' .
+            \ '%W%f:%l:%c: warning: %m,' .
+            \ '%I%f:%l:%c: note: %m,' .
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .
             \ '%I%f:%l: note: %m',
         \ }
+    function! maker.InitForJob(jobinfo) abort
+        let file_mode = a:jobinfo.file_mode
+        if file_mode
+            " Follow imports, but do not emit errors/issues for it, which
+            " would result in errors for other buffers etc.
+            " XXX: dmypy requires "skip" or "error"
+            call insert(self.args, '--follow-imports=silent')
+        else
+            let project_root = neomake#utils#get_project_root(a:jobinfo.bufnr)
+            if empty(project_root)
+                call add(self.args, '.')
+            else
+                call add(self.args, project_root)
+            endif
+        endif
+    endfunction
+    function! maker.supports_stdin(jobinfo) abort
+        if !has_key(self, 'tempfile_name')
+            let self.tempfile_name = self._get_default_tempfilename(a:jobinfo)
+        endif
+        let self.args += ['--shadow-file', '%', self.tempfile_name]
+        return 0
+    endfunction
+    return maker
 endfunction
 
 function! neomake#makers#ft#python#py3kwarn() abort

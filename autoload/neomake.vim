@@ -539,7 +539,10 @@ function! s:command_maker_base._get_tempfilename(jobinfo) abort dict
     if has_key(self, 'tempfile_name')
         return self.tempfile_name
     endif
+    return self._get_default_tempfilename(a:jobinfo)
+endfunction
 
+function! s:command_maker_base._get_default_tempfilename(jobinfo) abort dict
     let tempfile_enabled = neomake#utils#GetSetting('tempfile_enabled', self, 1, a:jobinfo.ft, a:jobinfo.bufnr)
     if !tempfile_enabled
         return ''
