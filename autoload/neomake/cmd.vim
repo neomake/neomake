@@ -147,7 +147,7 @@ endfunction
 
 function! neomake#cmd#enable(scope) abort
     let old = get(get(a:scope, 'neomake', {}), 'disabled', -1)
-    if old != 1
+    if old ==# 0
         return
     endif
     call neomake#config#set_dict(a:scope, 'neomake.disabled', 0)
