@@ -640,10 +640,12 @@ endfunction
 " a:1 buffer number (defaults to current)
 function! neomake#utils#get_project_root(...) abort
     let bufnr = a:0 ? a:1 : bufnr('%')
-    let bufcfg = getbufvar(bufnr, 'neomake', {})
-    let buf_project_root = get(bufcfg, 'project_root', -1)
-    if buf_project_root isnot -1
-        return buf_project_root
+    let bufcfg = getbufvar(bufnr, 'neomake')
+    if !empty(bufcfg)
+        let buf_project_root = get(bufcfg, 'project_root', -1)
+        if buf_project_root isnot -1
+            return buf_project_root
+        endif
     endif
     let ft = getbufvar(bufnr, '&filetype')
     call neomake#utils#load_ft_makers(ft)
