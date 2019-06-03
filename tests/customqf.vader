@@ -58,9 +58,9 @@ Execute (Displays custom formatted quickfix buffer):
     AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
     AssertNeomakeMessage 'Placing sign: sign place 5002 line=4 name=neomake_file_warn buffer='.loclist_bufnr.'.', 3
     AssertEqual neomake#signs#by_lnum(loclist_bufnr), {
-    \ '1': [5000, 'neomake_file_err'],
-    \ '2': [5001, 'neomake_file_err'],
-    \ '4': [5002, 'neomake_file_warn'],
+    \ '1': [[5000, 'neomake_file_err']],
+    \ '2': [[5001, 'neomake_file_err']],
+    \ '4': [[5002, 'neomake_file_warn']],
     \ }
     if exists('*matchaddpos')
       AssertEqual map(filter(getmatches(), "v:val.group == 'neomakeCursorListNr'"), 'v:val.pos1'), [[1, 6, 4]]

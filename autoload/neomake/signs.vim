@@ -42,8 +42,6 @@ let s:sign_order = {'neomake_file_err': 0, 'neomake_file_warn': 1,
 
 " Get the defined signs for a:bufnr.
 " It returns a dictionary with line numbers as keys.
-" If there are multiple entries for a line only the first (visible) entry is
-" returned.
 function! neomake#signs#by_lnum(bufnr) abort
     let bufnr = a:bufnr + 0
     if !bufexists(bufnr)
@@ -54,9 +52,10 @@ function! neomake#signs#by_lnum(bufnr) abort
     if exists('*sign_getplaced')  " patch-8.1.0614
         for sign in sign_getplaced(bufnr)[0].signs
             if has_key(r, sign.lnum)
-                continue
+                call add(r[sign.lnum], [sign.id, sign.name])
+            else
+                let r[sign.lnum] = [[sign.id, sign.name]]
             endif
-            let r[sign.lnum] = [sign.id, sign.name]
         endfor
         return r
     endif
@@ -78,7 +77,11 @@ function! neomake#signs#by_lnum(bufnr) abort
         let lnum = line[lnum_idx+1:] + 0
         if lnum
             let sign_id = line[stridx(line, '=', lnum_idx+1)+1:] + 0
-            let r[lnum] = [sign_id, sign_type]
+            if has_key(r, lnum)
+                call add(r[lnum], [sign_id, sign_type])
+            else
+                let r[lnum] = [[sign_id, sign_type]]
+            endif
         endif
     endfor
     return r
@@ -95,6 +98,9 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
     let placed_signs = filter(filter(copy(all_placed_signs),
                 \ 'v:val[1] =~# ''^neomake_'''),
                 \ '!empty(v:val)')
+
+    " TEMP: use the last sign only for now.
+    call map(placed_signs, 'v:val[-1]')
 
     let entries_by_linenr = {}
     for entry in a:entries
