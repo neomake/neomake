@@ -219,7 +219,7 @@ Execute (stdin maker: does not use buffer's cwd by default):
   bwipe
 
 Execute (stdin maker: can use buffer's cwd):
-  let maker = {'exe': 'true', 'name': 'flake8'}
+  let maker = {'exe': 'cat', 'name': 'flake8'}
   function maker.supports_stdin(jobinfo) abort
     call a:jobinfo.cd('%:h')
     return 1
