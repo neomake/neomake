@@ -141,3 +141,25 @@ Execute (Neomake via autocommand uses 'disabled' setting):
   doautocmd BufWritePost
   AssertNeomakeMessage 'Make through autocommand disabled via buffer.', 3
   bwipe
+
+Execute (NeomakeBufferEnable after NeomakeDisable):
+  Save g:neomake
+
+  new
+  call NeomakeTestsSetVimMessagesMarker()
+
+  NeomakeDisable
+  try
+    AssertEqual g:neomake.disabled, 1
+    AssertEqual neomake#config#get_with_source('disabled'), [1, 'global']
+    AssertEqual NeomakeTestsGetVimMessages(), ['Neomake is disabled (global).']
+
+    NeomakeEnableBuffer
+    AssertEqual g:neomake.disabled, 1
+    AssertEqual b:neomake.disabled, 0
+    AssertEqual neomake#config#get_with_source('disabled'), [0, 'buffer']
+    AssertEqual NeomakeTestsGetVimMessages(), ['Neomake is enabled (buffer) [global: disabled].']
+  finally
+    NeomakeEnable
+    bwipe
+  endtry
