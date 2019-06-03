@@ -99,8 +99,8 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
                 \ 'v:val[1] =~# ''^neomake_'''),
                 \ '!empty(v:val)')
 
-    " TEMP: use the last sign only for now.
-    call map(placed_signs, 'v:val[-1]')
+    " TEMP: use the first sign only for now.
+    call map(placed_signs, 'v:val[0]')
 
     let entries_by_linenr = {}
     for entry in a:entries

@@ -92,9 +92,15 @@ Execute (neomake#signs#by_lnum):
   exe 'sign place 5000 name=neomake_file_err line=1 buffer='.bufnr
   exe 'sign place 5001 name=neomake_file_warn line=2 buffer='.bufnr
   exe 'sign place 5002 name=neomake_file_info line=3 buffer='.bufnr
-
   AssertEqual neomake#signs#by_lnum(bufnr('%')), {
   \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_warn']],
+  \ '3': [[5002, 'neomake_file_info']]}
+
+  " Visible (last placed sign) is first in list.
+  exe 'sign place 5003 name=neomake_file_info line=1 buffer='.bufnr
+  AssertEqual neomake#signs#by_lnum(bufnr('%')), {
+  \ '1': [[5003, 'neomake_file_info'], [5000, 'neomake_file_err']],
   \ '2': [[5001, 'neomake_file_warn']],
   \ '3': [[5002, 'neomake_file_info']]}
   bwipe
