@@ -17,7 +17,7 @@ Execute (jobinfo.get_pid):
 
 Execute (jobinfo.cd: handles/keeps trailing slash with root dir):
   new
-  let jobinfo = copy(g:neomake#jobinfo#base)
+  let jobinfo = neomake#jobinfo#new()
   let tmpdir = fnamemodify(tempname(), ':h')
   exe 'lcd '.tmpdir
   Assert haslocaldir()
@@ -48,7 +48,7 @@ Execute (jobinfo.cd: empty dir defaults to $HOME):
   let root = fnamemodify('/', ':p')
   exe 'lcd '.root
 
-  let jobinfo = copy(g:neomake#jobinfo#base)
+  let jobinfo = neomake#jobinfo#new()
   Assert !has_key(jobinfo, 'cwd')
 
   Save $HOME

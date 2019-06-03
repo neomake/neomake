@@ -60,8 +60,9 @@ function! neomake#debug#validate_maker(maker) abort
         endif
     endfor
 
+    let jobinfo = neomake#jobinfo#new()
     try
-        let maker = neomake#core#instantiate_maker(a:maker, {}, 0)
+        let maker = neomake#core#instantiate_maker(a:maker, jobinfo, 0)
         if !executable(maker.exe)
             let t = get(maker, 'auto_enabled', 0) ? 'warnings' : 'errors'
             let issues[t] += [printf("maker's exe (%s) is not executable.", maker.exe)]

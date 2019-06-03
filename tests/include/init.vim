@@ -329,7 +329,7 @@ let s:jobinfo_count = 0
 function! NeomakeTestsFakeJobinfo() abort
   let s:jobinfo_count += 1
   let make_id = -42
-  let jobinfo = copy(g:neomake#jobinfo#base)
+  let jobinfo = neomake#jobinfo#new()
   let maker = copy(g:neomake#config#_defaults.maker_defaults)
   let maker.name = 'fake_jobinfo_name'
 
