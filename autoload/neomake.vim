@@ -293,7 +293,7 @@ function! s:MakeJob(make_id, options) abort
     "                        1 for non-async)
     "  - serialize_abort_on_error (default: 0)
     "  - exit_callback (string/function, default: 0)
-    let jobinfo = extend(deepcopy(g:neomake#jobinfo#base), extend({
+    let jobinfo = extend(neomake#jobinfo#new(), extend({
         \ 'id': job_id,
         \ 'make_id': a:make_id,
         \ 'name': empty(get(a:options.maker, 'name', '')) ? 'neomake_'.job_id : a:options.maker.name,

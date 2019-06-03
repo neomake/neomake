@@ -1,6 +1,7 @@
 let s:jobinfo_base = {
             \ 'cd_back_cmd': '',
             \ 'pending_output': [],
+            \ 'file_mode': 1,
             \ }
 function! s:jobinfo_base.get_pid() abort
     if has_key(self, 'vim_job')
@@ -83,5 +84,10 @@ function! s:jobinfo_base.cd(...) abort
     return ''
 endfunction
 
-let g:neomake#jobinfo#base = s:jobinfo_base
+function! neomake#jobinfo#new() abort
+    let jobinfo = deepcopy(s:jobinfo_base)
+    let jobinfo.bufnr = bufnr('%')
+    return jobinfo
+endfunction
+
 " vim: ts=4 sw=4 et
