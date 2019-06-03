@@ -635,9 +635,18 @@ endfunction
 " This is determined by looking for specific files (e.g. `.git` and
 " `Makefile`), and `g:neomake#makers#ft#X#project_root_files` (if defined for
 " filetype "X").
+" This can be overridden in b:neomake.project_root (where it gets cached
+" also).
 " a:1 buffer number (defaults to current)
 function! neomake#utils#get_project_root(...) abort
     let bufnr = a:0 ? a:1 : bufnr('%')
+    let bufcfg = getbufvar(bufnr, 'neomake')
+    if !empty(bufcfg)
+        let buf_project_root = get(bufcfg, 'project_root', -1)
+        if buf_project_root isnot -1
+            return buf_project_root
+        endif
+    endif
     let ft = getbufvar(bufnr, '&filetype')
     call neomake#utils#load_ft_makers(ft)
 
@@ -648,14 +657,17 @@ function! neomake#utils#get_project_root(...) abort
         let project_root_files = get(g:, ft_project_root_files) + project_root_files
     endif
 
+    let r = ''
     let buf_dir = expand('#'.bufnr.':p:h')
     for fname in project_root_files
         let project_root = neomake#utils#FindGlobFile(fname, buf_dir)
         if !empty(project_root)
-            return fnamemodify(project_root, ':h')
+            let r = fnamemodify(project_root, ':h')
+            break
         endif
     endfor
-    return ''
+    call neomake#config#set_buffer(bufnr, 'project_root', r)
+    return r
 endfunction
 
 " Return the number of lines for a given buffer.
@@ -793,3 +805,8 @@ function! neomake#utils#shorten_list_for_log(l, max) abort
     endif
     return a:l
 endfunction
+
+augroup neomake_utils
+    au!
+    autocmd FileType * if exists('b:neomake.project_root') | unlet b:neomake.project_root | endif
+augroup END
