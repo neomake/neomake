@@ -185,7 +185,15 @@ Execute (Instantiate all default makers):
       endtry
 
       " Validate maker.
-      let issues = neomake#debug#validate_maker(extend(maker, {'exe': 'true'}))
+      let error_with_validate_maker = 1
+      try
+        let issues = neomake#debug#validate_maker(extend(maker, {'exe': 'true'}))
+        let error_with_validate_maker = 0
+      finally
+        if error_with_validate_maker
+          call vader#log(printf('Error with: %s!', m))
+        endif
+      endtry
       if !empty(issues.errors)
         call add(file_errors, 'Maker '.string(m).' for filetype '.ft.' has errors: '.join(issues.errors))
       endif
