@@ -78,7 +78,7 @@ function! neomake#signs#by_lnum(bufnr) abort
         if lnum
             let sign_id = line[stridx(line, '=', lnum_idx+1)+1:] + 0
             if has_key(r, lnum)
-                call add(r[lnum], [sign_id, sign_type])
+                call insert(r[lnum], [sign_id, sign_type])
             else
                 let r[lnum] = [[sign_id, sign_type]]
             endif
