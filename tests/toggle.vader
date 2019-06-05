@@ -1,6 +1,6 @@
 Include: include/setup.vader
 
-Execute (TODO: Toggle commands):
+Execute (Toggle commands):
   Save &verbose
 
   tabnew
