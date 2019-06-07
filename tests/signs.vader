@@ -505,6 +505,7 @@ Execute (Uses base sign id with only other signs):
   new
   sign define testsign
   exe 'sign place 99 line=1 name=testsign buffer='.bufnr('%')
+  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'1': [99, 'testsign']}
 
   let maker = {}
   function! maker.get_list_entries(...)
