@@ -551,7 +551,7 @@ Execute (BufWritePost does not run for unchanged buffer):
   call neomake#configure#automake('w')
 
   new
-  let b:neomake_test_enabledmakers = ['true']
+  let b:neomake_test_enabledmakers = ['success_entry_maker']
   set filetype=neomake_tests
 
   CallNeomake 1, []
@@ -559,32 +559,28 @@ Execute (BufWritePost does not run for unchanged buffer):
   Assert !exists('b:_neomake_automake_tick')
 
   exe 'w' tempname()
-  NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 2
   Assert exists('b:_neomake_automake_tick')
 
   w
-  NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 2
   AssertNeomakeMessage 'automake: buffer was not changed.'
 
   normal! ifoo
   w
-  NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 3
 
   w
-  NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 3
   AssertNeomakeMessage 'automake: buffer was not changed.'
 
   normal! oline2
   call neomake#Make(1, [])
-  NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 4
-
   w
   AssertNeomakeMessage 'automake: buffer was not changed.'
+
+  NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 4
   bwipe
 
@@ -596,7 +592,7 @@ Execute (BufWritePost does not run for unchanged buffer (delayed)):
     AssertNeomakeMessage 'automake: timer support is required for automaking, removing event BufWritePost.', 0
   else
     new
-    let b:neomake_test_enabledmakers = ['true']
+    let b:neomake_test_enabledmakers = ['success_entry_maker']
     set filetype=neomake_tests
     exe 'w' tempname()
     AssertNeomakeMessage '\vautomake: started timer \(5ms\): (\d+)'
@@ -614,13 +610,12 @@ Execute (BufWritePost does not run for unchanged buffer (delayed)):
     AssertEqual len(g:neomake_test_jobfinished), 2
 
     w
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual len(g:neomake_test_jobfinished), 2
     AssertNeomakeMessage 'automake: buffer was not changed.'
     w
+    AssertNeomakeMessage 'automake: buffer was not changed.'
+
     NeomakeTestsWaitForFinishedJobs
     AssertEqual len(g:neomake_test_jobfinished), 2
-    AssertNeomakeMessage 'automake: buffer was not changed.'
     bwipe
   endif
 
