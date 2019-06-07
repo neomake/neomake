@@ -1518,3 +1518,31 @@ Execute (automake: creates/handles single cleanup autocmd per buffer):
   call neomake#configure#reset_automake()
   Assert !exists('#neomake_automake_clean#BufWipeout')
   bwipe
+
+Execute (BufWritePost via doautocmd is handled (e.g. vim-fugitive)):
+  call g:NeomakeSetupAutocmdWrappers()
+  call neomake#configure#automake('w')
+
+  function! s:BufWriteCmd() abort
+    exe 'doautocmd BufWritePost '.expand('<amatch>')
+  endfunction
+  augroup neomake_tests
+    au BufWriteCmd * call s:BufWriteCmd()
+  augroup END
+
+  new
+  let b:neomake_test_enabledmakers = ['success_entry_maker']
+  set filetype=neomake_tests
+
+  exe 'w' tempname()
+  NeomakeTestsWaitForFinishedJobs
+  AssertEqual len(g:neomake_test_jobfinished), 1
+  Assert exists('b:_neomake_automake_tick')
+
+  " Setup tick for when :diffget was used (only changing it by one), in
+  " contrast to e.g. ":normal o".
+  let b:_neomake_automake_tick[0] = b:_neomake_automake_tick[0] - 1
+  setlocal modified
+  update
+  AssertEqual len(g:neomake_test_jobfinished), 2
+  bwipe!
