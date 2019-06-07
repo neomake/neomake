@@ -54,16 +54,6 @@ function! s:tick_changed(context) abort
             call s:debug_log('tick is unchanged')
             return 0
         endif
-
-        " NOTE: every write (BufWritePost) increments b:changedtick.
-        if a:context.event ==# 'BufWritePost'
-            let adjusted_prev_tick = [prev_tick[0]+1, prev_tick[1]]
-            if adjusted_prev_tick == cur_tick
-                let r = 0
-                call setbufvar(bufnr, '_neomake_automake_tick', adjusted_prev_tick)
-                call s:debug_log('tick is unchanged with BufWritePost adjustment')
-            endif
-        endif
     endif
     return r
 endfunction
