@@ -93,7 +93,10 @@ let s:entry_to_sign_type = {'W': 'warn', 'I': 'info', 'M': 'msg'}
 function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
     " Query the list of currently placed signs.
     " This allows to cope with movements, e.g. when lines were added.
-    let placed_signs = neomake#signs#by_lnum(a:bufnr)
+    let all_placed_signs = neomake#signs#by_lnum(a:bufnr)
+    let placed_signs = filter(filter(copy(all_placed_signs),
+                \ 'v:val[1] =~# ''^neomake_'''),
+                \ '!empty(v:val)')
 
     let entries_by_linenr = {}
     for entry in a:entries
@@ -142,8 +145,11 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
 
     for [lnum, sign_type] in place_new
         if !exists('next_sign_id')
-            if !empty(placed_signs)
-                let next_sign_id = max(map(values(copy(placed_signs)), 'v:val[0]')) + 1
+            if !empty(all_placed_signs)
+                let next_sign_id = max(map(values(copy(all_placed_signs)), 'v:val[0]')) + 1
+                if next_sign_id < s:base_sign_id
+                    let next_sign_id = s:base_sign_id
+                endif
             else
                 let next_sign_id = s:base_sign_id
             endif
