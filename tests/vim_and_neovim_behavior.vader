@@ -2,6 +2,7 @@
 Include: include/setup.vader
 
 Execute (Test Vim's b:changedtick behavior):
+  " https://github.com/vim/vim/issues/2764
   new
   let before = b:changedtick
   exe 'w' tempname()

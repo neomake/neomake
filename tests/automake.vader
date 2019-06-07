@@ -562,23 +562,14 @@ Execute (BufWritePost does not run for unchanged buffer):
   AssertEqual len(g:neomake_test_jobfinished), 2
   Assert exists('b:_neomake_automake_tick')
 
+  " Every write triggers a run (due to b:changedtick being incremented,
+  " https://github.com/vim/vim/issues/2764).
   w
-  AssertEqual len(g:neomake_test_jobfinished), 2
-  AssertNeomakeMessage 'automake: buffer was not changed.'
+  AssertEqual len(g:neomake_test_jobfinished), 3
 
   normal! ifoo
   w
-  AssertEqual len(g:neomake_test_jobfinished), 3
-
-  w
-  AssertEqual len(g:neomake_test_jobfinished), 3
-  AssertNeomakeMessage 'automake: buffer was not changed.'
-
-  normal! oline2
-  call neomake#Make(1, [])
   AssertEqual len(g:neomake_test_jobfinished), 4
-  w
-  AssertNeomakeMessage 'automake: buffer was not changed.'
 
   NeomakeTestsWaitForFinishedJobs
   AssertEqual len(g:neomake_test_jobfinished), 4
@@ -599,23 +590,17 @@ Execute (BufWritePost does not run for unchanged buffer (delayed)):
     NeomakeTestsWaitForNextFinishedJob
     AssertEqual len(g:neomake_test_jobfinished), 1
 
-    w
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual len(g:neomake_test_jobfinished), 1
-    AssertNeomakeMessage 'automake: buffer was not changed.'
-
-    normal! ifoo
+    " Every write triggers a run (due to b:changedtick being incremented,
+    " https://github.com/vim/vim/issues/2764).
     w
     NeomakeTestsWaitForNextFinishedJob
     AssertEqual len(g:neomake_test_jobfinished), 2
 
+    normal! ifoo
     w
-    AssertNeomakeMessage 'automake: buffer was not changed.'
-    w
-    AssertNeomakeMessage 'automake: buffer was not changed.'
+    NeomakeTestsWaitForNextFinishedJob
+    AssertEqual len(g:neomake_test_jobfinished), 3
 
-    NeomakeTestsWaitForFinishedJobs
-    AssertEqual len(g:neomake_test_jobfinished), 2
     bwipe
   endif
 
