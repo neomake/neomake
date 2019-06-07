@@ -47,6 +47,7 @@ Include (Toggling): toggle.vader
 Include (Utils: project root): utils_projectroot.vader
 Include (Utils): utils.vader
 Include (Verbosity): verbosity.vader
+Include (Vim/Neovim behavior): vim_and_neovim_behavior.vader
 
 ~ Filetype specific
 Include (Asciidoc): ft_asciidoc.vader
