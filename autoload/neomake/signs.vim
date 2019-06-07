@@ -74,13 +74,11 @@ function! neomake#signs#by_lnum(bufnr) abort
         " XXX: does not really match "name="
         "      (broken by patch-8.1.0614, but handled above)
         let sign_type = line[strridx(line, '=')+1:]
-        if sign_type[0:7] ==# 'neomake_'
-            let lnum_idx = stridx(line, '=')
-            let lnum = line[lnum_idx+1:] + 0
-            if lnum
-                let sign_id = line[stridx(line, '=', lnum_idx+1)+1:] + 0
-                let r[lnum] = [sign_id, sign_type]
-            endif
+        let lnum_idx = stridx(line, '=')
+        let lnum = line[lnum_idx+1:] + 0
+        if lnum
+            let sign_id = line[stridx(line, '=', lnum_idx+1)+1:] + 0
+            let r[lnum] = [sign_id, sign_type]
         endif
     endfor
     return r
