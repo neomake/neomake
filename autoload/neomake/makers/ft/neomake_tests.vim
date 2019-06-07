@@ -55,4 +55,12 @@ function! neomake#makers#ft#neomake_tests#process_output_error() abort
     endfunction
     return maker
 endfunction
+
+function! neomake#makers#ft#neomake_tests#success_entry_maker() abort
+    let maker = {}
+    function! maker.get_list_entries(...) abort
+        return []
+    endfunction
+    return maker
+endfunction
 " vim: ts=4 sw=4 et
