@@ -109,6 +109,7 @@ function! s:handle_disabled_status(scope, disabled) abort
                 augroup! neomake
             endif
             call neomake#configure#disable_automake()
+            call neomake#virtualtext#handle_current_error()
         else
             call neomake#setup#setup_autocmds()
         endif
