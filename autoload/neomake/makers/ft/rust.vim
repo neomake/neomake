@@ -130,7 +130,8 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
 
         let decoded = neomake#compat#json_decode(line)
         let data = get(decoded, 'message', -1)
-        if type(data) != type({}) || empty(data['spans'])
+        if type(data) != type({}) || empty(get(data, 'spans', []))
+            " call neomake#log#debug(printf('cargo: ignoring input: %s.', line))
             continue
         endif
 
