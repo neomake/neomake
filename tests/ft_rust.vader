@@ -1,5 +1,33 @@
 Include: include/setup.vader
 
+Execute (rust: cargo: handles code correctly):
+  let null = g:neomake#compat#json_null
+  let true = g:neomake#compat#json_true
+
+  let json = join([
+  \ '{"reason":"compiler-message"',
+  \ '"package_id":"inko 0.3.0 (path+file:///home/yorickpeterse/Projects/inko/inko/vm)"',
+  \ '"target":{"kind":["lib"]',
+  \   '"crate_types":["lib"]',
+  \   '"name":"libinko"',
+  \   '"src_path":"/home/yorickpeterse/Projects/inko/inko/vm/src/lib.rs"',
+  \   '"edition":"2015"}',
+  \ '"message":{"message":"field is never used: `stealer`"',
+  \   '"code":{"code":"dead_code","explanation":null}',
+  \   '"level":"warning"',
+  \   '"spans":[{"file_name":"src/scheduling/scheduler.rs","byte_start":83,"byte_end":102,"line_start":4,"line_end":4,"column_start":5,"column_end":24,"is_primary":true,"text":[{"text":"    stealer: Stealer<T>,","highlight_start":5,"highlight_end":24}],"label":null,"suggested_replacement":null,"suggestion_applicability":null,"expansion":null}]',
+  \   '"children":[{"message":"#[warn(dead_code)] on by default","code":null,"level":"note","spans":[],"children":[],"rendered":null}]',
+  \   '"rendered":"warning: field is never used: `stealer`\\n --> src/scheduling/scheduler.rs:4:5\\n  |\\n4 |     stealer: Stealer<T>,\\n  |     ^^^^^^^^^^^^^^^^^^^\\n  |\\n  = note: #[warn(dead_code)] on by default\\n\\n"}}',
+  \ ], ',')
+
+  let context = {'output': [json]}
+  let errors = neomake#makers#ft#rust#CargoProcessOutput(context)
+  AssertEqual errors, [
+  \ {'lnum': 4, 'col': 5, 'filename': 'src/scheduling/scheduler.rs',
+  \  'type': 'W',
+  \  'maker_name': 'cargo', 'length': 19,
+  \  'text': 'field is never used: `stealer`. #[warn(dead_code)] on by default'}]
+
 Execute (cargo skip non json line):
   new
   file build/lib.rs
@@ -41,7 +69,7 @@ Execute (cargo: uses primary span):
   CallNeomake 1, [cargo]
 
   AssertEqualQf getloclist(0), [{
-  \ 'lnum': 6, 'bufnr': bufnr('%'), 'col': 5, 'valid': 1, 'vcol': 0, 'nr': 49,
+  \ 'lnum': 6, 'bufnr': bufnr('%'), 'col': 5, 'valid': 1, 'vcol': 0, 'nr': 61,
   \ 'type': 'E', 'pattern': '',
   \ 'text': 'this function takes 1 parameter but 2 parameters were supplied: expected 1 parameter',
   \ }]

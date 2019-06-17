@@ -130,21 +130,25 @@ function! neomake#makers#ft#rust#CargoProcessOutput(context) abort
 
         let decoded = neomake#compat#json_decode(line)
         let data = get(decoded, 'message', -1)
-        if type(data) != type({}) || empty(data['spans'])
+        if type(data) != type({}) || empty(get(data, 'spans', []))
+            " call neomake#log#debug(printf('cargo: ignoring input: %s.', line))
             continue
         endif
 
         let error = {'maker_name': 'cargo'}
+
         let code_dict = get(data, 'code', -1)
         if code_dict is g:neomake#compat#json_null
-            if get(data, 'level', '') ==# 'warning'
-                let error.type = 'W'
+                    \ || index(['E', 'W'], code_dict['code'][0]) == -1
+            let level = get(data, 'level', -1)
+            if level != -1
+                let error.type = toupper(level[0])
             else
-                let error.type = 'E'
+                let error.type = 'W'
             endif
         else
             let error.type = code_dict['code'][0]
-            let error.nr = code_dict['code'][1:]
+            let error.nr = str2nr(code_dict['code'][1:])
         endif
 
         let span = data.spans[0]
