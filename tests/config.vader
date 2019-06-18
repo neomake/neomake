@@ -217,6 +217,19 @@ Execute (old-style config is used for maker defaults):
   AssertEqual neomake#GetMaker(maker).args, ['new-style']
   bwipe
 
+Execute (Maker's cwd can be configured via config):
+  let maker = {'name': 'mymaker'}
+
+  new
+  Assert !has_key(neomake#GetMaker(maker), 'cwd')
+
+  let b:neomake_mymaker_cwd = 'custom_cwd1'
+  AssertEqual neomake#GetMaker(maker).cwd, 'custom_cwd1'
+
+  call neomake#config#set('b:mymaker.cwd', 'custom_cwd2')
+  AssertEqual neomake#GetMaker(maker).cwd, 'custom_cwd2'
+  bwipe
+
 Execute (neomake#config#get does not allow to extend undefined default return value):
   let d = neomake#config#get('undefined')
   AssertEqual d, g:neomake#config#undefined
