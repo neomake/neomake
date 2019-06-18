@@ -837,6 +837,14 @@ function! neomake#create_maker_object(maker, ft) abort
             let maker[key] = neomake#utils#GetSetting(key, {'name': maker.name}, get(maker, key, default), ft, bufnr, 1)
             unlet default  " for Vim without patch-7.4.1546
         endfor
+
+        " Check settings, without setting a default.
+        for key in ['cwd']
+            let setting = neomake#utils#GetSetting(key, {'name': maker.name}, get(maker, key, s:unset), ft, bufnr, 1)
+            if setting isnot s:unset
+                let maker[key] = setting
+            endif
+        endfor
     endif
     if v:profiling
         call add(s:hack_keep_refs_for_profiling, maker)
