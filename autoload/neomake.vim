@@ -1435,8 +1435,10 @@ function! s:clean_make_info(make_info, ...) abort
         endif
         call s:clean_for_new_make(a:make_info)
 
-        call neomake#EchoCurrentError(1)
-        call neomake#virtualtext#handle_current_error()
+        if exists('#neomake')
+            call neomake#EchoCurrentError(1)
+            call neomake#virtualtext#handle_current_error()
+        endif
 
         if get(a:make_info, 'canceled', 0)
             call neomake#log#debug('Skipping final processing for canceled make.', a:make_info)
