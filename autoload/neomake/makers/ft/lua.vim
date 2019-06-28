@@ -4,11 +4,12 @@ endfunction
 
 " luacheck: postprocess: use pattern (%s) for end column.
 function! neomake#makers#ft#lua#PostprocessLuacheck(entry) abort
-    let end_col = matchstr(a:entry.pattern, '\v\d+')
-    if !empty(end_col)
-        let a:entry.length = end_col - a:entry.col + 1
-    else
-        echom 'luacheck: no end_col: '.string(a:entry)
+    if !(a:entry.type ==# 'W' && a:entry.nr ==# 631)
+        " Add length, but not with W631 (line too long).
+        let end_col = matchstr(a:entry.pattern, '\v\d+')
+        if !empty(end_col)
+            let a:entry.length = end_col - a:entry.col + 1
+        endif
     endif
     let a:entry.pattern = ''
 endfunction
