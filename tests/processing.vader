@@ -381,13 +381,23 @@ Execute (Sleep in postprocess gets handled correctly):
       AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context:', 2
     endif
 
-    AssertNeomakeMessage "output on stdout: ['out-22', ''].", 3, jobinfo
-    AssertNeomakeMessage 'Processing 1 lines of output.', 3, jobinfo
-    AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context:', 2
+    if has('nvim-0.4.0')
+      " Neovim refactored event processing, so that the job's 2nd sleep finishes
+      " before the one in the first postprocessing.
+      " https://github.com/neovim/neovim/commit/d4938743e6aef04c83d02907048768d0d79aaa30
+      let expected_final_countchanges = 2
+      AssertNeomakeMessage "output on stdout: ['out-22', 'out-333', ''].", 3, jobinfo
+      AssertNeomakeMessage 'Processing 2 lines of output.', 3, jobinfo
+    else
+      let expected_final_countchanges = 3
+      AssertNeomakeMessage "output on stdout: ['out-22', ''].", 3, jobinfo
+      AssertNeomakeMessage 'Processing 1 lines of output.', 3, jobinfo
+      AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context:', 2
 
-    AssertNeomakeMessage "output on stdout: ['out-333', ''].", 3, jobinfo
-    AssertNeomakeMessage 'Processing 1 lines of output.', 3, jobinfo
-    AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context:', 2
+      AssertNeomakeMessage "output on stdout: ['out-333', ''].", 3, jobinfo
+      AssertNeomakeMessage 'Processing 1 lines of output.', 3, jobinfo
+      AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context:', 2
+    endif
 
     if !has('nvim-0.2.0')
       AssertNeomakeMessage 'Trigger delayed exit.', 3, jobinfo
@@ -396,7 +406,7 @@ Execute (Sleep in postprocess gets handled correctly):
     AssertEqual map(getloclist(0), 'v:val.text'), ['out-1', 'out-22', 'out-333']
     let c = s:postprocess_count
     AssertEqual c, 3, 'postprocess count should be 3, but is '.c
-    AssertEqual len(g:neomake_test_countschanged), 3
+    AssertEqual len(g:neomake_test_countschanged), expected_final_countchanges
     AssertEqual len(g:neomake_test_jobfinished), 1
     AssertEqual len(g:neomake_test_finished), 1
   endif
