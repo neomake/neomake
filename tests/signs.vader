@@ -25,14 +25,14 @@ Execute (neomake#signs#RedefineErrorSign):
   call neomake#signs#RedefineErrorSign({'text': 'X', 'texthl': 'ErrorMsg'})
   let sign = substitute(neomake#utils#redir('sign list neomake_file_err'), '\v^[\n]*', '', '')
   AssertEqual split(sign), ['sign', 'neomake_file_err', 'text=X', 'texthl=ErrorMsg']
-  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'2': [5000, 'neomake_file_warn']}
+  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'2': [[5000, 'neomake_file_warn']]}
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_warn, lnum=2.'
   AssertNeomakeMessage 'Reused 1 signs.', 3, {'bufnr': bufnr}
   AssertNeomakeMessage 'Cleaning 0 old signs.', 3, {'bufnr': bufnr}
-  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'2': [5000, 'neomake_file_warn']}
+  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'2': [[5000, 'neomake_file_warn']]}
 
   call neomake#signs#Reset(bufnr, 'file')
   call neomake#signs#CleanAllOldSigns('file')
@@ -61,6 +61,7 @@ Execute (Placing signs in project mode):
 Execute (Signs are not re-used / wiped across modes):
   new
   let bufnr = bufnr('%')
+  AssertEqual neomake#signs#by_lnum(bufnr), {}
   call neomake#signs#PlaceSigns(bufnr('%'),
   \ [{'type': 'E', 'bufnr': bufnr('%'), 'lnum': 1}], 'file')
   call neomake#signs#PlaceSigns(bufnr('%'),
@@ -73,7 +74,7 @@ Execute (Signs are not re-used / wiped across modes):
   call neomake#signs#CleanAllOldSigns('project')
   AssertNeomakeMessage 'Removing signs: {file: {}, project: {}}.'
 
-  AssertEqual neomake#signs#by_lnum(bufnr), {'1': [5000, 'neomake_file_err']}
+  AssertEqual neomake#signs#by_lnum(bufnr), {'1': [[5000, 'neomake_file_err']]}
   call neomake#signs#RedefineSign('neomake_file_warn', {})
   bwipe
 
@@ -91,9 +92,17 @@ Execute (neomake#signs#by_lnum):
   exe 'sign place 5000 name=neomake_file_err line=1 buffer='.bufnr
   exe 'sign place 5001 name=neomake_file_warn line=2 buffer='.bufnr
   exe 'sign place 5002 name=neomake_file_info line=3 buffer='.bufnr
-
   AssertEqual neomake#signs#by_lnum(bufnr('%')), {
-  \ '1': [5000, 'neomake_file_err'], '2': [5001, 'neomake_file_warn'], '3': [5002, 'neomake_file_info']}
+  \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_warn']],
+  \ '3': [[5002, 'neomake_file_info']]}
+
+  " Visible (last placed sign) is first in list.
+  exe 'sign place 5003 name=neomake_file_info line=1 buffer='.bufnr
+  AssertEqual neomake#signs#by_lnum(bufnr('%')), {
+  \ '1': [[5003, 'neomake_file_info'], [5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_warn']],
+  \ '3': [[5002, 'neomake_file_info']]}
   bwipe
 
 Execute (neomake#signs#by_lnum for invalid bufnr):
@@ -110,9 +119,9 @@ Execute (neomake#signs#PlaceSigns):
   call neomake#signs#PlaceSigns(bufnr, entries, 'file')
 
   AssertEqual neomake#signs#by_lnum(bufnr('%')), {
-  \ '1': [5000, 'neomake_file_err'],
-  \ '2': [5001, 'neomake_file_warn'],
-  \ '3': [5002, 'neomake_file_info']}
+  \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_warn']],
+  \ '3': [[5002, 'neomake_file_info']]}
 
   let entries = [
   \ {'lnum': 1, 'type': 'E', 'bufnr': bufnr},
@@ -122,9 +131,9 @@ Execute (neomake#signs#PlaceSigns):
   call neomake#signs#PlaceSigns(bufnr, entries, 'file')
 
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '1': [5000, 'neomake_file_err'],
-  \ '2': [5001, 'neomake_file_warn'],
-  \ '3': [5002, 'neomake_file_err']}
+  \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_warn']],
+  \ '3': [[5002, 'neomake_file_err']]}
 
   let entries = [
   \ {'lnum': 2, 'type': 'E', 'bufnr': bufnr},
@@ -133,10 +142,10 @@ Execute (neomake#signs#PlaceSigns):
   \ {'lnum': 4, 'type': 'I', 'bufnr': bufnr}]
   call neomake#signs#PlaceSigns(bufnr, entries, 'file')
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '1': [5000, 'neomake_file_err'],
-  \ '2': [5001, 'neomake_file_err'],
-  \ '3': [5002, 'neomake_file_warn'],
-  \ '4': [5003, 'neomake_file_err']}
+  \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_err']],
+  \ '3': [[5002, 'neomake_file_warn']],
+  \ '4': [[5003, 'neomake_file_err']]}
 
   call neomake#signs#Reset(bufnr, 'file')
   call neomake#signs#CleanOldSigns(bufnr, 'file')
@@ -144,9 +153,9 @@ Execute (neomake#signs#PlaceSigns):
   call neomake#signs#PlaceSigns(bufnr, entries, 'file')
 
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '2': [5000, 'neomake_file_err'],
-  \ '3': [5001, 'neomake_file_warn'],
-  \ '4': [5002, 'neomake_file_err']}
+  \ '2': [[5000, 'neomake_file_err']],
+  \ '3': [[5001, 'neomake_file_warn']],
+  \ '4': [[5002, 'neomake_file_err']]}
 
   let entries = [
   \ {'lnum': 4, 'type': 'E', 'bufnr': bufnr},
@@ -156,9 +165,9 @@ Execute (neomake#signs#PlaceSigns):
   call neomake#signs#PlaceSigns(bufnr, entries, 'file')
 
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '2': [5000, 'neomake_file_err'],
-  \ '3': [5001, 'neomake_file_warn'],
-  \ '4': [5002, 'neomake_file_err']}
+  \ '2': [[5000, 'neomake_file_err']],
+  \ '3': [[5001, 'neomake_file_warn']],
+  \ '4': [[5002, 'neomake_file_err']]}
 
   let entries = [
   \ {'lnum': 4, 'type': 'E', 'bufnr': bufnr},
@@ -168,10 +177,10 @@ Execute (neomake#signs#PlaceSigns):
   call neomake#signs#PlaceSigns(bufnr, entries, 'file')
 
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '2': [5000, 'neomake_file_err'],
-  \ '3': [5001, 'neomake_file_warn'],
-  \ '4': [5002, 'neomake_file_err'],
-  \ '5': [5003, 'neomake_file_info']}
+  \ '2': [[5000, 'neomake_file_err']],
+  \ '3': [[5001, 'neomake_file_warn']],
+  \ '4': [[5002, 'neomake_file_err']],
+  \ '5': [[5003, 'neomake_file_info']]}
 
   call neomake#signs#Reset(bufnr, 'file')
   call neomake#signs#CleanOldSigns(bufnr, 'file')
@@ -179,7 +188,13 @@ Execute (neomake#signs#PlaceSigns):
   AssertEqual neomake#signs#by_lnum(bufnr), {}
   bwipe
 
-Execute (neomake#signs#PlaceSigns with E and I):
+Execute (neomake#signs#PlaceSigns with E and I (E after I)):
+  new
+  file foo
+  bwipe
+  Save g:neomake_place_signs_count
+  let g:neomake_place_signs_count = 1
+
   new
   let bufnr = bufnr('%')
   let entries = [
@@ -190,9 +205,47 @@ Execute (neomake#signs#PlaceSigns with E and I):
   call neomake#signs#PlaceSigns(bufnr, entries, 'file')
 
   AssertEqual neomake#signs#by_lnum(bufnr('%')), {
-  \ '1': [5000, 'neomake_file_err'],
-  \ '2': [5001, 'neomake_file_warn'],
-  \ '3': [5002, 'neomake_file_err']}
+  \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_warn']],
+  \ '3': [[5002, 'neomake_file_err']]}
+  bwipe
+
+Execute (neomake#signs#PlaceSigns with E and I (E before I)):
+  Save g:neomake_place_signs_count
+  let g:neomake_place_signs_count = 1
+
+  new
+  let bufnr = bufnr('%')
+  let entries = [
+  \ {'lnum': 1, 'type': 'E', 'bufnr': bufnr},
+  \ {'lnum': 2, 'type': 'W', 'bufnr': bufnr},
+  \ {'lnum': 3, 'type': 'E', 'bufnr': bufnr},
+  \ {'lnum': 3, 'type': 'I', 'bufnr': bufnr}]
+  call neomake#signs#PlaceSigns(bufnr, entries, 'file')
+
+  AssertEqual neomake#signs#by_lnum(bufnr('%')), {
+  \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_warn']],
+  \ '3': [[5002, 'neomake_file_err']]}
+  bwipe
+
+Execute (neomake#signs#PlaceSigns handles multiple signs per line):
+  Save g:neomake_place_signs_count
+  let g:neomake_place_signs_count = -1
+
+  new
+  let bufnr = bufnr('%')
+  let entries = [
+  \ {'lnum': 1, 'type': 'E', 'bufnr': bufnr},
+  \ {'lnum': 2, 'type': 'W', 'bufnr': bufnr},
+  \ {'lnum': 3, 'type': 'I', 'bufnr': bufnr},
+  \ {'lnum': 3, 'type': 'E', 'bufnr': bufnr}]
+  call neomake#signs#PlaceSigns(bufnr, entries, 'file')
+
+  AssertEqual neomake#signs#by_lnum(bufnr('%')), {
+  \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_warn']],
+  \ '3': [[5002, 'neomake_file_err']]}
   bwipe
 
 Execute (Signs get handled across multiple get_list_entries jobs):
@@ -211,22 +264,22 @@ Execute (Signs get handled across multiple get_list_entries jobs):
 
   call neomake#Make(1, [maker1])
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '1': [5000, 'neomake_file_err']}
+  \ '1': [[5000, 'neomake_file_err']]}
 
   call neomake#Make(1, [maker1, maker2])
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '1': [5000, 'neomake_file_err'],
-  \ '2': [5001, 'neomake_file_warn']}
+  \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_warn']]}
 
   call neomake#Make(1, [maker1])
   AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': bufnr}
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '1': [5000, 'neomake_file_err']}
+  \ '1': [[5000, 'neomake_file_err']]}
 
   call neomake#Make(1, [maker1, maker2])
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '1': [5000, 'neomake_file_err'],
-  \ '2': [5001, 'neomake_file_warn']}
+  \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_warn']]}
   bwipe
 
 Execute (next sign_id based on max):
@@ -236,9 +289,9 @@ Execute (next sign_id based on max):
   exe 'sign place 5001 line=2 name=neomake_file_warn buffer='.bufnr
   call neomake#signs#PlaceSigns(bufnr, [{'lnum': 3, 'type': 'W'}], 'file')
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '1': [5002, 'neomake_file_warn'],
-  \ '2': [5001, 'neomake_file_warn'],
-  \ '3': [5003, 'neomake_file_warn']}
+  \ '1': [[5002, 'neomake_file_warn']],
+  \ '2': [[5001, 'neomake_file_warn']],
+  \ '3': [[5003, 'neomake_file_warn']]}
   bwipe
 
 Execute (file mode signs get placed when job finishes):
@@ -258,13 +311,13 @@ Execute (file mode signs get placed when job finishes):
     NeomakeTestsWaitForNextFinishedJob
 
     AssertEqual neomake#signs#by_lnum(bufnr), {
-    \ '1': [5000, 'neomake_file_info'],
-    \ '3': [5001, 'neomake_file_warn']}
+    \ '1': [[5000, 'neomake_file_info']],
+    \ '3': [[5001, 'neomake_file_warn']]}
     NeomakeTestsWaitForFinishedJobs
     AssertEqual neomake#signs#by_lnum(bufnr), {
-    \ '1': [5000, 'neomake_file_warn'],
-    \ '2': [5002, 'neomake_file_err'],
-    \ '3': [5001, 'neomake_file_warn']}
+    \ '1': [[5000, 'neomake_file_warn']],
+    \ '2': [[5002, 'neomake_file_err']],
+    \ '3': [[5001, 'neomake_file_warn']]}
     bwipe
   endif
 
@@ -287,15 +340,15 @@ Execute (project mode signs get placed when job finishes):
     NeomakeTestsWaitForNextFinishedJob
 
     AssertEqual neomake#signs#by_lnum(bufnr1), {
-    \ '1': [5000, 'neomake_project_info']}
+    \ '1': [[5000, 'neomake_project_info']]}
     AssertEqual neomake#signs#by_lnum(bufnr2), {
-    \ '3': [5000, 'neomake_project_warn']}
+    \ '3': [[5000, 'neomake_project_warn']]}
     NeomakeTestsWaitForFinishedJobs
     AssertEqual neomake#signs#by_lnum(bufnr1), {
-    \ '1': [5000, 'neomake_project_warn']}
+    \ '1': [[5000, 'neomake_project_warn']]}
     AssertEqual neomake#signs#by_lnum(bufnr2), {
-    \ '2': [5001, 'neomake_project_err'],
-    \ '3': [5000, 'neomake_project_warn']}
+    \ '2': [[5001, 'neomake_project_err']],
+    \ '3': [[5000, 'neomake_project_warn']]}
 
     " Verify sign handling with a file mode maker on top.
     let maker = {'_bufnr': bufnr1}
@@ -306,12 +359,12 @@ Execute (project mode signs get placed when job finishes):
     AssertNeomakeMessage 'Placing sign: sign place 5001 line=1 name=neomake_file_err buffer='.bufnr1.'.'
     if has('patch-8.1.0384') || has('netbeans_intg')
       AssertEqual neomake#signs#by_lnum(bufnr1), {
-      \ '1': [5001, 'neomake_file_err']}
+      \ '1': [[5001, 'neomake_file_err'], [5000, 'neomake_project_warn']]}
     endif
     call neomake#signs#ResetFile(bufnr1)
     call neomake#signs#CleanAllOldSigns('file')
     AssertEqual neomake#signs#by_lnum(bufnr1), {
-    \ '1': [5000, 'neomake_project_warn']}
+    \ '1': [[5000, 'neomake_project_warn']]}
     bwipe
     bwipe
   endif
@@ -344,10 +397,10 @@ Execute (neomake#signs#PlaceSigns keeps sign moved by lnum):
 
   call s:place_sign(1)
   AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.bufnr.'.'
-  AssertEqual neomake#signs#by_lnum(bufnr), {'1': [5000, 'neomake_file_err']}
+  AssertEqual neomake#signs#by_lnum(bufnr), {'1': [[5000, 'neomake_file_err']]}
 
   normal! O
-  AssertEqual neomake#signs#by_lnum(bufnr), {'2': [5000, 'neomake_file_err']}
+  AssertEqual neomake#signs#by_lnum(bufnr), {'2': [[5000, 'neomake_file_err']]}
 
   call neomake#signs#Reset(bufnr, 'file')
   call s:place_sign(2)
@@ -357,7 +410,7 @@ Execute (neomake#signs#PlaceSigns keeps sign moved by lnum):
   AssertNeomakeMessage 'Cleaning 0 old signs.', 3, {'bufnr': bufnr}
 
   call neomake#signs#Reset(bufnr, 'file')
-  AssertEqual neomake#signs#by_lnum(bufnr), {'2': [5000, 'neomake_file_err']}
+  AssertEqual neomake#signs#by_lnum(bufnr), {'2': [[5000, 'neomake_file_err']]}
   call neomake#signs#CleanOldSigns(bufnr, 'file')
   AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': bufnr}
   AssertEqual neomake#signs#by_lnum(bufnr), {}
@@ -387,20 +440,20 @@ Execute (CleanOldSigns removes unplaced sign from s:placed_signs):
 
   CallNeomake 1, [maker]
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '1': [5000, 'neomake_file_err'],
-  \ '2': [5001, 'neomake_file_err'],
+  \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_err']],
   \ }
 
   CallNeomake 1, [maker]
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '1': [5000, 'neomake_file_err'],
+  \ '1': [[5000, 'neomake_file_err']],
   \ }
   AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': bufnr}
 
   CallNeomake 1, [maker]
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '1': [5000, 'neomake_file_err'],
-  \ '2': [5001, 'neomake_file_err'],
+  \ '1': [[5000, 'neomake_file_err']],
+  \ '2': [[5001, 'neomake_file_err']],
   \ }
   " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3
   AssertNeomakeMessage 'Reused 1 signs.', 3
@@ -424,11 +477,11 @@ Execute (neomake#signs#PlaceSigns handles lowercase and fallback entry type):
   AssertNeomakeMessage 'Placing sign: sign place 5003 line=4 name=neomake_file_err buffer='.bufnr.'.'
   AssertNeomakeMessage 'Placing sign: sign place 5004 line=5 name=neomake_file_err buffer='.bufnr.'.'
   AssertEqual neomake#signs#by_lnum(bufnr), {
-  \ '1': [5000, 'neomake_file_warn'],
-  \ '2': [5001, 'neomake_file_info'],
-  \ '3': [5002, 'neomake_file_msg'],
-  \ '4': [5003, 'neomake_file_err'],
-  \ '5': [5004, 'neomake_file_err'],
+  \ '1': [[5000, 'neomake_file_warn']],
+  \ '2': [[5001, 'neomake_file_info']],
+  \ '3': [[5002, 'neomake_file_msg']],
+  \ '4': [[5003, 'neomake_file_err']],
+  \ '5': [[5004, 'neomake_file_err']],
   \ }
   bwipe
 
@@ -447,7 +500,7 @@ Execute (Signs should be placed with QuickfixCmdPost already (loclist)):
   CallNeomake 1, [g:error_maker]
 
   let signs = neomake#signs#by_lnum(bufnr('%'))
-  AssertEqual signs, {'1': [5000, 'neomake_file_err']}
+  AssertEqual signs, {'1': [[5000, 'neomake_file_err']]}
 
   if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
     AssertEqual s:calls, []
@@ -472,7 +525,7 @@ Execute (Signs should be placed with QuickfixCmdPost already (qflist)):
   CallNeomake 0, [g:error_maker]
 
   let signs = neomake#signs#by_lnum(bufnr('%'))
-  AssertEqual signs, {'1': [5000, 'neomake_project_err']}
+  AssertEqual signs, {'1': [[5000, 'neomake_project_err']]}
 
   if has('patch-8.0.1040')  " 'efm' in setqflist/getqflist
     AssertEqual s:calls, []
@@ -482,7 +535,7 @@ Execute (Signs should be placed with QuickfixCmdPost already (qflist)):
   bwipe
   delfunction OnQuickfixCmdPost
 
-Execute (neomake#signs#PlaceSigns: prevents re-used signs from being clened):
+Execute (neomake#signs#PlaceSigns: prevents re-used signs from being cleaned):
   new
   let bufnr = bufnr('%')
 
@@ -505,7 +558,7 @@ Execute (Uses base sign id with only other signs):
   new
   sign define testsign
   exe 'sign place 99 line=1 name=testsign buffer='.bufnr('%')
-  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'1': [99, 'testsign']}
+  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'1': [[99, 'testsign']]}
 
   let maker = {}
   function! maker.get_list_entries(...)
@@ -513,8 +566,8 @@ Execute (Uses base sign id with only other signs):
   endfunction
   CallNeomake 1, [maker]
   AssertEqual neomake#signs#by_lnum(bufnr('%')), {
-  \ '1': [99, 'testsign'],
-  \ '2': [5000, 'neomake_file_warn'],
+  \ '1': [[99, 'testsign']],
+  \ '2': [[5000, 'neomake_file_warn']],
   \ }
   sign undefine testsign
   bwipe!
