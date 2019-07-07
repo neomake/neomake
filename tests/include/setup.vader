@@ -46,6 +46,7 @@ Before:
         \ 'GetPythonIndent',
         \ 'GetJavascriptIndent',
         \ 'GetShIndent',
+        \ 'FugitiveReloadCheck',
         \ ])
 
     let g:neomake_test_augroups_before = split(substitute(neomake#utils#redir('augroup'), '^[ \n]\+', '', ''), '\s\+')

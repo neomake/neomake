@@ -6,11 +6,18 @@ Execute (Test Vim's b:changedtick behavior):
   new
   let before = b:changedtick
   exe 'w' tempname()
-  AssertEqual before + 1, b:changedtick
+
+  if has('patch-8.1.1498')
+    let inc_for_unchanged = 0
+  else
+    let inc_for_unchanged = 1
+  endif
+
+  AssertEqual before + inc_for_unchanged, b:changedtick
 
   let before = b:changedtick
   w
-  AssertEqual before + 1, b:changedtick
+  AssertEqual before + inc_for_unchanged, b:changedtick
 
   let before = b:changedtick
   update
