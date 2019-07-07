@@ -558,7 +558,7 @@ Execute (Uses base sign id with only other signs):
   new
   sign define testsign
   exe 'sign place 99 line=1 name=testsign buffer='.bufnr('%')
-  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'1': [99, 'testsign']}
+  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'1': [[99, 'testsign']]}
 
   let maker = {}
   function! maker.get_list_entries(...)
@@ -566,8 +566,8 @@ Execute (Uses base sign id with only other signs):
   endfunction
   CallNeomake 1, [maker]
   AssertEqual neomake#signs#by_lnum(bufnr('%')), {
-  \ '1': [99, 'testsign'],
-  \ '2': [5000, 'neomake_file_warn'],
+  \ '1': [[99, 'testsign']],
+  \ '2': [[5000, 'neomake_file_warn']],
   \ }
   sign undefine testsign
   bwipe!
