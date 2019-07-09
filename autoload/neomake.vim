@@ -971,12 +971,7 @@ function! neomake#GetEnabledMakers(...) abort
         else
             let auto_enabled = 0
         endif
-
-        let makers = neomake#map_makers(makers, a:1, auto_enabled)
-        for maker in makers
-            let maker.auto_enabled = auto_enabled
-            let enabled_makers += [maker]
-        endfor
+        let enabled_makers = neomake#map_makers(makers, a:1, auto_enabled)
     endif
     return enabled_makers
 endfunction
@@ -2591,5 +2586,7 @@ function! neomake#map_makers(makers, ft, auto_enabled) abort
             endif
         endfor
     endif
+    " Set auto_enabled, but keep explicitly set value.
+    call map(makers, 'extend(v:val, {''auto_enabled'': a:auto_enabled}, ''keep'')')
     return makers
 endfunction
