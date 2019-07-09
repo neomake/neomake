@@ -107,6 +107,7 @@ function! neomake#makers#ft#rust#cargo() abort
     let maker = {
         \ 'args': maker_command + ['--message-format=json', '--quiet'],
         \ 'append_file': 0,
+        \ 'tempfile_enabled': 0,
         \ 'process_output': function('neomake#makers#ft#rust#CargoProcessOutput'),
         \ }
 
