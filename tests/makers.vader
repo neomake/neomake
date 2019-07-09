@@ -553,8 +553,9 @@ Execute (Makers: get_list_entries):
   let maker = {}
   function! maker.get_list_entries(...) abort dict
     let jobinfo = a:1
-    AssertEqual keys(jobinfo.maker), ['name', 'get_list_entries']
+    AssertEqual sort(keys(jobinfo.maker)), ['auto_enabled', 'get_list_entries', 'name']
     Assert !has_key(self, 'errorformat'), 'errorformat is not required'
+    AssertEqual jobinfo.maker.auto_enabled, 0
     return deepcopy(g:neomake_test_entries)
   endfunction
 
@@ -571,6 +572,16 @@ Execute (Makers: get_list_entries):
   AssertEqual len(g:neomake_test_countschanged), 1
   AssertEqual len(g:neomake_test_jobfinished), 1
   AssertEqual len(g:neomake_test_finished), 1
+  bwipe
+
+Execute (Makers: auto_enabled is kept if provided):
+  new
+  set filetype=neomake_tests
+  let b:neomake_neomake_tests_enabled_makers = [
+  \ {'name': 'custom', 'auto_enabled': 1},
+  \ ]
+  AssertEqual map(neomake#GetEnabledMakers('neomake_tests'), '[v:val.name, v:val.auto_enabled]'),
+  \ [['custom', 1]]
   bwipe
 
 Execute (Makers: get_list_entries with non-list return value):
