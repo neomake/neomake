@@ -98,7 +98,7 @@ function! neomake#makers#ft#c#cppcheck() abort
     "       neomake#makers#ft#cpp#cppcheck.
     return {
         \ 'args': ['--language=c', '--quiet', '--enable=warning', '--force',
-        \          '--template="{file}:{line}:{column}:{severity}:{message}"'],
+        \          '--template={file}:{line}:{column}:{severity}:{message}'],
         \ 'errorformat':
             \ 'nofile:0:0:%trror:%m,' .
             \ '%f:%l:%c:%trror:%m,' .
