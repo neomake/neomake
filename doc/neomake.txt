@@ -1076,7 +1076,7 @@ There are several ways of addressing this issue:
   |neomake-makers-properties|.
   For certain configurations this can result in
   issues with the current working directory (see
-  https://github.com/neomake/neomake/issues/2340#issue-424879342)
+  https://github.com/neomake/neomake/issues/2340#issue-424879342).
 
 See https://github.com/neomake/neomake/issues/247 for even more suggestions.
 
