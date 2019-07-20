@@ -70,15 +70,27 @@ function! neomake#core#instantiate_maker(maker, options, check_exe) abort
             call neomake#log#debug(error.'.', options)
             return {}
         endif
-        if a:check_exe && !executable(maker.exe)
-            if get(maker, 'auto_enabled', 0)
-                call neomake#log#debug(printf(
-                            \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name), options)
+        if a:check_exe
+            if exists('*exepath')
+                let executable = 0
+                let exe_path = exepath(maker.exe)
+                if !empty(exe_path)
+                    let executable = 1
+                    let maker.exepath = exe_path
+                endif
             else
-                let error = printf('Exe (%s) of maker %s is not executable', maker.exe, maker.name)
-                throw 'Neomake: '.error
+                let executable = executable(maker.exe)
             endif
-            return {}
+            if !executable
+                if get(maker, 'auto_enabled', 0)
+                    call neomake#log#debug(printf(
+                                \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name), options)
+                else
+                    let error = printf('Exe (%s) of maker %s is not executable', maker.exe, maker.name)
+                    throw 'Neomake: '.error
+                endif
+                return {}
+            endif
         endif
     endif
     return maker
@@ -108,8 +120,13 @@ function! g:neomake#core#command_maker_base._get_fname_for_args(jobinfo) abort d
     return ''
 endfunction
 
-function! g:neomake#core#command_maker_base._get_argv(_jobinfo) abort dict
-    return neomake#compat#get_argv(self.exe, self.args, type(self.args) == type([]))
+function! g:neomake#core#command_maker_base._get_argv(jobinfo) abort dict
+    if has_key(a:jobinfo, 'cd_back_cmd') && has_key(self, 'exepath')
+        let exe = self.exepath
+    else
+        let exe = self.exe
+    endif
+    return neomake#compat#get_argv(exe, self.args, type(self.args) == type([]))
 endfunction
 
 " Get tabnr and winnr for a given make ID.
