@@ -1073,7 +1073,8 @@ There are several ways of addressing this issue:
   local executable.
 - Use a plugin such as https://github.com/benjie/local-npm-bin.vim
 - Set the executable path through |neomake-object-maker| or
-  |neomake-makers-properties| For certain configurations this can result in
+  |neomake-makers-properties|.
+  For certain configurations this can result in
   issues with the current working directory (see
   https://github.com/neomake/neomake/issues/2340#issue-424879342)
 
