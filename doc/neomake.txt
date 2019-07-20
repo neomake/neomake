@@ -1058,7 +1058,7 @@ Some programs such as eslint are typically found in both a global and a local
 location. The global location is usually included in your shell path, whereas
 the path to the locally installed executable for the current project is often
 not included in your path (run `$ echo $PATH` in your shell to see the current
-path)
+path).
 
 Neomake itself has no special logic to determine the correct path to any
 executable, meaning if for example eslint is only available globally, that's
