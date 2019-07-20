@@ -1049,8 +1049,8 @@ Here are some tips to develop the 'errorformat' setting for makers:
    display the raw data.
 5. Pay attention to the "`valid`" property of entries.
 
-                                                     *neomake-faq-local-executables*
-                                                     *neomake-faq-eslint*
+                                               *neomake-faq-local-executables*
+                                               *neomake-faq-eslint*
 
 6.4 How to prefer local over global executables?~
 
