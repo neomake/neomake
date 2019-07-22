@@ -2181,12 +2181,13 @@ endfunction
 function! s:exit_handler(jobinfo, data) abort
     let jobinfo = a:jobinfo
     let jobinfo.exit_code = a:data
+    let maker = jobinfo.maker
     if get(jobinfo, 'canceled')
-        call neomake#log#debug('exit: job was canceled.', jobinfo)
+        call neomake#log#debug(printf('exit: %s: %s (job was canceled).',
+                    \ maker.name, string(a:data)), jobinfo)
         call s:CleanJobinfo(jobinfo)
         return
     endif
-    let maker = jobinfo.maker
 
     if exists('jobinfo._output_while_in_handler') || exists('jobinfo._nvim_in_handler')
         let jobinfo._exited_while_in_handler = a:data

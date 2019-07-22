@@ -14,7 +14,11 @@ Execute (neomake#CancelJob):
 
     NeomakeTestsWaitForFinishedJobs
 
-    AssertNeomakeMessage 'exit: job was canceled.', 3, jobinfo
+    if has('nvim')
+      AssertNeomakeMessage '\Vexit: \.\*: 0 (job was canceled).', 3, jobinfo
+    else
+      AssertNeomakeMessage '\Vexit: \.\*: -1 (job was canceled).', 3, jobinfo
+    endif
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfo
     AssertNeomakeMessage 'Cleaning make info.'
 
@@ -141,8 +145,10 @@ Execute (neomake#CancelJob with trapped TERM):
 
     NeomakeTestsWaitForMessage '\Moutput on stdout: \.\*''not stopping on SIGTERM''', 3, jobinfo
     AssertNeomakeMessage 'Ignoring output (job was canceled).', 3, jobinfo
-    NeomakeTestsWaitForMessage 'exit: job was canceled.', 3, jobinfo, {'timeout': 5000}
-    if !has('nvim')
+    if has('nvim')
+      NeomakeTestsWaitForMessage '\Vexit: \.\*: 0 (job was canceled).', 3, jobinfo, {'timeout': 5000}
+    else
+      NeomakeTestsWaitForMessage '\Vexit: \.\*: -1 (job was canceled).', 3, jobinfo, {'timeout': 5000}
       AssertNeomakeMessage 'Forcefully killing still running Vim job.', 3, jobinfo, {'ignore_order': 1}
     endif
 
@@ -158,10 +164,17 @@ Execute (neomake#CancelMake stops all jobs):
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage '\v^Stopping \w+ job: .+\.$'
     AssertNeomakeMessage '\v^Stopping \w+ job: .+\.$'
-    AssertNeomakeMessage 'exit: job was canceled.'
-    AssertNeomakeMessage 'Cleaning jobinfo.'
-    AssertNeomakeMessage 'exit: job was canceled.'
-    AssertNeomakeMessage 'Cleaning jobinfo.'
+    if has('nvim')
+      AssertNeomakeMessage 'exit: sleep-maker: 0 (job was canceled).'
+      AssertNeomakeMessage 'Cleaning jobinfo.'
+      AssertNeomakeMessage 'exit: sleep-maker: 0 (job was canceled).'
+      AssertNeomakeMessage 'Cleaning jobinfo.'
+    else
+      AssertNeomakeMessage 'exit: sleep-maker: -1 (job was canceled).'
+      AssertNeomakeMessage 'Cleaning jobinfo.'
+      AssertNeomakeMessage 'exit: sleep-maker: -1 (job was canceled).'
+      AssertNeomakeMessage 'Cleaning jobinfo.'
+    endif
   endif
 
 Execute (neomake#CancelMake handles invalid make id):
