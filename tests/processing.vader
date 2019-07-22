@@ -1068,15 +1068,16 @@ Execute (handles terminal mode, requeues for BufEnter/WinEnter):
   else
     new
     let make_bufnr = bufnr('%')
-    call neomake#Make(1, [g:error_maker])
 
     let s:exited = 0
     function! s:exit_insert(...)
+      NeomakeTestsWaitForMessage 'exit: error-maker: 1.'
       let s:exited = 1
       call feedkeys("\<C-\>\<C-n>", 'x')
       new
     endfunction
     call timer_start(100, function('s:exit_insert'))
+    call neomake#Make(1, [g:error_maker])
 
     " Neovim replaces the current buffer, while Vim opens a new window.
     if has('nvim')
