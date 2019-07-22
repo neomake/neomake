@@ -54,8 +54,8 @@ if [ "$1" = vader ]; then
     # 5. non-Neomake log lines (e.g. from :Log)
     sed -E -e 's/^(([^ ].*)? +)\([ [:digit:]]+\/[[:digit:]]+\) \[[ [:alpha:]]+\] \(X\).*/'"$error_color"'\0'"$error_color_off"'/' \
       -e 's/^(([^ ].*)? +)(\([ [:digit:]]+\/[[:digit:]]+\))/\1'"$bold"'\3'"$bold_off"'/' \
-      -e 's/^ +> \[(error  |E +[.[:digit:]]+)\]: .*/'"$bold"'\0'"$bold_off"'/' \
-      -e 's/^ +> \[(debug  |D +[.[:digit:]]+)\]: .*/'"$debug_color"'\0'"$debug_color_off"'/' \
+      -e 's/^ +> \[(error  |E \+[.[:digit:]]+)\]: .*/'"$bold"'\0'"$bold_off"'/' \
+      -e 's/^ +> \[(debug  |D \+[.[:digit:]]+)\]: .*/'"$debug_color"'\0'"$debug_color_off"'/' \
       -e '/'"$re_ignore_log_line"'/! s/'"$re_log_line"'/\1'"$log_color"'\3'"$log_color_off"'/'
   }
 
