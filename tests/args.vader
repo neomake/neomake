@@ -101,7 +101,7 @@ Execute (fname in args gets not expanded (maker from command list)):
   CallNeomake 1, [maker]
   AssertEqual map(getloclist(0), 'v:val.text'), ['~']
   if neomake#has_async_support()
-    AssertNeomakeMessage "Starting async job: printf '%s' '~'."
+    AssertNeomakeMessage '\VStarting async job: \.\*printf ''%s'' ''~''.'
   else
     AssertNeomakeMessage "Starting [string]: printf '%s' '~'."
   endif
