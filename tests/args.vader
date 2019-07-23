@@ -103,6 +103,6 @@ Execute (fname in args gets not expanded (maker from command list)):
   if neomake#has_async_support()
     AssertNeomakeMessage '\VStarting async job: \.\*printf ''%s'' ''~''.'
   else
-    AssertNeomakeMessage "Starting [string]: printf '%s' '~'."
+    AssertNeomakeMessage '\VStarting [string]: \.\*printf ''%s'' ''~''.'
   endif
   bwipe
