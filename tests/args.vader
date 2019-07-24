@@ -114,7 +114,7 @@ Execute (fname in args gets not expanded (maker from command list)):
     let bindir = tempname()
     call mkdir(bindir)
     let exe = bindir.'/custom-exe'
-    call writefile([], exe)
+    call writefile(['#!/bin/sh'], exe)
     call setfperm(exe, 'rwxrwx---')
 
     let maker = {}
