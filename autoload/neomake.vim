@@ -845,19 +845,6 @@ function! neomake#create_maker_object(maker, ft) abort
                 let maker[key] = setting
             endif
         endfor
-
-        if !executable(maker.exe)
-            let exe_lookup = neomake#utils#get_extra_bin_dirs(bufnr)
-            if !empty(exe_lookup)
-                for p in exe_lookup
-                    let check_exe = p . '/' . maker.exe
-                    if executable(check_exe)
-                        let maker.exe = check_exe
-                        break
-                    endif
-                endfor
-            endif
-        endif
     endif
     if v:profiling
         call add(s:hack_keep_refs_for_profiling, maker)
