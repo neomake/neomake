@@ -678,8 +678,8 @@ function! neomake#utils#get_extra_bin_dirs(...) abort
     let bufnr = a:0 ? a:1 : bufnr('%')
     let bufcfg = getbufvar(bufnr, 'neomake')
     if !empty(bufcfg)
-        let r = get(bufcfg, '_resolved_extra_bin_dirs', -1)
-        if r isnot -1
+        let r = get(bufcfg, '_resolved_extra_bin_dirs', s:undefined_list)
+        if r isnot s:undefined_list
             return r
         endif
     endif
