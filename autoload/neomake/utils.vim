@@ -685,24 +685,17 @@ function! neomake#utils#get_extra_bin_dirs(...) abort
     endif
     let ft = getbufvar(bufnr, '&filetype')
 
-    let extra_bin_dirs = neomake#utils#GetSetting('extra_bin_dirs', {}, g:neomake#config#undefined, ft, bufnr, 0)
-    if extra_bin_dirs is g:neomake#config#undefined
+    let r = neomake#utils#GetSetting('extra_bin_dirs', {}, s:undefined_list, ft, bufnr, 0)
+    if r is s:undefined_list
         call neomake#utils#load_ft_makers(ft)
         let r = get(g:, 'neomake#makers#ft#'.ft.'#extra_bin_dirs', [])
-    else
-        let r = extra_bin_dirs
     endif
 
-    let idx = 0
-    for v in r
-        if stridx(v, '{{project_root}}') != -1
-            if !exists('l:project_root')
-                let project_root = neomake#utils#get_project_root(bufnr)
-            endif
-            let r[idx] = substitute(v, '{{project_root}}', project_root, 'g')
-        endif
-        let idx += 1
-    endfor
+    " Substitute project_root placeholder (if used).
+    if !empty(filter(copy(r), 'v:val =~# ''\V{{project_root}}'''))
+        let project_root = neomake#utils#get_project_root(bufnr)
+        call map(r, 'substitute(v:val, ''{{project_root}}'', project_root, ''g'')')
+    endif
 
     " Save (cached).
     call neomake#config#set_buffer(bufnr, '_resolved_extra_bin_dirs', r)
