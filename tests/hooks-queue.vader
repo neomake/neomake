@@ -89,20 +89,20 @@ Execute (Nested neomake#utils#hook must not be nested (directly)):
     au User Event3 call s:nested_hook_cb(3)
   augroup END
   call neomake#utils#hook('Event1', {'context': 1})
-  AssertNeomakeMessage "Calling User autocmd Event1 with context: {'context': 1}.", 2
+  AssertNeomakeMessage "Calling User autocmd Event1 with context: {'context': 1}.", 3
   AssertNeomakeMessage 'Queuing action handle_hook for Timer, BufEnter, WinEnter, InsertLeave, CursorHold, CursorHoldI.', 3
   doautocmd InsertLeave
-  AssertNeomakeMessage "Calling User autocmd Event2 with context: {'context': 2}.", 2
+  AssertNeomakeMessage "Calling User autocmd Event2 with context: {'context': 2}.", 3
   AssertNeomakeMessage 'Queuing action handle_hook for Timer, BufEnter, WinEnter, InsertLeave, CursorHold, CursorHoldI.', 3
   doautocmd InsertLeave
-  AssertNeomakeMessage "Calling User autocmd Event3 with context: {'context': 3}.", 2
+  AssertNeomakeMessage "Calling User autocmd Event3 with context: {'context': 3}.", 3
 
 Execute (neomake#utils#hook: reports exception):
   augroup neomake_tests
     au User Event1 throw 'Exception'
   augroup END
   call neomake#utils#hook('Event1', {'context': 1})
-  AssertNeomakeMessage "Calling User autocmd Event1 with context: {'context': 1}.", 2
+  AssertNeomakeMessage "Calling User autocmd Event1 with context: {'context': 1}.", 3
   AssertNeomakeMessage 'Error during User autocmd for Event1: Exception.', 0
   Assert !exists('g:neomake_hook_context'), 'g:neomake_hook_context was cleared'
 
@@ -144,11 +144,11 @@ Execute (Does not nest hooks / User autocommands):
 
     doautocmd WinEnter
     AssertNeomakeMessage 'action queue: calling handle_hook.'
-    AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context: ', 2
+    AssertNeomakeMessage '\VCalling User autocmd NeomakeCountsChanged with context: ', 3
     AssertNeomakeMessage 'action queue: calling CleanJobinfo.', 3
     AssertNeomakeMessage 'Cleaning jobinfo.', 3
-    AssertNeomakeMessage '\VCalling User autocmd NeomakeJobFinished with context: ', 2
-    AssertNeomakeMessage '\VCalling User autocmd NeomakeFinished with context: ', 2
+    AssertNeomakeMessage '\VCalling User autocmd NeomakeJobFinished with context: ', 3
+    AssertNeomakeMessage '\VCalling User autocmd NeomakeFinished with context: ', 3
     AssertNeomakeMessage 'Cleaning make info.'
     bwipe
   endif

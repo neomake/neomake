@@ -699,7 +699,7 @@ Execute (get_list_entries: delayed for location list (but in current context)):
   3wincmd w
   AssertNeomakeMessage 'action queue: processing for WinEnter (2 items).', 3, {'winnr': 3}
   AssertNeomakeMessage 'Cleaning jobinfo.'
-  AssertNeomakeMessage '\VCalling User autocmd NeomakeJobFinished with context:', 2
+  AssertNeomakeMessage '\VCalling User autocmd NeomakeJobFinished with context:', 3
 
   AssertEqual winnr(), 2
   AssertEqual map(getloclist(3), '[v:val.bufnr, v:val.text, v:val.type]'), [

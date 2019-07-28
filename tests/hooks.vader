@@ -12,7 +12,7 @@ Execute (Hook execution gets logged):
   let make_id = neomake#GetStatus().last_make_id
   NeomakeTestsWaitForFinishedJobs
 
-  AssertNeomakeMessage '\mCalling User autocmd NeomakeFinished with context: {''options'': ', 2
+  AssertNeomakeMessage '\mCalling User autocmd NeomakeFinished with context: {''options'': ', 3
   AssertEqual map(copy(g:neomake_test_finished), 'sort(keys(v:val))'), [
   \ ['finished_jobs', 'make_id', 'make_info', 'options']]
 

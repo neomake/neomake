@@ -245,7 +245,7 @@ Execute (Automake):
   AssertEqual len(g:neomake_test_jobfinished), 1
 
   " 'jobs' in logged context.
-  AssertNeomakeMessage '\VCalling User autocmd NeomakeFinished with context: \.\*''jobs'': [''true'']\.\*}.', 2
+  AssertNeomakeMessage '\VCalling User autocmd NeomakeFinished with context: \.\*''jobs'': [''true'']\.\*}.', 3
 
   " Tick was not reset on FileType-reconfig (no changes).
   doautocmd FileType
