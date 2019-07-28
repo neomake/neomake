@@ -438,7 +438,7 @@ function! s:handle_hook(jobinfo, event, context) abort
     if !empty(a:jobinfo)
         let log_args += [a:jobinfo]
     endif
-    call call('neomake#log#info', log_args)
+    call call('neomake#log#debug', log_args)
 
     unlockvar g:neomake_hook_context
     let g:neomake_hook_context = a:context
