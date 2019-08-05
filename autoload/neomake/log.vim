@@ -4,12 +4,14 @@ let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 let s:is_testing = exists('g:neomake_test_messages')
 let s:pid = getpid()
 
-let s:last_msg_ts = neomake#compat#reltimefloat()
+if !exists('s:last_msg_ts')
+    let s:last_msg_ts = neomake#compat#reltimefloat()
+endif
 
 function! s:reltime_lastmsg() abort
     let cur = neomake#compat#reltimefloat()
     let diff = (cur - s:last_msg_ts)
-    let s:last_msg_ts = neomake#compat#reltimefloat()
+    let s:last_msg_ts = cur
 
     if diff < 0.01
         return '     '

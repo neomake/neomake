@@ -79,9 +79,41 @@ Execute (neomake#log#debug_obj does not call neomake#utils#Stringify if not nece
   call neomake#log#debug_obj('msg', 'obj')
   AssertEqual s:calls, [['obj']]
 
+Execute (reltime_lastmsg: cover all cases):
+  if has('patch-7.4.503')
+    Save g:neomake_logfile
+    let g:neomake_logfile = tempname()
+
+    let s:cur = 0
+    let s:diffs = [0, 9, 99, 999, 9999, 99999]
+    function! neomake#compat#reltimefloat(...)
+      let s:cur += remove(s:diffs, 0)
+      return s:cur
+    endfunction
+
+    call neomake#log#debug('msg1.')
+    call neomake#log#debug('msg2.')
+    call neomake#log#debug('msg3.')
+    call neomake#log#debug('msg4.')
+    call neomake#log#debug('msg5.')
+
+    let log_msgs = readfile(g:neomake_logfile)
+    call map(log_msgs, 'substitute(v:val, ''\v^\d\d:\d\d:\d\d \d+ '', ''HH:MM:SS PID '', '''')')
+    AssertEqual log_msgs, [
+    \ 'HH:MM:SS PID [D      ] msg1.',
+    \ 'HH:MM:SS PID [D +9.00] msg2.',
+    \ 'HH:MM:SS PID [D +99.0] msg3.',
+    \ 'HH:MM:SS PID [D  +999] msg4.',
+    \ 'HH:MM:SS PID [D +9999] msg5.',
+    \ ]
+  else
+    NeomakeTestsSkip 'only with patch-7.4.503'
+  endif
+
   " Restore if not profiling.
   if !v:profiling
     runtime autoload/neomake/utils.vim
     runtime autoload/neomake/log.vim
+    runtime autoload/neomake/compat.vim
     runtime autoload/neomake.vim
   endif
