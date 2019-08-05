@@ -98,6 +98,7 @@ function! neomake#cmd#clean(file_mode) abort
         call neomake#statusline#ResetCountsForProject()
     endif
     call neomake#EchoCurrentError(1)
+    call neomake#virtualtext#handle_current_error()
 endfunction
 
 " Enable/disable/toggle commands.  {{{
