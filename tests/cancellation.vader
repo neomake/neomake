@@ -14,11 +14,14 @@ Execute (neomake#CancelJob):
 
     NeomakeTestsWaitForFinishedJobs
 
-    if has('nvim')
-      AssertNeomakeMessage '\Vexit: \.\*: 0 (job was canceled).', 3, jobinfo
+    if has('nvim-0.4.0')
+      let expected_status = 143
+    elseif has('nvim')
+      let expected_status = 0
     else
-      AssertNeomakeMessage '\Vexit: \.\*: -1 (job was canceled).', 3, jobinfo
+      let expected_status = -1
     endif
+    AssertNeomakeMessage '\Vexit: \.\*: '.expected_status.' (job was canceled).', 3, jobinfo
     AssertNeomakeMessage 'Cleaning jobinfo.', 3, jobinfo
     AssertNeomakeMessage 'Cleaning make info.'
 
@@ -145,10 +148,15 @@ Execute (neomake#CancelJob with trapped TERM):
 
     NeomakeTestsWaitForMessage '\Moutput on stdout: \.\*''not stopping on SIGTERM''', 3, jobinfo
     AssertNeomakeMessage 'Ignoring output (job was canceled).', 3, jobinfo
-    if has('nvim')
-      NeomakeTestsWaitForMessage '\Vexit: \.\*: 0 (job was canceled).', 3, jobinfo, {'timeout': 5000}
+    if has('nvim-0.4.0')
+      let expected_status = 137
+    elseif has('nvim')
+      let expected_status = 0
     else
-      NeomakeTestsWaitForMessage '\Vexit: \.\*: -1 (job was canceled).', 3, jobinfo, {'timeout': 5000}
+      let expected_status = -1
+    endif
+    NeomakeTestsWaitForMessage '\Vexit: \.\*: '.expected_status.' (job was canceled).', 3, jobinfo, {'timeout': 5000}
+    if !has('nvim')
       AssertNeomakeMessage 'Forcefully killing still running Vim job.', 3, jobinfo, {'ignore_order': 1}
     endif
 
@@ -164,17 +172,18 @@ Execute (neomake#CancelMake stops all jobs):
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage '\v^Stopping \w+ job: .+\.$'
     AssertNeomakeMessage '\v^Stopping \w+ job: .+\.$'
-    if has('nvim')
-      AssertNeomakeMessage 'exit: sleep-maker: 0 (job was canceled).'
-      AssertNeomakeMessage 'Cleaning jobinfo.'
-      AssertNeomakeMessage 'exit: sleep-maker: 0 (job was canceled).'
-      AssertNeomakeMessage 'Cleaning jobinfo.'
+
+    if has('nvim-0.4.0')
+      let expected_status = 143
+    elseif has('nvim')
+      let expected_status = 0
     else
-      AssertNeomakeMessage 'exit: sleep-maker: -1 (job was canceled).'
-      AssertNeomakeMessage 'Cleaning jobinfo.'
-      AssertNeomakeMessage 'exit: sleep-maker: -1 (job was canceled).'
-      AssertNeomakeMessage 'Cleaning jobinfo.'
+      let expected_status = -1
     endif
+    AssertNeomakeMessage 'exit: sleep-maker: '.expected_status.' (job was canceled).'
+    AssertNeomakeMessage 'Cleaning jobinfo.'
+    AssertNeomakeMessage 'exit: sleep-maker: '.expected_status.' (job was canceled).'
+    AssertNeomakeMessage 'Cleaning jobinfo.'
   endif
 
 Execute (neomake#CancelMake handles invalid make id):
