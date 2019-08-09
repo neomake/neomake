@@ -18,7 +18,7 @@ RUN install_vim -tag v8.1.0622 -name vim81 -build \
                 -tag neovim:v0.3.8 -py3 -build \
   && rm -rf /vim-build/**/runtime/tutor
 
-ENV NEOMAKE_DOCKERFILE_UPDATE=2019-07-07
+ENV NEOMAKE_DOCKERFILE_UPDATE=2019-08-09
 
 # Git master in a separate layer, since the above is meant to be stable.
 RUN install_vim -tag master -build \
