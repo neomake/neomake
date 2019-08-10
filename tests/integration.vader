@@ -458,7 +458,7 @@ Execute (NeomakeSh: project: handle removed window on exit (bwipe)):
   AssertEqual len(g:neomake_test_countschanged), 1
 
 Execute (NeomakeListJobs with job cancellation):
-  let maker1 = NeomakeTestsCommandMaker('cmd maker 1', 'sleep .1')
+  let maker1 = NeomakeTestsCommandMaker('cmd maker 1', 'sleep .5')
   let maker2 = NeomakeTestsCommandMaker('cmd maker 2', 'sleep .1; echo job2')
   let maker3 = {'exe': 'sleep', 'args': '.1', 'append_file': 0, 'name': ''}
   let job1 = neomake#Make({'enabled_makers': [maker1]})[0]
