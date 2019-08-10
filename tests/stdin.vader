@@ -313,6 +313,61 @@ Execute (stdin maker: can always use stdin):
   AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line2']
   bwipe!
 
+Execute (stdin maker: can always use stdin (append_file=0, not setting uses_filename)):
+  let maker = {
+  \ 'name': 'stdin_maker',
+  \ 'exe': 'cat',
+  \ 'args': ['-'],
+  \ 'uses_stdin': 1,
+  \ 'append_file': 0,
+  \ 'errorformat': '%f:%m'}
+  new
+  call setline(1, ['file1.test:line1', 'file1.test:line2'])
+
+  CallNeomake 1, [maker]
+
+  AssertNeomakeMessage 'Using uses_stdin (1) from setting.', 3
+
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: cat -.", 2
+    NeomakeTestsWaitForFinishedJobs
+  endif
+  AssertNeomakeMessage 'cwd: '.getcwd().'.', 3
+  AssertNeomakeMessage '\moutput on stdout: [''file1.test:line1.*'
+  AssertNeomakeMessage '\vUsed bufnr from stdin buffer (\d+) \(file1.test\) for 2 entries: 1, 2.'
+  let tempbuf = g:neomake_test_matchlist[1]
+  AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line2']
+  AssertNeomakeMessage "Wiping out 1 unlisted/remapped buffers: ['".tempbuf."']."
+
+  " uses_stdin can be changed via settings.
+  call neomake#config#set('b:uses_stdin', 0)
+  call neomake#config#set('b:stdin_maker.exe', 'true')
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Using uses_stdin (0) from setting.', 3
+  if neomake#has_async_support()
+    AssertNeomakeMessage "Starting async job: true -.", 2
+  else
+    AssertNeomakeMessage "Starting [string]: true -.", 2
+  endif
+  AssertEqual map(getloclist(0), 'v:val.text'), []
+
+  " tempfile_name can be changed via settings.
+  " NOTE: vim81 fails with "Vim(call):E631: ch_sendraw(): write failed" if the
+  " process does not have stdin open.
+  call neomake#config#set('b:uses_stdin', 1)
+  call neomake#config#set('b:tempfile_name', '-')
+  call neomake#config#set('b:stdin_maker.exe', 'cat')
+  CallNeomake 1, [maker]
+  AssertNeomakeMessage 'Using uses_stdin (1) from setting.', 3
+  AssertNeomakeMessage "Using setting tempfile_name='-' from 'buffer'.", 3
+  if neomake#has_async_support()
+    AssertNeomakeMessage 'Starting async job: cat -.', 2
+  else
+    AssertNeomakeMessage "Starting [string]: cat -.", 2
+  endif
+  AssertEqual map(getloclist(0), 'v:val.text'), ['line1', 'line2']
+  bwipe!
+
 Execute (supports_stdin can be a setting):
   new
   let b:neomake_mymaker_supports_stdin = 1

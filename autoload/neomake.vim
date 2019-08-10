@@ -605,13 +605,9 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
     let bufnr = a:jobinfo.bufnr
     let bufname = bufname(bufnr)
     let temp_file = ''
-    let _uses_stdin = neomake#utils#GetSetting('uses_stdin', a:jobinfo.maker, s:unset_dict, a:jobinfo.ft, bufnr)
-    if _uses_stdin isnot s:unset_dict
-        let a:jobinfo.uses_stdin = _uses_stdin
-        let uses_stdin = _uses_stdin
-        call neomake#log#debug(printf('Using uses_stdin (%s) from setting.',
-                    \ a:jobinfo.uses_stdin), a:jobinfo)
-        if a:jobinfo.uses_stdin
+    if has_key(a:jobinfo, 'uses_stdin')
+        let uses_stdin = a:jobinfo.uses_stdin
+        if uses_stdin
             let temp_file = neomake#utils#GetSetting('tempfile_name', a:jobinfo.maker, '-', a:jobinfo.ft, bufnr)
         endif
     else
