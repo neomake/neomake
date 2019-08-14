@@ -57,12 +57,17 @@ to your plugin manager, e.g. after `call plug#end()` with vim-plug.)
 
 ### Advanced setup
 
-The author likes the following, which uses different modes based on if your
-laptop runs on battery (for Linux):
+The author liked to use the following, which uses different modes based on if
+your laptop runs on battery (for MacOS or Linux):
 
 ```vim
 function! MyOnBattery()
-  return readfile('/sys/class/power_supply/AC/online') == ['0']
+  if has('macunix')
+    return match(system('pmset -g batt'), "Now drawing from 'Battery Power'") != -1
+  elsif has('unix')
+    return readfile('/sys/class/power_supply/AC/online') == ['0']
+  endif
+  return 0
 endfunction
 
 if MyOnBattery()
