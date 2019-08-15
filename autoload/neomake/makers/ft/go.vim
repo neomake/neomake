@@ -79,6 +79,7 @@ function! neomake#makers#ft#go#golangci_lint() abort
         \ 'append_file': 0,
         \ 'cwd': '%:h',
         \ 'errorformat':
-            \ '%f:%l:%c: %m'
+            \ '%f:%l:%c: %m,' .
+            \ '%f:%l: %m'
         \ }
 endfunction
