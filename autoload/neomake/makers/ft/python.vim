@@ -409,6 +409,7 @@ function! neomake#makers#ft#python#mypy() abort
 
     let maker = {
         \ 'args': args,
+        \ 'output_stream': 'stdout',
         \ 'errorformat':
             \ '%E%f:%l:%c: error: %m,' .
             \ '%W%f:%l:%c: warning: %m,' .
@@ -439,6 +440,11 @@ function! neomake#makers#ft#python#mypy() abort
         endif
         let self.args += ['--shadow-file', '%', self.tempfile_name]
         return 0
+    endfunction
+    function! maker.postprocess(entry) abort
+        if a:entry.text =~# '\v^Need type (annotation|comment) for'
+            let a:entry.type = 'I'
+        endif
     endfunction
     return maker
 endfunction
