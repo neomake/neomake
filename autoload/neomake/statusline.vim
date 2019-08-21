@@ -36,6 +36,7 @@ function! s:incCount(counts, item, buf) abort
     return 0
 endfunction
 
+" Refresh statusline when make run finished.
 function! neomake#statusline#make_finished(make_info) abort
     if a:make_info.options.file_mode
         let bufnr = a:make_info.options.bufnr
@@ -50,9 +51,17 @@ function! neomake#statusline#make_finished(make_info) abort
         endif
     endif
 
-    " Trigger redraw of all statuslines.
-    " TODO: only do this if some relevant formats are used?!
-    redrawstatus!
+    " Trigger refreshing of statuslines for all windows.
+    " Using ":redrawstatus" is problematic (https://github.com/vim/vim/issues/4850).
+    " Could do it only for affected windows (via bufnr of finished_jobs, but
+    " it might still affect other windows).
+    " This cannot be tested using Vader, but was done manually, using a maker
+    " that changes entries for a buffer in another window.
+    " This could also be done when starting, to (better) handle non-current
+    " windows.
+    for w in range(1, winnr('$'))
+        call setwinvar(w, '&stl', getwinvar(w, '&stl'))
+    endfor
 endfunction
 
 function! neomake#statusline#ResetCountsForBuf(...) abort
