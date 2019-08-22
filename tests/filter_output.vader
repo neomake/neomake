@@ -47,7 +47,11 @@ Execute (filter_output can be used to filter unexpected output):
 
   CallNeomake 0, [maker]
   AssertNeomakeMessage 'stderr_and_stdout: unexpected output on stderr: stderr\nstderr2.', 3
-  AssertNeomakeMessage 'stderr_and_stdout: unexpected output. See :messages for more information.', 0
+  if neomake#has_async_support()
+    AssertNeomakeMessage 'stderr_and_stdout: unexpected output. See :messages for more information.', 0
+  else
+    AssertNeomakeMessage 'stderr_and_stdout: unexpected output.', 0
+  endif
         '
   AssertEqual sort(map(getqflist(), 'v:val.text')), ['stdout']
 

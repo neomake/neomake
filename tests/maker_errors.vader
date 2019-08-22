@@ -9,7 +9,11 @@ Execute (Handles unexpected output on stderr from maker):
 
   call NeomakeTestsSetVimMessagesMarker()
   CallNeomake 1, [maker]
-  AssertNeomakeMessage 'stderr_maker: unexpected output. See :messages for more information.', 0
+  if neomake#has_async_support()
+    AssertNeomakeMessage 'stderr_maker: unexpected output. See :messages for more information.', 0
+  else
+    AssertNeomakeMessage 'stderr_maker: unexpected output.', 0
+  endif
 
   let messages_lines = NeomakeTestsGetVimMessages()
   AssertEqual messages_lines[-2:-1], [
