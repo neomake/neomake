@@ -2242,7 +2242,6 @@ function! s:exit_handler(jobinfo, data) abort
         endif
 
         if has_key(jobinfo, 'unexpected_output')
-            redraw
             for [source, output] in items(jobinfo.unexpected_output)
                 let msg = printf('%s: unexpected output on %s: ', maker.name, source)
                 call neomake#log#debug(msg . join(output, '\n') . '.', jobinfo)
@@ -2254,8 +2253,18 @@ function! s:exit_handler(jobinfo, data) abort
                 endfor
                 echohl None
             endfor
-            call neomake#log#error(printf(
-                        \ '%s: unexpected output. See :messages for more information.', maker.name), jobinfo)
+            " NOTE: messages do not cause a wait-enter prompt during job
+            "       callback processing.  Therefore we're giving a final
+            "       message referring to ":messages".
+            "       (related: https://github.com/vim/vim/issues/836)
+            if s:async
+                call neomake#log#error(printf(
+                            \ '%s: unexpected output. See :messages for more information.', maker.name), jobinfo)
+            else
+                " For non-async the above messages are visible, but we want an
+                " error for the log also.
+                call neomake#log#error(printf('%s: unexpected output.', maker.name), jobinfo)
+            endif
         endif
     finally
         unlet jobinfo._in_exit_handler

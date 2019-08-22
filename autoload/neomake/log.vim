@@ -79,7 +79,6 @@ function! s:log(level, msg, ...) abort
             let g:neomake_test_errors += ['Log msg does not end with punctuation: "'.a:msg.'".']
         endif
     elseif verbosity >= a:level
-        redraw
         if verbosity > 2
             echom 'Neomake: '.msg
         else
@@ -102,7 +101,6 @@ function! s:log(level, msg, ...) abort
                 let s:logfile_writefile_opts = 'aS'
             else
                 let s:logfile_writefile_opts = ''
-                redraw
                 echohl WarningMsg
                 echom 'Neomake: appending to the logfile is not supported in your Vim version.'
                 echohl NONE
@@ -149,7 +147,6 @@ endfunction
 
 function! neomake#log#exception(error, ...) abort
     let log_context = a:0 ? a:1 : {'bufnr': bufnr('%')}
-    redraw
     echom printf('Neomake error in: %s', v:throwpoint)
     call neomake#log#error(a:error, log_context)
     call neomake#log#debug(printf('(in %s)', v:throwpoint), log_context)
@@ -160,7 +157,7 @@ function! neomake#log#warn_once(msg, key) abort
     if !has_key(s:warned, a:key)
         let s:warned[a:key] = 1
         echohl WarningMsg
-        redraw | echom 'Neomake: ' . a:msg
+        echom 'Neomake: ' . a:msg
         echohl None
         let v:warningmsg = 'Neomake: '.a:msg
         call neomake#log#debug('Neomake warning: '.a:msg)
