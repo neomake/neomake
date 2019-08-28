@@ -463,6 +463,13 @@ Execute (neomake#utils#truncate_width):
   " Undefined, currently acts as width=0.
   AssertEqual neomake#utils#truncate_width('abc', -1), ''
 
+  " Longer ellipsis.
+  AssertEqual neomake#utils#truncate_width('abc', 0, '...'), ''
+  AssertEqual neomake#utils#truncate_width('abc', 1, '...'), ''
+  AssertEqual neomake#utils#truncate_width('abc', 2, '...'), ''
+  AssertEqual neomake#utils#truncate_width('abc', 3, '...'), 'abc'
+  AssertEqual neomake#utils#truncate_width('abcde', 4, '...'), 'a...'
+
 Execute (neomake#utils#sort_by_col):
   function! s:sort(l)
     call sort(a:l, function('neomake#utils#sort_by_col'))
