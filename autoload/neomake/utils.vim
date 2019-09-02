@@ -32,15 +32,25 @@ function! neomake#utils#Stringify(obj) abort
     endif
 endfunction
 
-function! neomake#utils#truncate_width(string, width) abort
+function! neomake#utils#truncate_width(string, width, ...) abort
+    if a:width <= 0
+        return ''
+    endif
+    if strwidth(a:string) <= a:width
+        return a:string
+    endif
+
+    let ellipsis = a:0 ? a:1 : '…'
+    let len_ellipsis = strwidth(ellipsis)
     let pos = a:width
+    let w_without_ellipsis = a:width - len_ellipsis
     while pos >= 0
         let s = matchstr(a:string, '.\{,'.pos.'}', 0, 1)
         let w = strwidth(s)
-        if w <= a:width
-            return s
+        if w <= w_without_ellipsis
+            return s . ellipsis
         endif
-        let pos -= max([(w-a:width)/2, 1])
+        let pos -= max([(w - a:width)/2, 1])
     endwhile
     return ''
 endfunction
