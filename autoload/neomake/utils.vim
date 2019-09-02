@@ -47,17 +47,10 @@ function! neomake#utils#truncate_width(string, width, ...) abort
     while pos >= 0
         let s = matchstr(a:string, '.\{,'.pos.'}', 0, 1)
         let w = strwidth(s)
-        if w > w_without_ellipsis
-            let pos -= max([(w - a:width)/2, 1])
-        else
-            if s == a:string
-                return s
-            endif
-            if w <= w_without_ellipsis
-                return s . ellipsis
-            endif
-            return ellipsis
+        if w <= w_without_ellipsis
+            return s . ellipsis
         endif
+        let pos -= max([(w - a:width)/2, 1])
     endwhile
     return ''
 endfunction
