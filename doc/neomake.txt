@@ -227,13 +227,17 @@ Here is a sample maker definition: >
                                                    *neomake-makers-InitForJob*
 You can configure a maker dynamically through a `InitForJob` function, which
 gets the jobinfo (|neomake-object-jobinfo|) as its argument.
+`self` refers to the maker instance therein, which is not copied (i.e.
+mutating `self.args` would change it for following jobs also).
+It is possible to return a new instance based on that (factory pattern): >
 
-This can also be configured as setting: >
-    function! CustomExe(jobinfo) abort
-        let self.args = [self.exe] + self.args
-        let self.exe = 'some_custom_wrapper'
+    function! MyCustomExe(jobinfo) abort
+      let maker = deepcopy(self)
+      call insert(maker.args, maker.exe)
+      let maker.exe = 'some_custom_wrapper'
+      return maker
     endfunction
-    call neomake#config#set('ft.python.InitForJob', function('CustomExe'))
+    call neomake#config#set('ft.python.InitForJob', function('MyCustomExe'))
 <
                                                           *neomake-makers-exe*
                                                          *neomake-makers-args*
