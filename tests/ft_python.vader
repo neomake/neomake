@@ -408,18 +408,18 @@ Execute (python: mypy):
   \ ]
 
   let options = {'file_mode': 1}
-  let bound_maker = neomake#core#instantiate_maker(deepcopy(maker), options, 0)
+  let bound_maker = neomake#core#instantiate_maker(maker, options, 0)
   AssertEqual bound_maker.args, ['--follow-imports=silent'] + base_args
 
   new
   let b:neomake = {'project_root': 'fake_project_root'}
   let options = {'file_mode': 0, 'bufnr': bufnr('%')}
-  let bound_maker = neomake#core#instantiate_maker(deepcopy(maker), options, 0)
+  let bound_maker = neomake#core#instantiate_maker(maker, options, 0)
   AssertEqual bound_maker.args, base_args + ['fake_project_root']
 
   let b:neomake = {'project_root': ''}
   let options = {'file_mode': 0, 'bufnr': bufnr('%')}
-  let bound_maker = neomake#core#instantiate_maker(deepcopy(maker), options, 0)
+  let bound_maker = neomake#core#instantiate_maker(maker, options, 0)
   AssertEqual bound_maker.args, base_args + ['.']
 
   let jobinfo = NeomakeTestsFakeJobinfo()

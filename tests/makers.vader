@@ -1021,3 +1021,74 @@ Execute (Makers: compare list entry defaults):
   let list6 = getloclist(0)
   AssertEqualQf list6, list2
   bwipe
+
+Execute (neomake#core#instantiate_maker: does not use copy for self):
+  let maker = {
+  \ 'args': [],
+  \ 'init_call_count': 0,
+  \ }
+  function! maker.InitForJob(...) abort
+    let self.init_call_count += 1
+    let self.args += ['arg_for_job']
+  endfunction
+
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job', 'arg_for_job']
+  AssertEqual maker.init_call_count, 2
+  AssertEqual bound_maker.init_call_count, 2
+
+  " deepcopy in InitForJob.
+  let maker = {
+  \ 'args': [],
+  \ 'init_call_count': 0,
+  \ }
+  function! maker.InitForJob(...) abort
+    let self.init_call_count += 1
+    let maker = deepcopy(self)
+    let maker.args += ['arg_for_job']
+    return maker
+  endfunction
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  AssertEqual maker.init_call_count, 2
+  AssertEqual bound_maker.init_call_count, 2
+
+  " copy in InitForJob (mutates args).
+  let maker = {
+  \ 'args': [],
+  \ 'init_call_count': 0,
+  \ }
+  function! maker.InitForJob(...) abort
+    let self.init_call_count += 1
+    let maker = copy(self)
+    let maker.args += ['arg_for_job']
+    return maker
+  endfunction
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job', 'arg_for_job']
+  AssertEqual maker.init_call_count, 2
+  AssertEqual bound_maker.init_call_count, 2
+
+  " copy in InitForJob (copied args).
+  let maker = {
+  \ 'args': [],
+  \ 'init_call_count': 0,
+  \ }
+  function! maker.InitForJob(...) abort
+    let self.init_call_count += 1
+    let maker = copy(self)
+    let maker.args = maker.args + ['arg_for_job']
+    return maker
+  endfunction
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  let bound_maker = neomake#core#instantiate_maker(maker, {}, 0)
+  AssertEqual bound_maker.args, ['arg_for_job']
+  AssertEqual maker.init_call_count, 2
+  AssertEqual bound_maker.init_call_count, 2
