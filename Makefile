@@ -1,14 +1,13 @@
 # Do not let mess "cd" with user-defined paths.
 CDPATH:=
 
-bash=$(shell command -v bash 2>/dev/null)
-TEST_SHELL:=$(bash)
+TEST_SHELL:=$(shell command -v bash 2>/dev/null)
 ifeq ($(TEST_SHELL),)
   $(error Could not determine TEST_SHELL (defaults to bash))
 endif
 # This is expected in tests.
 TEST_VIM_PREFIX:=SHELL=$(TEST_SHELL)
-SHELL:=$(bash) -o pipefail
+SHELL:=$(TEST_SHELL) -o pipefail
 
 # Use nvim if it is installed, otherwise vim.
 ifeq ($(TEST_VIM),)
@@ -203,12 +202,12 @@ docker_update_latest:
 	docker push $(DOCKER_REPO):latest
 docker_update_image:
 	@git diff --cached --exit-code >/dev/null || { echo "WARN: git index is not clean."; }
-	@if git diff --exit-code Makefile >/dev/null; then \
+	@if git diff --exit-code -- Makefile >/dev/null; then \
 	  sed -i '/^DOCKER_TAG:=/s/:=.*/:=$(shell echo $$(($(DOCKER_TAG)+1)))/' Makefile; \
 	else \
 	  echo "WARN: Makefile is not clean. Not updating."; \
 	fi
-	@if git diff --exit-code Dockerfile.tests >/dev/null; then \
+	@if git diff --exit-code -- Dockerfile.tests >/dev/null; then \
 	  sed -i '/^ENV NEOMAKE_DOCKERFILE_UPDATE=/s/=.*/=$(shell date +%Y-%m-%d)/' Dockerfile.tests; \
 	else \
 	  echo "WARN: Dockerfile.tests is not clean. Not updating."; \
