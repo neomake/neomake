@@ -2,7 +2,7 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:46@sha256:6442e51b531afd2dcf991b19a76aa7fd811b61eed47a0887976d337633526c97
+    - image: neomake/vims-for-tests:47@sha256:d811e39915ddefca1e05707c8c9e2cb47971752fe9a3590405d19dde9ee2520c
   working_directory: ~/repo
   steps:
     - checkout
