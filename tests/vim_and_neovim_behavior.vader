@@ -7,7 +7,7 @@ Execute (Test Vim's b:changedtick behavior):
   let before = b:changedtick
   exe 'w' tempname()
 
-  if has('patch-8.1.1498')
+  if has('patch-8.1.1498') || has('nvim-0.4')
     let inc_for_unchanged = 0
   else
     let inc_for_unchanged = 1
