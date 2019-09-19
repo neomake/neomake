@@ -565,7 +565,7 @@ Execute (BufWritePost does not run for unchanged buffer):
   " Every write used to trigger a run (due to b:changedtick being incremented,
   " https://github.com/vim/vim/issues/2764).
   w
-  if has('patch-8.1.1498')
+  if has('patch-8.1.1498') || has('nvim-0.4')
     AssertEqual len(g:neomake_test_jobfinished), 2
   else
     AssertEqual len(g:neomake_test_jobfinished), 3
@@ -598,7 +598,7 @@ Execute (BufWritePost does not run for unchanged buffer (delayed)):
     " Every write used to trigger a run (due to b:changedtick being incremented,
     " https://github.com/vim/vim/issues/2764).
     w
-    if has('patch-8.1.1498')
+    if has('patch-8.1.1498') || has('nvim-0.4')
       let offset_for_unchanged_write = 0
     else
       let offset_for_unchanged_write = 1

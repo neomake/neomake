@@ -1,5 +1,5 @@
 # From https://github.com/tweekmonster/vim-testbed.
-FROM testbed/vim:15@sha256:5dcf24ff7e8acce5f04ddc5a1368924877d1508f7408040f7d29eab2906f95d9
+FROM testbed/vim:16@sha256:ce0e3c0407e9af4c41868636199906e3c2a6c6f02b97f6bb3e2767aeba6d5c85
 
 # Currently tested versions:
 #  - v7.3.429 (Ubuntu Precise, 12.04LTS)
@@ -18,7 +18,7 @@ RUN install_vim -tag v8.1.0622 -name vim81 -build \
                 -tag neovim:v0.3.8 -py3 -build \
   && rm -rf /vim-build/**/runtime/tutor
 
-ENV NEOMAKE_DOCKERFILE_UPDATE=2019-09-02
+ENV NEOMAKE_DOCKERFILE_UPDATE=2019-09-19
 
 # Git master in a separate layer, since the above is meant to be stable.
 RUN install_vim -tag master -build \
@@ -52,7 +52,7 @@ RUN chmod +x /usr/local/bin/vimlint
 # Install covimerage and vint.
 RUN apk --no-cache add python3 \
   && pip3 install -U pip \
-  && pip3 install --no-cache-dir python-coveralls covimerage==0.1.6 vim-vint==0.3.21 \
+  && pip3 install --no-cache-dir python-coveralls covimerage==0.1.7 vim-vint==0.3.21 \
   && rm -rf /usr/include /usr/lib/python*/turtle* /usr/lib/python*/tkinter \
   && pip3 uninstall --yes pip \
   && curl https://codecov.io/bash -o /usr/bin/codecov \
