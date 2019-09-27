@@ -55,3 +55,14 @@ Execute (go: golangci_lint):
   \ {'lnum': 288, 'bufnr': bufnr('%'), 'col': 7, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'no new variables on left side of := (typecheck)'},
   \ ]
   bwipe
+
+Execute (go: revive):
+  new
+  file main.go
+
+  let &efm = neomake#makers#ft#go#revive().errorformat
+  lgetexpr 'main.go:288:2: do not use ALL_CAPS in Go names; use CamelCase'
+  AssertEqualQf getloclist(0), [
+  \ {'lnum': 288, 'bufnr': bufnr('%'), 'col': 2, 'valid': 1, 'vcol': 0, 'nr': -1, 'type': '', 'pattern': '', 'text': 'do not use ALL_CAPS in Go names; use CamelCase'},
+  \ ]
+  bwipe
