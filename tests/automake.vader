@@ -1629,3 +1629,63 @@ Execute (automake: abort automake with manual run):
     AssertEqualQf getloclist(0), expected_loclist
     bwipe!
   endif
+
+Execute (Reconfigures buffers with dictwatcher):
+  new
+  let bufnr = bufnr('%')
+  set filetype=neomake_tests
+  Save g:neomake_test_enabledmakers
+  let g:neomake_test_enabledmakers = [g:entry_maker]
+  call g:NeomakeSetupAutocmdWrappers()
+
+  call neomake#configure#automake('w')
+
+  exe 'w' tempname()
+  AssertNeomakeMessage 'Running makers: entry_maker (auto).', 3
+  AssertEqual len(g:neomake_test_finished), 1
+
+  AssertEqual g:neomake#configure#_s.configured_buffers[bufnr].custom, 0
+
+  let g:neomake_neomake_tests_enabled_makers = []
+  if exists('*dictwatcheradd')
+    AssertNeomakeMessage 'automake: cleared cached config for 1 buffers.', 3
+  endif
+
+  w
+  if exists('*dictwatcheradd')
+    AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (no enabled makers).', 3
+    AssertNeomakeMessage 'automake: setting tick for new buffer.', 3
+    AssertNeomakeMessage 'automake: handling event BufWritePost.', 3
+    AssertNeomakeMessage 'automake: no enabled makers.', 3
+  else
+    AssertNeomakeMessage 'automake: handling event BufWritePost.', 3
+    AssertNeomakeMessage 'automake: automake for event BufWritePost.', 3
+    AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
+    AssertNeomakeMessage 'automake: tick is unchanged.', 3
+    AssertNeomakeMessage 'automake: buffer was not changed.', 3
+  endif
+  AssertEqual len(g:neomake_test_finished), 1
+
+  Log '==='
+  let b:neomake_neomake_tests_enabled_makers = [g:entry_maker]
+  if exists('*dictwatcheradd')
+    AssertNeomakeMessage 'automake: cleared cached config for buffer.', 3
+  endif
+
+  w
+  if exists('*dictwatcheradd')
+    AssertNeomakeMessage 'automake: configured buffer for ft=neomake_tests (entry_maker (default)).', 3
+    AssertNeomakeMessage 'automake: setting tick for new buffer.', 3
+    AssertNeomakeMessage 'automake: handling event BufWritePost.', 3
+    AssertNeomakeMessage 'automake: enabled makers: entry_maker.', 3
+    AssertEqual len(g:neomake_test_finished), 2
+  else
+    AssertNeomakeMessage 'automake: handling event BufWritePost.', 3
+    AssertNeomakeMessage 'automake: automake for event BufWritePost.', 3
+    AssertNeomakeMessage 'automake: neomake_do_automake: BufWritePost.', 3
+    AssertNeomakeMessage 'automake: tick is unchanged.', 3
+    AssertNeomakeMessage 'automake: buffer was not changed.', 3
+    AssertEqual len(g:neomake_test_finished), 1
+  endif
+
+  bwipe

@@ -22,6 +22,9 @@ let s:registered_events = []
 " issue #2742).
 let s:need_to_skip_first_textchanged = !has('nvim-0.3.2') && has('patch-8.0.1494') && !has('patch-8.0.1633')
 
+" For debugging/tests.
+let g:neomake#configure#_s = s:
+
 
 " TODO: allow for namespaces, and prefer 'automake' here.
 " TODO: handle bufnr!  (getbufvar)
@@ -548,6 +551,9 @@ function! s:configure_buffer(bufnr, ...) abort
         augroup neomake_automake_clean
             autocmd BufWipeout <buffer> call s:neomake_automake_clean(expand('<abuf>'))
         augroup END
+        if exists('*dictwatcheradd')
+            call dictwatcheradd(b:, 'neomake_*', function('s:dictwatcher_b'))
+        endif
     endif
 
     if implicit_config.ignore
@@ -794,6 +800,39 @@ function! neomake#configure#automake(...) abort
         augroup! neomake_automake
     endif
 endfunction
+
+function! s:maybe_clear_buffer_cache(bufnr) abort
+    if has_key(s:configured_buffers, a:bufnr) && !s:configured_buffers[a:bufnr].custom
+        unlet s:configured_buffers[a:bufnr]
+        return 1
+    endif
+    return 0
+endfunction
+
+if exists('*dictwatcheradd')
+    function! s:dictwatcher(d, k, update) abort
+        if a:k =~# '_enabled_makers$'
+            let cleared = 0
+            for [bufnr, v] in items(s:configured_buffers)
+                if s:maybe_clear_buffer_cache(bufnr)
+                    let cleared += 1
+                endif
+            endfor
+            if cleared
+                call s:debug_log(printf('cleared cached config for %d buffers', cleared))
+            endif
+        endif
+    endfunction
+    function! s:dictwatcher_b(d, k, update) abort
+        if a:k =~# '_enabled_makers$'
+            let bufnr = bufnr('%')
+            if s:maybe_clear_buffer_cache(bufnr)
+                call s:debug_log('cleared cached config for buffer', {'bufnr': bufnr})
+            endif
+        endif
+    endfunction
+    call dictwatcheradd(g:, 'neomake_*', function('s:dictwatcher'))
+endif
 
 augroup neomake_automake_base
     au!
