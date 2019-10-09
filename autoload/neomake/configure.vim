@@ -398,48 +398,54 @@ function! s:parse_events_from_args(config, string_or_dict_config, ...) abort
         endif
     else
         " Map string config to events dict.
-        let modes = a:string_or_dict_config
+        let modes = split(a:string_or_dict_config, '\zs')
         let events = {}
         let default_with_delay = {}
 
-        " Insert mode.
-        if modes =~# 'i'
-            if exists('##TextChangedI') && has('timers')
-                let events['TextChangedI'] = default_with_delay
-            else
-                call s:debug_log('using CursorHoldI instead of TextChangedI')
-                let events['CursorHoldI'] = (delay != 0 ? {'delay': 0} : {})
-            endif
-        endif
-        " Normal mode.
-        if modes =~# 'n'
-            if exists('##TextChanged') && has('timers')
-                let events['TextChanged'] = default_with_delay
-                if !has_key(events, 'TextChangedI')
-                    " Run when leaving insert mode, since only TextChangedI would be triggered
-                    " for `ciw` etc.
-                    let events['InsertLeave'] = default_with_delay
+        let unknown = []
+        for mode in modes
+            " Insert mode.
+            if mode ==# 'i'
+                if exists('##TextChangedI') && has('timers')
+                    let events['TextChangedI'] = default_with_delay
+                else
+                    call s:debug_log('using CursorHoldI instead of TextChangedI')
+                    let events['CursorHoldI'] = (delay != 0 ? {'delay': 0} : {})
                 endif
-            else
-                call s:debug_log('using CursorHold instead of TextChanged')
-                let events['CursorHold'] = (delay != 0 ? {'delay': 0} : {})
-                let events['InsertLeave'] = (delay != 0 ? {'delay': 0} : {})
-            endif
-        endif
-        " On writes.
-        if modes =~# 'w'
-            let events['BufWritePost'] = (delay != 0 ? {'delay': 0} : {})
-        endif
-        " On reads.
-        if modes =~# 'r'
-            let events['BufWinEnter'] = {}
-            let events['FileType'] = {}
+            " Normal mode.
+            elseif mode ==# 'n'
+                if exists('##TextChanged') && has('timers')
+                    let events['TextChanged'] = default_with_delay
+                    if !has_key(events, 'TextChangedI')
+                        " Run when leaving insert mode, since only TextChangedI would be triggered
+                        " for `ciw` etc.
+                        let events['InsertLeave'] = default_with_delay
+                    endif
+                else
+                    call s:debug_log('using CursorHold instead of TextChanged')
+                    let events['CursorHold'] = (delay != 0 ? {'delay': 0} : {})
+                    let events['InsertLeave'] = (delay != 0 ? {'delay': 0} : {})
+                endif
+            " On writes.
+            elseif mode ==# 'w'
+                let events['BufWritePost'] = (delay != 0 ? {'delay': 0} : {})
+            " On reads.
+            elseif mode ==# 'r'
+                let events['BufWinEnter'] = {}
+                let events['FileType'] = {}
 
-            " When a file was changed outside of Vim.
-            " TODO: test
-            let events['FileChangedShellPost'] = {}
-            " XXX: FileType might work better, at least when wanting to skip filetypes.
-            " let events['FileType'] = {'delay': a:0 > 1 ? delay : 0}
+                " When a file was changed outside of Vim.
+                " TODO: test
+                let events['FileChangedShellPost'] = {}
+                " XXX: FileType might work better, at least when wanting to skip filetypes.
+                " let events['FileType'] = {'delay': a:0 > 1 ? delay : 0}
+            else
+                let unknown += [mode]
+            endif
+        endfor
+        if !empty(unknown)
+            call neomake#log#error(printf('unknown modes in string automake config (%s): %s.',
+                        \ a:string_or_dict_config, join(unknown, ', ')))
         endif
     endif
 

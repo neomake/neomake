@@ -82,6 +82,12 @@ Execute (short setup: 'r'):
   call neomake#configure#automake('r')
   call NeomakeTestsAssertAutomakeAutocommands(['BufWinEnter', 'FileChangedShellPost', 'FileType'])
 
+Execute (short setup: reports unknown modes):
+  call neomake#configure#automake('z')
+  AssertNeomakeMessage 'unknown modes in string automake config (z): z.', 0
+  call neomake#configure#automake('Xwz')
+  AssertNeomakeMessage 'unknown modes in string automake config (Xwz): X, z.', 0
+
 Execute (setup: short vs. long):
   call neomake#configure#automake('w', 500)
   let short_config = copy(g:neomake)
