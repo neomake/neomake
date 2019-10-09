@@ -297,6 +297,7 @@ Execute (Automake):
   AssertEqual len(g:neomake_test_jobfinished), 4
 
   new
+  let bufnr = bufnr('%')
   exe 'doautocmd' event
   AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
   if event ==# 'TextChanged'
@@ -304,17 +305,44 @@ Execute (Automake):
   endif
   AssertNeomakeMessage 'automake: no enabled makers.'
 
+  " Test behavior with regard to cache when changing settings.
   let b:neomake_automake_enabled_makers = ['foo']
-  doautocmd FileType
-  AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
+  if exists('*dictwatcheradd')
+    AssertNeomakeMessage 'automake: cleared cached config for buffer.'
+    exe 'doautocmd' event
+    AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
+  else
+    doautocmd FileType
+    AssertNeomakeMessage 'automake: configured buffer for ft= (no enabled makers).'
+  endif
+
   let b:neomake = {'automake': {'enabled_makers': ['configured_maker']}}
+  if exists('*dictwatcheradd')
+    AssertNeomakeMessage 'automake: cleared cached config for buffer.'
+  endif
+
   let n = len(g:neomake_test_messages)
   exe 'doautocmd' event
   let m = len(g:neomake_test_messages)
-  AssertEqual g:neomake_test_messages[n : m], [
-  \ [3, 'automake: handling event '.event.'.', {'bufnr': bufnr('%'), 'winnr': winnr()}],
-  \ [3, 'automake: no enabled makers.', {'bufnr': bufnr('%'), 'winnr': winnr()}],
-  \ ]
+  let winnr = winnr()
+  if exists('*dictwatcheradd')
+    AssertEqual g:neomake_test_messages[n : m], [
+    \ [3, 'Using setting automake.events={''InsertLeave'': {}, ''TextChanged'': {}} from ''global''.', {'bufnr': bufnr, 'winnr': winnr}],
+    \ [3, 'Using setting automake.enabled_makers=[''configured_maker''] from ''buffer''.', {'bufnr': bufnr, 'winnr': winnr}],
+    \ [0, 'Maker not found (for empty filetype): configured_maker.', {'winnr': winnr}],
+    \ [3, 'automake: configured buffer for ft= (no enabled makers).', {'bufnr': bufnr, 'winnr': winnr}],
+    \ [3, 'automake: setting tick for new buffer.', {'bufnr': bufnr, 'winnr': winnr}],
+    \ [3, 'automake: handling event TextChanged.', {'bufnr': bufnr, 'winnr': winnr}],
+    \ [3, 'automake: no enabled makers.', {'bufnr': bufnr, 'winnr': winnr}]
+    \ ]
+    " ACK error message.
+    AssertNeomakeMessage 'Maker not found (for empty filetype): configured_maker.', 0
+  else
+    AssertEqual g:neomake_test_messages[n : m], [
+    \ [3, 'automake: handling event '.event.'.', {'bufnr': bufnr('%'), 'winnr': winnr()}],
+    \ [3, 'automake: no enabled makers.', {'bufnr': bufnr('%'), 'winnr': winnr()}],
+    \ ]
+  endif
 
   call neomake#configure#automake('nw')
   normal! ifoo
@@ -1646,6 +1674,7 @@ Execute (Reconfigures buffers with dictwatcher):
 
   AssertEqual g:neomake#configure#_s.configured_buffers[bufnr].custom, 0
 
+  Save g:neomake_neomake_tests_enabled_makers
   let g:neomake_neomake_tests_enabled_makers = []
   if exists('*dictwatcheradd')
     AssertNeomakeMessage 'automake: cleared cached config for 1 buffers.', 3
@@ -1666,7 +1695,6 @@ Execute (Reconfigures buffers with dictwatcher):
   endif
   AssertEqual len(g:neomake_test_finished), 1
 
-  Log '==='
   let b:neomake_neomake_tests_enabled_makers = [g:entry_maker]
   if exists('*dictwatcheradd')
     AssertNeomakeMessage 'automake: cleared cached config for buffer.', 3
