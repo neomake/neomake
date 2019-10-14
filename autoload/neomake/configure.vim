@@ -150,6 +150,9 @@ endfunction
 
 function! s:neomake_do_automake(context) abort
     let bufnr = +a:context.bufnr
+    if s:skip_for_running_jobs(bufnr)
+        return
+    endif
 
     if !get(a:context, '_via_timer_cb') && a:context.delay
         if exists('s:timer_by_bufnr[bufnr]')
@@ -598,6 +601,20 @@ function! s:maybe_reconfigure_buffer(bufnr) abort
     endif
 endfunction
 
+function! s:skip_for_running_jobs(bufnr) abort
+    let running_jobs = values(filter(copy(neomake#_get_s().jobs),
+                        \ 'v:val.bufnr == a:bufnr'
+                        \ .' && v:val.file_mode == 1'
+                        \ .' && !get(v:val, "automake", 0)'
+                        \ ." && !get(v:val, 'canceled')"))
+    if !empty(running_jobs)
+        call s:debug_log(printf('skipping for already running jobs: %s',
+                    \ string(map(running_jobs, 'v:val.as_string()'))),
+                    \ {'bufnr': a:bufnr})
+        return 1
+    endif
+endfunction
+
 " Called from autocommands.
 function! s:neomake_automake(event, bufnr) abort
     let disabled = neomake#config#get_with_source('disabled', 0)
@@ -631,6 +648,10 @@ function! s:neomake_automake(event, bufnr) abort
 
     if empty(s:configured_buffers[bufnr].maker_jobs)
         call s:debug_log('no enabled makers', {'bufnr': bufnr})
+        return
+    endif
+
+    if s:skip_for_running_jobs(bufnr)
         return
     endif
 

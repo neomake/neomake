@@ -1262,7 +1262,8 @@ function! s:Make(options) abort
         " @vimlint(EVL102, 1, l:job)
         for job in jobs
             let running_already = values(filter(copy(s:jobs),
-                        \ 'v:val.maker == job.maker'
+                        \ '(v:val.maker == job.maker'
+                        \ .'   || (!is_automake && get(v:val, "automake", 0)))'
                         \ .' && v:val.bufnr == job.bufnr'
                         \ .' && v:val.file_mode == job.file_mode'
                         \ ." && !get(v:val, 'canceled')"))
@@ -1277,7 +1278,9 @@ function! s:Make(options) abort
     endif
 
     " Update automake tick (used to skip unchanged buffers).
-    call neomake#configure#_update_automake_tick(bufnr, options.ft)
+    if is_automake
+        call neomake#configure#_update_automake_tick(bufnr, options.ft)
+    endif
 
     " Start all jobs in the queue (until serialized).
     let jobinfos = []
