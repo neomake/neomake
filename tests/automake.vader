@@ -1562,8 +1562,9 @@ Execute (automake: skip automake with manual run (in init)):
     AssertNeomakeMessage '\Vautomake: skipping for already running jobs: [''Job \d\+: sleep-maker''].', 3
 
     NeomakeTestsWaitForFinishedJobs
+    let valid = has('patch-8.0.0580')
     AssertEqualQf getloclist(0), [
-      \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 1,
+      \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': valid,
       \  'vcol': 0, 'nr': -1, 'type': 'W', 'text': 'slept'}]
 
     " Next automake triggers run (not having updated tick).
@@ -1591,8 +1592,9 @@ Execute (automake: skip automake with manual run (in callback)):
 
     NeomakeTestsWaitForFinishedJobs
     AssertNeomakeMessage '\Vautomake: skipping for already running jobs: [''Job \d\+: sleep-maker''].', 3
+    let valid = has('patch-8.0.0580')
     AssertEqualQf getloclist(0), [
-      \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': 1,
+      \ {'lnum': 0, 'bufnr': 0, 'col': 0, 'pattern': '', 'valid': valid,
       \  'vcol': 0, 'nr': -1, 'type': 'W', 'text': 'slept'}]
 
     " Next automake triggers run (not having updated tick).
