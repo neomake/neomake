@@ -1278,7 +1278,9 @@ function! s:Make(options) abort
     endif
 
     " Update automake tick (used to skip unchanged buffers).
-    call neomake#configure#_update_automake_tick(bufnr, options.ft)
+    if is_automake
+        call neomake#configure#_update_automake_tick(bufnr, options.ft)
+    endif
 
     " Start all jobs in the queue (until serialized).
     let jobinfos = []
