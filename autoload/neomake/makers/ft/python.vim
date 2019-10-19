@@ -416,7 +416,9 @@ function! neomake#makers#ft#python#mypy() abort
             \ '%I%f:%l:%c: note: %m,' .
             \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l: warning: %m,' .
-            \ '%I%f:%l: note: %m',
+            \ '%I%f:%l: note: %m,' .
+            \ '%-GSuccess%.%#,' .
+            \ '%-GFound%.%#,'
         \ }
     function! maker.InitForJob(jobinfo) abort
         let maker = deepcopy(self)
