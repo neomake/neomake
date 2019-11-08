@@ -395,6 +395,7 @@ function! s:IncMakerInitForJobs(_jobinfo) dict
     let cmd .= 'echo b'.g:neomake_test_inc_maker_counter.' '.g:neomake_test_inc_maker_counter.':'.i.': buf: '.shellescape(bufname('%')).'; '
   endfor
   let self.args = s:shell_argv[1:] + [cmd]
+  let self.name = 'incmaker_' . g:neomake_test_inc_maker_counter
 endfunction
 let g:neomake_test_inc_maker = {
       \ 'name': 'incmaker',

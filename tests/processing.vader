@@ -425,7 +425,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (locli
     exe "norm! \<Esc>"
     call neomake#Make(1, [g:neomake_test_inc_maker])
 
-    " Maker is different because of args.
+    " Maker is different because of name.
     AssertNeomakeMessageAbsent 'Canceling already running job ('
       \ .make_id.'.'.jobinfo1.id.') for the same maker.', 2, {'make_id': make_id+1}
     AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
@@ -460,7 +460,7 @@ Execute (Pending output with restarted job when not in normal/insert mode (quick
     exe "norm! \<Esc>"
     call neomake#Make(0, [g:neomake_test_inc_maker])
 
-    " Maker is different because of args.
+    " Maker is different because of name.
     AssertNeomakeMessageAbsent 'Canceling already running job ('
       \ .make_id.'.'.jobinfo1.id.') for the same maker.', 2, {'make_id': make_id+1}
     AssertNeomakeMessageAbsent 'Removing already finished job', 3, jobinfo1
@@ -621,6 +621,8 @@ Execute (Already running job gets restarted in case of exception):
     AssertEqual len(neomake#GetJobs()), 1, 'The job has not been cleaned because of the exception.'
 
     " Restart, which should work directly.
+    let maker.some_new_key = 1
+    Assert values(neomake#_get_s().jobs)[0].maker != maker
     call neomake#Make(1, [maker])
 
     AssertNeomakeMessage printf('Canceling already running job (%d.%d) for the same maker.',
