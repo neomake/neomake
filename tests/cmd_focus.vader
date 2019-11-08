@@ -1,0 +1,30 @@
+" Tests for the NeomakeInfo command.
+Include: include/setup.vader
+
+Execute (NeomakeFocus):
+  noautocmd setfiletype neomake_tests
+
+  call NeomakeTestsSetVimMessagesMarker()
+
+  NeomakeStatus
+  AssertEqual NeomakeTestsGetVimMessages(), ['Neomake is enabled.']
+
+  NeomakeFocus maker_without_exe
+  AssertEqual NeomakeTestsGetVimMessages(), ['Focusing maker_without_exe.']
+  NeomakeStatus
+  AssertEqual NeomakeTestsGetVimMessages(), ['Neomake is enabled. Focused maker_without_exe for buffer.']
+
+  NeomakeFocus maker_without_exe
+  AssertEqual NeomakeTestsGetVimMessages(), ['Already focused maker_without_exe.']
+
+  NeomakeFocus nonexisting
+  AssertEqual NeomakeTestsGetVimMessages(), ['Focusing nonexisting.']
+
+  NeomakeFocus maker_without_exe
+  AssertEqual NeomakeTestsGetVimMessages(), ['Focusing maker_without_exe.']
+
+  NeomakeUnfocus
+  AssertEqual NeomakeTestsGetVimMessages(), ['Unfocus: set enabled_makers back to nonexisting.']
+
+  NeomakeUnfocus!
+  AssertEqual NeomakeTestsGetVimMessages(), ['Unfocus: unset enabled_makers.']
