@@ -35,6 +35,11 @@ command! -bar NeomakeEnable call neomake#cmd#enable(g:)
 command! -bar NeomakeEnableBuffer call neomake#cmd#enable(b:)
 command! -bar NeomakeEnableTab call neomake#cmd#enable(t:)
 
+command! -bar -nargs=+ -complete=customlist,neomake#cmd#complete_makers
+            \ NeomakeFocusBuffer call neomake#cmd#focus(b:, <f-args>)
+command! -bang -bar -nargs=0 -complete=customlist,neomake#cmd#complete_makers
+            \ NeomakeUnfocusBuffer call neomake#cmd#unfocus(<bang>0, b:)
+
 command! NeomakeStatus call neomake#cmd#display_status()
 
 " NOTE: experimental, no default mappings.
