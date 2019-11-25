@@ -130,3 +130,21 @@ Execute (rst: sphinx: handles docutils warnings and adds first additional line):
   \ ]
   exe 'bwipe' unlisted_bufnr
   bwipe
+
+Execute (rst: sphinx: errorformat):
+  new
+  file foo.rst
+  let b:neomake = {'sphinx': {'source_dir': 'sphinx_source_dir'}}
+
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#rst#sphinx(), [], [
+    \ 'foo.rst:20: WARNING: Problems with "include" directive path:',
+    \ "InputError: [Errno 2] No such file or directory: '_include.rst'.",
+    \ ])
+  CallNeomake 1, [maker]
+
+  AssertEqualQf getloclist(0), [
+  \ {'lnum': 20, 'bufnr': bufnr('%'), 'col': 0, 'pattern': '', 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'W',
+  \  'text': 'Problems with "include" directive path: InputError: [Errno 2] No such file or directory: ''_include.rst''.'},
+  \ ]
+  bwipe

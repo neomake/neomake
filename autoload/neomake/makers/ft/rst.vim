@@ -77,7 +77,7 @@ function! neomake#makers#ft#rst#sphinx() abort
         \ 'args': ['-n', '-E', '-q', '-N', '-b', 'dummy', srcdir, s:sphinx_cache],
         \ 'append_file': 0,
         \ 'errorformat':
-            \ '%f:%l: %tARNING: %m,' .
+            \ '%A%f:%l: %tARNING: %m,' .
             \ '%EWARNING: %f:%l: (SEVER%t/4) %m,' .
             \ '%EWARNING: %f:%l: (%tRROR/3) %m,' .
             \ '%EWARNING: %f:%l: (%tARNING/2) %m,' .
