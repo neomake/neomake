@@ -144,6 +144,7 @@ Execute (rst: sphinx: errorformat):
 
   AssertEqualQf getloclist(0), [
   \ {'lnum': 20, 'bufnr': bufnr('%'), 'col': 0, 'pattern': '', 'valid': 1, 'vcol': 0,
-  \  'nr': -1, 'type': 'W', 'module': '',
-  \ 'text': 'Problems with "include" directive path: InputError: [Errno 2] No such file or directory: ''_include.rst''.'}]
+  \  'nr': -1, 'type': 'W',
+  \  'text': 'Problems with "include" directive path: InputError: [Errno 2] No such file or directory: ''_include.rst''.'},
+  \ ]
   bwipe
