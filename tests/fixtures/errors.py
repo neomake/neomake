@@ -1,1 +1,1 @@
-invalid_syntax(
+invalid_syntax(  # noqa
