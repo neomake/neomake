@@ -1,2 +1,1 @@
-if not this or foo bar:
-    meh
+invalid_syntax(

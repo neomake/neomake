@@ -10,13 +10,13 @@ Execute (python: errorformat):
   AssertEqualQf getloclist(0), [{
   \ 'lnum': 1,
   \ 'bufnr': bufnr('%'),
-  \ 'col': 22,
+  \ 'col': 16,
   \ 'valid': 1,
   \ 'vcol': 0,
   \ 'nr': -1,
   \ 'type': 'E',
   \ 'pattern': '',
-  \ 'text': 'invalid syntax'}]
+  \ 'text': 'unexpected EOF while parsing'}]
   bwipe
 
 Execute (python: pylama: errorformat):
