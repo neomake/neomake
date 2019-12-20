@@ -153,7 +153,12 @@ function! neomake#compat#systemlist(cmd) abort
             endtry
         endif
         " @vimlint(EVL108, 0)
-        return systemlist(a:cmd)
+        try
+            return systemlist(a:cmd)
+        catch /^Vim\%((return)\)\=:E475/
+            call neomake#log#exception(printf('systemlist error: %s.', v:exception))
+            return ''
+        endtry
     endif
 
     if type(a:cmd) == type([])

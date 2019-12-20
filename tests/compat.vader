@@ -26,6 +26,9 @@ Execute (neomake#compat#systemlist):
   let r = neomake#compat#systemlist(['echo 1'])
   if has('nvim')
     AssertEqual r, ''
+    if has('nvim-0.5.0')
+      AssertNeomakeMessage "systemlist error: Vim(return):E475: Invalid value for argument cmd: 'echo 1' is not executable.", 0
+    endif
   else
     AssertEqual r, [&shell.': echo 1: command not found']
     AssertEqual v:shell_error, 127
