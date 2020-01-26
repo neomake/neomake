@@ -131,6 +131,7 @@ function! s:process_action_queue(event) abort
     endfor
     call neomake#log#debug(printf('action queue: processing for %s (%d items).',
                 \ a:event, len(q_for_this_event)), {'bufnr': bufnr('%'), 'winnr': winnr()})
+    call neomake#log#indent(1)
 
     let processed = []
     let removed = 0
@@ -228,6 +229,7 @@ function! s:process_action_queue(event) abort
     endfor
     call neomake#log#debug(printf('action queue: processed %d items.',
                 \ len(processed)), {'bufnr': bufnr('%')})
+    call neomake#log#indent(-1)
 
     call s:clean_action_queue_events()
 endfunction

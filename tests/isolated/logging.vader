@@ -110,6 +110,30 @@ Execute (reltime_lastmsg: cover all cases):
     NeomakeTestsSkip 'only with patch-7.4.503'
   endif
 
+Execute (neomake#log#indent):
+  Save g:neomake_verbose
+
+  AssertThrows call neomake#log#indent(-1)
+  AssertEqual g:vader_exception, 'invalid offset (already 0)'
+
+  call neomake#log#indent(1)
+  call NeomakeTestsSetVimMessagesMarker()
+  call neomake#log#error('error1.')
+  call neomake#log#error('error2.', {'bufnr': 1})
+  AssertEqual NeomakeTestsGetVimMessages(), ['Neomake: error1.', 'Neomake: error2.']
+
+  let g:neomake_verbose = 2
+  call NeomakeTestsSetVimMessagesMarker()
+  call neomake#log#error('error1.')
+  call neomake#log#error('error2.', {'bufnr': 1})
+  AssertEqual NeomakeTestsGetVimMessages(), ['Neomake: error1.', 'Neomake: error2.']
+
+  let g:neomake_verbose = 3
+  call NeomakeTestsSetVimMessagesMarker()
+  call neomake#log#debug('debug1.')
+  call neomake#log#debug('debug2.', {'bufnr': 1})
+  AssertEqual NeomakeTestsGetVimMessages(), ['Neomake:   debug1.', 'Neomake: [-.-:1:1]   debug2.']
+
   " Restore if not profiling.
   if !v:profiling
     runtime autoload/neomake/utils.vim
