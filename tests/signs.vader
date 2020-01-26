@@ -37,6 +37,7 @@ Execute (neomake#signs#RedefineErrorSign):
   call neomake#signs#Reset(bufnr, 'file')
   call neomake#signs#CleanAllOldSigns('file')
   AssertNeomakeMessage 'Cleaning 1 old signs.', 3
+  AssertEqual neomake#signs#by_lnum(bufnr), {}
   bwipe
 
 Execute (Placing signs in project mode):
@@ -56,6 +57,7 @@ Execute (Placing signs in project mode):
   call neomake#signs#Reset(bufnr, 'project')
   call neomake#signs#CleanAllOldSigns('project')
   AssertNeomakeMessage 'Cleaning 1 old signs.', 3, {'bufnr': bufnr}
+  AssertEqual neomake#signs#by_lnum(bufnr), {}
   exe 'bwipe' bufnr
 
 Execute (Signs are not re-used / wiped across modes):
