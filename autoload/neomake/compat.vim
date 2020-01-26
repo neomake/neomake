@@ -255,6 +255,9 @@ else
 endif
 
 function! neomake#compat#in_completion() abort
+    if get(g:neomake#action_queue#_s, 'current_event', '') ==# 'CompleteDone'
+        return 0
+    endif
     if pumvisible()
         return 1
     endif

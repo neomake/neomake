@@ -132,6 +132,10 @@ function! s:process_action_queue(event) abort
     call neomake#log#debug(printf('action queue: processing for %s (%d items).',
                 \ a:event, len(q_for_this_event)), {'bufnr': bufnr('%'), 'winnr': winnr()})
 
+    if exists('*vader#assert#true')
+        call vader#assert#true(!exists('s:current_event'))
+    endif
+    let s:current_event = a:event
     let processed = []
     let removed = 0
     let stop_processing = {'make_id': [], 'job_id': []}
@@ -228,6 +232,7 @@ function! s:process_action_queue(event) abort
     endfor
     call neomake#log#debug(printf('action queue: processed %d items.',
                 \ len(processed)), {'bufnr': bufnr('%')})
+    unlet s:current_event
 
     call s:clean_action_queue_events()
 endfunction
