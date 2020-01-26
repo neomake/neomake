@@ -3,6 +3,8 @@ let s:name_to_level = {'error': 0, 'warning': 1, 'verbose': 2, 'debug': 3}
 let s:short_level_to_name = {0: 'E', 1: 'W', 2: 'V', 3: 'D'}
 let s:is_testing = exists('g:neomake_test_messages')
 let s:pid = getpid()
+let s:indent = 0
+let s:indent_str = ''
 
 if !exists('s:last_msg_ts')
     let s:last_msg_ts = neomake#compat#reltimefloat()
@@ -45,11 +47,12 @@ function! s:log(level, msg, ...) abort
         else
             let context = copy(a:1)
         endif
-        let msg = printf('[%s.%s:%s:%d] %s',
+        let msg = printf('[%s.%s:%s:%d] %s%s',
                     \ get(context, 'make_id', '-'),
                     \ get(context, 'id', '-'),
                     \ get(context, 'bufnr', get(context, 'file_mode', 0) ? '?' : '-'),
                     \ get(context, 'winnr', winnr()),
+                    \ s:indent_str,
                     \ a:msg)
     else
         let msg = a:msg
@@ -121,6 +124,14 @@ function! s:log(level, msg, ...) abort
         endtry
     endif
     " @vimlint(EVL104, 0, l:timediff)
+endfunction
+
+function! neomake#log#indent(offset) abort
+    if a:offset < 0 && s:indent <= 0
+        throw "invalid offset (already 0)"
+    endif
+    let s:indent += a:offset
+    let s:indent_str = repeat(' ', s:indent*2)
 endfunction
 
 function! neomake#log#error(...) abort
