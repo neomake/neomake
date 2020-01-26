@@ -40,6 +40,7 @@ function! s:log(level, msg, ...) abort
         return
     endif
 
+    let msg = s:indent_str . a:msg
     if a:0
         if has_key(a:1, 'options')
             let context = copy(a:1.options)
@@ -47,15 +48,12 @@ function! s:log(level, msg, ...) abort
         else
             let context = copy(a:1)
         endif
-        let msg = printf('[%s.%s:%s:%d] %s%s',
+        let msg = printf('[%s.%s:%s:%d] %s',
                     \ get(context, 'make_id', '-'),
                     \ get(context, 'id', '-'),
                     \ get(context, 'bufnr', get(context, 'file_mode', 0) ? '?' : '-'),
                     \ get(context, 'winnr', winnr()),
-                    \ s:indent_str,
-                    \ a:msg)
-    else
-        let msg = a:msg
+                    \ msg)
     endif
 
     " Use Vader's log for messages during tests.
@@ -128,7 +126,7 @@ endfunction
 
 function! neomake#log#indent(offset) abort
     if a:offset < 0 && s:indent <= 0
-        throw "invalid offset (already 0)"
+        throw 'invalid offset (already 0)'
     endif
     let s:indent += a:offset
     let s:indent_str = repeat(' ', s:indent*2)
