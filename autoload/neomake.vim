@@ -206,8 +206,7 @@ function! neomake#CancelJob(job_id, ...) abort
         endif
         if has('nvim')
             try
-                call jobstop(job)
-                let ret = 1
+                let ret = jobstop(job)
             catch /^Vim\%((\a\+)\)\=:\(E474\|E900\):/
                 call neomake#log#info(printf(
                             \ 'jobstop failed: %s.', v:exception), jobinfo)
