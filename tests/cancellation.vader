@@ -51,7 +51,9 @@ Execute (neomake#CancelJob with invalid job):
     AssertNeomakeMessageAbsent 'exit: job not found: '.job_id.'.'
     AssertNeomakeMessage '\v^Stopping \w+ job: .+\.$', 3, jobinfo
     if has('nvim')
-      AssertNeomakeMessage '\vjobstop failed: Vim\(call\):E900: Invalid (job|channel) id.', 2, jobinfo
+      if !has('nvim-0.5')
+        AssertNeomakeMessage '\vjobstop failed: Vim\(let\):E900: Invalid (job|channel) id.', 2, jobinfo
+      endif
     else
       AssertNeomakeMessage 'job_stop: job was not running anymore.', 2, jobinfo
     endif
@@ -113,7 +115,9 @@ Execute (neomake#CancelJob! with invalid job):
     AssertNeomakeMessageAbsent 'exit: job not found: '.job_id.'.'
     AssertNeomakeMessage '\v^Stopping \w+ job: .+\.$', 3, jobinfo
     if has('nvim')
-      AssertNeomakeMessage '\vjobstop failed: Vim\(call\):E900: Invalid (job|channel) id.', 2, jobinfo
+      if !has('nvim-0.5')
+        AssertNeomakeMessage '\vjobstop failed: Vim\(let\):E900: Invalid (job|channel) id.', 2, jobinfo
+      endif
     endif
     AssertEqual neomake#GetJobs(), []
 

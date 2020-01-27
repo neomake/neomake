@@ -630,7 +630,9 @@ Execute (Neomake#Make: error with failing job via jobstart/argv):
     AssertNeomakeMessage "Starting [string]: doesnotexist."
   endif
 
-  if has('nvim-0.1.8')
+  if has('nvim-0.5')
+    AssertNeomakeMessage "Failed to start Neovim job: ['doesnotexist']: Vim(let):E475: Invalid value for argument cmd: 'doesnotexist' is not executable.", 0
+  elseif has('nvim-0.1.8')
     AssertNeomakeMessage "Failed to start Neovim job: Executable not found: ['doesnotexist'].", 0
   elseif has('nvim')
     AssertNeomakeMessage 'Failed to start Neovim job: [''doesnotexist'']: '
@@ -669,7 +671,9 @@ Execute (Neomake#Make: error with failing job via jobstart/argv + true):
     AssertNeomakeMessage "Starting [string]: doesnotexist."
   endif
 
-  if has('nvim-0.1.8')
+  if has('nvim-0.5')
+    AssertNeomakeMessage "Failed to start Neovim job: ['doesnotexist']: Vim(let):E475: Invalid value for argument cmd: 'doesnotexist' is not executable.", 0
+  elseif has('nvim-0.1.8')
     AssertNeomakeMessage "Failed to start Neovim job: Executable not found: ['doesnotexist'].", 0
   elseif has('nvim')
     AssertNeomakeMessage 'Failed to start Neovim job: [''doesnotexist'']: '
