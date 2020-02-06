@@ -330,17 +330,27 @@ function! s:base_list._get_loclist_win(...) abort
     let loclist_win = 0
     let make_id = self.make_info.make_id
     " NOTE: prefers using 0 for when winid is not supported with
-    " setloclist() yet (vim74-xenial).
+    " setloclist() yet (vim74-xenial, patch-7.4.1895).
     if index(get(w:, 'neomake_make_ids', []), make_id) == -1
-        if has_key(self.make_info.options, 'winid')
+        if has_key(self.make_info.options, 'winid') && has('patch-7.4.1895')
+            " Can only use it with getloclist after patch-7.4.1895.
             let loclist_win = self.make_info.options.winid
         else
             let [t, w] = neomake#core#get_tabwin_for_makeid(make_id)
             if [t, w] == [-1, -1]
-                if a:0 && a:1
-                    return -1
+                for w in range(1, winnr('$'))
+                    if get(get(get(neomake#compat#getwinvar(w, '_neomake_info', {}), 'loclist', {}), 'make_info', {}), 'make_id') == make_id
+                        let loclist_win = w
+                        break
+                    endif
+                endfor
+                if loclist_win == 0
+                    if a:0 && a:1
+                        return -1
+                    endif
+                    throw printf('Neomake: could not find location list for make_id %d.', make_id)
                 endif
-                throw printf('Neomake: could not find location list for make_id %d.', make_id)
+                return loclist_win
             endif
             if t != tabpagenr()
                 if a:0 && a:1
