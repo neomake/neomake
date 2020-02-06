@@ -816,12 +816,18 @@ Execute (neomake#utils#shellescape):
 Execute (neomake#utils#fix_self_ref):
   AssertEqual neomake#utils#fix_self_ref(''), ''
 
+  let needs_fixing = has('nvim') || !has('patch-7.4.1644')
+
   let obj = {'foo': 1, 'bar': {}}
   AssertEqual neomake#utils#fix_self_ref(obj), {
   \ 'foo': 1,
   \ 'bar': {}}
   let fixed = neomake#utils#fix_self_ref(obj)
-  Assert fixed isnot obj, 'copies the obj'
+  if needs_fixing
+    Assert fixed isnot obj, 'copies the obj'
+  else
+    Assert fixed is obj, 'does not copy the obj'
+  endif
   AssertEqual fixed, obj
 
   let obj.bar.self_ref = obj
@@ -840,9 +846,13 @@ Execute (neomake#utils#fix_self_ref):
   endif
   let fixed = neomake#utils#fix_self_ref(obj)
   call string(fixed)
-  AssertEqual fixed, {
-  \ 'foo': 1,
-  \ 'bar': {'self_ref': '<self-ref-1: bar>'}}
+  if needs_fixing
+    AssertEqual fixed, {
+    \ 'foo': 1,
+    \ 'bar': {'self_ref': '<self-ref-1: bar>'}}
+  else
+    AssertEqual string(fixed), "{'foo': 1, 'bar': {'self_ref': {...}}}"
+  endif
 
   Assert obj.bar.self_ref is obj, 'self_ref is obj'
 
@@ -850,16 +860,21 @@ Execute (neomake#utils#fix_self_ref):
   let obj.baz.self_ref_obj = obj
   let obj.baz.self_ref_baz = obj.baz
   let fixed = neomake#utils#fix_self_ref(obj)
-  AssertEqual fixed, {
-  \ 'foo': 1,
-  \ 'bar': {'self_ref': '<self-ref-1: bar>'},
-  \ 'baz': {
-  \   'self_ref_obj': '<self-ref-1: baz>',
-  \   'self_ref_baz': {
-  \     'self_ref_obj': '<self-ref-1: baz>',
-  \     'self_ref_baz': '<self-ref-2: self_ref_baz>'
-  \   }
-  \ }}
+  if needs_fixing
+    AssertEqual fixed, {
+    \ 'foo': 1,
+    \ 'bar': {'self_ref': '<self-ref-1: bar>'},
+    \ 'baz': {
+    \   'self_ref_obj': '<self-ref-1: baz>',
+    \   'self_ref_baz': {
+    \     'self_ref_obj': '<self-ref-1: baz>',
+    \     'self_ref_baz': '<self-ref-2: self_ref_baz>'
+    \   }
+    \ }}
+  else
+    Assert fixed is obj, 'same object'
+    call string(fixed)
+  endif
 
 Execute (neomake#utils#fix_self_ref with obj.func = obj.func):
   let string_displays_partial = has('patch-7.4.1608')
@@ -879,8 +894,8 @@ Execute (neomake#utils#fix_self_ref with obj.func = obj.func):
     else
       let str_number = matchstr(str_func, '\d\+')
       AssertEqual string(repr), printf(
-      \ "{'args': function('%d', {'args': function('%d', {...})})}",
-      \ str_number, str_number)
+      \ "{'args': function('%d', {...})}",
+      \ str_number)
       AssertEqual neomake#utils#fix_self_ref(maker.args), maker.args
       AssertEqual neomake#utils#fix_self_ref(get(maker, 'args')), maker.args
     endif
@@ -900,20 +915,24 @@ Execute (neomake#utils#fix_self_ref: handles lists):
   call string(repr)
 
 Execute (neomake#utils#fix_self_ref: uses get(obj, k)):
-  let make_info = {}
-  let entries_list = {}
-  let entries_list.make_info = make_info
-  let make_info.entries_list = entries_list
-  AssertEqual neomake#utils#fix_self_ref(make_info), {
-  \ 'entries_list': {'make_info': '<self-ref-1: entries_list>'}}
+  if !has('nvim')
+    NeomakeTestsSkip 'Only with Neovim'
+  else
+    let make_info = {}
+    let entries_list = {}
+    let entries_list.make_info = make_info
+    let make_info.entries_list = entries_list
+    AssertEqual neomake#utils#fix_self_ref(make_info), {
+    \ 'entries_list': {'make_info': '<self-ref-1: entries_list>'}}
 
-  " This uses to trigger "unrepresentable object" in Neovim.
-  " (https://github.com/neovim/neovim/issues/7432)
-  function entries_list.func() abort dict
-  endfunction
-  AssertEqual string(neomake#utils#fix_self_ref(make_info)),
-  \ printf("{'entries_list': {'func': %s, 'make_info': '<self-ref-1: entries_list>'}}",
-  \   string(get(entries_list, 'func')))
+    " This used to trigger "unrepresentable object" in Neovim.
+    " (https://github.com/neovim/neovim/issues/7432)
+    function entries_list.func() abort dict
+    endfunction
+    AssertEqual string(neomake#utils#fix_self_ref(make_info)),
+    \ printf("{'entries_list': {'func': %s, 'make_info': '<self-ref-1: entries_list>'}}",
+    \   string(get(entries_list, 'func')))
+  endif
 
 Execute (neomake#utils#Stringify: uses neomake#utils#fix_self_ref):
   let maker = {}
