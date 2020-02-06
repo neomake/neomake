@@ -2438,7 +2438,9 @@ function! neomake#get_nearest_error() abort
                 \ get(get(w:, '_neomake_info', {}), 'loclist', {})]
         if !empty(qfloclist) && !empty(qfloclist.entries)
             call qfloclist._update_locations()
-            let ln_errors += filter(copy(qfloclist.entries), 'v:val.bufnr == buf && v:val.lnum == ln')
+            let ln_errors += map(
+                        \ filter(copy(qfloclist.entries), 'v:val.bufnr == buf && v:val.lnum == ln'),
+                        \ 'extend(v:val, {"list": qfloclist}, "error")')
         endif
     endfor
 
@@ -2449,7 +2451,9 @@ function! neomake#get_nearest_error() abort
     if len(ln_errors) > 1
         call sort(ln_errors, function('neomake#utils#sort_by_col'))
     endif
-    return ln_errors[0]
+    let entry = ln_errors[0]
+    let entry.maker_name = entry.list.maker_info_by_jobid[entry.job_id].name
+    return entry
 endfunction
 
 function! neomake#GetCurrentErrorMsg() abort
