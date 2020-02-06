@@ -339,7 +339,7 @@ function! s:base_list._get_loclist_win(...) abort
             let [t, w] = neomake#core#get_tabwin_for_makeid(make_id)
             if [t, w] == [-1, -1]
                 for w in range(1, winnr('$'))
-                    if get(neomake#compat#getwinvar(w, '_neomake_info', {}), 'last_make_id') == make_id
+                    if get(get(get(neomake#compat#getwinvar(w, '_neomake_info', {}), 'loclist', {}), 'make_info', {}), 'make_id') == make_id
                         let loclist_win = w
                         break
                     endif
@@ -350,10 +350,7 @@ function! s:base_list._get_loclist_win(...) abort
                     endif
                     throw printf('Neomake: could not find location list for make_id %d.', make_id)
                 endif
-                if a:0 && a:1
-                    return -1
-                endif
-                throw printf('Neomake: could not find location list for make_id %d.', make_id)
+                return loclist_win
             endif
             if t != tabpagenr()
                 if a:0 && a:1

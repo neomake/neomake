@@ -41,7 +41,11 @@ Execute (List: basic: loclist):
 
   " Location list window can be found after make run has finished.
   " (via last_make_id without patch-7.4.1895).
-  AssertEqual neomake#list#get()._get_loclist_win(), win_getid()
+  if has('patch-7.4.1895')
+    AssertEqual neomake#list#get()._get_loclist_win(), win_getid()
+  else
+    AssertEqual neomake#list#get()._get_loclist_win(), winnr()
+  endif
 
   AssertEqual getpos('.'), [0, 1, 1, 0]
   NeomakeNextLoclist
@@ -261,7 +265,14 @@ Execute (list: error handling):
 
   " Uses winid from make_info.
   let list.make_info.options.winid = 1234
-  AssertEqual list._get_fn_args('get'), [['getloclist', [1234]]]
+  if has('patch-7.4.1895')
+    AssertEqual list._get_fn_args('get'), [['getloclist', [1234]]]
+  else
+    let g:list = list
+    AssertThrows call g:list._get_fn_args('get')
+    AssertEqual g:vader_exception, 'Neomake: could not find location list for make_id -42.'
+    unlet g:list
+  endif
   unlet list.make_info.options.winid
 
   AssertEqual list._get_loclist_win(1), -1
