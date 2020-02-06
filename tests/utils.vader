@@ -862,13 +862,33 @@ Execute (neomake#utils#fix_self_ref):
   \ }}
 
 Execute (neomake#utils#fix_self_ref with obj.func = obj.func):
+  let string_displays_partial = has('patch-7.4.1608')
   let maker = {}
   function maker.args()
   endfunction
+  let str_func = string(get(maker, 'args'))
   let maker.args = maker.args
   let repr = neomake#utils#fix_self_ref(maker)
   AssertEqual keys(repr), ['args']
-  call string(repr)
+
+  if string_displays_partial
+    if has('nvim')
+      AssertEqual string(repr), "{'args': '<unrepresentable object, type=2>'}"
+      AssertEqual neomake#utils#fix_self_ref(maker.args), '<unrepresentable object, type=2>'
+      AssertEqual neomake#utils#fix_self_ref(get(maker, 'args')), '<unrepresentable object, type=2>'
+    else
+      let str_number = matchstr(str_func, '\d\+')
+      AssertEqual string(repr), printf(
+      \ "{'args': function('%d', {'args': function('%d', {...})})}",
+      \ str_number, str_number)
+      AssertEqual neomake#utils#fix_self_ref(maker.args), maker.args
+      AssertEqual neomake#utils#fix_self_ref(get(maker, 'args')), maker.args
+    endif
+  else
+    AssertEqual string(repr), printf("{'args': %s}", str_func)
+    AssertEqual neomake#utils#fix_self_ref(maker.args), maker.args
+  endif
+
 
 Execute (neomake#utils#fix_self_ref: handles lists):
   let maker = {}
