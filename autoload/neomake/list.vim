@@ -336,15 +336,33 @@ function! s:base_list._get_loclist_win(...) abort
             " Can only use it with getloclist after patch-7.4.1895.
             let loclist_win = self.make_info.options.winid
         else
-            for w in range(1, winnr('$'))
-                if get(neomake#compat#getwinvar(w, '_neomake_info', {}), 'last_make_id') == make_id
-                    let loclist_win = w
-                    break
+            let [t, w] = neomake#core#get_tabwin_for_makeid(make_id)
+            if [t, w] == [-1, -1]
+                for w in range(1, winnr('$'))
+                    if get(neomake#compat#getwinvar(w, '_neomake_info', {}), 'last_make_id') == make_id
+                        let loclist_win = w
+                        break
+                    endif
+                endfor
+                if loclist_win == 0
+                    if a:0 && a:1
+                        return -1
+                    endif
+                    throw printf('Neomake: could not find location list for make_id %d.', make_id)
                 endif
-            endfor
-            if loclist_win == 0
+                if a:0 && a:1
+                    return -1
+                endif
                 throw printf('Neomake: could not find location list for make_id %d.', make_id)
             endif
+            if t != tabpagenr()
+                if a:0 && a:1
+                    return -1
+                endif
+                throw printf('Neomake: trying to use location list from another tab (current=%d != target=%d).', tabpagenr(), t)
+            endif
+            let loclist_win = w
+
         endif
     endif
     return loclist_win
