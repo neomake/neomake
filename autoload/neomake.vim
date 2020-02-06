@@ -1461,6 +1461,12 @@ function! s:do_clean_make_info(make_info) abort
             call remove(make_ids, idx)
             call settabwinvar(t, w, 'neomake_make_ids', make_ids)
         endif
+        " Save last make id for location list retrieval.
+        if !has('patch-7.4.1895')
+            let info = neomake#compat#gettabwinvar(t, w, '_neomake_info', {})
+            let info.last_make_id = make_id
+            call settabwinvar(t, w, '_neomake_info', info)
+        endif
     endif
 
     " Clean up temporary files and buffers.
