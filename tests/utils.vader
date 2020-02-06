@@ -879,6 +879,22 @@ Execute (neomake#utils#fix_self_ref: handles lists):
   AssertEqual keys(repr[0]), ['args']
   call string(repr)
 
+Execute (neomake#utils#fix_self_ref: uses get(obj, k)):
+  let make_info = {}
+  let entries_list = {}
+  let entries_list.make_info = make_info
+  let make_info.entries_list = entries_list
+  AssertEqual neomake#utils#fix_self_ref(make_info), {
+  \ 'entries_list': {'make_info': '<self-ref-1: entries_list>'}}
+
+  " This uses to trigger "unrepresentable object" in Neovim.
+  " (https://github.com/neovim/neovim/issues/7432)
+  function entries_list.func() abort dict
+  endfunction
+  AssertEqual string(neomake#utils#fix_self_ref(make_info)),
+  \ printf("{'entries_list': {'func': %s, 'make_info': '<self-ref-1: entries_list>'}}",
+  \   string(get(entries_list, 'func')))
+
 Execute (neomake#utils#Stringify: uses neomake#utils#fix_self_ref):
   let maker = {}
   function maker.args()

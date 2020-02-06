@@ -618,13 +618,14 @@ function! neomake#utils#fix_self_ref(obj, ...) abort
                 continue
             endif
         endif
+        let l:Val = get(obj, k)  " Excplicitly do not use the partial (for Neovim).
         if type(obj[k]) == type({})
-            let obj[k] = neomake#utils#fix_self_ref(obj[k], a:0 ? a:1 + [[len(a:1)+1, [a:obj, k]]] : [[1, [a:obj, k]]])
+            let obj[k] = neomake#utils#fix_self_ref(l:Val, a:0 ? a:1 + [[len(a:1)+1, [a:obj, k]]] : [[1, [a:obj, k]]])
         elseif has('nvim')
             " Ensure that it can be used as a string.
             " Ref: https://github.com/neovim/neovim/issues/7432
             try
-                call string(obj[k])
+                call string(l:Val)
             catch /^Vim(call):E724:/
                 let obj[k] = '<unrepresentable object, type='.type(obj).'>'
             endtry
