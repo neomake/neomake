@@ -541,6 +541,40 @@ function! s:base_list._get_qflist_entries() abort
     return self._call_qf_fn('get')
 endfunction
 
+function! s:base_list._update_locations() abort
+    " TODO: optimize to do this only when necessary (changedtick), but may
+    " include multiple buffers.
+    " TODO: can be skipped after a job has just finished.
+    let live_entries = self._get_qflist_entries()
+
+    " NOTE: without support for ids it is more difficult.
+    " TODO: figure out what to support
+    if s:has_support_for_qfid
+        if exists(':AssertEqual')
+            AssertEqual len(live_entries), len(self.entries)
+        endif
+    elseif s:can_set_qf_context
+        if exists(':AssertEqual')
+            AssertEqual live_entries.context.make_info, self.make_info
+        endif
+    else
+        if exists(':AssertEqual')
+            AssertEqual map(copy(live_entries), 'v:val.text'), map(copy(self.entries), 'v:val.text')
+        endif
+    endif
+
+    for entry in self.entries
+        let live_entry = live_entries[entry.nmqfidx - 1]
+        if entry.lnum != live_entry.lnum
+            " call neomake#log#debug(printf('list: got qfid (action=%s): %s.', a:action, self.qfid))
+            let entry.lnum = live_entry.lnum
+        endif
+        if entry.col != live_entry.col
+            let entry.col = live_entry.col
+        endif
+    endfor
+endfunction
+
 " Append entries to location/quickfix list.
 function! s:base_list._appendlist(entries, jobinfo) abort
     call neomake#log#debug(printf('Adding %d list entries.', len(a:entries)), self.make_info)

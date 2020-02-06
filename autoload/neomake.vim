@@ -18,9 +18,6 @@ if !exists('s:map_job_ids')
     let s:map_job_ids = {}
 endif
 
-" Errors by [maker_type][bufnr][lnum]
-let s:current_errors = {'project': {}, 'file': {}}
-
 if !has('nvim')
     let s:kill_vim_timers = {}
 endif
@@ -1618,13 +1615,9 @@ endfunction
 function! neomake#_clean_errors(context) abort
     if a:context.file_mode
         let bufnr = a:context.bufnr
-        if has_key(s:current_errors['file'], bufnr)
-            unlet s:current_errors['file'][bufnr]
-        endif
         call neomake#highlights#ResetFile(bufnr)
         call neomake#log#debug('File-level errors cleaned.', a:context)
     else
-        let s:current_errors['project'] = {}
         call neomake#highlights#ResetProject()
         call neomake#log#debug('Project-level errors cleaned.', a:context)
     endif
@@ -1760,7 +1753,6 @@ function! s:ProcessEntries(jobinfo, entries, ...) abort
 
         " Track all errors by buffer and line
         let entry.maker_name = maker_name
-        call neomake#_add_error(maker_type, entry)
     endfor
 
     " Handle placing signs and highlights.
@@ -2436,25 +2428,18 @@ function! s:handle_next_job(prev_jobinfo) abort
     return {}
 endfunction
 
-function! neomake#_add_error(maker_type, entry) abort
-    if !has_key(s:current_errors[a:maker_type], a:entry.bufnr)
-        let s:current_errors[a:maker_type][a:entry.bufnr] = {}
-    endif
-    if !has_key(s:current_errors[a:maker_type][a:entry.bufnr], a:entry.lnum)
-        let s:current_errors[a:maker_type][a:entry.bufnr][a:entry.lnum] = [a:entry]
-    else
-        call add(s:current_errors[a:maker_type][a:entry.bufnr][a:entry.lnum], a:entry)
-    endif
-endfunction
-
 function! neomake#get_nearest_error() abort
     let buf = bufnr('%')
     let ln = line('.')
     let ln_errors = []
 
-    for maker_type in ['file', 'project']
-        let buf_errors = get(s:current_errors[maker_type], buf, {})
-        let ln_errors += get(buf_errors, ln, [])
+    for qfloclist in [
+                \ get(get(g:, '_neomake_info', {}), 'qflist', {}),
+                \ get(get(w:, '_neomake_info', {}), 'loclist', {})]
+        if !empty(qfloclist) && !empty(qfloclist.entries)
+            call qfloclist._update_locations()
+            let ln_errors += filter(copy(qfloclist.entries), 'v:val.bufnr == buf && v:val.lnum == ln')
+        endif
     endfor
 
     if empty(ln_errors)
