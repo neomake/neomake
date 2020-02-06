@@ -1,14 +1,22 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#swift#EnabledMakers() abort
+    let l:list = ['swiftc']
     if !empty(s:get_swiftpm_config())
-        return ['swiftpm']
+        let l:list = ['swiftpm']
     endif
-    return ['swiftc']
+    if s:get_swiftlint_config()
+        let l:list = add(l:list, 'swiftlint')
+    endif
+    return l:list
 endfunction
 
 function! s:get_swiftpm_config() abort
     return neomake#utils#FindGlobFile('Package.swift')
+endfunction
+
+function! s:get_swiftlint_config() abort
+    return executable('swiftlint') && !empty(neomake#utils#FindGlobFile('.swiftlint.yml'))
 endfunction
 
 function! s:get_swiftpm_base_maker() abort
@@ -39,6 +47,20 @@ function! neomake#makers#ft#swift#swiftpmtest() abort
     let maker = s:get_swiftpm_base_maker()
     let maker.args = ['test']
     return maker
+endfunction
+
+function! neomake#makers#ft#swift#swiftlint() abort
+    return {
+        \ 'args': ['lint'],
+        \ 'append_file': 1,
+        \ 'errorformat':
+            \ '%E%f:%l:%c: error: %m,' .
+            \ '%W%f:%l:%c: warning: %m,' .
+            \ '%E%f:%l: error: %m,' .
+            \ '%W%f:%l: warning: %m,' .
+            \ '%Z%\s%#^~%#,' .
+            \ '%-G%.%#',
+        \ }
 endfunction
 
 function! neomake#makers#ft#swift#swiftc() abort
