@@ -337,7 +337,7 @@ function! s:base_list._get_loclist_win(...) abort
             let loclist_win = self.make_info.options.winid
         else
             for w in range(1, winnr('$'))
-                if get(getwinvar(w, '_neomake_info', {}), 'last_make_id') == make_id
+                if get(neomake#compat#getwinvar(w, '_neomake_info', {}), 'last_make_id') == make_id
                     let loclist_win = w
                     break
                 endif
