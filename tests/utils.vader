@@ -816,19 +816,12 @@ Execute (neomake#utils#shellescape):
 Execute (neomake#utils#fix_self_ref):
   AssertEqual neomake#utils#fix_self_ref(''), ''
 
-  let needs_fixing = has('nvim') || !has('patch-7.4.1644')
-
   let obj = {'foo': 1, 'bar': {}}
   AssertEqual neomake#utils#fix_self_ref(obj), {
   \ 'foo': 1,
   \ 'bar': {}}
   let fixed = neomake#utils#fix_self_ref(obj)
-  if needs_fixing
-    Assert fixed isnot obj, 'copies the obj'
-  else
-    Assert fixed is obj, 'does not copy the obj'
-  endif
-  AssertEqual fixed, obj
+  Assert fixed is obj, 'does not copy unnecessarily'
 
   let obj.bar.self_ref = obj
   let exception = ''
@@ -846,13 +839,9 @@ Execute (neomake#utils#fix_self_ref):
   endif
   let fixed = neomake#utils#fix_self_ref(obj)
   call string(fixed)
-  if needs_fixing
-    AssertEqual fixed, {
-    \ 'foo': 1,
-    \ 'bar': {'self_ref': '<self-ref-1: bar>'}}
-  else
-    AssertEqual string(fixed), "{'foo': 1, 'bar': {'self_ref': {...}}}"
-  endif
+  AssertEqual fixed, {
+  \ 'foo': 1,
+  \ 'bar': {'self_ref': '<self-ref-1: bar>'}}
 
   Assert obj.bar.self_ref is obj, 'self_ref is obj'
 
@@ -860,21 +849,16 @@ Execute (neomake#utils#fix_self_ref):
   let obj.baz.self_ref_obj = obj
   let obj.baz.self_ref_baz = obj.baz
   let fixed = neomake#utils#fix_self_ref(obj)
-  if needs_fixing
-    AssertEqual fixed, {
-    \ 'foo': 1,
-    \ 'bar': {'self_ref': '<self-ref-1: bar>'},
-    \ 'baz': {
-    \   'self_ref_obj': '<self-ref-1: baz>',
-    \   'self_ref_baz': {
-    \     'self_ref_obj': '<self-ref-1: baz>',
-    \     'self_ref_baz': '<self-ref-2: self_ref_baz>'
-    \   }
-    \ }}
-  else
-    Assert fixed is obj, 'same object'
-    call string(fixed)
-  endif
+  AssertEqual fixed, {
+  \ 'foo': 1,
+  \ 'bar': {'self_ref': '<self-ref-1: bar>'},
+  \ 'baz': {
+  \   'self_ref_obj': '<self-ref-1: baz>',
+  \   'self_ref_baz': {
+  \     'self_ref_obj': '<self-ref-1: baz>',
+  \     'self_ref_baz': '<self-ref-2: self_ref_baz>'
+  \   }
+  \ }}
 
 Execute (neomake#utils#fix_self_ref with obj.func = obj.func):
   let string_displays_partial = has('patch-7.4.1608')
