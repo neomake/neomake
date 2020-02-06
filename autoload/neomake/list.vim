@@ -18,19 +18,26 @@ let s:needs_to_replace_qf_for_lwindow = has('patch-7.4.379')
 " @vimlint(EVL108, 0)
 let s:needs_to_init_qf_for_lwindow = !has('patch-8.1.0622')
 
-function! neomake#list#ListForMake(make_info) abort
-    let type = a:make_info.options.file_mode ? 'loclist' : 'quickfix'
-    let list = neomake#list#List(type)
-    let list.make_info = a:make_info
-    if type ==# 'loclist'
-        let info = get(w:, '_neomake_info', {})
-        let info['loclist'] = list
-        let w:_neomake_info = info
+function! s:save_list_ref(list) abort
+    if a:list.type ==# 'loclist'
+        for d in [w:, b:]
+            let info = get(d, '_neomake_info', {})
+            let info['loclist'] = a:list
+            let d['_neomake_info'] = info
+        endfor
     else
         let info = get(g:, '_neomake_info', {})
-        let info['qflist'] = list
+        let info['qflist'] = a:list
         let g:_neomake_info = info
     endif
+endfunction
+
+function! neomake#list#ListForMake(make_info) abort
+    let file_mode = a:make_info.options.file_mode
+    let type = file_mode ? 'loclist' : 'quickfix'
+    let list = neomake#list#List(type)
+    let list.make_info = a:make_info
+    call s:save_list_ref(list)
     return list
 endfunction
 
@@ -878,12 +885,24 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
     return entries
 endfunction
 
-" Get the current location or quickfix list.
-function! neomake#list#get() abort
-    let winnr = winnr()
-    let win_info = neomake#compat#getwinvar(winnr, '_neomake_info', {})
+" Get location list from current window, or via buffer.
+function! s:get_loclist() abort
+    let win_info = neomake#compat#getwinvar(winnr(), '_neomake_info', {})
     if has_key(win_info, 'loclist')
         return win_info['loclist']
+    endif
+    let buf_info = neomake#compat#getbufvar(bufnr('%'), '_neomake_info', {})
+    if has_key(buf_info, 'loclist')
+        return buf_info['loclist']
+    endif
+    return {}
+endfunction
+
+" Get the current location or quickfix list.
+function! neomake#list#get() abort
+    let loclist = s:get_loclist()
+    if !empty(loclist)
+        return loclist
     endif
     let info = get(g:, '_neomake_info', {})
     if has_key(info, 'qflist')
@@ -892,18 +911,16 @@ function! neomake#list#get() abort
     return {}
 endfunction
 
-function! neomake#list#get_loclist(...) abort
-    let winnr = a:0 ? a:1 : winnr()
-    let info = neomake#compat#getwinvar(winnr, '_neomake_info', {})
-    if !has_key(info, 'loclist')
+function! neomake#list#get_loclist() abort
+    let loclist = s:get_loclist()
+    if empty(loclist)
         " Create a new list, not bound to a job.
-        call neomake#log#debug('Creating new List object.')
-        let list = neomake#list#List('loclist')
-        call list.add_entries(getloclist(winnr))
-        let info['loclist'] = list
-        call setwinvar(winnr, '_neomake_info', info)
+        call neomake#log#debug("Creating new List object.")
+        let loclist = neomake#list#List('loclist')
+        call loclist.add_entries(getloclist(0))
+        call s:save_list_ref(loclist)
     endif
-    return info['loclist']
+    return loclist
 endfunction
 
 " TODO: save project-maker quickfix list.
