@@ -74,10 +74,13 @@ function! s:base_list.add_entries(entries, ...) dict abort
     if a:0 && !has_key(self.job_entries, a:1.id)
         let self.job_entries[a:1.id] = []
         let self.maker_info_by_jobid[a:1.id] = a:1.maker
+        let maker_name = a:1.maker.name
+    else
+        let maker_name = ''
     endif
     for entry in a:entries
         let idx += 1
-        let e = extend(copy(entry), {'nmqfidx': idx})
+        let e = extend(copy(entry), {'nmqfidx': idx, 'maker_name': maker_name})
         if a:0
             call add(self.job_entries[a:1.id], e)
             let e.job_id = a:1.id
