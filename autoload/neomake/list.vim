@@ -359,7 +359,6 @@ function! s:base_list._get_loclist_win(...) abort
                 throw printf('Neomake: trying to use location list from another tab (current=%d != target=%d).', tabpagenr(), t)
             endif
             let loclist_win = w
-
         endif
     endif
     return loclist_win
