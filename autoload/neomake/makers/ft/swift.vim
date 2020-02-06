@@ -49,6 +49,12 @@ function! neomake#makers#ft#swift#swiftpmtest() abort
     return maker
 endfunction
 
+function! neomake#makers#ft#swift#swiftfile() abort
+    let maker = s:get_swiftpm_base_maker()
+    let maker.append_file = 1
+    return maker
+endfunction
+
 function! neomake#makers#ft#swift#swiftlint() abort
     return {
         \ 'args': ['lint'],
