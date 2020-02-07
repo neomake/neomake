@@ -173,11 +173,11 @@ Execute (Test Neomake on errors.sh with one maker):
   endfor
 
   " Basic verification that signs are placed.
-  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_file_err buffer='.bufnr.'.', 3, {'bufnr': bufnr}
-  " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=5.', 3, {'bufnr': bufnr}
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=5 name=neomake_file_error buffer='.bufnr.'.', 3, {'bufnr': bufnr}
+  " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_error, lnum=5.', 3, {'bufnr': bufnr}
   AssertNeomakeMessage 'Reused 1 signs.', 3
 
-  AssertEqual neomake#signs#by_lnum(bufnr), {'5': [[5000, 'neomake_file_err']]}
+  AssertEqual neomake#signs#by_lnum(bufnr), {'5': [[5000, 'neomake_file_error']]}
   bwipe
 
 Execute (NeomakeCountsChanged gets triggered with skipped entries):

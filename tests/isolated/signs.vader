@@ -6,12 +6,12 @@ Execute (Signs are not wiped when buffer gets wiped with removed augroup):
   let buf = bufnr('%')
   call neomake#signs#PlaceSigns(bufnr('%'),
   \ [{'type': 'E', 'bufnr': buf, 'lnum': 1}], 'file')
-  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'1': [[5000, 'neomake_file_err']]}
+  AssertEqual neomake#signs#by_lnum(bufnr('%')), {'1': [[5000, 'neomake_file_error']]}
   bwipe
 
   AssertEqual neomake#signs#by_lnum(buf), {}
   call neomake#signs#ResetFile(buf)
-  AssertNeomakeMessage 'Skipped cleaning of old signs in non-existing buffer '.buf.': {5000: neomake_file_err}.', 3
+  AssertNeomakeMessage 'Skipped cleaning of old signs in non-existing buffer '.buf.': {5000: neomake_file_error}.', 3
 
   " Restore if not profiling.
   if !v:profiling

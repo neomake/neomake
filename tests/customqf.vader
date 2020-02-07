@@ -54,13 +54,13 @@ Execute (Displays custom formatted quickfix buffer):
     " Error code highlighted via syntax.
     AssertEqual map(synstack(1, 10), 'synIDattr(v:val,"name")'), ['neomakePythonLint']
 
-    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
-    AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
-    AssertNeomakeMessage 'Placing sign: sign place 5002 line=4 name=neomake_file_warn buffer='.loclist_bufnr.'.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_error buffer='.loclist_bufnr.'.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5001 line=2 name=neomake_file_error buffer='.loclist_bufnr.'.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5002 line=4 name=neomake_file_warning buffer='.loclist_bufnr.'.', 3
     AssertEqual neomake#signs#by_lnum(loclist_bufnr), {
-    \ '1': [[5000, 'neomake_file_err']],
-    \ '2': [[5001, 'neomake_file_err']],
-    \ '4': [[5002, 'neomake_file_warn']],
+    \ '1': [[5000, 'neomake_file_error']],
+    \ '2': [[5001, 'neomake_file_error']],
+    \ '4': [[5002, 'neomake_file_warning']],
     \ }
     if exists('*matchaddpos')
       AssertEqual map(filter(getmatches(), "v:val.group == 'neomakeCursorListNr'"), 'v:val.pos1'), [[1, 6, 4]]
@@ -93,11 +93,11 @@ Execute (Displays custom formatted quickfix buffer):
         \   'bufnr': 1,
         \   'text': 'Line 4',
         \ }])
-    " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3
-    " AssertNeomakeMessage 'Reusing sign: id=5001, type=neomake_file_err, lnum=2.', 3
-    AssertNeomakeMessage 'Upgrading sign for lnum=4: sign place 5002 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+    " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_error, lnum=1.', 3
+    " AssertNeomakeMessage 'Reusing sign: id=5001, type=neomake_file_error, lnum=2.', 3
+    AssertNeomakeMessage 'Upgrading sign for lnum=4: sign place 5002 name=neomake_file_error buffer='.loclist_bufnr.'.', 3
     AssertNeomakeMessage 'Reused 2 signs.', 3
-    AssertNeomakeMessage 'Placing sign: sign place 5003 line=3 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5003 line=3 name=neomake_file_error buffer='.loclist_bufnr.'.', 3
 
     wincmd p
 
@@ -493,13 +493,13 @@ Execute (neomake#quickfix#FormatQuickfix reuses signs):
     lopen
     let loclist_bufnr = bufnr('%')
     AssertEqual getline(1), 'b 1:- Text with marker'
-    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.loclist_bufnr.'.', 3
+    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_error buffer='.loclist_bufnr.'.', 3
 
     call setloclist(0, [{
         \ 'lnum': 1,
         \ 'text': 'Text with marker nmcfg:{"name": "b", "short": "b"}',
         \}])
-    " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_err, lnum=1.', 3, {'bufnr': loclist_bufnr}
+    " AssertNeomakeMessage 'Reusing sign: id=5000, type=neomake_file_error, lnum=1.', 3, {'bufnr': loclist_bufnr}
     AssertNeomakeMessage 'Reused 1 signs.', 3
     lclose
     bwipe
@@ -520,7 +520,7 @@ Execute (custom qf gets disabled with manual setloclist()):
     AssertEqual getline(1), 'b 1:- Text with marker'
     doautocmd CursorMoved
 
-    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.ll_bufnr.'.'
+    AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_error buffer='.ll_bufnr.'.'
 
     Assert !empty(filter(getmatches(), "v:val.group == 'neomakeMakerName'")), 'There are existing matches.'
     AssertEqual b:current_syntax, 'neomake_qf'
