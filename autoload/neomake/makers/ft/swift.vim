@@ -1,14 +1,14 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#swift#EnabledMakers() abort
-    let list = ['swiftc']
+    let ret = ['swiftc']
     if !empty(s:get_swiftpm_config())
-        let list = ['swiftpm']
+        let ret = ['swiftpm']
     endif
     if s:get_swiftlint_config()
-        let list = add(list, 'swiftlint')
+        let ret = add(ret, 'swiftlint')
     endif
-    return list
+    return ret
 endfunction
 
 function! s:get_swiftpm_config() abort
