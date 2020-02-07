@@ -915,7 +915,7 @@ function! neomake#list#get_loclist() abort
     let loclist = s:get_loclist()
     if empty(loclist)
         " Create a new list, not bound to a job.
-        call neomake#log#debug("Creating new List object.")
+        call neomake#log#debug('Creating new List object.')
         let loclist = neomake#list#List('loclist')
         call loclist.add_entries(getloclist(0))
         call s:save_list_ref(loclist)

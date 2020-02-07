@@ -187,6 +187,7 @@ Execute (neomake#list#next):
   \ 'Sane lnums'
 
   Assert !exists('b:_neomake_info.loclist')
+  Assert !exists('w:_neomake_info.loclist')
 
   AssertEqual getpos('.'), [0, 1, 1, 0]
   NeomakeNextLoclist
