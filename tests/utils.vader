@@ -821,8 +821,7 @@ Execute (neomake#utils#fix_self_ref):
   \ 'foo': 1,
   \ 'bar': {}}
   let fixed = neomake#utils#fix_self_ref(obj)
-  Assert fixed isnot obj, 'copies the obj'
-  AssertEqual fixed, obj
+  Assert fixed is obj, 'does not copy unnecessarily'
 
   let obj.bar.self_ref = obj
   let exception = ''
@@ -879,8 +878,8 @@ Execute (neomake#utils#fix_self_ref with obj.func = obj.func):
     else
       let str_number = matchstr(str_func, '\d\+')
       AssertEqual string(repr), printf(
-      \ "{'args': function('%d', {'args': function('%d', {...})})}",
-      \ str_number, str_number)
+      \ "{'args': function('%d', {...})}",
+      \ str_number)
       AssertEqual neomake#utils#fix_self_ref(maker.args), maker.args
       AssertEqual neomake#utils#fix_self_ref(get(maker, 'args')), maker.args
     endif
@@ -907,7 +906,7 @@ Execute (neomake#utils#fix_self_ref: uses get(obj, k)):
   AssertEqual neomake#utils#fix_self_ref(make_info), {
   \ 'entries_list': {'make_info': '<self-ref-1: entries_list>'}}
 
-  " This uses to trigger "unrepresentable object" in Neovim.
+  " This used to trigger "unrepresentable object" in Neovim.
   " (https://github.com/neovim/neovim/issues/7432)
   function entries_list.func() abort dict
   endfunction

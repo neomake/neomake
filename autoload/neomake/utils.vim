@@ -625,19 +625,34 @@ function! neomake#utils#fix_self_ref(obj, ...) abort
         endif
         return a:obj
     endif
-    let obj = copy(a:obj)
+    let obj = a:obj
     for k in keys(obj)
         if a:0
             let self_ref = filter(copy(a:1), 'v:val[1][0] is obj[k]')
             if !empty(self_ref)
+                if obj is a:obj
+                    let obj = copy(a:obj)
+                endif
                 let obj[k] = printf('<self-ref-%d: %s>', self_ref[0][0], self_ref[0][1][1])
                 continue
             endif
         endif
         if type(obj[k]) == type({})
-            let obj[k] = neomake#utils#fix_self_ref(get(obj, k), a:0 ? a:1 + [[len(a:1)+1, [a:obj, k]]] : [[1, [a:obj, k]]])
+            let fixed = neomake#utils#fix_self_ref(get(obj, k), a:0 ? a:1 + [[len(a:1)+1, [a:obj, k]]] : [[1, [a:obj, k]]])
+            if fixed != obj[k]
+                if obj is a:obj
+                    let obj = copy(a:obj)
+                endif
+                let obj[k] = fixed
+            endif
         elseif has('nvim') && type(obj[k]) == 2
-            let obj[k] = s:fix_nvim_partial(get(obj, k))
+            let l:Fixed_partial = s:fix_nvim_partial(get(obj, k))
+            if l:Fixed_partial != get(obj, k)
+                if obj is a:obj
+                    let obj = copy(a:obj)
+                endif
+                let obj[k] = l:Fixed_partial
+            endif
         endif
     endfor
     return obj
