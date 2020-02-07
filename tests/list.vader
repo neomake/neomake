@@ -39,12 +39,14 @@ Execute (List: basic: loclist):
   CallNeomake 1, [maker]
   AssertNeomakeMessage 'Adding 2 list entries.', 3
 
+  let list1 = neomake#list#get()
+
   " Location list window can be found after make run has finished.
   " (via last_make_id without patch-7.4.1895).
   if has('patch-7.4.1895')
-    AssertEqual neomake#list#get()._get_loclist_win(), win_getid()
+    AssertEqual list1._get_loclist_win(), win_getid()
   else
-    AssertEqual neomake#list#get()._get_loclist_win(), winnr()
+    AssertEqual list1._get_loclist_win(), winnr()
   endif
 
   AssertEqual getpos('.'), [0, 1, 1, 0]
@@ -53,6 +55,12 @@ Execute (List: basic: loclist):
   NeomakePrevLoclist
   AssertEqual getpos('.'), [0, 1, 1, 0]
   AssertNeomakeMessageAbsent 'Creating new List object.'
+
+  " Knows about loclist in new window for the same buffer.
+  split
+  AssertNeomakeMessageAbsent 'Creating new List object.'
+  AssertEqual neomake#list#get(), list1
+
   bwipe!
 
 Execute (List: basic: quickfix):
@@ -178,6 +186,7 @@ Execute (neomake#list#next):
   \ [[1, 'idx1'], [1, 'idx2'], [2, 'idx3'], [3, 'idx4'], [1, 'idx5']],
   \ 'Sane lnums'
 
+  Assert !exists('b:_neomake_info.loclist')
   Assert !exists('w:_neomake_info.loclist')
 
   AssertEqual getpos('.'), [0, 1, 1, 0]
