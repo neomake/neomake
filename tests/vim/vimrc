@@ -59,11 +59,6 @@ function! s:load_plugin_on_demand(name) abort
 endfunction
 command! -nargs=1 NeomakeTestsLoadPlugin call s:load_plugin_on_demand(<args>)
 
-let s:plugin_dir = expand('<sfile>:p:h:h:h')
-let &runtimepath .= ','.s:plugin_dir
-
-exe 'source' join([s:plugin_dir, 'plugin', 'neomake.vim'], s:slash)
-
 filetype plugin indent on
 
 augroup ssshhhhhh

@@ -1,5 +1,12 @@
 " Sourced by ./setup.vader.
 " Keeping this in a separate file is better for performance.
+"
+let s:slash = has('win32') ? '\' : '/'
+
+let s:plugin_dir = expand('<sfile>:p:h:h:h')
+let &runtimepath .= ','.s:plugin_dir
+
+exe 'source' join([s:plugin_dir, 'plugin', 'neomake.vim'], s:slash)
 
 function! s:wait_for_jobs(filter)
   let max = 45
