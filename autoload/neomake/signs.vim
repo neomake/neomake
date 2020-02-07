@@ -212,56 +212,37 @@ function! neomake#signs#RedefineSign(name, opts) abort
     exe sign_define
 endfunction
 
-function! neomake#signs#RedefineErrorSign(...) abort
-    let default_opts = {'text': '✖', 'texthl': 'NeomakeErrorSign'}
-    let opts = {}
-    if a:0
-        call extend(opts, a:1)
-    elseif exists('g:neomake_error_sign')
-        call extend(opts, g:neomake_error_sign)
+function! s:redefine_sign(type, text, opts) abort
+    let opts = {
+                \ 'text': a:text,
+                \ 'texthl': printf('Neomake%s%sSign', toupper(a:type[0]), a:type[1:]),
+                \ }
+    if !empty(a:opts)
+        call extend(opts, a:opts[0], 'force')
+    else
+        let cfg_name = 'neomake_'.a:type.'_sign'
+        if has_key(g:, cfg_name)
+            call extend(opts, get(g:, cfg_name), 'force')
+        endif
     endif
-    call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_file_error', opts)
-    call neomake#signs#RedefineSign('neomake_project_error', opts)
+    call neomake#signs#RedefineSign('neomake_file_'.a:type, opts)
+    call neomake#signs#RedefineSign('neomake_project_'.a:type, opts)
+endfunction
+
+function! neomake#signs#RedefineErrorSign(...) abort
+    call s:redefine_sign('error', '✖', a:000)
 endfunction
 
 function! neomake#signs#RedefineWarningSign(...) abort
-    let default_opts = {'text': '‼', 'texthl': 'NeomakeWarningSign'}
-    let opts = {}
-    if a:0
-        call extend(opts, a:1)
-    elseif exists('g:neomake_warning_sign')
-        call extend(opts, g:neomake_warning_sign)
-    endif
-    call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_file_warning', opts)
-    call neomake#signs#RedefineSign('neomake_project_warning', opts)
+    call s:redefine_sign('warning', '‼', a:000)
 endfunction
 
 function! neomake#signs#RedefineMessageSign(...) abort
-    let default_opts = {'text': '➤', 'texthl': 'NeomakeMessageSign'}
-    let opts = {}
-    if a:0
-        call extend(opts, a:1)
-    elseif exists('g:neomake_message_sign')
-        call extend(opts, g:neomake_message_sign)
-    endif
-    call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_file_message', opts)
-    call neomake#signs#RedefineSign('neomake_project_message', opts)
+    call s:redefine_sign('message', '➤', a:000)
 endfunction
 
 function! neomake#signs#RedefineInfoSign(...) abort
-    let default_opts = {'text': 'ℹ', 'texthl': 'NeomakeInfoSign'}
-    let opts = {}
-    if a:0
-        call extend(opts, a:1)
-    elseif exists('g:neomake_info_sign')
-        call extend(opts, g:neomake_info_sign)
-    endif
-    call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_file_info', opts)
-    call neomake#signs#RedefineSign('neomake_project_info', opts)
+    call s:redefine_sign('info', 'ℹ', a:000)
 endfunction
 
 function! neomake#signs#DefineHighlights() abort
