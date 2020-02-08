@@ -11,7 +11,8 @@ Execute (neomake#log#debug writes to logfile always):
   else
     let logfile_msg = readfile(g:neomake_logfile)[0]
   endif
-  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \d+ \[D      \] msg2.$', 'unexpected msg: '.logfile_msg
+  " Also allow for small delay (on CI).
+  Assert logfile_msg =~# '\v\d\d:\d\d:\d\d \d+ \[D (\+0.0\d|     )\] msg2.$', 'unexpected msg: '.logfile_msg
 
   call neomake#log#debug('msg3.')
   sleep 10m
