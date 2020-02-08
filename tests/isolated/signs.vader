@@ -2,6 +2,8 @@ Include: ../include/setup.vader
 
 Execute (Signs are not wiped when buffer gets wiped with removed augroup):
   new
+  Assert !exists('#neomake_signs')
+  doautocmd ColorScheme
   au! neomake_signs
   let buf = bufnr('%')
   call neomake#signs#PlaceSigns(bufnr('%'),
@@ -11,6 +13,7 @@ Execute (Signs are not wiped when buffer gets wiped with removed augroup):
 
   AssertEqual neomake#signs#by_lnum(buf), {}
   call neomake#signs#ResetFile(buf)
+  AssertNeomakeMessage 'Placing sign: sign place 5000 line=1 name=neomake_file_err buffer='.buf.'.'
   AssertNeomakeMessage 'Skipped cleaning of old signs in non-existing buffer '.buf.': {5000: neomake_file_err}.', 3
 
   " Restore if not profiling.
