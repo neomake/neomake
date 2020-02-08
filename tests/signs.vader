@@ -18,7 +18,6 @@ Execute (neomake#signs#RedefineErrorSign):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
   AssertNeomakeMessage 'Placing sign: sign place 5000 line=2 name=neomake_file_warning buffer='.bufnr('%').'.'
-
   AssertNeomakeMessage '\vCould not place signs for 1 entries without line number: \[.*\].', 3
 
   " Test #736.
@@ -26,6 +25,16 @@ Execute (neomake#signs#RedefineErrorSign):
   let sign = substitute(neomake#utils#redir('sign list neomake_file_error'), '\v^[\n]*', '', '')
   AssertEqual split(sign), ['sign', 'neomake_file_error', 'text=X', 'texthl=ErrorMsg']
   AssertEqual neomake#signs#by_lnum(bufnr('%')), {'2': [[5000, 'neomake_file_warning']]}
+
+  " Test g:neomake_error_sign."
+  Save g:neomake_error_sign
+  let g:neomake_error_sign = {
+    \ 'text': 'E>',
+    \ 'texthl': 'MyErrorHighlight',
+    \ }
+  call neomake#signs#RedefineErrorSign()
+  let sign = substitute(neomake#utils#redir('sign list neomake_file_error'), '\v^[\n]*', '', '')
+  AssertEqual split(sign), ['sign', 'neomake_file_error', 'text=E>', 'texthl=MyErrorHighlight']
 
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
