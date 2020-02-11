@@ -27,15 +27,8 @@ function! neomake#makers#ft#markdown#mdl() abort
 endfunction
 
 function! neomake#makers#ft#markdown#markdownlint() abort
-    let ver = neomake#compat#systemlist(['markdownlint', '--version'])
-    let ver_split = split(ver[0], '\.')
-    if len(ver_split) >= 2 && ver_split[0] == 0 && ver_split[1] <= 18
-        let errorformat = '%f: %l: %m' "old format
-    else
-        let errorformat = '%f:%l %m'
-    endif
     return {
-                \ 'errorformat': errorformat
+                \ 'errorformat': '%f:%l %m,%f: %l: %m'
                 \ }
 endfunction
 
