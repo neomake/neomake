@@ -28,7 +28,7 @@ endfunction
 
 function! neomake#makers#ft#markdown#markdownlint() abort
     return {
-                \ 'errorformat': '%f: %l: %m'
+                \ 'errorformat': '%f:%l %m,%f: %l: %m'
                 \ }
 endfunction
 
