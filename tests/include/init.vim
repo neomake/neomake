@@ -596,7 +596,7 @@ function! s:After()
     endtry
     call add(errors, error)
   elseif bufname(winbufnr(1)) !=# '[Vader-workbench]'
-    call add(errors, 'Vader-workbench has been renamed: '.bufname(winbufnr(1)))
+    call add(errors, 'Vader-workbench has been renamed (too many bwipe commands?): '.bufname(winbufnr(1)))
   endif
 
   " Ensure that all w:neomake_make_ids lists have been removed.
@@ -689,7 +689,7 @@ function! s:After()
       call map(errors, "printf('%d. %s', v:key+1, v:val)")
       throw len(errors)." error(s) in teardown:\n".join(errors, "\n")
     else
-      Log printf('NOTE: %d error(s) in teardown.', len(errors))
+      Log printf('NOTE: %d error(s) in teardown (ignored with failing test).', len(errors))
     endif
   endif
   echom ''
