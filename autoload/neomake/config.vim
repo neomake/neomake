@@ -1,4 +1,4 @@
-" Config API.
+" New-style config API.
 
 let g:neomake#config#_defaults = {
             \ 'maker_defaults': {
@@ -11,7 +11,8 @@ lockvar g:neomake#config#_defaults
 let g:neomake#config#undefined = {}
 lockvar! g:neomake#config#undefined
 
-" Resolve a:name (split on dots) and (optionally) init a:dict accordingly.
+" Resolve a:name (list of keys or string (split on dots)) and (optionally)
+" init a:dict accordingly.
 function! s:resolve_name(dict, name, init, validate) abort
     let parts = type(a:name) == type([]) ? a:name : split(a:name, '\.')
     if a:validate && parts[0] ==# 'neomake'
@@ -35,7 +36,8 @@ function! s:resolve_name(dict, name, init, validate) abort
     return [c, parts[-1]]
 endfunction
 
-" Get a:name (list of keys) from a:dict, using a:prefixes.
+" Get a:name (list of keys or string (split on dots)) from a:dict,
+" using a:prefixes.
 function! s:get(dict, parts, prefixes) abort
     for prefix in a:prefixes
         let [c, k] = s:resolve_name(a:dict, prefix + a:parts[0:-1], 0, 1)
@@ -146,14 +148,19 @@ function! neomake#config#get_with_source(name, ...) abort
 endfunction
 
 
-" Set a:name in a:dict to a:value, after resolving it (split on dots).
+" Set a:name (list or string (split on dots)) in a:dict to a:value.
 function! s:set(dict, name, value, validate) abort
     let [c, k] = s:resolve_name(a:dict, a:name, 1, a:validate)
     let c[k] = a:value
     return c
 endfunction
 
-" Set a:name (resolved on dots) to a:value in the config.
+" Set a:name to a:value in the config.
+" a:name:
+"  - a list (e.g. `['ft', 'javascript.jsx', 'eslint', 'exe']`, or
+"  - a string (split on dots, e.g. `'ft.python.enabled_makers'`), where
+"    `b:` sets a buffer-local setting (via `neomake#config#set_buffer`).
+" a:value: the value to set
 function! neomake#config#set(name, value) abort
     let parts = type(a:name) == type([]) ? a:name : split(a:name, '\.')
     if parts[0] =~# '^b:'
@@ -166,7 +173,7 @@ function! neomake#config#set(name, value) abort
     return s:set(g:neomake, parts, a:value, 1)
 endfunction
 
-" Set a:name (resolved on dots) to a:value for buffer a:bufnr.
+" Set a:name (list or string (split on dots)) to a:value for buffer a:bufnr.
 function! neomake#config#set_buffer(bufnr, name, value) abort
     let bufnr = +a:bufnr
     let bneomake = getbufvar(bufnr, 'neomake')
@@ -178,14 +185,14 @@ function! neomake#config#set_buffer(bufnr, name, value) abort
     return s:set(bneomake, a:name, a:value, 1)
 endfunction
 
-" Set a:name (resolved on dots) to a:value in a:scope.
+" Set a:name (list or string (split on dots)) to a:value in a:scope.
 " This is meant for advanced usage, e.g.:
 "   set_scope(t:, 'neomake.disabled', 1)
 function! neomake#config#set_dict(dict, name, value) abort
     return s:set(a:dict, a:name, a:value, 0)
 endfunction
 
-" Unset a:name (resolved on dots).
+" Unset a:name (list or string (split on dots)).
 " This is meant for advanced usage, e.g.:
 "   unset_dict(t:, 'neomake.disabled', 1)
 function! neomake#config#unset_dict(dict, name) abort
