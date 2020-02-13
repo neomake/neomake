@@ -114,6 +114,7 @@ Execute (neomake#config#get with b: prefix, no default and bufnr context):
   bwipe
 
 Execute (neomake#config#set):
+  Save g:neomake
   let config = neomake#config#set('foo', 'bar')
   AssertEqual config, {'foo': 'bar'}
   AssertEqual g:neomake, {'foo': 'bar'}
@@ -121,6 +122,17 @@ Execute (neomake#config#set):
 
   call neomake#config#set('automake.ignore_filetypes', ['startify'])
   AssertEqual g:neomake, {'automake': {'ignore_filetypes': ['startify']}}
+
+Execute (neomake#config#set: warn about unused "neomake" key):
+  Save g:neomake
+  AssertThrows call neomake#config#set('b:neomake.foo.bar', ['1'])
+  AssertEqual g:vader_exception, 'Neomake: config: "neomake" is not necessary with new-style config settings ([''neomake'', ''foo'', ''bar'']).'
+
+  AssertThrows call neomake#config#set('neomake.foo.bar', ['2'])
+  AssertEqual g:vader_exception, 'Neomake: config: "neomake" is not necessary with new-style config settings ([''neomake'', ''foo'', ''bar'']).'
+
+  AssertEqual b:neomake, {}
+  AssertEqual g:neomake, {}
 
 Execute (neomake#config#set_buffer):
   new
