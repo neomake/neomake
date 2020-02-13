@@ -12,8 +12,13 @@ let g:neomake#config#undefined = {}
 lockvar! g:neomake#config#undefined
 
 " Resolve a:name (split on dots) and (optionally) init a:dict accordingly.
-function! s:resolve_name(dict, name, init) abort
+function! s:resolve_name(dict, name, init, validate) abort
     let parts = type(a:name) == type([]) ? a:name : split(a:name, '\.')
+    if a:validate && parts[0] ==# 'neomake'
+        throw printf(
+                    \ 'Neomake: config: "neomake" is not necessary with new-style config settings (%s).',
+                    \ string(a:name))
+    endif
     let c = a:dict
     for p in parts[0:-2]
         if !has_key(c, p)
@@ -33,7 +38,7 @@ endfunction
 " Get a:name (list of keys) from a:dict, using a:prefixes.
 function! s:get(dict, parts, prefixes) abort
     for prefix in a:prefixes
-        let [c, k] = s:resolve_name(a:dict, prefix + a:parts[0:-1], 0)
+        let [c, k] = s:resolve_name(a:dict, prefix + a:parts[0:-1], 0, 1)
         if has_key(c, k)
             return [prefix, get(c, k)]
         endif
@@ -142,8 +147,8 @@ endfunction
 
 
 " Set a:name in a:dict to a:value, after resolving it (split on dots).
-function! s:set(dict, name, value) abort
-    let [c, k] = s:resolve_name(a:dict, a:name, 1)
+function! s:set(dict, name, value, validate) abort
+    let [c, k] = s:resolve_name(a:dict, a:name, 1, a:validate)
     let c[k] = a:value
     return c
 endfunction
@@ -158,7 +163,7 @@ function! neomake#config#set(name, value) abort
     if !has_key(g:, 'neomake')
         let g:neomake = {}
     endif
-    return s:set(g:neomake, parts, a:value)
+    return s:set(g:neomake, parts, a:value, 1)
 endfunction
 
 " Set a:name (resolved on dots) to a:value for buffer a:bufnr.
@@ -170,21 +175,21 @@ function! neomake#config#set_buffer(bufnr, name, value) abort
         let bneomake = {}
         call setbufvar(bufnr, 'neomake', bneomake)
     endif
-    return s:set(bneomake, a:name, a:value)
+    return s:set(bneomake, a:name, a:value, 1)
 endfunction
 
 " Set a:name (resolved on dots) to a:value in a:scope.
 " This is meant for advanced usage, e.g.:
 "   set_scope(t:, 'neomake.disabled', 1)
 function! neomake#config#set_dict(dict, name, value) abort
-    return s:set(a:dict, a:name, a:value)
+    return s:set(a:dict, a:name, a:value, 0)
 endfunction
 
 " Unset a:name (resolved on dots).
 " This is meant for advanced usage, e.g.:
 "   unset_dict(t:, 'neomake.disabled', 1)
 function! neomake#config#unset_dict(dict, name) abort
-    let [c, k] = s:resolve_name(a:dict, a:name, 0)
+    let [c, k] = s:resolve_name(a:dict, a:name, 0, 0)
     if has_key(c, k)
         unlet c[k]
     endif
