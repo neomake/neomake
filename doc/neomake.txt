@@ -45,7 +45,7 @@ dispatch.
 :Neomake! [makers]      Run a make command with no file as input. If no makers
                         are specified, the default top-level makers will be
                         used. If no default top-level makers exist,
-                        |'makeprg'| will be used.
+                        'makeprg' will be used.
 
                                                                   *:NeomakeSh*
 :NeomakeSh {command}    Run {command} in a shell (according to 'shell'). The
@@ -108,7 +108,7 @@ status gets displayed.
 3. Configuration                                       *neomake-configuration*
 
 If you just want an easy way to run |:make| asynchronously, you're all set.
-Just set your |'makeprg'| and |'errorformat'| as usual, and run |:Neomake!|.
+Just set your 'makeprg' and 'errorformat' as usual, and run |:Neomake!|.
 If you want more, read on.
 
 3.1 Automaking                                              *neomake-automake*
@@ -403,7 +403,7 @@ feedback as early as possible, you can set this to `0`.
 You can override this for a maker using e.g.: >
     let g:neomake_ft_test_maker_buffer_output = 0
 <
-Your results will appear earlier, but if the |'errorformat'| is meant to parse
+Your results will appear earlier, but if the 'errorformat' is meant to parse
 multiline output this will likely cause issues (depending on how the maker
 flushes its output).
 
@@ -413,7 +413,7 @@ To change the default for all makers use: >
                                        *neomake-makers-remove_invalid_entries*
 Default: 0
 This option filters invalid entries from makers from the location/quickfix
-list (i.e. entries that do not match the |'errorformat'|, and that would show
+list (i.e. entries that do not match the 'errorformat', and that would show
 up with a `||` prefix in the location/quickfix list): >
     let g:neomake_ft_maker_remove_invalid_entries = 1
 <
@@ -616,7 +616,7 @@ Each log level includes all the levels before it.
 
 Defaults to 1.
 
-|'verbose'| gets added to this setting, so you can use |:verbose| to increase
+'verbose' gets added to this setting, so you can use |:verbose| to increase
 the verbosity temporarily: >
     :3verb Neomake
 <
@@ -631,7 +631,7 @@ append, but overwrite the file with each message.
 *g:neomake_place_signs*
 This setting enables the placement of signs next to items from the location
 and quickfix list (i.e. errors/warnings etc recognized from the
-|'errorformat'|). Defaults to 1.
+'errorformat'). Defaults to 1.
 
 *g:neomake_error_sign*
 *g:neomake_warning_sign*
@@ -715,7 +715,7 @@ You can define them yourself: >
 
 *g:airline#extensions#neomake#enabled*
 Shows warning and error counts returned by |neomake#statusline#LoclistCounts|
-in the warning and error sections of the vim-airline |'statusline'|. Defaults
+in the warning and error sections of the vim-airline 'statusline'. Defaults
 to 1.
 
 ==============================================================================
@@ -906,7 +906,7 @@ You can use the following format placeholders:
 
 *neomake#statusline#LoclistStatus*
 *neomake#statusline#QflistStatus*
-These functions return text for your |'statusline'|. They each take an
+These functions return text for your 'statusline'. They each take an
 optional first argument, which is the prefix text that will be shown if errors
 or warnings exist. Example usage: >
     set statusline+=\ %#ErrorMsg#%{neomake#statusline#QflistStatus('qf:\ ')}
