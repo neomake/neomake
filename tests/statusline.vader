@@ -223,7 +223,6 @@ Execute (neomake#statusline#get: use_highlights_with_defaults):
 Execute (statusline: uses user-configured highlights):
   new
   let bufnr = bufnr('%')
-  Assert !hlexists('NeomakeStatColorTypeW')
   hi NeomakeStatColorTypeW ctermfg=Black ctermbg=Black cterm=none
   let orig = neomake#utils#redir('hi NeomakeStatColorTypeW')
   CallNeomake 1, [g:success_entry_maker]
