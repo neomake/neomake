@@ -411,14 +411,14 @@ function! neomake#statusline#DefineHighlights() abort
     endfor
 
     " Default highlight for type counts.
-    exe 'hi NeomakeStatColorDefault cterm=NONE ctermfg=white ctermbg=blue'
+    exe 'hi default NeomakeStatColorDefault cterm=NONE ctermfg=white ctermbg=blue'
     hi link NeomakeStatColorQuickfixDefault NeomakeStatColorDefault
 
     " Specific highlights for types.  Only used if defined.
-    exe 'hi NeomakeStatColorTypeE cterm=NONE ctermfg=white ctermbg=red'
+    exe 'hi default NeomakeStatColorTypeE cterm=NONE ctermfg=white ctermbg=red'
     hi link NeomakeStatColorQuickfixTypeE NeomakeStatColorTypeE
 
-    exe 'hi NeomakeStatColorTypeW cterm=NONE ctermfg=white ctermbg=yellow'
+    exe 'hi default NeomakeStatColorTypeW cterm=NONE ctermfg=white ctermbg=yellow'
     hi link NeomakeStatColorQuickfixTypeW NeomakeStatColorTypeW
 endfunction
 

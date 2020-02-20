@@ -219,3 +219,12 @@ Execute (neomake#statusline#get: use_highlights_with_defaults):
   AssertEqual neomake#statusline#get(bufnr, {'use_highlights_with_defaults': 1}),
   \ '%#NeomakeStatusGood#✓%#NeomakeStatReset#'
   bwipe
+
+Execute (statusline: uses user-configured highlights):
+  new
+  let bufnr = bufnr('%')
+  hi NeomakeStatColorTypeW ctermfg=Black ctermbg=Black cterm=none
+  let orig = neomake#utils#redir('hi NeomakeStatColorTypeW')
+  CallNeomake 1, [g:success_entry_maker]
+  AssertEqual neomake#utils#redir('hi NeomakeStatColorTypeW'), orig
+  bwipe
