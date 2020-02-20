@@ -220,7 +220,7 @@ Execute (neomake#statusline#get: use_highlights_with_defaults):
   \ '%#NeomakeStatusGood#✓%#NeomakeStatReset#'
   bwipe
 
-Execute (statusline: uses user-configured highlights)):
+Execute (statusline: uses user-configured highlights):
   new
   let bufnr = bufnr('%')
   Assert !hlexists('NeomakeStatColorTypeW')
