@@ -395,6 +395,7 @@ function! neomake#makers#ft#python#mypy() abort
     " ignore_missing_imports cannot be disabled in a config then though
     let args = [
                 \ '--show-column-numbers',
+                \ '--show-error-codes',
                 \ '--check-untyped-defs',
                 \ '--ignore-missing-imports',
                 \ ]

@@ -376,6 +376,7 @@ Execute (python: mypy: handles --py2):
   call g:NeomakeTestsSetPATH('')
   let base_args = [
   \ '--show-column-numbers',
+  \ '--show-error-codes',
   \ '--check-untyped-defs',
   \ '--ignore-missing-imports'
   \ ]
@@ -403,6 +404,7 @@ Execute (python: mypy):
 
   let base_args = [
   \ '--show-column-numbers',
+  \ '--show-error-codes',
   \ '--check-untyped-defs',
   \ '--ignore-missing-imports'
   \ ]
