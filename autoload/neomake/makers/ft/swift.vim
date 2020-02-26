@@ -57,15 +57,13 @@ endfunction
 
 function! neomake#makers#ft#swift#swiftlint() abort
     return {
-        \ 'args': ['lint'],
+        \ 'args': ['lint', '--quiet'],
         \ 'append_file': 1,
         \ 'errorformat':
-            \ '%E%f:%l:%c: error: %m,' .
-            \ '%W%f:%l:%c: warning: %m,' .
-            \ '%E%f:%l: error: %m,' .
-            \ '%W%f:%l: warning: %m,' .
-            \ '%Z%\s%#^~%#,' .
-            \ '%-G%.%#',
+            \ '%f:%l:%c: %trror: %m,' .
+            \ '%f:%l:%c: %tarning: %m,' .
+            \ '%f:%l: %trror: %m,' .
+            \ '%f:%l: %tarning: %m',
         \ }
 endfunction
 
