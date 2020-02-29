@@ -363,7 +363,7 @@ endfunction
 function! neomake#makers#ft#python#python() abort
     return {
         \ 'args': [s:compile_script],
-        \ 'errorformat': '%E%f:%l:%c: %m',
+        \ 'errorformat': '%E%f:%l:%c: E: %m,%W%f:%l: W: %m',
         \ 'serialize': 1,
         \ 'serialize_abort_on_error': 1,
         \ 'output_stream': 'stdout',
