@@ -257,7 +257,6 @@ Execute (Output is only processed in normal/insert mode (from loclist)):
     AssertNeomakeMessage 'Processing 3 lines of output.'
     AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
 
-    " NOTE: needs cache busting above ("bust_cache").
     let ll_bufnr = bufnr('file_sleep_efm')
     AssertEqual map(getloclist(0), 'v:val.bufnr'), [ll_bufnr, ll_bufnr, ll_bufnr]
     lclose
