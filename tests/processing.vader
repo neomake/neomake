@@ -239,6 +239,7 @@ Execute (Location list is only cleared in same window on success):
 Execute (Output is only processed in normal/insert mode (from loclist)):
   if NeomakeAsyncTestsSetup()
     new
+    file file_sleep_efm
     call neomake#Make(1, [g:sleep_efm_maker])
     lopen
     AssertEqual &buftype, 'quickfix'
@@ -253,16 +254,19 @@ Execute (Output is only processed in normal/insert mode (from loclist)):
     AssertEqual mode(), 'n'
     doautocmd CursorHold
     AssertEqual getloclist(0), []
+    AssertNeomakeMessage 'action queue: processing for CursorHold (1 items).', 3
+    AssertNeomakeMessage 'action queue: calling process_pending_output.', 3
+    AssertNeomakeMessage 'Skipped pending job output for another buffer (current='.bufnr('%').').', 3
+
     wincmd p
     AssertNeomakeMessage 'Processing 3 lines of output.'
     AssertEqual map(getloclist(0), 'v:val.text'), ['error message', 'warning', 'error2']
+    AssertNeomakeMessage 'Processed 1 pending outputs.', 3
 
-    " NOTE: needs cache busting above ("bust_cache").
     let ll_bufnr = bufnr('file_sleep_efm')
     AssertEqual map(getloclist(0), 'v:val.bufnr'), [ll_bufnr, ll_bufnr, ll_bufnr]
     lclose
     bwipe
-    bwipe file_sleep_efm
   endif
 
 Execute (Output gets not processed while in loclist):
