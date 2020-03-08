@@ -1908,7 +1908,12 @@ function! s:process_pending_output(jobinfo, lines, source, ...) abort
             return g:neomake#action_queue#processed
         endif
     endif
-    call add(a:jobinfo.pending_output, [a:lines, a:source])
+
+    if !a:0
+        " Remember pending output, but only when not called via action queue.
+        call add(a:jobinfo.pending_output, [a:lines, a:source])
+    endif
+
     if index(neomake#action_queue#get_queued_actions(a:jobinfo),
                 \ ['process_pending_output', retry_events]) == -1
         return neomake#action_queue#add(retry_events, [s:function('s:process_pending_output'), [a:jobinfo, [], a:source, retry_events]])
