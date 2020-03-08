@@ -28,7 +28,9 @@ endif
 " A list of references to keep when profiling.
 " Workaround for https://github.com/vim/vim/issues/2350, where
 " https://github.com/blueyed/vader.vim/commit/e66d91dea is not enough.
-let s:hack_keep_refs_for_profiling = []
+if v:profiling
+    let s:hack_keep_refs_for_profiling = []
+endif
 
 " Can Neovim buffer output?
 let s:nvim_can_buffer_output = has('nvim-0.3.0') ? 1 : 0
