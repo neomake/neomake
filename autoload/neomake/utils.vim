@@ -404,11 +404,7 @@ function! s:exparg_subst(bufnr, s, mods) abort
         let mods = ':r' . mods
         let s = s[0] . s[2:]
     endif
-    if !empty(mods) || s ==# '%'
-        return expand(substitute(s, '^%'.a:mods, neomake#utils#fnamemodify(a:bufnr, mods), ''))
-    else
-        return expand(substitute(s, '^%', '#'.a:bufnr, ''))
-    endif
+    return expand(substitute(s, '^%'.a:mods, neomake#utils#fnamemodify(a:bufnr, mods), ''))
 endfunction
 
 function! neomake#utils#ExpandArgs(args, jobinfo) abort
