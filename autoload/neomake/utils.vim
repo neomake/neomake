@@ -396,6 +396,17 @@ function! neomake#utils#redir(cmd) abort
     return neomake_redir
 endfunction
 
+function! s:exparg_subst(bufnr, s, mods) abort
+    let s = a:s
+    let mods = a:mods
+    if s[1:1] ==# '<'
+        " Convert "%<" to "%:r".
+        let mods = ':r' . mods
+        let s = s[0] . s[2:]
+    endif
+    return expand(substitute(s, '^%'.a:mods, neomake#utils#fnamemodify(a:bufnr, mods), ''))
+endfunction
+
 function! neomake#utils#ExpandArgs(args, jobinfo) abort
     if has_key(a:jobinfo, 'tempfile')
         let fname = a:jobinfo.tempfile
@@ -414,8 +425,8 @@ function! neomake#utils#ExpandArgs(args, jobinfo) abort
     " % must be followed with an expansion keyword
     let ret = map(ret,
                 \ 'substitute(v:val, '
-                \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|<\|\%(:[phtreS8.~]\)\+\|\ze\w\@!\)\)'', '
-                \ . '''\=(submatch(1) == "%%" ? "%" : expand(substitute(submatch(1), "^%", "#'.a:jobinfo.bufnr.'", "")))'', '
+                \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|<\|\(:[phtreS8.~]\)\+\|\ze\w\@!\)\)'', '
+                \ . '''\=(submatch(1) == "%%" ? "%" : s:exparg_subst(a:jobinfo.bufnr, submatch(1), submatch(2)))'', '
                 \ . '''g'')')
     let ret = map(ret, 'substitute(v:val, ''\v^\~\ze%(/|$)'', expand(''~''), ''g'')')
     return ret

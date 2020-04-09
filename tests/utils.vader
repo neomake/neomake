@@ -736,6 +736,13 @@ Execute (neomake#utils#fnamemodify handles fugitive buffer):
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), bufname_abs
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname_abs, ':h')
 
+  " ExpandArgs handles fugitive buffers also.
+  let jobinfo = {'bufnr': bufnr('%')}
+  AssertEqual neomake#utils#ExpandArgs(['%'], jobinfo), [bufname]
+  AssertEqual neomake#utils#ExpandArgs(['%:e'], jobinfo), ['vim']
+  " NOTE: uses absolute path, although bufname is relative.
+  AssertEqual neomake#utils#ExpandArgs(['%<'], jobinfo), [fnamemodify(bufname, ':p:r')]
+
   exe 'lcd '.fnamemodify(tempname(), ':h')
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ''), bufname_abs
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), bufname_abs
