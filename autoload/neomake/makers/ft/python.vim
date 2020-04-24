@@ -272,6 +272,7 @@ function! neomake#makers#ft#python#pyflakes() abort
             \ '%E%f:%l: could not compile,' .
             \ '%-Z%p^,'.
             \ '%E%f:%l:%c: %m,' .
+            \ '%E%f:%l:%c %m,' .
             \ '%E%f:%l: %m,' .
             \ '%-G%.%#',
         \ }
