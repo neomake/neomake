@@ -23,7 +23,35 @@ endfunction
 let neomake#makers#ft#python#project_root_files = ['setup.cfg', 'tox.ini']
 
 function! neomake#makers#ft#python#DetectPythonVersion() abort
-    let output = neomake#compat#systemlist('python -V 2>&1')
+    " lets use this as the preferred python version, so we don't nec. have to
+    " be inside a virtualenv for proper syntax checking
+    " let g:neomake_python_preferred = 'python3'
+
+    " this won't work for py2 virtualenvs
+    " we have to check whether inside a virtualenv for it to work when both
+    " 'python' and 'python3' are installed, but 'python3' is preferred, but
+    " you're in a python2 virtualenv
+    " ...
+
+    " determine python version
+    " order resolution:
+    " 1) attempt to read shebang
+    " 2) attempt to use g:neomake_python_preferred
+    " 3) use 'python'
+    let shebang = matchstr(getline(1), '^#!\s*\zs.*$')
+    if !empty(shebang)
+        let l = split(shebang)
+        let cmd = l[0] . ' ' . l[1]
+    elseif exists('g:neomake_python_preferred')
+        let cmd = g:neomake_python_preferred
+    else
+        " defaults to just "python" (on older systems this may be python2)
+        let cmd = '/usr/bin/env python'
+    endif
+
+    let cmd = cmd . ' -V 2>&1'
+
+    let output = neomake#compat#systemlist(cmd)
     if v:shell_error
         call neomake#log#error(printf(
                     \ 'Failed to detect Python version: %s.',
