@@ -1,13 +1,5 @@
 function! neomake#makers#ft#proto#EnabledMakers() abort
-    return ['prototool', 'buf']
-endfunction
-
-function! neomake#makers#ft#proto#prototool() abort
-    return {
-                \ 'exe': 'prototool',
-                \ 'args': ['lint'],
-                \ 'errorformat': '%f:%l:%c:%m',
-                \ }
+    return ['buf']
 endfunction
 
 function! neomake#makers#ft#proto#process_output_buf(context) abort
