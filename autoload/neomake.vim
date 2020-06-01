@@ -980,11 +980,20 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
     if !open_val
         return
     endif
-    let height = neomake#utils#GetSetting('list_height', a:jobinfo.maker, 10, a:jobinfo.ft, a:jobinfo.bufnr)
-    if !height
-        return
+    let vert = neomake#utils#GetSetting('list_vert', a:jobinfo.maker, 0, a:jobinfo.ft, a:jobinfo.bufnr)
+    if vert
+        let vert = 'vert '
+        let height = neomake#utils#GetSetting('list_height', a:jobinfo.maker, 50, a:jobinfo.ft, a:jobinfo.bufnr)
+        let height = float2nr(floor((&columns / 100.0) * height))
+    else
+        let vert = ''
+        let height = neomake#utils#GetSetting('list_height', a:jobinfo.maker, 10, a:jobinfo.ft, a:jobinfo.bufnr)
+        " TODO Is this needed? Thought would always be set with the default
+        if !height
+            return
+        endif
+        let height = min([len(a:loc_or_qflist), height])
     endif
-    let height = min([len(a:loc_or_qflist), height])
     if a:jobinfo.file_mode
         call neomake#log#debug('Handling location list: executing lwindow.', a:jobinfo)
         let cmd = 'lwindow'
@@ -1000,7 +1009,7 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
             call neomake#compat#save_prev_windows()
 
             let win_count = winnr('$')
-            exe cmd height
+            exe vert cmd height
             let new_win_count = winnr('$')
             if win_count == new_win_count
                 " No new window, adjust height eventually.
@@ -1049,7 +1058,7 @@ function! s:HandleLoclistQflistDisplay(jobinfo, loc_or_qflist, ...) abort
             let g:neomake#core#_ignore_autocommands -= 1
         endtry
     else
-        exe cmd height
+        exe vert cmd height
     endif
 endfunction
 

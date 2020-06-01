@@ -570,9 +570,15 @@ opened. Defaults to 0.
 
 *g:neomake_list_height*
 *b:neomake_list_height*
-The maximum height of the |location-list| or |quickfix| list window opened by
-Neomake.  If there are fewer entries it will use that instead.
-Defaults to 10.
+The maximum line height of the |location-list| or |quickfix| list window
+opened by Neomake. If there are fewer entries, it will use that instead. If
+|g:neomake_list_vert| or |b:neomake_list_vert| is true, it becomes a
+percentage of the screen columns. Defaults to 10 or 50 respectively.
+
+*g:neomake_list_vert*
+*b:neomake_list_vert*
+Whether to open the |location-list| or |quickfix| list window with the |:vert|
+modifier. Defaults to 0.
 
 *g:neomake_echo_current_error*
 This setting will |:echo| the error for the line your cursor is on, if any.
