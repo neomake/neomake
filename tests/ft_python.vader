@@ -241,7 +241,8 @@ Execute (python: flake8: supports_stdin: changes cwd (non-existing)):
 
   let b:neomake = {'flake8': {'exe': 'echo', 'errorformat': '%m'}}
   CallNeomake 1, ['flake8']
-  AssertNeomakeMessage printf('\Vjobinfo.cd(): error when trying to change cwd to %s:', tempdir)
+  AssertNeomakeMessage printf("buffer's directory does not exist: %s.", tempdir), 3
+  AssertNeomakeMessage 'Using stdin for unreadable buffer (-).', 3
   AssertNeomakeMessage printf('\vStarting .{-}: echo --format\=default --stdin-display-name %s -.', fname), 2
   AssertNeomakeMessage printf('cwd: %s.', getcwd())
   AssertEqual getloclist(0)[0].text,
@@ -263,7 +264,7 @@ Execute (python: flake8: supports_stdin: changes cwd (existing)):
   \ printf('-1 --format=default --stdin-display-name %s -', fname)
   bwipe
 
-Execute (python: flake8: supports_stdin: does not change cwd with buffer in subdir):
+Execute (python: flake8: supports_stdin: changes cwd also with buffer in subdir):
   new
   let cwd = tempname()
   let fdir = cwd.neomake#utils#Slash().'subdir'
@@ -278,7 +279,7 @@ Execute (python: flake8: supports_stdin: does not change cwd with buffer in subd
   AssertNeomakeMessageAbsent '\Verror when trying to change cwd'
   AssertNeomakeMessage printf('\vStarting .{-}: echo --format\=default --stdin-display-name %s -.',
   \ fname), 2
-  AssertNeomakeMessage printf('cwd: %s.', cwd)
+  AssertNeomakeMessage printf('cwd: %s (changed).', fdir)
   AssertEqual getloclist(0)[0].text,
   \ printf('-1 --format=default --stdin-display-name %s -', fname)
   bwipe
