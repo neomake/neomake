@@ -267,11 +267,14 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
 endfunction
 
 function! neomake#makers#ft#python#pyflakes() abort
+    " NOTE: pyflakes 2.2.0 includes column always, but without trailing colon,
+    "       except for SyntaxErrors.
     return {
         \ 'errorformat':
             \ '%E%f:%l: could not compile,' .
             \ '%-Z%p^,'.
             \ '%E%f:%l:%c: %m,' .
+            \ '%E%f:%l:%c %m,' .
             \ '%E%f:%l: %m,' .
             \ '%-G%.%#',
         \ }
