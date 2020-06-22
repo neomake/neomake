@@ -115,7 +115,6 @@ function! neomake#makers#ft#python#flake8() abort
     let maker = {
         \ 'args': ['--format=default'],
         \ 'errorformat':
-            \ '%E%f:%l: could not compile,%-Z%p^,' .
             \ '%A%f:%l:%c: %t%n %m,' .
             \ '%A%f:%l: %t%n %m,' .
             \ '%-G%.%#',
@@ -271,8 +270,6 @@ function! neomake#makers#ft#python#pyflakes() abort
     "       except for SyntaxErrors.
     return {
         \ 'errorformat':
-            \ '%E%f:%l: could not compile,' .
-            \ '%-Z%p^,'.
             \ '%E%f:%l:%c: %m,' .
             \ '%E%f:%l:%c %m,' .
             \ '%E%f:%l: %m,' .
