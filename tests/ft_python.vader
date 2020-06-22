@@ -283,6 +283,42 @@ Execute (python: flake8: supports_stdin: does not change cwd with buffer in subd
   \ printf('-1 --format=default --stdin-display-name %s -', fname)
   bwipe
 
+Execute (python: pyflakes: SyntaxError):
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#python#pyflakes(), [
+  \ 'test.py:1:8: unexpected EOF while parsing',
+  \ 'print(n',
+  \ '       ^',
+  \ ])
+  let maker.name = 'pyflakes'
+  new
+  file test.py
+  CallNeomake 1, [maker]
+  AssertEqualQf getloclist(0), [
+  \ {'lnum': 1, 'bufnr': bufnr('%'), 'col': 8, 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'E', 'pattern': '',
+  \  'text': 'unexpected EOF while parsing'}]
+  AssertEqual line('.'), 1
+  AssertEqual neomake#GetCurrentErrorMsg(),
+  \ 'pyflakes: unexpected EOF while parsing (E)'
+  bwipe
+
+Execute (python: pyflakes: normal errors):
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#python#pyflakes(), [
+  \ "test.py:1:7 undefined name 'n'",
+  \ ])
+  let maker.name = 'pyflakes'
+  new
+  file test.py
+  CallNeomake 1, [maker]
+  AssertEqualQf getloclist(0), [
+  \ {'lnum': 1, 'bufnr': bufnr('%'), 'col': 7, 'valid': 1, 'vcol': 0,
+  \  'nr': -1, 'type': 'E', 'pattern': '',
+  \  'text': "undefined name 'n'"}]
+  AssertEqual line('.'), 1
+  AssertEqual neomake#GetCurrentErrorMsg(),
+  \ "pyflakes: undefined name 'n' (E)"
+  bwipe
+
 Execute (python: pylint):
   let entry = {'type': 'F', 'col': 1}
   call neomake#makers#ft#python#PylintEntryProcess(entry)
