@@ -9,7 +9,9 @@ function! neomake#makers#ft#glsl#glslc() abort
         \ 'args': ['-c', '-o', g:neomake#compat#dev_null],
         \ 'errorformat':
             \ '%f:%l: %trror: %m,' .
+            \ '%f: %trror: %m,' .
             \ '%f:%l: %tarning: %m,' .
+            \ '%f: %tarning: %m,' .
             \ '%-G%s',
         \ }
 endfunction
