@@ -430,7 +430,7 @@ function! neomake#makers#ft#python#mypy() abort
             " Follow imports, but do not emit errors/issues for it, which
             " would result in errors for other buffers etc.
             " XXX: dmypy requires "skip" or "error"
-            call insert(maker.args, '--follow-imports=silent')
+            call add(maker.args, '--follow-imports=silent')
         else
             let project_root = neomake#utils#get_project_root(a:jobinfo.bufnr)
             if empty(project_root)
