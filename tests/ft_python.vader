@@ -448,7 +448,7 @@ Execute (python: mypy):
 
   let options = {'file_mode': 1}
   let bound_maker = neomake#core#instantiate_maker(maker, options, 0)
-  AssertEqual bound_maker.args, ['--follow-imports=silent'] + base_args
+  AssertEqual bound_maker.args, base_args + ['--follow-imports=silent']
 
   new
   let b:neomake = {'project_root': 'fake_project_root'}
