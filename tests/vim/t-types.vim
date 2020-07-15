@@ -37,7 +37,7 @@ function! s:maker.get_list_entries(...) abort
   return entries
 endfunction
 
-if has("vim_starting")
+if has('vim_starting')
   " For `-u`.
   function! s:VimEnter() abort
     filetype plugin indent on
