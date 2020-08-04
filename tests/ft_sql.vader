@@ -20,3 +20,21 @@ Execute (sqlint):
   AssertEqual loclist[1].text, 'syntax warning at or near alterUser'
   AssertEqual loclist[1].type, 'W'
   bwipe sql/V1__BaseSchema.sql
+
+Execute (sqlfluff):
+  let sqlfluff_output =
+  "== [models/base/deduped_applications_a.sql] FAIL\n
+  \L:   6 | P: 101 | L016 | Line is too long.
+  \L:  10 | P:   3 | L003 | Indentation not hanging or a multiple of 4 spaces
+  \L:  19 | P:  45 |  PRS | Found unparsable section: '\n-- asdf foob 1234567 jkll;
+  \                     | can be multi...'"
+
+  Save &errorformat
+  let &errorformat = neomake#makers#ft#sql#sqlfluff().errorformat
+  lgetexpr sqlfluff_output
+
+  let loclist = getloclist(0)
+  AssertEqual len(loclist), 3
+
+
+
