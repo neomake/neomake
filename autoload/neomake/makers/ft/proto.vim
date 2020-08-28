@@ -2,7 +2,15 @@ function! neomake#makers#ft#proto#EnabledMakers() abort
     return ['buf']
 endfunction
 
-function! neomake#makers#ft#proto#process_output_buf(context) abort
+function! neomake#makers#ft#proto#buf() abort
+    return {
+                \ 'exe': 'buf',
+                \ 'args': ['check', 'lint', '--error-format=json', '--file'],
+                \ 'process_output': function('neomake#makers#ft#proto#BufProcessOutput')
+                \ }
+endfunction
+
+function! neomake#makers#ft#proto#BufProcessOutput(context) abort
     let entries = []
     for line in a:context['output']
         let data = json_decode(line)
@@ -17,13 +25,5 @@ function! neomake#makers#ft#proto#process_output_buf(context) abort
         call add(entries, entry)
     endfor
     return entries
-endfunction
-
-function! neomake#makers#ft#proto#buf() abort
-    return {
-                \ 'exe': 'buf',
-                \ 'args': ['check', 'lint', '--error-format=json', '--file'],
-                \ 'process_output': function('neomake#makers#ft#proto#process_output_buf')
-                \ }
 endfunction
 " vim: ts=4 sw=4 et
