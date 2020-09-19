@@ -1,0 +1,30 @@
+Include: include/setup.vader
+
+Execute (proto: BufProcessOutput):
+
+  "Some nice input data to look for
+  let filename = "filename"
+  let start_line = 1
+  let end_line = 2
+  let start_column = 4 
+  let type = "type test"
+  let message = "a good descriptive message"
+
+  let testInput={'output': ['{
+  \ "path":"'.filename.'",
+  \ "start_line":'.start_line.',
+  \ "start_column":'.start_column.',
+  \ "end_line":'.end_line.',
+  \ "end_column": "something random",
+  \ "type":"'.type.'",
+  \ "message":"'.message.'"
+  \ }']}
+
+  let entries = neomake#makers#ft#proto#BufProcessOutput(testInput)
+  let entry = entries[0]
+  
+  AssertEqual filename, entry.filename
+  AssertEqual start_line, entry.lnum
+  AssertEqual start_column, entry.col
+  AssertEqual type, entry.type
+  AssertEqual message, entry.text
