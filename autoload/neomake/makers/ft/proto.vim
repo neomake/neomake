@@ -13,7 +13,7 @@ endfunction
 function! neomake#makers#ft#proto#BufProcessOutput(context) abort
     let entries = []
     for line in a:context['output']
-        let data = json_decode(line)
+        let data = neomake#compat#json_decode(line)
         let entry = {
                     \ 'maker_name': 'buf',
                     \ 'filename': data.path,
