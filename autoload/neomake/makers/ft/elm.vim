@@ -68,8 +68,17 @@ function! neomake#makers#ft#elm#ElmProcessOutput(context) abort
     let ret = []
     for errors in neomake#compat#json_decode(a:context.output)['errors']
         for err in errors['problems']
+            let message = ''
+            for line in err['message']
+                if type(line) == v:t_string
+                    let message = message . line
+                elseif type(line) == v:t_dict
+                    let message = message . line['string']
+                endif
+            endfor
+
             let curr = {
-                        \ 'text': err['title'],
+                        \ 'text': err['title'] . ' | ' . message,
                         \ 'lnum': err['region']['start']['line'],
                         \ 'col': err['region']['start']['column'],
                         \ 'length': err['region']['end']['column'] - err['region']['start']['column'],
