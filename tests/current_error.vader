@@ -21,5 +21,8 @@ Execute (neomake#EchoCurrentError):
   AssertEqual neomake#utils#redir('call neomake#EchoCurrentError()'), ''
 
   normal j
+  AssertEqual 5, &cmdheight
+  AssertEqual neomake#utils#redir('call neomake#EchoCurrentError()'), "\n\n\n\n"
+
   AssertEqual neomake#utils#redir('call neomake#EchoCurrentError()'), ''
   bwipe!

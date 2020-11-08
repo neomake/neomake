@@ -1146,3 +1146,13 @@ Execute (Different buffer with buf_get_lines/buf_set_lines):
 Execute (neomake#utils#shorten_list_for_log):
   AssertEqual neomake#utils#shorten_list_for_log([], 1), []
   AssertEqual neomake#utils#shorten_list_for_log([1, 2, 3], 1), [1, '... (3 total)']
+
+Execute (neomake#utils#WideMessage: unsets &showcmd/&ruler to get more space):
+  Save &ruler, &laststatus, &cmdheight, &columns
+  set columns=20 cmdheight=1
+
+  set noruler laststatus=2
+  AssertEqual neomake#utils#redir('call neomake#utils#WideMessage(repeat("x", 20))'), "\n".repeat("x", 18)."…"
+
+  set ruler laststatus=0
+  AssertEqual neomake#utils#redir('call neomake#utils#WideMessage(repeat("x", 20))'), "\n".repeat("x", 18)."…"

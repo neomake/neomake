@@ -67,22 +67,39 @@ function! neomake#utils#WideMessage(msg) abort " {{{2
     let chunks = split(msg, "\t", 1)
     let msg = join(map(chunks[:-2], "v:val . repeat(' ', &tabstop - strwidth(v:val) % &tabstop)"), '') . chunks[-1]
 
-    if exists('v:echospace')
-        let msg = neomake#utils#truncate_width(msg, v:echospace)
-        call neomake#log#debug('WideMessage: echo '.msg.'.')
-        echo msg
-        return
+    " Temporarily set noruler/noshowcmd to get more space.
+    if &showcmd
+        let old_showcmd = &showcmd
+        set noshowcmd
+    endif
+    " &ruler is only relevant with &laststatus=0, or &laststatus=1 and a
+    " single window.
+    " The message might be overwritten then directly afterwards, especially
+    " with &laststatus=0 and split windows, but should not cause a hit-enter
+    " prompt, while using more space in general.
+    " Note that overwriting happens also with v:echospace, which only takes it
+    " into account for the last window (and not any split window inbetween).
+    " This is rather unusual in general, since &laststatus defaults to 2.
+    if &ruler && (&laststatus == 0 || (&laststatus == 1 && winnr('$') < 2))
+        let old_ruler = &ruler
+        set noruler
     endif
 
-    let msg = neomake#utils#truncate_width(msg, &columns-1)
+    let space = max([&cmdheight - 1, 0]) * &columns
+    if exists('v:echospace')
+        let space += v:echospace
+    else
+        let space += &columns - 1
+    endif
+    echo neomake#utils#truncate_width(msg, space)
 
-    let old_ruler = &ruler
-    let old_showcmd = &showcmd
-    set noruler noshowcmd
-    redraw
-    echo msg
-    let &ruler = old_ruler
-    let &showcmd = old_showcmd
+    " Reset options.
+    if exists('l:old_showcmd')
+        let &showcmd = old_showcmd
+    endif
+    if exists('l:old_ruler')
+        let &ruler = old_ruler
+    endif
 endfunction " }}}2
 
 " This comes straight out of syntastic.
