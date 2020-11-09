@@ -843,7 +843,7 @@ function! neomake#create_maker_object(maker, ft) abort
             endif
         endfor
     endif
-    if v:profiling
+    if exists('s:hack_keep_refs_for_profiling')  " might not exist when starting profiling later..!
         call add(s:hack_keep_refs_for_profiling, maker)
     endif
     return maker
