@@ -1000,6 +1000,8 @@ finished.
 Context:
  - `g:neomake_hook_context.jobinfo`: see |neomake-object-jobinfo|; `exit_code`
    is available there.
+ -  `exit_code` is not available in |neomake-object-jobinfo| if the job was
+    canceled.
 
 ==============================================================================
 5. Objects                                                   *neomake-objects*
