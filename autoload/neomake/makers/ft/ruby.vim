@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#ruby#EnabledMakers() abort
-    return ['flog', 'mri', 'rubocop', 'reek', 'rubylint']
+    return ['flog', 'mri', 'rubocop', 'reek', 'rubylint', 'sorbet']
 endfunction
 
 function! neomake#makers#ft#ruby#rubocop() abort
@@ -94,5 +94,13 @@ function! neomake#makers#ft#ruby#flog() abort
         \   '%-G\s%#,' .
         \   '%-G%.%#: flog total,' .
         \   '%-G%.%#: flog/method average,'
+        \ }
+endfunction
+
+function! neomake#makers#ft#ruby#sorbet() abort
+    return {
+        \ 'exe': 'srb',
+        \ 'args': ['tc'],
+        \ 'errorformat': '%f:%l: %m'
         \ }
 endfunction
