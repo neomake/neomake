@@ -646,7 +646,7 @@ Execute (Makers: process_json with invalid JSON):
   if has('nvim')
     AssertNeomakeMessage "Failed to decode JSON: Vim(return):E474: Unidentified byte: success (output: 'success').", 0
   elseif exists('*json_decode')
-    AssertNeomakeMessage "Failed to decode JSON: Vim(return):E474: Invalid argument (output: 'success').", 0
+    AssertNeomakeMessage '\vFailed to decode JSON: Vim\(return\):(E474|E491): .* \(output: ''success''\).', 0
   else
     AssertNeomakeMessage "Failed to decode JSON: Failed to parse JSON input: invalid input (output: 'success').", 0
   endif
