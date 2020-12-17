@@ -58,7 +58,11 @@ Execute (neomake#compat#json_decode):
   if has('nvim')
     let expected_exception = 'Vim(return):E474: Unidentified byte: success'
   elseif exists('*json_decode')
-    let expected_exception = 'Vim(return):E474: Invalid argument'
+    if has('patch-8.2.0800')
+      let expected_exception = 'Vim(return):E491: json decode error at ''success'''
+    else
+      let expected_exception = 'Vim(return):E474: Invalid argument'
+    endif
   else
     let expected_exception = 'Neomake: Failed to parse JSON input: invalid input'
   endif
