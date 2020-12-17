@@ -1,5 +1,5 @@
 # From https://github.com/tweekmonster/vim-testbed.
-FROM testbed/vim:18@sha256:2b1872c68b6e9dfbfd8f804ad9727516ee971150142a80df354c244dcafa59c4
+FROM testbed/vim:19@sha256:5a55710f70f20e6a45aa07bcf5aaac58c5545c90f7fdc1eaaf55790cf5318d78
 
 # Currently tested versions:
 #  - v7.3.429 (Ubuntu Precise, 12.04LTS)
@@ -18,7 +18,7 @@ RUN install_vim -tag v8.1.0622 -name vim81 -build \
                 -tag neovim:v0.3.8 -py3 -build \
   && rm -rf /vim-build/**/runtime/tutor
 
-ENV NEOMAKE_DOCKERFILE_UPDATE=2020-01-27
+ENV NEOMAKE_DOCKERFILE_UPDATE=2020-12-17
 
 # Git master in a separate layer, since the above is meant to be stable.
 RUN install_vim -tag master -build \
