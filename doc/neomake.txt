@@ -492,6 +492,8 @@ to look for its config.  Use the jobinfo's `cd` method for this: >
         return 1
     endfunction
 <
+NOTE: `supports_stdin` is not used with `append_file=0`.
+
                                                    *neomake-makers-uses_stdin*
 Default: 0
 `uses_stdin = 1` can be used to always use stdin for file arguments,
