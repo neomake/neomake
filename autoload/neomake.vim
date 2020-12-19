@@ -2497,6 +2497,9 @@ function! neomake#EchoCurrentError(...) abort
     let message = neomake#GetCurrentErrorMsg()
     if empty(message)
         if exists('s:neomake_last_echoed_error')
+            for _ in range(&cmdheight - 1)
+                echo ''
+            endfor
             echon ''
             unlet s:neomake_last_echoed_error
         endif
