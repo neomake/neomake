@@ -1375,7 +1375,6 @@ function! s:CleanJobinfo(jobinfo, ...) abort
         if has_key(a:jobinfo, 'exit_code')
             call remove(a:jobinfo, 'exit_code')
         endif
-
         call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
     endif
 

@@ -288,8 +288,13 @@ function! g:NeomakeSetupAutocmdWrappers()
   endfunction
 
   let g:neomake_test_jobfinished = []
+  let g:neomake_test_jobcanceled = []
   function! s:OnNeomakeJobFinished(context)
-    let g:neomake_test_jobfinished += [a:context]
+    if get(a:context.jobinfo, 'canceled', 0)
+      let g:neomake_test_jobcanceled += [a:context]
+    else
+      let g:neomake_test_jobfinished += [a:context]
+    endif
   endfunction
 
   let g:neomake_test_countschanged = []
