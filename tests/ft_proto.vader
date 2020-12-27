@@ -44,3 +44,54 @@ Execute (proto: buf: Compile type message should be an Error):
   AssertEqual 'buf: an error message (ERROR)', 
   \ neomake#GetCurrentErrorMsg()
   bwipe
+
+Execute (proto: buf: Multiple messages should all be put in the quickfix list):
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#proto#buf(), [
+  \ '{
+  \    "path":"test.proto",
+  \    "start_line":1,
+  \    "start_column":1,
+  \    "end_line":1,
+  \    "end_column":1,
+  \    "type":"COMPILE",
+  \    "message":"an error message"
+  \  }',
+  \ '{
+  \    "path":"test.proto",
+  \    "start_line":5,
+  \    "start_column":3,
+  \    "end_line":8,
+  \    "end_column":4,
+  \    "type":"A typical type",
+  \    "message":"a different message"
+  \  }',
+  \ ])
+  let maker.name = 'buf'
+  new 
+  file test.proto
+
+  CallNeomake 1, [maker]
+  AssertEqualQf getloclist(0), [
+  \ {
+  \   'lnum': 1, 
+  \   'bufnr': bufnr('%'), 
+  \   'col': 1, 
+  \   'pattern': '',
+  \   'valid': 1,
+  \   'vcol': 0,
+  \   'nr': -1,
+  \   'type': 'E',
+  \   'text': "an error message",
+  \ },
+  \ {
+  \   'lnum': 5, 
+  \   'bufnr': bufnr('%'), 
+  \   'col': 3, 
+  \   'pattern': '',
+  \   'valid': 1,
+  \   'vcol': 0,
+  \   'nr': -1,
+  \   'type': 'W',
+  \   'text': "a different message",
+  \ },]
+  bwipe
