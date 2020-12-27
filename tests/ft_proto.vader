@@ -21,3 +21,26 @@ Execute (proto: buf: By default the message type should be a Warning):
   AssertEqual 'buf: an error message (WARNING)', 
   \ neomake#GetCurrentErrorMsg()
   bwipe
+
+
+Execute (proto: buf: Compile type message should be an Error):
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#proto#buf(), [
+  \ '{
+  \    "path":"test.proto",
+  \    "start_line":1,
+  \    "start_column":1,
+  \    "end_line":1,
+  \    "end_column":1,
+  \    "type":"COMPILE",
+  \    "message":"an error message"
+  \  }',
+  \ ])
+  let maker.name = 'buf'
+  new 
+  file test.proto
+
+  CallNeomake 1, [maker]
+
+  AssertEqual 'buf: an error message (ERROR)', 
+  \ neomake#GetCurrentErrorMsg()
+  bwipe
