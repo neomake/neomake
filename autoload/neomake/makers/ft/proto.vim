@@ -26,7 +26,7 @@ function! neomake#makers#ft#proto#BufProcessOutput(context) abort
     return entries
 endfunction
 
-function! s:typeTranslation(typeName)
+function! s:typeTranslation(typeName) abort
     if a:typeName == 'COMPILE'
         return 'ERROR'
     endif
