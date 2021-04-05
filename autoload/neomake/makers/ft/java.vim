@@ -321,7 +321,7 @@ endfunction " }}}2
 function! s:GradleOutputDirectory() abort
     let gradle_build_file_name = 'build.gradle'
     let gradle_build = s:findFileInParent(gradle_build_file_name, expand('%:p:h', 1))
-    if !filereadable(gradle)
+    if !filereadable(gradle_build)
         let gradle_build_file_name = 'build.gradle.kts'
         let gradle_build = s:findFileInParent(gradle_build_file_name, expand('%:p:h', 1))
     endif
