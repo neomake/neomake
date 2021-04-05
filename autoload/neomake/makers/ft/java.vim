@@ -345,6 +345,7 @@ function! s:GetGradleClasspath() abort
     if !filereadable(gradle)
         let gradle_build_file_name = 'build.gradle.kts'
         let gradle = s:findFileInParent(gradle_build_file_name, expand('%:p:h', 1))
+    endif
     if s:has_gradle && filereadable(gradle)
         if !has_key(g:neomake_java_javac_gradle_ftime, gradle) || g:neomake_java_javac_gradle_ftime[gradle] != getftime(gradle)
             try
