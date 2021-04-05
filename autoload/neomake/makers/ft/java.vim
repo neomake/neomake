@@ -319,20 +319,19 @@ function! s:MavenOutputDirectory() abort " {{{2
 endfunction " }}}2
 
 function! s:GradleOutputDirectory() abort
-    let gradle_build = s:findFileInParent('build.gradle', expand('%:p:h', 1))
-    let items = split(gradle_build, s:psep)
-    let outputdir = join(['build', 'intermediates', 'classes', 'debug'], s:psep)
-    if len(items)==1
-        return outputdir
+    let gradle_build_file_name = 'build.gradle'
+    let gradle_build = s:findFileInParent(gradle_build_file_name, expand('%:p:h', 1))
+    if !filereadable(gradle)
+        let gradle_build_file_name = 'build.gradle.kts'
+        let gradle_build = s:findFileInParent(gradle_build_file_name, expand('%:p:h', 1))
     endif
-    let gradle_build = s:findFileInParent('build.gradle.kts', expand('%:p:h', 1))
     let items = split(gradle_build, s:psep)
     if len(items)==1
-        return outputdir
+        return join(['build', 'intermediates', 'classes', 'debug'], s:psep)
     endif
     let outputdir = ''
     for i in items
-        if i !=# 'build.gradle' && i !=# 'build.gradle.kts'
+        if i !=# gradle_build_file_name
             let outputdir .= i . s:psep
         endif
     endfor
