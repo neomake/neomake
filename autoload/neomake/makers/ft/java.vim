@@ -325,12 +325,12 @@ function! s:GradleOutputDirectory() abort
     if len(items)==1
         return outputdir
     endif
-    gradle_build = s:findFileInParent('build.gradle.kts', expand('%:p:h', 1))
-    items = split(gradle_build, s:psep)
+    let gradle_build = s:findFileInParent('build.gradle.kts', expand('%:p:h', 1))
+    let items = split(gradle_build, s:psep)
     if len(items)==1
         return outputdir
     endif
-    outputdir = ''
+    let outputdir = ''
     for i in items
         if i !=# 'build.gradle' && i !=# 'build.gradle.kts'
             let outputdir .= i . s:psep
@@ -343,8 +343,8 @@ function! s:GetGradleClasspath() abort
     let gradle_build_file_name = 'build.gradle'
     let gradle = s:findFileInParent(gradle_build_file_name, expand('%:p:h', 1))
     if !filereadable(gradle)
-        gradle_build_file_name = 'build.gradle.kts'
-        gradle = s:findFileInParent(gradle_build_file_name, expand('%:p:h', 1))
+        let gradle_build_file_name = 'build.gradle.kts'
+        let gradle = s:findFileInParent(gradle_build_file_name, expand('%:p:h', 1))
     if s:has_gradle && filereadable(gradle)
         if !has_key(g:neomake_java_javac_gradle_ftime, gradle) || g:neomake_java_javac_gradle_ftime[gradle] != getftime(gradle)
             try
