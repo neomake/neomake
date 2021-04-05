@@ -321,12 +321,18 @@ endfunction " }}}2
 function! s:GradleOutputDirectory() abort
     let gradle_build = s:findFileInParent('build.gradle', expand('%:p:h', 1))
     let items = split(gradle_build, s:psep)
+    let outputdir = join(['build', 'intermediates', 'classes', 'debug'], s:psep)
     if len(items)==1
-        return join(['build', 'intermediates', 'classes', 'debug'], s:psep)
+        return outputdir
     endif
-    let outputdir = ''
+    gradle_build = s:findFileInParent('build.gradle.kts', expand('%:p:h', 1))
+    items = split(gradle_build, s:psep)
+    if len(items)==1
+        return outputdir
+    endif
+    outputdir = ''
     for i in items
-        if i !=# 'build.gradle'
+        if i !=# 'build.gradle' && i !=# 'build.gradle.kts'
             let outputdir .= i . s:psep
         endif
     endfor
@@ -334,7 +340,11 @@ function! s:GradleOutputDirectory() abort
 endf
 
 function! s:GetGradleClasspath() abort
-    let gradle = s:findFileInParent('build.gradle', expand('%:p:h', 1))
+    let gradle_build_file_name = 'build.gradle'
+    let gradle = s:findFileInParent(gradle_build_file_name, expand('%:p:h', 1))
+    if !filereadable(gradle)
+        gradle_build_file_name = 'build.gradle.kts'
+        gradle = s:findFileInParent(gradle_build_file_name, expand('%:p:h', 1))
     if s:has_gradle && filereadable(gradle)
         if !has_key(g:neomake_java_javac_gradle_ftime, gradle) || g:neomake_java_javac_gradle_ftime[gradle] != getftime(gradle)
             try
@@ -348,7 +358,7 @@ function! s:GetGradleClasspath() abort
                 let ret = system(gradle_cmd . ' -q -I ' . shellescape(f) . ' classpath' )
                 if v:shell_error == 0
                     let cp = filter(split(ret, "\n"), "v:val =~# '^CLASSPATH:'")[0][10:]
-                    if filereadable(getcwd() . s:psep . 'build.gradle')
+                    if filereadable(getcwd() . s:psep . gradle_build_file_name)
                         let out_putdir = neomake#compat#globpath_list(getcwd(), join(
                                     \ ['**', 'build', 'intermediates', 'classes', 'debug'],
                                     \ s:psep), 0)
