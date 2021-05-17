@@ -552,6 +552,38 @@ function! neomake#utils#FindGlobFile(glob, ...) abort
     return ''
 endfunction
 
+" Find the nearest file of the given filenames (upwards).
+" (provides better performance than `neomake#utils#FindGlobFile`).
+" a:1: optional start dir, defaulting to "current buffer" (".").
+function! neomake#utils#find_nearest_file_upwards(fnames, ...) abort
+    if !empty(&suffixesadd)
+        let saved_suffixesadd = &suffixesadd
+        let &suffixesadd = ''
+    endif
+    let path = (a:0 ? a:1 : '.') . ';'
+    let found = ''
+    let found_parts_count = 0
+    for fname in a:fnames
+        let ffname = findfile(fname, path)
+        if empty(ffname)
+            continue
+        endif
+
+        let abs_ffname = fnamemodify(ffname, ':p')
+        let abs_dir = fnamemodify(ffname, ':h')
+        let part_count = len(split(abs_dir, neomake#utils#Slash()))
+        if part_count > found_parts_count
+            let found = abs_ffname
+            let found_parts_count = part_count
+            let path = fnamemodify(found, ':h') . '.'
+        endif
+    endfor
+    if exists('l:saved_suffixesadd')
+        let &suffixesadd = saved_suffixesadd
+    endif
+    return found
+endfunction
+
 function! neomake#utils#JSONdecode(json) abort
     return neomake#compat#json_decode(a:json)
 endfunction

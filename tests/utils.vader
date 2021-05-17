@@ -761,7 +761,7 @@ Execute (neomake#utils#fnamemodify handles empty bufname):
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), ''
   bwipe
 
-Execute (neomake#utils#FindGlobFile):
+Execute (neomake#utils#FindGlobFile / neomake#utils#find_nearest_file_upwards):
   let tempdir = tempname()
   let slash = neomake#utils#Slash()
   let subdir = tempdir . slash . 'sub'
@@ -778,6 +778,14 @@ Execute (neomake#utils#FindGlobFile):
   let anotherfile_in_subdir = subdir.slash.'common-file-2'
   call writefile([], anotherfile_in_subdir)
 
+  " tree:
+  " ├── common-file
+  " ├── sub
+  " │   ├── common-file
+  " │   ├── common-file-2
+  " │   └── sub-file
+  " └── temp-file
+
   new
   exe 'lcd' subdir
   AssertEqual neomake#utils#FindGlobFile('doesnotexist'), ''
@@ -785,6 +793,15 @@ Execute (neomake#utils#FindGlobFile):
   AssertEqual neomake#utils#FindGlobFile('sub-file', tempdir), ''
   AssertEqual neomake#utils#FindGlobFile('common-file'), file_in_subdir
   AssertEqual neomake#utils#FindGlobFile('common-file', tempdir), file_in_tempdir
+  " Behaves the same.
+  AssertEqual neomake#utils#find_nearest_file_upwards(['doesnotexist']), ''
+  AssertEqual neomake#utils#find_nearest_file_upwards(['sub-file']), subfile
+  AssertEqual neomake#utils#find_nearest_file_upwards(['sub-file'], tempdir), ''
+  AssertEqual neomake#utils#find_nearest_file_upwards(['common-file']), file_in_subdir
+  AssertEqual neomake#utils#find_nearest_file_upwards(['common-file'], tempdir), file_in_tempdir
+
+  AssertEqual neomake#utils#find_nearest_file_upwards(['sub-file', 'temp-file']), subfile
+  AssertEqual neomake#utils#find_nearest_file_upwards(['common-file', 'temp-file']), file_in_subdir
 
   exe 'lcd' tempdir
   AssertEqual neomake#utils#FindGlobFile('sub-file'), ''
@@ -794,10 +811,39 @@ Execute (neomake#utils#FindGlobFile):
   AssertEqual neomake#utils#FindGlobFile('common-file'), file_in_tempdir
   AssertEqual neomake#utils#FindGlobFile('common-file'), file_in_tempdir
   AssertEqual neomake#utils#FindGlobFile('common-file', subdir), file_in_subdir
+  " Behaves the same.
+  AssertEqual neomake#utils#find_nearest_file_upwards(['sub-file']), ''
+  AssertEqual neomake#utils#find_nearest_file_upwards(['sub-file'], subdir), subfile
+  AssertEqual neomake#utils#find_nearest_file_upwards(['sub-file'], tempdir), ''
+  AssertEqual neomake#utils#find_nearest_file_upwards(['sub-file'], tempname()), ''
+  AssertEqual neomake#utils#find_nearest_file_upwards(['common-file']), file_in_tempdir
+  AssertEqual neomake#utils#find_nearest_file_upwards(['common-file']), file_in_tempdir
+  AssertEqual neomake#utils#find_nearest_file_upwards(['common-file'], subdir), file_in_subdir
 
   " Only the first found file gets returned.
   AssertEqual neomake#utils#FindGlobFile('common-file{,-2}', subdir), file_in_subdir
   AssertEqual neomake#utils#FindGlobFile('common-file{-2,}', subdir), anotherfile_in_subdir
+  " Behaves the same.
+  AssertEqual neomake#utils#find_nearest_file_upwards(['common-file', 'common-file-2'], subdir), file_in_subdir
+  AssertEqual neomake#utils#find_nearest_file_upwards(['common-file-2', 'common-file'], subdir), anotherfile_in_subdir
+  bwipe
+
+Execute (neomake#utils#find_nearest_file_upwards handles &suffixesadd):
+  let tempdir = tempname()
+  let file_with_ext = tempdir.slash.'file_with_ext.txt'
+  call writefile([], file_with_ext)
+
+  new
+  setlocal suffixesadd=.txt
+
+  " Test behavior with used findfile.
+  AssertEqual findfile('file_with_ext', '.;'), file_with_ext
+
+  AssertEqual neomake#utils#find_nearest_file_upwards(['file_with_ext']), ''
+  AssertEqual neomake#utils#find_nearest_file_upwards(['file_with_ext.txt']), file_with_ext
+
+  " Gets reset.
+  AssertEqual findfile('file_with_ext', '.;'), file_with_ext
   bwipe
 
 Execute (neomake#utils#shellescape):
