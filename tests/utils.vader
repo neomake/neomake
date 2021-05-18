@@ -790,12 +790,14 @@ Execute (neomake#utils#FindGlobFile / neomake#utils#find_nearest_file_upwards):
   exe 'lcd' subdir
   AssertEqual neomake#utils#FindGlobFile('doesnotexist'), ''
   AssertEqual neomake#utils#FindGlobFile('sub-file'), subfile
+  AssertEqual neomake#utils#FindGlobFile('sub-file', subdir), subfile
   AssertEqual neomake#utils#FindGlobFile('sub-file', tempdir), ''
   AssertEqual neomake#utils#FindGlobFile('common-file'), file_in_subdir
   AssertEqual neomake#utils#FindGlobFile('common-file', tempdir), file_in_tempdir
   " Behaves the same.
   AssertEqual neomake#utils#find_nearest_file_upwards(['doesnotexist']), ''
   AssertEqual neomake#utils#find_nearest_file_upwards(['sub-file']), subfile
+  AssertEqual neomake#utils#find_nearest_file_upwards(['sub-file'], subdir), subfile
   AssertEqual neomake#utils#find_nearest_file_upwards(['sub-file'], tempdir), ''
   AssertEqual neomake#utils#find_nearest_file_upwards(['common-file']), file_in_subdir
   AssertEqual neomake#utils#find_nearest_file_upwards(['common-file'], tempdir), file_in_tempdir
@@ -819,6 +821,15 @@ Execute (neomake#utils#FindGlobFile / neomake#utils#find_nearest_file_upwards):
   AssertEqual neomake#utils#find_nearest_file_upwards(['common-file']), file_in_tempdir
   AssertEqual neomake#utils#find_nearest_file_upwards(['common-file']), file_in_tempdir
   AssertEqual neomake#utils#find_nearest_file_upwards(['common-file'], subdir), file_in_subdir
+
+  " Handles relative path/startdir.
+  AssertEqual neomake#utils#FindGlobFile('sub-file', 'sub'), 'sub'.slash.'sub-file'
+  AssertEqual neomake#utils#find_nearest_file_upwards(['sub-file'], 'sub'), subfile
+
+  " FindGlobFile handles directories.
+  AssertEqual neomake#utils#FindGlobFile('sub'), subdir
+  " find_nearest_file_upwards does not handle directories.
+  AssertEqual neomake#utils#find_nearest_file_upwards(['sub']), ''
 
   " Only the first found file gets returned.
   AssertEqual neomake#utils#FindGlobFile('common-file{,-2}', subdir), file_in_subdir

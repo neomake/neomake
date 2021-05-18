@@ -532,7 +532,7 @@ function! neomake#utils#path_sep() abort
     return neomake#utils#IsRunningWindows() ? ';' : ':'
 endfunction
 
-" Find a file matching `a:glob` (using `globpath()`) by going up the
+" Find a file/dir matching `a:glob` (using `globpath()`) by going up the
 " directories from the start directory (a:1, defaults to `expand('%:p:h')`,
 " i.e. the directory of the current buffer's file).)
 function! neomake#utils#FindGlobFile(glob, ...) abort
@@ -560,7 +560,8 @@ function! neomake#utils#find_nearest_file_upwards(fnames, ...) abort
         let saved_suffixesadd = &suffixesadd
         let &suffixesadd = ''
     endif
-    let path = (a:0 ? a:1 : '.') . ';'
+    " NOTE: findfile requires an absolute path, except for special '.'.
+    let path = (a:0 ? fnamemodify(a:1, ':p') : '.') . ';'
     let found = ''
     let found_parts_count = 0
     for fname in a:fnames
@@ -570,7 +571,11 @@ function! neomake#utils#find_nearest_file_upwards(fnames, ...) abort
         endif
 
         let abs_ffname = fnamemodify(ffname, ':p')
-        let abs_dir = fnamemodify(ffname, ':h')
+        if isdirectory(abs_ffname)
+            " Remove trailing slash.
+            let abs_ffname = fnamemodify(ffname, ':h')
+        endif
+        let abs_dir = fnamemodify(abs_ffname, ':h')
         let part_count = len(split(abs_dir, neomake#utils#Slash()))
         if part_count > found_parts_count
             let found = abs_ffname
