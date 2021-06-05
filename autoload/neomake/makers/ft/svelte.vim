@@ -15,7 +15,7 @@ function! neomake#makers#ft#svelte#svelte_check() abort
                 \ 'exe': 'svelte-check',
                 \ 'args': ['--output', 'machine'],
                 \ 'append_file': 0,
-                \ 'errorformat': 
+                \ 'errorformat':
                     \ '%E\\d%\\+ ERROR \"%f\" %l:%c \"%m\",' .
                     \ '%W%\\d%\\+ WARNING \"%f\" %l:%c \"%m\",' .
                     \ '%-G%.%#',
