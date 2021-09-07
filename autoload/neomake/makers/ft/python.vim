@@ -442,6 +442,15 @@ function! neomake#makers#ft#python#mypy() abort
         return maker
     endfunction
     function! maker.supports_stdin(jobinfo) abort
+        if !filereadable(bufname(a:jobinfo.bufnr))
+            " mypy cannot handle a non-existing target with --shadow-file,
+            " resulting in a confusing error about the temporary file not
+            " being there, although the to be shadowed one is missing
+            " (https://github.com/python/mypy/issues/4746).
+            " Therefore only use the extra args if it exists.
+            call neomake#log#debug('mypy: supports_stdin: buffer is not readable, not using shadow file.', a:jobinfo)
+            return 0
+        endif
         if !has_key(self, 'tempfile_name')
             let self.tempfile_name = self._get_default_tempfilename(a:jobinfo)
         endif
