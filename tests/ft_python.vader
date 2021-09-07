@@ -461,11 +461,21 @@ Execute (python: mypy):
   let bound_maker = neomake#core#instantiate_maker(maker, options, 0)
   AssertEqual bound_maker.args, base_args + ['.']
 
+  " supports_stdin: does not inject "--shadow-file" with unreadable buffer.
   let jobinfo = NeomakeTestsFakeJobinfo()
   AssertEqual bound_maker.supports_stdin(jobinfo), 0
+  AssertEqual bound_maker.args, base_args + ['.']
+  AssertNeomakeMessage 'mypy: supports_stdin: buffer is not readable, not using shadow file.', 3
   let fname = bound_maker._get_fname_for_buffer(jobinfo)
+  AssertNeomakeMessage 'mypy: supports_stdin: buffer is not readable, not using shadow file.', 3
   AssertNeomakeMessage '\vUsing tempfile for unnamed buffer: "(.*)".', 3
   let tmpfile = g:neomake_test_matchlist[1]
   AssertEqual fname, tmpfile
+
+  " supports_stdin: injects "--shadow-file" with readable buffer.
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  exe 'write' tempname()
+  AssertEqual bound_maker.supports_stdin(jobinfo), 0
+  AssertEqual bound_maker.args, base_args + ['.', '--shadow-file', '%', bound_maker.tempfile_name]
 
   bwipe
