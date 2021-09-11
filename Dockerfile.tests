@@ -54,7 +54,7 @@ RUN apk --no-cache add python3 py3-pip \
   && pip3 install --no-cache-dir 'coverage<5' python-coveralls covimerage==0.2.1 vim-vint==0.3.21 'click<8' \
   && rm -rf /usr/include /usr/lib/python*/turtle* /usr/lib/python*/tkinter \
   && apk del py3-pip \
-  && curl https://github.com/codecov/codecov-bash/releases/download/1.0.5/codecov -o /usr/local/bin/codecov \
+  && curl -L https://github.com/codecov/codecov-bash/releases/download/1.0.5/codecov -o /usr/local/bin/codecov \
   && chmod +x /usr/local/bin/codecov \
   && cd /usr/bin && ln -s python3 python
 
