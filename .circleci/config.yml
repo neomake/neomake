@@ -96,7 +96,7 @@ jobs:
 
             # Coveralls.
             # Only TRAVIS_JOB_ID is used by python-coveralls.
-            env -u COVERALLS_PARALLEL TRAVIS_JOB_ID=$CIRCLE_WORKFLOW_ID coveralls --submit=coverage.xml
+            env -u COVERALLS_PARALLEL TRAVIS_JOB_ID=$CIRCLE_WORKFLOW_ID coveralls
 
             # Codeclimate.
             cc-test-reporter after-build
