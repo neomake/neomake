@@ -730,7 +730,7 @@ Execute (neomake#utils#fnamemodify handles fugitive buffer):
 
   try
     Gedit
-  catch /^Vim(call):E118: Too many arguments for function: function/
+  catch /^Vim\%((\a\+)\)\=:E/
     NeomakeTestsSkip 'error with/through vim-fugitive (not b/c, e.g. neovim-0.1.7)'
     bwipe
     if exists('*VimFtpluginUndo')
