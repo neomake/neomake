@@ -62,9 +62,8 @@ RUN apk --no-cache add python3 py3-pip \
   && sudo -u neomake pipx install --pip-args 'coverage<5' python-coveralls \
   && sudo -u neomake pipx install --pip-args 'click<8' covimerage==0.2.1 \
   && sudo -u neomake pipx install vim-vint \
-  && apk del sudo \
   && pip3 uninstall --yes pipx \
-  && apk del py3-pip \
+  && apk del py3-pip sudo \
   && rm -rf /usr/include /usr/lib/python*/turtle* /usr/lib/python*/tkinter \
   && curl -L https://github.com/codecov/codecov-bash/releases/download/1.0.5/codecov -o /home/neomake/.local/bin/codecov \
   && chmod +x /home/neomake/.local/bin/codecov \
