@@ -728,7 +728,11 @@ Execute (neomake#utils#fnamemodify handles fugitive buffer):
   let bufname = bufname('%')
   let bufname_abs = fnamemodify(bufname, ':p')
 
-  Gedit
+  try
+    Gedit
+  catch /^Vim(call):E118: Too many arguments for function: function/
+    NeomakeTestsSkip 'error with/through vim-fugitive (not b/c, e.g. neovim-0.1.7)'
+  endtry
   AssertNotEqual bufname, bufname('%')
   Assert bufname('%') =~# '^fugitive://'
 

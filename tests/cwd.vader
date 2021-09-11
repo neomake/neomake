@@ -113,7 +113,11 @@ Execute (cwd handles fugitive buffer):
   edit autoload/neomake/debug.vim
   let expected_cwd = fnamemodify(bufname('%'), ':p:h')
   let orig_abs_bufname = expand('%:p')
-  Gedit
+  try
+    Gedit
+  catch /^Vim(call):E118: Too many arguments for function: function/
+    NeomakeTestsSkip 'error with/through vim-fugitive (not b/c, e.g. neovim-0.1.7)'
+  endtry
   Assert bufname('%') =~# '^fugitive://', 'Unexpected bufname: '.bufname('%')
 
   let b:neomake_tempfile_enabled = 1
