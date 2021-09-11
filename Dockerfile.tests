@@ -1,5 +1,5 @@
 # From https://github.com/tweekmonster/vim-testbed.
-FROM testbed/vim:23@sha256:2638a2f01d04cddc966cd39997e154e9d0ebe90464cc9aa93782d7f0eea7abd1
+FROM testbed/vim:23@sha256:d92287a56d52af24800f1ad54fa9c8570fee7b2aa748c9d23c219bc93377e401
 
 # Currently tested versions:
 #  - v7.3.429 (Ubuntu Precise, 12.04LTS)
