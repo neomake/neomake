@@ -30,6 +30,10 @@ common: &common
           - test-results/
 
 jobs:
+  nvim-050:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/neovim-v0.5.0
   nvim-038:
     <<: *common
     environment:
@@ -102,6 +106,7 @@ workflows:
   version: 2
   test:
     jobs:
+      - nvim-050
       - nvim-038
       - nvim-017
       - vim-81
@@ -115,6 +120,7 @@ workflows:
       - coverage:
           requires:
             - nvim-master
+            - nvim-050
             - nvim-038
             - nvim-017
             - vim-master
