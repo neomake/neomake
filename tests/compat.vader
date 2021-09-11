@@ -115,6 +115,10 @@ Execute (neomake#compat#get_mode):
   endif
 
 Execute (neomake#compat#get_mode with insert mode completion (feedkeys)):
+  if has('nvim-0.5.0')
+    NeomakeTestsSkip 'segfaults on neovim (https://github.com/neovim/neovim/issues/14565)'
+    return
+  endif
   if has('timers')
     new
     file file_sleep_efm
@@ -142,6 +146,10 @@ Execute (neomake#compat#get_mode with insert mode completion (feedkeys)):
   endif
 
 Execute (neomake#compat#get_mode with insert mode completion (imap)):
+  if has('nvim-0.5.0')
+    NeomakeTestsSkip 'segfaults on neovim (https://github.com/neovim/neovim/issues/14565)'
+    return
+  endif
   new
   file file_sleep_efm
   normal! iword1
