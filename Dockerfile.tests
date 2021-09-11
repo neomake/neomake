@@ -59,6 +59,7 @@ RUN adduser -D -s /bin/bash neomake
 RUN apk --no-cache add python3 py3-pip \
   && pip3 install --no-cache-dir pipx \
   && apk --no-cache add sudo \
+  && sudo -u neomake pipx install coverage \
   && sudo -u neomake pipx install coveralls \
   && sudo -u neomake pipx install --pip-args 'click<8' covimerage==0.2.1 \
   && sudo -u neomake pipx install vim-vint \
