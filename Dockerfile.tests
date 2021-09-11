@@ -16,6 +16,7 @@ RUN install_vim -tag v7.3.429 -name vim73 --with-features=huge -build \
   && rm -rf /vim-build/**/runtime/tutor
 RUN install_vim -tag v8.1.0622 -name vim81 -build \
                 -tag neovim:v0.3.8 -py3 -build \
+                -tag neovim:v0.5.0 -build \
   && rm -rf /vim-build/**/runtime/tutor
 
 ENV NEOMAKE_DOCKERFILE_UPDATE=2021-09-10
