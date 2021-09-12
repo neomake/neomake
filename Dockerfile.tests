@@ -56,12 +56,11 @@ RUN adduser -D -s /bin/bash neomake
 RUN apk --no-cache add python3 \
   && rm -rf /usr/include /usr/lib/python*/turtle* /usr/lib/python*/tkinter
 RUN cd /usr/bin && ln -s python3 python
+
 RUN python -m venv /venv
+RUN /venv/bin/pip install covimerage==0.2.2 python-coveralls vim-vint==0.3.21
+RUN ln -s /venv/bin/coverage /venv/bin/coveralls /venv/bin/covimerage /venv/bin/vint /usr/local/bin
 
-# Update PATH for pipx.
-ENV PATH="/venv/bin:$PATH"
-
-RUN pip install covimerage==0.2.2 python-coveralls vim-vint==0.3.21
 RUN curl -L https://github.com/codecov/codecov-bash/releases/download/1.0.5/codecov -o /usr/local/bin/codecov
 RUN chmod +x /usr/local/bin/codecov
 
