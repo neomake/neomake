@@ -50,23 +50,19 @@ RUN test -f /vim-build/bin/vim81 && ln -s /vim-build/bin/vim81 /usr/local/bin/vi
 RUN printf '#!/bin/sh -x\n/tools/vim-vimlint/bin/vimlint.sh -l /tools/vim-vimlint -p /tools/vim-vimlparser "$@"\n' > /usr/local/bin/vimlint
 RUN chmod +x /usr/local/bin/vimlint
 
-# Update PATH for pipx.
-ENV PATH="/home/neomake/.local/bin:$PATH"
-
 RUN adduser -D -s /bin/bash neomake
 
 # Install covimerage and vint.
-RUN apk --no-cache add python3 py3-pip \
-  && pip3 install --no-cache-dir pipx \
-  && apk --no-cache add sudo \
-  && sudo -u neomake pipx install python-coveralls \
-  && sudo -u neomake pipx install --include-deps --pip-args 'click<8' covimerage==0.2.1 \
-  && sudo -u neomake pipx install vim-vint \
-  && pip3 uninstall --yes pipx \
-  && apk del py3-pip sudo \
-  && rm -rf /usr/include /usr/lib/python*/turtle* /usr/lib/python*/tkinter \
-  && curl -L https://github.com/codecov/codecov-bash/releases/download/1.0.5/codecov -o /home/neomake/.local/bin/codecov \
-  && chmod +x /home/neomake/.local/bin/codecov \
-  && cd /usr/bin && ln -s python3 python
+RUN apk --no-cache add python3 \
+  && rm -rf /usr/include /usr/lib/python*/turtle* /usr/lib/python*/tkinter
+RUN cd /usr/bin && ln -s python3 python
+RUN python -m venv /venv
+
+# Update PATH for pipx.
+ENV PATH="/venv/bin:$PATH"
+
+RUN pip install covimerage==0.2.2 python-coveralls vim-vint==0.3.21
+RUN curl -L https://github.com/codecov/codecov-bash/releases/download/1.0.5/codecov -o /usr/local/bin/codecov
+RUN chmod +x /usr/local/bin/codecov
 
 USER neomake
