@@ -259,12 +259,16 @@ command! -nargs=1 AssertNeomakeWarning call s:AssertNeomakeWarning(<args>)
 function! s:AssertEqualQf(actual, expected, ...) abort
   let expected = copy(a:expected)
   if has('patch-8.0.1782') || has('nvim-0.4.0')
-    let expected = map(expected, "extend(v:val, {'module': ''})")
+    let expected = map(expected, "extend(v:val, {'module': ''}, 'keep')")
   endif
 
   if has('patch-8.2.3019') || has('nvim-0.6.0')
-    let expected = map(expected, "extend(v:val, {'end_lnum': 0, 'end_col': 0})")
+    let expected = map(expected, "extend(v:val, {'end_lnum': 0, 'end_col': 0}, 'keep')")
   endif
+
+  " Extend with defaults, to make tests shorter.
+  let expected = map(expected, 'extend(v:val, '
+    \ ."{'pattern': '', 'valid': 1, 'vcol': 0, 'nr': -1}, 'keep')")
 
   call call('vader#assert#equal', [a:actual, expected] + a:000)
 endfunction
