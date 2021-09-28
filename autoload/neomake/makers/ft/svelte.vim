@@ -1,6 +1,6 @@
 " vim: ts=4 sw=4 et
 function! neomake#makers#ft#svelte#EnabledMakers() abort
-    return ['svelte-check', 'eslint']
+    return ['svelte_check', 'eslint']
 endfunction
 
 function! neomake#makers#ft#svelte#svelte_check() abort
