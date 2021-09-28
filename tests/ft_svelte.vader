@@ -1,0 +1,21 @@
+Include: include/setup.vader
+
+Execute (svelte):
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#svelte#svelte_check(), [
+  \ '1632317135621 START "/Users/alice/workspace/example-repo"',
+  \ '1632317136952 ERROR "src/lib/SomeComponent/index.svelte" 2:11 "''\"svelte\"'' has no exported member named ''nMount''. Did you mean ''onMount''?"',
+  \ '1632317136952 ERROR "src/lib/SomeComponent/index.svelte" 8:2 "Cannot find name ''onMount''. Did you mean ''nMount''?"',
+  \ '1632317136952 COMPLETED 10 FILES 2 ERRORS 0 WARNINGS 1 HINTS',
+  \ ])
+  let maker.name = 'svelte'
+  new
+  file src/lib/SomeComponent/index.svelte
+  CallNeomake 1, [maker]
+  let bufnr = bufnr('%')
+  AssertEqualQf getloclist(0), [
+  \ {'lnum': 2, 'bufnr': bufnr, 'valid': 1, 'nr': -1, 'type': 'E', 'col': 11,
+  \  'text': '''\"svelte\"'' has no exported member named ''nMount''. Did you mean ''onMount''?'},
+  \ {'lnum': 8, 'bufnr': bufnr, 'valid': 1, 'nr': -1, 'type': 'E', 'col': 2,
+  \  'text': 'Cannot find name ''onMount''. Did you mean ''nMount''?'},
+  \ ]
+  bwipe

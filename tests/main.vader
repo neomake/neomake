@@ -73,6 +73,7 @@ Include (ReStructuredText): ft_rst.vader
 Include (Rust): ft_rust.vader
 Include (Shell): ft_sh.vader
 Include (SQL): ft_sql.vader
+Include (Svelte): ft_svelte.vader
 Include (Text): ft_text.vader
 Include (TypeScript): ft_typescript.vader
 Include (Vim): ft_vim.vader
