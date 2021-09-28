@@ -2,7 +2,7 @@ version: 2
 
 common: &common
   docker:
-    - image: neomake/vims-for-tests:51@sha256:b513549922f56d291d41cb3f5660be27ba1cd1bb7d696d13925df7a624a347a4
+    - image: neomake/vims-for-tests:52@sha256:13ce6994660f92b68281b993604fed7a7ea6be6579c5232bc183d358103a3d43
   working_directory: ~/repo
   steps:
     - checkout
@@ -30,6 +30,10 @@ common: &common
           - test-results/
 
 jobs:
+  nvim-050:
+    <<: *common
+    environment:
+      TEST_VIM=/vim-build/bin/neovim-v0.5.0
   nvim-038:
     <<: *common
     environment:
@@ -102,6 +106,7 @@ workflows:
   version: 2
   test:
     jobs:
+      - nvim-050
       - nvim-038
       - nvim-017
       - vim-81
@@ -115,6 +120,7 @@ workflows:
       - coverage:
           requires:
             - nvim-master
+            - nvim-050
             - nvim-038
             - nvim-017
             - vim-master
