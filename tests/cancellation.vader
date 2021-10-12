@@ -170,7 +170,8 @@ Execute (neomake#CancelJob with trapped TERM):
 
 Execute (neomake#CancelMake stops all jobs):
   if NeomakeAsyncTestsSetup()
-    let jobinfos = neomake#Make({'file_mode': 0, 'enabled_makers': [g:sleep_maker, g:sleep_maker]})
+    let maker = NeomakeTestsCommandMaker('sleep-maker', 'sleep 5; echo slept')
+    let jobinfos = neomake#Make({'file_mode': 0, 'enabled_makers': [maker, maker]})
     let make_id = neomake#GetStatus().last_make_id
     AssertEqual neomake#CancelMake(make_id), 1
     NeomakeTestsWaitForFinishedJobs
@@ -184,6 +185,7 @@ Execute (neomake#CancelMake stops all jobs):
     else
       let expected_status = -1
     endif
+    AssertNeomakeMessageAbsent 'output on stdout: .*'
     AssertNeomakeMessage 'exit: sleep-maker: '.expected_status.' (job was canceled).'
     AssertNeomakeMessage 'Cleaning jobinfo.'
     AssertNeomakeMessage 'exit: sleep-maker: '.expected_status.' (job was canceled).'
