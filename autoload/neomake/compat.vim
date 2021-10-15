@@ -203,7 +203,7 @@ if neomake#utils#IsRunningWindows()
                 return argv
             endif
         endif
-        if &shell == 'powershell'
+        if &shell ==? 'powershell'
             return prefix.'{'.argv.'}'
         endif
         return prefix.argv
