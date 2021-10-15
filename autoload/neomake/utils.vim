@@ -416,7 +416,8 @@ function! neomake#utils#ExpandArgs(args, jobinfo) abort
             let fname = fnamemodify(fname, ':p')
         endif
     endif
-    let ret = map(copy(a:args), "substitute(v:val, '%t', fname, 'g')")
+    let fname = escape(fname, '\\')
+    let ret = map(copy(a:args), "substitute(v:val, '%t', escape(fname, '\\'), 'g')")
 
     " Expand % in args similar to when using :!
     " \% is ignored
