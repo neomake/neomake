@@ -7,6 +7,7 @@ endfunction
 function! neomake#makers#ft#vlang#v() abort
     return {
         \ 'exe': 'v',
+        \ 'args': ['-check'],
         \ 'errorformat': '%f:%l:%c: %trror: %m.',
         \ }
 endfunction
