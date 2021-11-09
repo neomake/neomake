@@ -54,7 +54,10 @@ function! neomake#makers#ft#php#phpstan() abort
     " project configuration file, but phpstan.neon is the filename shown in the
     " example in the PHPStan documentation, so this is the default name expected
     " by Neomake.
-    let phpStanConfigFilePath = neomake#utils#FindGlobFile('phpstan.neon')
+
+    " Set g:neomake_php_phpstan_config_file if you need to use alternative
+    " config file for phpstan.
+    let phpStanConfigFilePath = neomake#utils#FindGlobFile(get(g:, 'neomake_php_phpstan_config_file', 'phpstan.neon'))
     if !empty(phpStanConfigFilePath)
         call extend(maker.args, ['-c', phpStanConfigFilePath])
     endif
