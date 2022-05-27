@@ -57,11 +57,13 @@ Execute (go: golangci_lint):
   bwipe
 
 Execute (go: detects revive as linter):
+  let original_path = $PATH
   call g:NeomakeTestsCreateExe('revive', [])
   runtime autoload/neomake/makers/ft/go.vim
   " NOTE: just detecting revive is enough, if you know a simple way to do «'revive' in some_list»
   " then go ahead
   AssertEqual ['go', 'revive'], neomake#makers#ft#go#EnabledMakers()
+  call g:NeomakeTestsSetPATH(original_path)
 
 Execute (go: revive):
   new
