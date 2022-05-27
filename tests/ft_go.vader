@@ -56,6 +56,11 @@ Execute (go: golangci_lint):
   \ ]
   bwipe
 
+Execute (go: detects revive as linter):
+  call g:NeomakeTestsCreateExe('revive', [])
+  runtime autoload/neomake/makers/ft/go.vim
+  AssertEqual ['revive'], neomake#makers#ft#help#EnabledMakers()
+
 Execute (go: revive):
   new
   file main.go
