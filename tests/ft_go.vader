@@ -59,7 +59,7 @@ Execute (go: golangci_lint):
 Execute (go: detects revive as linter):
   call g:NeomakeTestsCreateExe('revive', [])
   runtime autoload/neomake/makers/ft/go.vim
-  AssertEqual ['revive'], neomake#makers#ft#help#EnabledMakers()
+  AssertEqual ['revive'], neomake#makers#ft#go#EnabledMakers()
 
 Execute (go: revive):
   new
