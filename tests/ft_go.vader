@@ -59,7 +59,9 @@ Execute (go: golangci_lint):
 Execute (go: detects revive as linter):
   call g:NeomakeTestsCreateExe('revive', [])
   runtime autoload/neomake/makers/ft/go.vim
-  AssertEqual ['revive'], neomake#makers#ft#go#EnabledMakers()
+  " NOTE: just detecting revive is enough, if you know a simple way to do «'revive' in some_list»
+  " then go ahead
+  AssertEqual ['go', 'revive'], neomake#makers#ft#go#EnabledMakers()
 
 Execute (go: revive):
   new
