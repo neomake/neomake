@@ -19,6 +19,25 @@ Execute (python: errorformat):
   \ 'text': 'unexpected EOF while parsing'}]
   bwipe
 
+Execute (bandit: errorformat):
+  new
+  e tests/fixtures/python/password.py
+  call neomake#config#set('b:ft.python.python.exe', 'python3')
+  Neomake bandit
+  NeomakeTestsWaitForFinishedJobs
+
+  AssertEqualQf getloclist(0), [{
+  \ 'lnum': 6,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 17,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'W',
+  \ 'pattern': '',
+  \ 'text': 'Possible hardcoded password: ''hardcoded'' [B105] (MEDIUM confidence) (LOW severity)'}]
+  bwipe
+
 Execute (python: pylama: errorformat):
   Save &errorformat
   let &errorformat = neomake#makers#ft#python#pylama().errorformat
