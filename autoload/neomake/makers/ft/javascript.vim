@@ -45,8 +45,8 @@ function! neomake#makers#ft#javascript#ProcessEslint(context) abort
                         \ 'maker_name': 'eslint',
                         \ 'filename': file_data.filePath,
                         \ 'text': err.message,
-                        \ 'lnum': err.line,
-                        \ 'col': err.column,
+                        \ 'lnum': has_key(err, 'line') ? err.line : 0,
+                        \ 'col': has_key(err, 'column') ? err.column : 0,
                         \ 'type': type,
                         \ }
 
