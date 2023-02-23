@@ -6,7 +6,7 @@
 
 Neomake is a plugin for [Vim]/[Neovim] to asynchronously run programs.
 
-You can use it instead of the built-in `:make` command (since it can pick
+You can use `:Neomake!` instead of the built-in `:make` command (since it can pick
 up your `'makeprg'` setting), but its focus is on providing an extra layer
 of makers based on the current file (type) or project.
 Its origin is a proof-of-concept for [Syntastic] to be asynchronous.
