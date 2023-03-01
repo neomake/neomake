@@ -2,7 +2,9 @@
 
 function! neomake#makers#ft#go#EnabledMakers() abort
     let makers = ['go']
-    if executable('golangci-lint')
+    if executable('revive')
+        call add(makers, 'revive')
+    elseif executable('golangci-lint')
         call add(makers, 'golangci_lint')
     elseif executable('gometalinter')
         call add(makers, 'gometalinter')
@@ -77,6 +79,16 @@ function! neomake#makers#ft#go#golangci_lint() abort
         \ 'args': ['run', '--out-format=line-number', '--print-issued-lines=false'],
         \ 'output_stream': 'stdout',
         \ 'append_file': 0,
+        \ 'cwd': '%:h',
+        \ 'errorformat':
+            \ '%f:%l:%c: %m,' .
+            \ '%f:%l: %m'
+        \ }
+endfunction
+
+function! neomake#makers#ft#go#revive() abort
+    return {
+        \ 'exe': 'revive',
         \ 'cwd': '%:h',
         \ 'errorformat':
             \ '%f:%l:%c: %m,' .
