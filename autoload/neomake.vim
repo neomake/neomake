@@ -695,7 +695,7 @@ function! s:create_dirs_for_file(fpath) abort
     return created_dirs
 endfunction
 
-function! s:command_maker_base._bind_args() abort dict
+function! s:command_maker_base._bind_args(options) abort dict
     " Resolve args, which might be a function or dictionary.
     if type(self.args) == type(function('tr'))
         " Deprecated: use InitForJob
@@ -710,6 +710,22 @@ function! s:command_maker_base._bind_args() abort dict
     else
         let args = copy(self.args)
     endif
+
+    let append_args = neomake#utils#GetSetting('append_args', self, s:unset_dict, get(a:options, 'ft', ''), get(a:options, 'bufnr', bufnr('%')))
+    if append_args isnot s:unset_dict
+        if type(args) == type([])
+            if type(append_args) == type([])
+                call extend(args, append_args)
+            else
+                call add(args, append_args)
+            endif
+        elseif empty(args)
+            let args = append_args
+        else
+            let args .= ' '.append_args
+        endif
+    endif
+
     let self.args = args
     return self
 endfunction
