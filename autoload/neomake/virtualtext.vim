@@ -105,7 +105,7 @@ endif
 
 function! neomake#virtualtext#DefineHighlights() abort
     " NOTE: linking to SpellBad etc is bad/distracting (with undercurl).
-    call neomake#utils#define_derived_highlights('NeomakeVirtualtext%s', ['NONE', 'NONE'])
+    call neomake#setup#highlight#define_derived_highlights('NeomakeVirtualtext%s', ['NONE', 'NONE'])
 endfunction
 
 call neomake#virtualtext#DefineHighlights()

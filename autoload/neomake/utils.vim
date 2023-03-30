@@ -286,44 +286,6 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
     return a:default
 endfunction
 
-" Helper function to define default highlight for a:group (e.g.
-" "Neomake%sSign"), using fg from another highlight, abd given background.
-function! neomake#utils#define_derived_highlights(group_format, bg) abort
-    for [type, fg_from] in items({
-                \ 'Error': ['Error', 'bg'],
-                \ 'Warning': ['Todo', 'fg'],
-                \ 'Info': ['Question', 'fg'],
-                \ 'Message': ['ModeMsg', 'fg']
-                \ })
-        let group = printf(a:group_format, type)
-        call s:define_derived_highlight_group(group, fg_from, a:bg)
-    endfo
-endfunction
-
-function! s:define_derived_highlight_group(group, fg_from, bg) abort
-    let [fg_group, fg_attr] = a:fg_from
-    let [ctermbg, guibg] = a:bg
-    let bg = 'ctermbg='.ctermbg.' guibg='.guibg
-
-    " NOTE: fg falls back to "Normal" always, not bg (for e.g. "SignColumn")
-    " inbetween.
-    let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr, 'Normal')
-    let guifg = neomake#utils#GetHighlight(fg_group, fg_attr.'#', 'Normal')
-
-    " Ensure that we're not using bg as fg (as with gotham
-    " colorscheme, issue https://github.com/neomake/neomake/pull/659).
-    if ctermfg !=# 'NONE' && ctermfg ==# ctermbg
-        let ctermfg = neomake#utils#GetHighlight(fg_group, neomake#utils#ReverseSynIDattr(fg_attr))
-    endif
-    if guifg !=# 'NONE' && guifg ==# guibg
-        let guifg = neomake#utils#GetHighlight(fg_group, neomake#utils#ReverseSynIDattr(fg_attr).'#')
-    endif
-    exe 'hi '.a:group.'Default ctermfg='.ctermfg.' guifg='.guifg.' '.bg
-    if !neomake#utils#highlight_is_defined(a:group)
-        exe 'hi link '.a:group.' '.a:group.'Default'
-    endif
-endfunction
-
 " Get property from highlighting group.
 function! neomake#utils#GetHighlight(group, what, ...) abort
     let fallback = a:0 ? a:1 : ''

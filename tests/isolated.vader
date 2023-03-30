@@ -13,3 +13,4 @@ Include: isolated/statusline-highlights.vader
 Include: isolated/sign-highlights.vader
 Include: isolated/customqf.vader
 Include: isolated/signs.vader
+Include: isolated/setup-highlights.vader

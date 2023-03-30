@@ -8,32 +8,38 @@ Execute (neomake#signs#DefineHighlights: SignColumn bg=NONE):
   highlight! link SignColumn LineNr
   AssertEqual neomake#utils#GetHighlight('SignColumn', 'bg'), 'NONE'
   AssertEqual neomake#utils#GetHighlight('SignColumn', 'bg', 'Normal'), 'NONE'
+  doautocmd ColorScheme
 
   " Normal and Error are not defined.
-  call neomake#signs#DefineHighlights()
   let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
   \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
   AssertEqual highlights, [
-  \ 'NeomakeErrorSignDefault xxx cleared',
+  \ 'NeomakeErrorSignDefault xxx ctermfg=1 guifg=Red',
   \ ]
 
   " Normal is not defined, only fg for Error.
   highlight Error ctermfg=166 guifg=#e45649
-
-  call neomake#signs#DefineHighlights()
+  doautocmd ColorScheme
   let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
   \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
   AssertEqual highlights, [
-  \ 'NeomakeErrorSignDefault xxx cleared',
+  \ 'NeomakeErrorSignDefault xxx ctermfg=166 guifg=#e45649',
+  \ ]
+
+  " Normal is not defined, only bg for Error.
+  highlight Error ctermbg=166 guibg=#e45649
+  doautocmd ColorScheme
+  let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
+  \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
+  AssertEqual highlights, [
+  \ 'NeomakeErrorSignDefault xxx ctermfg=166 guifg=#e45649',
   \ ]
 
   highlight Normal ctermfg=23 ctermbg=255 guifg=#494b53 guibg=#fafafa
   AssertEqual neomake#utils#GetHighlight('SignColumn', 'bg', 'Normal'), '255'
-
-  call neomake#signs#DefineHighlights()
+  doautocmd ColorScheme
   let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
   \ 'v:val =~# ''^NeomakeError'''))
-
   AssertEqual highlights, [
   \ 'NeomakeError   xxx links to SpellBad',
   \ 'NeomakeErrorSign xxx links to NeomakeErrorSignDefault',
@@ -45,13 +51,13 @@ Execute (neomake#signs#DefineHighlights with "NONE" SignColumn, no Normal):
   hi clear SignColumn
   highlight SignColumn ctermfg=250 guifg=#c2c2c3
   highlight Error cterm=bold ctermfg=166 ctermbg=255 gui=bold guifg=#e45649 guibg=#fafafa
+  doautocmd ColorScheme
 
   call neomake#signs#DefineHighlights()
   let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
   \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
-
   AssertEqual highlights, [
-  \ 'NeomakeErrorSignDefault xxx ctermfg=255 guifg=#fafafa',
+  \ 'NeomakeErrorSignDefault xxx ctermfg=166 guifg=#e45649',
   \ ]
 
 Execute (neomake#signs#DefineHighlights: checks same gui bg/fg separately):
@@ -62,16 +68,16 @@ Execute (neomake#signs#DefineHighlights: checks same gui bg/fg separately):
   else
     hi clear Error
     hi clear SignColumn
+    doautocmd ColorScheme
 
-    call neomake#signs#DefineHighlights()
     let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
     \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
     AssertEqual highlights, [
     \ 'NeomakeErrorSignDefault xxx ctermbg=1 guibg=#aaaaaa',
     \ ]
 
-    highlight Error      ctermbg=1 guibg=#bbbbbb
-    call neomake#signs#DefineHighlights()
+    highlight Error ctermbg=1 guibg=#bbbbbb
+    doautocmd ColorScheme
     let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
     \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
     AssertEqual highlights, [
@@ -79,7 +85,7 @@ Execute (neomake#signs#DefineHighlights: checks same gui bg/fg separately):
     \ ]
 
     highlight SignColumn ctermbg=166 guifg=#bbbbbb
-    call neomake#signs#DefineHighlights()
+    doautocmd ColorScheme
     let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
     \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
     AssertEqual highlights, [
@@ -91,13 +97,13 @@ Execute (neomake#signs#DefineHighlights: all NONE):
   hi clear Error
   hi clear Normal
   hi clear SignColumn
+  doautocmd ColorScheme
 
   call neomake#signs#DefineHighlights()
   let highlights = sort(filter(split(neomake#utils#redir('hi'), '\n'),
   \ 'v:val =~# ''^NeomakeErrorSignDefault'''))
-
   AssertEqual highlights, [
-  \ 'NeomakeErrorSignDefault xxx cleared',
+  \ 'NeomakeErrorSignDefault xxx ctermfg=1 guifg=Red',
   \ ]
 
 Execute (neomake#utils#GetHighlight: correct mode with reverse):
