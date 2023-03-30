@@ -1,7 +1,7 @@
 " vim: ts=4 sw=4 et
 
 function! neomake#makers#ft#elm#EnabledMakers() abort
-    return ['elmMake']
+    return ['elmMake', 'elm']
 endfunction
 
 function! neomake#makers#ft#elm#elmMake() abort
@@ -50,4 +50,44 @@ function! neomake#makers#ft#elm#ElmMakeProcessOutput(context) abort
         endif
     endfor
     return errors
+endfunction
+
+function! neomake#makers#ft#elm#elm() abort
+    return {
+        \ 'exe': 'elm',
+        \ 'args': ['make', '--report=json', '--output=' . g:neomake#compat#dev_null],
+        \ 'process_output': function('neomake#makers#ft#elm#ElmProcessOutput')
+        \ }
+endfunction
+
+function! neomake#makers#ft#elm#ElmProcessOutput(context) abort
+    " output will be a List, containing either:
+    " 1) A success message
+    " 2) A string holding a JSON array for both warnings and errors
+
+    let ret = []
+    for errors in neomake#compat#json_decode(a:context.output)['errors']
+        for err in errors['problems']
+            let message = ''
+            for line in err['message']
+                if type(line) == v:t_string
+                    let message = message . line
+                elseif type(line) == v:t_dict
+                    let message = message . line['string']
+                endif
+            endfor
+
+            let curr = {
+                        \ 'text': err['title'] . ' | ' . message,
+                        \ 'lnum': err['region']['start']['line'],
+                        \ 'col': err['region']['start']['column'],
+                        \ 'length': err['region']['end']['column'] - err['region']['start']['column'],
+                        \ 'filename': errors['path'],
+                        \ 'type': 'E',
+                        \ }
+            call add(ret, curr)
+        endfor
+    endfor
+
+    return ret
 endfunction
