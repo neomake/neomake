@@ -167,7 +167,7 @@ Execute (NeomakeSh handles invalid shell):
     call g:NeomakeTestsCreateExe('cmd.exe', [])
     let &shell = 'cmd.exe'
     call neomake#Sh('dir ..')
-    AssertNeomakeMessage '\v^Could not run cmd.exe -c "dir .." 2>.*: Vim\(let\):E484: .*\.$', 0
+    AssertNeomakeMessage '\v^Could not run .*cmd\.exe -c "dir .." 2>.*: Vim\(let\):E484: .*\.$', 0
   endif
 
 Execute (neomake#Make with non-existing bufnr/winid/winnr):

@@ -115,7 +115,12 @@ function! s:maker_from_command._get_argv(jobinfo) abort dict
             call add(args, fname)
         endif
     endif
-    return neomake#compat#get_argv(self.exe, args, 1)
+    if has_key(a:jobinfo, 'cd_back_cmd') && has_key(self, 'exepath')
+        let exe = self.exepath
+    else
+        let exe = self.exe
+    endif
+    return neomake#compat#get_argv(exe, args, 1)
 endfunction
 
 " Create a maker object for a given command.
