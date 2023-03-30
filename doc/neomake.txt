@@ -996,7 +996,7 @@ Context:
 
                                                           *NeomakeJobFinished*
 The NeomakeJobFinished autocommand gets triggered after a single job has
-finished.
+finished (which includes canceled ones).
 Context:
  - `g:neomake_hook_context.jobinfo`: see |neomake-object-jobinfo|; `exit_code`
    is available there.

@@ -29,6 +29,21 @@ Execute (NeomakeJobFinished):
     AssertEqual jobinfo.bufnr, bufnr('%')
   endif
 
+Execute (NeomakeJobFinished):
+  if NeomakeAsyncTestsSetup()
+    let maker = extend(neomake#utils#MakerFromCommand('sleep 10 && echo done; exit 0'), {
+      \ 'errorformat': '%m'})
+    call neomake#Make(0, [maker])
+    let s:au_called = []
+    augroup neomake_tests
+      autocmd!
+      autocmd User NeomakeJobFinished AssertEqual has_key(g:neomake_hook_context.jobinfo, "exit_code"), 0
+      autocmd User NeomakeJobFinished call add(s:au_called, 1)
+    augroup END
+    NeomakeCancelJobs!
+    AssertEqual s:au_called, [1]
+  endif
+
 Execute (NeomakeJobStarted can renice process):
   if NeomakeAsyncTestsSetup()
     let maker = NeomakeTestsCommandMaker('nice-sleep', 'sleep .1')

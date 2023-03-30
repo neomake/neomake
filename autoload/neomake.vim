@@ -1368,10 +1368,9 @@ function! s:CleanJobinfo(jobinfo, ...) abort
     endif
 
     if !get(a:jobinfo, 'canceled', 0)
-                \ && !get(a:jobinfo, 'failed_to_start', 0)
         let make_info.finished_jobs += [a:jobinfo]
-        call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
     endif
+    call neomake#utils#hook('NeomakeJobFinished', {'jobinfo': a:jobinfo})
 
     call filter(make_info.active_jobs, 'v:val != a:jobinfo')
 
