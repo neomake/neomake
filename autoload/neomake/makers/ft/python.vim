@@ -115,8 +115,8 @@ function! neomake#makers#ft#python#flake8() abort
     let maker = {
         \ 'args': ['--format=default'],
         \ 'errorformat':
-            \ '%A%f:%l:%c: %t%n %m,' .
-            \ '%A%f:%l: %t%n %m,' .
+            \ '%A%f:%l:%c: %m,' .
+            \ '%A%f:%l: %m,' .
             \ '%-G%.%#',
         \ 'postprocess': function('neomake#makers#ft#python#Flake8EntryProcess'),
         \ 'short_name': 'fl8',
@@ -147,6 +147,13 @@ function! neomake#makers#ft#python#flake8() abort
 endfunction
 
 function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
+    let m = matchlist(a:entry.text, '\v^(\D+)(\d+) (.*)$')
+    if len(m) > 1
+        let type = m[1]
+        let a:entry.type = type[0]
+        let nr = m[2]
+        let a:entry.nr = nr
+    endif
     if a:entry.type ==# 'F'  " pyflakes
         " Ref: http://flake8.pycqa.org/en/latest/user/error-codes.html
         if a:entry.nr > 400 && a:entry.nr < 500
@@ -257,7 +264,6 @@ function! neomake#makers#ft#python#Flake8EntryProcess(entry) abort
         endif
     endif
 
-    let a:entry.text = a:entry.type . a:entry.nr . ' ' . a:entry.text
     let a:entry.type = type
     " Reset "nr" to Avoid redundancy with neomake#GetCurrentErrorMsg.
     " TODO: This is rather bad, since "nr" itself can be useful.
