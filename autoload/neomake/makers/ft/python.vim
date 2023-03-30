@@ -470,3 +470,21 @@ function! neomake#makers#ft#python#py3kwarn() abort
         \ 'errorformat': '%W%f:%l:%c: %m',
         \ }
 endfunction
+
+function! neomake#makers#ft#python#bandit() abort
+    return {
+        \ 'args': [
+            \ '--silent',
+            \ '--format=custom',
+            \ '--msg-template="{relpath}:{line}:{col}: {msg} [{test_id}] ({confidence} confidence) ({severity} severity)"',
+        \ ],
+        \ 'output_stream': 'stdout',
+        \ 'errorformat': '%W"%f:%l:%c: %m"',
+        \ 'postprocess': function('neomake#makers#ft#python#BanditEntryProcess'),
+    \ }
+endfunction
+
+function! neomake#makers#ft#python#BanditEntryProcess(entry) abort
+    " Bandit uses 0-indexed columns, vim uses 1-indexed columns
+    let a:entry.col += 1
+endfunction
