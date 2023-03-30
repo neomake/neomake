@@ -1,6 +1,8 @@
 Include: ../include/setup.vader
 
 Execute (neomake#signs#DefineHighlights: SignColumn bg=NONE):
+  " Explicitly trigger ColorScheme, for neovim-v0.1.7 at least (but not later).
+  doautocmd ColorScheme
   hi clear Error
   hi clear Normal
   hi clear LineNr
