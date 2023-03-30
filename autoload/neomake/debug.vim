@@ -216,7 +216,12 @@ function! neomake#debug#_get_info_lines() abort
     let r += [join(map(split(neomake#utils#redir('verb set makeprg?'), '\n'), 's:trim(v:val)'), ', ')]
 
     let r += ['']
-    let r += ['##### Enabled makers']
+    let focused_source = neomake#config#get_with_source('_saved_for_focus')[1]
+    if focused_source !=# 'default'
+        let r += [printf('##### Enabled makers (focused for %s)', focused_source)]
+    else
+        let r += ['##### Enabled makers']
+    endif
     let r += ['']
     let r += ['For the current filetype ("'.ft.'", used with :Neomake):']
     let r += s:get_makers_info(ft)

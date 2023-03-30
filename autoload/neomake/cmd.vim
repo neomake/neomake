@@ -186,9 +186,88 @@ function! neomake#cmd#display_status() abort
     endfor
     let msg .= '.'
 
+    " Information about focused makers.
+    let focused = neomake#config#get_with_source('_saved_for_focus')
+    if focused[1] !=# 'default'
+        " NOTE: only looks at new-style config.
+        let effective = neomake#config#get_with_source('enabled_makers')
+
+        if focused[0][-1][1] ==# effective[0]
+            let msg .= printf(' Focused %s for %s.', join(effective[0], ', '), focused[1])
+        else
+            let msg .= printf(' Focused for %s, but effective makers are different (%s != %s).',
+                        \ focused[1], join(focused[-1][1], ', '), join(effective[0], ', '))
+        endif
+    endif
+
     echom msg
     call neomake#log#debug(msg)
 endfunction
 " }}}
+
+function! s:update_for_focus() abort
+    call neomake#configure#automake()
+    call neomake#statusline#clear_cache()
+endfunction
+
+function! s:msg(msg) abort
+    echom a:msg
+    call neomake#log#debug(a:msg)
+endfunction
+
+function! neomake#cmd#focus(scope, ...) abort
+    let unset = g:neomake#config#undefined
+
+    let new = a:000
+    let cur = get(get(a:scope, 'neomake', {}), 'enabled_makers', unset)
+
+    let stash = get(get(a:scope, 'neomake', {}), '_saved_for_focus', [])
+
+    if !empty(stash)
+                \ && stash[-1][1] == a:000
+        call s:msg(printf('Already focused %s.', join(new, ', ')))
+    else
+        call add(stash, [cur, new])
+        call neomake#config#set_dict(a:scope, 'neomake._saved_for_focus', stash)
+        call s:msg(printf('Focusing %s.', join(new, ', ')))
+        call neomake#config#set_dict(a:scope, 'neomake.enabled_makers', a:000)
+        call s:update_for_focus()
+    endif
+endfunction
+
+function! neomake#cmd#unfocus(bang, scope, ...) abort
+    let unset = g:neomake#config#undefined
+
+    let stash = get(get(a:scope, 'neomake', {}), '_saved_for_focus', unset)
+    if stash is unset
+        call neomake#log#error('nothing to unfocus')
+        return
+    endif
+
+    if a:bang
+        " Back to orig/first.
+        let prev = stash[0][0]
+        let stash = []
+    else
+        let prev = remove(stash, -1)[0]
+    endif
+
+    " Update stash.
+    if empty(stash)
+        call neomake#config#unset_dict(a:scope, 'neomake._saved_for_focus')
+    else
+        call neomake#config#set_dict(a:scope, 'neomake._saved_for_focus', stash)
+    endif
+
+    if prev is unset
+        call s:msg('Unfocus: unset enabled_makers.')
+        call neomake#config#unset_dict(a:scope, 'neomake.enabled_makers')
+    else
+        call s:msg(printf('Unfocus: set enabled_makers back to %s.', join(prev, ', ')))
+        call neomake#config#set_dict(a:scope, 'neomake.enabled_makers', prev)
+    endif
+
+    call s:update_for_focus()
+endfunction
 
 " vim: ts=4 sw=4 et
