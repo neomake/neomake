@@ -35,10 +35,10 @@ function! neomake#signs#Reset(bufnr, type) abort
     endif
 endfunction
 
-let s:sign_order = {'neomake_file_err': 0, 'neomake_file_warn': 1,
-                 \  'neomake_file_info': 2, 'neomake_file_msg': 3,
-                 \  'neomake_project_err': 4, 'neomake_project_warn': 5,
-                 \  'neomake_project_info': 6, 'neomake_project_msg': 7}
+let s:sign_order = {'neomake_file_error': 0, 'neomake_file_warning': 1,
+                 \  'neomake_file_info': 2, 'neomake_file_message': 3,
+                 \  'neomake_project_error': 4, 'neomake_project_warning': 5,
+                 \  'neomake_project_info': 6, 'neomake_project_message': 7}
 
 " Get the defined signs for a:bufnr.
 " It returns a dictionary with line numbers as keys.
@@ -64,11 +64,11 @@ function! neomake#signs#by_lnum(bufnr) abort
 
     " Originally via ALE.
     " Matches output like :
-    " line=4  id=1  name=neomake_err
-    " строка=1  id=1000001  имя=neomake_err
-    " 行=1  識別子=1000001  名前=neomake_err
-    " línea=12 id=1000001 nombre=neomake_err
-    " riga=1 id=1000001, nome=neomake_err
+    " line=4  id=1  name=neomake_error
+    " строка=1  id=1000001  имя=neomake_error
+    " 行=1  識別子=1000001  名前=neomake_error
+    " línea=12 id=1000001 nombre=neomake_error
+    " riga=1 id=1000001, nome=neomake_error
     for line in reverse(signs_output[2:])
         " XXX: does not really match "name="
         "      (broken by patch-8.1.0614, but handled above)
@@ -87,7 +87,7 @@ function! neomake#signs#by_lnum(bufnr) abort
     return r
 endfunction
 
-let s:entry_to_sign_type = {'W': 'warn', 'I': 'info', 'M': 'msg'}
+let s:entry_to_sign_type = {'W': 'warning', 'I': 'info', 'M': 'message'}
 
 " Place signs for list a:entries in a:bufnr for a:type ('file' or 'project').
 " List items in a:entries need to have a "type" and "lnum" (non-zero) property.
@@ -107,7 +107,7 @@ function! neomake#signs#PlaceSigns(bufnr, entries, type) abort
         let lnum = entry.lnum
         let sign_type = printf('neomake_%s_%s',
                     \ a:type,
-                    \ get(s:entry_to_sign_type, toupper(entry.type), 'err'))
+                    \ get(s:entry_to_sign_type, toupper(entry.type), 'error'))
         if !exists('entries_by_linenr[lnum]')
                     \ || s:sign_order[entries_by_linenr[lnum]]
                     \    > s:sign_order[sign_type]
@@ -212,56 +212,37 @@ function! neomake#signs#RedefineSign(name, opts) abort
     exe sign_define
 endfunction
 
-function! neomake#signs#RedefineErrorSign(...) abort
-    let default_opts = {'text': '✖', 'texthl': 'NeomakeErrorSign'}
-    let opts = {}
-    if a:0
-        call extend(opts, a:1)
-    elseif exists('g:neomake_error_sign')
-        call extend(opts, g:neomake_error_sign)
+function! s:redefine_sign(type, text, opts) abort
+    let opts = {
+                \ 'text': a:text,
+                \ 'texthl': printf('Neomake%s%sSign', toupper(a:type[0]), a:type[1:]),
+                \ }
+    if !empty(a:opts)
+        call extend(opts, a:opts[0], 'force')
+    else
+        let cfg_name = 'neomake_'.a:type.'_sign'
+        if has_key(g:, cfg_name)
+            call extend(opts, get(g:, cfg_name), 'force')
+        endif
     endif
-    call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_file_err', opts)
-    call neomake#signs#RedefineSign('neomake_project_err', opts)
+    call neomake#signs#RedefineSign('neomake_file_'.a:type, opts)
+    call neomake#signs#RedefineSign('neomake_project_'.a:type, opts)
+endfunction
+
+function! neomake#signs#RedefineErrorSign(...) abort
+    call s:redefine_sign('error', '✖', a:000)
 endfunction
 
 function! neomake#signs#RedefineWarningSign(...) abort
-    let default_opts = {'text': '‼', 'texthl': 'NeomakeWarningSign'}
-    let opts = {}
-    if a:0
-        call extend(opts, a:1)
-    elseif exists('g:neomake_warning_sign')
-        call extend(opts, g:neomake_warning_sign)
-    endif
-    call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_file_warn', opts)
-    call neomake#signs#RedefineSign('neomake_project_warn', opts)
+    call s:redefine_sign('warning', '‼', a:000)
 endfunction
 
 function! neomake#signs#RedefineMessageSign(...) abort
-    let default_opts = {'text': '➤', 'texthl': 'NeomakeMessageSign'}
-    let opts = {}
-    if a:0
-        call extend(opts, a:1)
-    elseif exists('g:neomake_message_sign')
-        call extend(opts, g:neomake_message_sign)
-    endif
-    call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_file_msg', opts)
-    call neomake#signs#RedefineSign('neomake_project_msg', opts)
+    call s:redefine_sign('message', '➤', a:000)
 endfunction
 
 function! neomake#signs#RedefineInfoSign(...) abort
-    let default_opts = {'text': 'ℹ', 'texthl': 'NeomakeInfoSign'}
-    let opts = {}
-    if a:0
-        call extend(opts, a:1)
-    elseif exists('g:neomake_info_sign')
-        call extend(opts, g:neomake_info_sign)
-    endif
-    call extend(opts, default_opts, 'keep')
-    call neomake#signs#RedefineSign('neomake_file_info', opts)
-    call neomake#signs#RedefineSign('neomake_project_info', opts)
+    call s:redefine_sign('info', 'ℹ', a:000)
 endfunction
 
 function! neomake#signs#DefineHighlights() abort
