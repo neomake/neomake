@@ -532,7 +532,7 @@ function! neomake#utils#path_sep() abort
     return neomake#utils#IsRunningWindows() ? ';' : ':'
 endfunction
 
-" Find a file matching `a:glob` (using `globpath()`) by going up the
+" Find a file/dir matching `a:glob` (using `globpath()`) by going up the
 " directories from the start directory (a:1, defaults to `expand('%:p:h')`,
 " i.e. the directory of the current buffer's file).)
 function! neomake#utils#FindGlobFile(glob, ...) abort
@@ -550,6 +550,43 @@ function! neomake#utils#FindGlobFile(glob, ...) abort
         endif
     endwhile
     return ''
+endfunction
+
+" Find the nearest file of the given filenames (upwards).
+" (provides better performance than `neomake#utils#FindGlobFile`).
+" a:1: optional start dir, defaulting to "current buffer" (".").
+function! neomake#utils#find_nearest_file_upwards(fnames, ...) abort
+    if !empty(&suffixesadd)
+        let saved_suffixesadd = &suffixesadd
+        let &suffixesadd = ''
+    endif
+    " NOTE: findfile requires an absolute path, except for special '.'.
+    let path = (a:0 ? fnamemodify(a:1, ':p') : '.') . ';'
+    let found = ''
+    let found_parts_count = 0
+    for fname in a:fnames
+        let ffname = findfile(fname, path)
+        if empty(ffname)
+            continue
+        endif
+
+        let abs_ffname = fnamemodify(ffname, ':p')
+        if isdirectory(abs_ffname)
+            " Remove trailing slash.
+            let abs_ffname = fnamemodify(ffname, ':h')
+        endif
+        let abs_dir = fnamemodify(abs_ffname, ':h')
+        let part_count = len(split(abs_dir, neomake#utils#Slash()))
+        if part_count > found_parts_count
+            let found = abs_ffname
+            let found_parts_count = part_count
+            let path = fnamemodify(found, ':h') . '.'
+        endif
+    endfor
+    if exists('l:saved_suffixesadd')
+        let &suffixesadd = saved_suffixesadd
+    endif
+    return found
 endfunction
 
 function! neomake#utils#JSONdecode(json) abort
