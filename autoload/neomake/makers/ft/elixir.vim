@@ -54,7 +54,7 @@ endfunction
 
 function! neomake#makers#ft#elixir#mix() abort
     return {
-      \ 'exe' : 'mix',
+      \ 'exe' : 'MIX_ENV=test mix',
       \ 'args': ['compile', '--warnings-as-errors'],
       \ 'postprocess': function('neomake#makers#ft#elixir#PostprocessEnforceMaxBufferLine'),
       \ 'errorformat':
