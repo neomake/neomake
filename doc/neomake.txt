@@ -1053,4 +1053,12 @@ Here are some tips to develop the 'errorformat' setting for makers:
    display the raw data.
 5. Pay attention to the "`valid`" property of entries.
 
+6.4 Neomake quickfix displays all errors in the top-level directory~
+
+Neomake processes 'makeprg' stdout first, and then stderr. Since the directory
+changes are part of the stdout output, they are not taken into account when
+displaying errors (which belong to stderr output).
+This can be fixed by appending "2&>1" to your 'makeprg' command (or whatever
+your 'shellpipe' is).
+
 vim: ft=help tw=78 isk+=<,>,\:,-,'
