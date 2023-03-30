@@ -405,3 +405,18 @@ Execute (supports_stdin: adjusted args get expanded correctly):
   AssertEqual map(getloclist(0), 'v:val.text'), ['testfile -']
   bwipe
   bwipe
+
+Execute (supports_stdin is not called/used without append_file):
+  " Test for current/documented behavior.
+  let maker = {
+    \ 'exe': 'true',
+    \ 'append_file': 0,
+    \ 'errorformat': '%f:%m',
+    \ }
+  function maker.supports_stdin(jobinfo)
+    echoerr "should_not_be_called"
+  endfunction
+  new
+  call neomake#Make(1, [maker])
+  NeomakeTestsWaitForFinishedJobs
+  bwipe!
