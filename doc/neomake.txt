@@ -1053,4 +1053,39 @@ Here are some tips to develop the 'errorformat' setting for makers:
    display the raw data.
 5. Pay attention to the "`valid`" property of entries.
 
+                                               *neomake-faq-local-executables*
+                                               *neomake-faq-eslint*
+
+6.4 How to prefer local over global executables?~
+
+Some programs such as eslint are typically found in both a global and a local
+location. The global location is usually included in your shell path, whereas
+the path to the locally installed executable for the current project is often
+not included in your path (run `$ echo $PATH` in your shell to see the current
+path).
+
+Neomake itself has no special logic to determine the correct path to any
+executable, meaning if for example eslint is only available globally, that's
+what Neomake will use. This often breaks eslint, since the plugins installed
+in your local project are not also installed globally.
+
+There are several ways of addressing this issue:
+
+- Use a plugin such as https://github.com/benjie/local-npm-bin.vim
+- Set the executable path through |neomake-object-maker| or
+  |neomake-makers-properties|.
+  For certain configurations this can result in
+  issues with the current working directory (see
+  https://github.com/neomake/neomake/issues/2340#issue-424879342).
+- Add `$PWD/node_modules/.bin` to your shell path, *before* the entry for the
+  global executables. Keep in mind that your shell path is set upon
+  initializiation of the shell. If you start your shell in your home
+  directory, then navigate to the project and start neovim, Neomake won't be
+  able to find any local executables, since `$PWD` is still your home
+  directory. There are various ways of dynamically adjusting `$PATH` when
+  using `cd` and the specifics depend on your shell (for example
+  https://github.com/Tarrasch/zsh-autoenv).
+
+See https://github.com/neomake/neomake/issues/247 for even more suggestions.
+
 vim: ft=help tw=78 isk+=<,>,\:,-,'
