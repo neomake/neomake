@@ -290,8 +290,8 @@ endfunction
 " "Neomake%sSign"), using fg from another highlight, abd given background.
 function! neomake#utils#define_derived_highlights(group_format, bg) abort
     for [type, fg_from] in items({
-                \ 'Error': ['Error', 'bg'],
-                \ 'Warning': ['Todo', 'fg'],
+                \ 'Error': ['ErrorMsg', 'bg'],
+                \ 'Warning': ['WarningMsg', 'fg'],
                 \ 'Info': ['Question', 'fg'],
                 \ 'Message': ['ModeMsg', 'fg']
                 \ })
