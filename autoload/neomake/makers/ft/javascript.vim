@@ -1,5 +1,8 @@
 " vim: ts=4 sw=4 et
 
+let g:neomake#makers#ft#javascript#project_root_files = ['node_modules']
+let g:neomake#makers#ft#javascript#extra_bin_dirs = ['{{project_root}}/node_modules/.bin']
+
 function! neomake#makers#ft#javascript#EnabledMakers() abort
     return ['jshint', 'jscs',
                 \ executable('eslint_d') ? 'eslint_d' : 'eslint',

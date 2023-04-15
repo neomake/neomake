@@ -108,3 +108,24 @@ Execute (javascript: flow: no trailing newline):
   " Replaced newline in log message.
   AssertNeomakeMessage "\\VModified list entry 1 (postprocess): {'changed': {'text': ['11\\\\nError: Cannot call `list` because a callable signature is missing in exports [1].', 'Error: Cannot call `list` because a callable signature is missing in exports [1].']}, 'added': {'length': 2}}."
   bwipe
+
+Execute (javascript: find makers via node_modules/.bin):
+  if !exists('*setfperm')
+    NeomakeTestsSkip 'only with setfperm()'
+  else
+    let project_dir = tempname()
+    call mkdir(project_dir)
+
+    new
+    exe 'lcd' project_dir
+    call mkdir('node_modules/.bin', 'p')
+    let exe = 'node_modules/.bin/eslint'
+    call writefile([], exe)
+    call setfperm(exe, 'rwxrwx---')
+
+    noautocmd setfiletype javascript
+
+    CallNeomake 1, ['eslint']
+    AssertNeomakeMessage '\VStarting\.\*: '.fnamemodify(exe, ':p')
+    bwipe
+  endif

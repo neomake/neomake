@@ -1,6 +1,8 @@
 " vim: ts=4 sw=4 et
 scriptencoding utf-8
 
+let s:undefined_list = []
+
 " Get verbosity, optionally based on jobinfo's make_id (a:1).
 function! neomake#utils#get_verbosity(...) abort
     if a:0 && has_key(a:1, 'make_id')
@@ -717,6 +719,36 @@ function! neomake#utils#get_project_root(...) abort
         endif
     endfor
     call neomake#config#set_buffer(bufnr, 'project_root', r)
+    return r
+endfunction
+
+" Get extra bin directories.
+" a:1 buffer number (defaults to current)
+function! neomake#utils#get_extra_bin_dirs(...) abort
+    let bufnr = a:0 ? a:1 : bufnr('%')
+    let bufcfg = getbufvar(bufnr, 'neomake')
+    if !empty(bufcfg)
+        let r = get(bufcfg, '_resolved_extra_bin_dirs', s:undefined_list)
+        if r isnot s:undefined_list
+            return r
+        endif
+    endif
+    let ft = getbufvar(bufnr, '&filetype')
+
+    let r = neomake#utils#GetSetting('extra_bin_dirs', {}, s:undefined_list, ft, bufnr, 0)
+    if r is s:undefined_list
+        call neomake#utils#load_ft_makers(ft)
+        let r = get(g:, 'neomake#makers#ft#'.ft.'#extra_bin_dirs', [])
+    endif
+
+    " Substitute project_root placeholder (if used).
+    if !empty(filter(copy(r), 'v:val =~# ''\V{{project_root}}'''))
+        let project_root = neomake#utils#get_project_root(bufnr)
+        call map(r, 'substitute(v:val, ''{{project_root}}'', project_root, ''g'')')
+    endif
+
+    " Save (cached).
+    call neomake#config#set_buffer(bufnr, '_resolved_extra_bin_dirs', r)
     return r
 endfunction
 

@@ -70,7 +70,25 @@ function! neomake#core#instantiate_maker(maker, options, check_exe) abort
             call neomake#log#debug(error.'.', options)
             return {}
         endif
-        if a:check_exe && !executable(maker.exe)
+        if !a:check_exe
+            return maker
+        endif
+
+        let executable = executable(maker.exe)
+        if !executable
+            let exe_lookup = neomake#utils#get_extra_bin_dirs(bufnr)
+            if !empty(exe_lookup)
+                for p in exe_lookup
+                    let check_exe = p . '/' . maker.exe
+                    if executable(check_exe)
+                        let maker.exe = check_exe
+                        let executable = 1
+                        break
+                    endif
+                endfor
+            endif
+        endif
+        if !executable
             if get(maker, 'auto_enabled', 0)
                 call neomake#log#debug(printf(
                             \ 'Exe (%s) of auto-configured maker %s is not executable, skipping.', maker.exe, maker.name), options)

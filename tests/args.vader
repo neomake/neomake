@@ -106,3 +106,44 @@ Execute (fname in args gets not expanded (maker from command list)):
     AssertNeomakeMessage "Starting [string]: printf '%s' '~'."
   endif
   bwipe
+
+Execute (fname in args gets not expanded (maker from command list)):
+  if !exists('*setfperm')
+    NeomakeTestsSkip 'only with setfperm()'
+  else
+    let bindir = tempname()
+    call mkdir(bindir)
+    let exe = bindir.'/custom-exe'
+    call writefile(['#!/bin/sh'], exe)
+    call setfperm(exe, 'rwxrwx---')
+
+    let maker = {}
+    let maker.exe = 'custom-exe'
+
+    new
+    CallNeomake 1, [maker]
+    AssertNeomakeMessage 'Exe (custom-exe) of maker unnamed_maker is not executable.', 0
+
+    " Still not found due to cache.
+    let b:neomake_extra_bin_dirs = [bindir]
+    CallNeomake 1, [maker]
+    AssertNeomakeMessage 'Exe (custom-exe) of maker unnamed_maker is not executable.', 0
+
+    unlet b:neomake._resolved_extra_bin_dirs
+    CallNeomake 1, [maker]
+    AssertNeomakeMessage 'exit: unnamed_maker: 0.'
+
+    " {{custom_root}} template via ft settings.
+    unlet b:neomake._resolved_extra_bin_dirs
+    unlet b:neomake_extra_bin_dirs
+    noautocmd setfiletype customft
+    let g:neomake#makers#ft#customft#extra_bin_dirs = ['{{project_root}}']
+
+    exe 'lcd' bindir
+    call writefile([], '.git')
+    CallNeomake 1, [maker]
+    AssertNeomakeMessage '\VStarting\.\*: '.exe
+    AssertNeomakeMessage 'exit: unnamed_maker: 0.'
+
+    bwipe
+  endif
