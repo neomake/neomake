@@ -475,7 +475,7 @@ function! neomake#makers#ft#python#ruff() abort
     let maker =  {
         \ 'exe': 'ruff',
         \ 'args': ['check', '--quiet', '--format', 'text'],
-        \ 'errorformat': '%f:%l:%c: %m',
+        \ 'errorformat': '%E%f:%l:%c: %m',
         \ }
 
     function! maker.InitForJob(jobinfo) abort
