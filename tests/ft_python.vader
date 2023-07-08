@@ -480,8 +480,8 @@ Execute (python: mypy):
 
   bwipe
 
-Execute (python: ruff):
-  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#python#flake8(), [
+Execute (python: ruff: file mode):
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#python#ruff(), [
   \ 'file1.py:2:21: F811 Redefinition of unused `os` from line 1',
   \ ])
   let maker.name = 'ruff'
@@ -500,3 +500,15 @@ Execute (python: ruff):
   \ 'pattern': '',
   \ 'text': 'F811 Redefinition of unused `os` from line 1'}]
   bwipe
+
+Execute (python: ruff: project mode):
+  let maker = neomake#GetMaker('ruff', 'python')
+  let options = {'file_mode': 0, 'bufnr': bufnr('%')}
+
+  let b:neomake = {'project_root': ''}
+  let bound_maker = neomake#core#instantiate_maker(maker, options, 0)
+  AssertEqual bound_maker.args[-1], '.'
+
+  let b:neomake = {'project_root': 'fake_project_root'}
+  let bound_maker = neomake#core#instantiate_maker(maker, options, 0)
+  AssertEqual bound_maker.args[-1], 'fake_project_root'
