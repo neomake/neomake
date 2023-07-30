@@ -64,6 +64,30 @@ function! neomake#makers#ft#tex#pdflatex() abort
                 \ }
 endfunction
 
+function! neomake#makers#ft#tex#lualatex() abort
+    return {
+               \ 'exe': 'lualatex',
+               \ 'args': ['-shell-escape', '-file-line-error', '-interaction', 'nonstopmode'],
+               \ 'errorformat': '%E%f:%l: %m'
+               \ }
+endfunction
+
+function! neomake#makers#ft#tex#xelatex() abort
+    return {
+               \ 'exe': 'xelatex',
+               \ 'args': ['-shell-escape', 'file-line-error', '-interaction', 'nonstopmode'],
+               \ 'errorformat': '%E%f:%l: %m'
+               \ }
+endfunction
+
+function! neomake#makers#ft#tex#uplatex() abort
+    return {
+               \ 'exe': 'uplatex',
+               \ 'args': ['-shell-escape', 'file-line-error', '-interaction', 'nonstopmode'],
+               \ 'errorformat': '%E%f:%l: %m'
+               \ }
+endfunction
+
 function! neomake#makers#ft#tex#proselint() abort
     return neomake#makers#ft#text#proselint()
 endfunction
