@@ -479,3 +479,36 @@ Execute (python: mypy):
   AssertEqual bound_maker.args, base_args + ['.', '--shadow-file', '%', bound_maker.tempfile_name]
 
   bwipe
+
+Execute (python: ruff: file mode):
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#python#ruff(), [
+  \ 'file1.py:2:21: F811 Redefinition of unused `os` from line 1',
+  \ ])
+  let maker.name = 'ruff'
+  new
+  file file1.py
+  CallNeomake 1, [maker]
+
+  AssertEqualQf getloclist(0), [{
+  \ 'lnum': 2,
+  \ 'bufnr': bufnr('%'),
+  \ 'col': 21,
+  \ 'valid': 1,
+  \ 'vcol': 0,
+  \ 'nr': -1,
+  \ 'type': 'E',
+  \ 'pattern': '',
+  \ 'text': 'F811 Redefinition of unused `os` from line 1'}]
+  bwipe
+
+Execute (python: ruff: project mode):
+  let maker = neomake#GetMaker('ruff', 'python')
+  let options = {'file_mode': 0, 'bufnr': bufnr('%')}
+
+  let b:neomake = {'project_root': ''}
+  let bound_maker = neomake#core#instantiate_maker(maker, options, 0)
+  AssertEqual bound_maker.args[-1], '.'
+
+  let b:neomake = {'project_root': 'fake_project_root'}
+  let bound_maker = neomake#core#instantiate_maker(maker, options, 0)
+  AssertEqual bound_maker.args[-1], 'fake_project_root'

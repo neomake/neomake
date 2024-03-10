@@ -20,7 +20,7 @@ function! neomake#makers#ft#python#EnabledMakers() abort
     return makers
 endfunction
 
-let neomake#makers#ft#python#project_root_files = ['setup.cfg', 'tox.ini']
+let neomake#makers#ft#python#project_root_files = ['setup.cfg', 'tox.ini', 'pyproject.toml']
 
 function! neomake#makers#ft#python#DetectPythonVersion() abort
     let output = neomake#compat#systemlist('python -V 2>&1')
@@ -469,4 +469,31 @@ function! neomake#makers#ft#python#py3kwarn() abort
     return {
         \ 'errorformat': '%W%f:%l:%c: %m',
         \ }
+endfunction
+
+function! neomake#makers#ft#python#ruff() abort
+    let maker =  {
+        \ 'exe': 'ruff',
+        \ 'args': ['check', '--quiet', '--no-fix', '--output-format', 'text'],
+        \ 'errorformat': '%E%f:%l:%c: %m',
+        \ }
+
+    function! maker.InitForJob(jobinfo) abort
+        if a:jobinfo.file_mode == 1
+            return self
+        endif
+
+        let maker = deepcopy(self)
+        let project_root = neomake#utils#get_project_root(a:jobinfo.bufnr)
+
+        if empty(project_root)
+            call add(maker.args, '.')
+        else
+            call add(maker.args, project_root)
+        endif
+
+        return maker
+    endfunction
+
+    return maker
 endfunction
